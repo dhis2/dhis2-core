@@ -209,13 +209,13 @@ public class SchemeIdResponseMapper {
   private void applyIdSchemeMapping(CommonParams params, Map<String, String> map) {
     if (isNotEmpty(params.getPrograms())) {
       for (Program program : params.getPrograms()) {
-        map.put(program.getUid(), program.getPropertyValue(params.getOutputIdScheme()));
+        map.put(program.getUid(), program.getDisplayPropertyValue(params.getOutputIdScheme()));
       }
     }
 
     if (isNotEmpty(params.delegate().getProgramStages())) {
       for (ProgramStage stage : params.delegate().getProgramStages()) {
-        map.put(stage.getUid(), stage.getPropertyValue(params.getOutputIdScheme()));
+        map.put(stage.getUid(), stage.getDisplayPropertyValue(params.getOutputIdScheme()));
       }
     }
 
@@ -223,7 +223,7 @@ public class SchemeIdResponseMapper {
       Set<Option> options = params.delegate().getItemsOptions();
 
       for (Option option : options) {
-        map.put(option.getCode(), option.getPropertyValue(params.getOutputIdScheme()));
+        map.put(option.getCode(), option.getDisplayPropertyValue(params.getOutputIdScheme()));
       }
     }
   }
@@ -244,13 +244,13 @@ public class SchemeIdResponseMapper {
     if (params.hasProgramStage()) {
       map.put(
           params.getProgramStage().getUid(),
-          params.getProgramStage().getPropertyValue(params.getOutputIdScheme()));
+          params.getProgramStage().getDisplayPropertyValue(params.getOutputIdScheme()));
     }
 
     if (params.hasProgram()) {
       map.put(
           params.getProgram().getUid(),
-          params.getProgram().getPropertyValue(params.getOutputIdScheme()));
+          params.getProgram().getDisplayPropertyValue(params.getOutputIdScheme()));
     }
 
     if (params instanceof EventQueryParams
@@ -258,7 +258,7 @@ public class SchemeIdResponseMapper {
       Set<Option> options = ((EventQueryParams) params).getItemOptions();
 
       for (Option option : options) {
-        map.put(option.getCode(), option.getPropertyValue(params.getOutputIdScheme()));
+        map.put(option.getCode(), option.getDisplayPropertyValue(params.getOutputIdScheme()));
       }
     }
   }

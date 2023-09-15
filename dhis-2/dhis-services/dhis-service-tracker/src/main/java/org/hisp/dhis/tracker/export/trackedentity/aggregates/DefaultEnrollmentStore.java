@@ -31,9 +31,9 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import java.util.List;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.EnrollmentRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.NoteRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.ProgramAttributeRowCallbackHandler;
@@ -53,12 +53,12 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
   private static final String GET_ATTRIBUTES = ProgramAttributeQuery.getQuery();
 
   private static final String GET_NOTES_SQL =
-      "select en.uid as key, tec.uid, tec.commenttext, "
-          + "tec.creator, tec.created "
-          + "from trackedentitycomment tec join enrollmentcomments enc "
-          + "on tec.trackedentitycommentid = enc.trackedentitycommentid "
-          + "join enrollment en on enc.enrollmentid = en.enrollmentid "
-          + "where enc.enrollmentid in (:ids)";
+      "select en.uid as key, n.uid, n.notetext, "
+          + "n.creator, n.created "
+          + "from note n join enrollment_notes enn "
+          + "on n.noteid = enn.noteid "
+          + "join enrollment en on enn.enrollmentid = en.enrollmentid "
+          + "where enn.enrollmentid in (:ids)";
 
   private static final String FILTER_OUT_DELETED_ENROLLMENTS = "en.deleted=false";
 
@@ -97,7 +97,7 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
   }
 
   @Override
-  public Multimap<String, TrackedEntityComment> getNotes(List<Long> ids) {
+  public Multimap<String, Note> getNotes(List<Long> ids) {
     return fetch(GET_NOTES_SQL, new NoteRowCallbackHandler(), ids);
   }
 

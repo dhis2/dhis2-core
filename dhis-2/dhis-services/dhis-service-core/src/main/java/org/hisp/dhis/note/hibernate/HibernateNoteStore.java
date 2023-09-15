@@ -25,13 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment.hibernate;
+package org.hisp.dhis.note.hibernate;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.note.Note;
+import org.hisp.dhis.note.NoteStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -40,24 +40,17 @@ import org.springframework.stereotype.Repository;
 /**
  * @author David Katuscak
  */
-@Repository("org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore")
-public class HibernateTrackedEntityCommentStore
-    extends HibernateIdentifiableObjectStore<TrackedEntityComment>
-    implements TrackedEntityCommentStore {
-  public HibernateTrackedEntityCommentStore(
+@Repository("org.hisp.dhis.trackedentitycomment.NoteStore")
+public class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note>
+    implements NoteStore {
+  public HibernateNoteStore(
       SessionFactory sessionFactory,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        TrackedEntityComment.class,
-        currentUserService,
-        aclService,
-        false);
+        sessionFactory, jdbcTemplate, publisher, Note.class, currentUserService, aclService, false);
   }
 
   @Override
@@ -65,7 +58,7 @@ public class HibernateTrackedEntityCommentStore
     return (boolean)
         sessionFactory
             .getCurrentSession()
-            .createNativeQuery("select exists(select 1 from trackedentitycomment where uid=:uid)")
+            .createNativeQuery("select exists(select 1 from note where uid=:uid)")
             .setParameter("uid", uid)
             .getSingleResult();
   }

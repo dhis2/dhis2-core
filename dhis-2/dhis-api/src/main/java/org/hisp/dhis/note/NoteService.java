@@ -25,36 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
-
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+package org.hisp.dhis.note;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * @author Chau Thu Tran
  */
-@RequiredArgsConstructor
-public class TrackedEntityCommentDeletionHandler
-    extends IdObjectDeletionHandler<TrackedEntityComment> {
-  private final TrackedEntityCommentService commentService;
+public interface NoteService {
+  String ID = NoteService.class.getName();
 
-  @Override
-  protected void registerHandler() {
-    whenDeleting(Enrollment.class, this::deleteEnrollment);
-    whenDeleting(Event.class, this::deleteEvent);
-  }
+  /**
+   * Adds an {@link Note}
+   *
+   * @param comment The to TrackedEntityComment add.
+   * @return A generated unique id of the added {@link Note}.
+   */
+  long addTrackedEntityComment(Note comment);
 
-  private void deleteEnrollment(Enrollment enrollment) {
-    for (TrackedEntityComment comment : enrollment.getComments()) {
-      commentService.deleteTrackedEntityComment(comment);
-    }
-  }
+  /**
+   * Deletes a {@link Note}.
+   *
+   * @param comment the TrackedEntityComment to delete.
+   */
+  void deleteTrackedEntityComment(Note comment);
 
-  private void deleteEvent(Event event) {
-    for (TrackedEntityComment comment : event.getComments()) {
-      commentService.deleteTrackedEntityComment(comment);
-    }
-  }
+  /**
+   * Checks for the existence of a TrackedEntityComment by UID.
+   *
+   * @param uid TrackedEntityComment UID to check for
+   * @return true/false depending on result
+   */
+  boolean trackedEntityCommentExists(String uid);
+
+  /**
+   * Updates an {@link Note}.
+   *
+   * @param comment the TrackedEntityComment to update.
+   */
+  void updateTrackedEntityComment(Note comment);
+
+  /**
+   * Returns a {@link Note}.
+   *
+   * @param id the id of the TrackedEntityComment to return.
+   * @return the TrackedEntityComment with the given id
+   */
+  Note getTrackedEntityComment(long id);
 }

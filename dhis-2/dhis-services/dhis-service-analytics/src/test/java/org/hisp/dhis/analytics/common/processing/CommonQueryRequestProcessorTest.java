@@ -134,7 +134,7 @@ class CommonQueryRequestProcessorTest {
             IllegalQueryException.class, () -> commonQueryRequestProcessor.process(request));
 
     assertEquals(
-        "parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]",
+        "Parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]",
         exception.getMessage());
   }
 
@@ -146,7 +146,7 @@ class CommonQueryRequestProcessorTest {
             IllegalQueryException.class, () -> commonQueryRequestProcessor.process(request));
 
     assertEquals(
-        "parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]",
+        "Parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]",
         exception.getMessage());
   }
 
@@ -158,7 +158,7 @@ class CommonQueryRequestProcessorTest {
           assertThrows(
               IllegalQueryException.class, () -> commonQueryRequestProcessor.process(request));
       assertEquals(
-          "parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]",
+          "Parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]",
           exception.getMessage());
     }
   }

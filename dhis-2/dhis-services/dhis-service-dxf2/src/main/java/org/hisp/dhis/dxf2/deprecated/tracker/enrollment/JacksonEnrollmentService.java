@@ -48,6 +48,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
@@ -59,7 +60,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -88,7 +88,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService {
       TrackedEntityAttributeService trackedEntityAttributeService,
       TrackedEntityAttributeValueService trackedEntityAttributeValueService,
       CurrentUserService currentUserService,
-      TrackedEntityCommentService commentService,
+      NoteService commentService,
       IdentifiableObjectManager manager,
       I18nManager i18nManager,
       UserService userService,

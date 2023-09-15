@@ -25,19 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
+package org.hisp.dhis.note;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
- * @author David Katuscak
+ * @author Chau Thu Tran
  */
-public interface TrackedEntityCommentStore extends IdentifiableObjectStore<TrackedEntityComment> {
-  /**
-   * Checks for the existence of a TrackedEntityComment by UID
-   *
-   * @param uid TrackedEntityComment UID to check for.
-   * @return true/false depending on result.
-   */
-  boolean exists(String uid);
+@JacksonXmlRootElement(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
+public class Note extends BaseIdentifiableObject {
+  private String noteText;
+
+  private String creator;
+
+  // -------------------------------------------------------------------------
+  // Constructor
+  // -------------------------------------------------------------------------
+
+  public Note() {}
+
+  public Note(String noteText, String creator) {
+    this.noteText = noteText;
+    this.creator = creator;
+  }
+
+  // -------------------------------------------------------------------------
+  // Getters/Setters
+  // -------------------------------------------------------------------------
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getNoteText() {
+    return noteText;
+  }
+
+  public void setNoteText(String noteText) {
+    this.noteText = noteText;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getCreator() {
+    return creator;
+  }
+
+  public void setCreator(String creator) {
+    this.creator = creator;
+  }
 }

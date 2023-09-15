@@ -6,14 +6,14 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" table="trackedentitycomment">
+  <class name="org.hisp.dhis.note.Note" table="note">
 
-    <id name="id" column="trackedentitycommentid">
+    <id name="id" column="noteid">
       <generator class="native" />
     </id>
     &identifiableProperties;
 
-    <property name="commentText" column="commenttext" type="text" />
+    <property name="noteText" column="notetext" type="text" />
 
     <property name="creator" column="creator" />
 

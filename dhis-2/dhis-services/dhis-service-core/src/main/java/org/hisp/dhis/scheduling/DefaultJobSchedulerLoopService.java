@@ -34,10 +34,8 @@ import static org.hisp.dhis.eventhook.EventUtils.schedulerStart;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -108,16 +106,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   @Override
   @Transactional(readOnly = true)
   public List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds) {
-    Set<JobType> types = EnumSet.noneOf(JobType.class);
-    return jobConfigurationService
-        .getDueJobConfigurations(dueInNextSeconds, false)
-        .filter(
-            config -> {
-              if (types.contains(config.getJobType())) return false;
-              types.add(config.getJobType());
-              return true;
-            })
-        .toList();
+    return jobConfigurationService.getDueJobConfigurations(dueInNextSeconds, true, false);
   }
 
   @Override

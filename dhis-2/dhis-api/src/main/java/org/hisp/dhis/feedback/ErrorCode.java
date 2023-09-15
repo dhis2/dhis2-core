@@ -47,7 +47,7 @@ public enum ErrorCode {
   E1103("Category option combo not found or not accessible: `{0}`"),
   E1104("Attribute option combo not found or not accessible: `{0}`"),
   E1105("Data set not found or not accessible: `{0}`"),
-  E1106("There are duplicate translation record for property `{0}` and locale `{1}`"),
+  E1106("There are duplicate translation records for property `{0}` and locale `{1}` on {2} `{3}`"),
   E1107("Object type `{0}` is not translatable"),
   E1108("Could not add item to collection: {0}"),
   E1109("Could not remove item from collection: {0}"),
@@ -188,6 +188,7 @@ public enum ErrorCode {
   E3031("Two factor authentication is not enabled"),
   E3032("User `{0}` does not have access to user role"),
   E3040("Could not resolve JwsAlgorithm from the JWK. Can not write a valid JWKSet"),
+  E3041("User `{0}` is not allowed to change a user having the ALL authority"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),
@@ -416,10 +417,10 @@ public enum ErrorCode {
   E7136("Program is not specified"),
   E7137("Expression is not parsable: `{0}`"),
   E7138("Invalid offset: `{0}`"),
-  E7139("programStatus and enrollmentStatus cannot be used together."),
+  E7139("Parameters programStatus and enrollmentStatus cannot be used together"),
   E7140(
-      "parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]"),
-  E7141("parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]"),
+      "Parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]"),
+  E7141("Parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]"),
   E7142("Program(s) `{0}` are not defined on Tracked Entity Type `{1}`"),
   E7143("Organisation unit or organisation unit level is not valid"),
   E7144(
@@ -477,6 +478,8 @@ public enum ErrorCode {
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
   E7301("At least one organisation unit group set must be specified"),
+  E7302(
+      "Invalid organisation unit sets specified: `{0}`. Please verify it and also ensure that the analytics job was run"),
 
   /* Debug analytics */
   E7400("Debug query must contain at least one data element, one period and one organisation unit"),

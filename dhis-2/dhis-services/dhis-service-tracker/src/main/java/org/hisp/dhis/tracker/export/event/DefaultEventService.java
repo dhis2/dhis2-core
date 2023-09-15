@@ -147,7 +147,7 @@ class DefaultEventService implements EventService {
       }
     }
 
-    result.getComments().addAll(event.getComments());
+    result.getNotes().addAll(event.getNotes());
 
     User user = currentUserService.getCurrentUser();
     if (eventParams.isIncludeRelationships()) {

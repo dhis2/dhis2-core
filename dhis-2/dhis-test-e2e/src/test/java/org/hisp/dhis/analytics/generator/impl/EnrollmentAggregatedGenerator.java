@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,49 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
+package org.hisp.dhis.analytics.generator.impl;
+
+import org.hisp.dhis.analytics.generator.Generator;
 
 /**
- * @author Chau Thu Tran
+ * Set of behaviour and settings required by the test generation of
+ * "/analytics/events/aggregate/{program}?" endpoint.
  */
-public interface TrackedEntityCommentService {
-  String ID = TrackedEntityCommentService.class.getName();
+public class EnrollmentAggregatedGenerator implements Generator {
+  @Override
+  public int getMaxTestsPerClass() {
+    return 4;
+  }
 
-  /**
-   * Adds an {@link TrackedEntityComment}
-   *
-   * @param comment The to TrackedEntityComment add.
-   * @return A generated unique id of the added {@link TrackedEntityComment}.
-   */
-  long addTrackedEntityComment(TrackedEntityComment comment);
+  @Override
+  public String getAction() {
+    return "aggregate";
+  }
 
-  /**
-   * Deletes a {@link TrackedEntityComment}.
-   *
-   * @param comment the TrackedEntityComment to delete.
-   */
-  void deleteTrackedEntityComment(TrackedEntityComment comment);
+  @Override
+  public String getClassNamePrefix() {
+    return "EnrollmentsAggregate";
+  }
 
-  /**
-   * Checks for the existence of a TrackedEntityComment by UID.
-   *
-   * @param uid TrackedEntityComment UID to check for
-   * @return true/false depending on result
-   */
-  boolean trackedEntityCommentExists(String uid);
+  @Override
+  public String getActionDeclaration() {
+    return "private final AnalyticsEnrollmentsActions actions = new AnalyticsEnrollmentsActions();";
+  }
 
-  /**
-   * Updates an {@link TrackedEntityComment}.
-   *
-   * @param comment the TrackedEntityComment to update.
-   */
-  void updateTrackedEntityComment(TrackedEntityComment comment);
+  @Override
+  public String getPackage() {
+    return "org.hisp.dhis.analytics.enrollment.aggregate";
+  }
 
-  /**
-   * Returns a {@link TrackedEntityComment}.
-   *
-   * @param id the id of the TrackedEntityComment to return.
-   * @return the TrackedEntityComment with the given id
-   */
-  TrackedEntityComment getTrackedEntityComment(long id);
+  @Override
+  public String getTopClassComment() {
+    return "Groups e2e tests for \"/enrollments/aggregate\" endpoint.";
+  }
+
+  @Override
+  public boolean assertMetaData() {
+    return true;
+  }
+
+  @Override
+  public boolean assertRowIndex() {
+    return false;
+  }
 }

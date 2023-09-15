@@ -51,7 +51,6 @@ public class DefaultEventReportService extends GenericAnalyticalObjectService<Ev
   // -------------------------------------------------------------------------
 
   @Override
-  @Transactional(readOnly = true)
   protected AnalyticalObjectStore<EventReport> getAnalyticalObjectStore() {
     return eventReportStore;
   }

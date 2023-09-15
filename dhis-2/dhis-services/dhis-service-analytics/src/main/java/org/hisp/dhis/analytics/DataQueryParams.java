@@ -447,6 +447,9 @@ public class DataQueryParams {
 
   protected String explainOrderId;
 
+  /** Indicates whether incoming request is not json content type and is for download */
+  protected boolean download;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -544,6 +547,7 @@ public class DataQueryParams {
     params.userOrgUnitType = this.userOrgUnitType;
     params.explainOrderId = this.explainOrderId;
     params.serverBaseUrl = this.serverBaseUrl;
+    params.download = this.download;
 
     return params;
   }
@@ -2038,6 +2042,10 @@ public class DataQueryParams {
     this.outputOrgUnitIdScheme = outputOrgUnitIdScheme;
   }
 
+  public void setDownloadFlag(boolean isDownload) {
+    this.download = isDownload;
+  }
+
   // -------------------------------------------------------------------------
   // Get and set methods for transient properties
   // -------------------------------------------------------------------------
@@ -2451,6 +2459,15 @@ public class DataQueryParams {
 
   public UserOrgUnitType getUserOrgUnitType() {
     return userOrgUnitType;
+  }
+
+  /**
+   * Returns download indicator.
+   *
+   * @return
+   */
+  public boolean isDownload() {
+    return download;
   }
 
   // -------------------------------------------------------------------------

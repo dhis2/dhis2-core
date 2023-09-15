@@ -47,7 +47,11 @@ import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.*;
+import static org.hisp.dhis.period.RelativePeriodEnum.THIS_YEAR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -90,6 +94,7 @@ import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -117,6 +122,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   private JdbcEventAnalyticsManager eventSubject;
 
+  private JdbcEnrollmentAnalyticsManager enrollmentSubject;
+
   private Program programA;
 
   private DataElement dataElementA;
@@ -138,6 +145,14 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorService,
             programIndicatorSubqueryBuilder,
             new EventTimeFieldSqlRenderer(statementBuilder),
+            executionPlanStore);
+
+    enrollmentSubject =
+        new JdbcEnrollmentAnalyticsManager(
+            jdbcTemplate,
+            programIndicatorService,
+            programIndicatorSubqueryBuilder,
+            new EnrollmentTimeFieldSqlRenderer(statementBuilder),
             executionPlanStore);
 
     programA = createProgram('A');
@@ -792,6 +807,44 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     eventSubject.addGridValue(grid, header, index, sqlRowSet, queryParams);
 
     assertTrue(grid.getColumn(0).contains(EMPTY), "Should contain empty value");
+  }
+
+  @Test
+  void testGetSelectClauseForAggregatedEnrollments() {
+    // Given
+    Period period = new Period(THIS_YEAR);
+    period.setPeriodType(new YearlyPeriodType());
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(createProgram('A'))
+            .withEndpointAction(AGGREGATE)
+            .withEndpointItem(ENROLLMENT)
+            .withPeriods(List.of(period), PeriodTypeEnum.YEARLY.getName())
+            .build();
+    // When
+    String select = enrollmentSubject.getSelectClause(params);
+    // Then
+    assertEquals("select pi,Yearly ", select);
+  }
+
+  @Test
+  void testGetSelectClauseForQueryEnrollments() {
+    // Given
+    Period period = new Period(THIS_YEAR);
+    period.setPeriodType(new YearlyPeriodType());
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(createProgram('A'))
+            .withEndpointAction(QUERY)
+            .withEndpointItem(ENROLLMENT)
+            .withPeriods(List.of(period), PeriodTypeEnum.YEARLY.getName())
+            .build();
+    // When
+    String select = enrollmentSubject.getSelectClause(params);
+    // Then
+    assertEquals(
+        "select pi,tei,enrollmentdate,incidentdate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ",
+        select);
   }
 
   private QueryFilter buildQueryFilter(QueryOperator operator, String filter) {

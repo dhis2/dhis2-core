@@ -228,8 +228,10 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("programnotificationinstance");
     emptyTable("trackedentitydatavalueaudit");
     emptyTable("trackedentityprogramowner");
-    emptyTable("eventcomments");
-    emptyTable("enrollmentcomments");
+
+    emptyTable("event_notes");
+    emptyTable("enrollment_notes");
+    emptyTable("note");
     emptyTable("event");
     emptyTable("enrollment");
     emptyTable("programnotificationtemplate");
@@ -323,7 +325,6 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("previouspasswords");
     emptyTable("usersetting");
     emptyTable("fileresource");
-    emptyTable("trackedentitycomment");
     emptyTable("userinfo");
     emptyTable("route");
 

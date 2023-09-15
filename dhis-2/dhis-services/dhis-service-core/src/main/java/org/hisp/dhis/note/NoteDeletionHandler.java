@@ -25,53 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
+package org.hisp.dhis.note;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 
 /**
- * @author Chau Thu Tran
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService")
-public class DefaultTrackedEntityCommentService implements TrackedEntityCommentService {
-  private final TrackedEntityCommentStore commentStore;
-
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
+public class NoteDeletionHandler extends IdObjectDeletionHandler<Note> {
+  private final NoteService commentService;
 
   @Override
-  @Transactional
-  public long addTrackedEntityComment(TrackedEntityComment comment) {
-    commentStore.save(comment);
-
-    return comment.getId();
+  protected void registerHandler() {
+    whenDeleting(Enrollment.class, this::deleteEnrollment);
+    whenDeleting(Event.class, this::deleteEvent);
   }
 
-  @Override
-  @Transactional
-  public void deleteTrackedEntityComment(TrackedEntityComment comment) {
-    commentStore.delete(comment);
+  private void deleteEnrollment(Enrollment enrollment) {
+    for (Note note : enrollment.getNotes()) {
+      commentService.deleteTrackedEntityComment(note);
+    }
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public boolean trackedEntityCommentExists(String uid) {
-    return commentStore.exists(uid);
-  }
-
-  @Override
-  @Transactional
-  public void updateTrackedEntityComment(TrackedEntityComment comment) {
-    commentStore.update(comment);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public TrackedEntityComment getTrackedEntityComment(long id) {
-    return commentStore.get(id);
+  private void deleteEvent(Event event) {
+    for (Note note : event.getNotes()) {
+      commentService.deleteTrackedEntityComment(note);
+    }
   }
 }

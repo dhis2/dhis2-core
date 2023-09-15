@@ -56,7 +56,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +76,7 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -92,7 +92,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -117,24 +116,24 @@ class JdbcEventStore implements EventStore {
       " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl FROM relationshipitem ri"
           + " GROUP by ri_ev_id)  as fgh on fgh.ri_ev_id=event.ev_id ";
 
-  private static final String EVENT_COMMENT_QUERY =
-      "select evc.eventid as evc_id,"
-          + " evnote.trackedentitycommentid as evnote_id,"
-          + " evnote.commenttext            as evnote_value,"
-          + " evnote.created                as evnote_storeddate,"
-          + " evnote.creator                as evnote_storedby,"
-          + " evnote.uid                    as evnote_uid,"
-          + " evnote.lastupdated            as evnote_lastupdated,"
-          + " userinfo.userinfoid            as evnote_user_id,"
-          + " userinfo.code                  as evnote_user_code,"
-          + " userinfo.uid                   as evnote_user_uid,"
-          + " userinfo.username              as evnote_user_username,"
-          + " userinfo.firstname             as evnote_user_firstname,"
-          + " userinfo.surname               as evnote_user_surname"
-          + " from eventcomments evc"
-          + " inner join trackedentitycomment evnote"
-          + " on evc.trackedentitycommentid = evnote.trackedentitycommentid"
-          + " left join userinfo on evnote.lastupdatedby = userinfo.userinfoid ";
+  private static final String EVENT_NOTE_QUERY =
+      "select evn.eventid as evn_id,"
+          + " n.noteid as note_id,"
+          + " n.notetext as note_text,"
+          + " n.created as note_created,"
+          + " n.creator as note_creator,"
+          + " n.uid as note_uid,"
+          + " n.lastupdated as note_lastupdated,"
+          + " userinfo.userinfoid as note_user_id,"
+          + " userinfo.code as note_user_code,"
+          + " userinfo.uid as note_user_uid,"
+          + " userinfo.username as note_user_username,"
+          + " userinfo.firstname as note_user_firstname,"
+          + " userinfo.surname as note_user_surname"
+          + " from event_notes evn"
+          + " inner join note n"
+          + " on evn.noteid = n.noteid"
+          + " left join userinfo on n.lastupdatedby = userinfo.userinfoid ";
 
   private static final String EVENT_STATUS_EQ = " ev.status = ";
 
@@ -156,7 +155,6 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_ENROLLMENT_STATUS = "en_status";
   private static final String COLUMN_ENROLLMENT_DATE = "en_enrollmentdate";
   private static final String COLUMN_ORG_UNIT_UID = "orgunit_uid";
-  private static final String COLUMN_ORG_UNIT_NAME = "orgunit_name";
   private static final String COLUMN_TRACKEDENTITY_UID = "te_uid";
   private static final String COLUMN_EVENT_EXECUTION_DATE = "ev_executiondate";
   private static final String COLUMN_ENROLLMENT_FOLLOWUP = "en_followup";
@@ -173,8 +171,11 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_EVENT_DELETED = "ev_deleted";
   private static final String COLUMN_EVENT_ASSIGNED_USER_USERNAME = "user_assigned_username";
   private static final String COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME = "user_assigned_name";
-
+  private static final String COLUMN_USER_UID = "u_uid";
+  private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
   private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
+  private static final String ORG_UNIT_PATH_LIKE_MATCH_QUERY =
+      " ou.path like CONCAT(:" + COLUMN_ORG_UNIT_PATH + ", '%' ) ";
 
   /**
    * Events can be ordered by given fields which correspond to fields on {@link
@@ -189,7 +190,6 @@ class JdbcEventStore implements EventStore {
           entry("enrollment.status", COLUMN_ENROLLMENT_STATUS),
           entry("enrollment.enrollmentDate", COLUMN_ENROLLMENT_DATE),
           entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
-          entry("organisationUnit.name", COLUMN_ORG_UNIT_NAME),
           entry("enrollment.trackedEntity.uid", COLUMN_TRACKEDENTITY_UID),
           entry("executionDate", COLUMN_EVENT_EXECUTION_DATE),
           entry("enrollment.followup", COLUMN_ENROLLMENT_FOLLOWUP),
@@ -206,10 +206,6 @@ class JdbcEventStore implements EventStore {
           entry("deleted", COLUMN_EVENT_DELETED),
           entry("assignedUser", COLUMN_EVENT_ASSIGNED_USER_USERNAME),
           entry("assignedUser.displayName", COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME));
-
-  private static final String PATH_LIKE = "path LIKE";
-
-  private static final String PATH_EQ = "path =";
 
   // -------------------------------------------------------------------------
   // Dependencies
@@ -276,11 +272,8 @@ class JdbcEventStore implements EventStore {
               event = eventsByUid.get(eventUid);
             } else {
               event = new Event();
+              event.setUid(eventUid);
               eventsByUid.put(eventUid, event);
-
-              if (!params.isSkipEventId()) {
-                event.setUid(eventUid);
-              }
 
               TrackedEntity te = new TrackedEntity();
               te.setUid(resultSet.getString(COLUMN_TRACKEDENTITY_UID));
@@ -295,7 +288,6 @@ class JdbcEventStore implements EventStore {
               enrollment.setTrackedEntity(te);
               OrganisationUnit ou = new OrganisationUnit();
               ou.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
-              ou.setName(resultSet.getString(COLUMN_ORG_UNIT_NAME));
               ProgramStage ps = new ProgramStage();
               ps.setUid(resultSet.getString("ps_identifier"));
               event.setDeleted(resultSet.getBoolean(COLUMN_EVENT_DELETED));
@@ -376,29 +368,29 @@ class JdbcEventStore implements EventStore {
               events.add(event);
             }
 
-            if (resultSet.getString("evnote_value") != null
-                && !notes.contains(resultSet.getString("evnote_id"))) {
-              TrackedEntityComment note = new TrackedEntityComment();
-              note.setUid(resultSet.getString("evnote_uid"));
-              note.setCommentText(resultSet.getString("evnote_value"));
-              note.setCreated(resultSet.getDate("evnote_storeddate"));
-              note.setCreator(resultSet.getString("evnote_storedby"));
+            if (resultSet.getString("note_text") != null
+                && !notes.contains(resultSet.getString("note_id"))) {
+              Note note = new Note();
+              note.setUid(resultSet.getString("note_uid"));
+              note.setNoteText(resultSet.getString("note_text"));
+              note.setCreated(resultSet.getDate("note_created"));
+              note.setCreator(resultSet.getString("note_creator"));
 
-              if (resultSet.getObject("evnote_user_id") != null) {
+              if (resultSet.getObject("note_user_id") != null) {
                 User noteLastUpdatedBy = new User();
-                noteLastUpdatedBy.setId(resultSet.getLong("evnote_user_id"));
-                noteLastUpdatedBy.setCode(resultSet.getString("evnote_user_code"));
-                noteLastUpdatedBy.setUid(resultSet.getString("evnote_user_uid"));
-                noteLastUpdatedBy.setUsername(resultSet.getString("evnote_user_username"));
-                noteLastUpdatedBy.setFirstName(resultSet.getString("evnote_user_firstname"));
-                noteLastUpdatedBy.setSurname(resultSet.getString("evnote_user_surname"));
+                noteLastUpdatedBy.setId(resultSet.getLong("note_user_id"));
+                noteLastUpdatedBy.setCode(resultSet.getString("note_user_code"));
+                noteLastUpdatedBy.setUid(resultSet.getString("note_user_uid"));
+                noteLastUpdatedBy.setUsername(resultSet.getString("note_user_username"));
+                noteLastUpdatedBy.setFirstName(resultSet.getString("note_user_firstname"));
+                noteLastUpdatedBy.setSurname(resultSet.getString("note_user_surname"));
                 note.setLastUpdatedBy(noteLastUpdatedBy);
               }
 
-              note.setLastUpdated(resultSet.getDate("evnote_lastupdated"));
+              note.setLastUpdated(resultSet.getDate("note_lastupdated"));
 
-              event.getComments().add(note);
-              notes.add(resultSet.getString("evnote_id"));
+              event.getNotes().add(note);
+              notes.add(resultSet.getString("note_id"));
             }
           }
 
@@ -534,7 +526,7 @@ class JdbcEventStore implements EventStore {
   }
 
   /**
-   * Query is based on three sub queries on event, data value and comment, which are joined using
+   * Query is based on three sub queries on event, data value and note, which are joined using
    * program stage instance id. The purpose of the separate queries is to be able to page properly
    * on events.
    */
@@ -556,11 +548,11 @@ class JdbcEventStore implements EventStore {
       sqlBuilder.append(") as att on event.te_id=att.pav_id left join (");
     }
 
-    sqlBuilder.append(EVENT_COMMENT_QUERY);
+    sqlBuilder.append(EVENT_NOTE_QUERY);
 
     sqlBuilder.append(") as cm on event.");
     sqlBuilder.append(COLUMN_EVENT_ID);
-    sqlBuilder.append("=cm.evc_id ");
+    sqlBuilder.append("=cm.evn_id ");
 
     if (params.isIncludeRelationships()) {
       sqlBuilder.append(RELATIONSHIP_IDS_QUERY);
@@ -739,9 +731,7 @@ class JdbcEventStore implements EventStore {
                 + ", en.enrollmentdate as "
                 + COLUMN_ENROLLMENT_DATE
                 + ", en.incidentdate as en_incidentdate, ")
-        .append("p.type as p_type, ou.name as ")
-        .append(COLUMN_ORG_UNIT_NAME)
-        .append(", ")
+        .append("p.type as p_type, ")
         .append("te.trackedentityid as te_id, te.uid as ")
         .append(COLUMN_TRACKEDENTITY_UID)
         .append(
@@ -920,10 +910,10 @@ class JdbcEventStore implements EventStore {
           .append(" ");
     }
 
-    String orgUnitSql = getOrgUnitSql(params, getOuTableName(params));
+    String orgUnitSql = getOrgUnitSql(params, user, mapSqlParameterSource);
 
     if (!Strings.isNullOrEmpty(orgUnitSql)) {
-      fromBuilder.append(hlp.whereAnd()).append(" (").append(orgUnitSql).append(") ");
+      fromBuilder.append(hlp.whereAnd()).append(orgUnitSql);
     }
 
     if (params.getStartDate() != null) {
@@ -1021,13 +1011,99 @@ class JdbcEventStore implements EventStore {
     return fromBuilder;
   }
 
-  private String getOrgUnitSql(EventQueryParams params, String ouTable) {
+  private String getOrgUnitSql(
+      EventQueryParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
     return switch (params.getOrgUnitMode()) {
-      case SELECTED -> getSelectedOrgUnitPath(params.getAccessibleOrgUnits(), ouTable);
-      case CHILDREN -> getChildrenOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
+      case CAPTURE -> createCaptureSql(user, mapSqlParameterSource);
+      case ACCESSIBLE -> createAccessibleSql(user, params, mapSqlParameterSource);
+      case DESCENDANTS -> createDescendantsSql(user, params, mapSqlParameterSource);
+      case CHILDREN -> createChildrenSql(user, params, mapSqlParameterSource);
+      case SELECTED -> createSelectedSql(user, params, mapSqlParameterSource);
       case ALL -> null;
-      default -> getOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
     };
+  }
+
+  private String createCaptureSql(User user, MapSqlParameterSource mapSqlParameterSource) {
+    return createCaptureScopeQuery(user, mapSqlParameterSource, "");
+  }
+
+  private String createAccessibleSql(
+      User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+
+    if (isProgramRestricted(params.getProgram())) {
+      return createCaptureSql(user, mapSqlParameterSource);
+    }
+
+    return "";
+  }
+
+  private String createDescendantsSql(
+      User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+
+    if (isProgramRestricted(params.getProgram())) {
+      return createCaptureScopeQuery(
+          user, mapSqlParameterSource, AND + ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+    }
+
+    return ORG_UNIT_PATH_LIKE_MATCH_QUERY;
+  }
+
+  private String createChildrenSql(
+      User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+
+    if (isProgramRestricted(params.getProgram())) {
+      String childrenSqlClause =
+          AND
+              + ORG_UNIT_PATH_LIKE_MATCH_QUERY
+              + " AND (ou.hierarchylevel = "
+              + params.getOrgUnit().getHierarchyLevel()
+              + " OR ou.hierarchylevel = "
+              + (params.getOrgUnit().getHierarchyLevel() + 1)
+              + " )";
+
+      return createCaptureScopeQuery(user, mapSqlParameterSource, childrenSqlClause);
+    }
+
+    return ORG_UNIT_PATH_LIKE_MATCH_QUERY
+        + " AND (ou.hierarchylevel = "
+        + params.getOrgUnit().getHierarchyLevel()
+        + " OR ou.hierarchylevel = "
+        + (params.getOrgUnit().getHierarchyLevel() + 1)
+        + " ) ";
+  }
+
+  private String createSelectedSql(
+      User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+
+    String orgUnitPathEqualsMatchQuery = " ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
+    if (isProgramRestricted(params.getProgram())) {
+      String customSelectedClause = AND + orgUnitPathEqualsMatchQuery;
+      return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
+    }
+
+    return orgUnitPathEqualsMatchQuery;
+  }
+
+  private boolean isProgramRestricted(Program program) {
+    return program != null && (program.isProtected() || program.isClosed());
+  }
+
+  private String createCaptureScopeQuery(
+      User user, MapSqlParameterSource mapSqlParameterSource, String customClause) {
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+
+    return " EXISTS(SELECT cs.organisationunitid "
+        + " FROM usermembership cs "
+        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = cs.organisationunitid "
+        + " JOIN userinfo u ON u.userinfoid = cs.userinfoid "
+        + " WHERE u.uid = :"
+        + COLUMN_USER_UID
+        + " AND ou.path like CONCAT(orgunit.path, '%') "
+        + customClause
+        + ") ";
   }
 
   /**
@@ -1382,42 +1458,5 @@ class JdbcEventStore implements EventStore {
               .map(ProgramStage::getUid)
               .collect(Collectors.toSet()));
     }
-  }
-
-  private String getChildrenOrgUnitsPath(List<OrganisationUnit> orgUnits, String ouTable) {
-    StringJoiner orgUnitSqlJoiner = new StringJoiner(" or ");
-
-    for (OrganisationUnit orgUnit : orgUnits) {
-      orgUnitSqlJoiner.add(
-          ouTable
-              + "."
-              + PATH_LIKE
-              + " '"
-              + orgUnit.getPath()
-              + "%' "
-              + " and "
-              + ouTable
-              + "."
-              + "hierarchylevel = "
-              + orgUnit.getLevel());
-    }
-
-    return orgUnitSqlJoiner.toString();
-  }
-
-  private String getSelectedOrgUnitPath(List<OrganisationUnit> orgUnits, String ouTable) {
-    return orgUnits.isEmpty()
-        ? null
-        : ouTable + "." + PATH_EQ + " '" + orgUnits.get(0).getPath() + "' ";
-  }
-
-  private String getOrgUnitsPath(List<OrganisationUnit> orgUnits, String ouTable) {
-    StringJoiner orgUnitSqlJoiner = new StringJoiner(" or ");
-
-    for (OrganisationUnit orgUnit : orgUnits) {
-      orgUnitSqlJoiner.add(ouTable + "." + PATH_LIKE + " '" + orgUnit.getPath() + "%' ");
-    }
-
-    return orgUnitSqlJoiner.toString();
   }
 }
