@@ -30,17 +30,26 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
 
+import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -95,6 +104,8 @@ class TrackedEntityRequestParamsMapper {
             requestParams.getTrackedEntities());
     validateOrderParams(requestParams.getOrder(), ORDERABLE_FIELD_NAMES, "attribute");
 
+    Map<String, List<QueryFilter>> filters = parseFilters(requestParams.getFilter());
+
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()
             .programUid(
@@ -126,7 +137,7 @@ class TrackedEntityRequestParamsMapper {
                     requestParams.getAssignedUserMode(), user, UID.toValueSet(assignedUsers)))
             .user(user)
             .trackedEntityUids(UID.toValueSet(trackedEntities))
-            .filters(requestParams.getFilter())
+            .filters(filters)
             .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
             .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
             .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
@@ -154,5 +165,44 @@ class TrackedEntityRequestParamsMapper {
         builder.orderBy(UID.of(order.getField()), order.getDirection());
       }
     }
+  }
+
+  private void validateDuplicatedAttributeFilters(List<QueryItem> attributeItems)
+      throws BadRequestException {
+    Set<DimensionalItemObject> duplicatedAttributes = getDuplicatedAttributes(attributeItems);
+
+    if (!duplicatedAttributes.isEmpty()) {
+      List<String> errorMessages = new ArrayList<>();
+      for (DimensionalItemObject duplicatedAttribute : duplicatedAttributes) {
+        List<String> duplicatedFilters = getDuplicatedFilters(attributeItems, duplicatedAttribute);
+        String message =
+            MessageFormat.format(
+                "Filter for attribute {0} was specified more than once. "
+                    + "Try to define a single filter with multiple operators [{0}:{1}]",
+                duplicatedAttribute.getUid(), StringUtils.join(duplicatedFilters, ':'));
+        errorMessages.add(message);
+      }
+
+      throw new BadRequestException(StringUtils.join(errorMessages, ", "));
+    }
+  }
+
+  private List<String> getDuplicatedFilters(
+      List<QueryItem> attributeItems, DimensionalItemObject duplicatedAttribute) {
+    return attributeItems.stream()
+        .filter(q -> Objects.equals(q.getItem(), duplicatedAttribute))
+        .flatMap(q -> q.getFilters().stream())
+        .map(f -> f.getOperator() + ":" + f.getFilter())
+        .toList();
+  }
+
+  private Set<DimensionalItemObject> getDuplicatedAttributes(List<QueryItem> attributeItems) {
+    return attributeItems.stream()
+        .collect(Collectors.groupingBy(QueryItem::getItem, Collectors.counting()))
+        .entrySet()
+        .stream()
+        .filter(m -> m.getValue() > 1)
+        .map(Map.Entry::getKey)
+        .collect(Collectors.toSet());
   }
 }

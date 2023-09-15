@@ -55,7 +55,6 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -348,7 +347,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (!params.hasProgram()) {
       Collection<TrackedEntityAttribute> attributes =
           trackedEntityAttributeService.getTrackedEntityAttributesDisplayInListNoProgram();
-      params.addFiltersIfNotExist(QueryItem.getQueryItems(attributes));
+      attributes.forEach(params::filterBy);
     }
 
     decideAccess(params);
@@ -444,10 +443,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     if (params.hasEventStatus() && (!params.hasEventStartDate() || !params.hasEventEndDate())) {
       violation = "Event start and end date must be specified when event status is specified";
-    }
-
-    if (!params.getDuplicateFilters().isEmpty()) {
-      violation = "Filters cannot be specified more than once: " + params.getDuplicateFilters();
     }
 
     if (params.hasLastUpdatedDuration()

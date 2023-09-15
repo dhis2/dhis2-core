@@ -42,13 +42,18 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
@@ -64,6 +69,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class TrackedEntityRequestParamsMapperTest {
+  public static final String TEA_1_UID = "TvjwTPToKHO";
+
+  public static final String TEA_2_UID = "cy2oRh2sNr6";
+
+  public static final String TEA_3_UID = "cy2oRh2sNr7";
+
   private static final String PROGRAM_UID = "XhBYIraw7sv";
 
   private static final String PROGRAM_STAGE_UID = "RpCr2u2pFqw";
@@ -286,5 +297,120 @@ class TrackedEntityRequestParamsMapperTest {
     assertAll(
         () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
         () -> assertContains("unsupportedProperty1", exception.getMessage()));
+  }
+
+  @Test
+  void shouldCreateCriteriaFiltersWithFirstOperatorWhenMultipleValidOperandAreNotValid()
+      throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnitMode(ACCESSIBLE);
+    requestParams.setFilter(TEA_2_UID + ":like:project/:x/:eq/:2");
+    TrackedEntityOperationParams params = mapper.map(requestParams, user);
+
+    List<QueryFilter> actualFilters =
+        params.getFilters().values().stream()
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+
+    assertContainsOnly(
+        List.of(new QueryFilter(QueryOperator.LIKE, "project:x:eq:2")), actualFilters);
+  }
+
+  @Test
+  void shouldThrowBadRequestWhenCriteriaFilterHasOperatorInWrongFormat() {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnitMode(ACCESSIBLE);
+    requestParams.setFilter(TEA_1_UID + ":lke:value");
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
+    assertEquals(
+        "Query item or filter is invalid: " + TEA_1_UID + ":lke:value", exception.getMessage());
+  }
+
+  @Test
+  void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatDateWithMilliSecondsAndTimeZone()
+      throws ForbiddenException, BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnitMode(ACCESSIBLE);
+    requestParams.setFilter(
+        TEA_1_UID + ":ge:2020-01-01T00/:00/:00.001 +05/:30:le:2021-01-01T00/:00/:00.001 +05/:30");
+
+    List<QueryFilter> actualFilters =
+        mapper.map(requestParams, user).getFilters().values().stream()
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+
+    assertContainsOnly(
+        List.of(
+            new QueryFilter(QueryOperator.GE, "2020-01-01T00:00:00.001 +05:30"),
+            new QueryFilter(QueryOperator.LE, "2021-01-01T00:00:00.001 +05:30")),
+        actualFilters);
+  }
+
+  @Test
+  void shouldCreateQueryFilterWhenCriteriaFilterHasMultipleOperatorAndTextRange()
+      throws ForbiddenException, BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnitMode(ACCESSIBLE);
+    requestParams.setFilter(TEA_1_UID + ":sw:project/:x:ew:project/:le/:");
+
+    List<QueryFilter> actualFilters =
+        mapper.map(requestParams, user).getFilters().values().stream()
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+
+    assertContainsOnly(
+        List.of(
+            new QueryFilter(QueryOperator.SW, "project:x"),
+            new QueryFilter(QueryOperator.EW, "project:le:")),
+        actualFilters);
+  }
+
+  @Test
+  void shouldCreateQueryFilterWhenCriteriaMultipleFilterMixedCommaAndSlash()
+      throws ForbiddenException, BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnitMode(ACCESSIBLE);
+    requestParams.setFilter(
+        TEA_1_UID
+            + ":eq:project///,/,//"
+            + ","
+            + TEA_2_UID
+            + ":eq:project//"
+            + ","
+            + TEA_3_UID
+            + ":eq:project//");
+
+    List<QueryFilter> actualFilters =
+        mapper.map(requestParams, user).getFilters().values().stream()
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+
+    assertContainsOnly(
+        List.of(
+            new QueryFilter(QueryOperator.EQ, "project/,,/"),
+            new QueryFilter(QueryOperator.EQ, "project/"),
+            new QueryFilter(QueryOperator.EQ, "project/")),
+        actualFilters);
+  }
+
+  @Test
+  void shouldCreateQueryFilterWhenCriteriaMultipleOperatorHasFinalColon()
+      throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnitMode(ACCESSIBLE);
+    requestParams.setFilter(TEA_1_UID + ":like:value1/::like:value2");
+
+    List<QueryFilter> actualFilters =
+        mapper.map(requestParams, user).getFilters().values().stream()
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+
+    assertContainsOnly(
+        List.of(
+            new QueryFilter(QueryOperator.LIKE, "value1:"),
+            new QueryFilter(QueryOperator.LIKE, "value2")),
+        actualFilters);
   }
 }

@@ -263,9 +263,8 @@ public class RequestParamsValidator {
 
   /**
    * Accumulate {@link QueryFilter}s per UID by parsing given input string of format
-   * {uid}:{operator}:{value}[:{operator}:{value}]. Only the UID is mandatory. Multiple
-   * operator:value pairs are allowed. A {@link QueryFilter} for each operator:value pair is added
-   * to the corresponding UID.
+   * {uid}[:{operator}:{value}]. Only the UID is mandatory. Multiple operator:value pairs are
+   * allowed. A {@link QueryFilter} for each operator:value pair is added to the corresponding UID.
    *
    * @throws BadRequestException filter is neither multiple nor single operator:value format
    */
