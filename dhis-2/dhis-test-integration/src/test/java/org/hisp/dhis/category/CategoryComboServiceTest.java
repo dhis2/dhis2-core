@@ -1,24 +1,29 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo All rights reserved.
+ * Copyright (c) 2004-2022, University of Oslo
+ * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without modification, are permitted
- * provided that the following conditions are met: Redistributions of source code must retain the
- * above copyright notice, this list of conditions and the following disclaimer.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice, this list of conditions
- * and the following disclaimer in the documentation and/or other materials provided with the
- * distribution. Neither the name of the HISP project nor the names of its contributors may be used
- * to endorse or promote products derived from this software without specific prior written
- * permission.
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
- * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.hisp.dhis.category;
 
@@ -28,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +43,6 @@ import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -239,14 +245,30 @@ class CategoryComboServiceTest extends TransactionalIntegrationTest {
     assertNotNull(categoryComboA.getOptionCombos());
     assertEquals(12, categoryComboA.getOptionCombos().size());
     assertOptionCombos(categoryComboA.getOptionCombos());
-    assertTrue(categoryComboA.getOptionCombos().contains(createCategoryOptionCombo(categoryComboA,
-        categoryOptionA, categoryOptionC, categoryOptionG)));
-    assertTrue(categoryComboA.getOptionCombos().contains(createCategoryOptionCombo(categoryComboA,
-        categoryOptionA, categoryOptionD, categoryOptionG)));
-    assertTrue(categoryComboA.getOptionCombos().contains(createCategoryOptionCombo(categoryComboA,
-        categoryOptionB, categoryOptionC, categoryOptionG)));
-    assertTrue(categoryComboA.getOptionCombos().contains(createCategoryOptionCombo(categoryComboA,
-        categoryOptionB, categoryOptionD, categoryOptionG)));
+    assertTrue(
+        categoryComboA
+            .getOptionCombos()
+            .contains(
+                createCategoryOptionCombo(
+                    categoryComboA, categoryOptionA, categoryOptionC, categoryOptionG)));
+    assertTrue(
+        categoryComboA
+            .getOptionCombos()
+            .contains(
+                createCategoryOptionCombo(
+                    categoryComboA, categoryOptionA, categoryOptionD, categoryOptionG)));
+    assertTrue(
+        categoryComboA
+            .getOptionCombos()
+            .contains(
+                createCategoryOptionCombo(
+                    categoryComboA, categoryOptionB, categoryOptionC, categoryOptionG)));
+    assertTrue(
+        categoryComboA
+            .getOptionCombos()
+            .contains(
+                createCategoryOptionCombo(
+                    categoryComboA, categoryOptionB, categoryOptionD, categoryOptionG)));
   }
 
   @Test
@@ -279,14 +301,30 @@ class CategoryComboServiceTest extends TransactionalIntegrationTest {
     assertNotNull(categoryComboA.getOptionCombos());
     assertEquals(12, categoryComboA.getOptionCombos().size());
     assertOptionCombos(categoryComboA.getOptionCombos());
-    assertTrue(categoryComboA.getOptionCombos().contains(createCategoryOptionCombo(categoryComboA,
-        categoryOptionA, categoryOptionC, categoryOptionG)));
-    assertTrue(categoryComboA.getOptionCombos().contains(createCategoryOptionCombo(categoryComboA,
-        categoryOptionA, categoryOptionD, categoryOptionG)));
-    assertTrue(categoryComboA.getOptionCombos().contains(createCategoryOptionCombo(categoryComboA,
-        categoryOptionB, categoryOptionC, categoryOptionG)));
-    assertTrue(categoryComboA.getOptionCombos().contains(createCategoryOptionCombo(categoryComboA,
-        categoryOptionB, categoryOptionD, categoryOptionG)));
+    assertTrue(
+        categoryComboA
+            .getOptionCombos()
+            .contains(
+                createCategoryOptionCombo(
+                    categoryComboA, categoryOptionA, categoryOptionC, categoryOptionG)));
+    assertTrue(
+        categoryComboA
+            .getOptionCombos()
+            .contains(
+                createCategoryOptionCombo(
+                    categoryComboA, categoryOptionA, categoryOptionD, categoryOptionG)));
+    assertTrue(
+        categoryComboA
+            .getOptionCombos()
+            .contains(
+                createCategoryOptionCombo(
+                    categoryComboA, categoryOptionB, categoryOptionC, categoryOptionG)));
+    assertTrue(
+        categoryComboA
+            .getOptionCombos()
+            .contains(
+                createCategoryOptionCombo(
+                    categoryComboA, categoryOptionB, categoryOptionD, categoryOptionG)));
   }
 
   @Test
@@ -301,37 +339,61 @@ class CategoryComboServiceTest extends TransactionalIntegrationTest {
     assertNotNull(categoryComboT);
     assertEquals(categories, categoryComboT.getCategories());
     categoryManager.addAndPruneAllOptionCombos();
-    assertTrue(categoryComboT.getOptionCombos()
-        .contains(createCategoryOptionCombo(categoryComboT, categoryOptionA, categoryOptionC)));
-    assertFalse(categoryComboT.getOptionCombos()
-        .contains(createCategoryOptionCombo(categoryComboT, categoryOptionA, categoryOptionE)));
+    assertTrue(
+        categoryComboT
+            .getOptionCombos()
+            .contains(createCategoryOptionCombo(categoryComboT, categoryOptionA, categoryOptionC)));
+    assertFalse(
+        categoryComboT
+            .getOptionCombos()
+            .contains(createCategoryOptionCombo(categoryComboT, categoryOptionA, categoryOptionE)));
     categoryB.removeCategoryOption(categoryOptionC);
     categoryB.addCategoryOption(categoryOptionE);
     categoryService.updateCategory(categoryB);
     categoryManager.addAndPruneAllOptionCombos();
     categoryComboT = categoryService.getCategoryCombo(id);
-    assertFalse(categoryComboT.getOptionCombos()
-        .contains(createCategoryOptionCombo(categoryComboT, categoryOptionA, categoryOptionC)));
-    assertTrue(categoryComboT.getOptionCombos()
-        .contains(createCategoryOptionCombo(categoryComboT, categoryOptionA, categoryOptionE)));
+    assertFalse(
+        categoryComboT
+            .getOptionCombos()
+            .contains(createCategoryOptionCombo(categoryComboT, categoryOptionA, categoryOptionC)));
+    assertTrue(
+        categoryComboT
+            .getOptionCombos()
+            .contains(createCategoryOptionCombo(categoryComboT, categoryOptionA, categoryOptionE)));
   }
 
   private void assertOptionCombos(Set<CategoryOptionCombo> optionCombos) {
-    assertTrue(optionCombos.contains(createCategoryOptionCombo(categoryComboA, categoryOptionA,
-        categoryOptionC, categoryOptionE)));
-    assertTrue(optionCombos.contains(createCategoryOptionCombo(categoryComboA, categoryOptionA,
-        categoryOptionC, categoryOptionF)));
-    assertTrue(optionCombos.contains(createCategoryOptionCombo(categoryComboA, categoryOptionA,
-        categoryOptionD, categoryOptionE)));
-    assertTrue(optionCombos.contains(createCategoryOptionCombo(categoryComboA, categoryOptionA,
-        categoryOptionD, categoryOptionF)));
-    assertTrue(optionCombos.contains(createCategoryOptionCombo(categoryComboA, categoryOptionB,
-        categoryOptionC, categoryOptionE)));
-    assertTrue(optionCombos.contains(createCategoryOptionCombo(categoryComboA, categoryOptionB,
-        categoryOptionC, categoryOptionF)));
-    assertTrue(optionCombos.contains(createCategoryOptionCombo(categoryComboA, categoryOptionB,
-        categoryOptionD, categoryOptionE)));
-    assertTrue(optionCombos.contains(createCategoryOptionCombo(categoryComboA, categoryOptionB,
-        categoryOptionD, categoryOptionF)));
+    assertTrue(
+        optionCombos.contains(
+            createCategoryOptionCombo(
+                categoryComboA, categoryOptionA, categoryOptionC, categoryOptionE)));
+    assertTrue(
+        optionCombos.contains(
+            createCategoryOptionCombo(
+                categoryComboA, categoryOptionA, categoryOptionC, categoryOptionF)));
+    assertTrue(
+        optionCombos.contains(
+            createCategoryOptionCombo(
+                categoryComboA, categoryOptionA, categoryOptionD, categoryOptionE)));
+    assertTrue(
+        optionCombos.contains(
+            createCategoryOptionCombo(
+                categoryComboA, categoryOptionA, categoryOptionD, categoryOptionF)));
+    assertTrue(
+        optionCombos.contains(
+            createCategoryOptionCombo(
+                categoryComboA, categoryOptionB, categoryOptionC, categoryOptionE)));
+    assertTrue(
+        optionCombos.contains(
+            createCategoryOptionCombo(
+                categoryComboA, categoryOptionB, categoryOptionC, categoryOptionF)));
+    assertTrue(
+        optionCombos.contains(
+            createCategoryOptionCombo(
+                categoryComboA, categoryOptionB, categoryOptionD, categoryOptionE)));
+    assertTrue(
+        optionCombos.contains(
+            createCategoryOptionCombo(
+                categoryComboA, categoryOptionB, categoryOptionD, categoryOptionF)));
   }
 }
