@@ -47,6 +47,8 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -161,6 +163,36 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + " as ax where (ax.\"monthly\" in ('2000Q1') )and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
 
     assertThat(sql.getValue(), is(expected));
+  }
+
+  @Test
+  void verifyGetEventQueryWithUnlimitedAnalyticsPageSizeAndPageSize50() {
+    mockGivenRowsRowSet(101);
+    EventQueryParams requestParams =
+        createRequestParamsBuilder().withEndpointAction(QUERY).withPageSize(100).build();
+    Grid events = subject.getEvents(requestParams, createGrid(), 0);
+    assertThat(events.getRows(), hasSize(100));
+    assertThat(events.hasLastDataRow(), is(false));
+  }
+
+  @Test
+  void verifyGetEventQueryWithUnlimitedAnalyticsPageSizeAndNoPageSize() {
+    mockGivenRowsRowSet(101);
+    EventQueryParams requestParams =
+        createRequestParamsBuilder().withEndpointAction(QUERY).withPageSize(null).build();
+    Grid events = subject.getEvents(requestParams, createGrid(), 0);
+    assertThat(events.getRows(), hasSize(101));
+    assertThat(events.hasLastDataRow(), is(true));
+  }
+
+  @Test
+  void verifyGetEventAggregateIsNotPaginatedAndIsLastPageTrue() {
+    mockGivenRowsRowSet(500);
+    EventQueryParams requestParams =
+        createRequestParamsBuilder().withEndpointAction(AGGREGATE).withPageSize(100).build();
+    Grid events = subject.getEvents(requestParams, createGrid(), 0);
+    assertThat(events.getRows(), hasSize(500));
+    assertThat(events.hasLastDataRow(), is(true));
   }
 
   @Test

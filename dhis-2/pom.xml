@@ -99,12 +99,12 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.31</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.34</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.2</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.2</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.29</spring.version>
+    <spring.version>5.3.30</spring.version>
     <spring-data-redis.version>2.7.15</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.3</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -115,7 +115,7 @@
     <lettuce.version>6.2.6.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.22.0</flyway-core.version>
+    <flyway-core.version>9.22.1</flyway-core.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -129,7 +129,7 @@
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
 
     <!-- Struts -->
-    <struts.version>2.5.31</struts.version>
+    <struts.version>2.5.32</struts.version>
     <velocity.version>1.7</velocity.version>
     <velocity-tools.version>2.0</velocity-tools.version>
 
@@ -149,7 +149,7 @@
     <jclouds.version>2.5.0</jclouds.version>
 
     <!-- Reporting -->
-    <jasperreports.version>6.20.5</jasperreports.version>
+    <jasperreports.version>6.20.6</jasperreports.version>
     <jfreechart.version>1.5.4</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
@@ -203,7 +203,7 @@
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.11.3</micrometer.version>
+    <micrometer.version>1.11.4</micrometer.version>
 
     <!-- Logging -->
     <log4j.version>2.20.0</log4j.version>
@@ -231,7 +231,7 @@
     <maven-failsafe-plugin.version>3.1.2</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-    <maven-enforcer-plugin.version>3.4.0</maven-enforcer-plugin.version>
+    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.4.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.0</versions-maven-plugin.version>
@@ -1819,7 +1819,7 @@
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>3.9.1.2184</version>
+          <version>3.10.0.2594</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>

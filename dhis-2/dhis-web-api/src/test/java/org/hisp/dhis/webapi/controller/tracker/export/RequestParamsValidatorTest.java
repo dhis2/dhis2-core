@@ -28,11 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static java.util.Collections.emptySet;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -54,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -64,6 +60,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.OperationParamUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /** Tests {@link RequestParamsValidator}. */
 class RequestParamsValidatorTest {
@@ -304,89 +302,57 @@ class RequestParamsValidatorTest {
     assertEquals("Query item or filter is invalid: " + TEA_1_UID + ":lt:", exception.getMessage());
   }
 
-  @Test
-  void shouldCreateQueryFiltersWhenQueryHasOperatorAndValueWithDelimiter()
-      throws BadRequestException {
-    assertEquals(
-        new QueryFilter(QueryOperator.LIKE, "project:x"),
-        OperationParamUtils.parseQueryFilter("like:project/:x"));
-  }
-
   private TrackedEntityAttribute trackedEntityAttribute(String uid) {
     TrackedEntityAttribute tea = new TrackedEntityAttribute();
     tea.setUid(uid);
     return tea;
   }
 
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"CAPTURE", "ACCESSIBLE", "ALL"})
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeDoesNotRequireOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), ACCESSIBLE));
+            () -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), orgUnitMode));
 
     assertStartsWith(
-        "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
+        String.format("orgUnitMode %s cannot be used with orgUnits.", orgUnitMode),
+        exception.getMessage());
   }
 
-  @Test
-  void shouldPassWhenNoOrgUnitSuppliedAndOrgUnitModeAccessible() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(emptySet(), ACCESSIBLE));
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"CAPTURE", "ACCESSIBLE", "ALL"})
+  void shouldPassWhenNoOrgUnitSuppliedAndOrgUnitModeDoesNotRequireOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    assertDoesNotThrow(() -> validateOrgUnitMode(emptySet(), orgUnitMode));
   }
 
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeRequiresOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), orgUnitMode));
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeRequiresOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
     Exception exception =
-        assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), CAPTURE));
-
-    assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
-  }
-
-  @Test
-  void shouldPassWhenNoOrgUnitSuppliedAndOrgUnitModeCapture() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(emptySet(), CAPTURE));
-  }
-
-  @Test
-  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeSelected() {
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), SELECTED));
+        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), orgUnitMode));
 
     assertStartsWith(
-        "At least one org unit is required for orgUnitMode: SELECTED", exception.getMessage());
-  }
-
-  @Test
-  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeSelected() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), SELECTED));
-  }
-
-  @Test
-  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeDescendants() {
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), DESCENDANTS));
-
-    assertStartsWith(
-        "At least one org unit is required for orgUnitMode: DESCENDANTS", exception.getMessage());
-  }
-
-  @Test
-  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeDescendants() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), DESCENDANTS));
-  }
-
-  @Test
-  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeChildren() {
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), CHILDREN));
-
-    assertStartsWith(
-        "At least one org unit is required for orgUnitMode: CHILDREN", exception.getMessage());
-  }
-
-  @Test
-  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeChildren() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), CHILDREN));
+        String.format("At least one org unit is required for orgUnitMode: %s", orgUnitMode),
+        exception.getMessage());
   }
 }

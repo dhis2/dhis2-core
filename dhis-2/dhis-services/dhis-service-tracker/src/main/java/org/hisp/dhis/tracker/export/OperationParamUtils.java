@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -136,35 +135,6 @@ public class OperationParamUtils {
     }
 
     return queryItem;
-  }
-
-  /**
-   * Creates a QueryFilter from the given query string. Query is on format
-   * {operator}:{filter-value}. Only the filter-value is mandatory. The EQ QueryOperator is used as
-   * operator if not specified. We split the query at the first delimiter, so the filter value can
-   * be any sequence of characters
-   *
-   * @throws BadRequestException given invalid query string
-   */
-  public static QueryFilter parseQueryFilter(String filter) throws BadRequestException {
-    if (StringUtils.isEmpty(filter)) {
-      return null;
-    }
-
-    if (!filter.contains(DimensionalObject.DIMENSION_NAME_SEP)) {
-      return new QueryFilter(QueryOperator.EQ, filter);
-    }
-
-    return operatorValueQueryFilter(FILTER_ITEM_SPLIT.split(filter), filter);
-  }
-
-  private static QueryFilter operatorValueQueryFilter(String[] operatorValue, String filter)
-      throws BadRequestException {
-    if (null == operatorValue || operatorValue.length < 2) {
-      throw new BadRequestException("Query item or filter is invalid: " + filter);
-    }
-
-    return operatorValueQueryFilter(operatorValue[0], operatorValue[1], filter);
   }
 
   public static QueryFilter operatorValueQueryFilter(String operator, String value, String filter)

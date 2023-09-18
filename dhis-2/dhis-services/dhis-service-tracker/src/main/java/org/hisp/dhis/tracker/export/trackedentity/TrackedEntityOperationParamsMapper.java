@@ -43,7 +43,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -103,17 +102,11 @@ class TrackedEntityOperationParamsMapper {
             organisationUnitService::getOrganisationUnitWithChildren,
             trackerAccessManager);
 
-    QueryFilter queryFilter = operationParams.getQuery();
-
     Map<String, TrackedEntityAttribute> attributes =
         attributeService.getAllTrackedEntityAttributes().stream()
             .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-
-    List<QueryItem> attributeItems =
-        parseAttributeQueryItems(operationParams.getAttributes(), attributes);
-    params.setAttributes(attributeItems);
 
     List<QueryItem> filters = parseAttributeQueryItems(operationParams.getFilters(), attributes);
     validateDuplicatedAttributeFilters(filters);
@@ -122,7 +115,6 @@ class TrackedEntityOperationParamsMapper {
     mapOrderParam(params, operationParams.getOrder());
 
     params
-        .setQuery(queryFilter)
         .setProgram(program)
         .setProgramStage(programStage)
         .setProgramStatus(operationParams.getProgramStatus())
@@ -143,13 +135,11 @@ class TrackedEntityOperationParamsMapper {
         .setAssignedUserQueryParam(operationParams.getAssignedUserQueryParam())
         .setUser(user)
         .setTrackedEntityUids(operationParams.getTrackedEntityUids())
-        .setSkipMeta(operationParams.isSkipMeta())
         .setPage(operationParams.getPage())
         .setPageSize(operationParams.getPageSize())
         .setTotalPages(operationParams.isTotalPages())
         .setSkipPaging(operationParams.isSkipPaging())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
-        .setIncludeAllAttributes(operationParams.isIncludeAllAttributes())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
     return params;

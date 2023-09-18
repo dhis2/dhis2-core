@@ -64,8 +64,8 @@ public class RelationshipPersister
   }
 
   @Override
-  protected void persistComments(
-      TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship entity) {
+  protected void persistNotes(
+      Session session, TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship entity) {
     // NOTHING TO DO
   }
 

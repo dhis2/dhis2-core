@@ -43,8 +43,8 @@
     <tr>
         <td style="width:140px"><label id="label_firstName" for="firstName">$i18n.getString( "name" )</label></td>
         <td>
-            <input type="text" id="firstName" name="firstName" autocomplete="off" style="width:11.7em; margin-right:7px;" placeholder="First">
-            <input type="text" id="surname" name="surname" autocomplete="off" style="width:11.7em" placeholder="Last">
+            <input type="text" id="firstName" name="firstName" value="$firstName" autocomplete="off" style="width:11.7em; margin-right:7px;" placeholder="First">
+            <input type="text" id="surname" name="surname" value="$surname" autocomplete="off" style="width:11.7em" placeholder="Last">
         </td>
     </tr>
     <tr>
@@ -76,12 +76,9 @@
     </tr>
     <tr>
         <td><label id="label_phoneNumber" for="phoneNumber">$i18n.getString( "mobile_phone" )</label></td>
-        <td style="padding-bottom: 5px"><input type="text" id="phoneNumber" name="phoneNumber"></td>
+        <td style="padding-bottom: 5px"><input type="text" id="phoneNumber" name="phoneNumber" value="$phoneNumber"></td>
     </tr>
-    <tr>
-        <td><label id="label_employer" for="employer">$i18n.getString( "employer" )</label></td>
-        <td style="padding-bottom: 5px"><input type="text" id="employer" name="employer"></td>
-    </tr>
+
     #if( !$keySelfRegistrationNoRecaptcha )
     <td>
         <td style="padding-bottom: 5px">

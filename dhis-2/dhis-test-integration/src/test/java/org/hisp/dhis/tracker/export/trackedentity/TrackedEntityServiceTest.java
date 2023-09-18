@@ -66,6 +66,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
@@ -89,7 +90,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -146,7 +146,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private TrackedEntity trackedEntityB;
 
-  private TrackedEntityComment note1;
+  private Note note;
 
   private CategoryOptionCombo defaultCategoryOptionCombo;
 
@@ -271,11 +271,11 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     eventA.setCompletedDate(parseDate("2021-02-27T11:05:00.000"));
     eventA.setCompletedBy("herb");
     eventA.setAssignedUser(user);
-    note1 = new TrackedEntityComment("note1", "ant");
-    note1.setUid(CodeGenerator.generateUid());
-    note1.setCreated(new Date());
-    note1.setLastUpdated(new Date());
-    eventA.setComments(List.of(note1));
+    note = new Note("note1", "ant");
+    note.setUid(CodeGenerator.generateUid());
+    note.setCreated(new Date());
+    note.setLastUpdated(new Date());
+    eventA.setNotes(List.of(note));
     manager.save(eventA, false);
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setFollowup(true);
@@ -401,7 +401,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .includeAllAttributes(true)
             .build();
 
     trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
@@ -425,7 +424,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
             .orgUnitMode(DESCENDANTS)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .includeAllAttributes(true)
             .user(user)
             .build();
 
@@ -433,27 +431,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
     assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
-  }
-
-  @Test
-  void shouldIncludeAllAttributesOfGivenTrackedEntity()
-      throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(Set.of(orgUnitA.getUid()))
-            .orgUnitMode(SELECTED)
-            .includeAllAttributes(true)
-            .trackedEntityUids(Set.of(trackedEntityA.getUid()))
-            .user(user)
-            .build();
-
-    final List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
-
-    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
-    assertContainsOnly(
-        Set.of("A", "B", "C", "E"),
-        attributeNames(trackedEntities.get(0).getTrackedEntityAttributeValues()));
   }
 
   @Test
@@ -467,7 +444,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .includeAllAttributes(true)
             .trackedEntityParams(TrackedEntityParams.TRUE)
             .user(user)
             .build();
@@ -498,30 +474,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
                 trackedEntities.get(0).getProgramOwners().stream()
                     .map(po -> po.getProgram().getUid())
                     .collect(Collectors.toSet())));
-  }
-
-  @Test
-  void shouldReturnTrackedEntityIncludeAllAttributesInProtectedProgramNoAccess()
-      throws ForbiddenException, NotFoundException, BadRequestException {
-    // this was declared as "remove ownership"; unclear to me how this is removing ownership
-    trackerOwnershipManager.assignOwnership(trackedEntityA, programB, orgUnitB, true, true);
-
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(Set.of(orgUnitA.getUid()))
-            .orgUnitMode(SELECTED)
-            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .includeAllAttributes(true)
-            .user(user)
-            .build();
-
-    final List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
-
-    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
-    assertContainsOnly(
-        Set.of("A", "B", "C"),
-        attributeNames(trackedEntities.get(0).getTrackedEntityAttributeValues()));
   }
 
   @Test
@@ -646,7 +598,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
             .orgUnitMode(DESCENDANTS)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .attributes(teaA.getUid())
             .user(user)
             .build();
 
@@ -668,7 +619,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .orgUnitMode(DESCENDANTS)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .filters(teaA.getUid())
-            .attributes(teaA.getUid())
             .user(user)
             .build();
 
@@ -853,7 +803,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
-            .includeAllAttributes(true)
             .trackedEntityParams(params)
             .user(user)
             .build();
@@ -886,7 +835,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
-            .includeAllAttributes(true)
             .user(user)
             .build();
 
@@ -908,7 +856,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .trackedEntityUids(Set.of(trackedEntityA.getUid()))
-            .includeAllAttributes(true)
             .trackedEntityParams(params)
             .user(user)
             .build();
@@ -928,7 +875,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .findFirst();
     Set<Event> events = enrollmentA.get().getEvents();
     assertContainsOnly(Set.of(eventA), events);
-    assertContainsOnly(Set.of(note1), events.stream().findFirst().get().getComments());
+    assertContainsOnly(Set.of(note), events.stream().findFirst().get().getNotes());
   }
 
   @Test
@@ -942,7 +889,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .includeAllAttributes(true)
             .trackedEntityParams(params)
             .user(user)
             .build();
@@ -971,7 +917,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .includeAllAttributes(true)
             .user(user)
             .build();
 
@@ -1006,7 +951,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .includeAllAttributes(true)
             .trackedEntityParams(params)
             .user(user)
             .build();
@@ -1054,7 +998,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .includeAllAttributes(true)
             .trackedEntityParams(params)
             .user(user)
             .build();

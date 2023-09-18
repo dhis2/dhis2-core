@@ -60,11 +60,11 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
           + "where psi.eventid in (:ids)";
 
   private static final String GET_NOTES_SQL =
-      "select psi.uid as key, tec.uid, tec.commenttext, "
+      "select psi.uid as key, tec.uid, tec.notetext, "
           + "tec.creator, tec.created "
-          + "from trackedentitycomment tec "
-          + "join eventcomments psic "
-          + "on tec.trackedentitycommentid = psic.trackedentitycommentid "
+          + "from note tec "
+          + "join event_notes psic "
+          + "on tec.noteid = psic.noteid "
           + "join event psi on psic.eventid = psi.eventid "
           + "where psic.eventid in (:ids)";
 

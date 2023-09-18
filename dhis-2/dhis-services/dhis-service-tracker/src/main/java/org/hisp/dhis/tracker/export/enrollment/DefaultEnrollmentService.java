@@ -133,7 +133,7 @@ class DefaultEnrollmentService
     result.setCreatedByUserInfo(enrollment.getCreatedByUserInfo());
     result.setLastUpdatedByUserInfo(enrollment.getLastUpdatedByUserInfo());
     result.setDeleted(enrollment.isDeleted());
-    result.setComments(enrollment.getComments());
+    result.setNotes(enrollment.getNotes());
     if (params.isIncludeEvents()) {
       result.setEvents(getEvents(user, enrollment, includeDeleted));
     }

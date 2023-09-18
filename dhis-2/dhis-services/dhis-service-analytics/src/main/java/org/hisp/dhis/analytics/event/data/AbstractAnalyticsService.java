@@ -29,9 +29,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
-import static java.util.stream.Collectors.counting;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.joinWith;
@@ -65,6 +63,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.common.processing.MetadataItemsHandler;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
@@ -620,6 +619,8 @@ public abstract class AbstractAnalyticsService {
                     option.getDisplayProperty(params.getDisplayProperty()),
                     includeDetails ? option.getUid() : null,
                     option.getCode())));
+
+    new MetadataItemsHandler().addOptionsSetIntoMap(metadataItemMap, itemOptions);
   }
 
   /**
