@@ -233,6 +233,56 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void testRemoveALLNonAllAdmin() {
+    UserRole roleAll = createUserRole("ROLE_ALL", "ALL");
+    userService.addUserRole(roleAll);
+
+    User user = createUserWithAuth("someone", "F_USERROLE_PUBLIC_ADD");
+    userService.updateUser(user);
+    switchContextToUser(user);
+
+    checkFailsWithAccessError("'ANYTHING'");
+  }
+
+  @Test
+  void testAddALLNonAllAdmin() {
+    UserRole roleAll = createUserRole("ROLE_ALL", "NONE");
+    userService.addUserRole(roleAll);
+
+    User user = createUserWithAuth("someone", "F_USERROLE_PUBLIC_ADD");
+    userService.updateUser(user);
+    switchContextToUser(user);
+
+    checkFailsWithAccessError("'ALL'");
+  }
+
+  private void checkFailsWithAccessError(String roleName) {
+    String roleAllId = userService.getUserRoleByName("ROLE_ALL").getUid();
+
+    JsonImportSummary response =
+        PATCH(
+                "/userRoles/" + roleAllId,
+                "["
+                    + " {"
+                    + "   'op': 'add',"
+                    + "   'path': '/authorities',"
+                    + "   'value': ["
+                    + roleName
+                    + "   ]"
+                    + " }"
+                    + "]")
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals(
+        "User `someone` does not have access to user role",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3032)
+            .getMessage());
+  }
+
+  @Test
   void updateUserHasAccessToUpdateGroups() {
     systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
 
@@ -683,7 +733,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         null,
         PUT(
                 "/38/users/" + peter.getUid(),
-                user.node().addMember("settings", "{\"uiLocale\":\"de\"}").toString())
+                user.node().addMember("settings", "{'uiLocale\":\"de\"}").toString())
             .content(HttpStatus.OK));
     assertEquals(
         "de",
