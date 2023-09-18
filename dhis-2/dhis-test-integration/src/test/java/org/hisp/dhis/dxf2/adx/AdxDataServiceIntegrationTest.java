@@ -1,29 +1,24 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
- * All rights reserved.
+ * Copyright (c) 2004-2022, University of Oslo All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
+ * Redistribution and use in source and binary forms, with or without modification, are permitted
+ * provided that the following conditions are met: Redistributions of source code must retain the
+ * above copyright notice, this list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
+ * Redistributions in binary form must reproduce the above copyright notice, this list of conditions
+ * and the following disclaimer in the documentation and/or other materials provided with the
+ * distribution. Neither the name of the HISP project nor the names of its contributors may be used
+ * to endorse or promote products derived from this software without specific prior written
+ * permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
+ * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.hisp.dhis.dxf2.adx;
 
@@ -33,9 +28,6 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -75,6 +67,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import com.google.common.collect.Sets;
 
 /*
  * @author Jim Grace
@@ -202,9 +195,9 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase {
     ccMechanism.setName("Mechanism Category Combo");
     idObjectManager.save(ccAgeAndSex);
     idObjectManager.save(ccMechanism);
-    cAge.setCategoryCombos(Lists.newArrayList(ccAgeAndSex));
-    cSex.setCategoryCombos(Lists.newArrayList(ccAgeAndSex));
-    cMechanism.setCategoryCombos(Lists.newArrayList(ccMechanism));
+    cAge.setCategoryCombos(Sets.newHashSet(ccAgeAndSex));
+    cSex.setCategoryCombos(Sets.newHashSet(ccAgeAndSex));
+    cMechanism.setCategoryCombos(Sets.newHashSet(ccMechanism));
     idObjectManager.update(cAge);
     idObjectManager.update(cSex);
     idObjectManager.update(cMechanism);
@@ -313,27 +306,14 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase {
   @Test
   void testGetFromUrl1() {
     Date now = new Date();
-    DataExportParams expected =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setPeriods(Sets.newHashSet(pe202001))
-            .setOrganisationUnits(Sets.newHashSet(ouA))
-            .setIncludeDescendants(true)
-            .setIncludeDeleted(false)
-            .setLastUpdated(now)
-            .setLimit(999)
-            .setOutputIdSchemes(new IdSchemes().setIdScheme("CODE"));
-    DataExportParams actual =
-        adxDataService.getFromUrl(
-            DataValueSetQueryParams.builder()
-                .dataSet(Sets.newHashSet(dsA.getUid()))
-                .period(Sets.newHashSet("202001"))
-                .orgUnit(Sets.newHashSet(ouA.getUid()))
-                .children(true)
-                .includeDeleted(false)
-                .lastUpdated(now)
-                .limit(999)
-                .build());
+    DataExportParams expected = new DataExportParams().setDataSets(Sets.newHashSet(dsA))
+        .setPeriods(Sets.newHashSet(pe202001)).setOrganisationUnits(Sets.newHashSet(ouA))
+        .setIncludeDescendants(true).setIncludeDeleted(false).setLastUpdated(now).setLimit(999)
+        .setOutputIdSchemes(new IdSchemes().setIdScheme("CODE"));
+    DataExportParams actual = adxDataService
+        .getFromUrl(DataValueSetQueryParams.builder().dataSet(Sets.newHashSet(dsA.getUid()))
+            .period(Sets.newHashSet("202001")).orgUnit(Sets.newHashSet(ouA.getUid())).children(true)
+            .includeDeleted(false).lastUpdated(now).limit(999).build());
     assertEquals(expected.toString(), actual.toString());
   }
 
@@ -341,34 +321,19 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase {
   void testGetFromUrl2() {
     Date then = new Date(1L);
     Date now = new Date();
-    DataExportParams expected =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsB))
-            .setStartDate(then)
-            .setEndDate(now)
-            .setLastUpdatedDuration("10d")
-            .setOrganisationUnits(Sets.newHashSet(ouB))
-            .setOrganisationUnitGroups(Sets.newHashSet(ougA))
-            .setAttributeOptionCombos(Sets.newHashSet(cocMcDonalds))
-            .setIncludeDescendants(false)
-            .setIncludeDeleted(true)
-            .setLastUpdated(now)
-            .setOutputIdSchemes(new IdSchemes().setIdScheme("UID"));
-    DataExportParams actual =
-        adxDataService.getFromUrl(
-            DataValueSetQueryParams.builder()
-                .dataSet(Sets.newHashSet(dsB.getCode()))
-                .startDate(then)
-                .endDate(now)
-                .orgUnit(Sets.newHashSet(ouB.getCode()))
-                .children(false)
-                .orgUnitGroup(Sets.newHashSet(ougA.getCode()))
-                .attributeOptionCombo(Sets.newHashSet(cocMcDonalds.getUid()))
-                .includeDeleted(true)
-                .lastUpdated(now)
-                .lastUpdatedDuration("10d")
-                .idScheme(IdentifiableProperty.UID.name())
-                .build());
+    DataExportParams expected = new DataExportParams().setDataSets(Sets.newHashSet(dsB))
+        .setStartDate(then).setEndDate(now).setLastUpdatedDuration("10d")
+        .setOrganisationUnits(Sets.newHashSet(ouB)).setOrganisationUnitGroups(Sets.newHashSet(ougA))
+        .setAttributeOptionCombos(Sets.newHashSet(cocMcDonalds)).setIncludeDescendants(false)
+        .setIncludeDeleted(true).setLastUpdated(now)
+        .setOutputIdSchemes(new IdSchemes().setIdScheme("UID"));
+    DataExportParams actual = adxDataService
+        .getFromUrl(DataValueSetQueryParams.builder().dataSet(Sets.newHashSet(dsB.getCode()))
+            .startDate(then).endDate(now).orgUnit(Sets.newHashSet(ouB.getCode())).children(false)
+            .orgUnitGroup(Sets.newHashSet(ougA.getCode()))
+            .attributeOptionCombo(Sets.newHashSet(cocMcDonalds.getUid())).includeDeleted(true)
+            .lastUpdated(now).lastUpdatedDuration("10d").idScheme(IdentifiableProperty.UID.name())
+            .build());
     assertEquals(expected.toString(), actual.toString());
   }
 
@@ -377,61 +342,38 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase {
   // --------------------------------------------------------------------------
   @Test
   void testWriteDataValueSetA() throws AdxException, IOException {
-    testExport(
-        "adx/exportA.adx.xml",
-        getCommonExportParams()
-            .setOutputIdSchemes(
-                new IdSchemes()
-                    .setDefaultIdScheme(CODE)
-                    .setDataElementIdScheme("NAME")
-                    .setCategoryIdScheme("NAME")
-                    .setCategoryOptionIdScheme("UID")));
+    testExport("adx/exportA.adx.xml",
+        getCommonExportParams().setOutputIdSchemes(
+            new IdSchemes().setDefaultIdScheme(CODE).setDataElementIdScheme("NAME")
+                .setCategoryIdScheme("NAME").setCategoryOptionIdScheme("UID")));
   }
 
   @Test
   void testWriteDataValueSetB() throws AdxException, IOException {
-    testExport(
-        "adx/exportB.adx.xml",
+    testExport("adx/exportB.adx.xml",
         getCommonExportParams()
-            .setOutputIdSchemes(
-                new IdSchemes()
-                    .setDefaultIdScheme(CODE)
-                    .setDataSetIdScheme("NAME")
-                    .setOrgUnitIdScheme("UID")
-                    .setDataElementIdScheme("UID")
-                    .setCategoryOptionComboIdScheme("NAME"))
+            .setOutputIdSchemes(new IdSchemes().setDefaultIdScheme(CODE).setDataSetIdScheme("NAME")
+                .setOrgUnitIdScheme("UID").setDataElementIdScheme("UID")
+                .setCategoryOptionComboIdScheme("NAME"))
             .setOrganisationUnitGroups(Sets.newHashSet(ougA)));
   }
 
   @Test
   void testWriteDataValueSetC() throws AdxException, IOException {
-    testExport(
-        "adx/exportC.adx.xml",
-        getCommonExportParams()
-            .setOutputIdSchemes(
-                new IdSchemes()
-                    .setDefaultIdScheme(CODE)
-                    .setDataSetIdScheme("UID")
-                    .setOrgUnitIdScheme("NAME")
-                    .setCategoryIdScheme("UID")
-                    .setCategoryOptionIdScheme("NAME"))
-            .setIncludeDescendants(true));
+    testExport("adx/exportC.adx.xml",
+        getCommonExportParams().setOutputIdSchemes(new IdSchemes().setDefaultIdScheme(CODE)
+            .setDataSetIdScheme("UID").setOrgUnitIdScheme("NAME").setCategoryIdScheme("UID")
+            .setCategoryOptionIdScheme("NAME")).setIncludeDescendants(true));
   }
 
   @Test
   void testWriteDataValueSetD() throws AdxException, IOException {
-    testExport(
-        "adx/exportD.adx.xml",
+    testExport("adx/exportD.adx.xml",
         getCommonExportParams()
-            .setOutputIdSchemes(
-                new IdSchemes()
-                    .setDefaultIdScheme(CODE)
-                    .setDataSetIdScheme("UID")
-                    .setOrgUnitIdScheme("NAME")
-                    .setCategoryIdScheme("UID")
-                    .setCategoryOptionIdScheme("NAME"))
-            .setIncludeDescendants(true)
-            .setAttributeOptionCombos(Sets.newHashSet(cocMcDonalds)));
+            .setOutputIdSchemes(new IdSchemes().setDefaultIdScheme(CODE).setDataSetIdScheme("UID")
+                .setOrgUnitIdScheme("NAME").setCategoryIdScheme("UID")
+                .setCategoryOptionIdScheme("NAME"))
+            .setIncludeDescendants(true).setAttributeOptionCombos(Sets.newHashSet(cocMcDonalds)));
   }
 
   // --------------------------------------------------------------------------
@@ -440,39 +382,27 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase {
   @Test
   @Disabled("Moved from H2 to postgres test and it is not working anymore")
   void testGetAllDataValuesA() throws IOException {
-    testImport(
-        "adx/importA.adx.xml",
-        new IdSchemes()
-            .setDefaultIdScheme(CODE)
-            .setDataElementIdScheme("NAME")
-            .setCategoryIdScheme("NAME")
-            .setCategoryOptionIdScheme("UID")
+    testImport("adx/importA.adx.xml",
+        new IdSchemes().setDefaultIdScheme(CODE).setDataElementIdScheme("NAME")
+            .setCategoryIdScheme("NAME").setCategoryOptionIdScheme("UID")
             .setCategoryOptionComboIdScheme("UID"));
   }
 
   @Test
   @Disabled("Moved from H2 to postgres test and it is not working anymore")
   void testGetAllDataValuesB() throws IOException {
-    testImport(
-        "adx/importB.adx.xml",
-        new IdSchemes()
-            .setDefaultIdScheme(CODE)
-            .setDataSetIdScheme("NAME")
-            .setOrgUnitIdScheme("UID")
-            .setDataElementIdScheme("UID")
+    testImport("adx/importB.adx.xml",
+        new IdSchemes().setDefaultIdScheme(CODE).setDataSetIdScheme("NAME")
+            .setOrgUnitIdScheme("UID").setDataElementIdScheme("UID")
             .setCategoryOptionComboIdScheme("NAME"));
   }
 
   @Test
   @Disabled("Moved from H2 to postgres test and it is not working anymore")
   void testGetAllDataValuesC() throws IOException {
-    testImport(
-        "adx/importC.adx.xml",
-        new IdSchemes()
-            .setDefaultIdScheme(CODE)
-            .setDataSetIdScheme("UID")
-            .setOrgUnitIdScheme("NAME")
-            .setCategoryIdScheme("UID")
+    testImport("adx/importC.adx.xml",
+        new IdSchemes().setDefaultIdScheme(CODE).setDataSetIdScheme("UID")
+            .setOrgUnitIdScheme("NAME").setCategoryIdScheme("UID")
             .setCategoryOptionIdScheme("NAME"));
   }
 
@@ -521,28 +451,23 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase {
   // Supportive methods
   // --------------------------------------------------------------------------
   private DataExportParams getCommonExportParams() {
-    return new DataExportParams()
-        .setOrganisationUnits(Sets.newHashSet(ouA))
-        .setPeriods(Sets.newHashSet(pe202001, pe202002))
-        .setDataSets(Sets.newHashSet(dsA, dsB));
+    return new DataExportParams().setOrganisationUnits(Sets.newHashSet(ouA))
+        .setPeriods(Sets.newHashSet(pe202001, pe202002)).setDataSets(Sets.newHashSet(dsA, dsB));
   }
 
   private void testExport(String filePath, DataExportParams params)
       throws AdxException, IOException {
     dataValueService.addDataValue(new DataValue(deA, pe202001, ouA, cocFUnder5, cocDefault, "1"));
-    dataValueService.addDataValue(
-        new DataValue(deB, pe202002, ouA, cocDefault, cocDefault, "Some text"));
+    dataValueService
+        .addDataValue(new DataValue(deB, pe202002, ouA, cocDefault, cocDefault, "Some text"));
     dataValueService.addDataValue(new DataValue(deA, pe202001, ouB, cocMOver5, cocMcDonalds, "2"));
     dataValueService.addDataValue(new DataValue(deA, pe202001, ouB, cocFOver5, cocPepfar, "3"));
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     adxDataService.writeDataValueSet(params, out);
     String result = out.toString("UTF-8");
     InputStream expectedStream = new ClassPathResource(filePath).getInputStream();
-    String expected =
-        new BufferedReader(new InputStreamReader(expectedStream))
-            .lines()
-            .map(String::trim)
-            .collect(Collectors.joining());
+    String expected = new BufferedReader(new InputStreamReader(expectedStream)).lines()
+        .map(String::trim).collect(Collectors.joining());
     assertEquals(adxGroups(expected), adxGroups(result));
   }
 
@@ -558,17 +483,14 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase {
     importOptions.setIdSchemes(idSchemes);
     adxDataService.saveDataValueSet(in, importOptions, null);
     List<DataValue> dataValues = dataValueService.getAllDataValues();
-    assertContainsOnly(
-        List.of(
-            new DataValue(deA, pe202001, ouA, cocFUnder5, cocDefault, "1"),
-            new DataValue(deA, pe202001, ouA, cocMUnder5, cocDefault, "2"),
-            new DataValue(deA, pe202001, ouA, cocFOver5, cocDefault, "3"),
-            new DataValue(deA, pe202001, ouA, cocMOver5, cocDefault, "4"),
-            new DataValue(deB, pe202001, ouA, cocDefault, cocDefault, "Text data value"),
-            new DataValue(deA, pe202002, ouB, cocFUnder5, cocDefault, "6"),
-            new DataValue(deA, pe2021Q1, ouB, cocFUnder5, cocPepfar, "10"),
-            new DataValue(deA, pe2021Q1, ouB, cocFOver5, cocMcDonalds, "20"),
-            new DataValue(deA, pe2021Q1, ouB, cocMUnder5, cocMcDonalds, "30")),
-        dataValues);
+    assertContainsOnly(List.of(new DataValue(deA, pe202001, ouA, cocFUnder5, cocDefault, "1"),
+        new DataValue(deA, pe202001, ouA, cocMUnder5, cocDefault, "2"),
+        new DataValue(deA, pe202001, ouA, cocFOver5, cocDefault, "3"),
+        new DataValue(deA, pe202001, ouA, cocMOver5, cocDefault, "4"),
+        new DataValue(deB, pe202001, ouA, cocDefault, cocDefault, "Text data value"),
+        new DataValue(deA, pe202002, ouB, cocFUnder5, cocDefault, "6"),
+        new DataValue(deA, pe2021Q1, ouB, cocFUnder5, cocPepfar, "10"),
+        new DataValue(deA, pe2021Q1, ouB, cocFOver5, cocMcDonalds, "20"),
+        new DataValue(deA, pe2021Q1, ouB, cocMUnder5, cocMcDonalds, "30")), dataValues);
   }
 }
