@@ -733,7 +733,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         null,
         PUT(
                 "/38/users/" + peter.getUid(),
-                user.node().addMember("settings", "{'uiLocale\":\"de\"}").toString())
+                user.node().addMember("settings", "{\"uiLocale\":\"de\"}").toString())
             .content(HttpStatus.OK));
     assertEquals(
         "de",
