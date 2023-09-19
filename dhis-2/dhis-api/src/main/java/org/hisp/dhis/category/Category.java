@@ -34,7 +34,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -57,7 +59,7 @@ public class Category extends BaseDimensionalObject implements SystemDefaultMeta
 
   private List<CategoryOption> categoryOptions = new ArrayList<>();
 
-  private List<CategoryCombo> categoryCombos = new ArrayList<>();
+  private Set<CategoryCombo> categoryCombos = new HashSet<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -169,11 +171,11 @@ public class Category extends BaseDimensionalObject implements SystemDefaultMeta
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categoryCombos", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0)
-  public List<CategoryCombo> getCategoryCombos() {
+  public Set<CategoryCombo> getCategoryCombos() {
     return categoryCombos;
   }
 
-  public void setCategoryCombos(List<CategoryCombo> categoryCombos) {
+  public void setCategoryCombos(Set<CategoryCombo> categoryCombos) {
     this.categoryCombos = categoryCombos;
   }
 }

@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -171,8 +171,8 @@ class CategoryComboServiceTest extends DhisSpringTest {
     long catIdB = categoryB.getId();
     assertNotNull(categoryService.getCategoryCombo(idA));
     assertNotNull(categoryService.getCategoryCombo(idB));
-    categoryA.setCategoryCombos(Lists.newArrayList(categoryComboA, categoryComboB));
-    categoryB.setCategoryCombos(Lists.newArrayList(categoryComboA, categoryComboB));
+    categoryA.setCategoryCombos(Sets.newHashSet(categoryComboA, categoryComboB));
+    categoryB.setCategoryCombos(Sets.newHashSet(categoryComboA, categoryComboB));
     categoryService.updateCategory(categoryA);
     categoryService.updateCategory(categoryB);
     categoryService.deleteCategoryCombo(categoryComboA);
@@ -196,7 +196,7 @@ class CategoryComboServiceTest extends DhisSpringTest {
         new CategoryCombo("CategoryComboB", DataDimensionType.DISAGGREGATION, categories);
     categoryService.addCategoryCombo(categoryComboA);
     categoryService.addCategoryCombo(categoryComboB);
-    categoryA.setCategoryCombos(Lists.newArrayList(categoryComboA, categoryComboB));
+    categoryA.setCategoryCombos(Sets.newHashSet(categoryComboA, categoryComboB));
     categoryService.updateCategory(categoryA);
     assertThrows(DeleteNotAllowedException.class, () -> categoryService.deleteCategory(categoryA));
   }
