@@ -94,12 +94,12 @@
     <dhis-json-tree.version>0.10.1</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.8.6</spring-security.version>
+    <spring-security.version>5.8.7</spring-security.version>
 
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.34</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.35</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.2</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.2</com.google.zxing.javase.version>
 
@@ -221,7 +221,7 @@
     <swagger.version>2.1.16</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
-    <h2.version>2.2.222</h2.version>
+    <h2.version>2.2.224</h2.version>
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
