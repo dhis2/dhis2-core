@@ -58,6 +58,8 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
@@ -91,6 +93,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   @Autowired private SecurityService securityService;
 
   @Autowired private SystemSettingManager systemSettingManager;
+
+  @Autowired private OrganisationUnitService organisationUnitService;
 
   private User peter;
 
@@ -279,6 +283,53 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         "User `someone` does not have access to user role",
         response
             .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3032)
+            .getMessage());
+  }
+
+  @Test
+  void checkFailsWithAccessError() {
+    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+    OrganisationUnit orgC = createOrganisationUnit('C', orgB);
+    organisationUnitService.addOrganisationUnit(orgC);
+
+    User user = createUserWithAuth("someone", "F_USER_ADD");
+    user.addOrganisationUnit(orgC);
+    userService.updateUser(user);
+
+    switchContextToUser(user);
+
+    JsonImportSummary response =
+        PATCH(
+                "/users/" + user.getUid(),
+                "["
+                    + "{'op':'add','path':'/organisationUnits','value':[{'id':'"
+                    + orgA.getUid()
+                    + "'}]},"
+                    + "{'op':'add','path':'/dataViewOrganisationUnits','value':[{'id':'"
+                    + orgA.getUid()
+                    + "'}]},"
+                    + "{'op':'add','path':'/teiSearchOrganisationUnits','value':[{'id':'"
+                    + orgA.getUid()
+                    + "'}]}"
+                    + "]")
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    JsonList<JsonErrorReport> errorReports =
+        response.getList("errorReports", JsonErrorReport.class);
+
+    assertEquals(3, errorReports.size());
+
+    assertEquals(
+        "Organisation unit: `ouabcdefghA` not in hierarchy of current user: `someone`",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E7617)
             .getMessage());
   }
 
