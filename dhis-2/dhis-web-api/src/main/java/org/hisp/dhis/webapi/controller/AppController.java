@@ -165,6 +165,7 @@ public class AppController {
     return ResponseEntity.ok(apps);
   }
 
+  // TODO(ivo) do we need to care about this endpoint?
   @PostMapping
   @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
   @ResponseStatus(HttpStatus.NO_CONTENT)

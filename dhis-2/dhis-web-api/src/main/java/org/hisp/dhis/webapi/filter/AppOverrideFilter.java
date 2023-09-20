@@ -44,6 +44,7 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -63,12 +64,13 @@ public class AppOverrideFilter extends OncePerRequestFilter {
           + "("
           + String.join("|", AppManager.BUNDLED_APPS)
           + ")/(.*)";
-
   public static final Pattern APP_PATH_PATTERN = compile(APP_PATH_PATTERN_STRING);
 
   private final AppManager appManager;
 
   private final ObjectMapper jsonMapper;
+
+  private final CurrentUserService currentUserService;
 
   @Override
   protected void doFilterInternal(
@@ -76,6 +78,8 @@ public class AppOverrideFilter extends OncePerRequestFilter {
       throws IOException, ServletException {
     String requestPath = request.getServletPath();
     String contextPath = ContextUtils.getContextPath(request);
+
+    System.out.println(currentUserService.getCurrentUsername());
 
     Matcher m = APP_PATH_PATTERN.matcher(requestPath);
     if (m.find()) {

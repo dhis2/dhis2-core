@@ -156,6 +156,15 @@ public interface AppManager {
   AppStatus installApp(File file, String fileName);
 
   /**
+   * Installs the app.
+   *
+   * @param file the app file.
+   * @param fileName the name of the app file.
+   * @throws IOException if the app manifest file could not be read.
+   */
+  AppStatus installApp(File file, String fileName, String groupUid);
+
+  /**
    * Indicates whether the app with the given name exist.
    *
    * @param appName the name of the app-

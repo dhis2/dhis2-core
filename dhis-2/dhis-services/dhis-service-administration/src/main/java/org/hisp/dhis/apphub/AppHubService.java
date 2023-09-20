@@ -46,5 +46,5 @@ public interface AppHubService {
 
   List<WebApp> getAppHub();
 
-  AppStatus installAppFromAppHub(String id);
+  AppStatus installAppFromAppHub(String versionId, String groupUid);
 }

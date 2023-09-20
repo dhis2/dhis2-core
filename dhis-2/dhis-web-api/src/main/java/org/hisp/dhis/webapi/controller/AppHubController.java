@@ -49,6 +49,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -83,8 +84,10 @@ public class AppHubController {
   @PostMapping(value = "/{versionId}")
   @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void installAppFromAppHub(@PathVariable String versionId) throws WebMessageException {
-    AppStatus status = appHubService.installAppFromAppHub(versionId);
+  public void installAppFromAppHub(
+      @PathVariable String versionId, @RequestParam(required = false) String group)
+      throws WebMessageException {
+    AppStatus status = appHubService.installAppFromAppHub(versionId, group);
 
     if (!status.ok()) {
       String message = i18nManager.getI18n().getString(status.getMessage());

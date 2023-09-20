@@ -104,27 +104,23 @@ public class DefaultAppHubService implements AppHubService {
   }
 
   @Override
-  public AppStatus installAppFromAppHub(String id) {
-    if (id == null) {
+  public AppStatus installAppFromAppHub(String versionId, String groupUid) {
+    if (versionId == null) {
       return AppStatus.NOT_FOUND;
     }
 
     try {
-      Optional<AppVersion> webAppVersion = getWebAppVersion(id);
-
-      if (webAppVersion.isPresent()) {
-        AppVersion version = webAppVersion.get();
-
-        URL url = new URL(version.getDownloadUrl());
-
-        String filename = version.getFilename();
-
-        return appManager.installApp(getFile(url), filename);
+      Optional<AppVersion> webAppVersion = getWebAppVersion(versionId);
+      if (!webAppVersion.isPresent()) {
+        log.info(String.format("No version found for id %s", versionId));
+        return AppStatus.NOT_FOUND;
       }
 
-      log.info(String.format("No version found for id %s", id));
+      AppVersion version = webAppVersion.get();
+      URL url = new URL(version.getDownloadUrl());
+      String filename = version.getFilename();
 
-      return AppStatus.NOT_FOUND;
+      return appManager.installApp(getFile(url), filename, groupUid);
     } catch (IOException ex) {
       throw new RuntimeException("Failed to install app", ex);
     }

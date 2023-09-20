@@ -81,6 +81,12 @@ public class DefaultAppManager implements AppManager {
    */
   private final Cache<App> appCache;
 
+  /**
+   * In-memory storage of installed apps per group. Initially loaded on startup. Should not be
+   * cleared during runtime.
+   */
+  private final Cache<App> appGroupCache;
+
   public DefaultAppManager(
       DhisConfigurationProvider dhisConfigurationProvider,
       @Qualifier("org.hisp.dhis.appmanager.LocalAppStorageService")
@@ -100,6 +106,8 @@ public class DefaultAppManager implements AppManager {
     this.jCloudsAppStorageService = jCloudsAppStorageService;
     this.datastoreService = datastoreService;
     this.appCache = cacheBuilderProvider.<App>newCacheBuilder().forRegion("appCache").build();
+    this.appGroupCache =
+        cacheBuilderProvider.<App>newCacheBuilder().forRegion("appGroupCache").build();
   }
 
   // -------------------------------------------------------------------------
@@ -263,6 +271,26 @@ public class DefaultAppManager implements AppManager {
 
     if (app.getAppState().ok()) {
       appCache.put(app.getKey(), app);
+      registerDatastoreProtection(app);
+    }
+
+    return app.getAppState();
+  }
+
+  @Override
+  public AppStatus installApp(File file, String fileName, String groupUid) {
+    if (StringUtils.isBlank(groupUid)) {
+      return installApp(file, fileName);
+    }
+
+    // TODO(ivo) it will validate internally if an app with the same key/version is currently being
+    // deleted using cache.getIfPresent(app.getKey()). We use the group UID as key. So we might be
+    // in trouble here :joy: Do we need to handle deletions? Or the default behavior?
+    App app = jCloudsAppStorageService.installApp(file, fileName, appGroupCache);
+
+    if (app.getAppState().ok()) {
+      appGroupCache.put(groupUid, app);
+      // TODO(ivo) what is this for?
       registerDatastoreProtection(app);
     }
 
