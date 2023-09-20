@@ -27,17 +27,12 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -169,8 +164,6 @@ class DefaultEventService implements EventService {
   public List<Event> getEvents(EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams);
-    queryParams.setSkipPaging(true);
-
     return eventStore.getEvents(queryParams);
   }
 
@@ -178,54 +171,11 @@ class DefaultEventService implements EventService {
   public Page<Event> getEvents(EventOperationParams operationParams, PageParams pageParams)
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams);
-    queryParams.setPage(pageParams.getPage());
-    queryParams.setPageSize(pageParams.getPageSize());
-    queryParams.setTotalPages(pageParams.isPageTotal());
-    queryParams.setSkipPaging(false);
-
-    List<Event> events = new ArrayList<>(eventStore.getEvents(queryParams));
-
-    Pager pager;
-    if (pageParams.isPageTotal()) {
-      int count = eventStore.getEventCount(queryParams);
-      pager = new Pager(pageParams.getPage(), count, pageParams.getPageSize());
-    } else {
-      pager = handleLastPageFlag(pageParams, events);
-    }
-
-    return Page.of(events, pager);
+    return eventStore.getEvents(queryParams, pageParams);
   }
 
   @Override
   public Set<String> getOrderableFields() {
     return eventStore.getOrderableFields();
-  }
-
-  /**
-   * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link EventStore#getEvents(EventQueryParams) <String,Set<String>>)}
-   *
-   * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
-   * allow us to evaluate if we are in the last page or not. And this is what his method does,
-   * returning the respective Pager object.
-   *
-   * @param params the request params
-   * @param events the reference to the list of Event
-   * @return the populated SlimPager instance
-   */
-  private Pager handleLastPageFlag(PageParams params, List<Event> events) {
-    boolean isLastPage = false;
-
-    if (isNotEmpty(events)) {
-      isLastPage = events.size() <= params.getPageSize();
-      if (!isLastPage) {
-        // Get the same number of elements of the pageSize, forcing
-        // the removal of the last additional element added at querying
-        // time.
-        events.retainAll(events.subList(0, params.getPageSize()));
-      }
-    }
-
-    return new SlimPager(params.getPage(), params.getPageSize(), isLastPage);
   }
 }
