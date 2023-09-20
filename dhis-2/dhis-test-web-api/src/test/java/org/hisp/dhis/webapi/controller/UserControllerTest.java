@@ -245,7 +245,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     userService.updateUser(user);
     switchContextToUser(user);
 
-    checkFailsWithAccessError("'ANYTHING'");
+    checkRoleChangFailsWhenNonALLAdmin("'ANYTHING'");
   }
 
   @Test
@@ -257,10 +257,10 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     userService.updateUser(user);
     switchContextToUser(user);
 
-    checkFailsWithAccessError("'ALL'");
+    checkRoleChangFailsWhenNonALLAdmin("'ALL'");
   }
 
-  private void checkFailsWithAccessError(String roleName) {
+  private void checkRoleChangFailsWhenNonALLAdmin(String roleName) {
     String roleAllId = userService.getUserRoleByName("ROLE_ALL").getUid();
 
     JsonImportSummary response =
@@ -287,7 +287,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void checkFailsWithAccessError() {
+  void testChangeOrgUnitLevelGivesAccessError() {
     systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
 
     OrganisationUnit orgA = createOrganisationUnit('A');
