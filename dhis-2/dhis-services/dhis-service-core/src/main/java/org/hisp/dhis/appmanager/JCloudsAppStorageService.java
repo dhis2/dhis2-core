@@ -457,25 +457,17 @@ public class JCloudsAppStorageService implements AppStorageService {
       //        return app;
       //      }
 
-      // -----------------------------------------------------------------
-      // Unzip the app
-      // -----------------------------------------------------------------
-      //      Path groupDir = Path.of(config.APPS_DIR, groupUid);
-      //      Files.createDirectories(groupDir);
-      //      Path dest = Path.of(APPS_DIR, groupUid, filename.substring(0,
-      // filename.lastIndexOf('.')));
-      //      if (Files.exists(dest)) {
-      //        log.info("App {} already installed at {}", app.getName(), dest);
-      //        app.setAppState(AppStatus.OK);
-      //        return app;
-      //      }
-
       String dest =
           APPS_DIR
               + File.separator
               + groupUid
               + File.separator
               + filename.substring(0, filename.lastIndexOf('.'));
+      if (blobStore.blobExists(config.container, dest)) {
+        log.info("App {} already installed at {}", app.getName(), dest);
+        app.setAppState(AppStatus.OK);
+        return app;
+      }
 
       zip.stream()
           .forEach(
@@ -487,19 +479,12 @@ public class JCloudsAppStorageService implements AppStorageService {
                     try {
                       InputStream input = zip.getInputStream(zipEntry);
 
-                      String blobName = dest + File.separator + name;
                       Blob blob =
                           blobStore
-                              .blobBuilder(blobName)
+                              .blobBuilder(dest + File.separator + name)
                               .payload(input)
                               .contentLength(zipEntry.getSize())
                               .build();
-
-                      if (blobStore.blobExists(config.container, blobName)) {
-                        log.info("App {} already installed at {}", name, dest);
-                        return;
-                      }
-
                       blobStore.putBlob(config.container, blob);
                       input.close();
                     } catch (IOException e) {
