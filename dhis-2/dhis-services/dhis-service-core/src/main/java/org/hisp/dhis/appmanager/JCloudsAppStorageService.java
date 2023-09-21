@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -463,34 +464,36 @@ public class JCloudsAppStorageService implements AppStorageService {
               + groupUid
               + File.separator
               + filename.substring(0, filename.lastIndexOf('.'));
-      if (blobStore.blobExists(config.container, dest)) {
-        log.info("App {} already installed at {}", app.getName(), dest);
-        app.setAppState(AppStatus.OK);
-        return app;
+
+      Enumeration<? extends ZipEntry> entries = zip.entries();
+      while (entries.hasMoreElements()) {
+        ZipEntry zipEntry = entries.nextElement();
+        log.debug("Uploading zip entry: {}", zipEntry);
+        String name = zipEntry.getName().substring(prefix.length());
+
+        try {
+          InputStream input = zip.getInputStream(zipEntry);
+
+          String blobName = dest + File.separator + name;
+          if (blobStore.blobExists(config.container, blobName)) {
+            // assuming the app is already installed if we find one blob
+            log.info("App {} already installed at {}", app.getName(), dest);
+            app.setAppState(AppStatus.OK);
+            return app;
+          }
+
+          Blob blob =
+              blobStore
+                  .blobBuilder(blobName)
+                  .payload(input)
+                  .contentLength(zipEntry.getSize())
+                  .build();
+          blobStore.putBlob(config.container, blob);
+          input.close();
+        } catch (IOException e) {
+          log.error("Unable to store app file '" + name + "'", e);
+        }
       }
-
-      zip.stream()
-          .forEach(
-              (Consumer<ZipEntry>)
-                  zipEntry -> {
-                    log.debug("Uploading zipEntry: " + zipEntry);
-                    String name = zipEntry.getName().substring(prefix.length());
-
-                    try {
-                      InputStream input = zip.getInputStream(zipEntry);
-
-                      Blob blob =
-                          blobStore
-                              .blobBuilder(dest + File.separator + name)
-                              .payload(input)
-                              .contentLength(zipEntry.getSize())
-                              .build();
-                      blobStore.putBlob(config.container, blob);
-                      input.close();
-                    } catch (IOException e) {
-                      log.error("Unable to store app file '" + name + "'", e);
-                    }
-                  });
 
       String namespace = app.getActivities().getDhis().getNamespace();
       log.info(
