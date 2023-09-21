@@ -283,11 +283,10 @@ public class DefaultAppManager implements AppManager {
     for (String groupUid : groupUids) {
       Optional<App> groupApp = appGroupCache.get(groupUid);
 
-        if ( groupApp.isPresent() && groupApp.get().getKey().equals( key ) )
-        {
-          App app = groupApp.get();
-          app.init( contextPath );
-          return app;
+      if (groupApp.isPresent() && groupApp.get().getKey().equals(key)) {
+        App app = groupApp.get();
+        app.init(contextPath);
+        return app;
       }
     }
 
