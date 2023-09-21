@@ -158,6 +158,12 @@ public class LocalAppStorageService implements AppStorageService {
   }
 
   @Override
+  public App installApp(File file, String fileName, Cache<App> appCache, String groupUid) {
+    throw new UnsupportedOperationException(
+        "LocalAppStorageService.installApp is deprecated and should no longer be used.");
+  }
+
+  @Override
   public void deleteApp(App app) {
     if (!apps.containsKey(app.getUrlFriendlyName())) {
       log.warn(String.format("Failed to delete app '%s': App not found", app.getName()));
