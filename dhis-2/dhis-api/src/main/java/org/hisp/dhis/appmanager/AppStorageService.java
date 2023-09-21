@@ -61,6 +61,8 @@ public interface AppStorageService {
    */
   App installApp(File file, String filename, Cache<App> appCache);
 
+  App installApp(File file, String filename, Cache<App> appCache, String groupUid);
+
   /**
    * Deletes an app from the AppHubService.
    *

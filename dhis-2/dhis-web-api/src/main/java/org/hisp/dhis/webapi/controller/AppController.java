@@ -194,6 +194,7 @@ public class AppController {
   public void renderApp(
       @PathVariable("app") String app, HttpServletRequest request, HttpServletResponse response)
       throws IOException, WebMessageException {
+    // TODO(ivo) do I need to adapt this endpoint?
     String contextPath = ContextUtils.getContextPath(request);
     App application = appManager.getApp(app, contextPath);
 

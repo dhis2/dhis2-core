@@ -283,6 +283,7 @@ public class DefaultAppManager implements AppManager {
       return installApp(file, fileName);
     }
 
+    // TODO(ivo) right now the other app will be removed. So everyone would get the same version. Should I override installApp to store the app for the groups somewhere else or can I adapt the current logic
     // TODO(ivo) it will validate internally if an app with the same key/version is currently being
     // deleted using cache.getIfPresent(app.getKey()). We use the group UID as key. So we might be
     // in trouble here :joy: Do we need to handle deletions? Or the default behavior?

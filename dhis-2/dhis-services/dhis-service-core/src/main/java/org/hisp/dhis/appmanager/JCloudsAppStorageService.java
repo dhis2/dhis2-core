@@ -36,6 +36,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -383,6 +385,133 @@ public class JCloudsAppStorageService implements AppStorageService {
               otherVersions.add(other);
           });
       otherVersions.forEach(this::deleteApp);
+
+      String namespace = app.getActivities().getDhis().getNamespace();
+
+      log.info(
+          String.format(
+              ""
+                  + "New app '%s' installed"
+                  + "\n\tInstall path: %s"
+                  + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
+              app.getName(),
+              dest,
+              namespace));
+
+      // -----------------------------------------------------------------
+      // Installation complete.
+      // -----------------------------------------------------------------
+
+      app.setAppState(AppStatus.OK);
+
+      return app;
+    } catch (ZipException e) {
+      log.error("Failed to install app: Invalid ZIP format", e);
+      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
+    } catch (JsonParseException e) {
+      log.error("Failed to install app: Invalid manifest.webapp", e);
+      app.setAppState(AppStatus.INVALID_MANIFEST_JSON);
+    } catch (IOException e) {
+      log.error("Failed to install app: Could not save app", e);
+      app.setAppState(AppStatus.INSTALLATION_FAILED);
+    }
+
+    return app;
+  }
+
+  @Override
+  public App installApp(File file, String filename, Cache<App> appCache, String groupUid) {
+    App app = new App();
+    log.info("Installing new app: " + filename);
+
+    try (ZipFile zip = new ZipFile(file)) {
+      // -----------------------------------------------------------------
+      // Determine top-level directory name, if the zip file contains one
+      // -----------------------------------------------------------------
+
+      String prefix = ZipFileUtils.getTopLevelDirectory(zip.entries().asIterator());
+      log.debug("Detected top-level directory '" + prefix + "' in zip");
+
+      // -----------------------------------------------------------------
+      // Parse manifest.webapp file from ZIP archive.
+      // -----------------------------------------------------------------
+
+      ZipEntry entry = zip.getEntry(prefix + MANIFEST_FILENAME);
+
+      if (entry == null) {
+        log.error("Failed to install app: Missing manifest.webapp in zip");
+
+        app.setAppState(AppStatus.MISSING_MANIFEST);
+        return app;
+      }
+
+      InputStream inputStream = zip.getInputStream(entry);
+
+      app = jsonMapper.readValue(inputStream, App.class);
+
+      app.setFolderName(
+          APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.')));
+      app.setAppStorageSource(AppStorageSource.JCLOUDS);
+
+      if (!this.validateApp(app, appCache)) {
+        return app;
+      }
+
+      // -----------------------------------------------------------------
+      // Unzip the app
+      // -----------------------------------------------------------------
+      Path groupDir = Path.of(APPS_DIR, groupUid);
+      Files.createDirectories(groupDir);
+
+      Path dest = Path.of(APPS_DIR, groupUid, filename.substring(0, filename.lastIndexOf('.')));
+      //      String dest =
+      //          APPS_DIR
+      //              + File.separator
+      //              + groupUid
+      //              + File.separator
+      //              + filename.substring(0, filename.lastIndexOf('.'));
+
+      if (Files.exists(dest)) {
+        app.setAppState(AppStatus.OK);
+        return app;
+      }
+
+      zip.stream()
+          .forEach(
+              (Consumer<ZipEntry>)
+                  zipEntry -> {
+                    log.debug("Uploading zipEntry: " + zipEntry);
+                    String name = zipEntry.getName().substring(prefix.length());
+
+                    try {
+                      InputStream input = zip.getInputStream(zipEntry);
+
+                      Blob blob =
+                          blobStore
+                              .blobBuilder(dest + File.separator + name)
+                              .payload(input)
+                              .contentLength(zipEntry.getSize())
+                              .build();
+
+                      blobStore.putBlob(config.container, blob);
+
+                      input.close();
+
+                    } catch (IOException e) {
+                      log.error("Unable to store app file '" + name + "'", e);
+                    }
+                  });
+
+      //      // make sure any other version of same app is removed
+      //      List<App> otherVersions = new ArrayList<>();
+      //      String key = app.getKey();
+      //      String version = app.getVersion();
+      //      discoverInstalledApps(
+      //          other -> {
+      //            if (key.equals(other.getKey()) && !version.equals(other.getVersion()))
+      //              otherVersions.add(other);
+      //          });
+      //      otherVersions.forEach(this::deleteApp);
 
       String namespace = app.getActivities().getDhis().getNamespace();
 
