@@ -122,7 +122,8 @@ class DefaultAppManagerTest {
             localAppStorageService,
             jCloudsAppStorageService,
             datastoreService,
-            cacheBuilderProvider);
+            cacheBuilderProvider,
+            null);
   }
 
   /**

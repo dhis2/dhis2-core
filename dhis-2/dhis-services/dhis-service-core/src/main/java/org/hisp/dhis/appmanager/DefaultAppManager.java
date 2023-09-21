@@ -40,18 +40,21 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
@@ -75,6 +78,8 @@ public class DefaultAppManager implements AppManager {
 
   private final DatastoreService datastoreService;
 
+  private final CurrentUserService currentUserService;
+
   /**
    * In-memory storage of installed apps. Initially loaded on startup. Should not be cleared during
    * runtime.
@@ -94,7 +99,8 @@ public class DefaultAppManager implements AppManager {
       @Qualifier("org.hisp.dhis.appmanager.JCloudsAppStorageService")
           AppStorageService jCloudsAppStorageService,
       DatastoreService datastoreService,
-      CacheBuilderProvider cacheBuilderProvider) {
+      CacheBuilderProvider cacheBuilderProvider,
+      CurrentUserService currentUserService) {
     checkNotNull(dhisConfigurationProvider);
     checkNotNull(localAppStorageService);
     checkNotNull(jCloudsAppStorageService);
@@ -108,6 +114,7 @@ public class DefaultAppManager implements AppManager {
     this.appCache = cacheBuilderProvider.<App>newCacheBuilder().forRegion("appCache").build();
     this.appGroupCache =
         cacheBuilderProvider.<App>newCacheBuilder().forRegion("appGroupCache").build();
+    this.currentUserService = currentUserService;
   }
 
   // -------------------------------------------------------------------------
@@ -192,8 +199,21 @@ public class DefaultAppManager implements AppManager {
 
   @Override
   public App getApp(String appName) {
-    // Checks for app.getUrlFriendlyName which is the key of AppMap
 
+    Set<String> groupUids = currentUserService.getCurrentUser().getGroups().stream()
+        .map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet());
+
+    for ( String groupUid : groupUids )
+    {
+      Optional<App> groupApp = appGroupCache.get( groupUid );
+
+      if( groupApp.isPresent() && groupApp.get().getKey().equals( appName ))
+      {
+        return groupApp.get();
+      }
+    }
+
+    // Checks for app.getUrlFriendlyName which is the key of AppMap
     Optional<App> appOptional = appCache.getIfPresent(appName);
     if (appOptional.isPresent() && this.isAccessible(appOptional.get())) {
       return appOptional.get();

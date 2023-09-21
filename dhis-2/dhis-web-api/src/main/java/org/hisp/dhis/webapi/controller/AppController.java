@@ -196,7 +196,8 @@ public class AppController {
       throws IOException, WebMessageException {
     // TODO(ivo) do I need to adapt this endpoint?
     String contextPath = ContextUtils.getContextPath(request);
-    App application = appManager.getApp(app, contextPath);
+    //App application = appManager.getApp(app, contextPath);
+    App application = appManager.getApp( app );
 
     // Get page requested
     String pageName = getUrl(request.getPathInfo(), app);
