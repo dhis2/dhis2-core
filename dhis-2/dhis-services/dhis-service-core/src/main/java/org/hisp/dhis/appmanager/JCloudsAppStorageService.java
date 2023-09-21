@@ -439,7 +439,6 @@ public class JCloudsAppStorageService implements AppStorageService {
 
       if (entry == null) {
         log.error("Failed to install app: Missing manifest.webapp in zip");
-
         app.setAppState(AppStatus.MISSING_MANIFEST);
         return app;
       }
@@ -447,10 +446,6 @@ public class JCloudsAppStorageService implements AppStorageService {
       InputStream inputStream = zip.getInputStream(entry);
 
       app = jsonMapper.readValue(inputStream, App.class);
-
-      app.setFolderName(
-          APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.')));
-      app.setAppStorageSource(AppStorageSource.JCLOUDS);
 
       // TODO(ivo) is this safe :joy: to ignore. if not we need to duplicate it or let it use the
       // groupUid as the app key
@@ -464,6 +459,8 @@ public class JCloudsAppStorageService implements AppStorageService {
               + groupUid
               + File.separator
               + filename.substring(0, filename.lastIndexOf('.'));
+      app.setFolderName(dest);
+      app.setAppStorageSource(AppStorageSource.JCLOUDS);
 
       Enumeration<? extends ZipEntry> entries = zip.entries();
       while (entries.hasMoreElements()) {

@@ -275,18 +275,18 @@ public class DefaultAppManager implements AppManager {
   @Override
   public App getApp(String key, String contextPath) {
 
-      Set<String> groupUids = currentUserService.getCurrentUser().getGroups().stream()
-          .map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet() );
+    Set<String> groupUids =
+        currentUserService.getCurrentUser().getGroups().stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet());
 
-      for ( String groupUid : groupUids )
-      {
-          Optional<App> groupApp = appGroupCache.get( groupUid );
+    for (String groupUid : groupUids) {
+      Optional<App> groupApp = appGroupCache.get(groupUid);
 
-          if ( groupApp.isPresent() && groupApp.get().getKey().equals( key ) )
-          {
-              return groupApp.get();
-          }
+      if (groupApp.isPresent() && groupApp.get().getKey().equals(key)) {
+        return groupApp.get();
       }
+    }
 
     Collection<App> apps = getApps(contextPath);
 
