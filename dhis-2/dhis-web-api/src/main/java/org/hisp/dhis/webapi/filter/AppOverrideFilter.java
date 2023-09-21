@@ -88,7 +88,8 @@ public class AppOverrideFilter extends OncePerRequestFilter {
 
       log.debug("AppOverrideFilter :: Matched for path " + requestPath);
 
-      // TODO(ivo) add app manager method taking a user. check if any of users group has an app in the
+      // TODO(ivo) add app manager method taking a user. check if any of users group has an app in
+      // the
       // group app cache and serve that otherwhise go down the default route/existing code
       App app = appManager.getApp(appName, contextPath);
       if (app != null && app.getAppState() != AppStatus.DELETION_IN_PROGRESS) {
