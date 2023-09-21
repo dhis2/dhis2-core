@@ -36,8 +36,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -422,7 +420,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   @Override
   public App installApp(File file, String filename, Cache<App> appCache, String groupUid) {
     App app = new App();
-    log.info("Installing new app: " + filename);
+    log.info("Installing new app {}", filename);
 
     try (ZipFile zip = new ZipFile(file)) {
       // -----------------------------------------------------------------
@@ -453,29 +451,31 @@ public class JCloudsAppStorageService implements AppStorageService {
           APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.')));
       app.setAppStorageSource(AppStorageSource.JCLOUDS);
 
-      if (!this.validateApp(app, appCache)) {
-        return app;
-      }
+      // TODO(ivo) is this safe :joy: to ignore. if not we need to duplicate it or let it use the
+      // groupUid as the app key
+      //      if (!this.validateApp(app, appCache)) {
+      //        return app;
+      //      }
 
       // -----------------------------------------------------------------
       // Unzip the app
       // -----------------------------------------------------------------
-      Path groupDir = Path.of(APPS_DIR, groupUid);
-      Files.createDirectories(groupDir);
+      //      Path groupDir = Path.of(config.APPS_DIR, groupUid);
+      //      Files.createDirectories(groupDir);
+      //      Path dest = Path.of(APPS_DIR, groupUid, filename.substring(0,
+      // filename.lastIndexOf('.')));
+      //      if (Files.exists(dest)) {
+      //        log.info("App {} already installed at {}", app.getName(), dest);
+      //        app.setAppState(AppStatus.OK);
+      //        return app;
+      //      }
 
-      Path dest = Path.of(APPS_DIR, groupUid, filename.substring(0, filename.lastIndexOf('.')));
-      //      String dest =
-      //          APPS_DIR
-      //              + File.separator
-      //              + groupUid
-      //              + File.separator
-      //              + filename.substring(0, filename.lastIndexOf('.'));
-
-      if (Files.exists(dest)) {
-        log.info("App {} already installed", app.getName());
-        app.setAppState(AppStatus.OK);
-        return app;
-      }
+      String dest =
+          APPS_DIR
+              + File.separator
+              + groupUid
+              + File.separator
+              + filename.substring(0, filename.lastIndexOf('.'));
 
       zip.stream()
           .forEach(
@@ -487,35 +487,27 @@ public class JCloudsAppStorageService implements AppStorageService {
                     try {
                       InputStream input = zip.getInputStream(zipEntry);
 
+                      String blobName = dest + File.separator + name;
                       Blob blob =
                           blobStore
-                              .blobBuilder(dest + File.separator + name)
+                              .blobBuilder(blobName)
                               .payload(input)
                               .contentLength(zipEntry.getSize())
                               .build();
 
+                      if (blobStore.blobExists(config.container, blobName)) {
+                        log.info("App {} already installed at {}", name, dest);
+                        return;
+                      }
+
                       blobStore.putBlob(config.container, blob);
-
                       input.close();
-
                     } catch (IOException e) {
                       log.error("Unable to store app file '" + name + "'", e);
                     }
                   });
 
-      //      // make sure any other version of same app is removed
-      //      List<App> otherVersions = new ArrayList<>();
-      //      String key = app.getKey();
-      //      String version = app.getVersion();
-      //      discoverInstalledApps(
-      //          other -> {
-      //            if (key.equals(other.getKey()) && !version.equals(other.getVersion()))
-      //              otherVersions.add(other);
-      //          });
-      //      otherVersions.forEach(this::deleteApp);
-
       String namespace = app.getActivities().getDhis().getNamespace();
-
       log.info(
           String.format(
               ""
@@ -526,12 +518,7 @@ public class JCloudsAppStorageService implements AppStorageService {
               dest,
               namespace));
 
-      // -----------------------------------------------------------------
-      // Installation complete.
-      // -----------------------------------------------------------------
-
       app.setAppState(AppStatus.OK);
-
       return app;
     } catch (ZipException e) {
       log.error("Failed to install app: Invalid ZIP format", e);
@@ -644,7 +631,7 @@ public class JCloudsAppStorageService implements AppStorageService {
 
   // -------------------------------------------------------------------------
   // Internal classes
-  // -------------------------------------------------------------------------
+  // ------------------------------------------------dhis-------------------------
 
   private class BlobStoreProperties {
     private String provider;
