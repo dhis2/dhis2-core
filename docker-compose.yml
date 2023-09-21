@@ -10,6 +10,7 @@ services:
     volumes:
       - ./docker/dhis.conf:/opt/dhis2/dhis.conf:ro
       - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
+      - rewrite-config:/usr/local/tomcat/conf/Catalina/localhost/
     environment:
       JAVA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081 \
               -Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml
@@ -21,6 +22,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      tomcat-rewrite:
+        condition: service_completed_successfully
 
   db:
     image: ghcr.io/baosystems/postgis:12-3.3
@@ -52,5 +55,13 @@ services:
     volumes:
       - db-dump:/opt/dump
 
+  tomcat-rewrite:
+    image: busybox
+    command: sh -c 'wget https://raw.githubusercontent.com/dhis2-sre/waf-config-example/main/rewrite.config'
+    working_dir: /tmp/rewrite
+    volumes:
+      - rewrite-config:/tmp/rewrite
+
 volumes:
   db-dump:
+  rewrite-config:
