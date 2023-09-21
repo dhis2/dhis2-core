@@ -472,6 +472,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       //              + filename.substring(0, filename.lastIndexOf('.'));
 
       if (Files.exists(dest)) {
+        log.info("App {} already installed", app.getName());
         app.setAppState(AppStatus.OK);
         return app;
       }
