@@ -230,8 +230,9 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
             ? new NotifierJobProgress(notifier, job)
             : NoopJobProgress.INSTANCE;
     boolean logInfoOnDebug =
-        job.getLastFinished() != null
-            && Duration.between(job.getLastFinished().toInstant(), Instant.now()).getSeconds()
+        job.getSchedulingType() != SchedulingType.ONCE_ASAP
+            && job.getLastExecuted() != null
+            && Duration.between(job.getLastExecuted().toInstant(), Instant.now()).getSeconds()
                 < systemSettings.getIntSetting(SettingKey.JOBS_LOG_DEBUG_BELOW_SECONDS);
     RecordingJobProgress progress =
         new RecordingJobProgress(messages, job, tracker, true, observer, logInfoOnDebug);
