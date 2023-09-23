@@ -151,9 +151,17 @@ public interface AppManager {
    *
    * @param file the app file.
    * @param fileName the name of the app file.
-   * @throws IOException if the app manifest file could not be read.
+   * @return outcome of the installation
    */
   AppStatus installApp(File file, String fileName);
+
+  /**
+   * Installs an app from the AppHub with the given ID.
+   *
+   * @param appHubId A unqiue ID for a specific app version
+   * @return outcome of the installation
+   */
+  AppStatus installApp(String appHubId);
 
   /**
    * Indicates whether the app with the given name exist.

@@ -31,8 +31,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -43,7 +50,10 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
@@ -68,11 +78,9 @@ public class DefaultAppManager implements AppManager {
   private static final Set<String> EXCLUSION_APPS = Set.of("Line Listing");
 
   private final DhisConfigurationProvider dhisConfigurationProvider;
-
+  private final AppHubService appHubService;
   private final AppStorageService localAppStorageService;
-
   private final AppStorageService jCloudsAppStorageService;
-
   private final DatastoreService datastoreService;
 
   /**
@@ -83,6 +91,7 @@ public class DefaultAppManager implements AppManager {
 
   public DefaultAppManager(
       DhisConfigurationProvider dhisConfigurationProvider,
+      AppHubService appHubService,
       @Qualifier("org.hisp.dhis.appmanager.LocalAppStorageService")
           AppStorageService localAppStorageService,
       @Qualifier("org.hisp.dhis.appmanager.JCloudsAppStorageService")
@@ -96,6 +105,7 @@ public class DefaultAppManager implements AppManager {
     checkNotNull(cacheBuilderProvider);
 
     this.dhisConfigurationProvider = dhisConfigurationProvider;
+    this.appHubService = appHubService;
     this.localAppStorageService = localAppStorageService;
     this.jCloudsAppStorageService = jCloudsAppStorageService;
     this.datastoreService = datastoreService;
@@ -270,6 +280,42 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
+  public AppStatus installApp(String appHubId) {
+    if (appHubId == null) {
+      return AppStatus.NOT_FOUND;
+    }
+
+    try {
+      String versionJson = appHubService.getAppHubApiResponse("v2", "appVersions/" + appHubId);
+      if (versionJson == null || versionJson.isEmpty()) {
+        log.info(String.format("No version found for id %s", appHubId));
+        return AppStatus.NOT_FOUND;
+      }
+      ObjectMapper mapper = new ObjectMapper();
+      JsonNode dowloadUrlNode = mapper.readTree(versionJson).get("dowloadUrl");
+      if (dowloadUrlNode == null) {
+        log.info(
+            String.format(
+                "No download URL property found in response for id %s: %s", appHubId, versionJson));
+        return AppStatus.NOT_FOUND;
+      }
+      String downloadUrl = dowloadUrlNode.asText();
+      URL url = new URL(downloadUrl);
+
+      String filename = FilenameUtils.getName(downloadUrl);
+
+      return installApp(getFile(url), filename);
+
+    } catch (IOException ex) {
+      log.info(String.format("No version found for id %s", appHubId));
+      return AppStatus.NOT_FOUND;
+    } catch (URISyntaxException e) {
+      log.error("Failed to install app with id " + appHubId, e);
+      return AppStatus.INSTALLATION_FAILED;
+    }
+  }
+
+  @Override
   public boolean exists(String appName) {
     return getApp(appName) != null;
   }
@@ -378,5 +424,20 @@ public class DefaultAppManager implements AppManager {
     if (namespace != null && !namespace.isEmpty()) {
       datastoreService.removeProtection(namespace);
     }
+  }
+
+  private static File getFile(URL url) throws IOException {
+    URLConnection connection = url.openConnection();
+
+    BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
+
+    File tempFile = File.createTempFile("dhis", null);
+
+    tempFile.deleteOnExit();
+
+    try (FileOutputStream out = new FileOutputStream(tempFile)) {
+      IOUtils.copy(in, out);
+    }
+    return tempFile;
   }
 }

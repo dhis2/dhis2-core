@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.apphub;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import java.util.Set;
 import java.util.regex.Pattern;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -41,8 +41,8 @@ import org.springframework.http.MediaType;
  * @author Lars Helge Overland
  */
 public class AppHubUtils {
-  private static final ImmutableSet<String> ILLEGAL_QUERY_STRINGS =
-      ImmutableSet.of("..", "//", "http://", "https://", "file://");
+  private static final Set<String> ILLEGAL_QUERY_STRINGS =
+      Set.of("..", "//", "http://", "https://", "file://");
 
   private static final Pattern API_VERSION_PATTERN = Pattern.compile("v\\d+");
 
@@ -82,8 +82,7 @@ public class AppHubUtils {
    * @return the sanitized query.
    */
   public static String sanitizeQuery(String query) {
-    query = query.replaceFirst("^/*", "");
-    return query;
+    return query.replaceFirst("^/*", "");
   }
 
   /**
@@ -95,6 +94,6 @@ public class AppHubUtils {
   public static <T> HttpEntity<T> getJsonRequestEntity() {
     HttpHeaders headers = new HttpHeaders();
     headers.setAccept(Lists.newArrayList(MediaType.APPLICATION_JSON));
-    return new HttpEntity<T>(headers);
+    return new HttpEntity<>(headers);
   }
 }
