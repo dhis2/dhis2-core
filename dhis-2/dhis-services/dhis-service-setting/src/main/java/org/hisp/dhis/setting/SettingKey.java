@@ -254,6 +254,12 @@ public enum SettingKey {
   JOBS_MAX_CRON_DELAY_HOURS("jobsMaxCronDelayHours", 4, Integer.class),
 
   /**
+   * A job running with a smaller delay than the given value is logged on debug level instead of
+   * info to not spam the logs.
+   */
+  JOBS_LOG_DEBUG_BELOW_SECONDS("jobsLogDebugBelowSeconds", 180, Integer.class),
+
+  /**
    * Progressive caching factor for the analytics API. To enable, the {@link
    * #ANALYTICS_CACHE_TTL_MODE} must be set to PROGRESSIVE.
    */
