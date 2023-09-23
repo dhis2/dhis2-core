@@ -56,10 +56,12 @@ public class DefaultAppHubService implements AppHubService {
 
   @Override
   public String getAppHubApiResponse(String apiVersion, String query) throws URISyntaxException {
-    validateApiVersion(apiVersion);
-    validateQuery(query);
+    if (!apiVersion.isEmpty()) {
+      validateApiVersion(apiVersion);
+      apiVersion = sanitizeQuery(apiVersion);
+    }
 
-    apiVersion = sanitizeQuery(apiVersion);
+    validateQuery(query);
     query = sanitizeQuery(query);
 
     String appHubApiUrl = dhisConfigurationProvider.getProperty(ConfigurationKey.APPHUB_API_URL);

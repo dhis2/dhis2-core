@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.net.URISyntaxException;
@@ -38,7 +37,7 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -56,15 +55,14 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags("ui")
 @RestController
-@RequestMapping(AppHubController.RESOURCE_PATH)
+@RequestMapping("/appHub")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class AppHubController {
-  public static final String RESOURCE_PATH = "/appHub";
 
-  private AppManager appManager;
-  private AppHubService appHubService;
-  private I18nManager i18nManager;
+  private final AppManager appManager;
+  private final AppHubService appHubService;
+  private final I18nManager i18nManager;
 
   /** Deprecated as of version 2.35 and should be removed eventually. */
   @GetMapping(produces = APPLICATION_JSON_VALUE)
@@ -83,14 +81,13 @@ public class AppHubController {
   @PostMapping(value = "/{versionId}")
   @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void installAppFromAppHub(@PathVariable String versionId)
-      throws WebMessageException, URISyntaxException {
+  public void installAppFromAppHub(@PathVariable String versionId) throws ConflictException {
     AppStatus status = appManager.installApp(versionId);
 
     if (!status.ok()) {
       String message = i18nManager.getI18n().getString(status.getMessage());
 
-      throw new WebMessageException(conflict(message));
+      throw new ConflictException(message);
     }
   }
 }
