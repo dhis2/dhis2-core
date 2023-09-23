@@ -66,13 +66,13 @@ public class AppHubController {
 
   /** Deprecated as of version 2.35 and should be removed eventually. */
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  public String listAppHub() throws URISyntaxException {
+  public String listAppHub() throws URISyntaxException, ConflictException {
     return appHubService.getAppHubApiResponse("", "apps");
   }
 
   @GetMapping(value = "/{apiVersion}/**", produces = APPLICATION_JSON_VALUE)
   public String getAppHubApiResponse(@PathVariable String apiVersion, HttpServletRequest request)
-      throws URISyntaxException {
+      throws URISyntaxException, ConflictException {
     String query = ContextUtils.getWildcardPathValue(request);
 
     return appHubService.getAppHubApiResponse(apiVersion, query);

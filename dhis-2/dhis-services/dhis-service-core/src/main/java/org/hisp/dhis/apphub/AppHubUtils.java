@@ -30,9 +30,8 @@ package org.hisp.dhis.apphub;
 import com.google.common.collect.Lists;
 import java.util.Set;
 import java.util.regex.Pattern;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -51,15 +50,15 @@ public class AppHubUtils {
    * strings.
    *
    * @param query the query.
-   * @throws IllegalQueryException if the query is invalid.
+   * @throws ConflictException if the query is invalid.
    */
-  public static void validateQuery(String query) throws IllegalQueryException {
+  public static void validateQuery(String query) throws ConflictException {
     if (query == null || query.isEmpty()) {
-      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1000));
+      throw new ConflictException(ErrorCode.E1000);
     }
 
     if (ILLEGAL_QUERY_STRINGS.stream().anyMatch(query::contains)) {
-      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1001));
+      throw new ConflictException(ErrorCode.E1001);
     }
   }
 
@@ -67,11 +66,11 @@ public class AppHubUtils {
    * Validate the API version. Must start with {@code v} followed by an integer.
    *
    * @param apiVersion the API version string.
-   * @throws IllegalQueryException if the API version is invalid.
+   * @throws ConflictException if the API version is invalid.
    */
-  public static void validateApiVersion(String apiVersion) throws IllegalQueryException {
+  public static void validateApiVersion(String apiVersion) throws ConflictException {
     if (!API_VERSION_PATTERN.matcher(apiVersion).matches()) {
-      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1002));
+      throw new ConflictException(ErrorCode.E1002);
     }
   }
 

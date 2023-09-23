@@ -38,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -55,7 +56,8 @@ public class DefaultAppHubService implements AppHubService {
   private final DhisConfigurationProvider dhisConfigurationProvider;
 
   @Override
-  public String getAppHubApiResponse(String apiVersion, String query) throws URISyntaxException {
+  public String getAppHubApiResponse(String apiVersion, String query)
+      throws URISyntaxException, ConflictException {
     if (!apiVersion.isEmpty()) {
       validateApiVersion(apiVersion);
       apiVersion = sanitizeQuery(apiVersion);

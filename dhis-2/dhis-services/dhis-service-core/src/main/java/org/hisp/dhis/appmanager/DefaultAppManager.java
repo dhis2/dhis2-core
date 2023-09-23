@@ -61,6 +61,7 @@ import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -309,7 +310,7 @@ public class DefaultAppManager implements AppManager {
     } catch (IOException ex) {
       log.info(String.format("No version found for id %s", appHubId));
       return AppStatus.NOT_FOUND;
-    } catch (URISyntaxException e) {
+    } catch (ConflictException | URISyntaxException e) {
       log.error("Failed to install app with id " + appHubId, e);
       return AppStatus.INSTALLATION_FAILED;
     }
