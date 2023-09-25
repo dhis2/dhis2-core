@@ -57,7 +57,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
+import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -239,7 +239,7 @@ class JdbcEventStore implements EventStore {
   @Override
   public Page<Event> getEvents(EventQueryParams queryParams, PageParams pageParams) {
     List<Event> events = getEvents(queryParams, Optional.of(pageParams));
-    Supplier<Integer> eventCount = () -> getEventCount(queryParams);
+    IntSupplier eventCount = () -> getEventCount(queryParams);
     return getPage(pageParams, events, eventCount);
   }
 
@@ -442,10 +442,10 @@ class JdbcEventStore implements EventStore {
    * @param eventCount a supplier of the number of events in the final Page
    * @return a full Pager in case the page totals are fetched and a SlimPager otherwise
    */
-  private Page<Event> getPage(
-      PageParams pageParams, List<Event> events, Supplier<Integer> eventCount) {
+  private Page<Event> getPage(PageParams pageParams, List<Event> events, IntSupplier eventCount) {
     if (pageParams.isPageTotal()) {
-      Pager pager = new Pager(pageParams.getPage(), eventCount.get(), pageParams.getPageSize());
+      Pager pager =
+          new Pager(pageParams.getPage(), eventCount.getAsInt(), pageParams.getPageSize());
       return Page.of(events, pager);
     }
 
