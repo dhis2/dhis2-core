@@ -31,8 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -46,6 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
@@ -62,6 +61,8 @@ import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -281,7 +282,7 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public AppStatus installApp(String appHubId) {
+  public AppStatus installApp(UUID appHubId) {
     if (appHubId == null) {
       return AppStatus.NOT_FOUND;
     }
@@ -292,15 +293,14 @@ public class DefaultAppManager implements AppManager {
         log.info(String.format("No version found for id %s", appHubId));
         return AppStatus.NOT_FOUND;
       }
-      ObjectMapper mapper = new ObjectMapper();
-      JsonNode dowloadUrlNode = mapper.readTree(versionJson).get("dowloadUrl");
-      if (dowloadUrlNode == null) {
+      JsonString downloadUrlNode = JsonMixed.of(versionJson).getString("downloadUrl");
+      if (downloadUrlNode.isUndefined()) {
         log.info(
             String.format(
                 "No download URL property found in response for id %s: %s", appHubId, versionJson));
         return AppStatus.NOT_FOUND;
       }
-      String downloadUrl = dowloadUrlNode.asText();
+      String downloadUrl = downloadUrlNode.string();
       URL url = new URL(downloadUrl);
 
       String filename = FilenameUtils.getName(downloadUrl);

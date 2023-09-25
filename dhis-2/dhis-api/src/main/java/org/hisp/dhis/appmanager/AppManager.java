@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.core.io.Resource;
 
@@ -161,7 +162,7 @@ public interface AppManager {
    * @param appHubId A unqiue ID for a specific app version
    * @return outcome of the installation
    */
-  AppStatus installApp(String appHubId);
+  AppStatus installApp(UUID appHubId);
 
   /**
    * Indicates whether the app with the given name exist.

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.net.URISyntaxException;
+import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.apphub.AppHubService;
@@ -81,7 +82,7 @@ public class AppHubController {
   @PostMapping(value = "/{versionId}")
   @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void installAppFromAppHub(@PathVariable String versionId) throws ConflictException {
+  public void installAppFromAppHub(@PathVariable UUID versionId) throws ConflictException {
     AppStatus status = appManager.installApp(versionId);
 
     if (!status.ok()) {
