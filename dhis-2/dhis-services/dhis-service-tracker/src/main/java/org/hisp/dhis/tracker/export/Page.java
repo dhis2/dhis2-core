@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export;
 
 import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import org.hisp.dhis.common.Pager;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface EventService {
-  Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
-
-  Event getEvent(Event event, EventParams eventParams) throws ForbiddenException;
-
-  /** Get all events matching given params. */
-  List<Event> getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
-
-  /** Get a page of events matching given params. */
-  Page<Event> getEvents(EventOperationParams params, PageParams pageParams)
-      throws BadRequestException, ForbiddenException;
-
-  /**
-   * Fields the {@link #getEvents(EventOperationParams)} and {@link #getEvents(EventOperationParams,
-   * PageParams)} can order events by. Ordering by fields other than these is considered a
-   * programmer error. Validation of user provided field names should occur before calling {@link
-   * #getEvents(EventOperationParams)} or {@link #getEvents(EventOperationParams, PageParams)}.
-   */
-  Set<String> getOrderableFields();
+@RequiredArgsConstructor(staticName = "of")
+@Getter
+@ToString
+@EqualsAndHashCode
+public class Page<T> {
+  private final List<T> items;
+  private final Pager pager;
 }

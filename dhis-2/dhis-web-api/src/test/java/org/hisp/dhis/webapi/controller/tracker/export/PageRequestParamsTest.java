@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface EventService {
-  Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
-  Event getEvent(Event event, EventParams eventParams) throws ForbiddenException;
+class PageRequestParamsTest {
 
-  /** Get all events matching given params. */
-  List<Event> getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
+  @Data
+  private static class PaginationParameters implements PageRequestParams {
+    private Integer page;
+    private Integer pageSize;
+    private Boolean totalPages;
+    private Boolean skipPaging;
+  }
 
-  /** Get a page of events matching given params. */
-  Page<Event> getEvents(EventOperationParams params, PageParams pageParams)
-      throws BadRequestException, ForbiddenException;
+  @Test
+  void shouldBePagedIfSkipPagingIsNull() {
+    PaginationParameters parameters = new PaginationParameters();
 
-  /**
-   * Fields the {@link #getEvents(EventOperationParams)} and {@link #getEvents(EventOperationParams,
-   * PageParams)} can order events by. Ordering by fields other than these is considered a
-   * programmer error. Validation of user provided field names should occur before calling {@link
-   * #getEvents(EventOperationParams)} or {@link #getEvents(EventOperationParams, PageParams)}.
-   */
-  Set<String> getOrderableFields();
+    assertTrue(parameters.isPaged());
+  }
+
+  @Test
+  void shouldBePagedIfSkipPagingIsTrue() {
+    PaginationParameters parameters = new PaginationParameters();
+    parameters.setSkipPaging(true);
+
+    assertTrue(parameters.isPaged());
+  }
+
+  @Test
+  void shouldBeUnpagedIfSkipPagingIsTrue() {
+    PaginationParameters parameters = new PaginationParameters();
+    parameters.setSkipPaging(false);
+
+    assertFalse(parameters.isPaged());
+  }
 }
