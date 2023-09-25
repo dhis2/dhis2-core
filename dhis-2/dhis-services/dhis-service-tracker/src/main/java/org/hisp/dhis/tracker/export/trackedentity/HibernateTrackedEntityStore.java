@@ -532,9 +532,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     StringBuilder attributes = new StringBuilder();
 
     List<Map.Entry<TrackedEntityAttribute, List<QueryFilter>>> filterItems =
-        params.getFilters().entrySet().stream()
-            .filter(f -> !f.getValue().stream().filter(Objects::nonNull).toList().isEmpty())
-            .toList();
+        params.getFilters().entrySet().stream().filter(f -> !f.getValue().isEmpty()).toList();
 
     for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> queryItem : filterItems) {
       String col = statementBuilder.columnQuote(queryItem.getKey().getUid());
