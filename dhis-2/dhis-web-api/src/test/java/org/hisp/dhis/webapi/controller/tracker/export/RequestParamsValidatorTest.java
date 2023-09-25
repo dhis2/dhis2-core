@@ -36,6 +36,7 @@ import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fro
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,11 +44,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
+import lombok.Data;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -61,7 +65,9 @@ import org.hisp.dhis.tracker.export.OperationParamUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /** Tests {@link RequestParamsValidator}. */
 class RequestParamsValidatorTest {
@@ -354,5 +360,66 @@ class RequestParamsValidatorTest {
     assertStartsWith(
         String.format("At least one org unit is required for orgUnitMode: %s", orgUnitMode),
         exception.getMessage());
+  }
+
+  @Data
+  private static class PaginationParameters implements PageRequestParams {
+    private Integer page;
+    private Integer pageSize;
+    private Boolean totalPages;
+    private Boolean skipPaging;
+  }
+
+  private static Stream<Arguments> mutuallyExclusivePaginationParameters() {
+    return Stream.of(
+        arguments(null, 1, null, true),
+        arguments(null, 1, false, true),
+        arguments(null, 1, false, true),
+        arguments(1, 1, false, true),
+        arguments(1, 1, true, true),
+        arguments(null, null, true, true));
+  }
+
+  @MethodSource("mutuallyExclusivePaginationParameters")
+  @ParameterizedTest
+  void shouldFailWhenGivenMutuallyExclusivePaginationParameters(
+      Integer page, Integer pageSize, Boolean totalPages, Boolean skipPaging) {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPage(page);
+    paginationParameters.setPageSize(pageSize);
+    paginationParameters.setTotalPages(totalPages);
+    paginationParameters.setSkipPaging(skipPaging);
+
+    assertThrows(
+        BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
+  }
+
+  private static Stream<Arguments> validPaginationParameters() {
+    return Stream.of(
+        arguments(null, null, null, null),
+        arguments(null, null, null, false),
+        arguments(null, 1, true, null),
+        arguments(null, 1, false, null),
+        arguments(null, 1, false, false),
+        arguments(null, null, true, false),
+        arguments(1, 1, false, false),
+        arguments(null, null, true, null),
+        arguments(null, 1, true, false),
+        arguments(null, null, null, true),
+        arguments(null, null, false, true));
+  }
+
+  @MethodSource("validPaginationParameters")
+  @ParameterizedTest
+  void shouldPassWhenGivenValidPaginationParameters(
+      Integer page, Integer pageSize, Boolean totalPages, Boolean skipPaging)
+      throws BadRequestException {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPage(page);
+    paginationParameters.setPage(pageSize);
+    paginationParameters.setTotalPages(totalPages);
+    paginationParameters.setSkipPaging(skipPaging);
+
+    validatePaginationParameters(paginationParameters);
   }
 }

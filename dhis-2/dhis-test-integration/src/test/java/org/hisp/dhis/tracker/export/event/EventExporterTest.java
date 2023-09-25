@@ -35,7 +35,6 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
-import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -144,7 +143,7 @@ class EventExporterTest extends TrackerTest {
             .enrollments(Set.of("TvctPPhpD8z"))
             .build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertEquals(
         get(Event.class, "D9PbzJY8bJM").getAssignedUser(), events.get(0).getAssignedUser());
@@ -155,7 +154,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder.events(Set.of("pTzf9KYMk72")).includeRelationships(true).build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
     List<Relationship> relationships =
@@ -169,7 +168,7 @@ class EventExporterTest extends TrackerTest {
   void shouldReturnEventsWithNotes() throws ForbiddenException, BadRequestException {
     EventOperationParams params = operationParamsBuilder.events(Set.of("pTzf9KYMk72")).build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
     List<Note> notes = events.get(0).getNotes();
@@ -268,11 +267,9 @@ class EventExporterTest extends TrackerTest {
             .events(Set.of("pTzf9KYMk72"))
             .build();
 
-    Events events = eventService.getEvents(params);
+    List<Event> events = eventService.getEvents(params);
 
-    assertNotEmpty(events.getEvents());
-
-    Event event = events.getEvents().get(0);
+    Event event = events.get(0);
 
     assertAll(
         "All dates should include timestamp",
@@ -423,11 +420,11 @@ class EventExporterTest extends TrackerTest {
             .attributeCategoryOptions(Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
             .build();
 
-    Events events = eventService.getEvents(params);
+    List<Event> events = eventService.getEvents(params);
 
-    assertContainsOnly(List.of("kWjSezkXHVp", "OTmjvJDn0Fu"), eventUids(events));
+    assertContainsOnly(List.of("kWjSezkXHVp", "OTmjvJDn0Fu"), uids(events));
     List<Executable> executables =
-        events.getEvents().stream()
+        events.stream()
             .map(
                 e ->
                     (Executable)
@@ -482,11 +479,11 @@ class EventExporterTest extends TrackerTest {
             .attributeCategoryOptions(Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
             .build();
 
-    Events events = eventService.getEvents(params);
+    List<Event> events = eventService.getEvents(params);
 
-    assertContainsOnly(List.of("kWjSezkXHVp", "OTmjvJDn0Fu"), eventUids(events));
+    assertContainsOnly(List.of("kWjSezkXHVp", "OTmjvJDn0Fu"), uids(events));
     List<Executable> executables =
-        events.getEvents().stream()
+        events.stream()
             .map(
                 e ->
                     (Executable)
@@ -533,11 +530,11 @@ class EventExporterTest extends TrackerTest {
             .attributeCategoryOptions(Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
             .build();
 
-    Events events = eventService.getEvents(params);
+    List<Event> events = eventService.getEvents(params);
 
-    assertContainsOnly(List.of("kWjSezkXHVp", "OTmjvJDn0Fu"), eventUids(events));
+    assertContainsOnly(List.of("kWjSezkXHVp", "OTmjvJDn0Fu"), uids(events));
     List<Executable> executables =
-        events.getEvents().stream()
+        events.stream()
             .map(
                 e ->
                     (Executable)
@@ -680,7 +677,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .collect(Collectors.toList());
 
@@ -696,7 +693,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .collect(Collectors.toList());
 
@@ -712,7 +709,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .collect(Collectors.toList());
 
@@ -728,7 +725,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .collect(Collectors.toList());
 
@@ -744,7 +741,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .collect(Collectors.toList());
 
@@ -760,7 +757,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .collect(Collectors.toList());
 
@@ -776,7 +773,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .collect(Collectors.toList());
 
@@ -792,7 +789,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .collect(Collectors.toList());
 
@@ -808,7 +805,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .collect(Collectors.toList());
 
@@ -824,7 +821,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .collect(Collectors.toList());
 
@@ -840,7 +837,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .collect(Collectors.toList());
 
@@ -861,7 +858,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getTrackedEntity().getUid())
             .collect(Collectors.toList());
 
@@ -878,7 +875,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getTrackedEntity().getUid())
             .collect(Collectors.toList());
 
@@ -900,7 +897,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getTrackedEntity().getUid())
             .collect(Collectors.toList());
 
@@ -922,7 +919,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getTrackedEntity().getUid())
             .collect(Collectors.toList());
 
@@ -938,7 +935,7 @@ class EventExporterTest extends TrackerTest {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
+        eventService.getEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .collect(Collectors.toList());
 
@@ -1010,11 +1007,7 @@ class EventExporterTest extends TrackerTest {
 
   private List<String> getEvents(EventOperationParams params)
       throws ForbiddenException, BadRequestException {
-    return uids(eventService.getEvents(params).getEvents());
-  }
-
-  private static List<String> eventUids(Events events) {
-    return uids(events.getEvents());
+    return uids(eventService.getEvents(params));
   }
 
   private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
