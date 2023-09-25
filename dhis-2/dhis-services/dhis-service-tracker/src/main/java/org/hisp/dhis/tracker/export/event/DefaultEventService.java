@@ -171,6 +171,7 @@ class DefaultEventService implements EventService {
   public List<Event> getEvents(EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams);
+    queryParams.setSkipPaging(true);
 
     return eventStore.getEvents(queryParams, emptyMap());
   }
