@@ -57,11 +57,6 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
  * @author Lars Helge Overland
  */
 class EventQueryParams {
-
-  public static final int DEFAULT_PAGE = 1;
-
-  public static final int DEFAULT_PAGE_SIZE = 50;
-
   private Program program;
 
   private ProgramStage programStage;
@@ -106,14 +101,6 @@ class EventQueryParams {
   private CategoryOptionCombo categoryOptionCombo;
 
   private IdSchemes idSchemes = new IdSchemes();
-
-  private Integer page;
-
-  private Integer pageSize;
-
-  private boolean totalPages;
-
-  private boolean skipPaging;
 
   private boolean includeRelationships;
 
@@ -166,38 +153,7 @@ class EventQueryParams {
 
   @Getter private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
   public EventQueryParams() {}
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public boolean isPaging() {
-    return page != null || pageSize != null;
-  }
-
-  public int getPageWithDefault() {
-    return page != null && page > 0 ? page : DEFAULT_PAGE;
-  }
-
-  public int getPageSizeWithDefault() {
-    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-  }
-
-  public int getOffset() {
-    return (getPageWithDefault() - 1) * getPageSizeWithDefault();
-  }
-
-  /** Sets paging properties to default values. */
-  public void setDefaultPaging() {
-    this.page = DEFAULT_PAGE;
-    this.pageSize = DEFAULT_PAGE_SIZE;
-    this.skipPaging = false;
-  }
 
   public boolean hasProgram() {
     return program != null;
@@ -427,42 +383,6 @@ class EventQueryParams {
 
   public EventQueryParams setIdSchemes(IdSchemes idSchemes) {
     this.idSchemes = idSchemes;
-    return this;
-  }
-
-  public Integer getPage() {
-    return page;
-  }
-
-  public EventQueryParams setPage(Integer page) {
-    this.page = page;
-    return this;
-  }
-
-  public Integer getPageSize() {
-    return pageSize;
-  }
-
-  public EventQueryParams setPageSize(Integer pageSize) {
-    this.pageSize = pageSize;
-    return this;
-  }
-
-  public boolean isTotalPages() {
-    return totalPages;
-  }
-
-  public EventQueryParams setTotalPages(boolean totalPages) {
-    this.totalPages = totalPages;
-    return this;
-  }
-
-  public boolean isSkipPaging() {
-    return skipPaging;
-  }
-
-  public EventQueryParams setSkipPaging(boolean skipPaging) {
-    this.skipPaging = skipPaging;
     return this;
   }
 

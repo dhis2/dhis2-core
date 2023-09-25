@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
@@ -56,6 +57,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,8 +68,10 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
@@ -93,6 +97,8 @@ import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -207,10 +213,6 @@ class JdbcEventStore implements EventStore {
           entry("assignedUser", COLUMN_EVENT_ASSIGNED_USER_USERNAME),
           entry("assignedUser.displayName", COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME));
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
   // Cannot use DefaultRenderService mapper. Does not work properly -
   // DHIS2-6102
   private static final ObjectReader eventDataValueJsonReader =
@@ -229,18 +231,29 @@ class JdbcEventStore implements EventStore {
 
   private final RelationshipStore relationshipStore;
 
-  // -------------------------------------------------------------------------
-  // EventStore implementation
-  // -------------------------------------------------------------------------
+  @Override
+  public List<Event> getEvents(EventQueryParams queryParams) {
+    return fetchEvents(queryParams, null);
+  }
 
   @Override
-  public List<Event> getEvents(
-      EventQueryParams params, Map<String, Set<String>> psdesWithSkipSyncTrue) {
+  public Page<Event> getEvents(EventQueryParams queryParams, PageParams pageParams) {
+    List<Event> events = fetchEvents(queryParams, pageParams);
+    IntSupplier eventCount = () -> getEventCount(queryParams);
+    return getPage(pageParams, events, eventCount);
+  }
+
+  private List<Event> fetchEvents(EventQueryParams queryParams, PageParams pageParams) {
     User user = currentUserService.getCurrentUser();
 
-    setAccessiblePrograms(user, params);
+    setAccessiblePrograms(user, queryParams);
 
-    Map<String, Event> eventsByUid = new HashMap<>(params.getPageSizeWithDefault());
+    Map<String, Event> eventsByUid;
+    if (pageParams == null) {
+      eventsByUid = new HashMap<>();
+    } else {
+      eventsByUid = new HashMap<>(pageParams.getPageSize());
+    }
     List<Event> events = new ArrayList<>();
     List<Long> relationshipIds = new ArrayList<>();
 
@@ -248,7 +261,7 @@ class JdbcEventStore implements EventStore {
 
     final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
-    String sql = buildSql(params, mapSqlParameterSource, user);
+    String sql = buildSql(queryParams, pageParams, mapSqlParameterSource, user);
 
     return jdbcTemplate.query(
         sql,
@@ -265,7 +278,7 @@ class JdbcEventStore implements EventStore {
 
             String eventUid = resultSet.getString(COLUMN_EVENT_UID);
 
-            validateIdentifiersPresence(resultSet, params.getIdSchemes());
+            validateIdentifiersPresence(resultSet, queryParams.getIdSchemes());
 
             Event event;
             if (eventsByUid.containsKey(eventUid)) {
@@ -355,7 +368,7 @@ class JdbcEventStore implements EventStore {
                 event.getEventDataValues().addAll(eventDataValues);
               }
 
-              if (params.isIncludeRelationships() && resultSet.getObject("ev_rl") != null) {
+              if (queryParams.isIncludeRelationships() && resultSet.getObject("ev_rl") != null) {
                 PGobject pGobject = (PGobject) resultSet.getObject("ev_rl");
 
                 if (pGobject != null) {
@@ -413,6 +426,43 @@ class JdbcEventStore implements EventStore {
 
           return events;
         });
+  }
+
+  /**
+   * Returns a page of events potentially containing a total of events and pages {@link Pager} or
+   * only the information whether this is the last page or not {@link SlimPager}.
+   *
+   * <p>If we do not fetch the total number of events {@link PageParams#isPageTotal()}=false {@code
+   * pageSize + 1} events are fetched by {@link #getEvents(EventQueryParams, PageParams)}. That is
+   * done to determine if this is the last page or not. This in turn means that we need to remove
+   * the extra event.
+   *
+   * @param pageParams the page params
+   * @param events the list of events
+   * @param eventCount a supplier of the number of events in the final Page
+   * @return a full Pager in case the page totals are fetched and a SlimPager otherwise
+   */
+  private Page<Event> getPage(PageParams pageParams, List<Event> events, IntSupplier eventCount) {
+    if (pageParams.isPageTotal()) {
+      Pager pager =
+          new Pager(pageParams.getPage(), eventCount.getAsInt(), pageParams.getPageSize());
+      return Page.of(events, pager);
+    }
+
+    List<Event> result = events;
+    boolean isLastPage = false;
+    if (isNotEmpty(events)) {
+      isLastPage = events.size() <= pageParams.getPageSize();
+      if (!isLastPage) {
+        // Get the same number of elements of the pageSize, forcing
+        // the removal of the last additional element added at querying
+        // time.
+        result = new ArrayList<>(events.subList(0, pageParams.getPageSize()));
+      }
+    }
+
+    SlimPager slimPager = new SlimPager(pageParams.getPage(), pageParams.getPageSize(), isLastPage);
+    return Page.of(result, slimPager);
   }
 
   @Override
@@ -503,8 +553,7 @@ class JdbcEventStore implements EventStore {
     return sqlBuilder.toString();
   }
 
-  @Override
-  public int getEventCount(EventQueryParams params) {
+  private int getEventCount(EventQueryParams params) {
     User user = currentUserService.getCurrentUser();
     setAccessiblePrograms(user, params);
 
@@ -531,18 +580,23 @@ class JdbcEventStore implements EventStore {
    * on events.
    */
   private String buildSql(
-      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
+      EventQueryParams queryParams,
+      PageParams pageParams,
+      MapSqlParameterSource mapSqlParameterSource,
+      User user) {
     StringBuilder sqlBuilder = new StringBuilder().append("select * from (");
 
-    sqlBuilder.append(getEventSelectQuery(params, mapSqlParameterSource, user));
+    sqlBuilder.append(getEventSelectQuery(queryParams, mapSqlParameterSource, user));
 
-    sqlBuilder.append(getOrderQuery(params));
+    sqlBuilder.append(getOrderQuery(queryParams));
 
-    sqlBuilder.append(getEventPagingQuery(params));
+    if (pageParams != null) {
+      sqlBuilder.append(getLimitAndOffsetClause(pageParams));
+    }
 
     sqlBuilder.append(") as event left join (");
 
-    if (params.isIncludeAttributes()) {
+    if (queryParams.isIncludeAttributes()) {
       sqlBuilder.append(getAttributeValueQuery());
 
       sqlBuilder.append(") as att on event.te_id=att.pav_id left join (");
@@ -554,11 +608,11 @@ class JdbcEventStore implements EventStore {
     sqlBuilder.append(COLUMN_EVENT_ID);
     sqlBuilder.append("=cm.evn_id ");
 
-    if (params.isIncludeRelationships()) {
+    if (queryParams.isIncludeRelationships()) {
       sqlBuilder.append(RELATIONSHIP_IDS_QUERY);
     }
 
-    sqlBuilder.append(getOrderQuery(params));
+    sqlBuilder.append(getOrderQuery(queryParams));
 
     return sqlBuilder.toString();
   }
@@ -1368,28 +1422,15 @@ class JdbcEventStore implements EventStore {
     return joinCondition + ") as coc_agg on coc_agg.id = ev.attributeoptioncomboid ";
   }
 
-  private String getEventPagingQuery(final EventQueryParams params) {
-    final StringBuilder sqlBuilder = new StringBuilder().append(" ");
-    int pageSize = params.getPageSizeWithDefault();
-
-    // When the clients choose to not show the total of pages.
-    if (!params.isTotalPages()) {
-      // Get pageSize + 1, so we are able to know if there is another
-      // page available. It adds one additional element into the list,
-      // as consequence. The caller needs to remove the last element.
+  private String getLimitAndOffsetClause(final PageParams pageParams) {
+    int pageSize = pageParams.getPageSize();
+    if (!pageParams.isPageTotal()) {
+      // Get pageSize + 1, so we are able to know if this is the last page.
+      // The additional element will be removed and not returned from the store.
       pageSize++;
     }
-
-    if (!params.isSkipPaging()) {
-      sqlBuilder
-          .append("limit ")
-          .append(pageSize)
-          .append(" offset ")
-          .append(params.getOffset())
-          .append(" ");
-    }
-
-    return sqlBuilder.toString();
+    int offset = (pageParams.getPage() - 1) * pageParams.getPageSize();
+    return " limit " + pageSize + " offset " + offset + " ";
   }
 
   private String getOrderQuery(EventQueryParams params) {
