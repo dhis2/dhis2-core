@@ -49,6 +49,4 @@ public interface EventStore {
    * occur before calling {@link #getEvents(EventQueryParams)}.
    */
   Set<String> getOrderableFields();
-
-  int getEventCount(EventQueryParams params);
 }

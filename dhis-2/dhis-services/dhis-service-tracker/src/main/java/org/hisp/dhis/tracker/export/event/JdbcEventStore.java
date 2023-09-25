@@ -553,8 +553,7 @@ class JdbcEventStore implements EventStore {
     return sqlBuilder.toString();
   }
 
-  @Override
-  public int getEventCount(EventQueryParams params) {
+  private int getEventCount(EventQueryParams params) {
     User user = currentUserService.getCurrentUser();
     setAccessiblePrograms(user, params);
 
