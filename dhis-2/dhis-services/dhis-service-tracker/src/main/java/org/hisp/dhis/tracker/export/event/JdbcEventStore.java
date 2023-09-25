@@ -233,26 +233,26 @@ class JdbcEventStore implements EventStore {
 
   @Override
   public List<Event> getEvents(EventQueryParams queryParams) {
-    return getEvents(queryParams, Optional.empty());
+    return fetchEvents(queryParams, null);
   }
 
   @Override
   public Page<Event> getEvents(EventQueryParams queryParams, PageParams pageParams) {
-    List<Event> events = getEvents(queryParams, Optional.of(pageParams));
+    List<Event> events = fetchEvents(queryParams, pageParams);
     IntSupplier eventCount = () -> getEventCount(queryParams);
     return getPage(pageParams, events, eventCount);
   }
 
-  public List<Event> getEvents(EventQueryParams queryParams, Optional<PageParams> pageParams) {
+  private List<Event> fetchEvents(EventQueryParams queryParams, PageParams pageParams) {
     User user = currentUserService.getCurrentUser();
 
     setAccessiblePrograms(user, queryParams);
 
     Map<String, Event> eventsByUid;
-    if (pageParams.isPresent()) {
-      eventsByUid = new HashMap<>(pageParams.get().getPageSize());
-    } else {
+    if (pageParams == null) {
       eventsByUid = new HashMap<>();
+    } else {
+      eventsByUid = new HashMap<>(pageParams.getPageSize());
     }
     List<Event> events = new ArrayList<>();
     List<Long> relationshipIds = new ArrayList<>();
@@ -582,7 +582,7 @@ class JdbcEventStore implements EventStore {
    */
   private String buildSql(
       EventQueryParams queryParams,
-      Optional<PageParams> pageParams,
+      PageParams pageParams,
       MapSqlParameterSource mapSqlParameterSource,
       User user) {
     StringBuilder sqlBuilder = new StringBuilder().append("select * from (");
@@ -591,7 +591,9 @@ class JdbcEventStore implements EventStore {
 
     sqlBuilder.append(getOrderQuery(queryParams));
 
-    sqlBuilder.append(getLimitAndOffsetClause(pageParams));
+    if (pageParams != null) {
+      sqlBuilder.append(getLimitAndOffsetClause(pageParams));
+    }
 
     sqlBuilder.append(") as event left join (");
 
@@ -1421,19 +1423,14 @@ class JdbcEventStore implements EventStore {
     return joinCondition + ") as coc_agg on coc_agg.id = ev.attributeoptioncomboid ";
   }
 
-  private String getLimitAndOffsetClause(final Optional<PageParams> pageParams) {
-    if (pageParams.isEmpty()) {
-      return "";
-    }
-    PageParams params = pageParams.get();
-
-    int pageSize = params.getPageSize();
-    if (!params.isPageTotal()) {
+  private String getLimitAndOffsetClause(final PageParams pageParams) {
+    int pageSize = pageParams.getPageSize();
+    if (!pageParams.isPageTotal()) {
       // Get pageSize + 1, so we are able to know if this is the last page.
       // The additional element will be removed and not returned from the store.
       pageSize++;
     }
-    int offset = (params.getPage() - 1) * params.getPageSize();
+    int offset = (pageParams.getPage() - 1) * pageParams.getPageSize();
     return " limit " + pageSize + " offset " + offset + " ";
   }
 
