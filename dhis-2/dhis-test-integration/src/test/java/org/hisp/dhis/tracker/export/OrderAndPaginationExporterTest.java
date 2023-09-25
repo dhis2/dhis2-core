@@ -70,7 +70,6 @@ import org.hisp.dhis.tracker.export.enrollment.Enrollments;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.tracker.export.event.Events;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams.RelationshipOperationParamsBuilder;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
@@ -646,33 +645,28 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Test
   void shouldReturnPaginatedEventsWithNotesGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
-    EventOperationParamsBuilder paramsBuilder =
+    EventOperationParams operationParams =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .events(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"))
-            .orderBy("executionDate", SortDirection.DESC);
+            .orderBy("executionDate", SortDirection.DESC)
+            .build();
 
-    EventOperationParams params = paramsBuilder.page(1).pageSize(1).build();
-
-    Events firstPage = eventService.getEvents(params);
+    Page<Event> firstPage = eventService.getEvents(operationParams, new PageParams(1, 1, false));
 
     assertAll(
         "first page",
         () -> assertSlimPager(1, 1, false, firstPage.getPager()),
         () -> assertEquals(List.of("D9PbzJY8bJM"), eventUids(firstPage)));
 
-    params = paramsBuilder.page(2).pageSize(1).build();
-
-    Events secondPage = eventService.getEvents(params);
+    Page<Event> secondPage = eventService.getEvents(operationParams, new PageParams(2, 1, false));
 
     assertAll(
         "second (last) page",
         () -> assertSlimPager(2, 1, true, secondPage.getPager()),
         () -> assertEquals(List.of("pTzf9KYMk72"), eventUids(secondPage)));
 
-    params = paramsBuilder.page(3).pageSize(3).build();
-
-    assertIsEmpty(getEvents(params));
+    assertIsEmpty(getEvents(operationParams, new PageParams(3, 3, false)));
   }
 
   @Test
@@ -681,10 +675,9 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .programStageUid(programStage.getUid())
-            .totalPages(true)
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getEvents(params, new PageParams(1, 2, true));
 
     assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
@@ -695,15 +688,14 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     OrganisationUnit orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
     Program program = get(Program.class, "iS7eutanDry");
 
-    EventOperationParamsBuilder paramsBuilder =
+    EventOperationParams operationParams =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
-            .orderBy("executionDate", SortDirection.DESC);
+            .orderBy("executionDate", SortDirection.DESC)
+            .build();
 
-    EventOperationParams params = paramsBuilder.page(1).pageSize(3).build();
-
-    Events firstPage = eventService.getEvents(params);
+    Page<Event> firstPage = eventService.getEvents(operationParams, new PageParams(1, 3, false));
 
     assertAll(
         "first page",
@@ -712,9 +704,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             assertEquals(
                 List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"), eventUids(firstPage)));
 
-    params = paramsBuilder.page(2).pageSize(3).build();
-
-    Events secondPage = eventService.getEvents(params);
+    Page<Event> secondPage = eventService.getEvents(operationParams, new PageParams(2, 3, false));
 
     assertAll(
         "second (last) page",
@@ -723,9 +713,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             assertEquals(
                 List.of("lumVtWwwy0O", "QRYjLTiJTrA", "cadc5eGj0j7"), eventUids(secondPage)));
 
-    params = paramsBuilder.page(3).pageSize(3).build();
-
-    assertIsEmpty(getEvents(params));
+    assertIsEmpty(getEvents(operationParams, new PageParams(3, 3, false)));
   }
 
   @Test
@@ -739,12 +727,9 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
             .orderBy("executionDate", SortDirection.DESC)
-            .page(1)
-            .pageSize(2)
-            .totalPages(true)
             .build();
 
-    Events events = eventService.getEvents(params);
+    Page<Event> events = eventService.getEvents(params, new PageParams(1, 2, true));
 
     assertAll(
         "first page",
@@ -861,7 +846,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), uids(events));
     List<String> trackedEntities =
@@ -874,33 +859,28 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Test
   void shouldReturnPaginatedEventsOrderedByMultipleAttributesWhenGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
-    EventOperationParamsBuilder paramsBuilder =
+    EventOperationParams operationParams =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
-            .orderBy(UID.of("toUpdate000"), SortDirection.ASC);
+            .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
+            .build();
 
-    EventOperationParams params = paramsBuilder.page(1).pageSize(1).build();
-
-    Events firstPage = eventService.getEvents(params);
+    Page<Event> firstPage = eventService.getEvents(operationParams, new PageParams(1, 1, false));
 
     assertAll(
         "first page",
         () -> assertSlimPager(1, 1, false, firstPage.getPager()),
         () -> assertEquals(List.of("D9PbzJY8bJM"), eventUids(firstPage)));
 
-    params = paramsBuilder.page(2).pageSize(1).build();
-
-    Events secondPage = eventService.getEvents(params);
+    Page<Event> secondPage = eventService.getEvents(operationParams, new PageParams(2, 1, false));
 
     assertAll(
         "second (last) page",
         () -> assertSlimPager(2, 1, true, secondPage.getPager()),
         () -> assertEquals(List.of("pTzf9KYMk72"), eventUids(secondPage)));
 
-    params = paramsBuilder.page(3).pageSize(3).build();
-
-    assertIsEmpty(getEvents(params));
+    assertIsEmpty(getEvents(operationParams, new PageParams(3, 3, false)));
   }
 
   @Test
@@ -1330,7 +1310,12 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   private List<String> getEvents(EventOperationParams params)
       throws ForbiddenException, BadRequestException {
-    return uids(eventService.getEvents(params).getEvents());
+    return uids(eventService.getEvents(params));
+  }
+
+  private List<String> getEvents(EventOperationParams params, PageParams pageParams)
+      throws ForbiddenException, BadRequestException {
+    return uids(eventService.getEvents(params, pageParams).getItems());
   }
 
   private List<String> getRelationships(RelationshipOperationParams params)
@@ -1338,8 +1323,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     return uids(relationshipService.getRelationships(params).getRelationships());
   }
 
-  private static List<String> eventUids(Events events) {
-    return uids(events.getEvents());
+  private static List<String> eventUids(Page<Event> events) {
+    return uids(events.getItems());
   }
 
   private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export;
 
-import java.util.List;
+import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.program.Event;
+import lombok.ToString;
 
-@RequiredArgsConstructor(staticName = "of")
+/**
+ * {@link PageParams} represent the parameters that configure the page of items to be returned. By
+ * default, the total number of items will not be fetched.
+ */
 @Getter
+@ToString
 @EqualsAndHashCode
-public class Events {
+public class PageParams {
+  private static final int DEFAULT_PAGE = 1;
+  private static final int DEFAULT_PAGE_SIZE = 50;
 
-  private final List<Event> events;
-  private final Pager pager;
+  /** The page number to be returned. */
+  final int page;
 
-  public static Events withoutPagination(List<Event> events) {
-    return new Events(events, null);
+  /** The number of items to be returned. */
+  final int pageSize;
+
+  /** Indicates whether to fetch the total number of items. */
+  final boolean pageTotal;
+
+  public PageParams(Integer page, Integer pageSize, Boolean pageTotal) {
+    this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
+    this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
+    this.pageTotal = Boolean.TRUE.equals(pageTotal);
   }
 }
