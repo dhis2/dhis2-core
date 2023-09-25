@@ -591,9 +591,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void
-      shouldReturnTrackedEntitiesEvenIfTrackedEntityDoesNotHaveGivenAttributeAndFilterUsingOnlyUID()
-          throws ForbiddenException, NotFoundException, BadRequestException {
+  void shouldReturnTrackedEntitiesIfTheyHaveGivenAttributeFilteredUsingOnlyUID()
+      throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))

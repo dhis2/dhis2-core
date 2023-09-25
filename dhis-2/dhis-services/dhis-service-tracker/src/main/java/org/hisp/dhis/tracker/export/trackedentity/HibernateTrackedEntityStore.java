@@ -385,7 +385,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return fromSubQuery.append(") TE ").toString();
   }
 
-  /** Get a set of QueryItem that contains sortable attributes also defined as filers */
+  /**
+   * Get a map of attributes and filters that contains sortable attributes also defined as filters.
+   * A null filter means that the filter on an attribute is actually present but no value was
+   * provided.
+   */
   private Map<TrackedEntityAttribute, List<QueryFilter>> sortableAttributesAndFilters(
       TrackedEntityQueryParams params) {
     List<String> ordersIdentifier =
@@ -455,7 +459,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates the WHERE-clause of the sub-query SQL related to tracked entity instances.
+   * Generates the WHERE-clause of the sub-query SQL related to tracked entities.
    *
    * @param whereAnd tracking if where has been invoked or not
    * @return a SQL segment for the WHERE clause used in the sub-query
@@ -534,8 +538,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     List<Map.Entry<TrackedEntityAttribute, List<QueryFilter>>> filterItems =
         params.getFilters().entrySet().stream().filter(f -> !f.getValue().isEmpty()).toList();
 
-    for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> queryItem : filterItems) {
-      String col = statementBuilder.columnQuote(queryItem.getKey().getUid());
+    for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters : filterItems) {
+      String col = statementBuilder.columnQuote(filters.getKey().getUid());
       String teaId = col + ".trackedentityattributeid";
       String teav = "lower(" + col + ".value)";
       String ted = col + ".trackedentityid";
@@ -546,12 +550,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(" ON ")
           .append(teaId)
           .append(EQUALS)
-          .append(queryItem.getKey().getId())
+          .append(filters.getKey().getId())
           .append(" AND ")
           .append(ted)
           .append(" = TE.trackedentityid ");
 
-      for (QueryFilter filter : queryItem.getValue().stream().filter(Objects::nonNull).toList()) {
+      for (QueryFilter filter : filters.getValue().stream().filter(Objects::nonNull).toList()) {
         String encodedFilter = statementBuilder.encode(filter.getFilter(), false);
         attributes
             .append("AND ")
