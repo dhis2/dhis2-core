@@ -430,13 +430,12 @@ public class DefaultAppManager implements AppManager {
   private static File getFile(URL url) throws IOException {
     URLConnection connection = url.openConnection();
 
-    BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
-
     File tempFile = File.createTempFile("dhis", null);
 
     tempFile.deleteOnExit();
 
-    try (FileOutputStream out = new FileOutputStream(tempFile)) {
+    try (BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
+        FileOutputStream out = new FileOutputStream(tempFile)) {
       IOUtils.copy(in, out);
     }
     return tempFile;
