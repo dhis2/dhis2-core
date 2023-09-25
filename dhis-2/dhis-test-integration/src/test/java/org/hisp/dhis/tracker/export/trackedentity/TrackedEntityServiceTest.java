@@ -574,26 +574,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldReturnTrackedEntitiesGivenFilterOfOnlyUidEvenIfTrackedEntityDoesNotHaveGivenAttribute()
-      throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
-            .orgUnitMode(DESCENDANTS)
-            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .filters(Map.of(teaA.getUid(), List.of()))
-            .user(user)
-            .build();
-
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
-
-    // A filter with only a UID does not cause any join on attributes, so it does not actually
-    // filter TEs from the response in contrast to /tracker/events?filterAttribute=uid
-    assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
-  }
-
-  @Test
   void shouldReturnTrackedEntitiesEvenIfTrackedEntityDoesNotHaveGivenAttribute()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityOperationParams operationParams =
@@ -607,8 +587,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     List<TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
-    // 'attributes' causes a left join on attributes table, so it does not actually filter
-    // TEs from the response in contrast to /tracker/events?filterAttribute=uid
     assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
   }
 
@@ -628,9 +606,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     List<TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
-    // 'attributes' causes a left join on attributes table, so it does not actually filter
-    // TEs from the response in contrast to /tracker/events?filterAttribute=uid
-    assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
   }
 
   @Test
