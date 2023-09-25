@@ -311,7 +311,7 @@ class JdbcEventStore implements EventStore {
               CategoryOptionCombo coc = new CategoryOptionCombo();
               coc.setUid(resultSet.getString("coc_identifier"));
               Set<CategoryOption> options =
-                  Arrays.stream(resultSet.getString("co_uids").split(";"))
+                  Arrays.stream(resultSet.getString("co_uids").split(TextUtils.COMMA))
                       .map(
                           optionUid -> {
                             CategoryOption option = new CategoryOption();
