@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static java.lang.Boolean.TRUE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 import com.google.common.collect.Lists;
@@ -220,7 +221,7 @@ public class TrackedEntityQueryParams {
 
   /** Indicates whether these parameters specify any filters. */
   public boolean hasFilters() {
-    return filters != null && !filters.isEmpty();
+    return !filters.isEmpty();
   }
 
   /** Indicates whether these parameters specify any organisation units. */
@@ -334,7 +335,7 @@ public class TrackedEntityQueryParams {
     }
 
     for (TrackedEntityAttribute attribute : filters.keySet()) {
-      if (attribute.isUnique()) {
+      if (TRUE.equals(attribute.isUnique())) {
         return true;
       }
     }
