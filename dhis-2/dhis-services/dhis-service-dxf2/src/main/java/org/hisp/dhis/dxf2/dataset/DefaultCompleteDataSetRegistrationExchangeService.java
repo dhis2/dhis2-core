@@ -89,6 +89,7 @@ import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -198,6 +199,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   @Override
+  @Transactional
   public void writeCompleteDataSetRegistrationsXml(ExportParams params, OutputStream out) {
     decideAccess(params);
     validate(params);
@@ -206,6 +208,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   @Override
+  @Transactional
   public void writeCompleteDataSetRegistrationsJson(ExportParams params, OutputStream out) {
     decideAccess(params);
     validate(params);
@@ -214,18 +217,21 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   @Override
+  @Transactional
   public void writeCompleteDataSetRegistrationsJson(
       Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes) {
     cdsrStore.writeCompleteDataSetRegistrationsJson(lastUpdated, outputStream, idSchemes);
   }
 
   @Override
+  @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsXml(
       InputStream in, ImportOptions importOptions) {
     return saveCompleteDataSetRegistrationsXml(in, importOptions, null);
   }
 
   @Override
+  @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsXml(
       InputStream in, ImportOptions importOptions, JobConfiguration jobId) {
     try {
@@ -240,12 +246,14 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   @Override
+  @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsJson(
       InputStream in, ImportOptions importOptions) {
     return saveCompleteDataSetRegistrationsJson(in, importOptions, null);
   }
 
   @Override
+  @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsJson(
       InputStream in, ImportOptions importOptions, JobConfiguration jobId) {
     try {
@@ -371,7 +379,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         new Clock(log)
             .startClock()
             .logTime("Starting complete data set registration import, options: " + importOptions);
-    notifier.clear(id).notify(id, "Process started");
+    notifier.notify(id, "Process started");
 
     // Start here so we can access any outer attributes for the
     // configuration
@@ -413,8 +421,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         batchImport(completeRegistrations, cfg, importSummary, metaDataCallables, caches);
 
     notifier
-        .notify(id, NotificationLevel.INFO, "Import done", true)
-        .addJobSummary(id, importSummary, ImportSummary.class);
+        .notify(id, NotificationLevel.INFO, "Import done", true);
 
     ImportCount count = importSummary.getImportCount();
 

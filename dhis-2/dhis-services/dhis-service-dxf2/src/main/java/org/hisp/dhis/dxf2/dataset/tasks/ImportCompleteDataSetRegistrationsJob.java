@@ -31,8 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -43,6 +41,7 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,11 +50,11 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ImportCompleteDataSetRegistrationsTask implements Job {
+public class ImportCompleteDataSetRegistrationsJob implements Job {
 
   private final CompleteDataSetRegistrationExchangeService registrationService;
   private final FileResourceService fileResourceService;
-  private final SessionFactory sessionFactory;
+  private final Notifier notifier;
 
   @Override
   public JobType getJobType() {
@@ -64,9 +63,6 @@ public class ImportCompleteDataSetRegistrationsTask implements Job {
 
   @Override
   public void execute(JobConfiguration jobConfig, JobProgress progress) {
-    //from security context runnable
-    DbmsUtils.bindSessionToThread(sessionFactory);
-
     progress.startingProcess("Complete data set registration import");
     ImportOptions options = (ImportOptions) jobConfig.getJobParameters();
 
@@ -103,12 +99,9 @@ public class ImportCompleteDataSetRegistrationsTask implements Job {
                   count.getUpdated(),
                   count.getDeleted(),
                   count.getIgnored()));
+      notifier.addJobSummary(jobConfig, summary, ImportSummary.class);
     } catch (IOException ex) {
       progress.failedProcess(ex);
-    } finally{
-      fileResourceService.deleteFileResource(data); //todo not sure if needed, do jobs auto clean up & remove file?
-      //from security context runnable
-      DbmsUtils.unbindSessionFromThread(sessionFactory);
     }
   }
 }

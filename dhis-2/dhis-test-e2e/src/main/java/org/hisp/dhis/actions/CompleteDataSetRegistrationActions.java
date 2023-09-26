@@ -53,22 +53,4 @@ public class CompleteDataSetRegistrationActions extends RestApiActions {
     queryParamsBuilder.add("period", period);
     return get(queryParamsBuilder);
   }
-
-  public ApiResponse getCompletedWithinDates(
-      String dataSet, String orgUnit, String start, String end) {
-    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-    queryParamsBuilder.add("dataSet", dataSet);
-    queryParamsBuilder.add("orgUnit", orgUnit);
-    queryParamsBuilder.add("startDate", start);
-    queryParamsBuilder.add("endDate", end);
-    return get(queryParamsBuilder);
-  }
-
-  public ApiResponse getCompletedLastUpdated(String dataSet, String orgUnit, String lastUpdated) {
-    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-    queryParamsBuilder.add("dataSet", dataSet);
-    queryParamsBuilder.add("orgUnit", orgUnit);
-    queryParamsBuilder.add("lastUpdated", lastUpdated);
-    return get(queryParamsBuilder);
-  }
 }

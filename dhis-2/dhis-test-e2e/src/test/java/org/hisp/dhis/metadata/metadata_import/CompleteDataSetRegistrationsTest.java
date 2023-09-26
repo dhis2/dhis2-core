@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.metadata.metadata_import;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.hisp.dhis.ApiTest;
@@ -42,7 +43,7 @@ import org.junit.jupiter.api.Test;
  * @author david mackessy
  */
 class CompleteDataSetRegistrationsTest extends ApiTest {
-  private CompleteDataSetRegistrationActions actions;
+  private CompleteDataSetRegistrationActions apiActions;
   private LoginActions loginActions;
   private SystemActions systemActions;
   private RestApiActions dataSetActions;
@@ -50,14 +51,14 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
   @BeforeAll
   public void before() {
     loginActions = new LoginActions();
-    actions = new CompleteDataSetRegistrationActions();
+    apiActions = new CompleteDataSetRegistrationActions();
     systemActions = new SystemActions();
     dataSetActions = new RestApiActions("dataSets");
   }
 
   @Test
-  void importAsync() {
-    loginActions.loginAsAdmin();
+  void completeDataSetRegistrationsAsync() {
+    loginActions.loginAsSuperUser();
 
     // create data set
     String dataSet = dataSetWithOrgUnit("O6uvpzGd5pu");
@@ -67,12 +68,12 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
     String dataSetId = dataSetResponse.extractUid();
     assertEquals(11, dataSetId.length());
 
-    // get complete data sets to show none complete
-    ApiResponse completedResponse = actions.getCompleted(dataSetId, "O6uvpzGd5pu", "202301");
+    // get complete data sets to show none complete with given criteria
+    ApiResponse completedResponse = apiActions.getCompleted(dataSetId, "O6uvpzGd5pu", "202301");
     assertEquals("{}", completedResponse.getAsString());
 
     String cds = completeDataSet(dataSetId, "202301", "O6uvpzGd5pu");
-    ApiResponse completeAsyncResponse = actions.sendAsync(cds);
+    ApiResponse completeAsyncResponse = apiActions.sendAsync(cds);
     assertEquals(200, completeAsyncResponse.statusCode());
 
     assertTrue(
@@ -89,16 +90,20 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
     // wait for max 24 seconds for task to be completed (usually takes ~10 seconds)
     ApiResponse taskStatus =
         systemActions.waitUntilTaskCompleted("COMPLETE_DATA_SET_REGISTRATION_IMPORT", taskId, 24);
-
-    assertEquals("eq",taskStatus.getAsString());
     assertTrue(taskStatus.getAsString().contains("\"completed\":true"));
 
     // get complete data sets which should be 1 now
-//    ApiResponse completedResponse2 = actions.getCompleted(dataSetId, "O6uvpzGd5pu", "202301");
-//    ApiResponse completedResponse2 = actions.getCompleted(dataSetId, "O6uvpzGd5pu", "202301");
-//    ApiResponse completedResponse2 = actions.getCompletedWithinDates(dataSetId, "O6uvpzGd5pu", "1010-01-01", "2040-01-01");
-    ApiResponse completedResponse2 = actions.getCompletedLastUpdated(dataSetId, "O6uvpzGd5pu", "2023-01-01");
-    assertEquals("{}", completedResponse2.getAsString());
+    ApiResponse completedResponse2 = apiActions.getCompleted(dataSetId, "O6uvpzGd5pu", "202301");
+
+    // Then
+    completedResponse2
+        .validate()
+        .statusCode(200)
+        .body("completeDataSetRegistrations[0].period", equalTo("202301"))
+        .body("completeDataSetRegistrations[0].dataSet", equalTo(dataSetId))
+        .body("completeDataSetRegistrations[0].organisationUnit", equalTo("O6uvpzGd5pu"))
+        .body("completeDataSetRegistrations[0].completed", equalTo(true))
+        .body("completeDataSetRegistrations[0].storedBy", equalTo("tasuperadmin"));
   }
 
   private String dataSetWithOrgUnit(String orgUnit) {
