@@ -67,6 +67,8 @@ public class RequestParamsValidator {
     throw new IllegalStateException("Utility class");
   }
 
+  private static final String INVALID_FILTER = "Query item or filter is invalid: ";
+
   private static final char COMMA_SEPARATOR = ',';
 
   private static final char ESCAPE = '/';
@@ -320,7 +322,7 @@ public class RequestParamsValidator {
         result.get(uid).add(operatorValueQueryFilter(filters[i], filters[i + 1], input));
       }
     } else {
-      throw new BadRequestException("Query item or filter is invalid: " + input);
+      throw new BadRequestException(INVALID_FILTER + input);
     }
   }
 
@@ -406,14 +408,14 @@ public class RequestParamsValidator {
   private static QueryFilter operatorValueQueryFilter(String operator, String value, String filter)
       throws BadRequestException {
     if (StringUtils.isEmpty(operator) || StringUtils.isEmpty(value)) {
-      throw new BadRequestException("Query item or filter is invalid: " + filter);
+      throw new BadRequestException(INVALID_FILTER + filter);
     }
 
     try {
       return new QueryFilter(QueryOperator.fromString(operator), escapedFilterValue(value));
 
     } catch (IllegalArgumentException exception) {
-      throw new BadRequestException("Query item or filter is invalid: " + filter);
+      throw new BadRequestException(INVALID_FILTER + filter);
     }
   }
 
