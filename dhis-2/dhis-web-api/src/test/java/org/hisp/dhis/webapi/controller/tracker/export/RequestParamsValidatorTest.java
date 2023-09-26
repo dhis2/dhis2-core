@@ -28,9 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static java.util.Collections.emptySet;
-import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
 import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fromOrderString;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
@@ -41,7 +39,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -54,7 +51,6 @@ import lombok.Data;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -155,69 +151,6 @@ class RequestParamsValidatorTest {
         () -> assertContains("repeated", exception.getMessage()),
         () -> assertContains("enrolledAt", exception.getMessage()),
         () -> assertContains("zGlzbfreTOH", exception.getMessage()));
-  }
-
-  @Test
-  void testParseQueryItem() throws BadRequestException {
-    String param = TEA_1_UID + ":lt:20:gt:10";
-
-    QueryItem item = parseQueryItem(param, id -> new QueryItem(attributes.get(id)));
-
-    assertNotNull(item);
-    assertAll(
-        () -> assertEquals(attributes.get(TEA_1_UID), item.getItem()),
-        // QueryItem equals() does not take the QueryFilter into account, so
-        // we need to assert on filters separately
-        () ->
-            assertEquals(
-                List.of(
-                    new QueryFilter(QueryOperator.LT, "20"),
-                    new QueryFilter(QueryOperator.GT, "10")),
-                item.getFilters()));
-  }
-
-  @Test
-  void testParseQueryItemWithOnlyIdentifier() throws BadRequestException {
-    QueryItem item = parseQueryItem(TEA_1_UID, id -> new QueryItem(attributes.get(id)));
-
-    assertNotNull(item);
-    assertAll(
-        () -> assertEquals(attributes.get(TEA_1_UID), item.getItem()),
-        () -> assertIsEmpty(item.getFilters()));
-  }
-
-  @Test
-  void testParseQueryItemWithIdentifierAndTrailingColon() throws BadRequestException {
-    String param = TEA_1_UID + ":";
-
-    QueryItem item = parseQueryItem(param, id -> new QueryItem(attributes.get(id)));
-
-    assertNotNull(item);
-    assertAll(
-        () -> assertEquals(attributes.get(TEA_1_UID), item.getItem()),
-        () -> assertIsEmpty(item.getFilters()));
-  }
-
-  @Test
-  void testParseQueryItemWithMissingValue() {
-    String param = TEA_1_UID + ":lt";
-
-    Exception exception =
-        assertThrows(
-            BadRequestException.class,
-            () -> parseQueryItem(param, id -> new QueryItem(attributes.get(id))));
-    assertEquals("Query item or filter is invalid: " + param, exception.getMessage());
-  }
-
-  @Test
-  void testParseQueryItemWithMissingValueAndTrailingColon() {
-    String param = TEA_1_UID + ":lt:";
-
-    Exception exception =
-        assertThrows(
-            BadRequestException.class,
-            () -> parseQueryItem(param, id -> new QueryItem(attributes.get(id))));
-    assertEquals("Query item or filter is invalid: " + param, exception.getMessage());
   }
 
   @Test
