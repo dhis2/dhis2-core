@@ -60,10 +60,6 @@ public interface JsonEvent extends JsonObject {
     return getString("orgUnit").string();
   }
 
-  default String getOrgUnitName() {
-    return getString("orgUnitName").string();
-  }
-
   default Boolean getDeleted() {
     return getBoolean("deleted").bool();
   }

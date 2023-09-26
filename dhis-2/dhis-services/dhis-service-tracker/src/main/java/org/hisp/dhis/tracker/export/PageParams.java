@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,49 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
+package org.hisp.dhis.tracker.export;
+
+import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
- * @author Chau Thu Tran
+ * {@link PageParams} represent the parameters that configure the page of items to be returned. By
+ * default, the total number of items will not be fetched.
  */
-public interface TrackedEntityCommentService {
-  String ID = TrackedEntityCommentService.class.getName();
+@Getter
+@ToString
+@EqualsAndHashCode
+public class PageParams {
+  private static final int DEFAULT_PAGE = 1;
+  private static final int DEFAULT_PAGE_SIZE = 50;
 
-  /**
-   * Adds an {@link TrackedEntityComment}
-   *
-   * @param comment The to TrackedEntityComment add.
-   * @return A generated unique id of the added {@link TrackedEntityComment}.
-   */
-  long addTrackedEntityComment(TrackedEntityComment comment);
+  /** The page number to be returned. */
+  final int page;
 
-  /**
-   * Deletes a {@link TrackedEntityComment}.
-   *
-   * @param comment the TrackedEntityComment to delete.
-   */
-  void deleteTrackedEntityComment(TrackedEntityComment comment);
+  /** The number of items to be returned. */
+  final int pageSize;
 
-  /**
-   * Checks for the existence of a TrackedEntityComment by UID.
-   *
-   * @param uid TrackedEntityComment UID to check for
-   * @return true/false depending on result
-   */
-  boolean trackedEntityCommentExists(String uid);
+  /** Indicates whether to fetch the total number of items. */
+  final boolean pageTotal;
 
-  /**
-   * Updates an {@link TrackedEntityComment}.
-   *
-   * @param comment the TrackedEntityComment to update.
-   */
-  void updateTrackedEntityComment(TrackedEntityComment comment);
-
-  /**
-   * Returns a {@link TrackedEntityComment}.
-   *
-   * @param id the id of the TrackedEntityComment to return.
-   * @return the TrackedEntityComment with the given id
-   */
-  TrackedEntityComment getTrackedEntityComment(long id);
+  public PageParams(Integer page, Integer pageSize, Boolean pageTotal) {
+    this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
+    this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
+    this.pageTotal = Boolean.TRUE.equals(pageTotal);
+  }
 }

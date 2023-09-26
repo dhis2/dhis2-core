@@ -29,10 +29,10 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import com.google.common.collect.Multimap;
 import java.util.List;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
 /**
  * @author Luciano Fiandesio
@@ -50,7 +50,7 @@ public interface EnrollmentStore {
    * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of {@see Note}
    *     objects
    */
-  Multimap<String, TrackedEntityComment> getNotes(List<Long> ids);
+  Multimap<String, Note> getNotes(List<Long> ids);
 
   /**
    * Fetches all the relationships having the enrollment id specified in the arg as "left" or

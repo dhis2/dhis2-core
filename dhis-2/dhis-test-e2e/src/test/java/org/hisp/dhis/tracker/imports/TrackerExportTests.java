@@ -389,7 +389,7 @@ public class TrackerExportTests extends TrackerApiTest {
         new QueryParamsBuilder()
             .add("orgUnit", "O6uvpzGd5pu")
             .add("program", Constants.TRACKER_PROGRAM_ID)
-            .add("attribute", String.format("kZeSYCgaHTk:%s:%s", operator, searchCriteria));
+            .add("filter", String.format("kZeSYCgaHTk:%s:%s", operator, searchCriteria));
 
     trackerImportExportActions
         .getTrackedEntities(queryParamsBuilder)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export;
 
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.program.Event;
 
 @RequiredArgsConstructor(staticName = "of")
 @Getter
+@ToString
 @EqualsAndHashCode
-public class Events {
-
-  private final List<Event> events;
+public class Page<T> {
+  private final List<T> items;
   private final Pager pager;
-
-  public static Events withoutPagination(List<Event> events) {
-    return new Events(events, null);
-  }
 }

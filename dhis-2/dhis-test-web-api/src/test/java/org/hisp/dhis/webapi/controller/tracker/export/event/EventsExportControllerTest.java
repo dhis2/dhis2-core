@@ -44,6 +44,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -58,7 +59,6 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
@@ -162,7 +162,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void getEventByIdWithNotes() {
     Event event = event(enrollment(trackedEntity()));
-    event.setComments(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
+    event.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     manager.update(event);
 
     JsonEvent jsonEvent =
@@ -509,11 +509,11 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     return r;
   }
 
-  private TrackedEntityComment note(String note, String value, String storedBy) {
-    TrackedEntityComment comment = new TrackedEntityComment(value, storedBy);
-    comment.setUid(note);
-    manager.save(comment, false);
-    return comment;
+  private Note note(String uid, String value, String storedBy) {
+    Note note = new Note(value, storedBy);
+    note.setUid(uid);
+    manager.save(note, false);
+    return note;
   }
 
   private void assertDefaultResponse(JsonObject json, Event event) {
@@ -528,7 +528,6 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     assertEquals(programStage.getUid(), json.getString("programStage").string());
     assertEquals(event.getEnrollment().getUid(), json.getString("enrollment").string());
     assertEquals(orgUnit.getUid(), json.getString("orgUnit").string());
-    assertEquals(orgUnit.getName(), json.getString("orgUnitName").string());
     assertFalse(json.getBoolean("followup").booleanValue());
     assertFalse(json.getBoolean("deleted").booleanValue());
     assertHasMember(json, "createdAt");

@@ -27,18 +27,16 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.Function;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -51,13 +49,11 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -85,8 +81,6 @@ class EventOperationParamsMapper {
 
   private final CategoryOptionComboService categoryOptionComboService;
 
-  private final TrackerAccessManager trackerAccessManager;
-
   private final CurrentUserService currentUserService;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
@@ -100,19 +94,12 @@ class EventOperationParamsMapper {
 
     Program program = validateProgram(operationParams.getProgramUid());
     ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid());
-    OrganisationUnit requestedOrgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
+
+    OrganisationUnit orgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
+    validateUser(user, program, programStage, orgUnit);
 
     validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
 
-    List<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            requestedOrgUnit,
-            operationParams.getOrgUnitMode(),
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
-    validateUser(user, program, programStage);
     TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
 
     CategoryOptionCombo attributeOptionCombo =
@@ -134,7 +121,7 @@ class EventOperationParamsMapper {
     return queryParams
         .setProgram(program)
         .setProgramStage(programStage)
-        .setAccessibleOrgUnits(accessibleOrgUnits)
+        .setOrgUnit(orgUnit)
         .setTrackedEntity(trackedEntity)
         .setProgramStatus(operationParams.getProgramStatus())
         .setFollowUp(operationParams.getFollowUp())
@@ -156,11 +143,6 @@ class EventOperationParamsMapper {
         .setEventStatus(operationParams.getEventStatus())
         .setCategoryOptionCombo(attributeOptionCombo)
         .setIdSchemes(operationParams.getIdSchemes())
-        .setPage(operationParams.getPage())
-        .setPageSize(operationParams.getPageSize())
-        .setTotalPages(operationParams.isTotalPages())
-        .setSkipPaging(operationParams.isSkipPaging())
-        .setSkipEventId(operationParams.getSkipEventId())
         .setIncludeAttributes(false)
         .setIncludeAllDataElements(false)
         .setEvents(operationParams.getEvents())
@@ -200,18 +182,20 @@ class EventOperationParamsMapper {
     if (orgUnitUid == null) {
       return null;
     }
-
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid);
     if (orgUnit == null) {
       throw new BadRequestException("Org unit is specified but does not exist: " + orgUnitUid);
     }
-
     return orgUnit;
   }
 
-  private void validateUser(User user, Program program, ProgramStage programStage)
+  private void validateUser(
+      User user, Program program, ProgramStage programStage, OrganisationUnit requestedOrgUnit)
       throws ForbiddenException {
-    if (user.isSuper()) {
+
+    if (user == null
+        || user.isSuper()
+        || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
       return;
     }
     if (program != null && !aclService.canDataRead(user, program)) {
@@ -220,6 +204,13 @@ class EventOperationParamsMapper {
 
     if (programStage != null && !aclService.canDataRead(user, programStage)) {
       throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
+    }
+
+    if (requestedOrgUnit != null
+        && !organisationUnitService.isInUserHierarchy(
+            requestedOrgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
+      throw new ForbiddenException(
+          "Organisation unit is not part of your search scope: " + requestedOrgUnit.getUid());
     }
   }
 
@@ -240,183 +231,12 @@ class EventOperationParamsMapper {
   private void validateAttributeOptionCombo(CategoryOptionCombo attributeOptionCombo, User user)
       throws ForbiddenException {
     if (attributeOptionCombo != null
-        && !user.isSuper()
+        && (user != null && !user.isSuper())
         && !aclService.canDataRead(user, attributeOptionCombo)) {
       throw new ForbiddenException(
           "User has no access to attribute category option combo: "
               + attributeOptionCombo.getUid());
     }
-  }
-
-  private void validateOrgUnitMode(
-      OrganisationUnitSelectionMode orgUnitMode, User user, Program program)
-      throws BadRequestException {
-
-    String violation =
-        switch (orgUnitMode) {
-          case ALL -> userCanSearchOrgUnitModeALL(user)
-              ? null
-              : "Current user is not authorized to query across all organisation units";
-          case ACCESSIBLE, DESCENDANTS, CHILDREN -> getAccessibleScopeValidation(
-              user, program, orgUnitMode);
-          case CAPTURE -> getCaptureScopeValidation(user);
-          default -> null;
-        };
-
-    if (violation != null) {
-      throw new BadRequestException(violation);
-    }
-  }
-
-  private String getCaptureScopeValidation(User user) {
-    String violation = null;
-
-    if (user == null) {
-      violation = "User is required for orgUnitMode: " + OrganisationUnitSelectionMode.CAPTURE;
-    } else if (user.getOrganisationUnits().isEmpty()) {
-      violation = "User needs to be assigned data capture orgunits";
-    }
-
-    return violation;
-  }
-
-  private String getAccessibleScopeValidation(
-      User user, Program program, OrganisationUnitSelectionMode orgUnitMode) {
-    String violation;
-
-    if (user == null) {
-      return "User is required for orgUnitMode: " + orgUnitMode;
-    }
-
-    if (program != null && (program.isClosed() || program.isProtected())) {
-      violation =
-          user.getOrganisationUnits().isEmpty()
-              ? "User needs to be assigned data capture orgunits"
-              : null;
-    } else {
-      violation =
-          user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()
-              ? "User needs to be assigned either TE search, data view or data capture org units"
-              : null;
-    }
-
-    return violation;
-  }
-
-  private boolean userCanSearchOrgUnitModeALL(User user) {
-    if (user == null) {
-      return false;
-    }
-
-    return user.isSuper()
-        || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
-  }
-
-  private List<OrganisationUnit> validateAccessibleOrgUnits(
-      User user,
-      OrganisationUnit orgUnit,
-      OrganisationUnitSelectionMode orgUnitMode,
-      Program program,
-      java.util.function.Function<String, List<OrganisationUnit>> orgUnitDescendants,
-      TrackerAccessManager trackerAccessManager)
-      throws ForbiddenException {
-    List<OrganisationUnit> accessibleOrgUnits =
-        getUserAccessibleOrgUnits(
-            user, orgUnit, orgUnitMode, program, orgUnitDescendants, trackerAccessManager);
-
-    if (orgUnit != null && accessibleOrgUnits.isEmpty()) {
-      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
-    }
-
-    return accessibleOrgUnits;
-  }
-
-  /**
-   * Returns a list of all the org units the user has access to
-   *
-   * @param user the user to check the access of
-   * @param orgUnit parent org unit to get descendants/children of
-   * @param orgUnitDescendants function to retrieve org units, in case ou mode is descendants
-   * @param program the program the user wants to access to
-   * @return a list containing the user accessible organisation units
-   */
-  private static List<OrganisationUnit> getUserAccessibleOrgUnits(
-      User user,
-      OrganisationUnit orgUnit,
-      OrganisationUnitSelectionMode orgUnitMode,
-      Program program,
-      Function<String, List<OrganisationUnit>> orgUnitDescendants,
-      TrackerAccessManager trackerAccessManager) {
-
-    return switch (orgUnitMode) {
-      case DESCENDANTS -> getAccessibleDescendants(
-          user, program, orgUnitDescendants.apply(orgUnit.getUid()));
-      case CHILDREN -> getAccessibleDescendants(
-          user,
-          program,
-          Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream()).toList());
-      case CAPTURE -> new ArrayList<>(user.getOrganisationUnits());
-      case ACCESSIBLE -> getAccessibleOrgUnits(user, program);
-      case SELECTED -> getSelectedOrgUnits(user, program, orgUnit, trackerAccessManager);
-      default -> Collections.emptyList();
-    };
-  }
-
-  private static List<OrganisationUnit> getSelectedOrgUnits(
-      User user,
-      Program program,
-      OrganisationUnit orgUnit,
-      TrackerAccessManager trackerAccessManager) {
-    return trackerAccessManager.canAccess(user, program, orgUnit)
-        ? List.of(orgUnit)
-        : Collections.emptyList();
-  }
-
-  private static List<OrganisationUnit> getAccessibleOrgUnits(User user, Program program) {
-    return isProgramAccessRestricted(program)
-        ? new ArrayList<>(user.getOrganisationUnits())
-        : new ArrayList<>(user.getTeiSearchOrganisationUnitsWithFallback());
-  }
-
-  /**
-   * Returns the org units whose path is contained in the user search or capture scope org unit. If
-   * there's a match, it means the user org unit is at the same level or above the supplied org
-   * unit.
-   *
-   * @param user the user to check the access of
-   * @param program the program the user wants to access to
-   * @param orgUnits the org units to check if the user has access to
-   * @return a list with the org units the user has access to
-   */
-  private static List<OrganisationUnit> getAccessibleDescendants(
-      User user, Program program, List<OrganisationUnit> orgUnits) {
-    if (orgUnits.isEmpty()) {
-      return Collections.emptyList();
-    }
-
-    if (isProgramAccessRestricted(program)) {
-      return orgUnits.stream()
-          .filter(
-              availableOrgUnit ->
-                  user.getOrganisationUnits().stream()
-                      .anyMatch(
-                          captureScopeOrgUnit ->
-                              availableOrgUnit.getPath().contains(captureScopeOrgUnit.getPath())))
-          .toList();
-    } else {
-      return orgUnits.stream()
-          .filter(
-              availableOrgUnit ->
-                  user.getTeiSearchOrganisationUnits().stream()
-                      .anyMatch(
-                          searchScopeOrgUnit ->
-                              availableOrgUnit.getPath().contains(searchScopeOrgUnit.getPath())))
-          .toList();
-    }
-  }
-
-  private static boolean isProgramAccessRestricted(Program program) {
-    return program != null && (program.isClosed() || program.isProtected());
   }
 
   private void mapDataElementFilters(

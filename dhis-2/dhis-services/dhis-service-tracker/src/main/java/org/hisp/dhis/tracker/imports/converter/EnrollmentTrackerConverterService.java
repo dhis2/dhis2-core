@@ -166,7 +166,7 @@ public class EnrollmentTrackerConverterService
     }
 
     if (isNotEmpty(enrollment.getNotes())) {
-      dbEnrollment.getComments().addAll(notesConverterService.from(preheat, enrollment.getNotes()));
+      dbEnrollment.getNotes().addAll(notesConverterService.from(preheat, enrollment.getNotes()));
     }
     return dbEnrollment;
   }

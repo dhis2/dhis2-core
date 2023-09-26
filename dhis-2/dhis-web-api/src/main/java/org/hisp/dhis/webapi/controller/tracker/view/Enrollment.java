@@ -71,8 +71,6 @@ public class Enrollment {
 
   @JsonProperty private String orgUnit;
 
-  @JsonProperty private String orgUnitName;
-
   @JsonProperty private Instant enrolledAt;
 
   @JsonProperty private Instant occurredAt;

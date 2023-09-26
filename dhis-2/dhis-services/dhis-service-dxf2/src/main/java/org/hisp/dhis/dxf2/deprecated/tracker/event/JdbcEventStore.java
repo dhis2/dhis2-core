@@ -29,6 +29,11 @@ package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.AbstractEventService.STATIC_EVENT_COLUMNS;
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
@@ -86,7 +91,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -116,7 +120,6 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jdbc.BatchPreparedStatementSetterWithKeyHolder;
 import org.hisp.dhis.jdbc.JdbcUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -156,8 +159,8 @@ public class JdbcEventStore implements EventStore {
 
   private static final String PSI_EVENT_COMMENT_QUERY =
       "select psic.eventid    as psic_id,"
-          + " psinote.trackedentitycommentid as psinote_id,"
-          + " psinote.commenttext            as psinote_value,"
+          + " psinote.noteid as psinote_id,"
+          + " psinote.notetext            as psinote_value,"
           + " psinote.created                as psinote_storeddate,"
           + " psinote.creator                as psinote_storedby,"
           + " psinote.uid                    as psinote_uid,"
@@ -168,9 +171,9 @@ public class JdbcEventStore implements EventStore {
           + " userinfo.username              as usernote_username,"
           + " userinfo.firstname             as userinfo_firstname,"
           + " userinfo.surname               as userinfo_surname"
-          + " from eventcomments psic"
-          + " inner join trackedentitycomment psinote"
-          + " on psic.trackedentitycommentid = psinote.trackedentitycommentid"
+          + " from event_notes psic"
+          + " inner join note psinote"
+          + " on psic.noteid = psinote.noteid"
           + " left join userinfo on psinote.lastupdatedby = userinfo.userinfoid ";
 
   private static final String PSI_STATUS = "psi_status";
@@ -298,9 +301,11 @@ public class JdbcEventStore implements EventStore {
 
   private static final String UPDATE_EVENT_SQL;
 
-  private static final String PATH_LIKE = "path LIKE";
+  private static final String COLUMN_USER_UID = "u_uid";
 
-  private static final String PATH_EQ = "path =";
+  private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
+
+  private static final String PERCENTAGE_SIGN = ", '%' ";
 
   /**
    * Updates Tracked Entity Instance after an event update. In order to prevent deadlocks, SELECT
@@ -585,7 +590,7 @@ public class JdbcEventStore implements EventStore {
 
     final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
-    String sql = buildGridSql(params, mapSqlParameterSource);
+    String sql = buildGridSql(params, user, mapSqlParameterSource);
 
     return jdbcTemplate.query(
         sql,
@@ -831,7 +836,7 @@ public class JdbcEventStore implements EventStore {
     MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
     if (params.hasFilters()) {
-      sql = buildGridSql(params, mapSqlParameterSource);
+      sql = buildGridSql(params, user, mapSqlParameterSource);
     } else {
       sql = getEventSelectQuery(params, mapSqlParameterSource, user);
     }
@@ -862,7 +867,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String buildGridSql(
-      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+      EventSearchParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder selectBuilder =
@@ -877,6 +882,7 @@ public class JdbcEventStore implements EventStore {
         .append(
             getFromWhereClause(
                 params,
+                user,
                 dataElementAndFiltersSql(params, mapSqlParameterSource, hlp, selectBuilder),
                 mapSqlParameterSource,
                 hlp))
@@ -1222,7 +1228,7 @@ public class JdbcEventStore implements EventStore {
           .append(" ");
     }
 
-    String orgUnitSql = getOrgUnitSql(params, getOuTableName(params));
+    String orgUnitSql = getOrgUnitSql(params, user, mapSqlParameterSource);
 
     if (!Strings.isNullOrEmpty(orgUnitSql)) {
       fromBuilder.append(hlp.whereAnd()).append(" (").append(orgUnitSql).append(") ");
@@ -1461,6 +1467,7 @@ public class JdbcEventStore implements EventStore {
 
   private String getFromWhereClause(
       EventSearchParams params,
+      User user,
       StringBuilder dataElementAndFiltersSql,
       MapSqlParameterSource mapSqlParameterSource,
       SqlHelper hlp) {
@@ -1489,7 +1496,7 @@ public class JdbcEventStore implements EventStore {
 
     sqlBuilder.append(dataElementAndFiltersSql);
 
-    String orgUnitSql = getOrgUnitSql(params, getOuTableName(params));
+    String orgUnitSql = getOrgUnitSql(params, user, mapSqlParameterSource);
 
     if (orgUnitSql != null) {
       sqlBuilder.append(hlp.whereAnd()).append(orgUnitSql + " ");
@@ -2108,49 +2115,121 @@ public class JdbcEventStore implements EventStore {
         .collect(toList());
   }
 
-  private String getOrgUnitSql(EventSearchParams params, String ouTable) {
-    return switch (params.getOrgUnitSelectionMode()) {
-      case SELECTED -> getSelectedOrgUnitPath(params.getAccessibleOrgUnits(), ouTable);
-      case CHILDREN -> getChildrenOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
-      case ALL -> null;
-      default -> getOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
-    };
+  private String getOrgUnitSql(
+      EventSearchParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
+    switch (params.getOrgUnitSelectionMode()) {
+      case CAPTURE:
+        return createCaptureSql(user, mapSqlParameterSource);
+      case ACCESSIBLE:
+        return createAccessibleSql(user, params, mapSqlParameterSource);
+      case DESCENDANTS:
+        return createDescendantsSql(user, params, mapSqlParameterSource);
+      case CHILDREN:
+        return createChildrenSql(user, params, mapSqlParameterSource);
+      case SELECTED:
+        return createSelectedSql(user, params, mapSqlParameterSource);
+      default:
+        return null;
+    }
   }
 
-  private String getChildrenOrgUnitsPath(List<OrganisationUnit> orgUnits, String ouTable) {
-    StringJoiner orgUnitSqlJoiner = new StringJoiner(" or ");
+  private String createCaptureSql(User user, MapSqlParameterSource mapSqlParameterSource) {
+    return createCaptureScopeQuery(user, mapSqlParameterSource, "");
+  }
 
-    for (OrganisationUnit orgUnit : orgUnits) {
-      orgUnitSqlJoiner.add(
-          ouTable
-              + "."
-              + PATH_LIKE
-              + " '%"
-              + orgUnit.getPath()
-              + "%' "
-              + " and "
-              + ouTable
-              + "."
-              + "hierarchylevel = "
-              + orgUnit.getLevel());
+  private String createAccessibleSql(
+      User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+
+    if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
+      return createCaptureSql(user, mapSqlParameterSource);
     }
 
-    return orgUnitSqlJoiner.toString();
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return " EXISTS(SELECT ss.organisationunitid "
+        + " FROM userteisearchorgunits ss "
+        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = ss.organisationunitid "
+        + " JOIN userinfo u ON u.userinfoid = ss.userinfoid "
+        + " WHERE u.uid = :"
+        + COLUMN_USER_UID
+        + " AND ou.path like CONCAT(orgunit.path, '%')) ";
   }
 
-  private String getSelectedOrgUnitPath(List<OrganisationUnit> orgUnits, String ouTable) {
-    return orgUnits.isEmpty()
-        ? null
-        : ouTable + "." + PATH_EQ + " '" + orgUnits.get(0).getPath() + "' ";
-  }
+  private String createDescendantsSql(
+      User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
-  private String getOrgUnitsPath(List<OrganisationUnit> orgUnits, String ouTable) {
-    StringJoiner orgUnitSqlJoiner = new StringJoiner(" or ");
-
-    for (OrganisationUnit orgUnit : orgUnits) {
-      orgUnitSqlJoiner.add(ouTable + "." + PATH_LIKE + " '%" + orgUnit.getPath() + "%' ");
+    if (isProgramRestricted(params.getProgram())) {
+      return createCaptureScopeQuery(
+          user,
+          mapSqlParameterSource,
+          " AND ou.path like CONCAT(:" + COLUMN_ORG_UNIT_PATH + PERCENTAGE_SIGN + ")");
     }
 
-    return orgUnitSqlJoiner.toString();
+    return " ou.path like CONCAT(:" + COLUMN_ORG_UNIT_PATH + PERCENTAGE_SIGN + ") ";
+  }
+
+  private String createChildrenSql(
+      User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+
+    if (isProgramRestricted(params.getProgram())) {
+      String childrenSqlClause =
+          " AND ou.path like CONCAT(:"
+              + COLUMN_ORG_UNIT_PATH
+              + PERCENTAGE_SIGN
+              + ") "
+              + " AND (ou.hierarchylevel = "
+              + params.getOrgUnit().getHierarchyLevel()
+              + " OR ou.hierarchylevel = "
+              + (params.getOrgUnit().getHierarchyLevel() + 1)
+              + " )";
+
+      return createCaptureScopeQuery(user, mapSqlParameterSource, childrenSqlClause);
+    }
+
+    return " ou.path like CONCAT(:"
+        + COLUMN_ORG_UNIT_PATH
+        + PERCENTAGE_SIGN
+        + ") "
+        + " AND (ou.hierarchylevel = "
+        + params.getOrgUnit().getHierarchyLevel()
+        + " OR ou.hierarchylevel = "
+        + (params.getOrgUnit().getHierarchyLevel() + 1)
+        + " ) ";
+  }
+
+  private String createSelectedSql(
+      User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+
+    if (isProgramRestricted(params.getProgram())) {
+      String customSelectedClause = " AND ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
+      return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
+    }
+
+    return " ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
+  }
+
+  private boolean isProgramRestricted(Program program) {
+    return program != null && (program.isProtected() || program.isClosed());
+  }
+
+  private boolean isUserSearchScopeNotSet(User user) {
+    return user.getTeiSearchOrganisationUnits().isEmpty();
+  }
+
+  private String createCaptureScopeQuery(
+      User user, MapSqlParameterSource mapSqlParameterSource, String customClause) {
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+
+    return " EXISTS(SELECT cs.organisationunitid "
+        + " FROM usermembership cs "
+        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = cs.organisationunitid "
+        + " JOIN userinfo u ON u.userinfoid = cs.userinfoid "
+        + " WHERE u.uid = :"
+        + COLUMN_USER_UID
+        + " AND ou.path like CONCAT(orgunit.path, '%') "
+        + customClause
+        + ") ";
   }
 }

@@ -41,7 +41,6 @@ import org.springframework.util.Assert;
   "programStage",
   "enrollment",
   "orgUnit",
-  "orgUnitName",
   "occurredAt",
   "scheduledAt",
   "geometry",
@@ -77,8 +76,6 @@ class CsvEventDataValue {
   private String programStage;
 
   private String orgUnit;
-
-  private String orgUnitName;
 
   private String enrollment;
 
@@ -141,7 +138,6 @@ class CsvEventDataValue {
     programStage = dataValue.getProgramStage();
     enrollment = dataValue.getEnrollment();
     orgUnit = dataValue.getOrgUnit();
-    orgUnitName = dataValue.getOrgUnitName();
     occurredAt = dataValue.getOccurredAt();
     scheduledAt = dataValue.getScheduledAt();
     followup = dataValue.isFollowup();
@@ -215,15 +211,6 @@ class CsvEventDataValue {
 
   public void setOrgUnit(String orgUnit) {
     this.orgUnit = orgUnit;
-  }
-
-  @JsonProperty
-  public String getOrgUnitName() {
-    return orgUnitName;
-  }
-
-  public void setOrgUnitName(String orgUnitName) {
-    this.orgUnitName = orgUnitName;
   }
 
   @JsonProperty

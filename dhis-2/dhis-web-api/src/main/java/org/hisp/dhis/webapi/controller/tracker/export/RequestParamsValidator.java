@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
@@ -52,6 +53,7 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.OperationParamUtils;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 /**
@@ -317,7 +319,8 @@ public class RequestParamsValidator {
       return orgUnits.isEmpty() ? ACCESSIBLE : SELECTED;
     }
 
-    if (!orgUnits.isEmpty() && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE)) {
+    if (!orgUnits.isEmpty()
+        && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE || orgUnitMode == ALL)) {
       throw new BadRequestException(
           String.format(
               "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
@@ -367,5 +370,15 @@ public class RequestParamsValidator {
     }
 
     return orgUnitMode;
+  }
+
+  public static void validatePaginationParameters(PageRequestParams params)
+      throws BadRequestException {
+    if (Boolean.TRUE.equals(params.getSkipPaging())
+        && (ObjectUtils.firstNonNull(params.getPage(), params.getPageSize()) != null
+            || Boolean.TRUE.equals(params.getTotalPages()))) {
+      throw new BadRequestException(
+          "Paging cannot be skipped with isSkipPaging=true while also requesting a paginated response with page, pageSize and/or totalPages=true");
+    }
   }
 }

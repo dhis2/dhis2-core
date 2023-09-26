@@ -76,6 +76,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -111,8 +112,6 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -154,7 +153,7 @@ public abstract class AbstractEnrollmentService
 
   protected CurrentUserService currentUserService;
 
-  protected TrackedEntityCommentService commentService;
+  protected NoteService commentService;
 
   protected IdentifiableObjectManager manager;
 
@@ -328,7 +327,7 @@ public abstract class AbstractEnrollmentService
     enrollment.setLastUpdatedByUserInfo(programInstance.getLastUpdatedByUserInfo());
     enrollment.setDeleted(programInstance.isDeleted());
 
-    enrollment.getNotes().addAll(NoteHelper.convertNotes(programInstance.getComments()));
+    enrollment.getNotes().addAll(NoteHelper.convertNotes(programInstance.getNotes()));
 
     if (params.isIncludeEvents()) {
       for (Event event : programInstance.getEvents()) {
@@ -1524,9 +1523,9 @@ public abstract class AbstractEnrollmentService
 
       if (!commentService.trackedEntityCommentExists(noteUid)
           && !StringUtils.isEmpty(note.getValue())) {
-        TrackedEntityComment comment = new TrackedEntityComment();
+        org.hisp.dhis.note.Note comment = new org.hisp.dhis.note.Note();
         comment.setUid(noteUid);
-        comment.setCommentText(note.getValue());
+        comment.setNoteText(note.getValue());
         comment.setCreator(
             StringUtils.isEmpty(note.getStoredBy()) ? user.getUsername() : note.getStoredBy());
 
@@ -1543,7 +1542,7 @@ public abstract class AbstractEnrollmentService
 
         commentService.addTrackedEntityComment(comment);
 
-        programInstance.getComments().add(comment);
+        programInstance.getNotes().add(comment);
 
         enrollmentService.updateEnrollment(programInstance, user);
         teiService.updateTrackedEntity(programInstance.getTrackedEntity(), user);

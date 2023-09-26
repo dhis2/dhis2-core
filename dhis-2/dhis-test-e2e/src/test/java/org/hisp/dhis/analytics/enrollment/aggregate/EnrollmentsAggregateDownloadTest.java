@@ -59,6 +59,11 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
     // When
     ApiResponse response =
         analyticsEnrollmentsActions.query().get("IpHINAT79UW.xml", TYPE, TYPE, params);
+
+    // Then
+    response.validate().statusCode(200).contentType(TYPE);
+
+    assertTrue(isNotBlank(response.getAsString()));
   }
 
   @Test
@@ -79,6 +84,11 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
     // When
     ApiResponse response =
         analyticsEnrollmentsActions.query().get("IpHINAT79UW.xls", TYPE, TYPE, params);
+
+    // Then
+    response.validate().statusCode(200).contentType(TYPE);
+
+    assertTrue(isNotBlank(response.getAsString()));
   }
 
   @Test
@@ -99,6 +109,10 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
     // When
     ApiResponse response =
         analyticsEnrollmentsActions.query().get("IpHINAT79UW.csv", TYPE, TYPE, params);
+
+    response.validate().statusCode(200).contentType(TYPE);
+
+    assertTrue(isNotBlank(response.getAsString()));
   }
 
   @Test

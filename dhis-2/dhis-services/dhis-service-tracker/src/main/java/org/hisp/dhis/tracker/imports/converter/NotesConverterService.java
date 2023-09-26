@@ -29,8 +29,7 @@ package org.hisp.dhis.tracker.imports.converter;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.tracker.imports.domain.Note;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
@@ -40,43 +39,46 @@ import org.springframework.stereotype.Service;
  * @author Luciano Fiandesio
  */
 @Service
-public class NotesConverterService implements TrackerConverterService<Note, TrackedEntityComment> {
+public class NotesConverterService
+    implements TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Note, Note> {
   @Override
-  public Note to(TrackedEntityComment trackedEntityComment) {
-    Note note = new Note();
-    note.setNote(trackedEntityComment.getUid());
-    note.setValue(trackedEntityComment.getCommentText());
-    note.setStoredAt(DateUtils.instantFromDate(trackedEntityComment.getCreated()));
-    note.setCreatedBy(
+  public org.hisp.dhis.tracker.imports.domain.Note to(Note note) {
+    org.hisp.dhis.tracker.imports.domain.Note trackerNote =
+        new org.hisp.dhis.tracker.imports.domain.Note();
+    trackerNote.setNote(note.getUid());
+    trackerNote.setValue(note.getNoteText());
+    trackerNote.setStoredAt(DateUtils.instantFromDate(note.getCreated()));
+    trackerNote.setCreatedBy(
         User.builder()
-            .username(trackedEntityComment.getLastUpdatedBy().getUsername())
-            .uid(trackedEntityComment.getLastUpdatedBy().getUid())
-            .firstName(trackedEntityComment.getLastUpdatedBy().getFirstName())
-            .surname(trackedEntityComment.getLastUpdatedBy().getSurname())
+            .username(note.getLastUpdatedBy().getUsername())
+            .uid(note.getLastUpdatedBy().getUid())
+            .firstName(note.getLastUpdatedBy().getFirstName())
+            .surname(note.getLastUpdatedBy().getSurname())
             .build());
-    note.setStoredBy(trackedEntityComment.getCreator());
-    return note;
+    trackerNote.setStoredBy(note.getCreator());
+    return trackerNote;
   }
 
   @Override
-  public List<Note> to(List<TrackedEntityComment> trackedEntityComments) {
-    return trackedEntityComments.stream().map(this::to).collect(Collectors.toList());
+  public List<org.hisp.dhis.tracker.imports.domain.Note> to(List<Note> notes) {
+    return notes.stream().map(this::to).collect(Collectors.toList());
   }
 
   @Override
-  public TrackedEntityComment from(TrackerPreheat preheat, Note note) {
-    TrackedEntityComment comment = new TrackedEntityComment();
-    comment.setUid(note.getNote());
-    comment.setAutoFields();
-    comment.setCommentText(note.getValue());
+  public Note from(TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Note note) {
+    org.hisp.dhis.note.Note trackerNote = new org.hisp.dhis.note.Note();
+    trackerNote.setUid(note.getNote());
+    trackerNote.setAutoFields();
+    trackerNote.setNoteText(note.getValue());
 
-    comment.setLastUpdatedBy(preheat.getUser());
-    comment.setCreator(note.getStoredBy());
-    return comment;
+    trackerNote.setLastUpdatedBy(preheat.getUser());
+    trackerNote.setCreator(note.getStoredBy());
+    return trackerNote;
   }
 
   @Override
-  public List<TrackedEntityComment> from(TrackerPreheat preheat, List<Note> notes) {
+  public List<Note> from(
+      TrackerPreheat preheat, List<org.hisp.dhis.tracker.imports.domain.Note> notes) {
     return notes.stream().map(n -> from(preheat, n)).collect(Collectors.toList());
   }
 }

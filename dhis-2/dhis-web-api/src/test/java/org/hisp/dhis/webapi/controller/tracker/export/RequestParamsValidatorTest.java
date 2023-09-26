@@ -28,11 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static java.util.Collections.emptySet;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -41,6 +36,7 @@ import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fro
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,12 +44,16 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
+import lombok.Data;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -64,6 +64,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.OperationParamUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /** Tests {@link RequestParamsValidator}. */
 class RequestParamsValidatorTest {
@@ -304,89 +308,118 @@ class RequestParamsValidatorTest {
     assertEquals("Query item or filter is invalid: " + TEA_1_UID + ":lt:", exception.getMessage());
   }
 
-  @Test
-  void shouldCreateQueryFiltersWhenQueryHasOperatorAndValueWithDelimiter()
-      throws BadRequestException {
-    assertEquals(
-        new QueryFilter(QueryOperator.LIKE, "project:x"),
-        OperationParamUtils.parseQueryFilter("like:project/:x"));
-  }
-
   private TrackedEntityAttribute trackedEntityAttribute(String uid) {
     TrackedEntityAttribute tea = new TrackedEntityAttribute();
     tea.setUid(uid);
     return tea;
   }
 
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"CAPTURE", "ACCESSIBLE", "ALL"})
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeDoesNotRequireOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), ACCESSIBLE));
+            () -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), orgUnitMode));
 
     assertStartsWith(
-        "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
+        String.format("orgUnitMode %s cannot be used with orgUnits.", orgUnitMode),
+        exception.getMessage());
   }
 
-  @Test
-  void shouldPassWhenNoOrgUnitSuppliedAndOrgUnitModeAccessible() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(emptySet(), ACCESSIBLE));
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"CAPTURE", "ACCESSIBLE", "ALL"})
+  void shouldPassWhenNoOrgUnitSuppliedAndOrgUnitModeDoesNotRequireOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    assertDoesNotThrow(() -> validateOrgUnitMode(emptySet(), orgUnitMode));
   }
 
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeRequiresOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), orgUnitMode));
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeRequiresOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
     Exception exception =
-        assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), CAPTURE));
-
-    assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
-  }
-
-  @Test
-  void shouldPassWhenNoOrgUnitSuppliedAndOrgUnitModeCapture() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(emptySet(), CAPTURE));
-  }
-
-  @Test
-  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeSelected() {
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), SELECTED));
+        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), orgUnitMode));
 
     assertStartsWith(
-        "At least one org unit is required for orgUnitMode: SELECTED", exception.getMessage());
+        String.format("At least one org unit is required for orgUnitMode: %s", orgUnitMode),
+        exception.getMessage());
   }
 
-  @Test
-  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeSelected() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), SELECTED));
+  @Data
+  private static class PaginationParameters implements PageRequestParams {
+    private Integer page;
+    private Integer pageSize;
+    private Boolean totalPages;
+    private Boolean skipPaging;
   }
 
-  @Test
-  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeDescendants() {
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), DESCENDANTS));
-
-    assertStartsWith(
-        "At least one org unit is required for orgUnitMode: DESCENDANTS", exception.getMessage());
+  private static Stream<Arguments> mutuallyExclusivePaginationParameters() {
+    return Stream.of(
+        arguments(null, 1, null, true),
+        arguments(null, 1, false, true),
+        arguments(null, 1, false, true),
+        arguments(1, 1, false, true),
+        arguments(1, 1, true, true),
+        arguments(null, null, true, true));
   }
 
-  @Test
-  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeDescendants() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), DESCENDANTS));
+  @MethodSource("mutuallyExclusivePaginationParameters")
+  @ParameterizedTest
+  void shouldFailWhenGivenMutuallyExclusivePaginationParameters(
+      Integer page, Integer pageSize, Boolean totalPages, Boolean skipPaging) {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPage(page);
+    paginationParameters.setPageSize(pageSize);
+    paginationParameters.setTotalPages(totalPages);
+    paginationParameters.setSkipPaging(skipPaging);
+
+    assertThrows(
+        BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
   }
 
-  @Test
-  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeChildren() {
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), CHILDREN));
-
-    assertStartsWith(
-        "At least one org unit is required for orgUnitMode: CHILDREN", exception.getMessage());
+  private static Stream<Arguments> validPaginationParameters() {
+    return Stream.of(
+        arguments(null, null, null, null),
+        arguments(null, null, null, false),
+        arguments(null, 1, true, null),
+        arguments(null, 1, false, null),
+        arguments(null, 1, false, false),
+        arguments(null, null, true, false),
+        arguments(1, 1, false, false),
+        arguments(null, null, true, null),
+        arguments(null, 1, true, false),
+        arguments(null, null, null, true),
+        arguments(null, null, false, true));
   }
 
-  @Test
-  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeChildren() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), CHILDREN));
+  @MethodSource("validPaginationParameters")
+  @ParameterizedTest
+  void shouldPassWhenGivenValidPaginationParameters(
+      Integer page, Integer pageSize, Boolean totalPages, Boolean skipPaging)
+      throws BadRequestException {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPage(page);
+    paginationParameters.setPage(pageSize);
+    paginationParameters.setTotalPages(totalPages);
+    paginationParameters.setSkipPaging(skipPaging);
+
+    validatePaginationParameters(paginationParameters);
   }
 }
