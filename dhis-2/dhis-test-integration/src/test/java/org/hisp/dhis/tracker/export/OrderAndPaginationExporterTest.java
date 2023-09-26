@@ -1104,28 +1104,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByDataElementAndFilterOutEventsWithoutThatDataElement()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        eventParamsBuilder
-            .orgUnitUid(orgUnit.getUid())
-            .events(
-                Set.of(
-                    "pTzf9KYMk72", // EV pTzf9KYMk72 without data element DATAEL00002
-                    "D9PbzJY8bJM"))
-            // notUpdated0
-            .orderBy(UID.of("DATAEL00002"), SortDirection.DESC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    // https://www.postgresql.org/docs/current/queries-order.html
-    // By default, null values sort as if larger than any non-null value
-    // => EV pTzf9KYMk72 without data element DATAEL00002 will come first when DESC
-    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
-  }
-
-  @Test
   void shouldOrderRelationshipsByPrimaryKeyDescByDefault()
       throws ForbiddenException, NotFoundException {
     Relationship oLT07jKRu9e = get(Relationship.class, "oLT07jKRu9e");

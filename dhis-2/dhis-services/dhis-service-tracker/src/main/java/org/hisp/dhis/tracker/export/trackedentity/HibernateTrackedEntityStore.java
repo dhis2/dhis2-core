@@ -362,12 +362,16 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(" FROM trackedentity " + MAIN_QUERY_ALIAS + " ")
 
             // INNER JOIN on constraints
+            // filter={uid1} => Map.of(tea, List.of(null))
+            // filter={uid1}:eq:2 => Map.of(tea, List.of(new QueryFilter(EQ,"in")))
+            // order={uid1}:desc&filter={uid1} => Map.of(tea, List.of(new QueryFilter(EQ,"in")))
             .append(joinAttributeValue(params))
             .append(getFromSubQueryJoinProgramOwnerConditions(params))
             .append(getFromSubQueryJoinOrgUnitConditions(params))
             .append(getFromSubQueryJoinEnrollmentConditions(params))
 
             // LEFT JOIN attributes we need to sort on.
+            // order={uid1}:desc => Map.of(tea,List.of())
             .append(getFromSubQueryJoinOrderByAttributes(params))
 
             // WHERE

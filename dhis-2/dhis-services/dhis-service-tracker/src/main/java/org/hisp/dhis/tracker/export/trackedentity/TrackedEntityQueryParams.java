@@ -606,12 +606,24 @@ public class TrackedEntityQueryParams {
     return user;
   }
 
+  /**
+   * Filter the given tracked entity attribute {@code tea} using the specified {@link QueryFilter}
+   * that consist of an operator and a value.
+   */
   public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea, QueryFilter filter) {
     this.filters.putIfAbsent(tea, new ArrayList<>());
     this.filters.get(tea).add(filter);
     return this;
   }
 
+  /**
+   * Filter out Tracked Entity that have no value for the given tracked entity attribute {@code
+   * tea}. A filter without an operator is represented as a list with one null value to
+   * differentiate it from a filter created by an order clause that is represented by an empty list.
+   * A filter without an operator will overwrite a filter created by the order clause. A filter
+   * without an operator will not have any effect if another filter on the same attribute is already
+   * present.
+   */
   public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea) {
     this.filters.putIfAbsent(tea, Collections.singletonList(null));
     if (this.filters.get(tea).isEmpty()) {

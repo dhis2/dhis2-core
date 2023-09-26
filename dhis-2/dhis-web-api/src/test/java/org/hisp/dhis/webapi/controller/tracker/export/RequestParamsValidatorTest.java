@@ -219,8 +219,7 @@ class RequestParamsValidatorTest {
   }
 
   @Test
-  void shouldParseFiltersWithFirstOperatorWhenMultipleValidOperandAreNotValid()
-      throws BadRequestException {
+  void shouldParseFiltersWithFilterNameHasSeparationCharInIt() throws BadRequestException {
     Map<String, List<QueryFilter>> filters = parseFilters(TEA_2_UID + ":like:project/:x/:eq/:2");
 
     assertEquals(
