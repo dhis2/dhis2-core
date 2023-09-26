@@ -29,6 +29,8 @@ package org.hisp.dhis.eventvisualization;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.eventvisualization.Attribute.FILTER;
 import static org.hisp.dhis.eventvisualization.Attribute.ROW;
@@ -74,9 +76,11 @@ public class SimpleDimensionHandler {
    * @throws IllegalArgumentException if the dimension does not exist in {@link
    *     SimpleDimension.Type}
    */
-  public DimensionalObject getDimensionalObject(final String dimension, final Attribute parent) {
+  public DimensionalObject getDimensionalObject(String dimension, Attribute parent) {
+    String actualDim = defaultIfBlank(substringAfterLast(dimension, "."), dimension);
+
     return new BaseDimensionalObject(
-        dimension, from(dimension).getParentType(), loadDimensionalItems(dimension, parent));
+        dimension, from(actualDim).getParentType(), loadDimensionalItems(dimension, parent));
   }
 
   /**
@@ -94,9 +98,9 @@ public class SimpleDimensionHandler {
   }
 
   private void associateDimensionalObjects(
-      final List<DimensionalObject> dimensionalObjects, final Attribute attribute) {
+      List<DimensionalObject> dimensionalObjects, Attribute attribute) {
     if (isNotEmpty(dimensionalObjects)) {
-      for (final DimensionalObject object : dimensionalObjects) {
+      for (DimensionalObject object : dimensionalObjects) {
         if (object != null && contains(object.getUid())) {
           eventAnalyticalObject
               .getSimpleDimensions()
@@ -107,11 +111,11 @@ public class SimpleDimensionHandler {
   }
 
   private List<BaseDimensionalItemObject> loadDimensionalItems(
-      final String dimension, final Attribute parent) {
-    final List<BaseDimensionalItemObject> items = new ArrayList<>();
+      String dimension, Attribute parent) {
+     List<BaseDimensionalItemObject> items = new ArrayList<>();
 
-    for (final SimpleDimension simpleDimension : eventAnalyticalObject.getSimpleDimensions()) {
-      final boolean hasSameDimension = simpleDimension.getDimension().equals(dimension);
+    for (SimpleDimension simpleDimension : eventAnalyticalObject.getSimpleDimensions()) {
+      boolean hasSameDimension = simpleDimension.getDimension().equals(dimension);
 
       if (simpleDimension.belongsTo(parent) && hasSameDimension) {
         items.addAll(
@@ -125,9 +129,13 @@ public class SimpleDimensionHandler {
   }
 
   private SimpleDimension createSimpleEventDimensionFor(
-      final DimensionalObject dimensionalObject, final Attribute attribute) {
-    final SimpleDimension simpleDimension =
-        new SimpleDimension(attribute, dimensionalObject.getUid());
+      DimensionalObject dimensionalObject, Attribute attribute) {
+    String programUid = dimensionalObject.getProgram() != null ? dimensionalObject.getProgram().getUid() : null;
+    String programStageUid = dimensionalObject.getProgramStage().getUid() != null ? dimensionalObject.getProgramStage().getUid() : null;
+    String actualDim = defaultIfBlank(substringAfterLast(dimensionalObject.getUid(), "."), dimensionalObject.getUid());
+
+    SimpleDimension simpleDimension =
+        new SimpleDimension(attribute, actualDim, programUid, programStageUid);
 
     if (isNotEmpty(dimensionalObject.getItems())) {
       simpleDimension.setValues(

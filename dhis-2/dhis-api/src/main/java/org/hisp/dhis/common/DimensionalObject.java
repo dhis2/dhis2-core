@@ -42,6 +42,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
@@ -176,6 +177,9 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
 
   /** Gets the program stage (not persisted). */
   ProgramStage getProgramStage();
+
+  /** Gets the program (not persisted). */
+  Program getProgram();
 
   /** Indicates whether this dimension has a program stage (not persisted). */
   default boolean hasProgramStage() {

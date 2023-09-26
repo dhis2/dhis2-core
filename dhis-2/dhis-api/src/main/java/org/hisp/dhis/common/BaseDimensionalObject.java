@@ -49,6 +49,7 @@ import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
 @JacksonXmlRootElement(localName = "dimension", namespace = DxfNamespaces.DXF_2_0)
@@ -94,6 +95,9 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
 
   /** The program stage for this dimension. */
   private ProgramStage programStage;
+
+  /** The program for this dimension. */
+  private Program program;
 
   /** The aggregation type for this dimension. */
   protected AggregationType aggregationType;
@@ -231,6 +235,8 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
     this.filter = filter;
     this.valueType = valueType;
     this.optionSet = optionSet;
+
+    setProgram();
   }
 
   // TODO aggregationType in constructors
@@ -256,6 +262,12 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
     object.fixed = this.fixed;
     object.dimensionalKeywords = this.dimensionalKeywords;
     return object;
+  }
+
+  private void setProgram() {
+    if (programStage != null) {
+      program = programStage.getProgram();
+    }
   }
 
   @Override
@@ -430,6 +442,18 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
 
   public void setProgramStage(ProgramStage programStage) {
     this.programStage = programStage;
+  }
+
+  @Override
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Program getProgram() {
+    return program;
+  }
+
+  public void setProgram(Program program) {
+    this.program = program;
   }
 
   @Override

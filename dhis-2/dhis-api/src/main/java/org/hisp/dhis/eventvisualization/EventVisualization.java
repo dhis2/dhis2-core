@@ -54,6 +54,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.EventDataType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.common.AnalyticsType;
@@ -415,7 +417,7 @@ public class EventVisualization extends BaseAnalyticalObject
         s -> {
           if (isBlank(s.getDimension()) || s.getDirection() == null) {
             throw new IllegalArgumentException("Sorting is not valid");
-          } else if (columns.stream().noneMatch(c -> contains(s.getDimension().split("\\."), c))) {
+          } else if (columns.stream().noneMatch(c -> StringUtils.contains(s.getDimension(), c))) {
             throw new IllegalStateException(s.getDimension());
           }
         });

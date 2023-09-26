@@ -31,7 +31,9 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
@@ -595,10 +597,11 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   protected DimensionalObject getDimensionalObject(
       EventAnalyticalObject eventAnalyticalObject, String dimension, Attribute parent) {
     Optional<DimensionalObject> optionalDimensionalObject = getDimensionalObject(dimension);
+    String actualDim = defaultIfBlank(substringAfterLast(dimension, "."), dimension);
 
     if (optionalDimensionalObject.isPresent()) {
       return linkAssociations(eventAnalyticalObject, optionalDimensionalObject.get(), parent);
-    } else if (Type.contains(dimension)) {
+    } else if (Type.contains(actualDim)) {
       DimensionalObject dimensionalObject =
           new SimpleDimensionHandler(eventAnalyticalObject).getDimensionalObject(dimension, parent);
 
@@ -693,11 +696,13 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * @return a list of DimensionalObjects.
    */
   protected Optional<DimensionalObject> getDimensionalObject(String dimension) {
-    if (DATA_X_DIM_ID.equals(dimension)) {
+    String actualDim = defaultIfBlank(substringAfterLast(dimension, "."), dimension);
+
+    if (DATA_X_DIM_ID.equals(actualDim)) {
       return Optional.of(
           new BaseDimensionalObject(
               dimension, DimensionType.DATA_X, getDataDimensionNameableObjects()));
-    } else if (PERIOD_DIM_ID.equals(dimension)) {
+    } else if (PERIOD_DIM_ID.equals(actualDim)) {
       List<Period> periodList = new ArrayList<>(periods);
 
       if (hasRelativePeriods()) {
@@ -709,7 +714,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
       }
 
       return Optional.of(new BaseDimensionalObject(dimension, DimensionType.PERIOD, periodList));
-    } else if (ORGUNIT_DIM_ID.equals(dimension)) {
+    } else if (ORGUNIT_DIM_ID.equals(actualDim)) {
       List<DimensionalItemObject> ouList = new ArrayList<>();
       ouList.addAll(organisationUnits);
       ouList.addAll(transientOrganisationUnits);
@@ -744,14 +749,14 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
       return Optional.of(
           new BaseDimensionalObject(dimension, DimensionType.ORGANISATION_UNIT, ouList));
-    } else if (CATEGORYOPTIONCOMBO_DIM_ID.equals(dimension)) {
+    } else if (CATEGORYOPTIONCOMBO_DIM_ID.equals(actualDim)) {
       return Optional.of(
           new BaseDimensionalObject(
               dimension, DimensionType.CATEGORY_OPTION_COMBO, new ArrayList<>()));
-    } else if (DATA_COLLAPSED_DIM_ID.equals(dimension)) {
+    } else if (DATA_COLLAPSED_DIM_ID.equals(actualDim)) {
       return Optional.of(
           new BaseDimensionalObject(dimension, DimensionType.DATA_COLLAPSED, new ArrayList<>()));
-    } else if (STATIC_DIMS.contains(dimension)) {
+    } else if (STATIC_DIMS.contains(actualDim)) {
       return Optional.of(
           new BaseDimensionalObject(dimension, DimensionType.STATIC, new ArrayList<>()));
     } else {
@@ -788,13 +793,15 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   }
 
   private Optional<DimensionalObject> getTrackedEntityDimension(String dimension) {
+    String actualDim = defaultIfBlank(substringAfterLast(dimension, "."), dimension);
+
     // Tracked entity attribute.
     Map<String, TrackedEntityAttributeDimension> attributes =
         attributeDimensions.stream()
             .collect(toMap(TrackedEntityAttributeDimension::getUid, Function.identity()));
 
-    if (attributes.containsKey(dimension)) {
-      TrackedEntityAttributeDimension tead = attributes.get(dimension);
+    if (attributes.containsKey(actualDim)) {
+      TrackedEntityAttributeDimension tead = attributes.get(actualDim);
 
       if (tead != null) {
         ValueType valueType =
@@ -819,7 +826,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
     // Tracked entity data element.
     for (TrackedEntityDataElementDimension tedd : dataElementDimensions) {
-      if (tedd != null && dimension.equals(tedd.getUid())) {
+      if (tedd != null && actualDim.equals(tedd.getUid())) {
         ValueType valueType =
             tedd.getDataElement() != null ? tedd.getDataElement().getValueType() : null;
 
@@ -827,7 +834,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
             tedd.getDataElement() != null ? tedd.getDataElement().getOptionSet() : null;
 
         String elementProgramStage =
-            dimension + (tedd.getProgramStage() != null ? tedd.getProgramStage().getUid() : EMPTY);
+                actualDim + (tedd.getProgramStage() != null ? tedd.getProgramStage().getUid() : EMPTY);
 
         // Return dimensions with distinct program stages.
         if (!addedElementsProgramStages.contains(elementProgramStage)) {
@@ -854,8 +861,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
         programIndicatorDimensions.stream()
             .collect(toMap(TrackedEntityProgramIndicatorDimension::getUid, Function.identity()));
 
-    if (programIndicators.containsKey(dimension)) {
-      TrackedEntityProgramIndicatorDimension teid = programIndicators.get(dimension);
+    if (programIndicators.containsKey(actualDim)) {
+      TrackedEntityProgramIndicatorDimension teid = programIndicators.get(actualDim);
 
       return Optional.of(
           new BaseDimensionalObject(
@@ -883,11 +890,14 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   private <T extends DimensionalEmbeddedObject>
       Optional<DimensionalObject> getDimensionFromEmbeddedObjects(
           String dimension, DimensionType dimensionType, List<T> embeddedObjects) {
+    String actualDim = defaultIfBlank(substringAfterLast(dimension, "."), dimension);
+
+    // TODO: See if this still works.
     Map<String, T> dimensions =
         Maps.uniqueIndex(embeddedObjects, d -> d.getDimension().getDimension());
 
-    if (dimensions.containsKey(dimension)) {
-      DimensionalEmbeddedObject object = dimensions.get(dimension);
+    if (dimensions.containsKey(actualDim)) {
+      DimensionalEmbeddedObject object = dimensions.get(actualDim);
 
       if (object != null) {
         return Optional.of(

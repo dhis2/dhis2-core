@@ -28,6 +28,8 @@
 package org.hisp.dhis.dimension;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
 import static org.hisp.dhis.common.DimensionType.DATA_ELEMENT_GROUP_SET;
@@ -490,10 +492,8 @@ public class DefaultDimensionService implements DimensionService {
     }
 
     for (DimensionalObject dimension : dimensions) {
-      DimensionType type = getDimensionType(dimension.getDimension());
-
-      String dimensionId = dimension.getDimension();
-
+      String dimensionId = defaultIfBlank(substringAfterLast(dimension.getDimension(), "."), dimension.getDimension());
+      DimensionType type = getDimensionType(dimensionId);
       List<DimensionalItemObject> items = dimension.getItems();
 
       if (items != null) {
