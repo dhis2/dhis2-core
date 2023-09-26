@@ -46,7 +46,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,7 +60,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.export.OperationParamUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -75,6 +73,8 @@ class RequestParamsValidatorTest {
   private static final String TEA_1_UID = "TvjwTPToKHO";
 
   private static final String TEA_2_UID = "cy2oRh2sNr6";
+
+  public static final String TEA_3_UID = "cy2oRh2sNr7";
 
   private Map<String, TrackedEntityAttribute> attributes;
 
@@ -221,29 +221,6 @@ class RequestParamsValidatorTest {
   }
 
   @Test
-  void testParseAttributeQueryItemWhenNoTEAExist() {
-    String param = TEA_1_UID + ":eq:2";
-    Map<String, TrackedEntityAttribute> attributes = Collections.emptyMap();
-
-    Exception exception =
-        assertThrows(
-            BadRequestException.class,
-            () -> OperationParamUtils.parseAttributeQueryItems(param, attributes));
-    assertEquals("Attribute does not exist: " + TEA_1_UID, exception.getMessage());
-  }
-
-  @Test
-  void testParseAttributeQueryWhenTEAInFilterDoesNotExist() {
-    String param = "JM5zWuf1mkb:eq:2";
-
-    Exception exception =
-        assertThrows(
-            BadRequestException.class,
-            () -> OperationParamUtils.parseAttributeQueryItems(param, attributes));
-    assertEquals("Attribute does not exist: JM5zWuf1mkb", exception.getMessage());
-  }
-
-  @Test
   void shouldParseFilters() throws BadRequestException {
     Map<String, List<QueryFilter>> filters =
         parseFilters(TEA_1_UID + ":lt:20:gt:10," + TEA_2_UID + ":like:foo");
@@ -306,6 +283,88 @@ class RequestParamsValidatorTest {
     Exception exception =
         assertThrows(BadRequestException.class, () -> parseFilters(TEA_1_UID + ":lt:"));
     assertEquals("Query item or filter is invalid: " + TEA_1_UID + ":lt:", exception.getMessage());
+  }
+
+  @Test
+  void shouldParseFiltersWithFirstOperatorWhenMultipleValidOperandAreNotValid()
+      throws BadRequestException {
+    Map<String, List<QueryFilter>> filters = parseFilters(TEA_2_UID + ":like:project/:x/:eq/:2");
+
+    assertEquals(
+        Map.of(TEA_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "project:x:eq:2"))), filters);
+  }
+
+  @Test
+  void shouldThrowBadRequestWhenFilterHasOperatorInWrongFormat() {
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(TEA_1_UID + ":lke:value"));
+    assertEquals(
+        "Query item or filter is invalid: " + TEA_1_UID + ":lke:value", exception.getMessage());
+  }
+
+  @Test
+  void shouldParseFilterWhenFilterHasDatesFormatDateWithMilliSecondsAndTimeZone()
+      throws BadRequestException {
+    Map<String, List<QueryFilter>> filters =
+        parseFilters(
+            TEA_1_UID
+                + ":ge:2020-01-01T00/:00/:00.001 +05/:30:le:2021-01-01T00/:00/:00.001 +05/:30");
+
+    assertEquals(
+        Map.of(
+            TEA_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.GE, "2020-01-01T00:00:00.001 +05:30"),
+                new QueryFilter(QueryOperator.LE, "2021-01-01T00:00:00.001 +05:30"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFilterWhenFilterHasMultipleOperatorAndTextRange() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters =
+        parseFilters(TEA_1_UID + ":sw:project/:x:ew:project/:le/:");
+
+    assertEquals(
+        Map.of(
+            TEA_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.SW, "project:x"),
+                new QueryFilter(QueryOperator.EW, "project:le:"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFilterWhenMultipleFiltersAreMixedCommaAndSlash() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters =
+        parseFilters(
+            TEA_1_UID
+                + ":eq:project///,/,//"
+                + ","
+                + TEA_2_UID
+                + ":eq:project//"
+                + ","
+                + TEA_3_UID
+                + ":eq:project//");
+
+    assertEquals(
+        Map.of(
+            TEA_1_UID, List.of(new QueryFilter(QueryOperator.EQ, "project/,,/")),
+            TEA_2_UID, List.of(new QueryFilter(QueryOperator.EQ, "project/")),
+            TEA_3_UID, List.of(new QueryFilter(QueryOperator.EQ, "project/"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFilterWhenFilterHasMultipleOperatorWithFinalColon() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters = parseFilters(TEA_1_UID + ":like:value1/::like:value2");
+
+    assertEquals(
+        Map.of(
+            TEA_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.LIKE, "value1:"),
+                new QueryFilter(QueryOperator.LIKE, "value2"))),
+        filters);
   }
 
   private TrackedEntityAttribute trackedEntityAttribute(String uid) {

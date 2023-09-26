@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,32 +71,6 @@ public class OperationParamUtils {
   private static final String ESCAPE_COMMA = ESCAPE + COMMA_STRING;
 
   private static final String ESCAPE_COLON = ESCAPE + DIMENSION_NAME_SEP;
-
-  /**
-   * Parse request parameter to filter tracked entity attributes using UID, operator and values.
-   * Refer to {@link #parseQueryItem(String, CheckedFunction)} for details on the expected item
-   * format.
-   *
-   * @param filterItem query item strings each composed of UID, operator and value
-   * @param attributes tracked entity attribute map from UIDs to attributes
-   * @return query items each of a tracked entity attribute with attached query filters
-   */
-  public static List<QueryItem> parseAttributeQueryItems(
-      String filterItem, Map<String, TrackedEntityAttribute> attributes)
-      throws BadRequestException {
-    if (StringUtils.isEmpty(filterItem)) {
-      return new ArrayList<>();
-    }
-
-    List<String> uidOperatorValues = filterList(filterItem);
-
-    List<QueryItem> itemList = new ArrayList<>();
-    for (String uidOperatorValue : uidOperatorValues) {
-      itemList.add(parseQueryItem(uidOperatorValue, id -> attributeToQueryItem(id, attributes)));
-    }
-
-    return itemList;
-  }
 
   /**
    * Creates a QueryItem with QueryFilters from the given item string. Expected item format is

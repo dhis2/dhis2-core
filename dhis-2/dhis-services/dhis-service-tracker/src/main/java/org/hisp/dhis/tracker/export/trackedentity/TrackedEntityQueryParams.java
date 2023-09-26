@@ -614,6 +614,9 @@ public class TrackedEntityQueryParams {
 
   public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea) {
     this.filters.putIfAbsent(tea, Collections.singletonList(null));
+    if (this.filters.get(tea).isEmpty()) {
+      this.filters.get(tea).add(null);
+    }
     return this;
   }
 

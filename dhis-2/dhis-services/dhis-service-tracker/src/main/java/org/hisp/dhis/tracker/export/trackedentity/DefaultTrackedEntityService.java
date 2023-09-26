@@ -310,7 +310,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   public TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams);
-    final List<Long> ids = getTrackedEntityIds(queryParams, false, false);
+    final List<Long> ids = getTrackedEntityIds(queryParams);
 
     List<TrackedEntity> trackedEntities =
         this.trackedEntityAggregate.find(
@@ -340,10 +340,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return TrackedEntities.of(trackedEntities, pager);
   }
 
-  public List<Long> getTrackedEntityIds(
-      TrackedEntityQueryParams params,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation) {
+  public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
     if (!params.hasProgram()) {
       Collection<TrackedEntityAttribute> attributes =
           trackedEntityAttributeService.getTrackedEntityAttributesDisplayInListNoProgram();
@@ -351,16 +348,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     decideAccess(params);
-
-    // AccessValidation should be skipped only and only if it is internal
-    // service that runs the task (for example sync job)
-    if (!skipAccessValidation) {
-      validate(params);
-    }
-
-    if (!skipSearchScopeValidation) {
-      validateSearchScope(params);
-    }
+    validate(params);
+    validateSearchScope(params);
 
     return trackedEntityStore.getTrackedEntityIds(params);
   }
