@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.apphub;
+package org.hisp.dhis.tracker.export;
 
-import java.net.URISyntaxException;
 import java.util.List;
-import org.hisp.dhis.appmanager.AppStatus;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import org.hisp.dhis.common.Pager;
 
-/** Created by zubair@dhis2.org on 07.09.17. */
-public interface AppHubService {
-  /**
-   * Proxy method for the App Hub API. Returns the response from the given query for the given API
-   * version.
-   *
-   * @param apiVersion the App Hub API version.
-   * @param query the App Hub API query, including the path and query parameters, excluding the
-   *     "/api/" part and leading forward slashes.
-   * @return the App Hub API response as a string.
-   */
-  String getAppHubApiResponse(String apiVersion, String query) throws URISyntaxException;
-
-  List<WebApp> getAppHub();
-
-  AppStatus installAppFromAppHub(String id);
+@RequiredArgsConstructor(staticName = "of")
+@Getter
+@ToString
+@EqualsAndHashCode
+public class Page<T> {
+  private final List<T> items;
+  private final Pager pager;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.analytics.table;
 
-import java.util.List;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.program.Event;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
-@RequiredArgsConstructor(staticName = "of")
-@Getter
-@EqualsAndHashCode
-public class Events {
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-  private final List<Event> events;
-  private final Pager pager;
+/**
+ * @author Lars Helge Overland
+ */
+@ExtendWith(MockitoExtension.class)
+class AnalyticsTableServiceTest {
 
-  public static Events withoutPagination(List<Event> events) {
-    return new Events(events, null);
+  @Mock private SystemSettingManager systemSettingManager;
+
+  @InjectMocks private DefaultAnalyticsTableService tableService;
+
+  @Test
+  void testGetParallelJobsA() {
+    when(systemSettingManager.getIntegerSetting(SettingKey.PARALLEL_JOBS_IN_ANALYTICS_TABLE_EXPORT))
+        .thenReturn(1);
+    when(systemSettingManager.getIntegerSetting(SettingKey.DATABASE_SERVER_CPUS)).thenReturn(8);
+
+    assertEquals(1, tableService.getParallelJobs());
+  }
+
+  @Test
+  void testGetParallelJobsB() {
+    when(systemSettingManager.getIntegerSetting(SettingKey.PARALLEL_JOBS_IN_ANALYTICS_TABLE_EXPORT))
+        .thenReturn(null);
+    when(systemSettingManager.getIntegerSetting(SettingKey.DATABASE_SERVER_CPUS)).thenReturn(8);
+
+    assertEquals(8, tableService.getParallelJobs());
   }
 }

@@ -27,85 +27,20 @@
  */
 package org.hisp.dhis.apphub;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
+import java.net.URISyntaxException;
+import org.hisp.dhis.feedback.ConflictException;
 
 /** Created by zubair@dhis2.org on 07.09.17. */
-public class ImageResource {
-  private String id;
-
-  private String caption;
-
-  private String description;
-
-  private String imageUrl;
-
-  private boolean logo;
-
-  private Date created;
-
-  private Date lastUpdated;
-
-  @JsonProperty
-  public String getCaption() {
-    return caption;
-  }
-
-  public void setCaption(String caption) {
-    this.caption = caption;
-  }
-
-  @JsonProperty
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  @JsonProperty
-  public boolean isLogo() {
-    return logo;
-  }
-
-  public void setLogo(boolean logo) {
-    this.logo = logo;
-  }
-
-  @JsonProperty
-  public String getImageUrl() {
-    return imageUrl;
-  }
-
-  public void setImageUrl(String imageUrl) {
-    this.imageUrl = imageUrl;
-  }
-
-  @JsonProperty
-  public Date getCreated() {
-    return created;
-  }
-
-  public void setCreated(Date created) {
-    this.created = created;
-  }
-
-  @JsonProperty
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
-
-  public void setLastUpdated(Date lastUpdated) {
-    this.lastUpdated = lastUpdated;
-  }
-
-  @JsonProperty
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
+public interface AppHubService {
+  /**
+   * Proxy method for the App Hub API. Returns the response from the given query for the given API
+   * version.
+   *
+   * @param apiVersion the App Hub API version.
+   * @param query the App Hub API query, including the path and query parameters, excluding the
+   *     "/api/" part and leading forward slashes.
+   * @return the App Hub API response as a string.
+   */
+  String getAppHubApiResponse(String apiVersion, String query)
+      throws URISyntaxException, ConflictException;
 }
