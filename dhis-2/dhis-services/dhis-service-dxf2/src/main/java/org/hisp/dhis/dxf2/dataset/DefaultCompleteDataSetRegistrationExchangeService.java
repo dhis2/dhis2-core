@@ -378,7 +378,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     Clock clock =
         new Clock(log)
             .startClock()
-            .logTime("Starting complete data set registration import, options: " + importOptions);
+            .logTime("Starting complete data set registration import");
     notifier.notify(id, "Process started");
 
     // Start here so we can access any outer attributes for the

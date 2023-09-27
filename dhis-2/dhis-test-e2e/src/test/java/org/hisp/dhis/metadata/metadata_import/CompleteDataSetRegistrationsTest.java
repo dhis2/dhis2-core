@@ -72,6 +72,7 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
     ApiResponse completedResponse = apiActions.getCompleted(dataSetId, "O6uvpzGd5pu", "202301");
     assertEquals("{}", completedResponse.getAsString());
 
+    // complete the data set and post async
     String cds = completeDataSet(dataSetId, "202301", "O6uvpzGd5pu");
     ApiResponse completeAsyncResponse = apiActions.sendAsync(cds);
     assertEquals(200, completeAsyncResponse.statusCode());
@@ -87,7 +88,7 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
         completeAsyncResponse.getBody().getAsJsonObject("response").get("id").getAsString();
     assertEquals(11, taskId.length());
 
-    // wait for max 24 seconds for task to be completed (usually takes ~10 seconds)
+    // wait for job to be completed (24 seconds used as the job schedule loop is 20 seconds)
     ApiResponse taskStatus =
         systemActions.waitUntilTaskCompleted("COMPLETE_DATA_SET_REGISTRATION_IMPORT", taskId, 24);
     assertTrue(taskStatus.getAsString().contains("\"completed\":true"));
@@ -95,7 +96,7 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
     // get complete data sets which should be 1 now
     ApiResponse completedResponse2 = apiActions.getCompleted(dataSetId, "O6uvpzGd5pu", "202301");
 
-    // Then
+    // validate async-completed data set
     completedResponse2
         .validate()
         .statusCode(200)
