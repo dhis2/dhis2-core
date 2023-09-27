@@ -39,6 +39,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
@@ -74,45 +75,51 @@ public class ProgramRuleEngine
     @NonNull
     private final SupplementaryDataProvider supplementaryDataProvider;
 
-    public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events )
+    public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events,
+        List<ProgramRule> rules )
     {
         return evaluateProgramRules( enrollment, null, enrollment.getProgram(), Collections.emptyList(),
-            getRuleEvents( events, null ) );
+            getRuleEvents( events, null ), rules );
     }
 
     public List<RuleEffects> evaluateEnrollmentAndEvents( ProgramInstance enrollment, Set<ProgramStageInstance> events,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
-        return evaluateProgramRulesForMultipleTrackerObjects( enrollment, events.stream().findAny().orElse( null ),
-            enrollment.getProgram(), trackedEntityAttributeValues, getRuleEvents( events, null ) );
+        List<ProgramRule> rules = getProgramRules( enrollment.getProgram(),
+            events.stream().map( ProgramStageInstance::getProgramStage ).distinct().collect( Collectors.toList() ) );
+        return evaluateProgramRulesForMultipleTrackerObjects( enrollment, enrollment.getProgram(),
+            trackedEntityAttributeValues, getRuleEvents( events, null ), rules );
     }
 
     public List<RuleEffects> evaluateProgramEvents( Set<ProgramStageInstance> events, Program program )
     {
-        return evaluateProgramRulesForMultipleTrackerObjects( null, null, program, null,
-            getRuleEvents( events, null ) );
+        List<ProgramRule> rules = getProgramRules( program );
+        return evaluateProgramRulesForMultipleTrackerObjects( null, program, null,
+            getRuleEvents( events, null ), rules );
+    }
+
+    public List<RuleEffect> evaluateProgramEvent( ProgramStageInstance event, Program program, List<ProgramRule> rules )
+    {
+        return evaluateProgramRules( null, null, program, List.of(), getRuleEvents( Set.of( event ), null ), rules );
     }
 
     public List<RuleEffect> evaluate( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
-        Set<ProgramStageInstance> events )
+        Set<ProgramStageInstance> events, List<ProgramRule> rules )
     {
         return evaluateProgramRules( enrollment, programStageInstance, enrollment.getProgram(),
-            Collections.emptyList(), getRuleEvents( events, programStageInstance ) );
+            Collections.emptyList(), getRuleEvents( events, programStageInstance ), rules );
     }
 
     private List<RuleEffect> evaluateProgramRules( ProgramInstance enrollment,
         ProgramStageInstance programStageInstance, Program program,
-        List<TrackedEntityAttributeValue> trackedEntityAttributeValues, List<RuleEvent> ruleEvents )
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues, List<RuleEvent> ruleEvents,
+        List<ProgramRule> rules )
     {
 
         try
         {
-            RuleEngine ruleEngine = getRuleEngine( programStageInstance, program, enrollment,
-                trackedEntityAttributeValues, ruleEvents );
-            if ( ruleEngine == null )
-            {
-                return Collections.emptyList();
-            }
+            RuleEngine ruleEngine = getRuleEngine( program, enrollment,
+                trackedEntityAttributeValues, ruleEvents, rules );
 
             return getRuleEngineEvaluation( ruleEngine, enrollment,
                 programStageInstance, trackedEntityAttributeValues );
@@ -125,17 +132,14 @@ public class ProgramRuleEngine
     }
 
     private List<RuleEffects> evaluateProgramRulesForMultipleTrackerObjects( ProgramInstance enrollment,
-        ProgramStageInstance programStageInstance, Program program,
-        List<TrackedEntityAttributeValue> trackedEntityAttributeValues, List<RuleEvent> ruleEvents )
+        Program program,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues, List<RuleEvent> ruleEvents,
+        List<ProgramRule> rules )
     {
         try
         {
-            RuleEngine ruleEngine = getRuleEngine( programStageInstance, program, enrollment,
-                trackedEntityAttributeValues, ruleEvents );
-            if ( ruleEngine == null )
-            {
-                return Collections.emptyList();
-            }
+            RuleEngine ruleEngine = getRuleEngine( program, enrollment,
+                trackedEntityAttributeValues, ruleEvents, rules );
             return ruleEngine.evaluate().call();
         }
         catch ( Exception e )
@@ -145,21 +149,11 @@ public class ProgramRuleEngine
         }
     }
 
-    private RuleEngine getRuleEngine( ProgramStageInstance programStageInstance, Program program,
+    private RuleEngine getRuleEngine( Program program,
         ProgramInstance enrollment,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues,
-        List<RuleEvent> ruleEvents )
+        List<RuleEvent> ruleEvents, List<ProgramRule> programRules )
     {
-        String programStageUid = Optional.ofNullable( programStageInstance ).map( p -> p.getProgramStage().getUid() )
-            .orElse( null );
-
-        List<ProgramRule> programRules = implementableRuleService.getProgramRules( program, programStageUid );
-
-        if ( programRules.isEmpty() )
-        {
-            return null;
-        }
-
         RuleEnrollment ruleEnrollment = getRuleEnrollment( enrollment, trackedEntityAttributeValues );
 
         RuleEngine.Builder builder = getRuleEngineContext( program,
@@ -174,6 +168,25 @@ public class ProgramRuleEngine
         }
 
         return builder.build();
+    }
+
+    public List<ProgramRule> getProgramRules( Program program, List<ProgramStage> programStage )
+    {
+        if ( programStage.isEmpty() )
+        {
+            return implementableRuleService.getProgramRules( program, null );
+        }
+
+        Set<ProgramRule> programRules = programStage.stream()
+            .flatMap( ps -> implementableRuleService.getProgramRules( program, ps.getUid() ).stream() )
+            .collect( Collectors.toSet() );
+
+        return List.copyOf( programRules );
+    }
+
+    public List<ProgramRule> getProgramRules( Program program )
+    {
+        return implementableRuleService.getProgramRules( program, null );
     }
 
     /**

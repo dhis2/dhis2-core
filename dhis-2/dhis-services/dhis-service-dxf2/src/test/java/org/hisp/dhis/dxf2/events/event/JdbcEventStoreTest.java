@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -40,10 +41,16 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.trackedentity.store.EventStore;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -120,6 +127,21 @@ class JdbcEventStoreTest
         List<EventRow> rows = subject.getEventRows( eventSearchParams, null );
         assertThat( rows, hasSize( 1 ) );
         verify( rowSet, times( 4 ) ).getString( "psi_eventdatavalues" );
+    }
+
+    @Test
+    void shouldUpdateEventsWhenDateFieldsAreNotSet()
+    {
+        List<ProgramStageInstance> programStageInstances = new ArrayList<>();
+        ProgramStageInstance psi = new ProgramStageInstance( new ProgramInstance(), new ProgramStage(),
+            new OrganisationUnit() );
+        psi.setStatus( EventStatus.ACTIVE );
+        psi.setAttributeOptionCombo( new CategoryOptionCombo() );
+        programStageInstances.add( psi );
+
+        List<ProgramStageInstance> instances = subject.updateEvents( programStageInstances );
+
+        assertNotEmpty( instances );
     }
 
     private void mockRowSet()
