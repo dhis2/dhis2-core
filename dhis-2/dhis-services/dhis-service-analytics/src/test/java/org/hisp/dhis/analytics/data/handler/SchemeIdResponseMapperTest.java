@@ -777,8 +777,8 @@ class SchemeIdResponseMapperTest {
 
     DimensionParam dimensionParam = DimensionParam.ofObject(tea, DIMENSIONS, ous);
 
-    ElementWithOffset program = emptyElementWithOffset();
-    ElementWithOffset programStage = emptyElementWithOffset();
+    ElementWithOffset<Program> program = emptyElementWithOffset();
+    ElementWithOffset<ProgramStage> programStage = emptyElementWithOffset();
 
     if (isNotBlank(programUid)) {
       Program p = new Program();

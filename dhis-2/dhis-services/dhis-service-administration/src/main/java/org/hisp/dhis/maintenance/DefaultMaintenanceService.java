@@ -41,7 +41,6 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -64,8 +63,6 @@ public class DefaultMaintenanceService implements MaintenanceService {
   // -------------------------------------------------------------------------
 
   private final MaintenanceStore maintenanceStore;
-
-  private final PeriodService periodService;
 
   private final UserService userService;
 

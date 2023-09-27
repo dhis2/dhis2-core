@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.engine.spi.CollectionEntry;
 import org.hibernate.event.spi.AbstractCollectionEvent;
@@ -50,7 +49,6 @@ import org.springframework.stereotype.Component;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 @Component
 @Profile({"!test", "!test-h2"})
 @Conditional(value = CacheInvalidationEnabledCondition.class)
