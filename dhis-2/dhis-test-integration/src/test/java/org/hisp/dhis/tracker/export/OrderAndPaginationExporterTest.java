@@ -659,15 +659,15 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "first page",
-        () -> assertSlimPager(1, 1, false, firstPage.getPager()),
-        () -> assertEquals(List.of("D9PbzJY8bJM"), eventUids(firstPage)));
+        () -> assertPager(1, 1, firstPage),
+        () -> assertEquals(List.of("D9PbzJY8bJM"), uids(firstPage)));
 
     Page<Event> secondPage = eventService.getEvents(operationParams, new PageParams(2, 1, false));
 
     assertAll(
-        "second (last) page",
-        () -> assertSlimPager(2, 1, true, secondPage.getPager()),
-        () -> assertEquals(List.of("pTzf9KYMk72"), eventUids(secondPage)));
+        "second page is the last page",
+        () -> assertPager(2, 1, secondPage),
+        () -> assertEquals(List.of("pTzf9KYMk72"), uids(secondPage)));
 
     assertIsEmpty(getEvents(operationParams, new PageParams(3, 3, false)));
   }
@@ -680,9 +680,12 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .programStageUid(programStage.getUid())
             .build();
 
-    List<String> events = getEvents(params, new PageParams(1, 2, true));
+    Page<Event> page = eventService.getEvents(params, new PageParams(1, 2, true));
 
-    assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
+    assertAll(
+        "page with total counts",
+        () -> assertPager(1, 2, 2, page),
+        () -> assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), uids(page)));
   }
 
   @Test
@@ -702,19 +705,15 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "first page",
-        () -> assertSlimPager(1, 3, false, firstPage.getPager()),
-        () ->
-            assertEquals(
-                List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"), eventUids(firstPage)));
+        () -> assertPager(1, 3, firstPage),
+        () -> assertEquals(List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"), uids(firstPage)));
 
     Page<Event> secondPage = eventService.getEvents(operationParams, new PageParams(2, 3, false));
 
     assertAll(
-        "second (last) page",
-        () -> assertSlimPager(2, 3, true, secondPage.getPager()),
-        () ->
-            assertEquals(
-                List.of("lumVtWwwy0O", "QRYjLTiJTrA", "cadc5eGj0j7"), eventUids(secondPage)));
+        "second page is the last page",
+        () -> assertPager(2, 3, secondPage),
+        () -> assertEquals(List.of("lumVtWwwy0O", "QRYjLTiJTrA", "cadc5eGj0j7"), uids(secondPage)));
 
     assertIsEmpty(getEvents(operationParams, new PageParams(3, 3, false)));
   }
@@ -735,9 +734,9 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<Event> events = eventService.getEvents(params, new PageParams(1, 2, true));
 
     assertAll(
-        "first page",
-        () -> assertPager(1, 2, 6, events.getPager()),
-        () -> assertEquals(List.of("ck7DzdxqLqA", "OTmjvJDn0Fu"), eventUids(events)));
+        "page with total counts",
+        () -> assertPager(1, 2, 6, events),
+        () -> assertEquals(List.of("ck7DzdxqLqA", "OTmjvJDn0Fu"), uids(events)));
   }
 
   @Test
@@ -873,15 +872,15 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "first page",
-        () -> assertSlimPager(1, 1, false, firstPage.getPager()),
-        () -> assertEquals(List.of("D9PbzJY8bJM"), eventUids(firstPage)));
+        () -> assertPager(1, 1, firstPage),
+        () -> assertEquals(List.of("D9PbzJY8bJM"), uids(firstPage)));
 
     Page<Event> secondPage = eventService.getEvents(operationParams, new PageParams(2, 1, false));
 
     assertAll(
         "second (last) page",
-        () -> assertSlimPager(2, 1, true, secondPage.getPager()),
-        () -> assertEquals(List.of("pTzf9KYMk72"), eventUids(secondPage)));
+        () -> assertPager(2, 1, secondPage),
+        () -> assertEquals(List.of("pTzf9KYMk72"), uids(secondPage)));
 
     assertIsEmpty(getEvents(operationParams, new PageParams(3, 3, false)));
   }
@@ -1293,6 +1292,21 @@ class OrderAndPaginationExporterTest extends TrackerTest {
                 isLast ? "should be the last page" : "should NOT be the last page"));
   }
 
+  private static <T> void assertPager(int pageNumber, int pageSize, Page<T> page) {
+    Pager pager = page.getPager();
+    assertNotNull(pager, "pagintated results should have a pager");
+    assertAll(
+        "pagination details",
+        () -> assertEquals(pageNumber, pager.getPage(), "number of current page"),
+        () -> assertEquals(pageSize, pager.getPageSize(), "page size"));
+  }
+
+  private static <T> void assertPager(int pageNumber, int pageSize, int totalCount, Page<T> page) {
+    Pager pager = page.getPager();
+    assertNotNull(pager, "pagintated results should have a pager");
+    assertPager(pageNumber, pageSize, totalCount, pager);
+  }
+
   private static void assertPager(int pageNumber, int pageSize, int totalCount, Pager pager) {
     assertAll(
         "pagination details",
@@ -1326,7 +1340,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     return uids(relationshipService.getRelationships(params).getRelationships());
   }
 
-  private static List<String> eventUids(Page<Event> events) {
+  private static <T extends BaseIdentifiableObject> List<String> uids(Page<T> events) {
     return uids(events.getItems());
   }
 
