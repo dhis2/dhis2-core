@@ -27,55 +27,20 @@
  */
 package org.hisp.dhis.apphub;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.net.URISyntaxException;
+import org.hisp.dhis.feedback.ConflictException;
 
 /** Created by zubair@dhis2.org on 07.09.17. */
-public class Developer {
-  private String name;
-
-  private String organisation;
-
-  private String address;
-
-  private String email;
-
-  public Developer() {
-    // empty constructor
-  }
-
-  @JsonProperty
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  @JsonProperty
-  public String getOrganisation() {
-    return organisation;
-  }
-
-  public void setOrganisation(String organisation) {
-    this.organisation = organisation;
-  }
-
-  @JsonProperty
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  @JsonProperty
-  public String getAddress() {
-    return address;
-  }
-
-  public void setAddress(String address) {
-    this.address = address;
-  }
+public interface AppHubService {
+  /**
+   * Proxy method for the App Hub API. Returns the response from the given query for the given API
+   * version.
+   *
+   * @param apiVersion the App Hub API version.
+   * @param query the App Hub API query, including the path and query parameters, excluding the
+   *     "/api/" part and leading forward slashes.
+   * @return the App Hub API response as a string.
+   */
+  String getAppHubApiResponse(String apiVersion, String query)
+      throws URISyntaxException, ConflictException;
 }
