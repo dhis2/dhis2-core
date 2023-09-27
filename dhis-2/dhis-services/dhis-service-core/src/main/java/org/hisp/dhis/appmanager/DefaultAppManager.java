@@ -31,19 +31,28 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
@@ -51,6 +60,9 @@ import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -68,11 +80,9 @@ public class DefaultAppManager implements AppManager {
   private static final Set<String> EXCLUSION_APPS = Set.of("Line Listing");
 
   private final DhisConfigurationProvider dhisConfigurationProvider;
-
+  private final AppHubService appHubService;
   private final AppStorageService localAppStorageService;
-
   private final AppStorageService jCloudsAppStorageService;
-
   private final DatastoreService datastoreService;
 
   /**
@@ -83,6 +93,7 @@ public class DefaultAppManager implements AppManager {
 
   public DefaultAppManager(
       DhisConfigurationProvider dhisConfigurationProvider,
+      AppHubService appHubService,
       @Qualifier("org.hisp.dhis.appmanager.LocalAppStorageService")
           AppStorageService localAppStorageService,
       @Qualifier("org.hisp.dhis.appmanager.JCloudsAppStorageService")
@@ -96,6 +107,7 @@ public class DefaultAppManager implements AppManager {
     checkNotNull(cacheBuilderProvider);
 
     this.dhisConfigurationProvider = dhisConfigurationProvider;
+    this.appHubService = appHubService;
     this.localAppStorageService = localAppStorageService;
     this.jCloudsAppStorageService = jCloudsAppStorageService;
     this.datastoreService = datastoreService;
@@ -270,6 +282,41 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
+  public AppStatus installApp(UUID appHubId) {
+    if (appHubId == null) {
+      return AppStatus.NOT_FOUND;
+    }
+
+    try {
+      String versionJson = appHubService.getAppHubApiResponse("v2", "appVersions/" + appHubId);
+      if (versionJson == null || versionJson.isEmpty()) {
+        log.info(String.format("No version found for id %s", appHubId));
+        return AppStatus.NOT_FOUND;
+      }
+      JsonString downloadUrlNode = JsonMixed.of(versionJson).getString("downloadUrl");
+      if (downloadUrlNode.isUndefined()) {
+        log.info(
+            String.format(
+                "No download URL property found in response for id %s: %s", appHubId, versionJson));
+        return AppStatus.NOT_FOUND;
+      }
+      String downloadUrl = downloadUrlNode.string();
+      URL url = new URL(downloadUrl);
+
+      String filename = FilenameUtils.getName(downloadUrl);
+
+      return installApp(getFile(url), filename);
+
+    } catch (IOException ex) {
+      log.info(String.format("No version found for id %s", appHubId));
+      return AppStatus.NOT_FOUND;
+    } catch (ConflictException | URISyntaxException e) {
+      log.error("Failed to install app with id " + appHubId, e);
+      return AppStatus.INSTALLATION_FAILED;
+    }
+  }
+
+  @Override
   public boolean exists(String appName) {
     return getApp(appName) != null;
   }
@@ -379,5 +426,19 @@ public class DefaultAppManager implements AppManager {
     if (namespace != null && !namespace.isEmpty()) {
       datastoreService.removeProtection(namespace);
     }
+  }
+
+  private static File getFile(URL url) throws IOException {
+    URLConnection connection = url.openConnection();
+
+    File tempFile = File.createTempFile("dhis", null);
+
+    tempFile.deleteOnExit();
+
+    try (BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
+        FileOutputStream out = new FileOutputStream(tempFile)) {
+      IOUtils.copy(in, out);
+    }
+    return tempFile;
   }
 }
