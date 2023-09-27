@@ -111,7 +111,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     progress.startingStage("Invalidate analytics caches", SKIP_STAGE);
     progress.runStage(analyticsCache::invalidateAll);
-    progress.completedProcess("Analytics tables updated");
+    progress.completedProcess("Analytics tables updated: " + clock.time());
   }
 
   private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
