@@ -42,7 +42,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Lars Helge Overland
  */
 @ExtendWith(MockitoExtension.class)
-public class AnalyticsTableServiceTest {
+class AnalyticsTableServiceTest {
 
   @Mock private SystemSettingManager systemSettingManager;
 
