@@ -48,6 +48,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -60,6 +61,8 @@ import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.event.EventStatus;
@@ -524,7 +527,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .filters(teaA.getUid() + ":eq:M'M")
+            .filters(Map.of(teaA.getUid(), List.of(new QueryFilter(QueryOperator.EQ, "M'M"))))
             .user(user)
             .build();
 
@@ -542,7 +545,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .filters(teaA.getUid() + ":eq:A")
+            .filters(Map.of(teaA.getUid(), List.of(new QueryFilter(QueryOperator.EQ, "A"))))
             .user(user)
             .build();
 
@@ -560,7 +563,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .filters(teaA.getUid() + ":eq:Z")
+            .filters(Map.of(teaA.getUid(), List.of(new QueryFilter(QueryOperator.EQ, "Z"))))
             .user(user)
             .build();
 
@@ -571,63 +574,21 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldReturnTrackedEntitiesGivenFilterOfOnlyUidEvenIfTrackedEntityDoesNotHaveGivenAttribute()
+  void shouldReturnTrackedEntitiesIfTheyHaveGivenAttributeFilteredUsingOnlyUID()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
             .orgUnitMode(DESCENDANTS)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .filters(teaA.getUid())
+            .filters(Map.of(teaA.getUid(), List.of()))
             .user(user)
             .build();
 
     List<TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
 
-    // A filter with only a UID does not cause any join on attributes, so it does not actually
-    // filter TEs from the response in contrast to /tracker/events?filterAttribute=uid
-    assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
-  }
-
-  @Test
-  void shouldReturnTrackedEntitiesEvenIfTrackedEntityDoesNotHaveGivenAttribute()
-      throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
-            .orgUnitMode(DESCENDANTS)
-            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .user(user)
-            .build();
-
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
-
-    // 'attributes' causes a left join on attributes table, so it does not actually filter
-    // TEs from the response in contrast to /tracker/events?filterAttribute=uid
-    assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
-  }
-
-  @Test
-  void
-      shouldReturnTrackedEntitiesEvenIfTrackedEntityDoesNotHaveGivenAttributeAndFilterUsingOnlyUID()
-          throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitB.getUid()))
-            .orgUnitMode(DESCENDANTS)
-            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
-            .filters(teaA.getUid())
-            .user(user)
-            .build();
-
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
-
-    // 'attributes' causes a left join on attributes table, so it does not actually filter
-    // TEs from the response in contrast to /tracker/events?filterAttribute=uid
-    assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
   }
 
   @Test

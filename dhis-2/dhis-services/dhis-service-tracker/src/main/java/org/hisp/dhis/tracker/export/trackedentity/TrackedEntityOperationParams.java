@@ -29,8 +29,10 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -38,6 +40,7 @@ import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
@@ -55,8 +58,8 @@ public class TrackedEntityOperationParams {
 
   @Builder.Default private TrackedEntityParams trackedEntityParams = TrackedEntityParams.FALSE;
 
-  /** Filters for the response. */
-  private String filters;
+  /** Tracked entity attribute filters per attribute UID. */
+  @Builder.Default private Map<String, List<QueryFilter>> filters = new HashMap<>();
 
   /**
    * Organisation units for which instances in the response were registered at. Is related to the

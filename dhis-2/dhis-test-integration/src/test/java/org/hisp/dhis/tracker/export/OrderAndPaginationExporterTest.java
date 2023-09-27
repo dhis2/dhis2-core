@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,6 +49,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -448,7 +451,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
-            .filters("numericAttr:lt:75")
+            .filters(Map.of("numericAttr", List.of(new QueryFilter(QueryOperator.LT, "75"))))
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -465,8 +468,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
+            .filters(Map.of("numericAttr", List.of(new QueryFilter(QueryOperator.LT, "75"))))
             .orderBy(UID.of("numericAttr"), SortDirection.DESC)
-            .filters("numericAttr:lt:75")
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
