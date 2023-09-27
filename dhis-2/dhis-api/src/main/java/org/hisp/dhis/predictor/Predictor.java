@@ -27,17 +27,7 @@
  */
 package org.hisp.dhis.predictor;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.HashSet;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
@@ -53,6 +43,15 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Ken Haase
@@ -106,9 +105,6 @@ public class Predictor extends BaseNameableObject implements MetadataObject {
    */
   private Integer sequentialSkipCount;
 
-  /** The set of PredictorGroups to which this Predictor belongs. */
-  private Set<PredictorGroup> groups = new HashSet<>();
-
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
@@ -120,26 +116,6 @@ public class Predictor extends BaseNameableObject implements MetadataObject {
    */
   public String getDescriptionNameFallback() {
     return description != null && !description.trim().isEmpty() ? description : name;
-  }
-
-  /**
-   * Joins a predictor group.
-   *
-   * @param predictorGroup the group to join.
-   */
-  public void addPredictorGroup(PredictorGroup predictorGroup) {
-    groups.add(predictorGroup);
-    predictorGroup.getMembers().add(this);
-  }
-
-  /**
-   * Leaves a predictor group.
-   *
-   * @param predictorGroup the group to leave.
-   */
-  public void removePredictorGroup(PredictorGroup predictorGroup) {
-    groups.remove(predictorGroup);
-    predictorGroup.getMembers().remove(this);
   }
 
   // -------------------------------------------------------------------------
