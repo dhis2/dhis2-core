@@ -121,6 +121,8 @@ public enum SettingKey {
       "keyRespectMetaDataStartEndDatesInAnalyticsTableExport", Boolean.FALSE, Boolean.class),
   SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT(
       "keySkipDataTypeValidationInAnalyticsTableExport", Boolean.FALSE, Boolean.class),
+  PARALLEL_JOBS_IN_ANALYTICS_TABLE_EXPORT(
+      "keyParallelJobsInAnalyticsTableExport", -1, Integer.class),
   CUSTOM_LOGIN_PAGE_LOGO("keyCustomLoginPageLogo", Boolean.FALSE, Boolean.class),
   CUSTOM_TOP_MENU_LOGO("keyCustomTopMenuLogo", Boolean.FALSE, Boolean.class),
   DATABASE_SERVER_CPUS("keyDatabaseServerCpus", 0, Integer.class),
