@@ -27,13 +27,17 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static java.lang.Boolean.TRUE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.ToString;
@@ -41,8 +45,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -61,8 +66,12 @@ public class TrackedEntityQueryParams {
 
   public static final int DEFAULT_PAGE_SIZE = 50;
 
-  /** Filters for the response. */
-  private List<QueryItem> filters = new ArrayList<>();
+  /**
+   * Each attribute will affect the final SQL query. Some attributes are filtered on, while
+   * attributes added via {@link #orderBy(TrackedEntityAttribute, SortDirection)} will be ordered
+   * by.
+   */
+  private final Map<TrackedEntityAttribute, List<QueryFilter>> filters = new HashMap<>();
 
   /**
    * Organisation units for which instances in the response were registered at. Is related to the
@@ -203,39 +212,16 @@ public class TrackedEntityQueryParams {
         || hasEventStatus();
   }
 
-  /** Adds the given filters to these parameters if they are not already present. */
-  public TrackedEntityQueryParams addFiltersIfNotExist(List<QueryItem> filtrs) {
-    for (QueryItem filter : filtrs) {
-      if (filters != null && !filters.contains(filter)) {
-        filters.add(filter);
-      }
-    }
-
-    return this;
-  }
-
   /** Returns a list of attributes and filters combined. */
   public Set<String> getFilterIds() {
-    return getFilters().stream().map(QueryItem::getItemId).collect(Collectors.toSet());
-  }
-
-  /** Returns a list of attributes which appear more than once. */
-  public List<QueryItem> getDuplicateFilters() {
-    Set<QueryItem> items = new HashSet<>();
-    List<QueryItem> duplicates = new ArrayList<>();
-
-    for (QueryItem item : getFilters()) {
-      if (!items.add(item)) {
-        duplicates.add(item);
-      }
-    }
-
-    return duplicates;
+    return filters.keySet().stream()
+        .map(BaseIdentifiableObject::getUid)
+        .collect(Collectors.toSet());
   }
 
   /** Indicates whether these parameters specify any filters. */
   public boolean hasFilters() {
-    return filters != null && !filters.isEmpty();
+    return !filters.isEmpty();
   }
 
   /** Indicates whether these parameters specify any organisation units. */
@@ -348,8 +334,8 @@ public class TrackedEntityQueryParams {
       return false;
     }
 
-    for (QueryItem filter : filters) {
-      if (filter.isUnique()) {
+    for (TrackedEntityAttribute attribute : filters.keySet()) {
+      if (TRUE.equals(attribute.isUnique())) {
         return true;
       }
     }
@@ -377,13 +363,8 @@ public class TrackedEntityQueryParams {
     return (getPageWithDefault() - 1) * getPageSizeWithDefault();
   }
 
-  public List<QueryItem> getFilters() {
+  public Map<TrackedEntityAttribute, List<QueryFilter>> getFilters() {
     return filters;
-  }
-
-  public TrackedEntityQueryParams setFilters(List<QueryItem> filters) {
-    this.filters = filters;
-    return this;
   }
 
   public Set<OrganisationUnit> getAccessibleOrgUnits() {
@@ -625,6 +606,32 @@ public class TrackedEntityQueryParams {
     return user;
   }
 
+  /**
+   * Filter the given tracked entity attribute {@code tea} using the specified {@link QueryFilter}
+   * that consist of an operator and a value.
+   */
+  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea, QueryFilter filter) {
+    this.filters.putIfAbsent(tea, new ArrayList<>());
+    this.filters.get(tea).add(filter);
+    return this;
+  }
+
+  /**
+   * Filter out Tracked Entity that have no value for the given tracked entity attribute {@code
+   * tea}. A filter without an operator is represented as a list with one null value to
+   * differentiate it from a filter created by an order clause that is represented by an empty list.
+   * A filter without an operator will overwrite a filter created by the order clause. A filter
+   * without an operator will not have any effect if another filter on the same attribute is already
+   * present.
+   */
+  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea) {
+    this.filters.putIfAbsent(tea, Collections.singletonList(null));
+    if (this.filters.get(tea).isEmpty()) {
+      this.filters.get(tea).add(null);
+    }
+    return this;
+  }
+
   /** Order by an event field of the given {@code field} name in given sort {@code direction}. */
   public TrackedEntityQueryParams orderBy(String field, SortDirection direction) {
     this.order.add(new Order(field, direction));
@@ -638,10 +645,7 @@ public class TrackedEntityQueryParams {
    */
   public TrackedEntityQueryParams orderBy(TrackedEntityAttribute tea, SortDirection direction) {
     this.order.add(new Order(tea, direction));
-    this.addFiltersIfNotExist(
-        QueryItem.getQueryItems(List.of(tea)).stream()
-            .filter(sAtt -> !this.getFilters().contains(sAtt))
-            .toList());
+    this.filters.putIfAbsent(tea, new ArrayList<>());
     return this;
   }
 

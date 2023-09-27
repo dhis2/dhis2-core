@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
@@ -71,7 +70,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
@@ -428,20 +426,6 @@ class JdbcEventStore implements EventStore {
         });
   }
 
-  /**
-   * Returns a page of events potentially containing a total of events and pages {@link Pager} or
-   * only the information whether this is the last page or not {@link SlimPager}.
-   *
-   * <p>If we do not fetch the total number of events {@link PageParams#isPageTotal()}=false {@code
-   * pageSize + 1} events are fetched by {@link #getEvents(EventQueryParams, PageParams)}. That is
-   * done to determine if this is the last page or not. This in turn means that we need to remove
-   * the extra event.
-   *
-   * @param pageParams the page params
-   * @param events the list of events
-   * @param eventCount a supplier of the number of events in the final Page
-   * @return a full Pager in case the page totals are fetched and a SlimPager otherwise
-   */
   private Page<Event> getPage(PageParams pageParams, List<Event> events, IntSupplier eventCount) {
     if (pageParams.isPageTotal()) {
       Pager pager =
@@ -449,20 +433,9 @@ class JdbcEventStore implements EventStore {
       return Page.of(events, pager);
     }
 
-    List<Event> result = events;
-    boolean isLastPage = false;
-    if (isNotEmpty(events)) {
-      isLastPage = events.size() <= pageParams.getPageSize();
-      if (!isLastPage) {
-        // Get the same number of elements of the pageSize, forcing
-        // the removal of the last additional element added at querying
-        // time.
-        result = new ArrayList<>(events.subList(0, pageParams.getPageSize()));
-      }
-    }
-
-    SlimPager slimPager = new SlimPager(pageParams.getPage(), pageParams.getPageSize(), isLastPage);
-    return Page.of(result, slimPager);
+    Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
+    pager.force(pageParams.getPage(), pageParams.getPageSize());
+    return Page.of(events, pager);
   }
 
   @Override
@@ -1424,11 +1397,6 @@ class JdbcEventStore implements EventStore {
 
   private String getLimitAndOffsetClause(final PageParams pageParams) {
     int pageSize = pageParams.getPageSize();
-    if (!pageParams.isPageTotal()) {
-      // Get pageSize + 1, so we are able to know if this is the last page.
-      // The additional element will be removed and not returned from the store.
-      pageSize++;
-    }
     int offset = (pageParams.getPage() - 1) * pageParams.getPageSize();
     return " limit " + pageSize + " offset " + offset + " ";
   }

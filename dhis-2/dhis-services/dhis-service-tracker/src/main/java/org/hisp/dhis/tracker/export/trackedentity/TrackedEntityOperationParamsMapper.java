@@ -27,23 +27,16 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAccessibleOrgUnits;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
-import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -102,15 +95,8 @@ class TrackedEntityOperationParamsMapper {
             organisationUnitService::getOrganisationUnitWithChildren,
             trackerAccessManager);
 
-    Map<String, TrackedEntityAttribute> attributes =
-        attributeService.getAllTrackedEntityAttributes().stream()
-            .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
-
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-
-    List<QueryItem> filters = parseAttributeQueryItems(operationParams.getFilters(), attributes);
-    validateDuplicatedAttributeFilters(filters);
-    params.setFilters(filters);
+    mapAttributeFilters(params, operationParams.getFilters());
 
     mapOrderParam(params, operationParams.getOrder());
 
@@ -145,43 +131,27 @@ class TrackedEntityOperationParamsMapper {
     return params;
   }
 
-  private void validateDuplicatedAttributeFilters(List<QueryItem> attributeItems)
+  private void mapAttributeFilters(
+      TrackedEntityQueryParams params, Map<String, List<QueryFilter>> attributeFilters)
       throws BadRequestException {
-    Set<DimensionalItemObject> duplicatedAttributes = getDuplicatedAttributes(attributeItems);
-
-    if (!duplicatedAttributes.isEmpty()) {
-      List<String> errorMessages = new ArrayList<>();
-      for (DimensionalItemObject duplicatedAttribute : duplicatedAttributes) {
-        List<String> duplicatedFilters = getDuplicatedFilters(attributeItems, duplicatedAttribute);
-        String message =
-            MessageFormat.format(
-                "Filter for attribute {0} was specified more than once. "
-                    + "Try to define a single filter with multiple operators [{0}:{1}]",
-                duplicatedAttribute.getUid(), StringUtils.join(duplicatedFilters, ':'));
-        errorMessages.add(message);
+    for (Map.Entry<String, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
+      TrackedEntityAttribute tea =
+          attributeService.getTrackedEntityAttribute(attributeFilter.getKey());
+      if (tea == null) {
+        throw new BadRequestException(
+            String.format(
+                "attribute filters are invalid. Tracked entity attribute '%s' does not exist.",
+                attributeFilter.getKey()));
       }
 
-      throw new BadRequestException(StringUtils.join(errorMessages, ", "));
+      if (attributeFilter.getValue().isEmpty()) {
+        params.filterBy(tea);
+      }
+
+      for (QueryFilter filter : attributeFilter.getValue()) {
+        params.filterBy(tea, filter);
+      }
     }
-  }
-
-  private List<String> getDuplicatedFilters(
-      List<QueryItem> attributeItems, DimensionalItemObject duplicatedAttribute) {
-    return attributeItems.stream()
-        .filter(q -> Objects.equals(q.getItem(), duplicatedAttribute))
-        .flatMap(q -> q.getFilters().stream())
-        .map(f -> f.getOperator() + ":" + f.getFilter())
-        .toList();
-  }
-
-  private Set<DimensionalItemObject> getDuplicatedAttributes(List<QueryItem> attributeItems) {
-    return attributeItems.stream()
-        .collect(Collectors.groupingBy(QueryItem::getItem, Collectors.counting()))
-        .entrySet()
-        .stream()
-        .filter(m -> m.getValue() > 1)
-        .map(Map.Entry::getKey)
-        .collect(Collectors.toSet());
   }
 
   private Set<OrganisationUnit> validateRequestedOrgUnit(Set<String> orgUnitIds)
