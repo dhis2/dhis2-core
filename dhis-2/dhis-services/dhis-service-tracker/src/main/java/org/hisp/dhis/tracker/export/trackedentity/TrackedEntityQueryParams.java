@@ -363,11 +363,13 @@ public class TrackedEntityQueryParams {
     return (getPageWithDefault() - 1) * getPageSizeWithDefault();
   }
 
+  /** Returns attributes that are either ordered by or present in any filter. */
   public Set<TrackedEntityAttribute> getAttributes() {
     return SetUtils.union(filters.keySet(), getOrderAttributes());
   }
 
-  public Set<TrackedEntityAttribute> getAttributeInOrderButNotInFilter() {
+  /** Returns attributes that are only ordered by and not present in any filter. */
+  public Set<TrackedEntityAttribute> getLeftJoinAttributes() {
     return SetUtils.difference(getOrderAttributes(), filters.keySet());
   }
 
@@ -626,11 +628,7 @@ public class TrackedEntityQueryParams {
 
   /**
    * Filter out any tracked entity that have no value for the given tracked entity attribute {@code
-   * tea}. A filter without an operator is represented as a list with one null value to
-   * differentiate it from a filter created by an order clause that is represented by an empty list.
-   * A filter without an operator will overwrite a filter created by the order clause. A filter
-   * without an operator will not have any effect if another filter on the same attribute is already
-   * present.
+   * tea}.
    */
   public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea) {
     this.filters.putIfAbsent(tea, new ArrayList<>());

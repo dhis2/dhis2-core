@@ -558,7 +558,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private String getFromSubQueryJoinOrderByAttributes(TrackedEntityQueryParams params) {
     StringBuilder joinOrderAttributes = new StringBuilder();
 
-    for (TrackedEntityAttribute orderAttribute : params.getAttributeInOrderButNotInFilter()) {
+    for (TrackedEntityAttribute orderAttribute : params.getLeftJoinAttributes()) {
 
       joinOrderAttributes
           .append(" LEFT JOIN trackedentityattributevalue AS ")
@@ -956,11 +956,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       return "ORDER BY " + StringUtils.join(orderFields, ',') + SPACE;
     }
 
-    if (params.getFilters().entrySet().stream().noneMatch(qi -> qi.getKey().isUnique())) {
-      return "ORDER BY " + DEFAULT_ORDER + " ";
-    }
-
-    return "";
+    return "ORDER BY " + DEFAULT_ORDER + " ";
   }
 
   /**
