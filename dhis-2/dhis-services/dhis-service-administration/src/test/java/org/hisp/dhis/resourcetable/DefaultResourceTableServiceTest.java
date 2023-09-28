@@ -29,8 +29,6 @@ package org.hisp.dhis.resourcetable;
 
 import static java.time.temporal.ChronoUnit.YEARS;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -65,14 +63,10 @@ class DefaultResourceTableServiceTest {
     // When
     when(periodDataProvider.getAvailableYears()).thenReturn(yearsToCheck);
     when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(defaultOffset);
+    doNothing().when(resourceTableStore).generateResourceTable(any());
 
     // Then
-    RuntimeException exception =
-        assertThrows(
-            RuntimeException.class, () -> defaultResourceTableService.generateDatePeriodTable());
-
-    assertTrue(
-        exception.getMessage().contains("Your database contains years out of the allowed offset"));
+    assertDoesNotThrow(() -> defaultResourceTableService.generateDatePeriodTable());
   }
 
   @Test
@@ -84,14 +78,10 @@ class DefaultResourceTableServiceTest {
     // When
     when(periodDataProvider.getAvailableYears()).thenReturn(yearsToCheck);
     when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(zeroOffset);
+    doNothing().when(resourceTableStore).generateResourceTable(any());
 
     // Then
-    RuntimeException exception =
-        assertThrows(
-            RuntimeException.class, () -> defaultResourceTableService.generateDatePeriodTable());
-
-    assertTrue(
-        exception.getMessage().contains("Your database contains years out of the allowed offset"));
+    assertDoesNotThrow(() -> defaultResourceTableService.generateDatePeriodTable());
   }
 
   @Test
