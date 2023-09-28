@@ -224,7 +224,6 @@ public class DefaultResourceTableService implements ResourceTableService {
               + ".";
 
       log.warn(errorMessage);
-      throw new RuntimeException(errorMessage);
     }
   }
 
