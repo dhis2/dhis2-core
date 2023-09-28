@@ -477,7 +477,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(resultGrid.getRows(), hasSize(1));
     assertThat(resultGrid.getRow(0), hasSize(4));
     assertThat(resultGrid.getRow(0).get(0), is("2000"));
-    assertThat(resultGrid.getRow(0).get(1), is("201701"));
+    assertThat(resultGrid.getRow(0).get(1), is("2017Q1"));
     assertThat(resultGrid.getRow(0).get(2), is("Sierra Leone"));
     assertThat(resultGrid.getRow(0).get(3), is(100));
 
@@ -507,7 +507,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(resultGrid.getRows(), hasSize(1));
     assertThat(resultGrid.getRow(0), hasSize(4));
     assertThat(resultGrid.getRow(0).get(0), is("2000"));
-    assertThat(resultGrid.getRow(0).get(1), is("201701"));
+    assertThat(resultGrid.getRow(0).get(1), is("2017Q1"));
     assertThat(resultGrid.getRow(0).get(2), is("Sierra Leone"));
     assertThat(resultGrid.getRow(0).get(3), is(100));
 
@@ -539,7 +539,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withOrganisationUnits(List.of(createOrganisationUnit('A')))
-            .withPeriods(List.of(createPeriod("202201")), PeriodTypeEnum.QUARTERLY.getName())
+            .withPeriods(List.of(createPeriod("202201")), PeriodTypeEnum.MONTHLY.getName())
             .addDimension(
                 new BaseDimensionalObject(
                     "jkYhtGth12t",
@@ -561,7 +561,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
     String subquery =
         "from (select \"psi\",ax.\"deabcdefghX\",\"ou\","
-            + "\"quarterly\",\"jkYhtGth12t\","
+            + "\"monthly\",\"jkYhtGth12t\","
             + "row_number() over (partition by ax.\"ou\",ax.\"jkYhtGth12t\" "
             + "order by ax.\"executiondate\" desc, ax.\"created\" desc) as pe_rank "
             + "from analytics_event_prabcdefghA as ax "
@@ -683,7 +683,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     // Simulate one row only
     when(rowSet.next()).thenReturn(true).thenReturn(false);
 
-    when(rowSet.getString("quarterly")).thenReturn("201701");
+    when(rowSet.getString("quarterly")).thenReturn("2017Q1");
     when(rowSet.getString("ou")).thenReturn("Sierra Leone");
     when(rowSet.getInt("value")).thenReturn(100);
   }
