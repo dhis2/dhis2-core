@@ -186,7 +186,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     generators.put(
         "generating  CategoryOptionCombo table",
         resourceTableService::generateCategoryOptionComboTable);
-    progress.startingStage("Generating resource tables", generators.size());
+    progress.startingStage("Generating resource tables", generators.size(), SKIP_STAGE);
     progress.runStage(generators);
 
     resourceTableService.createAllSqlViews(progress);
