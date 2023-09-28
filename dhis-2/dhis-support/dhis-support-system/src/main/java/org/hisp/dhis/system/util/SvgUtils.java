@@ -27,7 +27,16 @@
  */
 package org.hisp.dhis.system.util;
 
+import static lombok.AccessLevel.PRIVATE;
+
+import java.util.regex.Pattern;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = PRIVATE)
 public class SvgUtils {
+
+  private static final Pattern regexp = Pattern.compile("\\p{Cf}");
+
   /**
    * Replace Unicode 'zero width space' (U+200B). This character is misinterpreted by PDF convertor
    * as '#' (f.e.#2023).
@@ -37,6 +46,6 @@ public class SvgUtils {
    * @return consolidated svg string
    */
   public static String replaceUnicodeZeroWidthSpace(String svg, String replaceWith) {
-    return svg.replaceAll("\\p{Cf}", replaceWith);
+    return svg.replaceAll(regexp.pattern(), replaceWith);
   }
 }

@@ -32,9 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-public class SvgUtilsTest {
+class SvgUtilsTest {
   @Test
-  public void testReplaceUnicodeZeroWidthSpace() {
+  void testReplaceUnicodeZeroWidthSpace() {
     // given
     String svg =
         "<text x=\"332.58333333332666\" text-anchor=\"middle\" transform=\"translate(0,0)\" style=\"color: rgb(64, 75, 90); cursor: default; font-size: 11px; font-weight: normal; font-style: normal; fill: rgb(64, 75, 90);\" y=\"699\" opacity=\"1\">December<tspan dy=\"14\" x=\"332.58333333332666\">\u200B</tspan>2022</text>";
