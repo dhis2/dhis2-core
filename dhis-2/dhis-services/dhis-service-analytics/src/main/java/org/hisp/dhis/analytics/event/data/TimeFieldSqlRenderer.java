@@ -230,6 +230,23 @@ public abstract class TimeFieldSqlRenderer {
    */
   protected abstract Set<TimeField> getAllowedTimeFields();
 
+  /**
+   * Returns a SQL statement for the given {@link DimensionalItemObject} list. {@link
+   * DimensionalItemObject} are of type {@link Period}. This method renders SQL condition to match
+   * the given periods, considering their different {@link PeriodType}.<br>
+   * <br>
+   * Example (different period types)<br>
+   * <br>
+   * {@code ('daily' in ('20200111', '20210211') or 'monthly' in ('202001', '202002'))}<br>
+   * <br>
+   * Example (same period type)<br>
+   * <br>
+   * {@code 'monthly' in ('202001', '202002')}
+   *
+   * @param alias
+   * @param periods
+   * @return
+   */
   protected String getSqlForAllPeriods(String alias, List<DimensionalItemObject> periods) {
     StringBuilder sql = new StringBuilder();
 
