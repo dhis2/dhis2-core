@@ -33,7 +33,6 @@ import static org.hisp.dhis.setting.SettingKey.COUNT_PASSIVE_DASHBOARD_VIEWS_IN_
 import static org.hisp.dhis.system.util.SqlUtils.escapeSql;
 import static org.hisp.dhis.util.DateUtils.asSqlDate;
 
-import com.google.common.collect.Lists;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -200,9 +199,7 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
           " and dse.eventtype != '" + DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW.name() + "'";
     }
 
-    Object[] args = Lists.newArrayList(uid).toArray();
-
-    Integer views = jdbcTemplate.queryForObject(sql, args, Integer.class);
+    Integer views = jdbcTemplate.queryForObject(sql, Integer.class, uid);
 
     FavoriteStatistics stats = new FavoriteStatistics();
     stats.setViews(views);

@@ -403,6 +403,18 @@ public class RequestParamsValidator {
       throw new BadRequestException(
           "Paging cannot be skipped with isSkipPaging=true while also requesting a paginated response with page, pageSize and/or totalPages=true");
     }
+
+    if (lessThan(params.getPage(), 1)) {
+      throw new BadRequestException("page must be greater than or equal to 1 if specified");
+    }
+
+    if (lessThan(params.getPageSize(), 1)) {
+      throw new BadRequestException("pageSize must be greater than or equal to 1 if specified");
+    }
+  }
+
+  private static boolean lessThan(Integer a, int b) {
+    return a != null && a < b;
   }
 
   private static QueryFilter operatorValueQueryFilter(String operator, String value, String filter)

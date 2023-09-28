@@ -38,6 +38,6 @@ public class IntervalLowValueAscComparator implements Comparator<Interval> {
 
   @Override
   public int compare(Interval i1, Interval i2) {
-    return new Double(i1.getValueLow()).compareTo(new Double(i2.getValueLow()));
+    return Double.valueOf(i1.getValueLow()).compareTo(Double.valueOf(i2.getValueLow()));
   }
 }

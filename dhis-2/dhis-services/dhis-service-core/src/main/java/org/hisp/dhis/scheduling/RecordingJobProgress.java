@@ -57,6 +57,7 @@ public class RecordingJobProgress implements JobProgress {
   private final JobProgress tracker;
   private final boolean abortOnFailure;
   private final Runnable observer;
+  private final boolean logOnDebug;
 
   private final AtomicBoolean cancellationRequested = new AtomicBoolean();
   private final AtomicBoolean abortAfterFailure = new AtomicBoolean();
@@ -68,7 +69,7 @@ public class RecordingJobProgress implements JobProgress {
   private final boolean usingErrorNotification;
 
   public RecordingJobProgress(JobConfiguration configuration) {
-    this(null, configuration, NoopJobProgress.INSTANCE, true, () -> {});
+    this(null, configuration, NoopJobProgress.INSTANCE, true, () -> {}, false);
   }
 
   public RecordingJobProgress(
@@ -76,12 +77,14 @@ public class RecordingJobProgress implements JobProgress {
       JobConfiguration configuration,
       JobProgress tracker,
       boolean abortOnFailure,
-      Runnable observer) {
+      Runnable observer,
+      boolean logOnDebug) {
     this.messageService = messageService;
     this.configuration = configuration;
     this.tracker = tracker;
     this.abortOnFailure = abortOnFailure;
     this.observer = observer;
+    this.logOnDebug = logOnDebug;
     this.usingErrorNotification =
         messageService != null && configuration.getJobType().isUsingErrorNotification();
   }
@@ -406,7 +409,11 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   private void logInfo(Node source, String action, String message) {
-    if (log.isInfoEnabled()) {
+    if (logOnDebug) {
+      if (log.isDebugEnabled()) {
+        log.debug(formatLogMessage(source, action, message));
+      }
+    } else if (log.isInfoEnabled()) {
       log.info(formatLogMessage(source, action, message));
     }
   }
