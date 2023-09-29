@@ -28,12 +28,9 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 
@@ -68,28 +65,22 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
   @Override
   protected String getAggregatedConditionForPeriods(EventQueryParams params) {
-    List<DimensionalItemObject> periods = params.getDimensionOrFilterItems(PERIOD_DIM_ID);
+    List<DimensionalItemObject> periods = params.getAllDimensionOrFilterItems(PERIOD_DIM_ID);
 
     Optional<TimeField> timeField = getTimeField(params);
 
     StringBuilder sql = new StringBuilder();
 
     if (timeField.isPresent()) {
-      sql.append(
-          periods.stream()
-              .filter(dimensionalItemObject -> dimensionalItemObject instanceof Period)
-              .map(dimensionalItemObject -> (Period) dimensionalItemObject)
-              .map(period -> toSqlCondition(period, timeField.get()))
-              .collect(Collectors.joining(" or ", "(", ")")));
-    } else {
-      sql.append(quote(ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase()))
-          .append(" in (")
-          .append(
-              getQuotedCommaDelimitedString(
-                  getUids(params.getDimensionOrFilterItems(PERIOD_DIM_ID))))
-          .append(") ");
+      return sql.append(
+              periods.stream()
+                  .filter(this::isPeriod)
+                  .map(dimensionalItemObject -> (Period) dimensionalItemObject)
+                  .map(period -> toSqlCondition(period, timeField.get()))
+                  .collect(Collectors.joining(" or ", "(", ")")))
+          .toString();
     }
-    return sql.toString();
+    return sql.append(getSqlForAllPeriods(ANALYTICS_TBL_ALIAS, periods)).toString();
   }
 
   @Override
