@@ -65,6 +65,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
@@ -1024,6 +1025,34 @@ public class DataQueryParams {
     List<DimensionalItemObject> dimensionOptions = getDimensionOptions(key);
 
     return !dimensionOptions.isEmpty() ? dimensionOptions : getFilterOptions(key);
+  }
+
+  /**
+   * unlike {@link DataQueryParams#getDimensionOrFilterItems(String)}, which returns the {@link
+   * DimensionalItemObject} found in the first matching dimensions or filters, this method returns
+   * all {@link DimensionalItemObject} for all matching dimensions or filters. Dimensions have
+   * precedence over filters.
+   *
+   * @param key
+   * @return all {@link DimensionalItemObject} for all matching dimensions or filters.
+   */
+  public List<DimensionalItemObject> getAllDimensionOrFilterItems(String key) {
+    List<DimensionalItemObject> dimensionOptions = getItems(dimensions, key);
+
+    if (dimensionOptions.isEmpty()) {
+      return getItems(filters, key);
+    }
+
+    return dimensionOptions;
+  }
+
+  private static List<DimensionalItemObject> getItems(
+      Collection<DimensionalObject> dimensionalObjects, String key) {
+    return dimensionalObjects.stream()
+        .filter(dimensionalObject -> StringUtils.equals(dimensionalObject.getDimension(), key))
+        .map(DimensionalObject::getItems)
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
   }
 
   /** Returns all dimension items part of dimensions of the given dimension type. */
@@ -2160,7 +2189,10 @@ public class DataQueryParams {
 
   /** Returns all periods part of a dimension or filter. */
   public List<DimensionalItemObject> getAllPeriods() {
-    return ImmutableList.copyOf(ListUtils.union(getPeriods(), getFilterPeriods()));
+    return Stream.concat(dimensions.stream(), filters.stream())
+        .filter(d -> PERIOD == d.getDimensionType())
+        .flatMap(d -> d.getItems().stream())
+        .collect(Collectors.toList());
   }
 
   /** Returns all organisation units part of a dimension or filter. */
