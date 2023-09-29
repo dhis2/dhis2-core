@@ -34,7 +34,6 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -202,9 +201,9 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase {
     ccMechanism.setName("Mechanism Category Combo");
     idObjectManager.save(ccAgeAndSex);
     idObjectManager.save(ccMechanism);
-    cAge.setCategoryCombos(Lists.newArrayList(ccAgeAndSex));
-    cSex.setCategoryCombos(Lists.newArrayList(ccAgeAndSex));
-    cMechanism.setCategoryCombos(Lists.newArrayList(ccMechanism));
+    cAge.setCategoryCombos(Sets.newHashSet(ccAgeAndSex));
+    cSex.setCategoryCombos(Sets.newHashSet(ccAgeAndSex));
+    cMechanism.setCategoryCombos(Sets.newHashSet(ccMechanism));
     idObjectManager.update(cAge);
     idObjectManager.update(cSex);
     idObjectManager.update(cMechanism);

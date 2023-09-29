@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
  * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
  */
 @Slf4j
-@Component("org.hisp.dhis.system.startup.StartupRoutineExecutor")
+@Component
 public class DefaultStartupRoutineExecutor implements StartupRoutineExecutor {
   private static final String TRUE = "true";
 

@@ -261,8 +261,6 @@ public enum ConfigurationKey {
 
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
-  LEADER_TIME_TO_LIVE("leader.time.to.live.minutes", "2", false),
-
   /** Analytics server-side cache expiration in seconds. (default: 0) */
   ANALYTICS_CACHE_EXPIRATION("analytics.cache.expiration", "0"),
 

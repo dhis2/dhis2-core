@@ -30,6 +30,7 @@ package org.hisp.dhis.sqlview;
 import com.google.common.base.MoreObjects;
 import java.util.Set;
 import org.apache.commons.lang3.BooleanUtils;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 
@@ -109,6 +110,7 @@ public class SqlViewQuery {
     this.total = total;
   }
 
+  @OpenApi.Ignore
   public Pager getPager() {
     return PagerUtils.isSkipPaging(skipPaging, paging) ? null : new Pager(page, total, pageSize);
   }

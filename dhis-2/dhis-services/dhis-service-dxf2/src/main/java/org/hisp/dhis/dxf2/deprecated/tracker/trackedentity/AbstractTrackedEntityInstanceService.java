@@ -1275,7 +1275,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     if (trackedEntityAttribute.getValueType().isFile()) {
       FileResource fileResource = fileResourceService.getFileResource(attribute.getValue());
 
-      if (!fileResource.isAssigned() || fileResource.getFileResourceOwner() == null) {
+      if (fileResource != null
+          && (!fileResource.isAssigned() || fileResource.getFileResourceOwner() == null)) {
         fileResource.setAssigned(true);
         fileResource.setFileResourceOwner(fileResourceOwner);
         fileResourceService.updateFileResource(fileResource);
@@ -1543,14 +1544,13 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     Set<Enrollment> enrollments =
         tei.getEnrollments().stream().filter(pi -> !pi.isDeleted()).collect(Collectors.toSet());
 
-    if (!enrollments.isEmpty()
-        && !user.isAuthorized(Authorities.F_TEI_CASCADE_DELETE.getAuthority())) {
+    if (!enrollments.isEmpty() && !user.isAuthorized(Authorities.F_TEI_CASCADE_DELETE.name())) {
       importConflicts.addConflict(
           tei.getUid(),
           "Tracked entity instance "
               + tei.getUid()
               + " cannot be deleted as it has associated enrollments and user does not have authority "
-              + Authorities.F_TEI_CASCADE_DELETE.getAuthority());
+              + Authorities.F_TEI_CASCADE_DELETE.name());
     }
 
     List<String> errors = trackerAccessManager.canWrite(user, tei);

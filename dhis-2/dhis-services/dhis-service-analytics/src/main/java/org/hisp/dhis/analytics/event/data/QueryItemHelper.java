@@ -141,7 +141,7 @@ public class QueryItemHelper {
         && (option = item.getOptionSet().getOptionByCode(itemValue)) != null) {
       return value + option.getDisplayName();
     } else {
-      itemValue = StringUtils.defaultString(itemValue, NA);
+      itemValue = Objects.toString(itemValue, NA);
 
       return value + itemValue;
     }

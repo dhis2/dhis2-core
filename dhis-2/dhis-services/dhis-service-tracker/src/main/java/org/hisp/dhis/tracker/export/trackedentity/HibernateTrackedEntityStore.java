@@ -32,7 +32,6 @@ import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.getTokens;
 import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
@@ -42,6 +41,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -52,13 +52,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -218,7 +215,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   /**
    * Generates SQL based on "params". The purpose of the SQL is to retrieve a list of tracked entity
-   * instances, and additionally any requested attributes (If defined in params).
+   * instances.
    *
    * <p>The params are validated before we generate the SQL, so the only access-related SQL is the
    * inner join o organisation units.
@@ -271,11 +268,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * @return SQL string
    */
   private String getQuery(TrackedEntityQueryParams params) {
-    if (params.isOrQuery() && params.getAttributesAndFilters().isEmpty()) {
-      throw new IllegalArgumentException(
-          "A query parameter is used in the request but there aren't filterable attributes");
-    }
-
     StringBuilder stringBuilder = new StringBuilder(getQuerySelect(params));
     return stringBuilder
         .append("FROM ")
@@ -370,12 +362,16 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(" FROM trackedentity " + MAIN_QUERY_ALIAS + " ")
 
             // INNER JOIN on constraints
-            .append(getFromSubQueryJoinAttributeConditions(params))
+            // filter={uid1} => Map.of(tea, List.of(null))
+            // filter={uid1}:eq:2 => Map.of(tea, List.of(new QueryFilter(EQ,"in")))
+            // order={uid1}:desc&filter={uid1} => Map.of(tea, List.of(new QueryFilter(EQ,"in")))
+            .append(joinAttributeValue(params))
             .append(getFromSubQueryJoinProgramOwnerConditions(params))
             .append(getFromSubQueryJoinOrgUnitConditions(params))
             .append(getFromSubQueryJoinEnrollmentConditions(params))
 
             // LEFT JOIN attributes we need to sort on.
+            // order={uid1}:desc => Map.of(tea,List.of())
             .append(getFromSubQueryJoinOrderByAttributes(params))
 
             // WHERE
@@ -391,6 +387,23 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     return fromSubQuery.append(") TE ").toString();
+  }
+
+  /**
+   * Get a map of attributes and filters that contains sortable attributes also defined as filters.
+   * A null filter means that the filter on an attribute is actually present but no value was
+   * provided.
+   */
+  private Map<TrackedEntityAttribute, List<QueryFilter>> sortableAttributesAndFilters(
+      TrackedEntityQueryParams params) {
+    List<String> ordersIdentifier =
+        params.getOrder().stream()
+            .filter(o -> o.getField() instanceof TrackedEntityAttribute)
+            .map(o -> ((TrackedEntityAttribute) o.getField()).getUid())
+            .toList();
+    return params.getFilters().entrySet().stream()
+        .filter(attribute -> ordersIdentifier.contains(attribute.getKey().getUid()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   /**
@@ -430,8 +443,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           columns.add(ENROLLMENT_ALIAS + ".enrollmentdate as " + ENROLLMENT_DATE_ALIAS);
         }
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        if (sortableAttributesAndFilters(params).stream()
-            .anyMatch(i -> i.getItem().getUid().equals(tea.getUid()))) {
+        if (sortableAttributesAndFilters(params).keySet().stream()
+            .anyMatch(att -> att.getUid().equals(tea.getUid()))) {
           columns.add(
               statementBuilder.columnQuote(tea.getUid())
                   + ".value AS "
@@ -449,20 +462,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return "SELECT " + String.join(", ", columns);
   }
 
-  /** Get a set of QueryItem that contains sortable attributes also defined as filers */
-  private Set<QueryItem> sortableAttributesAndFilters(TrackedEntityQueryParams params) {
-    List<String> ordersIdentifier =
-        params.getOrder().stream()
-            .filter(o -> o.getField() instanceof TrackedEntityAttribute)
-            .map(o -> ((TrackedEntityAttribute) o.getField()).getUid())
-            .toList();
-    return params.getAttributesAndFilters().stream()
-        .filter(queryItem -> ordersIdentifier.contains(queryItem.getItemId()))
-        .collect(Collectors.toSet());
-  }
-
   /**
-   * Generates the WHERE-clause of the sub-query SQL related to tracked entity instances.
+   * Generates the WHERE-clause of the sub-query SQL related to tracked entities.
    *
    * @param whereAnd tracking if where has been invoked or not
    * @return a SQL segment for the WHERE clause used in the sub-query
@@ -532,80 +533,17 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates SQL for INNER JOINing attribute values. One INNER JOIN for each attribute to search
-   * for.
-   *
-   * @return a series of 1 or more SQL INNER JOINs, or empty string if no query or attribute filters
-   *     exists.
-   */
-  private String getFromSubQueryJoinAttributeConditions(TrackedEntityQueryParams params) {
-    if (!params.isOrQuery()) {
-      return joinAttributeValueWithoutQueryParameter(params);
-    } else {
-      return joinAttributeValueWithQueryParameter(params);
-    }
-  }
-
-  /**
-   * Generates a single INNER JOIN for searching for an attribute by query strings. Searches are
-   * done using lower() expression, since attribute values are case-insensitive. The query search is
-   * extremely slow compared to alternatives. A query string (Can be multiple) has to match at least
-   * 1 attribute value for each attribute we have access to. We use Regex to search, allowing both
-   * exact match and with wildcards (EQ or LIKE).
-   */
-  private String joinAttributeValueWithQueryParameter(TrackedEntityQueryParams params) {
-    StringBuilder attributes = new StringBuilder();
-
-    final String regexp = statementBuilder.getRegexpMatch();
-    final String wordStart = statementBuilder.getRegexpWordStart();
-    final String wordEnd = statementBuilder.getRegexpWordEnd();
-    final String anyChar = "\\.*?";
-    final String start = params.getQuery().isOperator(QueryOperator.LIKE) ? anyChar : wordStart;
-    final String end = params.getQuery().isOperator(QueryOperator.LIKE) ? anyChar : wordEnd;
-    SqlHelper orHlp = new SqlHelper(true);
-
-    List<Long> itemIds =
-        params.getAttributesAndFilters().stream()
-            .map(QueryItem::getItem)
-            .map(DimensionalItemObject::getId)
-            .collect(Collectors.toList());
-
-    attributes
-        .append("INNER JOIN trackedentityattributevalue Q ")
-        .append("ON Q.trackedentityid = TE.trackedentityid ")
-        .append("AND Q.trackedentityattributeid IN (")
-        .append(getCommaDelimitedString(itemIds))
-        .append(") AND (");
-
-    for (String queryToken : getTokens(params.getQuery().getFilter())) {
-      final String query = statementBuilder.encode(queryToken, false);
-
-      attributes
-          .append(orHlp.or())
-          .append("lower(Q.value) ")
-          .append(regexp)
-          .append(" '")
-          .append(start)
-          .append(StringUtils.lowerCase(query))
-          .append(end)
-          .append(SINGLE_QUOTE);
-    }
-
-    return attributes.append(")").toString();
-  }
-
-  /**
    * Generates a single INNER JOIN for each attribute we are searching on. We can search by a range
    * of operators. All searching is using lower() since attribute values are case-insensitive.
    */
-  private String joinAttributeValueWithoutQueryParameter(TrackedEntityQueryParams params) {
+  private String joinAttributeValue(TrackedEntityQueryParams params) {
     StringBuilder attributes = new StringBuilder();
 
-    List<QueryItem> filterItems =
-        params.getAttributesAndFilters().stream().filter(QueryItem::hasFilter).toList();
+    List<Map.Entry<TrackedEntityAttribute, List<QueryFilter>>> filterItems =
+        params.getFilters().entrySet().stream().filter(f -> !f.getValue().isEmpty()).toList();
 
-    for (QueryItem queryItem : filterItems) {
-      String col = statementBuilder.columnQuote(queryItem.getItemId());
+    for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters : filterItems) {
+      String col = statementBuilder.columnQuote(filters.getKey().getUid());
       String teaId = col + ".trackedentityattributeid";
       String teav = "lower(" + col + ".value)";
       String ted = col + ".trackedentityid";
@@ -616,12 +554,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(" ON ")
           .append(teaId)
           .append(EQUALS)
-          .append(queryItem.getItem().getId())
+          .append(filters.getKey().getId())
           .append(" AND ")
           .append(ted)
           .append(" = TE.trackedentityid ");
 
-      for (QueryFilter filter : queryItem.getFilters()) {
+      for (QueryFilter filter : filters.getValue().stream().filter(Objects::nonNull).toList()) {
         String encodedFilter = statementBuilder.encode(filter.getFilter(), false);
         attributes
             .append("AND ")
@@ -647,21 +585,22 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private String getFromSubQueryJoinOrderByAttributes(TrackedEntityQueryParams params) {
     StringBuilder joinOrderAttributes = new StringBuilder();
 
-    for (QueryItem orderAttribute : sortableAttributesAndFilters(params)) {
-      if (orderAttribute.hasFilter()) { // We already joined this if it is a filter.
+    for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> orderAttribute :
+        sortableAttributesAndFilters(params).entrySet()) {
+      if (!orderAttribute.getValue().isEmpty()) { // We already joined this if it is a filter.
         continue;
       }
 
       joinOrderAttributes
           .append(" LEFT JOIN trackedentityattributevalue AS ")
-          .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
+          .append(statementBuilder.columnQuote(orderAttribute.getKey().getUid()))
           .append(" ON ")
-          .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
+          .append(statementBuilder.columnQuote(orderAttribute.getKey().getUid()))
           .append(".trackedentityid = TE.trackedentityid ")
           .append("AND ")
-          .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
+          .append(statementBuilder.columnQuote(orderAttribute.getKey().getUid()))
           .append(".trackedentityattributeid = ")
-          .append(orderAttribute.getItem().getId())
+          .append(orderAttribute.getKey().getId())
           .append(SPACE);
     }
 
@@ -978,25 +917,21 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    *     from.
    */
   private String getQueryRelatedTables(TrackedEntityQueryParams params) {
-    List<QueryItem> attributes = params.getAttributes();
+    Set<TrackedEntityAttribute> filters = params.getFilters().keySet();
     StringBuilder relatedTables = new StringBuilder();
 
     relatedTables.append(
         "LEFT JOIN trackedentitytype TET ON TET.trackedentitytypeid = TE.trackedentitytypeid ");
 
-    if (!attributes.isEmpty()) {
-      String attributeString =
-          getCommaDelimitedString(
-              attributes.stream()
-                  .map(QueryItem::getItem)
-                  .map(IdentifiableObject::getId)
-                  .collect(Collectors.toList()));
+    if (!filters.isEmpty()) {
+      String filterString =
+          getCommaDelimitedString(filters.stream().map(IdentifiableObject::getId).toList());
 
       relatedTables
           .append("LEFT JOIN trackedentityattributevalue TEAV ")
           .append("ON TEAV.trackedentityid = TE.trackedentityid ")
           .append("AND TEAV.trackedentityattributeid IN (")
-          .append(attributeString)
+          .append(filterString)
           .append(") ");
 
       relatedTables
@@ -1052,8 +987,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       return "ORDER BY " + StringUtils.join(orderFields, ',') + SPACE;
     }
 
-    if (params.getAttributesAndFilters().stream()
-        .noneMatch(qi -> qi.hasFilter() && qi.isUnique())) {
+    if (params.getFilters().entrySet().stream()
+        .noneMatch(qi -> !qi.getValue().isEmpty() && qi.getKey().isUnique())) {
       return "ORDER BY " + DEFAULT_ORDER + " ";
     }
 

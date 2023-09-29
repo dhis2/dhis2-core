@@ -28,22 +28,25 @@
 package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface EventStore {
-  List<Event> getEvents(EventQueryParams params, Map<String, Set<String>> psdesWithSkipSyncTrue);
+  /** Get all events matching given params. */
+  List<Event> getEvents(EventQueryParams params);
+
+  /** Get a page of events matching given params. */
+  Page<Event> getEvents(EventQueryParams params, PageParams pageParams);
 
   /**
-   * Fields the {@link #getEvents(EventSearchParams, Map)} can order events by. Ordering by fields
-   * other than these is considered a programmer error. Validation of user provided field names
-   * should occur before calling {@link #getEvents(EventSearchParams, Map)}.
+   * Fields the {@link #getEvents(EventQueryParams)} can order events by. Ordering by fields other
+   * than these is considered a programmer error. Validation of user provided field names should
+   * occur before calling {@link #getEvents(EventQueryParams)}.
    */
   Set<String> getOrderableFields();
-
-  int getEventCount(EventQueryParams params);
 }

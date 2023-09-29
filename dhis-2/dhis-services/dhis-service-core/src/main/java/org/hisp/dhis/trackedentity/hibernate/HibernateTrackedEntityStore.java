@@ -1271,7 +1271,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   private String getFromSubQueryLimitAndOffset(TrackedEntityQueryParams params) {
     StringBuilder limitOffset = new StringBuilder();
     int limit = params.getMaxTeLimit();
-    int teQueryLimit = systemSettingManager.getIntSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
+    int teQueryLimit = resolveTrackedEntityMaxLimit();
 
     if (limit == 0 && !params.isPaging()) {
       if (teQueryLimit > 0) {
@@ -1444,5 +1444,36 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   private boolean skipOwnershipCheck(TrackedEntityQueryParams params) {
     return params.getUser() != null && params.getUser().isSuper();
+  }
+
+  // TODO(tracker): remove once SettingKey.TrackedEntityInstanceMaxLimit is removed
+  private int resolveTrackedEntityMaxLimit() {
+    int deprecatedTeiMaxLimit =
+        systemSettingManager.getIntegerSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT);
+    int newTeiMaxLimit =
+        systemSettingManager.getIntegerSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
+
+    if (isSet(deprecatedTeiMaxLimit)
+        && isSet(newTeiMaxLimit)
+        && deprecatedTeiMaxLimit != newTeiMaxLimit) {
+      throw new IllegalStateException(
+          String.format(
+              "Only one parameter of '%s' and '%s' must be specified. Prefer '%s' as '%s' will be removed.",
+              SettingKey.TRACKED_ENTITY_MAX_LIMIT.getName(),
+              SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT.getName(),
+              SettingKey.TRACKED_ENTITY_MAX_LIMIT.getName(),
+              SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT.getName()));
+    }
+
+    // both settings are disabled
+    if (!isSet(deprecatedTeiMaxLimit) && !isSet(newTeiMaxLimit)) {
+      return -1;
+    }
+
+    return isSet(newTeiMaxLimit) ? newTeiMaxLimit : deprecatedTeiMaxLimit;
+  }
+
+  private boolean isSet(Integer i) {
+    return i > 0;
   }
 }

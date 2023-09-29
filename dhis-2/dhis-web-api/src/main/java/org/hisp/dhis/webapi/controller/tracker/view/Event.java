@@ -72,8 +72,6 @@ public class Event {
 
   @JsonProperty private String orgUnit;
 
-  @JsonProperty private String orgUnitName;
-
   @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
   @JsonProperty private Instant occurredAt;

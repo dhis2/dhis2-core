@@ -126,7 +126,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   public Grid getEvents(EventQueryParams params, Grid grid, int maxLimit) {
-    String sql = getEventsOrEnrollmentsSql(params, maxLimit);
+    String sql = getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {
       executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql);
@@ -154,12 +154,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     grid.setLastDataRow(true);
 
     while (rowSet.next()) {
-      if (++rowsRed > params.getPageSizeWithDefault()
-          && !params.isTotalPages()
-          && !unlimitedPaging) {
-        grid.setLastDataRow(false);
-
-        continue;
+      if (params.isComingFromQuery()) {
+        rowsRed++;
+        if (isLastRowAfterPageSize(params, unlimitedPaging, rowsRed)) {
+          grid.setLastDataRow(false);
+          continue; // skips the last row in n+1 query scenario
+        }
       }
 
       grid.addRow();

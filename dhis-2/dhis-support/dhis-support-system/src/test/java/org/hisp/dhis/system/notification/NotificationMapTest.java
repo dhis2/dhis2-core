@@ -46,7 +46,7 @@ class NotificationMapTest {
   void testFirstSummaryToBeCreatedIsTheFirstOneToBeRemoved() {
     final int maxSize = 50;
     // Fill the map with jobs
-    JobConfiguration config = new JobConfiguration(null, DATAVALUE_IMPORT, "userId", false);
+    JobConfiguration config = new JobConfiguration(null, DATAVALUE_IMPORT, "userId");
     addSummaryEntries(config, maxSize);
     // Add one more
     config.setUid(String.valueOf(maxSize));
@@ -64,7 +64,7 @@ class NotificationMapTest {
   void testFirstNotificationToBeCreatedIsTheFirstOneToBeRemoved() {
     final int maxSize = 50;
     // Fill the map with jobs
-    JobConfiguration config = new JobConfiguration(null, DATAVALUE_IMPORT, "userId", false);
+    JobConfiguration config = new JobConfiguration(null, DATAVALUE_IMPORT, "userId");
     config.setUid("1");
     addNotificationEntries(config, maxSize);
 

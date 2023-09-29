@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema.Builder;
 import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -308,10 +309,71 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     List<T> entities = getEntityList(metadata, options, filters, orders);
 
+    try {
+      String csv = applyCsvSteps(fields, entities, separator, arraySeparator, skipHeader);
+      return ResponseEntity.ok(csv);
+    } catch (CsvWriteException ex) {
+      response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+      throw new ConflictException(
+              "Invalid property selected. Make sure all properties are either simple or collections of refs / simple.")
+          .setDevMessage(ex.getMessage());
+    }
+  }
+
+  protected String applyCsvSteps(
+      List<String> fields,
+      List<T> entities,
+      char separator,
+      String arraySeparator,
+      boolean skipHeader)
+      throws IOException {
     CsvSchema schema;
     CsvSchema.Builder schemaBuilder = CsvSchema.builder();
     Map<String, Function<T, Object>> obj2valueByProperty = new LinkedHashMap<>();
 
+    setupSchemaAndProperties(schemaBuilder, fields, obj2valueByProperty);
+
+    schema =
+        schemaBuilder
+            .build()
+            .withColumnSeparator(separator)
+            .withArrayElementSeparator(arraySeparator);
+
+    if (!skipHeader) {
+      schema = schema.withHeader();
+    }
+
+    try (StringWriter strW = new StringWriter();
+        SequenceWriter seqW = csvMapper.writer(schema).writeValues(strW)) {
+
+      Object[] row = new Object[obj2valueByProperty.size()];
+
+      for (T e : entities) {
+        int i = 0;
+
+        for (Function<T, Object> toValue : obj2valueByProperty.values()) {
+          Object o = toValue.apply(e);
+
+          if (o instanceof Collection) {
+            row[i++] =
+                ((Collection<?>) o)
+                    .stream().map(String::valueOf).collect(Collectors.joining(arraySeparator));
+          } else {
+            row[i++] = o;
+          }
+        }
+
+        seqW.write(row);
+      }
+      return strW.toString();
+    }
+  }
+
+  private void setupSchemaAndProperties(
+      Builder schemaBuilder,
+      List<String> fields,
+      Map<String, Function<T, Object>> obj2valueByProperty) {
     for (String field : fields) {
       // We just split on ',' here, we do not try and deep dive into
       // objects using [], if the client provides id,name,group[id]
@@ -338,50 +400,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
               obj -> ReflectionUtils.invokeMethod(obj, property.getGetterMethod()));
         }
       }
-    }
-
-    schema =
-        schemaBuilder
-            .build()
-            .withColumnSeparator(separator)
-            .withArrayElementSeparator(arraySeparator);
-
-    if (!skipHeader) {
-      schema = schema.withHeader();
-    }
-
-    try (StringWriter strW = new StringWriter()) {
-      SequenceWriter seqW = csvMapper.writer(schema).writeValues(strW);
-
-      Object[] row = new Object[obj2valueByProperty.size()];
-
-      for (T e : entities) {
-        int i = 0;
-
-        for (Function<T, Object> toValue : obj2valueByProperty.values()) {
-          Object o = toValue.apply(e);
-
-          if (o instanceof Collection) {
-            row[i++] =
-                ((Collection<?>) o)
-                    .stream().map(String::valueOf).collect(Collectors.joining(arraySeparator));
-          } else {
-            row[i++] = o;
-          }
-        }
-
-        seqW.write(row);
-      }
-
-      seqW.close();
-
-      return ResponseEntity.ok(strW.toString());
-    } catch (CsvWriteException ex) {
-      response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-
-      throw new ConflictException(
-              "Invalid property selected. Make sure all properties are either simple or collections of refs / simple.")
-          .setDevMessage(ex.getMessage());
     }
   }
 

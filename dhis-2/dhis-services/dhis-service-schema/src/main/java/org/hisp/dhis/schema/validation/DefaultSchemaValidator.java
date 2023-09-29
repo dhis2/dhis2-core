@@ -145,8 +145,10 @@ public class DefaultSchemaValidator implements SchemaValidator {
 
     String value = (String) propertyObject;
 
-    // Check column max length
-    if (property.getLength() != null && value.length() > property.getLength()) {
+    // Check column max length, but not if it is a password,
+    // because the password is hashed to a fixed size, hence the input length is irrelevant.
+    if ((property.getLength() != null && value.length() > property.getLength())
+        && !property.getPropertyType().equals(PropertyType.PASSWORD)) {
       return singletonList(
           createReport(
               ErrorCode.E4001,
@@ -159,7 +161,9 @@ public class DefaultSchemaValidator implements SchemaValidator {
 
     List<ErrorReport> errorReports = new ArrayList<>();
 
-    if (value.length() < property.getMin() || value.length() > property.getMax()) {
+    // Only check of min/max length if it's not a password.
+    if ((value.length() < property.getMin() || value.length() > property.getMax())
+        && !property.getPropertyType().equals(PropertyType.PASSWORD)) {
       errorReports.add(createNameMinMaxReport(ErrorCode.E4002, klass, property, value.length()));
     }
 
@@ -170,7 +174,9 @@ public class DefaultSchemaValidator implements SchemaValidator {
     } else if (isInvalidUrl(property, value)) {
       errorReports.add(createNameReport(ErrorCode.E4004, klass, property, value));
     } else if (isInvalidPassword(property, value)) {
-      errorReports.add(createNameReport(ErrorCode.E4005, klass, property, value));
+      PasswordValidationResult result = validatePassword(value);
+      errorReports.add(
+          createNameReport(ErrorCode.E4005, klass, property, result.getErrorMessage()));
     } else if (isInvalidColor(property, value)) {
       errorReports.add(createNameReport(ErrorCode.E4006, klass, property, value));
     }
@@ -195,15 +201,12 @@ public class DefaultSchemaValidator implements SchemaValidator {
   private boolean isInvalidPassword(Property property, String value) {
     return !BCRYPT_PATTERN.matcher(value).matches()
         && PropertyType.PASSWORD == property.getPropertyType()
-        && !passwordIsValid(value);
+        && !validatePassword(value).isValid();
   }
 
-  private boolean passwordIsValid(String value) {
+  private PasswordValidationResult validatePassword(String value) {
     CredentialsInfo credentialsInfo = new CredentialsInfo("USERNAME", value, "", true);
-
-    PasswordValidationResult result = passwordValidationService.validate(credentialsInfo);
-
-    return result.isValid();
+    return passwordValidationService.validate(credentialsInfo);
   }
 
   private boolean isInvalidUsername(Property property, String value) {

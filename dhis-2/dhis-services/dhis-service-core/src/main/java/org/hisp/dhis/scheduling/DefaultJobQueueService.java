@@ -27,15 +27,12 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -43,7 +40,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -57,25 +53,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class DefaultJobQueueService implements JobQueueService {
-  private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
+
+  private final JobConfigurationStore jobConfigurationStore;
 
   @Override
   @Transactional(readOnly = true)
   public Set<String> getQueueNames() {
-    return jobConfigurationStore.getAll().stream()
-        .map(JobConfiguration::getQueueName)
-        .filter(Objects::nonNull)
-        .collect(toUnmodifiableSet());
+    return jobConfigurationStore.getAllQueueNames();
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<JobConfiguration> getQueue(@Nonnull String name) throws NotFoundException {
-    List<JobConfiguration> sequence =
-        jobConfigurationStore.getAll().stream()
-            .filter(config -> name.equals(config.getQueueName()))
-            .sorted(comparing(JobConfiguration::getQueuePosition))
-            .collect(toList());
+    List<JobConfiguration> sequence = jobConfigurationStore.getJobsInQueue(name);
     if (sequence.isEmpty()) {
       throw new NotFoundException(ErrorCode.E7020, name);
     }
@@ -101,18 +91,23 @@ public class DefaultJobQueueService implements JobQueueService {
   public void updateQueue(
       @Nonnull String name,
       @CheckForNull String newName,
-      @Nonnull String newCronExpression,
+      @CheckForNull String newCronExpression,
       @Nonnull List<String> newSequence)
       throws NotFoundException, ConflictException {
     if (newName != null && !newName.isEmpty() && !newName.equals(name)) {
+      if (newCronExpression == null || newSequence.isEmpty()) {
+        List<JobConfiguration> queue = jobConfigurationStore.getJobsInQueue(name);
+        if (queue.isEmpty()) throw new NotFoundException(ErrorCode.E7020, name);
+        if (isEmpty(newCronExpression)) newCronExpression = queue.get(0).getCronExpression();
+        if (newSequence.isEmpty())
+          newSequence = queue.stream().map(JobConfiguration::getUid).toList();
+      }
       deleteQueue(name);
       createQueue(newName, newCronExpression, newSequence);
       return;
     }
     Map<String, JobConfiguration> oldQueueJobs = getQueueJobsByQueueName(name);
-    if (oldQueueJobs.isEmpty()) {
-      throw new NotFoundException(ErrorCode.E7020, name);
-    }
+    if (oldQueueJobs.isEmpty()) throw new NotFoundException(ErrorCode.E7020, name);
     Map<String, JobConfiguration> newQueueJobs = getQueueJobsByIds(newSequence);
     validateCronExpression(newCronExpression);
     validateQueue(name, newQueueJobs.values());
@@ -198,8 +193,7 @@ public class DefaultJobQueueService implements JobQueueService {
   }
 
   private Map<String, JobConfiguration> getQueueJobsByQueueName(String name) {
-    return jobConfigurationStore.getAll().stream()
-        .filter(c -> name.equals(c.getQueueName()))
+    return jobConfigurationStore.getJobsInQueue(name).stream()
         .collect(toMap(IdentifiableObject::getUid, Function.identity()));
   }
 

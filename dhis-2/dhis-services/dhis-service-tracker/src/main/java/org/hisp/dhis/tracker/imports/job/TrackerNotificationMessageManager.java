@@ -74,8 +74,7 @@ public class TrackerNotificationMessageManager extends BaseMessageManager {
     }
 
     JobConfiguration jobConfiguration =
-        new JobConfiguration(
-            "", JobType.TRACKER_IMPORT_NOTIFICATION_JOB, bundle.getAccessedBy(), true);
+        new JobConfiguration("", JobType.TRACKER_IMPORT_NOTIFICATION_JOB, bundle.getAccessedBy());
 
     bundle.setJobConfiguration(jobConfiguration);
 

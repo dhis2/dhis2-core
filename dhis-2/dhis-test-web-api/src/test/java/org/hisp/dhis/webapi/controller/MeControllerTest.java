@@ -133,7 +133,7 @@ class MeControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testChangePassword_WrongNew() {
     assertEquals(
-        "Password must have at least 8, and at most 256 characters",
+        "Password must have at least 8, and at most 72 characters",
         PUT("/me/changePassword", "{'oldPassword':'district','newPassword':'secret'}")
             .error(Series.CLIENT_ERROR)
             .getMessage());
@@ -208,14 +208,39 @@ class MeControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testValidatePasswordText_NoDigits() {
+  void testValidatePasswordText_TooShort() {
     JsonPasswordValidation result =
         POST("/me/validatePassword", "text/plain:secret")
             .content()
             .as(JsonPasswordValidation.class);
     assertFalse(result.isValidPassword());
     assertEquals(
-        "Password must have at least 8, and at most 256 characters", result.getErrorMessage());
+        "Password must have at least 8, and at most 72 characters", result.getErrorMessage());
+  }
+
+  @Test
+  void testValidatePasswordText_TooLong() {
+    JsonPasswordValidation result =
+        POST(
+                "/me/validatePassword",
+                "text/plain:supersecretsupersecretsupersecretsupersecretsupersecretsupersecretsuperse")
+            .content()
+            .as(JsonPasswordValidation.class);
+    assertFalse(result.isValidPassword());
+    assertEquals(
+        "Password must have at least 8, and at most 72 characters", result.getErrorMessage());
+  }
+
+  @Test
+  void testValidatePasswordText_NoDigits() {
+    JsonPasswordValidation result =
+        POST(
+                "/me/validatePassword",
+                "text/plain:supersecretsupersecretsupersecretsupersecretsupersecretsupersecretsupers")
+            .content()
+            .as(JsonPasswordValidation.class);
+    assertFalse(result.isValidPassword());
+    assertEquals("Password must have at least one digit", result.getErrorMessage());
   }
 
   @Test
