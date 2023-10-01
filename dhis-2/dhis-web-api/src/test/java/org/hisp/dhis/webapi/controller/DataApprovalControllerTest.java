@@ -60,7 +60,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Jim Grace
  */
 @ExtendWith(MockitoExtension.class)
-public class DataApprovalControllerTest {
+class DataApprovalControllerTest {
 
   @Mock private DataApprovalService dataApprovalService;
 
