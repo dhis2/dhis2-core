@@ -43,6 +43,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageBatch;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
@@ -126,10 +128,16 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   @GetMapping(value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<ProgramMessage> getScheduledSentMessage(
-      @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
-      @RequestParam(required = false) UID enrollment,
-      @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
-      @RequestParam(required = false) UID event,
+      @OpenApi.Param(value = Enrollment.class)
+          @Deprecated(since = "2.41")
+          @RequestParam(required = false)
+          UID programInstance,
+      @OpenApi.Param({UID.class, Enrollment.class}) @RequestParam(required = false) UID enrollment,
+      @OpenApi.Param(value = Event.class)
+          @Deprecated(since = "2.41")
+          @RequestParam(required = false)
+          UID programStageInstance,
+      @OpenApi.Param({UID.class, Event.class}) @RequestParam(required = false) UID event,
       @RequestParam(required = false) Date afterDate,
       @RequestParam(required = false) Integer page,
       @RequestParam(required = false) Integer pageSize)
