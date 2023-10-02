@@ -106,7 +106,7 @@ public class IconController {
   }
 
   @GetMapping(value = "/{key}/icon")
-  public void getCustomIconData(@PathVariable String key, HttpServletResponse response)
+  public void getIconData(@PathVariable String key, HttpServletResponse response)
       throws NotFoundException, WebMessageException, IOException {
 
     Icon icon = iconService.getIcon(key);
