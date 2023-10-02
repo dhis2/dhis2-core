@@ -52,10 +52,6 @@ public interface JsonEnrollment extends JsonObject {
     return getString("orgUnit").string();
   }
 
-  default String getOrgUnitName() {
-    return getString("orgUnitName").string();
-  }
-
   default JsonList<JsonEvent> getEvents() {
     return get("events").asList(JsonEvent.class);
   }

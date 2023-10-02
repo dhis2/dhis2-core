@@ -55,10 +55,6 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 @Builder(toBuilder = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class EventOperationParams {
-  public static final int DEFAULT_PAGE = 1;
-
-  public static final int DEFAULT_PAGE_SIZE = 50;
-
   private String programUid;
 
   private String programStageUid;
@@ -112,14 +108,6 @@ public class EventOperationParams {
 
   @Builder.Default private IdSchemes idSchemes = new IdSchemes();
 
-  private Integer page;
-
-  private Integer pageSize;
-
-  private boolean totalPages;
-
-  private boolean skipPaging;
-
   private boolean includeRelationships;
 
   /**
@@ -139,8 +127,6 @@ public class EventOperationParams {
   private boolean includeAllDataElements;
 
   @Builder.Default private Set<String> events = new HashSet<>();
-
-  private Boolean skipEventId;
 
   /** Data element filters per data element UID. */
   @Builder.Default private Map<String, List<QueryFilter>> dataElementFilters = new HashMap<>();
@@ -182,24 +168,5 @@ public class EventOperationParams {
       this.order.add(new Order(uid, direction));
       return this;
     }
-  }
-
-  public boolean isPaging() {
-    return page != null || pageSize != null;
-  }
-
-  public int getPageWithDefault() {
-    return page != null && page > 0 ? page : DEFAULT_PAGE;
-  }
-
-  public int getPageSizeWithDefault() {
-    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-  }
-
-  /** Sets paging properties to default values. */
-  public void setDefaultPaging() {
-    this.page = DEFAULT_PAGE;
-    this.pageSize = DEFAULT_PAGE_SIZE;
-    this.skipPaging = false;
   }
 }

@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
@@ -38,7 +35,6 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValida
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -138,11 +134,6 @@ class EventRequestParamsMapper {
                 attributeCategoryCombo != null ? attributeCategoryCombo.getValue() : null)
             .attributeCategoryOptions(UID.toValueSet(attributeCategoryOptions))
             .idSchemes(requestParams.getIdSchemes())
-            .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
-            .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
-            .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
-            .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
-            .skipEventId(requestParams.getSkipEventId())
             .includeAttributes(false)
             .includeAllDataElements(false)
             .dataElementFilters(dataElementFilters)

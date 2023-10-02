@@ -55,6 +55,36 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
   }
 
   @Test
+  public void singleValueWithMultiplePeriodTypes() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=pe:LAST_12_MONTHS;TODAY")
+            .add("filter=ou:USER_ORGUNIT")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=SHORTNAME")
+            .add("skipMeta=true")
+            .add("dimension=dx:FTRrcoaog83")
+            .add("relativePeriodDate=2022-01-01");
+    // When
+    ApiResponse response = analyticsActions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(2)))
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
+        .body("width", equalTo(2))
+        .body("headerWidth", equalTo(2));
+
+    // Assert rows.
+    validateRow(response, List.of("FTRrcoaog83", "46"));
+  }
+
+  @Test
   public void query1And3CoverageYearly() {
     // Given
     QueryParamsBuilder params =

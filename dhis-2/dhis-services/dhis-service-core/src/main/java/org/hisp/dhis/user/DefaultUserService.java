@@ -618,49 +618,36 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ErrorReport> validateUser(User user, User currentUser) {
+  public List<ErrorReport> validateUserCreateOrUpdate(User user, User currentUser) {
+
     List<ErrorReport> errors = new ArrayList<>();
 
     if (currentUser == null || user == null) {
       return errors;
     }
 
-    // Validate user role
-
-    boolean canGrantOwnUserRoles =
-        systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
-
-    Set<UserRole> userRoles = user.getUserRoles();
-
-    if (userRoles != null) {
-      List<UserRole> roles =
-          userRoleStore.getByUid(
-              userRoles.stream().map(IdentifiableObject::getUid).collect(Collectors.toList()));
-
-      roles.forEach(
-          ur -> {
-            if (ur == null) {
-              errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, user.getUsername()));
-            } else if (!currentUser.canIssueUserRole(ur, canGrantOwnUserRoles)) {
-              errors.add(
-                  new ErrorReport(
-                      UserRole.class, ErrorCode.E3003, currentUser.getUsername(), ur.getName()));
-            }
-          });
+    User userToChange = userStore.get(user.getId());
+    if (!currentUser.isSuper() && userToChange != null && userToChange.isSuper()) {
+      errors.add(new ErrorReport(User.class, ErrorCode.E3041, currentUser.getUsername()));
     }
 
-    // Validate user group
-    boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
+    validateUserRoles(user, currentUser, errors);
+    validateUserGroups(user, currentUser, errors);
 
+    return errors;
+  }
+
+  private void validateUserGroups(User user, User currentUser, List<ErrorReport> errors) {
+
+    boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
     if (canAdd) {
-      return errors;
+      return;
     }
 
     boolean canAddInGroup = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD_IN_GROUP);
-
     if (!canAddInGroup) {
       errors.add(new ErrorReport(UserGroup.class, ErrorCode.E3004, currentUser));
-      return errors;
+      return;
     }
 
     user.getGroups()
@@ -671,6 +658,51 @@ public class DefaultUserService implements UserService {
                 errors.add(new ErrorReport(UserGroup.class, ErrorCode.E3005, currentUser, ug));
               }
             });
+  }
+
+  private void validateUserRoles(User user, User currentUser, List<ErrorReport> errors) {
+    Set<UserRole> userRoles = user.getUserRoles();
+
+    boolean canGrantOwnUserRoles =
+        systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
+
+    if (userRoles != null) {
+      List<UserRole> roles =
+          userRoleStore.getByUid(
+              userRoles.stream().map(IdentifiableObject::getUid).collect(Collectors.toList()));
+
+      roles.forEach(
+          ur -> {
+            if (ur == null) {
+              errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, user.getUsername()));
+
+            } else if (!currentUser.canIssueUserRole(ur, canGrantOwnUserRoles)) {
+              errors.add(
+                  new ErrorReport(
+                      UserRole.class, ErrorCode.E3003, currentUser.getUsername(), ur.getName()));
+            }
+          });
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, User currentUser) {
+
+    List<ErrorReport> errors = new ArrayList<>();
+
+    if (currentUser == null || role == null) {
+      return errors;
+    }
+
+    if (!currentUser.isSuper() && role.isSuper()) {
+      errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, currentUser.getUsername()));
+    }
+
+    UserRole userRoleBefore = userRoleStore.get(role.getId());
+    if (!currentUser.isSuper() && userRoleBefore != null && userRoleBefore.isSuper()) {
+      errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, currentUser.getUsername()));
+    }
 
     return errors;
   }

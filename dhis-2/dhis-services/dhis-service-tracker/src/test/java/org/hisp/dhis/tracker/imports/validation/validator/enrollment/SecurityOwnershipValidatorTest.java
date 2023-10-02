@@ -430,7 +430,6 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   }
 
   private User deleteEnrollmentAuthorisedUser() {
-    return makeUser(
-        "A", Lists.newArrayList(Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority()));
+    return makeUser("A", Lists.newArrayList(Authorities.F_ENROLLMENT_CASCADE_DELETE.name()));
   }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.dto.schemas;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Schema {
-  private ArrayList<SchemaProperty> properties;
+  private List<SchemaProperty> properties;
 
   private String plural;
 
@@ -49,17 +48,15 @@ public class Schema {
     this.plural = plural;
   }
 
-  public ArrayList<SchemaProperty> getProperties() {
+  public List<SchemaProperty> getProperties() {
     return properties;
   }
 
-  public void setProperties(ArrayList<SchemaProperty> properties) {
+  public void setProperties(List<SchemaProperty> properties) {
     this.properties = properties;
   }
 
   public List<SchemaProperty> getRequiredProperties() {
-    return properties.stream()
-        .filter((schemaProperty -> schemaProperty.isRequired()))
-        .collect(Collectors.toList());
+    return properties.stream().filter((SchemaProperty::isRequired)).collect(Collectors.toList());
   }
 }

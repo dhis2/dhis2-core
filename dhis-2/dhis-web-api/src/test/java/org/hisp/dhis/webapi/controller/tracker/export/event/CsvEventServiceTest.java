@@ -76,7 +76,7 @@ class CsvEventServiceTest {
 
     service.write(out, Collections.singletonList(new Event()), false);
 
-    assertEquals(",ACTIVE,,,,,,,,,,,false,false,,,,,,,,,,,,,,,,,\n", out.toString());
+    assertEquals(",ACTIVE,,,,,,,,,,false,false,,,,,,,,,,,,,,,,,\n", out.toString());
   }
 
   @Test
@@ -93,7 +93,7 @@ class CsvEventServiceTest {
 
     service.write(out, Collections.singletonList(event), false);
 
-    assertEquals("BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,,,,,,,\n", out.toString());
+    assertEquals("BuA2R2Gr4vt,ACTIVE,,,,,,,,,,true,false,,,,,,,,,,,,,,,,,\n", out.toString());
   }
 
   @Test
@@ -116,8 +116,8 @@ class CsvEventServiceTest {
 
     service.write(out, Collections.singletonList(event), false);
 
-    assertInCSV(out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,color,yellow,,true,,,\n");
-    assertInCSV(out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,color,purple,,true,,,\n");
+    assertInCSV(out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,true,false,,,,,,,,,,,color,yellow,,true,,,\n");
+    assertInCSV(out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,true,false,,,,,,,,,,,color,purple,,true,,,\n");
   }
 
   private void assertInCSV(ByteArrayOutputStream out, String expectedLine) {
@@ -207,9 +207,9 @@ class CsvEventServiceTest {
 
   @ValueSource(
       strings = {
-        ",,,,,,,,,POINT (-11.4283223849698 8.06311527044516)",
-        ",,,,,,,,,\"POINT (-11.4283223849698 8.06311527044516)\"",
-        ",,,,,,,,,'POINT (-11.4283223849698 8.06311527044516)'",
+        ",,,,,,,,POINT (-11.4283223849698 8.06311527044516)",
+        ",,,,,,,,\"POINT (-11.4283223849698 8.06311527044516)\"",
+        ",,,,,,,,'POINT (-11.4283223849698 8.06311527044516)'",
       })
   @ParameterizedTest
   void testReadEventsParsesGeometryEvenIfQuoted(String csv) throws IOException, ParseException {
