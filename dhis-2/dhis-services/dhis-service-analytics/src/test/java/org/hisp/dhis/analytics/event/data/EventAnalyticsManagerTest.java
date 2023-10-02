@@ -160,7 +160,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + ","
             + "lastupdatedbydisplayname"
             + ",lastupdated,ST_AsGeoJSON(psigeometry, 6) as geometry,"
-            + "longitude,latitude,ouname,oucode,pistatus,psistatus,ax.\"monthly\",ax.\"ou\"  from "
+            + "longitude,latitude,ouname,oucode,pistatus,psistatus,ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
 

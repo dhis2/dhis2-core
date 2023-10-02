@@ -80,7 +80,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
 
     // Then
     assertEquals(
-        "(ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-05-01'orax.\"executiondate\">='2022-06-01'andax.\"executiondate\"<'2022-07-01')",
+        "((ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-05-01'orax.\"executiondate\">='2022-06-01'andax.\"executiondate\"<'2022-07-01'))",
         timeFieldSqlRenderer.renderTimeFieldSql(params).replace(" ", ""));
   }
 
@@ -101,7 +101,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
 
     // Then
     assertEquals(
-        "ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-07-01'",
+        "(ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-07-01')",
         timeFieldSqlRenderer.renderTimeFieldSql(params).replace(" ", ""));
   }
 
@@ -122,7 +122,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
 
     // Then
     assertEquals(
-        "(enrollmentdate>='2022-04-01'andenrollmentdate<'2022-05-01'orenrollmentdate>='2022-06-01'andenrollmentdate<'2022-07-01')",
+        "((enrollmentdate>='2022-04-01'andenrollmentdate<'2022-05-01'orenrollmentdate>='2022-06-01'andenrollmentdate<'2022-07-01'))",
         timeFieldSqlRenderer.renderTimeFieldSql(params).replace(" ", ""));
   }
 
@@ -143,7 +143,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
 
     // Then
     assertEquals(
-        "enrollmentdate>='2022-04-01'andenrollmentdate<'2022-07-01'",
+        "(enrollmentdate>='2022-04-01'andenrollmentdate<'2022-07-01')",
         timeFieldSqlRenderer.renderTimeFieldSql(params).replace(" ", ""));
   }
 }
