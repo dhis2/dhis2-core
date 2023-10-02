@@ -129,7 +129,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
 
   private final I18nManager i18nManager;
 
-  private final DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
+  private final DefaultLocationManager locationManager;
 
   private final ProgramRuleService programRuleService;
 
