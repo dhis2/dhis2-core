@@ -56,7 +56,7 @@ import org.openapitools.codegen.config.CodegenConfigurator;
 class OpenApiControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testGetOpenApiDocumentJson() {
-    JsonObject doc = GET("/openapi/openapi.json?failOnNameClash=true").content();
+    JsonObject doc = GET("/openapi/openapi.json?failOnNameClash=true&failOnInconsistency=true").content();
     assertTrue(doc.isObject());
     assertTrue(doc.getObject("components.schemas.PropertyNames_OrganisationUnit").isObject());
     assertGreaterOrEqual(150, doc.getObject("paths").size());

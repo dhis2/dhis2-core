@@ -63,6 +63,7 @@ public class OpenApiController {
   @GetMapping(value = "/openapi.yaml", produces = APPLICATION_X_YAML)
   public void getFullOpenApiYaml(
       @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
       HttpServletRequest request,
       HttpServletResponse response) {
     writeDocument(
@@ -71,6 +72,7 @@ public class OpenApiController {
         Set.of(),
         Set.of(),
         failOnNameClash,
+        failOnInconsistency,
         APPLICATION_X_YAML,
         OpenApiGenerator::generateYaml);
   }
@@ -79,6 +81,7 @@ public class OpenApiController {
   public void getPathOpenApiYaml(
       @PathVariable String path,
       @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
       HttpServletRequest request,
       HttpServletResponse response) {
     writeDocument(
@@ -87,6 +90,7 @@ public class OpenApiController {
         Set.of("/" + path),
         Set.of(),
         failOnNameClash,
+        failOnInconsistency,
         APPLICATION_X_YAML,
         OpenApiGenerator::generateYaml);
   }
@@ -96,6 +100,7 @@ public class OpenApiController {
       @RequestParam(required = false) Set<String> path,
       @RequestParam(required = false) Set<String> tag,
       @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
       HttpServletRequest request,
       HttpServletResponse response) {
     writeDocument(
@@ -104,6 +109,7 @@ public class OpenApiController {
         path,
         tag,
         failOnNameClash,
+        failOnInconsistency,
         APPLICATION_X_YAML,
         OpenApiGenerator::generateYaml);
   }
@@ -115,6 +121,7 @@ public class OpenApiController {
   @GetMapping(value = "/openapi.json", produces = APPLICATION_JSON_VALUE)
   public void getFullOpenApiJson(
       @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
       HttpServletRequest request,
       HttpServletResponse response) {
     writeDocument(
@@ -123,6 +130,7 @@ public class OpenApiController {
         Set.of(),
         Set.of(),
         failOnNameClash,
+        failOnInconsistency,
         APPLICATION_JSON_VALUE,
         OpenApiGenerator::generateJson);
   }
@@ -131,6 +139,7 @@ public class OpenApiController {
   public void getPathOpenApiJson(
       @PathVariable String path,
       @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
       HttpServletRequest request,
       HttpServletResponse response) {
     writeDocument(
@@ -139,6 +148,7 @@ public class OpenApiController {
         Set.of("/" + path),
         Set.of(),
         failOnNameClash,
+        failOnInconsistency,
         APPLICATION_JSON_VALUE,
         OpenApiGenerator::generateJson);
   }
@@ -148,6 +158,7 @@ public class OpenApiController {
       @RequestParam(required = false) Set<String> path,
       @RequestParam(required = false) Set<String> tag,
       @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
       HttpServletRequest request,
       HttpServletResponse response) {
     writeDocument(
@@ -156,6 +167,7 @@ public class OpenApiController {
         path,
         tag,
         failOnNameClash,
+        failOnInconsistency,
         APPLICATION_JSON_VALUE,
         OpenApiGenerator::generateJson);
   }
@@ -166,6 +178,7 @@ public class OpenApiController {
       Set<String> paths,
       Set<String> tags,
       boolean failOnNameClash,
+      boolean failOnInconsistency,
       String contentType,
       BiFunction<Api, String, String> writer) {
     Api api = ApiAnalyse.analyseApi(new ApiAnalyse.Scope(getAllControllerClasses(), paths, tags));
@@ -174,6 +187,7 @@ public class OpenApiController {
         api,
         ApiFinalise.Configuration.builder()
             .failOnNameClash(failOnNameClash)
+            .failOnInconsistency(failOnInconsistency)
             .namePartDelimiter("_")
             .build());
     response.setContentType(contentType);

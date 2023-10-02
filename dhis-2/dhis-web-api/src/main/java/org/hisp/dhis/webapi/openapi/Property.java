@@ -42,9 +42,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
@@ -61,18 +64,23 @@ import org.springframework.util.ReflectionUtils;
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 class Property {
+
+  private static final Map<Class<?>, Object> INSTANCES_BY_TYPE = new ConcurrentHashMap<>();
   private static final Map<Class<?>, Collection<Property>> PROPERTIES = new ConcurrentHashMap<>();
 
+  @Nonnull
   String name;
-
+  @Nonnull
   Type type;
-
+  @Nonnull
   Member source;
-
+  @CheckForNull
   Boolean required;
+  @CheckForNull
+  Object defaultValue;
 
   private Property(Field f) {
-    this(getName(f), getType(f, f.getGenericType()), f, isRequired(f, f.getType()));
+    this(getName(f), getType(f, f.getGenericType()), f, isRequired(f, f.getType()), defaultValue(f));
   }
 
   private Property(Method m) {
@@ -80,7 +88,8 @@ class Property {
         getName(m),
         getType(m, isSetter(m) ? m.getGenericParameterTypes()[0] : m.getGenericReturnType()),
         m,
-        isRequired(m, m.getReturnType()));
+        isRequired(m, m.getReturnType()),
+        null);
   }
 
   static Collection<Property> getProperties(Class<?> in) {
@@ -188,6 +197,19 @@ class Property {
     if (a != null && a.required()) return true;
     if (a != null && !a.defaultValue().isEmpty()) return false;
     return type.isPrimitive() && type != boolean.class || type.isEnum() ? true : null;
+  }
+
+  @SuppressWarnings("java:S3011")
+  private static Object defaultValue(Field source) {
+    OpenApi.Property property = source.getAnnotation(OpenApi.Property.class);
+    if (property != null && !property.defaultValue().isEmpty()) return  property.defaultValue();
+    try {
+      Object obj = source.getDeclaringClass().getConstructor().newInstance();
+      source.setAccessible(true);
+      return source.get(obj);
+    } catch (Exception ex) {
+      return null;
+    }
   }
 
   private static Stream<Field> fieldsIn(Class<?> type) {

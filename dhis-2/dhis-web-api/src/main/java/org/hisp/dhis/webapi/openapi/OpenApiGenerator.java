@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.lang.Boolean.parseBoolean;
+import static java.lang.Double.parseDouble;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toCollection;
@@ -102,19 +104,12 @@ public class OpenApiGenerator extends JsonGenerator {
             .build();
 
     String title;
-
     String version;
-
     String serverUrl;
-
     String licenseName;
-
     String licenseUrl;
-
     String contactName;
-
     String contactUrl;
-
     String contactEmail;
   }
 
@@ -128,17 +123,11 @@ public class OpenApiGenerator extends JsonGenerator {
      */
 
     String type;
-
     String format;
-
     String pattern;
-
     Boolean nullable;
-
     Integer minLength;
-
     Integer maxLength;
-
     String[] enums;
   }
 
@@ -401,7 +390,8 @@ public class OpenApiGenerator extends JsonGenerator {
           addStringMultilineMember(
               "description", parameter.getDescription().orElse(NO_DESCRIPTION));
           addBooleanMember("required", parameter.isRequired());
-          addObjectMember("schema", () -> generateSchemaOrRef(parameter.getType()));
+          String defaultValue = parameter.getDefaultValue().orElse(null);
+          addObjectMember("schema", () -> generateSchemaOrRef(parameter.getType(), defaultValue));
         });
   }
 
@@ -473,24 +463,32 @@ public class OpenApiGenerator extends JsonGenerator {
   }
 
   private void generateSchemaOrRef(Api.Schema schema) {
+    generateSchemaOrRef(schema, null);
+  }
+
+  private void generateSchemaOrRef(Api.Schema schema, String defaultValue) {
     if (schema == null) return;
     if (schema.getSharedName().isPresent()) {
       addStringMember("$ref", "#/components/schemas/" + schema.getSharedName().getValue());
     } else {
-      generateSchema(schema);
+      generateSchema(schema, defaultValue);
     }
   }
 
   private void generateSchema(Api.Schema schema) {
+    generateSchema(schema, null);
+  }
+
+  private void generateSchema(Api.Schema schema, String defaultValue) {
     Class<?> type = schema.getRawType();
     List<SimpleType> types = SIMPLE_TYPES.get(type);
     if (types != null) {
       if (types.size() == 1) {
-        generateSimpleTypeSchema(types.get(0));
+        generateSimpleTypeSchema(types.get(0), defaultValue);
       } else {
         addArrayMember(
             "oneOf",
-            () -> types.forEach(t -> addObjectMember(null, () -> generateSimpleTypeSchema(t))));
+            () -> types.forEach(t -> addObjectMember(null, () -> generateSimpleTypeSchema(t, null))));
       }
       return;
     }
@@ -520,11 +518,15 @@ public class OpenApiGenerator extends JsonGenerator {
     }
     if (schemaType == Api.Schema.Type.ENUM) {
       addStringMember("type", "string");
+      if (defaultValue != null)
+        addStringMember("default", defaultValue);
       addArrayMember("enum", schema.getValues());
       return;
     }
     if (type.isEnum()) {
       addStringMember("type", "string");
+      if (defaultValue != null)
+        addStringMember("default", defaultValue);
       addArrayMember(
           "enum", stream(type.getEnumConstants()).map(e -> ((Enum<?>) e).name()).toList());
       return;
@@ -570,7 +572,7 @@ public class OpenApiGenerator extends JsonGenerator {
     }
   }
 
-  private void generateSimpleTypeSchema(SimpleType simpleType) {
+  private void generateSimpleTypeSchema(SimpleType simpleType, String defaultValue) {
     String type = simpleType.getType();
     addStringMember("type", type);
     if ("array".equals(type)) {
@@ -580,6 +582,16 @@ public class OpenApiGenerator extends JsonGenerator {
     addNumberMember("minLength", simpleType.getMinLength());
     addNumberMember("maxLength", simpleType.getMaxLength());
     addStringMember("pattern", simpleType.getPattern());
+    if (defaultValue != null) {
+      switch (type) {
+        case "string" -> addStringMember("default", defaultValue);
+        case "number", "integer" -> addNumberMember("default", parseDouble(defaultValue));
+        case "boolean" -> addBooleanMember("default", parseBoolean(defaultValue));
+        default -> log.warn(
+            "Unsupported default value provided for type %s of %s: %s"
+                .formatted(type, simpleType.source.getSimpleName(), defaultValue));
+      }
+    }
     if (simpleType.getEnums() != null) {
       addArrayMember("enum", List.of(simpleType.getEnums()));
     }
