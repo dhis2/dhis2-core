@@ -60,7 +60,7 @@ public class IconMapper {
           icon.getKeywords(),
           ci.getFileResourceUid(),
           ci.getCreatedByUserUid(),
-          getCustomIconReference(ci.getFileResourceUid()));
+          getCustomIconReference(ci.getKey()));
     } else {
       return new IconResponse(
           icon.getKey(),
