@@ -1079,7 +1079,7 @@ public class DataQueryParams {
         .filter(dimensionalObject -> StringUtils.equals(dimensionalObject.getDimension(), key))
         .map(DimensionalObject::getItems)
         .flatMap(Collection::stream)
-        .toList();
+        .collect(Collectors.toList());
   }
 
   /** Returns all dimension items part of dimensions of the given dimension type. */
@@ -2204,7 +2204,7 @@ public class DataQueryParams {
     return Stream.concat(dimensions.stream(), filters.stream())
         .filter(d -> PERIOD == d.getDimensionType())
         .flatMap(d -> d.getItems().stream())
-        .toList();
+        .collect(Collectors.toList());
   }
 
   /** Returns all organisation units part of a dimension or filter. */
