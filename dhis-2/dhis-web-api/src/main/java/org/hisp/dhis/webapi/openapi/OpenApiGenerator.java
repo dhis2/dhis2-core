@@ -488,7 +488,8 @@ public class OpenApiGenerator extends JsonGenerator {
       } else {
         addArrayMember(
             "oneOf",
-            () -> types.forEach(t -> addObjectMember(null, () -> generateSimpleTypeSchema(t, null))));
+            () ->
+                types.forEach(t -> addObjectMember(null, () -> generateSimpleTypeSchema(t, null))));
       }
       return;
     }
@@ -518,15 +519,13 @@ public class OpenApiGenerator extends JsonGenerator {
     }
     if (schemaType == Api.Schema.Type.ENUM) {
       addStringMember("type", "string");
-      if (defaultValue != null)
-        addStringMember("default", defaultValue);
+      if (defaultValue != null) addStringMember("default", defaultValue);
       addArrayMember("enum", schema.getValues());
       return;
     }
     if (type.isEnum()) {
       addStringMember("type", "string");
-      if (defaultValue != null)
-        addStringMember("default", defaultValue);
+      if (defaultValue != null) addStringMember("default", defaultValue);
       addArrayMember(
           "enum", stream(type.getEnumConstants()).map(e -> ((Enum<?>) e).name()).toList());
       return;

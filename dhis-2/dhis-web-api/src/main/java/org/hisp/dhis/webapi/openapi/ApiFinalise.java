@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -74,10 +73,10 @@ public class ApiFinalise {
     boolean failOnNameClash;
 
     /**
-     * When true, the generation fails if a declaration is declared in an inconsistent way.
-     * This usually indicates a programming error.
-     * <p>
-     * For example, a field/parameter with a default value is marked as required.
+     * When true, the generation fails if a declaration is declared in an inconsistent way. This
+     * usually indicates a programming error.
+     *
+     * <p>For example, a field/parameter with a default value is marked as required.
      */
     boolean failOnInconsistency;
 
@@ -156,13 +155,13 @@ public class ApiFinalise {
 
   private void validateParameter(Parameter p) {
     if (p.getDefaultValue().isPresent() && p.isRequired()) {
-      String msg = "Parameter %s of type %s is both required and has a default value of %s"
-          .formatted(
-              p.getFullName(),
-              p.getType().getRawType().getSimpleName(),
-              p.getDefaultValue().getValue());
-      if (config.failOnInconsistency)
-        throw new IllegalStateException(msg);
+      String msg =
+          "Parameter %s of type %s is both required and has a default value of %s"
+              .formatted(
+                  p.getFullName(),
+                  p.getType().getRawType().getSimpleName(),
+                  p.getDefaultValue().getValue());
+      if (config.failOnInconsistency) throw new IllegalStateException(msg);
       log.warn(msg);
     }
   }

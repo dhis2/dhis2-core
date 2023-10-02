@@ -42,7 +42,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -68,19 +67,15 @@ class Property {
   private static final Map<Class<?>, Object> INSTANCES_BY_TYPE = new ConcurrentHashMap<>();
   private static final Map<Class<?>, Collection<Property>> PROPERTIES = new ConcurrentHashMap<>();
 
-  @Nonnull
-  String name;
-  @Nonnull
-  Type type;
-  @Nonnull
-  Member source;
-  @CheckForNull
-  Boolean required;
-  @CheckForNull
-  Object defaultValue;
+  @Nonnull String name;
+  @Nonnull Type type;
+  @Nonnull Member source;
+  @CheckForNull Boolean required;
+  @CheckForNull Object defaultValue;
 
   private Property(Field f) {
-    this(getName(f), getType(f, f.getGenericType()), f, isRequired(f, f.getType()), defaultValue(f));
+    this(
+        getName(f), getType(f, f.getGenericType()), f, isRequired(f, f.getType()), defaultValue(f));
   }
 
   private Property(Method m) {
@@ -202,7 +197,7 @@ class Property {
   @SuppressWarnings("java:S3011")
   private static Object defaultValue(Field source) {
     OpenApi.Property property = source.getAnnotation(OpenApi.Property.class);
-    if (property != null && !property.defaultValue().isEmpty()) return  property.defaultValue();
+    if (property != null && !property.defaultValue().isEmpty()) return property.defaultValue();
     try {
       Object obj = source.getDeclaringClass().getConstructor().newInstance();
       source.setAccessible(true);

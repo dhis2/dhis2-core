@@ -350,11 +350,13 @@ final class ApiAnalyse {
                   : param != null ? param.defaultValue() : null;
           endpoint
               .getParameters()
-              .computeIfAbsent(name, key -> {
-                Api.Parameter parameter = new Api.Parameter(p, key, in, required, type);
-                parameter.getDefaultValue().setValue(defaultValue);
-                return parameter;
-              });
+              .computeIfAbsent(
+                  name,
+                  key -> {
+                    Api.Parameter parameter = new Api.Parameter(p, key, in, required, type);
+                    parameter.getDefaultValue().setValue(defaultValue);
+                    return parameter;
+                  });
         } else {
           Api.RequestBody requestBody =
               endpoint.getRequestBody().init(() -> new Api.RequestBody(p, required));

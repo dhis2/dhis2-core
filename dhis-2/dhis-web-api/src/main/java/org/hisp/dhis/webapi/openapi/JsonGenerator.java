@@ -262,7 +262,7 @@ public class JsonGenerator {
 
   final void addNumberMember(String name, Number value) {
     if (value != null) {
-      if (value instanceof Double && value.doubleValue() %1.0d != 0d) {
+      if (value instanceof Double && value.doubleValue() % 1.0d != 0d) {
         addNumberMember(name, value.doubleValue());
       } else {
         addNumberMember(name, value.intValue());
@@ -275,6 +275,7 @@ public class JsonGenerator {
       addNumberMember(name, value.intValue());
     }
   }
+
   final void addNumberMember(String name, double value) {
     appendMemberName(name);
     out.append(value);

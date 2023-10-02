@@ -176,7 +176,8 @@ public @interface OpenApi {
     boolean required() default false;
 
     /**
-     * If given, this values takes precedence over the actual initial value of a field that might be present.
+     * If given, this values takes precedence over the actual initial value of a field that might be
+     * present.
      *
      * @return the string representation of the default value for the property (must be non-empty)
      */
@@ -222,7 +223,8 @@ public @interface OpenApi {
     String asProperty() default "";
 
     /**
-     * If given, this values takes precedence over the actual initial value of a field that might be present.
+     * If given, this values takes precedence over the actual initial value of a field that might be
+     * present.
      *
      * @return the string representation of the default value for the property (must be non-empty)
      */
