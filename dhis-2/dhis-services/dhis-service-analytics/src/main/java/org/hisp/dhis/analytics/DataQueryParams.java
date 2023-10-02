@@ -2172,7 +2172,7 @@ public class DataQueryParams {
     return Stream.concat(dimensions.stream(), filters.stream())
         .filter(d -> PERIOD == d.getDimensionType())
         .flatMap(d -> d.getItems().stream())
-        .toList();
+        .collect(Collectors.toList());
   }
 
   /** Returns all organisation units part of a dimension or filter. */
