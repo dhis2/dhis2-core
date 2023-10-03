@@ -78,8 +78,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -113,8 +111,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   private final IdentifiableObjectManager idObjManager;
 
   private final OrganisationUnitService orgUnitService;
-
-  private final Notifier notifier;
 
   private final I18nManager i18nManager;
 
@@ -367,7 +363,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
   private ImportSummary handleImportError(JobConfiguration jobId, Throwable ex) {
     log.error(DebugUtils.getStackTrace(ex));
-    notifier.notify(jobId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true);
     return new ImportSummary(ImportStatus.ERROR, "The import process failed: " + ex.getMessage());
   }
 
@@ -376,10 +371,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       JobConfiguration id,
       CompleteDataSetRegistrations completeRegistrations) {
     Clock clock =
-        new Clock(log)
-            .startClock()
-            .logTime("Starting complete data set registration import");
-    notifier.notify(id, "Process started");
+        new Clock(log).startClock().logTime("Starting complete data set registration import");
 
     // Start here so we can access any outer attributes for the
     // configuration
@@ -415,13 +407,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     // Perform import
     // ---------------------------------------------------------------------
 
-    notifier.notify(id, "Importing complete data set registrations");
-
     int totalCount =
         batchImport(completeRegistrations, cfg, importSummary, metaDataCallables, caches);
-
-    notifier
-        .notify(id, NotificationLevel.INFO, "Import done", true);
 
     ImportCount count = importSummary.getImportCount();
 
