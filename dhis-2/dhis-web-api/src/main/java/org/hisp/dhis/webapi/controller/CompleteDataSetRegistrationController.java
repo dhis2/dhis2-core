@@ -44,9 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -110,10 +108,6 @@ public class CompleteDataSetRegistrationController {
   private final InputUtils inputUtils;
 
   private final CompleteDataSetRegistrationExchangeService registrationExchangeService;
-
-  private final AsyncTaskExecutor taskExecutor;
-
-  private final SessionFactory sessionFactory;
 
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
