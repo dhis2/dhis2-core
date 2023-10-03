@@ -638,17 +638,17 @@ public class DefaultUserService implements UserService {
       errors.add(new ErrorReport(User.class, ErrorCode.E3041, currentUser.getUsername()));
     }
 
-    validateUserRoles(user, currentUser, errors);
-    validateUserGroups(user, currentUser, errors);
+    checkHasAccessToUserRoles(user, currentUser, errors);
+    checkHasAccessToUserGroups(user, currentUser, errors);
 
-    validateOrgUnit(user.getOrganisationUnits(), currentUser, errors);
-    validateOrgUnit(user.getDataViewOrganisationUnits(), currentUser, errors);
-    validateOrgUnit(user.getTeiSearchOrganisationUnits(), currentUser, errors);
+    checkIsInOrgUnitHierarchy(user.getOrganisationUnits(), currentUser, errors);
+    checkIsInOrgUnitHierarchy(user.getDataViewOrganisationUnits(), currentUser, errors);
+    checkIsInOrgUnitHierarchy(user.getTeiSearchOrganisationUnits(), currentUser, errors);
 
     return errors;
   }
 
-  private void validateOrgUnit(
+  private void checkIsInOrgUnitHierarchy(
       Set<OrganisationUnit> organisationUnits, User currentUser, List<ErrorReport> errors) {
     for (OrganisationUnit orgUnit : organisationUnits) {
       boolean inUserHierarchy = organisationUnitService.isInUserHierarchy(currentUser, orgUnit);
@@ -663,7 +663,7 @@ public class DefaultUserService implements UserService {
     }
   }
 
-  private void validateUserGroups(User user, User currentUser, List<ErrorReport> errors) {
+  private void checkHasAccessToUserGroups(User user, User currentUser, List<ErrorReport> errors) {
 
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
     if (canAdd) {
@@ -686,7 +686,7 @@ public class DefaultUserService implements UserService {
             });
   }
 
-  private void validateUserRoles(User user, User currentUser, List<ErrorReport> errors) {
+  private void checkHasAccessToUserRoles(User user, User currentUser, List<ErrorReport> errors) {
     Set<UserRole> userRoles = user.getUserRoles();
 
     boolean canGrantOwnUserRoles =

@@ -306,17 +306,11 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     JsonImportSummary response =
         PATCH(
                 "/users/" + user.getUid(),
-                "["
-                    + "{'op':'add','path':'/organisationUnits','value':[{'id':'"
-                    + orgA.getUid()
-                    + "'}]},"
-                    + "{'op':'add','path':'/dataViewOrganisationUnits','value':[{'id':'"
-                    + orgA.getUid()
-                    + "'}]},"
-                    + "{'op':'add','path':'/teiSearchOrganisationUnits','value':[{'id':'"
-                    + orgA.getUid()
-                    + "'}]}"
-                    + "]")
+                """
+                [{'op':'add','path':'/organisationUnits','value':[{'id':'%s'}]},
+                 {'op':'add','path':'/dataViewOrganisationUnits','value':[{'id':'%s'}]},
+                 {'op':'add','path':'/teiSearchOrganisationUnits','value':[{'id':'%s'}]}]"""
+                    .formatted(orgA.getUid(), orgA.getUid(), orgA.getUid()))
             .content(HttpStatus.CONFLICT)
             .get("response")
             .as(JsonImportSummary.class);
