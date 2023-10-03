@@ -606,7 +606,8 @@ public class ApiFinalise {
         for (Api.Endpoint e : c.getEndpoints()) {
           for (String ePath : e.getPaths()) {
             String absolutePath =
-                cPath + (cPath.endsWith("/") || ePath.startsWith("/") ? "" : "/") + ePath;
+                (cPath + (cPath.endsWith("/") || ePath.startsWith("/") ? "" : "/") + ePath)
+                    .replace("//", "/");
             if (absolutePath.isEmpty()) {
               absolutePath = "/";
             }
