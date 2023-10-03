@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,83 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.apphub;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
+import static org.junit.jupiter.api.Assertions.*;
 
-/** Created by zubair@dhis2.org on 07.09.17. */
-public class Review {
-  private String id;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
-  private String userId;
+class PageRequestParamsTest {
 
-  private String reviewText;
-
-  private int rate;
-
-  private Date created;
-
-  private Date lastUpdated;
-
-  public Review() {}
-
-  public Review(String userId, String reviewText) {
-    this.userId = userId;
-    this.reviewText = reviewText;
+  @Data
+  private static class PaginationParameters implements PageRequestParams {
+    private Integer page;
+    private Integer pageSize;
+    private Boolean totalPages;
+    private Boolean skipPaging;
   }
 
-  @JsonProperty
-  public String getUserId() {
-    return userId;
+  @Test
+  void shouldBePagedIfSkipPagingIsNull() {
+    PaginationParameters parameters = new PaginationParameters();
+
+    assertTrue(parameters.isPaged());
   }
 
-  public void setUserId(String userId) {
-    this.userId = userId;
+  @Test
+  void shouldBePagedIfSkipPagingIsTrue() {
+    PaginationParameters parameters = new PaginationParameters();
+    parameters.setSkipPaging(true);
+
+    assertTrue(parameters.isPaged());
   }
 
-  @JsonProperty
-  public String getReviewText() {
-    return reviewText;
-  }
+  @Test
+  void shouldBeUnpagedIfSkipPagingIsTrue() {
+    PaginationParameters parameters = new PaginationParameters();
+    parameters.setSkipPaging(false);
 
-  public void setReviewText(String reviewText) {
-    this.reviewText = reviewText;
-  }
-
-  @JsonProperty
-  public int getRate() {
-    return rate;
-  }
-
-  public void setRate(int rate) {
-    this.rate = rate;
-  }
-
-  @JsonProperty
-  public Date getCreated() {
-    return created;
-  }
-
-  public void setCreated(Date created) {
-    this.created = created;
-  }
-
-  @JsonProperty
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  @JsonProperty
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
-
-  public void setLastUpdated(Date lastUpdated) {
-    this.lastUpdated = lastUpdated;
+    assertFalse(parameters.isPaged());
   }
 }

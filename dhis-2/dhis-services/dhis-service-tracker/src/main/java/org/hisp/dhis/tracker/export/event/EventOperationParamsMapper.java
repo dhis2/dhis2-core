@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.QueryFilter;
@@ -64,7 +63,6 @@ import org.springframework.transaction.annotation.Transactional;
  * Maps {@link EventOperationParams} to {@link EventQueryParams} which is used to fetch events from
  * the DB.
  */
-@Slf4j
 @Component
 @RequiredArgsConstructor
 class EventOperationParamsMapper {
@@ -143,10 +141,6 @@ class EventOperationParamsMapper {
         .setEventStatus(operationParams.getEventStatus())
         .setCategoryOptionCombo(attributeOptionCombo)
         .setIdSchemes(operationParams.getIdSchemes())
-        .setPage(operationParams.getPage())
-        .setPageSize(operationParams.getPageSize())
-        .setTotalPages(operationParams.isTotalPages())
-        .setSkipPaging(operationParams.isSkipPaging())
         .setIncludeAttributes(false)
         .setIncludeAllDataElements(false)
         .setEvents(operationParams.getEvents())

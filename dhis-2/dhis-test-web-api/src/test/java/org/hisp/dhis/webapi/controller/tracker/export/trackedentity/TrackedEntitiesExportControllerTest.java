@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
@@ -191,22 +190,6 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
         "Either Program or Tracked entity type should be specified",
         GET("/tracker/trackedEntities?orgUnit={ou}", orgUnit.getUid())
             .error(HttpStatus.CONFLICT)
-            .getMessage());
-  }
-
-  @Test
-  void getTrackedEntitiesCannotHaveRepeatedAttributes() {
-    injectSecurityContext(user);
-
-    assertContains(
-        "Filter for attribute " + TEA_UID + " was specified more than once.",
-        GET("/tracker/trackedEntities?filter="
-                + TEA_UID
-                + ":eq:test,"
-                + TEA_UID
-                + ":gt:test2&user= "
-                + user.getUid())
-            .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
 

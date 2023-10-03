@@ -145,8 +145,6 @@ class PredictionDisaggregatorTest extends DhisConvenienceTest {
 
   private final CategoryOptionCombo cocEa = newCoc(13L, "cocEa", "cocEccAaaaa", ccA, coA);
 
-  private final CategoryOptionCombo cocEb = newCoc(14L, "cocEa", "cocEccAaaaa", ccA, coB);
-
   private final CategoryOptionCombo cocDefault =
       newCoc(15L, DEFAULT_NAME, "cocDefault", ccDefault, coDefault);
 

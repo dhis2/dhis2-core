@@ -111,7 +111,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     progress.startingStage("Invalidate analytics caches", SKIP_STAGE);
     progress.runStage(analyticsCache::invalidateAll);
-    progress.completedProcess("Analytics tables updated");
+    progress.completedProcess("Analytics tables updated: " + clock.time());
   }
 
   private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
@@ -178,7 +178,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     generators.put(
         "generating CategoryOptionCombo table",
         resourceTableService::generateCategoryOptionComboTable);
-    progress.startingStage("Generating resource tables", generators.size());
+    progress.startingStage("Generating resource tables", generators.size(), SKIP_STAGE);
     progress.runStage(generators);
 
     resourceTableService.createAllSqlViews(progress);

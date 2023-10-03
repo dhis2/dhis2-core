@@ -30,17 +30,20 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -95,6 +98,8 @@ class TrackedEntityRequestParamsMapper {
             requestParams.getTrackedEntities());
     validateOrderParams(requestParams.getOrder(), ORDERABLE_FIELD_NAMES, "attribute");
 
+    Map<String, List<QueryFilter>> filters = parseFilters(requestParams.getFilter());
+
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()
             .programUid(
@@ -126,7 +131,7 @@ class TrackedEntityRequestParamsMapper {
                     requestParams.getAssignedUserMode(), user, UID.toValueSet(assignedUsers)))
             .user(user)
             .trackedEntityUids(UID.toValueSet(trackedEntities))
-            .filters(requestParams.getFilter())
+            .filters(filters)
             .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
             .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
             .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))

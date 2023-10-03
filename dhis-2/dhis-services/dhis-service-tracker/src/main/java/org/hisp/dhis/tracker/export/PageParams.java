@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.apphub;
+package org.hisp.dhis.tracker.export;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-/** Created by zubair@dhis2.org on 07.09.17. */
-public class Developer {
-  private String name;
+/**
+ * {@link PageParams} represent the parameters that configure the page of items to be returned. By
+ * default, the total number of items will not be fetched.
+ */
+@Getter
+@ToString
+@EqualsAndHashCode
+public class PageParams {
+  private static final int DEFAULT_PAGE = 1;
+  private static final int DEFAULT_PAGE_SIZE = 50;
 
-  private String organisation;
+  /** The page number to be returned. */
+  final int page;
 
-  private String address;
+  /** The number of items to be returned. */
+  final int pageSize;
 
-  private String email;
+  /** Indicates whether to fetch the total number of items. */
+  final boolean pageTotal;
 
-  public Developer() {
-    // empty constructor
-  }
-
-  @JsonProperty
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  @JsonProperty
-  public String getOrganisation() {
-    return organisation;
-  }
-
-  public void setOrganisation(String organisation) {
-    this.organisation = organisation;
-  }
-
-  @JsonProperty
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  @JsonProperty
-  public String getAddress() {
-    return address;
-  }
-
-  public void setAddress(String address) {
-    this.address = address;
+  public PageParams(Integer page, Integer pageSize, Boolean pageTotal) {
+    this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
+    this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
+    this.pageTotal = Boolean.TRUE.equals(pageTotal);
   }
 }

@@ -143,8 +143,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private static final String COL_VALUE = "value";
 
-  private static final String COL_ORGANIZATION = "ou";
-
   private static final String OUTER_SQL_ALIAS = "t1";
 
   private static final String AND = " and ";

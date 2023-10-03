@@ -55,7 +55,6 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -311,7 +310,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   public TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams);
-    final List<Long> ids = getTrackedEntityIds(queryParams, false, false);
+    final List<Long> ids = getTrackedEntityIds(queryParams);
 
     List<TrackedEntity> trackedEntities =
         this.trackedEntityAggregate.find(
@@ -341,27 +340,16 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return TrackedEntities.of(trackedEntities, pager);
   }
 
-  public List<Long> getTrackedEntityIds(
-      TrackedEntityQueryParams params,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation) {
+  public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
     if (!params.hasProgram()) {
       Collection<TrackedEntityAttribute> attributes =
           trackedEntityAttributeService.getTrackedEntityAttributesDisplayInListNoProgram();
-      params.addFiltersIfNotExist(QueryItem.getQueryItems(attributes));
+      attributes.forEach(params::filterBy);
     }
 
     decideAccess(params);
-
-    // AccessValidation should be skipped only and only if it is internal
-    // service that runs the task (for example sync job)
-    if (!skipAccessValidation) {
-      validate(params);
-    }
-
-    if (!skipSearchScopeValidation) {
-      validateSearchScope(params);
-    }
+    validate(params);
+    validateSearchScope(params);
 
     return trackedEntityStore.getTrackedEntityIds(params);
   }
@@ -444,10 +432,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     if (params.hasEventStatus() && (!params.hasEventStartDate() || !params.hasEventEndDate())) {
       violation = "Event start and end date must be specified when event status is specified";
-    }
-
-    if (!params.getDuplicateFilters().isEmpty()) {
-      violation = "Filters cannot be specified more than once: " + params.getDuplicateFilters();
     }
 
     if (params.hasLastUpdatedDuration()
