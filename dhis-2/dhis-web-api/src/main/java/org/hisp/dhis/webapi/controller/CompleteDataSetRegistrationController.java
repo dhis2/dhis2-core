@@ -161,11 +161,11 @@ public class CompleteDataSetRegistrationController {
   @GetMapping(produces = CONTENT_TYPE_JSON)
   public void getCompleteRegistrationsJson(
       @RequestParam Set<String> dataSet,
-      @RequestParam(required = false) Set<String> period, // TODO this seems to be mandatory
+      @RequestParam(required = false) Set<String> period,
       @RequestParam(required = false) Date startDate,
       @RequestParam(required = false) Date endDate,
       @RequestParam(required = false, name = "children") boolean includeChildren,
-      @RequestParam(required = false) Set<String> orgUnit, // TODO this seems to be mandatory
+      @RequestParam(required = false) Set<String> orgUnit,
       @RequestParam(required = false) Set<String> orgUnitGroup,
       @RequestParam(required = false) Date created,
       @RequestParam(required = false) String createdDuration,

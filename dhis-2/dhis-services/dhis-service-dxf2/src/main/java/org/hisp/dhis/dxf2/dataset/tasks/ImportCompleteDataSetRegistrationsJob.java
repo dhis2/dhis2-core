@@ -45,7 +45,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author david mackessy
  */
 @Slf4j
 @Component
