@@ -898,8 +898,7 @@ public abstract class AbstractEventService
       String noteUid =
           CodeGenerator.isValidUid(note.getNote()) ? note.getNote() : CodeGenerator.generateUid();
 
-      if (!commentService.trackedEntityCommentExists(noteUid)
-          && !StringUtils.isEmpty(note.getValue())) {
+      if (!commentService.noteExists(noteUid) && !StringUtils.isEmpty(note.getValue())) {
         org.hisp.dhis.note.Note comment = new org.hisp.dhis.note.Note();
         comment.setUid(noteUid);
         comment.setNoteText(note.getValue());
@@ -911,7 +910,7 @@ public abstract class AbstractEventService
         comment.setLastUpdatedBy(user);
         comment.setLastUpdated(new Date());
 
-        commentService.addTrackedEntityComment(comment);
+        commentService.addNote(comment);
 
         programStageInstance.getNotes().add(comment);
       }
