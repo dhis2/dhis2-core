@@ -39,7 +39,6 @@ import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
@@ -85,7 +84,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -183,7 +181,6 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
             cdsrStore,
             idObjManager,
             orgUnitService,
-            notifier,
             i18nManager,
             batchHandlerFactory,
             systemSettingManager,
@@ -276,10 +273,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
       when(categoryService.getDefaultCategoryOptionCombo()).thenReturn(DEFAULT_COC);
       when(batchHandlerFactory.createBatchHandler(CompleteDataSetRegistrationBatchHandler.class))
           .thenReturn(batchHandler);
-
-      when(notifier.notify(any(), anyString())).thenReturn(notifier);
-      when(notifier.notify(null, NotificationLevel.INFO, "Import done", true)).thenReturn(notifier);
-
+      
       // call method under test
       ImportSummary summary =
           subject.saveCompleteDataSetRegistrationsJson(
