@@ -72,6 +72,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -313,7 +314,7 @@ class JdbcEventStore implements EventStore {
               CategoryOptionCombo coc = new CategoryOptionCombo();
               coc.setUid(resultSet.getString("coc_identifier"));
               Set<CategoryOption> options =
-                  Arrays.stream(resultSet.getString("co_uids").split(";"))
+                  Arrays.stream(resultSet.getString("co_uids").split(TextUtils.COMMA))
                       .map(
                           optionUid -> {
                             CategoryOption option = new CategoryOption();
@@ -1377,7 +1378,7 @@ class JdbcEventStore implements EventStore {
     String joinCondition =
         "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = ev.attributeoptioncomboid "
             + " inner join (select coc.categoryoptioncomboid as id,"
-            + " string_agg(co.uid, ';') as co_uids, count(co.categoryoptionid) as co_count"
+            + " string_agg(co.uid, ',') as co_uids, count(co.categoryoptionid) as co_count"
             + " from categoryoptioncombo coc "
             + " inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid"
             + " inner join dataelementcategoryoption co on cocco.categoryoptionid = co.categoryoptionid"
