@@ -174,6 +174,14 @@ public @interface OpenApi {
     Class<?>[] value() default {};
 
     boolean required() default false;
+
+    /**
+     * If given, this values takes precedence over the actual initial value of a field that might be
+     * present.
+     *
+     * @return the string representation of the default value for the property (must be non-empty)
+     */
+    String defaultValue() default "";
   }
 
   /**
@@ -213,6 +221,14 @@ public @interface OpenApi {
      * @return name of the property to use
      */
     String asProperty() default "";
+
+    /**
+     * If given, this values takes precedence over the actual initial value of a field that might be
+     * present.
+     *
+     * @return the string representation of the default value for the property (must be non-empty)
+     */
+    String defaultValue() default "";
   }
 
   /**
