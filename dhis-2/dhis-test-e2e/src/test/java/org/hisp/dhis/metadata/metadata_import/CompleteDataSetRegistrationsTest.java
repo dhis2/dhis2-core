@@ -135,6 +135,7 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
             }
           ]
         }
-        """.formatted(dataSet, period, orgUnit);
+        """
+        .formatted(dataSet, period, orgUnit);
   }
 }
