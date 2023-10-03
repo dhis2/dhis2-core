@@ -107,15 +107,16 @@ class Property {
         (method, field) -> add.accept(new Property(method, field));
 
     Map<String, Field> propertyFields = new HashMap<>();
-    fieldsIn(object)
-        .filter(Property::isProperty)
-        .forEach(field -> propertyFields.putIfAbsent(getPropertyName(field), field));
+    fieldsIn(object).forEach(field -> propertyFields.putIfAbsent(getPropertyName(field), field));
     Set<String> ignoredFields =
         propertyFields.values().stream()
             .filter(f -> f.isAnnotationPresent(OpenApi.Ignore.class))
             .map(Property::getPropertyName)
             .collect(Collectors.toSet());
-    propertyFields.values().stream().filter(Property::isExplicitlyIncluded).forEach(addField);
+    propertyFields.values().stream()
+        .filter(Property::isProperty)
+        .filter(Property::isExplicitlyIncluded)
+        .forEach(addField);
     methodsIn(object)
         .filter(method -> Property.isGetter(method) || Property.isSetter(method))
         .filter(Property::isExplicitlyIncluded)
@@ -207,7 +208,10 @@ class Property {
   @SuppressWarnings("java:S3011")
   private static Object defaultValue(Field source) {
     if (source == null) return null;
-    OpenApi.Property property = source.getAnnotation(OpenApi.Property.class);
+    OpenApi.Property oapiProperty = source.getAnnotation(OpenApi.Property.class);
+    if (oapiProperty != null && !oapiProperty.defaultValue().isEmpty())
+      return oapiProperty.defaultValue();
+    JsonProperty property = source.getAnnotation(JsonProperty.class);
     if (property != null && !property.defaultValue().isEmpty()) return property.defaultValue();
     try {
       Object obj = source.getDeclaringClass().getConstructor().newInstance();
