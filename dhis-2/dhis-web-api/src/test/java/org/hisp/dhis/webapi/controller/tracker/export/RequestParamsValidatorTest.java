@@ -56,12 +56,12 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /** Tests {@link RequestParamsValidator}. */
 class RequestParamsValidatorTest {
@@ -72,17 +72,7 @@ class RequestParamsValidatorTest {
 
   public static final String TEA_3_UID = "cy2oRh2sNr7";
 
-  private Map<String, TrackedEntityAttribute> attributes;
-
   private static final OrganisationUnit orgUnit = new OrganisationUnit();
-
-  @BeforeEach
-  void setUp() {
-    attributes =
-        Map.of(
-            TEA_1_UID, trackedEntityAttribute(TEA_1_UID),
-            TEA_2_UID, trackedEntityAttribute(TEA_2_UID));
-  }
 
   @Test
   void shouldPassOrderParamsValidationWhenGivenOrderIsOrderable() throws BadRequestException {
@@ -381,8 +371,11 @@ class RequestParamsValidatorTest {
     paginationParameters.setTotalPages(totalPages);
     paginationParameters.setSkipPaging(skipPaging);
 
-    assertThrows(
-        BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
+    Exception exception =
+        assertThrows(
+            BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
+
+    assertStartsWith("Paging cannot be skipped with", exception.getMessage());
   }
 
   private static Stream<Arguments> validPaginationParameters() {
@@ -410,6 +403,50 @@ class RequestParamsValidatorTest {
     paginationParameters.setPage(pageSize);
     paginationParameters.setTotalPages(totalPages);
     paginationParameters.setSkipPaging(skipPaging);
+
+    validatePaginationParameters(paginationParameters);
+  }
+
+  @ValueSource(ints = {-1, 0})
+  @ParameterizedTest
+  void shouldFailWhenGivenPageLessThanOrEqualToZero(int page) {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPage(page);
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
+
+    assertStartsWith("page must be greater", exception.getMessage());
+  }
+
+  @ValueSource(ints = {1, 2})
+  @ParameterizedTest
+  void shouldPassWhenGivenPageGreaterThanOrEqualToOne(int page) throws BadRequestException {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPage(page);
+
+    validatePaginationParameters(paginationParameters);
+  }
+
+  @ValueSource(ints = {-1, 0})
+  @ParameterizedTest
+  void shouldFailWhenGivenPageSizeLessThanOrEqualToZero(int pageSize) {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPageSize(pageSize);
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
+
+    assertStartsWith("pageSize must be greater", exception.getMessage());
+  }
+
+  @ValueSource(ints = {1, 2})
+  @ParameterizedTest
+  void shouldPassWhenGivenPageSizeGreaterThanOrEqualToOne(int pageSize) throws BadRequestException {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPageSize(pageSize);
 
     validatePaginationParameters(paginationParameters);
   }

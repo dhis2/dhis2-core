@@ -158,9 +158,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + ","
             + "lastupdatedbydisplayname"
             + ",lastupdated,duedate,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,"
-            + "longitude,latitude,ouname,ounamehierarchy,oucode,pistatus,psistatus,ax.\"monthly\",ax.\"ou\"  from "
+            + "longitude,latitude,ouname,ounamehierarchy,oucode,pistatus,psistatus,ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"monthly\" in ('2000Q1') )and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
 
     assertThat(sql.getValue(), is(expected));
   }
@@ -220,12 +220,12 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + "lastupdatedbydisplayname"
             + ",lastupdated,duedate,enrollmentdate,"
             + "incidentdate,tei,pi,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,oucode,pistatus,"
-            + "psistatus,ax.\"monthly\",ax.\"ou\",\""
+            + "psistatus,ax.\"quarterly\",ax.\"ou\",\""
             + dataElement.getUid()
             + "_name"
             + "\"  from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"monthly\" in ('2000Q1') )and ax.\"uidlevel1\" in ('ouabcdefghA')"
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA')"
             + " limit 101";
 
     assertThat(sql.getValue(), is(expected));
@@ -243,9 +243,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "ax.\"monthly\",ax.\"ou\"  from "
+        "ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"monthly\" in ('2000Q1') )and ax.\"uidlevel1\" in ('ouabcdefghA') ";
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') ";
 
     assertSql(expected, sql.getValue());
     assertTrue(grid.hasLastDataRow());
@@ -260,9 +260,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "ax.\"monthly\",ax.\"ou\"  from "
+        "ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"monthly\" in ('2000Q1') )and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
             + "' limit 101";
 
@@ -278,9 +278,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from "
+        "ax.\"quarterly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"monthly\" in ('2000Q1') )and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
             + "' limit 101";
 
@@ -297,9 +297,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from "
+        "ax.\"quarterly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"monthly\" in ('2000Q1') )and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
             + "' and ax.\"fWIAEtYVEGk\" > '10' limit 101";
 
@@ -315,9 +315,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "ax.\"monthly\",ax.\"ou\"  from "
+        "ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"monthly\" in ('2000Q1') )and ax.\"uidlevel1\" in ('ouabcdefghA')"
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA')"
             + " and pistatus in ('ACTIVE','COMPLETED') and psistatus in ('SCHEDULE') limit 101";
 
     assertSql(expected, sql.getValue());
@@ -332,10 +332,10 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "ps.\"monthly\",ax.\"ou\"  from "
+        "ps.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
             + " as ax left join _dateperiodstructure as ps on cast(ax.\"duedate\" as date) = ps.\"dateperiod\" "
-            + "where (ps.\"monthly\" in ('2000Q1') )and ax.\"uidlevel1\" "
+            + "where (ps.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" "
             + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') limit 101";
 
     assertSql(expected, sql.getValue());
@@ -350,10 +350,10 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "ax.\"monthly\",ax.\"ou\"  from "
+        "ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
             + " as ax "
-            + "where ((( ax.\"lastupdated\" >= '2000-01-01' and ax.\"lastupdated\" < '2000-04-01') ))and ax.\"uidlevel1\" "
+            + "where ((( ax.\"lastupdated\" >= '2000-01-01' and ax.\"lastupdated\" < '2000-04-01') )) and ax.\"uidlevel1\" "
             + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') limit 101";
 
     assertSql(expected, sql.getValue());
@@ -436,9 +436,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from "
+        "ax.\"quarterly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"monthly\" in ('2000Q1') )and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
             + "' limit 101";
 
@@ -455,9 +455,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from "
+        "ax.\"quarterly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"monthly\" in ('2000Q1') )and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
             + "' and ax.\"fWIAEtYVEGk\" > '10' limit 101";
 
@@ -477,18 +477,18 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(resultGrid.getRows(), hasSize(1));
     assertThat(resultGrid.getRow(0), hasSize(4));
     assertThat(resultGrid.getRow(0).get(0), is("2000"));
-    assertThat(resultGrid.getRow(0).get(1), is("201701"));
+    assertThat(resultGrid.getRow(0).get(1), is("2017Q1"));
     assertThat(resultGrid.getRow(0).get(2), is("Sierra Leone"));
     assertThat(resultGrid.getRow(0).get(3), is(100));
 
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from "
+        "select count(ax.\"psi\") as value,ax.\"quarterly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"monthly\" in ('2000Q1') )and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
-            + "' group by ax.\"monthly\", ax.\"ou\", ax.\"fWIAEtYVEGk\" limit 200001";
+            + "' group by ax.\"quarterly\", ax.\"ou\", ax.\"fWIAEtYVEGk\" limit 200001";
 
     assertThat(sql.getValue(), is(expected));
   }
@@ -507,18 +507,18 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(resultGrid.getRows(), hasSize(1));
     assertThat(resultGrid.getRow(0), hasSize(4));
     assertThat(resultGrid.getRow(0).get(0), is("2000"));
-    assertThat(resultGrid.getRow(0).get(1), is("201701"));
+    assertThat(resultGrid.getRow(0).get(1), is("2017Q1"));
     assertThat(resultGrid.getRow(0).get(2), is("Sierra Leone"));
     assertThat(resultGrid.getRow(0).get(3), is(100));
 
     verify(jdbcTemplate).queryForRowSet(sql.capture());
     String expected =
-        "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from "
+        "select count(ax.\"psi\") as value,ax.\"quarterly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"monthly\" in ('2000Q1') )and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
             + "' and ax.\"fWIAEtYVEGk\" > '10'"
-            + " group by ax.\"monthly\", ax.\"ou\", ax.\"fWIAEtYVEGk\" limit 200001";
+            + " group by ax.\"quarterly\", ax.\"ou\", ax.\"fWIAEtYVEGk\" limit 200001";
     assertThat(sql.getValue(), is(expected));
   }
 
@@ -647,7 +647,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     String expectedFirstOrLastSubquery =
         "from (select \"psi\",ax.\""
             + deU.getUid()
-            + "\",\"monthly\",\"ou\","
+            + "\",\"quarterly\",\"ou\","
             + "row_number() over (partition by ax.\"ou\",ax.\"ao\" order by ax.\"executiondate\" "
             + order
             + ", ax.\"created\" "
@@ -683,7 +683,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     // Simulate one row only
     when(rowSet.next()).thenReturn(true).thenReturn(false);
 
-    when(rowSet.getString("monthly")).thenReturn("201701");
+    when(rowSet.getString("quarterly")).thenReturn("2017Q1");
     when(rowSet.getString("ou")).thenReturn("Sierra Leone");
     when(rowSet.getInt("value")).thenReturn(100);
   }
