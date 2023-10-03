@@ -104,7 +104,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     String pmSelect = "(select id from programmessage where eventid in " + eventSelect + " )";
 
     /*
-     * Delete event values, event value audits, event comments, events
+     * Delete event values, event value audits, event notes, events
      *
      */
     String[] sqlStmts =
@@ -116,7 +116,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
               + pmSelect,
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + pmSelect,
-          // delete related events comments
+          // delete related events notes
           "delete from event_notes where eventid in " + eventSelect,
           "delete from note where noteid not in (select noteid from event_notes union all select noteid from enrollment_notes)",
           // delete other objects related to events
@@ -182,8 +182,8 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
         "(select id from programmessage where enrollmentid in " + enrollmentSelect + " )";
 
     /*
-     * Delete event values, event value audits, event comments, events,
-     * enrollment comments, enrollments
+     * Delete event values, event value audits, event notes, events,
+     * enrollment notes, enrollments
      *
      */
     String[] sqlStmts =
@@ -195,7 +195,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
               + pmSelect,
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + pmSelect,
-          // delete comments linked to both enrollments and events
+          // delete notes linked to both enrollments and events
           "delete from event_notes where eventid in " + eventSelect,
           "delete from enrollment_notes where enrollmentid in " + enrollmentSelect,
           "delete from note where noteid not in (select noteid from event_notes union all select noteid from enrollment_notes)",
@@ -254,8 +254,8 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     String eventPmSelect = "(select id from programmessage where eventid in " + eventSelect + " )";
 
     /*
-     * Delete event values, event audits, event comments, events, enrollment
-     * comments, enrollments, te attribute values, te attribute value
+     * Delete event values, event audits, event notes, events, enrollment
+     * notes, enrollments, te attribute values, te attribute value
      * audits, tes
      *
      */
@@ -282,7 +282,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
               + eventPmSelect,
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + eventPmSelect,
-          // delete comments related to any obsolete enrollments or events
+          // delete notes related to any obsolete enrollments or events
           "delete from event_notes where eventid in " + eventSelect,
           "delete from enrollment_notes where enrollmentid in " + enrollmentSelect,
           "delete from note where noteid not in (select noteid from event_notes union all select noteid from enrollment_notes)",

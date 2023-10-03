@@ -37,7 +37,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.note.Note;
+import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -63,6 +66,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Autowired private ProgramStageService programStageService;
 
   @Autowired private EventService eventService;
+
+  @Autowired NoteService noteService;
 
   private Date incidentDate;
 
@@ -293,5 +298,25 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentService.cancelEnrollmentStatus(enrollmentD);
     assertEquals(ProgramStatus.CANCELLED, enrollmentService.getEnrollment(idA).getStatus());
     assertEquals(ProgramStatus.CANCELLED, enrollmentService.getEnrollment(idD).getStatus());
+  }
+
+  @Test
+  void shouldNoteDeleteNoteWhenDeletingEnrollment() {
+
+    Note note = new Note();
+    note.setCreator(CodeGenerator.generateUid());
+    note.setNoteText("text");
+    noteService.addNote(note);
+
+    enrollmentA.setNotes(List.of(note));
+
+    enrollmentService.addEnrollment(enrollmentA);
+
+    assertNotNull(enrollmentService.getEnrollment(enrollmentA.getUid()));
+
+    enrollmentService.deleteEnrollment(enrollmentA);
+
+    assertNull(enrollmentService.getEnrollment(enrollmentA.getUid()));
+    assertTrue(noteService.noteExists(note.getUid()));
   }
 }
