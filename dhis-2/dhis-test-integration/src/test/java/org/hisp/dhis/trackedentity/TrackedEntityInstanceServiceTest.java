@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.ENROLLED_AT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -604,7 +605,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
     params.setOrganisationUnits(Set.of(organisationUnit));
-    params.setOrders(List.of(new OrderParam("enrolledAt", SortDirection.DESC)));
+    params.setOrders(List.of(new OrderParam(ENROLLED_AT.getPropName(), SortDirection.DESC)));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -615,6 +616,34 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
             entityInstanceC1.getId(),
             entityInstanceA1.getId()),
         teiIdList);
+  }
+
+  @Test
+  void
+      shouldOrderEntitiesByEnrolledAtDateAndAttributeValueWhenOrderHasAttributeAndEnrollmentDate() {
+    injectSecurityContext(superUser);
+    TrackedEntityAttribute tea = createTrackedEntityAttribute();
+
+    addEntityInstances();
+
+    programInstanceService.addProgramInstance(programInstance);
+    addEnrollment(entityInstanceB1, programInstance.getEnrollmentDate(), 'B');
+
+    // enrollments have the same enrollment date but different attribute value
+    createTrackedEntityInstanceAttribute(entityInstanceA1, tea, "B");
+    createTrackedEntityInstanceAttribute(entityInstanceB1, tea, "A");
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+    params.setOrganisationUnits(Set.of(organisationUnit));
+    params.setOrders(
+        List.of(
+            new OrderParam(ENROLLED_AT.getPropName(), SortDirection.DESC),
+            new OrderParam(tea.getUid(), SortDirection.DESC)));
+
+    List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
+
+    assertEquals(List.of(entityInstanceA1.getId(), entityInstanceB1.getId()), teiIdList);
   }
 
   @Test
@@ -637,7 +666,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     params.setOrders(
         List.of(
             new OrderParam("inactive", SortDirection.DESC),
-            new OrderParam("enrolledAt", SortDirection.DESC)));
+            new OrderParam(ENROLLED_AT.getPropName(), SortDirection.DESC)));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
