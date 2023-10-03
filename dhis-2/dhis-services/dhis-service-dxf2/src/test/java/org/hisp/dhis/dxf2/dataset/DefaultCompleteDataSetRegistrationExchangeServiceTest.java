@@ -273,7 +273,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
       when(categoryService.getDefaultCategoryOptionCombo()).thenReturn(DEFAULT_COC);
       when(batchHandlerFactory.createBatchHandler(CompleteDataSetRegistrationBatchHandler.class))
           .thenReturn(batchHandler);
-      
+
       // call method under test
       ImportSummary summary =
           subject.saveCompleteDataSetRegistrationsJson(

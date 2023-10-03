@@ -108,36 +108,33 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
   }
 
   private String dataSetWithOrgUnit(String orgUnit) {
-    return "{\n"
-        + "    \"name\": \"test ds 1\",\n"
-        + "    \"shortName\": \"test ds 1\",\n"
-        + "    \"periodType\": \"Daily\",\n"
-        + "    \"organisationUnits\": [\n"
-        + "        {\n"
-        + "            \"id\": \""
-        + orgUnit
-        + "\"\n"
-        + "        }\n"
-        + "    ]\n"
-        + "}";
+    return """
+        {
+          "name": "test ds 1",
+          "shortName": "test ds 1",
+          "periodType": "Daily",
+          "organisationUnits": [
+            {
+              "id": "%s"
+            }
+          ]
+        }
+        """
+        .formatted(orgUnit);
   }
 
   private String completeDataSet(String dataSet, String period, String orgUnit) {
-    return "{\n"
-        + "    \"completeDataSetRegistrations\": [\n"
-        + "        {\n"
-        + "            \"dataSet\": \""
-        + dataSet
-        + "\",\n"
-        + "            \"period\": \""
-        + period
-        + "\",\n"
-        + "            \"organisationUnit\": \""
-        + orgUnit
-        + "\",\n"
-        + "            \"completed\": \"true\""
-        + "        }\n"
-        + "    ]\n"
-        + "}";
+    return """
+        {
+          "completeDataSetRegistrations": [
+            {
+              "dataSet": "%s",
+              "period": "%s",
+              "organisationUnit": "%s",
+              "completed": "true"
+            }
+          ]
+        }
+        """.formatted(dataSet, period, orgUnit);
   }
 }
