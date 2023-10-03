@@ -204,7 +204,7 @@ public class RecordingJobProgress implements JobProgress {
     tracker.startingStage(description, workItems);
     Stage stage =
         addStageRecord(getOrAddLastIncompleteProcess(), description, workItems, onFailure);
-    logInfo(stage, "started", description);
+    logInfo(stage, "", description);
   }
 
   @Override
@@ -431,13 +431,9 @@ public class RecordingJobProgress implements JobProgress {
                 + Duration.ofMillis(source.getDuration()).toString().substring(2).toLowerCase()
             : "";
     String msg = message == null ? "" : ": " + message;
+    String type = source instanceof Stage ? "" : source.getClass().getSimpleName() + " ";
     return format(
-        "[%s %s] %s %s%s%s",
-        configuration.getJobType().name(),
-        configuration.getUid(),
-        source.getClass().getSimpleName(),
-        action,
-        duration,
-        msg);
+        "[%s %s] %s%s%s%s",
+        configuration.getJobType().name(), configuration.getUid(), type, action, duration, msg);
   }
 }
