@@ -36,38 +36,16 @@ public interface NoteService {
   /**
    * Adds an {@link Note}
    *
-   * @param comment The to TrackedEntityComment add.
+   * @param note The Note to add.
    * @return A generated unique id of the added {@link Note}.
    */
-  long addTrackedEntityComment(Note comment);
+  void addNote(Note note);
 
   /**
-   * Deletes a {@link Note}.
+   * Checks for the existence of a Note by UID.
    *
-   * @param comment the TrackedEntityComment to delete.
-   */
-  void deleteTrackedEntityComment(Note comment);
-
-  /**
-   * Checks for the existence of a TrackedEntityComment by UID.
-   *
-   * @param uid TrackedEntityComment UID to check for
+   * @param uid Note UID to check for
    * @return true/false depending on result
    */
-  boolean trackedEntityCommentExists(String uid);
-
-  /**
-   * Updates an {@link Note}.
-   *
-   * @param comment the TrackedEntityComment to update.
-   */
-  void updateTrackedEntityComment(Note comment);
-
-  /**
-   * Returns a {@link Note}.
-   *
-   * @param id the id of the TrackedEntityComment to return.
-   * @return the TrackedEntityComment with the given id
-   */
-  Note getTrackedEntityComment(long id);
+  boolean noteExists(String uid);
 }

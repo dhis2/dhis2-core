@@ -37,7 +37,6 @@ import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -341,12 +340,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
-    if (!params.hasProgram()) {
-      Collection<TrackedEntityAttribute> attributes =
-          trackedEntityAttributeService.getTrackedEntityAttributesDisplayInListNoProgram();
-      attributes.forEach(params::filterBy);
-    }
-
     decideAccess(params);
     validate(params);
     validateSearchScope(params);

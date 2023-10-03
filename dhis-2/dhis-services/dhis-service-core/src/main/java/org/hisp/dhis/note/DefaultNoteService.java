@@ -45,33 +45,13 @@ public class DefaultNoteService implements NoteService {
 
   @Override
   @Transactional
-  public long addTrackedEntityComment(Note comment) {
+  public void addNote(Note comment) {
     commentStore.save(comment);
-
-    return comment.getId();
-  }
-
-  @Override
-  @Transactional
-  public void deleteTrackedEntityComment(Note comment) {
-    commentStore.delete(comment);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public boolean trackedEntityCommentExists(String uid) {
+  public boolean noteExists(String uid) {
     return commentStore.exists(uid);
-  }
-
-  @Override
-  @Transactional
-  public void updateTrackedEntityComment(Note comment) {
-    commentStore.update(comment);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Note getTrackedEntityComment(long id) {
-    return commentStore.get(id);
   }
 }
