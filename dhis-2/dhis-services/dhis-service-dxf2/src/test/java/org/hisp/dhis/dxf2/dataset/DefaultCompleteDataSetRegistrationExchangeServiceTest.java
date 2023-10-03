@@ -258,7 +258,6 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
       when(aclService.canDataWrite(user, categoryOptionA)).thenReturn(false);
       when(aclService.canDataWrite(user, categoryOptionB)).thenReturn(true);
 
-      when(notifier.clear(null)).thenReturn(notifier);
       when(systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_PERIODS))
           .thenReturn(false);
       when(systemSettingManager.getBoolSetting(
