@@ -86,7 +86,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     assertEquals(
         currentUserService.getCurrentUser().getUid(), response.getString("userUid").string());
     assertEquals(
-        String.format(contextService.getApiPath() + "/icons/%s/icon", fileResourceId),
+        String.format(contextService.getApiPath() + "/icons/%s/icon", iconKey),
         response.getString("href").string());
   }
 
