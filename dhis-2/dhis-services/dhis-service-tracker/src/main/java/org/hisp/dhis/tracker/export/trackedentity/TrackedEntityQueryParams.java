@@ -32,7 +32,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,6 +41,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -363,6 +363,16 @@ public class TrackedEntityQueryParams {
     return (getPageWithDefault() - 1) * getPageSizeWithDefault();
   }
 
+  /** Returns attributes that are either ordered by or present in any filter. */
+  public Set<TrackedEntityAttribute> getAttributes() {
+    return SetUtils.union(filters.keySet(), getOrderAttributes());
+  }
+
+  /** Returns attributes that are only ordered by and not present in any filter. */
+  public Set<TrackedEntityAttribute> getLeftJoinAttributes() {
+    return SetUtils.difference(getOrderAttributes(), filters.keySet());
+  }
+
   public Map<TrackedEntityAttribute, List<QueryFilter>> getFilters() {
     return filters;
   }
@@ -617,18 +627,11 @@ public class TrackedEntityQueryParams {
   }
 
   /**
-   * Filter out Tracked Entity that have no value for the given tracked entity attribute {@code
-   * tea}. A filter without an operator is represented as a list with one null value to
-   * differentiate it from a filter created by an order clause that is represented by an empty list.
-   * A filter without an operator will overwrite a filter created by the order clause. A filter
-   * without an operator will not have any effect if another filter on the same attribute is already
-   * present.
+   * Filter out any tracked entity that have no value for the given tracked entity attribute {@code
+   * tea}.
    */
   public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea) {
-    this.filters.putIfAbsent(tea, Collections.singletonList(null));
-    if (this.filters.get(tea).isEmpty()) {
-      this.filters.get(tea).add(null);
-    }
+    this.filters.putIfAbsent(tea, new ArrayList<>());
     return this;
   }
 
@@ -645,12 +648,18 @@ public class TrackedEntityQueryParams {
    */
   public TrackedEntityQueryParams orderBy(TrackedEntityAttribute tea, SortDirection direction) {
     this.order.add(new Order(tea, direction));
-    this.filters.putIfAbsent(tea, new ArrayList<>());
     return this;
   }
 
   public List<Order> getOrder() {
     return order;
+  }
+
+  private Set<TrackedEntityAttribute> getOrderAttributes() {
+    return order.stream()
+        .filter(o -> o.getField() instanceof TrackedEntityAttribute)
+        .map(o -> (TrackedEntityAttribute) o.getField())
+        .collect(Collectors.toSet());
   }
 
   public Set<String> getTrackedEntityUids() {

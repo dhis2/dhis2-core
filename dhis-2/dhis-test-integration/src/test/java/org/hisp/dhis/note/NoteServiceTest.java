@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.note;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -43,60 +40,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 class NoteServiceTest extends IntegrationTestBase {
   @Autowired private NoteService noteService;
 
-  private Note commentA;
+  private Note noteA;
 
-  private Note commentB;
+  private Note noteB;
 
   @Override
   public void setUpTest() {
-    commentA = new Note("A", "Test");
-    commentA.setUid(CodeGenerator.generateUid());
-    commentB = new Note("B", "Test");
-    commentB.setUid(CodeGenerator.generateUid());
+    noteA = new Note("A", "Test");
+    noteA.setUid(CodeGenerator.generateUid());
+    noteB = new Note("B", "Test");
+    noteB.setUid(CodeGenerator.generateUid());
   }
 
   @Test
   void testSaveTrackedEntityComment() {
-    long idA = noteService.addTrackedEntityComment(commentA);
-    long idB = noteService.addTrackedEntityComment(commentB);
-    assertNotNull(noteService.getTrackedEntityComment(idA));
-    assertNotNull(noteService.getTrackedEntityComment(idB));
-  }
+    noteService.addNote(noteA);
+    noteService.addNote(noteB);
 
-  @Test
-  void testDeleteTrackedEntityComment() {
-    long idA = noteService.addTrackedEntityComment(commentA);
-    long idB = noteService.addTrackedEntityComment(commentB);
-    assertNotNull(noteService.getTrackedEntityComment(idA));
-    assertNotNull(noteService.getTrackedEntityComment(idB));
-    noteService.deleteTrackedEntityComment(commentA);
-    assertNull(noteService.getTrackedEntityComment(idA));
-    assertNotNull(noteService.getTrackedEntityComment(idB));
-    noteService.deleteTrackedEntityComment(commentB);
-    assertNull(noteService.getTrackedEntityComment(idA));
-    assertNull(noteService.getTrackedEntityComment(idB));
-  }
-
-  @Test
-  void testUpdateTrackedEntityComment() {
-    long idA = noteService.addTrackedEntityComment(commentA);
-    assertNotNull(noteService.getTrackedEntityComment(idA));
-    commentA.setNoteText("B");
-    noteService.updateTrackedEntityComment(commentA);
-    assertEquals("B", noteService.getTrackedEntityComment(idA).getNoteText());
-  }
-
-  @Test
-  void testGetTrackedEntityCommentById() {
-    long idA = noteService.addTrackedEntityComment(commentA);
-    long idB = noteService.addTrackedEntityComment(commentB);
-    assertEquals(commentA, noteService.getTrackedEntityComment(idA));
-    assertEquals(commentB, noteService.getTrackedEntityComment(idB));
+    assertTrue(noteService.noteExists(noteA.getUid()));
+    assertTrue(noteService.noteExists(noteB.getUid()));
   }
 
   @Test
   void testCommentExists() {
-    noteService.addTrackedEntityComment(commentA);
-    assertTrue(noteService.trackedEntityCommentExists(commentA.getUid()));
+    noteService.addNote(noteA);
+    assertTrue(noteService.noteExists(noteA.getUid()));
   }
 }
