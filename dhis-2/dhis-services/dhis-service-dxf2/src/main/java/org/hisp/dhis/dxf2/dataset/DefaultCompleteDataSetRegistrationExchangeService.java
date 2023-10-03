@@ -235,9 +235,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       CompleteDataSetRegistrations completeDataSetRegistrations =
           new StreamingXmlCompleteDataSetRegistrations(XMLFactory.getXMLReader(in));
 
-      return saveCompleteDataSetRegistrations(importOptions, jobId, completeDataSetRegistrations);
+      return saveCompleteDataSetRegistrations(importOptions, completeDataSetRegistrations);
     } catch (Exception ex) {
-      return handleImportError(jobId, ex);
+      return handleImportError(ex);
     }
   }
 
@@ -258,9 +258,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       CompleteDataSetRegistrations completeDataSetRegistrations =
           jsonMapper.readValue(in, CompleteDataSetRegistrations.class);
 
-      return saveCompleteDataSetRegistrations(importOptions, jobId, completeDataSetRegistrations);
+      return saveCompleteDataSetRegistrations(importOptions, completeDataSetRegistrations);
     } catch (Exception ex) {
-      return handleImportError(jobId, ex);
+      return handleImportError(ex);
     }
   }
 
@@ -361,15 +361,13 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
   }
 
-  private ImportSummary handleImportError(JobConfiguration jobId, Throwable ex) {
+  private ImportSummary handleImportError(Throwable ex) {
     log.error(DebugUtils.getStackTrace(ex));
     return new ImportSummary(ImportStatus.ERROR, "The import process failed: " + ex.getMessage());
   }
 
   private ImportSummary saveCompleteDataSetRegistrations(
-      ImportOptions importOptions,
-      JobConfiguration id,
-      CompleteDataSetRegistrations completeRegistrations) {
+      ImportOptions importOptions, CompleteDataSetRegistrations completeRegistrations) {
     Clock clock =
         new Clock(log).startClock().logTime("Starting complete data set registration import");
 
