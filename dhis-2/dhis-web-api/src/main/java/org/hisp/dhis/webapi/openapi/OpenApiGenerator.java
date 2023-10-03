@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Double.parseDouble;
+import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toCollection;
@@ -584,7 +585,8 @@ public class OpenApiGenerator extends JsonGenerator {
     if (defaultValue != null) {
       switch (type) {
         case "string" -> addStringMember("default", defaultValue);
-        case "number", "integer" -> addNumberMember("default", parseDouble(defaultValue));
+        case "integer" -> addNumberMember("default", parseInt(defaultValue));
+        case "number" -> addNumberMember("default", parseDouble(defaultValue));
         case "boolean" -> addBooleanMember("default", parseBoolean(defaultValue));
         default -> log.warn(
             "Unsupported default value provided for type %s of %s: %s"

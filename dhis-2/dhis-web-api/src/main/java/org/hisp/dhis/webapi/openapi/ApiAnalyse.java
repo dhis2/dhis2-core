@@ -344,10 +344,9 @@ final class ApiAnalyse {
         boolean required = param == null ? a.required() : param.required();
         Api.Schema type = analyseParamSchema(endpoint, p.getParameterizedType(), a.value());
         if (in != Api.Parameter.In.BODY) {
+          String fallbackDefaultValue = param != null ? param.defaultValue() : null;
           String defaultValue =
-              !a.defaultValue().isEmpty()
-                  ? a.defaultValue()
-                  : param != null ? param.defaultValue() : null;
+              !a.defaultValue().isEmpty() ? a.defaultValue() : fallbackDefaultValue;
           endpoint
               .getParameters()
               .computeIfAbsent(

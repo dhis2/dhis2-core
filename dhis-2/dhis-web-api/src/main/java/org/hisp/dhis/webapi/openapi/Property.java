@@ -39,11 +39,15 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -51,7 +55,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.hisp.dhis.common.OpenApi;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Extracts the properties of "record" like objects.
@@ -75,16 +78,20 @@ class Property {
 
   private Property(Field f) {
     this(
-        getName(f), getType(f, f.getGenericType()), f, isRequired(f, f.getType()), defaultValue(f));
+        getPropertyName(f),
+        getType(f, f.getGenericType()),
+        f,
+        isRequired(f, f.getType()),
+        defaultValue(f));
   }
 
-  private Property(Method m) {
+  private Property(Method m, Field f) {
     this(
-        getName(m),
+        getPropertyName(m),
         getType(m, isSetter(m) ? m.getGenericParameterTypes()[0] : m.getGenericReturnType()),
         m,
         isRequired(m, m.getReturnType()),
-        null);
+        defaultValue(f));
   }
 
   static Collection<Property> getProperties(Class<?> in) {
@@ -96,65 +103,68 @@ class Property {
     Map<String, Property> properties = new TreeMap<>();
     Consumer<Property> add = property -> properties.putIfAbsent(property.name, property);
     Consumer<Field> addField = field -> add.accept(new Property(field));
-    Consumer<Method> addMethod = method -> add.accept(new Property(method));
+    BiConsumer<Method, Field> addMethod =
+        (method, field) -> add.accept(new Property(method, field));
 
-    fieldsIn(object).filter(Property::isProperty).filter(Property::isIncluded).forEach(addField);
+    Map<String, Field> propertyFields = new HashMap<>();
+    fieldsIn(object)
+        .filter(Property::isProperty)
+        .forEach(field -> propertyFields.putIfAbsent(getPropertyName(field), field));
+    Set<String> ignoredFields =
+        propertyFields.values().stream()
+            .filter(f -> f.isAnnotationPresent(OpenApi.Ignore.class))
+            .map(Property::getPropertyName)
+            .collect(Collectors.toSet());
+    propertyFields.values().stream().filter(Property::isExplicitlyIncluded).forEach(addField);
     methodsIn(object)
-        .filter(o -> Property.isAccessor(o) || Property.isSetter(o))
-        .filter(Property::isIncluded)
-        .forEach(addMethod);
+        .filter(method -> Property.isGetter(method) || Property.isSetter(method))
+        .filter(Property::isExplicitlyIncluded)
+        .filter(method -> !ignoredFields.contains(getPropertyName(method)))
+        .forEach(method -> addMethod.accept(method, propertyFields.get(getPropertyName(method))));
     if (properties.isEmpty() || object.isAnnotationPresent(OpenApi.Property.class)) {
-      methodsIn(object).filter(Property::isAccessor).forEach(addMethod);
+      methodsIn(object)
+          .filter(Property::isGetter)
+          .filter(method -> !ignoredFields.contains(getPropertyName(method)))
+          .forEach(method -> addMethod.accept(method, propertyFields.get(getPropertyName(method))));
     }
     return List.copyOf(properties.values());
   }
 
   private static boolean isProperty(Field source) {
-    return !isExcluded(source);
+    return !isExplicitlyExcluded(source);
   }
 
   private static boolean isSetter(Method source) {
     String name = source.getName();
-    boolean isSetter =
-        !isExcluded(source)
-            && source.getParameterCount() == 1
-            && name.startsWith("set")
-            && name.length() > 3
-            && isUpperCase(name.charAt(3));
-
-    if (isSetter) {
-      Field field =
-          ReflectionUtils.findField(
-              source.getDeclaringClass(),
-              name.substring(3, 4).toLowerCase() + name.substring(4),
-              source.getParameterTypes()[0]);
-      return field == null || !field.isAnnotationPresent(OpenApi.Ignore.class);
-    }
-
-    return false;
+    return !isExplicitlyExcluded(source)
+        && source.getParameterCount() == 1
+        && name.startsWith("set")
+        && name.length() > 3
+        && isUpperCase(name.charAt(3));
   }
 
-  private static boolean isAccessor(Method source) {
+  private static boolean isGetter(Method source) {
     String name = source.getName();
-    return !isExcluded(source)
+    return !isExplicitlyExcluded(source)
         && source.getParameterCount() == 0
         && source.getReturnType() != void.class
-        && Stream.of("is", "has", "get")
-            .anyMatch(
-                prefix ->
-                    name.startsWith(prefix)
-                        && name.length() > prefix.length()
-                        && isUpperCase(name.charAt(prefix.length())));
+        && Stream.of("is", "has", "get").anyMatch(prefix -> isGetterPrefix(name, prefix));
   }
 
-  private static <T extends Member & AnnotatedElement> boolean isExcluded(T source) {
+  private static boolean isGetterPrefix(String name, String prefix) {
+    return name.startsWith(prefix)
+        && name.length() > prefix.length()
+        && isUpperCase(name.charAt(prefix.length()));
+  }
+
+  private static <T extends Member & AnnotatedElement> boolean isExplicitlyExcluded(T source) {
     return source.isSynthetic()
         || isStatic(source.getModifiers())
         || source.isAnnotationPresent(OpenApi.Ignore.class)
         || source.isAnnotationPresent(JsonIgnore.class);
   }
 
-  private static boolean isIncluded(AnnotatedElement source) {
+  private static boolean isExplicitlyIncluded(AnnotatedElement source) {
     return source.isAnnotationPresent(JsonProperty.class)
         || source.isAnnotationPresent(OpenApi.Property.class);
   }
@@ -171,7 +181,7 @@ class Property {
     return type;
   }
 
-  private static <T extends Member & AnnotatedElement> String getName(T member) {
+  private static <T extends Member & AnnotatedElement> String getPropertyName(T member) {
     String name = member.getName();
     if (member instanceof Method) {
       String prop = name.substring(name.startsWith("is") ? 2 : 3);
@@ -196,6 +206,7 @@ class Property {
 
   @SuppressWarnings("java:S3011")
   private static Object defaultValue(Field source) {
+    if (source == null) return null;
     OpenApi.Property property = source.getAnnotation(OpenApi.Property.class);
     if (property != null && !property.defaultValue().isEmpty()) return property.defaultValue();
     try {
