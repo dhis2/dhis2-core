@@ -36,6 +36,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
+import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.joda.time.DateTime;
@@ -52,11 +53,14 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
 
   private Period peC;
 
+  private Period peD;
+
   @BeforeEach
   void before() {
     peA = new MonthlyPeriodType().createPeriod(new DateTime(2022, 4, 1, 0, 0).toDate());
     peB = new MonthlyPeriodType().createPeriod(new DateTime(2022, 5, 1, 0, 0).toDate());
     peC = new MonthlyPeriodType().createPeriod(new DateTime(2022, 6, 1, 0, 0).toDate());
+    peD = new DailyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate());
   }
 
   @Test
@@ -76,7 +80,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
 
     // Then
     assertEquals(
-        "(ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-05-01'orax.\"executiondate\">='2022-06-01'andax.\"executiondate\"<'2022-07-01')",
+        "((ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-05-01'orax.\"executiondate\">='2022-06-01'andax.\"executiondate\"<'2022-07-01'))",
         timeFieldSqlRenderer.renderTimeFieldSql(params).replace(" ", ""));
   }
 
@@ -97,7 +101,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
 
     // Then
     assertEquals(
-        "ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-07-01'",
+        "(ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-07-01')",
         timeFieldSqlRenderer.renderTimeFieldSql(params).replace(" ", ""));
   }
 
@@ -118,7 +122,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
 
     // Then
     assertEquals(
-        "(enrollmentdate>='2022-04-01'andenrollmentdate<'2022-05-01'orenrollmentdate>='2022-06-01'andenrollmentdate<'2022-07-01')",
+        "((enrollmentdate>='2022-04-01'andenrollmentdate<'2022-05-01'orenrollmentdate>='2022-06-01'andenrollmentdate<'2022-07-01'))",
         timeFieldSqlRenderer.renderTimeFieldSql(params).replace(" ", ""));
   }
 
@@ -139,7 +143,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
 
     // Then
     assertEquals(
-        "enrollmentdate>='2022-04-01'andenrollmentdate<'2022-07-01'",
+        "(enrollmentdate>='2022-04-01'andenrollmentdate<'2022-07-01')",
         timeFieldSqlRenderer.renderTimeFieldSql(params).replace(" ", ""));
   }
 }

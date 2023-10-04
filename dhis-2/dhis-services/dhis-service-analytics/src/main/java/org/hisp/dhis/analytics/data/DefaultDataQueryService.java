@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_CATEGORYOPTIONCOMBO;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
@@ -358,7 +359,8 @@ public class DefaultDataQueryService implements DataQueryService {
         List<String> items = DimensionalObjectUtils.getDimensionItemsFromParam(param);
 
         if (dimension != null && items != null) {
-          list.add(
+          addIgnoreNull(
+              list,
               getDimension(
                   dimension,
                   items,

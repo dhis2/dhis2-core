@@ -27,13 +27,20 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.OPEN_IN;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,6 +51,9 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.hisp.dhis.common.DateRange;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 
 public abstract class TimeFieldSqlRenderer {
 
@@ -67,12 +77,17 @@ public abstract class TimeFieldSqlRenderer {
       sql.append(getSqlConditionForPeriods(params));
     }
 
-    return sql.toString();
+    if (isEmpty(sql)) {
+      return sql.toString();
+    }
+
+    return "(" + sql + ") ";
   }
 
   @Data
   @Builder
   private static class ColumnWithDateRange {
+
     private final String column;
 
     private final DateRange dateRange;
@@ -149,7 +164,66 @@ public abstract class TimeFieldSqlRenderer {
 
   protected abstract String getColumnName(EventQueryParams params);
 
+  protected boolean isPeriod(DimensionalItemObject dimensionalItemObject) {
+    return dimensionalItemObject instanceof Period;
+  }
+
   protected abstract String getSqlConditionForNonDefaultBoundaries(EventQueryParams params);
 
   protected abstract Collection<TimeField> getAllowedTimeFields();
+
+  /**
+   * Returns a SQL statement for the given {@link DimensionalItemObject} list. {@link
+   * DimensionalItemObject} are of type {@link Period}. This method renders SQL condition to match
+   * the given periods, considering their different {@link PeriodType}.<br>
+   * <br>
+   * Example (different period types)<br>
+   * <br>
+   * {@code ('daily' in ('20200111', '20210211') or 'monthly' in ('202001', '202002'))}<br>
+   * <br>
+   * Example (same period type)<br>
+   * <br>
+   * {@code 'monthly' in ('202001', '202002')}
+   *
+   * @param alias
+   * @param periods
+   * @return
+   */
+  protected String getSqlForAllPeriods(String alias, List<DimensionalItemObject> periods) {
+    StringBuilder sql = new StringBuilder();
+
+    Map<PeriodType, List<Period>> periodsByType =
+        periods.stream()
+            .map(Period.class::cast)
+            .collect(Collectors.groupingBy(Period::getPeriodType));
+
+    Collection<String> periodSingleConditions =
+        periodsByType.entrySet().stream()
+            .map(entry -> toSqlCondition(alias, entry))
+            .collect(Collectors.toList());
+
+    String periodsCondition = wrapAndJoinWithOrIfNecessary(periodSingleConditions);
+
+    if (periodsByType.size() > 1) {
+      sql.append(" (").append(periodsCondition).append(")");
+    } else {
+      sql.append(periodsCondition);
+    }
+    return sql.toString();
+  }
+
+  private String wrapAndJoinWithOrIfNecessary(Collection<String> periodSingleConditions) {
+    if (periodSingleConditions.size() > 1) {
+      return periodSingleConditions.stream().collect(Collectors.joining(" or ", "(", ")"));
+    }
+    return periodSingleConditions.stream().findFirst().orElse(EMPTY);
+  }
+
+  private String toSqlCondition(String alias, Entry<PeriodType, List<Period>> entry) {
+    String columnName = entry.getKey().getName().toLowerCase();
+    return quote(alias, columnName)
+        + OPEN_IN
+        + getQuotedCommaDelimitedString(getUids(entry.getValue()))
+        + ") ";
+  }
 }
