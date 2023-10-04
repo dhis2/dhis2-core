@@ -136,7 +136,6 @@ public class WebTestConfiguration {
 
     DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
     builder.dhisConfig(config);
-    builder.hibernateConfig(hibernateConfigurationProvider);
     builder.dbPoolType(dbPoolType);
 
     try {
