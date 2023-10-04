@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.dataelement;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Collection;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * When storing DataValues without associated dimensions there is a need to refer to a default
@@ -46,7 +46,6 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Abyot Aselefew
  */
 @Slf4j
-@RequiredArgsConstructor
 public class DataElementDefaultDimensionPopulator extends TransactionContextStartupRoutine {
   // -------------------------------------------------------------------------
   // Dependencies
@@ -56,16 +55,17 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
 
   private final CategoryService categoryService;
 
-  private final TransactionTemplate transactionTemplate;
+  public DataElementDefaultDimensionPopulator(
+      DataElementService dataElementService, CategoryService categoryService) {
+    checkNotNull(dataElementService);
+    checkNotNull(categoryService);
+    this.dataElementService = dataElementService;
+    this.categoryService = categoryService;
+  }
 
   // -------------------------------------------------------------------------
   // Execute
   // -------------------------------------------------------------------------
-
-  @Override
-  protected TransactionTemplate getTransactionTemplate() {
-    return this.transactionTemplate;
-  }
 
   @Override
   public void executeInTransaction() {
