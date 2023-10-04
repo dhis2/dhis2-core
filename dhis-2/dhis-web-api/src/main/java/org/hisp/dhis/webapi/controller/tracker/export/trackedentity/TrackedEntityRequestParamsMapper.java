@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -73,6 +74,8 @@ class TrackedEntityRequestParamsMapper {
 
   public TrackedEntityOperationParams map(
       RequestParams requestParams, User user, List<FieldPath> fields) throws BadRequestException {
+    validateRemovedParameters(requestParams);
+
     Set<UID> assignedUsers =
         validateDeprecatedUidsParameter(
             "assignedUser",
@@ -143,6 +146,19 @@ class TrackedEntityRequestParamsMapper {
     mapOrderParam(builder, requestParams.getOrder());
 
     return builder.build();
+  }
+
+  private void validateRemovedParameters(RequestParams requestParams) throws BadRequestException {
+    if (StringUtils.isNotBlank(requestParams.getQuery())) {
+      throw new BadRequestException("`query` parameter was removed in v41. Use `filter` instead.");
+    }
+    if (StringUtils.isNotBlank(requestParams.getAttribute())) {
+      throw new BadRequestException(
+          "`attribute` parameter was removed in v41. Use `filter` instead.");
+    }
+    if (StringUtils.isNotBlank(requestParams.getIncludeAllAttributes())) {
+      throw new BadRequestException("`includeAllAttributes` parameter was removed in v41.");
+    }
   }
 
   private void mapOrderParam(
