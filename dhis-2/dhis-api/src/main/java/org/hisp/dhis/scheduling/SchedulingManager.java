@@ -28,7 +28,6 @@
 package org.hisp.dhis.scheduling;
 
 import java.util.Collection;
-import java.util.Date;
 import org.hisp.dhis.scheduling.JobProgress.Process;
 
 /**
@@ -39,8 +38,7 @@ import org.hisp.dhis.scheduling.JobProgress.Process;
  * <p>There should be one {@link JobConfiguration} for each {@link JobType} and only one task of
  * each {@link JobType} can run at the same time.
  *
- * <p>Usually a {@link Job}'s execution is scheduled by using {@link #schedule(JobConfiguration)} or
- * {@link #scheduleWithStartTime(JobConfiguration, Date)}.
+ * <p>Usually a {@link Job}'s execution is scheduled by using {@link #schedule(JobConfiguration)}
  *
  * <p>Alternatively a execution can be ran ad-hoc using {@link #executeNow(JobConfiguration)}.
  *
@@ -51,9 +49,6 @@ import org.hisp.dhis.scheduling.JobProgress.Process;
  *   <dd>To {@link #schedule(JobConfiguration)} a task in a reoccurring time pattern
  *   <dt>Fixed delay time ({@link SchedulingType#FIXED_DELAY}):
  *   <dd>To {@link #schedule(JobConfiguration)} a task in a fixed interval
- *   <dt>Start time based:
- *   <dd>To {@link #scheduleWithStartTime(JobConfiguration, Date)} a task once at a specific point
- *       in time.
  * </dl>
  *
  * @see <a href= "https://github.com/dhis2/wow-backend/blob/master/docs/job_scheduling.md">Docs</a>
@@ -72,16 +67,6 @@ public interface SchedulingManager {
    * @param configuration the job to schedule.
    */
   void schedule(JobConfiguration configuration);
-
-  /**
-   * Schedule a job with the given start time.
-   *
-   * <p>This removes previously issued scheduling for the configuration.
-   *
-   * @param configuration The configuration with job details to be scheduled
-   * @param startTime The time at which the job should start
-   */
-  void scheduleWithStartTime(JobConfiguration configuration, Date startTime);
 
   /**
    * Removes any existing schedule for the given {@link JobConfiguration}.

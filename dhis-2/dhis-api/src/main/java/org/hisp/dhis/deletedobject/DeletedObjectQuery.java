@@ -34,6 +34,7 @@ import java.util.List;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.springframework.util.Assert;
@@ -149,6 +150,7 @@ public class DeletedObjectQuery {
     this.total = total;
   }
 
+  @OpenApi.Ignore
   public Pager getPager() {
     return PagerUtils.isSkipPaging(skipPaging, paging) ? null : new Pager(page, total, pageSize);
   }

@@ -35,7 +35,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
-import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.SystemActions;
@@ -118,9 +117,9 @@ public class DataImportTest extends ApiTest {
     systemActions
         .waitUntilTaskCompleted("DATAVALUE_IMPORT", taskId)
         .validate()
-        .body(
-            "message",
-            Matchers.containsInAnyOrder("Process started", "Importing data values", "Import done"));
+        .body("message", hasItem(containsString("Process started")))
+        .body("message", hasItem(containsString("Importing data values")))
+        .body("message", hasItem(containsString("Import done")));
 
     // validate task summaries were created
     ApiResponse taskSummariesResponse =

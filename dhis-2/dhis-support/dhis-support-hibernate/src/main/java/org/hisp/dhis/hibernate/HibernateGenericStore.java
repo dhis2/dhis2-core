@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
@@ -50,7 +51,6 @@ import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
@@ -62,7 +62,6 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -111,6 +110,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   }
 
   /** Could be overridden programmatically. */
+  @Nonnull
   @Override
   public Class<T> getClazz() {
     return clazz;
@@ -183,28 +183,8 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
         .setHint(QueryHints.CACHEABLE, cacheable);
   }
 
-  /**
-   * Creates a Criteria for the implementation Class type.
-   *
-   * <p>Please note that sharing is not considered.
-   *
-   * @return a Criteria instance.
-   */
-  @Deprecated
-  public final Criteria getCriteria() {
-    DetachedCriteria criteria = DetachedCriteria.forClass(getClazz());
-
-    preProcessDetachedCriteria(criteria);
-
-    return getExecutableCriteria(criteria);
-  }
-
   /** Override to add additional restrictions to criteria before it is invoked. */
   protected void preProcessDetachedCriteria(DetachedCriteria detachedCriteria) {}
-
-  public final Criteria getExecutableCriteria(DetachedCriteria detachedCriteria) {
-    return detachedCriteria.getExecutableCriteria(getSession()).setCacheable(cacheable);
-  }
 
   public CriteriaBuilder getCriteriaBuilder() {
     return entityManager.getCriteriaBuilder();
@@ -409,22 +389,20 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   // -------------------------------------------------------------------------
 
   @Override
-  public void save(T object) {
+  public void save(@Nonnull T object) {
     AuditLogUtil.infoWrapper(log, object, AuditLogUtil.ACTION_CREATE);
 
     getSession().save(object);
   }
 
   @Override
-  public void update(T object) {
+  public void update(@Nonnull T object) {
     getSession().update(object);
   }
 
   @Override
-  public void delete(T object) {
-    if (!ObjectDeletionRequestedEvent.shouldSkip(HibernateProxyUtils.getRealClass(object))) {
-      publisher.publishEvent(new ObjectDeletionRequestedEvent(object));
-    }
+  public void delete(@Nonnull T object) {
+    publisher.publishEvent(new ObjectDeletionRequestedEvent(object));
 
     getSession().delete(object);
   }
@@ -451,13 +429,15 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     return object;
   }
 
+  @Nonnull
   @Override
   public List<T> getAll() {
     return getList(getCriteriaBuilder(), new JpaQueryParameters<>());
   }
 
+  @Nonnull
   @Override
-  public List<T> getAllByAttributes(List<Attribute> attributes) {
+  public List<T> getAllByAttributes(@Nonnull List<Attribute> attributes) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<T> query = builder.createQuery(getClazz());
@@ -481,8 +461,9 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     return getSession().createQuery(query).list();
   }
 
+  @Nonnull
   @Override
-  public List<AttributeValue> getAllValuesByAttributes(List<Attribute> attributes) {
+  public List<AttributeValue> getAllValuesByAttributes(@Nonnull List<Attribute> attributes) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<String> query = builder.createQuery(String.class);
@@ -522,7 +503,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   }
 
   @Override
-  public long countAllValuesByAttributes(List<Attribute> attributes) {
+  public long countAllValuesByAttributes(@Nonnull List<Attribute> attributes) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<Long> query = builder.createQuery(Long.class);
@@ -546,8 +527,9 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     return getSession().createQuery(query).getSingleResult();
   }
 
+  @Nonnull
   @Override
-  public List<AttributeValue> getAttributeValueByAttribute(Attribute attribute) {
+  public List<AttributeValue> getAttributeValueByAttribute(@Nonnull Attribute attribute) {
     return getAllValuesByAttributes(Lists.newArrayList(attribute));
   }
 
@@ -560,8 +542,9 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
         .intValue();
   }
 
+  @Nonnull
   @Override
-  public List<T> getByAttribute(Attribute attribute) {
+  public List<T> getByAttribute(@Nonnull Attribute attribute) {
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaQuery<T> query = builder.createQuery(getClazz());
 
@@ -580,8 +563,9 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     return getSession().createQuery(query).list();
   }
 
+  @Nonnull
   @Override
-  public List<T> getByAttributeAndValue(Attribute attribute, String value) {
+  public List<T> getByAttributeAndValue(@Nonnull Attribute attribute, String value) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<T> query = builder.createQuery(getClazz());
@@ -599,9 +583,10 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     return getSession().createQuery(query).list();
   }
 
+  @Nonnull
   @Override
   public List<AttributeValue> getAttributeValueByAttributeAndValue(
-      Attribute attribute, String value) {
+      @Nonnull Attribute attribute, @Nonnull String value) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<String> query = builder.createQuery(String.class);
@@ -630,8 +615,9 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
         JsonAttributeValueBinaryType.MAPPER, result, AttributeValue.class);
   }
 
+  @Nonnull
   @Override
-  public List<T> getByAttributeValue(AttributeValue attributeValue) {
+  public List<T> getByAttributeValue(@Nonnull AttributeValue attributeValue) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<T> query = builder.createQuery(getClazz());
@@ -650,23 +636,24 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   }
 
   @Override
-  public <P extends IdentifiableObject> boolean isAttributeValueUnique(
-      P object, AttributeValue attributeValue) {
+  public boolean isAttributeValueUnique(@Nonnull T object, @Nonnull AttributeValue attributeValue) {
     List<T> objects = getByAttributeValue(attributeValue);
     return objects.isEmpty()
         || (object != null && objects.size() == 1 && object.equals(objects.get(0)));
   }
 
   @Override
-  public <P extends IdentifiableObject> boolean isAttributeValueUnique(
-      P object, Attribute attribute, String value) {
+  public boolean isAttributeValueUnique(
+      @Nonnull T object, @Nonnull Attribute attribute, @Nonnull String value) {
     List<T> objects = getByAttributeAndValue(attribute, value);
     return objects.isEmpty()
         || (object != null && objects.size() == 1 && object.equals(objects.get(0)));
   }
 
+  @Nonnull
   @Override
-  public List<T> getAllByAttributeAndValues(Attribute attribute, List<String> values) {
+  public List<T> getAllByAttributeAndValues(
+      @Nonnull Attribute attribute, @Nonnull List<String> values) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<T> query = builder.createQuery(getClazz());
@@ -686,7 +673,8 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   }
 
   @Override
-  public int updateAllAttributeValues(Attribute attribute, String newValue, boolean createMissing) {
+  public int updateAllAttributeValues(
+      @Nonnull Attribute attribute, @Nonnull String newValue, boolean createMissing) {
     String template =
         "update %s set attributevalues = jsonb_strip_nulls("
             + "jsonb_set(cast(attributevalues as jsonb), '{%s}', cast(:value as jsonb), :createMissing))";

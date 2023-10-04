@@ -24,7 +24,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #---
-summary_uid: VBIs20Adkyf
 name: cocs_wrong_cardinality
 description: Category option combinations with incorrect cardinality.
 section: Categories
@@ -43,7 +42,6 @@ summary_sql: >-
     SELECT COUNT(*) as value,
     100.0 * COUNT(*) / NULLIF( ( SELECT COUNT(*) FROM categoryoptioncombo),0) as percent
     FROM cocs_wrong_cardinality;
-details_uid: ZMsFbuKljqn
 details_sql: >-
     WITH baz as (
     SELECT foo.categorycomboid,foo.categoryoptioncomboid,foo.actual_cardnality,bar.theoretical_cardnality FROM (

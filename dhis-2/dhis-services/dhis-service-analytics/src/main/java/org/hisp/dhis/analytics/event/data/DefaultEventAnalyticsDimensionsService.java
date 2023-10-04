@@ -91,7 +91,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
 
   private Collection<ProgramStage> getProgramStages(String programId, String programStageId) {
     checkProgramStageIsInProgramIfNecessary(programId, programStageId);
-    return Optional.of(programStageId)
+    return Optional.ofNullable(programStageId)
         .filter(StringUtils::isNotBlank)
         .map(programStageService::getProgramStage)
         .map(Set::of)

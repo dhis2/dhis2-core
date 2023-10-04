@@ -191,7 +191,7 @@ class ExistingEnrollmentValidatorTest {
 
   @Test
   void shouldFailActiveEnrollmentAlreadyInDb() {
-    setTeiInDb();
+    setTeInDb();
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -205,7 +205,7 @@ class ExistingEnrollmentValidatorTest {
     program.setOnlyEnrollOnce(true);
 
     when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
-    setTeiInDb(ProgramStatus.COMPLETED);
+    setTeInDb(ProgramStatus.COMPLETED);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -214,7 +214,7 @@ class ExistingEnrollmentValidatorTest {
 
   @Test
   void shouldPassNotActiveEnrollmentAlreadyInDbAndNotEnrollOnce() {
-    setTeiInDb(ProgramStatus.COMPLETED);
+    setTeInDb(ProgramStatus.COMPLETED);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -229,7 +229,7 @@ class ExistingEnrollmentValidatorTest {
 
     when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
     setEnrollmentInPayload(EnrollmentStatus.COMPLETED);
-    setTeiInDb();
+    setTeInDb();
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -244,18 +244,18 @@ class ExistingEnrollmentValidatorTest {
 
     when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
     setEnrollmentInPayload(EnrollmentStatus.COMPLETED);
-    setTeiInDb();
+    setTeInDb();
 
     validator.validate(reporter, bundle, enrollment);
 
     assertIsEmpty(reporter.getErrors());
   }
 
-  private void setTeiInDb() {
-    setTeiInDb(ProgramStatus.ACTIVE);
+  private void setTeInDb() {
+    setTeInDb(ProgramStatus.ACTIVE);
   }
 
-  private void setTeiInDb(ProgramStatus programStatus) {
+  private void setTeInDb(ProgramStatus programStatus) {
     when(preheat.getTrackedEntityToEnrollmentMap())
         .thenReturn(
             new HashMap<>() {

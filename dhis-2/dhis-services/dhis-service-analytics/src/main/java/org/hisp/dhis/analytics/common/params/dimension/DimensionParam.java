@@ -51,7 +51,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.tei.query.context.TeiHeaderProvider;
 import org.hisp.dhis.analytics.tei.query.context.TeiStaticField;
@@ -64,7 +63,6 @@ import org.hisp.dhis.common.ValueType;
  * Object responsible to wrap/encapsulate instances of DimensionObject|QueryItem|StaticDimension.
  */
 @Data
-@Slf4j
 @Builder(access = PRIVATE)
 @RequiredArgsConstructor(access = PRIVATE)
 public class DimensionParam implements UidObject {

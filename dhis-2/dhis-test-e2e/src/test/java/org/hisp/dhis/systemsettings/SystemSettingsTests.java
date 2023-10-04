@@ -57,7 +57,7 @@ public class SystemSettingsTests extends ApiTest {
 
   private static final String MAX_PASSWORD_LENGTH_KEY = "maxPasswordLength";
 
-  private static final int MAX_PASSWORD_LENGTH_DEFAULT_VALUE = 256;
+  private static final int MAX_PASSWORD_LENGTH_DEFAULT_VALUE = 72;
 
   private static final String EMAIL_SENDER_KEY = "keyEmailSender";
 

@@ -36,9 +36,11 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
+import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
@@ -54,6 +56,8 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
@@ -69,6 +73,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collector;
@@ -98,6 +103,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InQueryFilter;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
@@ -109,6 +115,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -135,6 +142,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
   private static final String COL_VALUE = "value";
+
+  private static final String OUTER_SQL_ALIAS = "t1";
 
   private static final String AND = " and ";
 
@@ -325,6 +334,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         .getDimensions()
         .forEach(
             dimension -> {
+              if (params.isAggregatedEnrollments()
+                  && dimension.getDimensionType() == DimensionType.PERIOD) {
+                dimension
+                    .getItems()
+                    .forEach(
+                        it ->
+                            columns.add(
+                                ((Period) it).getPeriodType().getPeriodTypeEnum().getName()));
+                return;
+              }
+
               if (isGroupByClause
                   && dimension.getDimensionType() == DimensionType.PERIOD
                   && params.hasNonDefaultBoundaries()) {
@@ -541,6 +561,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
     } catch (BadSqlGrammarException ex) {
       log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+      throw ex;
     } catch (DataAccessResourceFailureException ex) {
       log.warn(ErrorCode.E7131.getMessage(), ex);
       throw new QueryRuntimeException(ErrorCode.E7131);
@@ -883,7 +904,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param maxLimit max number of records to return.
    * @return a SQL query.
    */
-  protected String getEventsOrEnrollmentsSql(EventQueryParams params, int maxLimit) {
+  protected String getAggregatedEnrollmentsSql(EventQueryParams params, int maxLimit) {
     String sql = getSelectClause(params);
 
     sql += getFromClause(params);
@@ -893,6 +914,93 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     sql += getSortClause(params);
 
     sql += getPagingClause(params, maxLimit);
+
+    return sql;
+  }
+
+  /**
+   * Template method that generates a SQL query for retrieving aggregated enrollments.
+   *
+   * @param params the {@link List<GridHeader>} to drive the query generation.
+   * @param params the {@link EventQueryParams} to drive the query generation.
+   * @return a SQL query.
+   */
+  protected String getAggregatedEnrollmentsSql(List<GridHeader> headers, EventQueryParams params) {
+    String sql = getSelectClause(params);
+
+    sql += getFromClause(params);
+
+    sql += getWhereClause(params);
+
+    final String tempSql = sql;
+
+    String headerColumns =
+        headers.stream()
+            .filter(
+                header ->
+                    !header.getName().equalsIgnoreCase(COL_VALUE)
+                        && !header.getName().equalsIgnoreCase(PERIOD_DIM_ID)
+                        && !header.getName().equalsIgnoreCase(ORGUNIT_DIM_ID))
+            .map(
+                header -> {
+                  String headerName = header.getName();
+                  if (tempSql.contains(headerName)) {
+                    return OUTER_SQL_ALIAS + "." + quote(headerName);
+                  }
+                  if (headerName.contains(".")) {
+                    headerName = headerName.split("\\.")[1];
+                  }
+
+                  return OUTER_SQL_ALIAS + "." + quote(headerName);
+                })
+            .collect(joining(","));
+
+    String orgColumns = EMPTY;
+
+    if (!params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)
+        && !params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
+
+      orgColumns =
+          params.getDimensionOrFilterItems(ORGUNIT_DIM_ID).stream()
+              .map(d -> LEVEL_PREFIX + ((OrganisationUnit) d).getLevel())
+              .distinct()
+              .collect(joining(","));
+    }
+
+    String periodColumns =
+        params.getDimensions().stream()
+            .filter(d -> d.getDimensionType() == DimensionType.PERIOD)
+            .flatMap(
+                d ->
+                    d.getItems().stream()
+                        .map(
+                            it ->
+                                OUTER_SQL_ALIAS
+                                    + "."
+                                    + ((Period) it).getPeriodType().getPeriodTypeEnum().getName())
+                        .toList()
+                        .stream()
+                        .distinct())
+            .collect(joining(","));
+
+    String columns =
+        (!isBlank(orgColumns) ? orgColumns : "," + ORGUNIT_DIM_ID)
+            + (!isBlank(periodColumns) ? "," + periodColumns : EMPTY)
+            + (!isBlank(headerColumns) ? "," + headerColumns : EMPTY);
+
+    sql =
+        "select count("
+            + OUTER_SQL_ALIAS
+            + ".pi) as "
+            + COL_VALUE
+            + ", "
+            + columns
+            + " from ("
+            + sql
+            + ") "
+            + OUTER_SQL_ALIAS
+            + " group by "
+            + columns;
 
     return sql;
   }
@@ -908,6 +1016,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       runnable.run();
     } catch (BadSqlGrammarException ex) {
       log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+      throw ex;
     } catch (DataAccessResourceFailureException ex) {
       log.warn(ErrorCode.E7131.getMessage(), ex);
       throw new QueryRuntimeException(ErrorCode.E7131);
@@ -944,10 +1053,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
         if (queryItem.isPresent()) {
           grid.addValue(
-              AnalyticsUtils.getRoundedValue(
-                  params,
-                  ((ProgramIndicator) queryItem.get().getItem()).getDecimals(),
-                  ((BigDecimal) value).doubleValue()));
+              BigDecimal.valueOf(
+                      AnalyticsUtils.getRoundedValue(
+                              params,
+                              ((ProgramIndicator) queryItem.get().getItem()).getDecimals(),
+                              ((BigDecimal) value))
+                          .doubleValue())
+                  .stripTrailingZeros()
+                  .toPlainString());
         } else {
           // toPlainString method prevents scientific notation (3E+2)
           grid.addValue(((BigDecimal) value).stripTrailingZeros().toPlainString());
@@ -957,7 +1070,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
     } else if (header.getValueType() == ValueType.REFERENCE) {
       String json = sqlRowSet.getString(index);
-
       ObjectMapper mapper = new ObjectMapper();
 
       try {
@@ -1236,6 +1348,35 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     return ListUtils.distinctUnion(orderByAscColumns, orderByDescColumns);
+  }
+
+  /**
+   * returns true if the amount of rows red is greater than the page size and the query is not
+   * unlimited.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param unlimitedPaging the analytics unlimited paging setting.
+   * @param rowsRed the amount of rows red.
+   * @return true if the amount of rows red is greater than the page size and the query is not
+   *     unlimited.
+   */
+  protected boolean isLastRowAfterPageSize(
+      EventQueryParams params, boolean unlimitedPaging, int rowsRed) {
+    return rowsRed > params.getPageSizeWithDefault()
+        && !params.isTotalPages()
+        && !isUnlimitedQuery(params, unlimitedPaging);
+  }
+
+  /**
+   * Returns true if the given query is unlimited. This is the case when the page size is not set
+   * and unlimited paging is enabled.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param unlimitedPaging the analytics unlimited paging setting.
+   * @return true if the given query is unlimited.
+   */
+  protected boolean isUnlimitedQuery(EventQueryParams params, boolean unlimitedPaging) {
+    return unlimitedPaging && (Objects.isNull(params.getPageSize()) || params.getPageSize() == 0);
   }
 
   /**

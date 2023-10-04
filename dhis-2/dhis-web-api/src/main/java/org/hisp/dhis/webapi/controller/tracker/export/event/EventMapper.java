@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import static java.util.Map.entry;
+
+import java.util.Map;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
@@ -48,13 +51,43 @@ import org.mapstruct.Mapping;
     })
 public interface EventMapper
     extends ViewMapper<Event, org.hisp.dhis.webapi.controller.tracker.view.Event> {
+
+  /**
+   * Events can be ordered by given fields which correspond to fields on {@link
+   * org.hisp.dhis.program.Event}.
+   */
+  Map<String, String> ORDERABLE_FIELDS =
+      Map.ofEntries(
+          entry("assignedUser", "assignedUser"),
+          entry("assignedUserDisplayName", "assignedUser.displayName"),
+          entry("attributeOptionCombo", "attributeOptionCombo.uid"),
+          entry("completedAt", "completedDate"),
+          entry("completedBy", "completedBy"),
+          entry("createdAt", "created"),
+          entry("createdBy", "createdBy"),
+          entry("deleted", "deleted"),
+          entry("enrolledAt", "enrollment.enrollmentDate"),
+          entry("enrollment", "enrollment.uid"),
+          entry("enrollmentStatus", "enrollment.status"),
+          entry("event", "uid"),
+          entry("followup", "enrollment.followup"),
+          entry("occurredAt", "executionDate"),
+          entry("orgUnit", "organisationUnit.uid"),
+          entry("program", "enrollment.program.uid"),
+          entry("programStage", "programStage.uid"),
+          entry("scheduledAt", "dueDate"),
+          entry("status", "status"),
+          entry("storedBy", "storedBy"),
+          entry("trackedEntity", "enrollment.trackedEntity.uid"),
+          entry("updatedAt", "lastUpdated"),
+          entry("updatedBy", "lastUpdatedBy"));
+
   @Mapping(target = "event", source = "uid")
   @Mapping(target = "program", source = "enrollment.program.uid")
   @Mapping(target = "programStage", source = "programStage.uid")
   @Mapping(target = "enrollment", source = "enrollment.uid")
   @Mapping(target = "trackedEntity", source = "enrollment.trackedEntity.uid")
   @Mapping(target = "orgUnit", source = "organisationUnit.uid")
-  @Mapping(target = "orgUnitName", source = "organisationUnit.name")
   @Mapping(target = "occurredAt", source = "executionDate")
   @Mapping(target = "scheduledAt", source = "dueDate")
   @Mapping(target = "followup", source = "enrollment.followup")
@@ -69,6 +102,6 @@ public interface EventMapper
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "dataValues", source = "eventDataValues")
   @Mapping(target = "relationships", source = "relationshipItems")
-  @Mapping(target = "notes", source = "comments")
+  @Mapping(target = "notes", source = "notes")
   org.hisp.dhis.webapi.controller.tracker.view.Event from(Event event);
 }

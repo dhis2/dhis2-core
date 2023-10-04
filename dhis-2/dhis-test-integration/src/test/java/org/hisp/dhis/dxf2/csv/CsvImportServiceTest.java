@@ -40,6 +40,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.indicator.Indicator;
@@ -194,8 +195,10 @@ class CsvImportServiceTest extends SingleSetupIntegrationTestBase {
 
     assertEquals(2, metadata.getIndicators().size());
     MetadataImportParams params = new MetadataImportParams();
-    params.addMetadata(schemaService.getMetadataSchemas(), metadata);
-    ImportReport report = importService.importMetadata(params);
+    ImportReport report =
+        importService.importMetadata(
+            params,
+            new MetadataObjects().addMetadata(schemaService.getMetadataSchemas(), metadata));
     assertEquals(Status.OK, report.getStatus());
 
     Indicator indicatorA = manager.get(Indicator.class, "yiAKjiZVoOU");

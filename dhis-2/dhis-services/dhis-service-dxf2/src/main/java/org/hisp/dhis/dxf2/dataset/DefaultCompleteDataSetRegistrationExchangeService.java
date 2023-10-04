@@ -78,8 +78,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -89,6 +87,7 @@ import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -112,8 +111,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   private final IdentifiableObjectManager idObjManager;
 
   private final OrganisationUnitService orgUnitService;
-
-  private final Notifier notifier;
 
   private final I18nManager i18nManager;
 
@@ -198,6 +195,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   @Override
+  @Transactional
   public void writeCompleteDataSetRegistrationsXml(ExportParams params, OutputStream out) {
     decideAccess(params);
     validate(params);
@@ -206,6 +204,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   @Override
+  @Transactional
   public void writeCompleteDataSetRegistrationsJson(ExportParams params, OutputStream out) {
     decideAccess(params);
     validate(params);
@@ -214,18 +213,21 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   @Override
+  @Transactional
   public void writeCompleteDataSetRegistrationsJson(
       Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes) {
     cdsrStore.writeCompleteDataSetRegistrationsJson(lastUpdated, outputStream, idSchemes);
   }
 
   @Override
+  @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsXml(
       InputStream in, ImportOptions importOptions) {
     return saveCompleteDataSetRegistrationsXml(in, importOptions, null);
   }
 
   @Override
+  @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsXml(
       InputStream in, ImportOptions importOptions, JobConfiguration jobId) {
     try {
@@ -233,19 +235,21 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       CompleteDataSetRegistrations completeDataSetRegistrations =
           new StreamingXmlCompleteDataSetRegistrations(XMLFactory.getXMLReader(in));
 
-      return saveCompleteDataSetRegistrations(importOptions, jobId, completeDataSetRegistrations);
+      return saveCompleteDataSetRegistrations(importOptions, completeDataSetRegistrations);
     } catch (Exception ex) {
-      return handleImportError(jobId, ex);
+      return handleImportError(ex);
     }
   }
 
   @Override
+  @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsJson(
       InputStream in, ImportOptions importOptions) {
     return saveCompleteDataSetRegistrationsJson(in, importOptions, null);
   }
 
   @Override
+  @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsJson(
       InputStream in, ImportOptions importOptions, JobConfiguration jobId) {
     try {
@@ -254,9 +258,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       CompleteDataSetRegistrations completeDataSetRegistrations =
           jsonMapper.readValue(in, CompleteDataSetRegistrations.class);
 
-      return saveCompleteDataSetRegistrations(importOptions, jobId, completeDataSetRegistrations);
+      return saveCompleteDataSetRegistrations(importOptions, completeDataSetRegistrations);
     } catch (Exception ex) {
-      return handleImportError(jobId, ex);
+      return handleImportError(ex);
     }
   }
 
@@ -357,21 +361,15 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
   }
 
-  private ImportSummary handleImportError(JobConfiguration jobId, Throwable ex) {
+  private ImportSummary handleImportError(Throwable ex) {
     log.error(DebugUtils.getStackTrace(ex));
-    notifier.notify(jobId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true);
     return new ImportSummary(ImportStatus.ERROR, "The import process failed: " + ex.getMessage());
   }
 
   private ImportSummary saveCompleteDataSetRegistrations(
-      ImportOptions importOptions,
-      JobConfiguration id,
-      CompleteDataSetRegistrations completeRegistrations) {
+      ImportOptions importOptions, CompleteDataSetRegistrations completeRegistrations) {
     Clock clock =
-        new Clock(log)
-            .startClock()
-            .logTime("Starting complete data set registration import, options: " + importOptions);
-    notifier.clear(id).notify(id, "Process started");
+        new Clock(log).startClock().logTime("Starting complete data set registration import");
 
     // Start here so we can access any outer attributes for the
     // configuration
@@ -407,14 +405,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     // Perform import
     // ---------------------------------------------------------------------
 
-    notifier.notify(id, "Importing complete data set registrations");
-
     int totalCount =
         batchImport(completeRegistrations, cfg, importSummary, metaDataCallables, caches);
-
-    notifier
-        .notify(id, NotificationLevel.INFO, "Import done", true)
-        .addJobSummary(id, importSummary, ImportSummary.class);
 
     ImportCount count = importSummary.getImportCount();
 

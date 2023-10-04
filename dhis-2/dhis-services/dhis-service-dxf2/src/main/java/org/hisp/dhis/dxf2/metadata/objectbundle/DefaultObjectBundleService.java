@@ -29,10 +29,14 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityGuard.handleDeprecationIfEventReport;
+import static org.hisp.dhis.eventhook.EventUtils.metadataCreate;
+import static org.hisp.dhis.eventhook.EventUtils.metadataDelete;
+import static org.hisp.dhis.eventhook.EventUtils.metadataUpdate;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -48,16 +53,16 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.eventhook.EventHookPublisher;
-import org.hisp.dhis.eventhook.EventUtils;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatParams;
 import org.hisp.dhis.preheat.PreheatService;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -67,29 +72,19 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@Service("org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService")
+@Service
 @RequiredArgsConstructor
 public class DefaultObjectBundleService implements ObjectBundleService {
+
   private final CurrentUserService currentUserService;
-
   private final PreheatService preheatService;
-
   private final SchemaService schemaService;
-
   @PersistenceContext private EntityManager entityManager;
-
   private final IdentifiableObjectManager manager;
-
   private final DbmsManager dbmsManager;
-
   private final HibernateCacheManager cacheManager;
-
-  private final Notifier notifier;
-
   private final MergeService mergeService;
-
   private final ObjectBundleHooks objectBundleHooks;
-
   private final EventHookPublisher eventHookPublisher;
 
   @Override
@@ -116,6 +111,13 @@ public class DefaultObjectBundleService implements ObjectBundleService {
   @Override
   @Transactional
   public ObjectBundleCommitReport commit(ObjectBundle bundle) {
+    return commit(bundle, NoopJobProgress.INSTANCE);
+  }
+
+  @Override
+  @Transactional
+  public ObjectBundleCommitReport commit(ObjectBundle bundle, JobProgress progress) {
+
     Map<Class<?>, TypeReport> typeReports = new HashMap<>();
     ObjectBundleCommitReport commitReport = new ObjectBundleCommitReport(typeReports);
 
@@ -130,7 +132,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
     commitHooks.forEach(hook -> hook.preCommit(bundle));
 
     for (Class<? extends IdentifiableObject> klass : klasses) {
-      commitObjectType(bundle, typeReports, session, klass);
+      commitObjectType(bundle, typeReports, session, klass, progress);
     }
 
     if (!bundle.getImportMode().isDelete()) {
@@ -143,28 +145,31 @@ public class DefaultObjectBundleService implements ObjectBundleService {
   }
 
   private <T extends IdentifiableObject> void commitObjectType(
-      ObjectBundle bundle, Map<Class<?>, TypeReport> typeReports, Session session, Class<T> klass) {
+      ObjectBundle bundle,
+      Map<Class<?>, TypeReport> typeReports,
+      Session session,
+      Class<T> klass,
+      JobProgress progress) {
     List<T> nonPersistedObjects = bundle.getObjects(klass, false);
     List<T> persistedObjects = bundle.getObjects(klass, true);
 
-    List<ObjectBundleHook<? super T>> importHooks = objectBundleHooks.getTypeImportHooks(klass);
-    importHooks.forEach(hook -> hook.preTypeImport(klass, nonPersistedObjects, bundle));
+    List<ObjectBundleHook<T>> hooks = objectBundleHooks.getTypeImportHooks(klass);
+    hooks.forEach(hook -> hook.preTypeImport(klass, nonPersistedObjects, bundle));
 
     if (bundle.getImportMode().isCreateAndUpdate()) {
-      TypeReport typeReport = new TypeReport(klass);
-      typeReport.merge(handleCreates(session, klass, nonPersistedObjects, bundle));
-      typeReport.merge(handleUpdates(session, klass, persistedObjects, bundle));
-
-      typeReports.put(klass, typeReport);
+      TypeReport report = new TypeReport(klass);
+      report.merge(handleCreates(session, klass, nonPersistedObjects, bundle, progress));
+      report.merge(handleUpdates(session, klass, persistedObjects, bundle, progress));
+      typeReports.put(klass, report);
     } else if (bundle.getImportMode().isCreate()) {
-      typeReports.put(klass, handleCreates(session, klass, nonPersistedObjects, bundle));
+      typeReports.put(klass, handleCreates(session, klass, nonPersistedObjects, bundle, progress));
     } else if (bundle.getImportMode().isUpdate()) {
-      typeReports.put(klass, handleUpdates(session, klass, persistedObjects, bundle));
+      typeReports.put(klass, handleUpdates(session, klass, persistedObjects, bundle, progress));
     } else if (bundle.getImportMode().isDelete()) {
-      typeReports.put(klass, handleDeletes(session, klass, persistedObjects, bundle));
+      typeReports.put(klass, handleDeletes(session, klass, persistedObjects, bundle, progress));
     }
 
-    importHooks.forEach(hook -> hook.postTypeImport(klass, persistedObjects, bundle));
+    hooks.forEach(hook -> hook.postTypeImport(klass, persistedObjects, bundle));
 
     if (FlushMode.AUTO == bundle.getFlushMode()) {
       session.flush();
@@ -176,7 +181,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
   // -----------------------------------------------------------------------------------
 
   private <T extends IdentifiableObject> TypeReport handleCreates(
-      Session session, Class<T> klass, List<T> objects, ObjectBundle bundle) {
+      Session session, Class<T> klass, List<T> objects, ObjectBundle bundle, JobProgress progress) {
     TypeReport typeReport = new TypeReport(klass);
 
     handleDeprecationIfEventReport(klass, objects);
@@ -185,21 +190,11 @@ public class DefaultObjectBundleService implements ObjectBundleService {
       return typeReport;
     }
 
-    String message =
-        "("
-            + bundle.getUsername()
-            + ") Creating "
-            + objects.size()
-            + " object(s) of type "
-            + objects.get(0).getClass().getSimpleName();
-
-    log.info(message);
-
-    if (bundle.hasJobId()) {
-      notifier.notify(bundle.getJobId(), message);
-    }
-
-    objects.forEach(
+    progress.startingStage(
+        "Running preCreate %s bundle hooks".formatted(klass.getSimpleName()), objects.size());
+    progress.runStage(
+        objects,
+        IdentifiableObject::getName,
         object ->
             objectBundleHooks
                 .getObjectHooks(object)
@@ -207,195 +202,204 @@ public class DefaultObjectBundleService implements ObjectBundleService {
 
     session.flush();
 
-    for (T object : objects) {
-      ObjectReport objectReport = new ObjectReport(object, bundle);
-      objectReport.setDisplayName(IdentifiableObjectUtils.getDisplayName(object));
-      typeReport.addObjectReport(objectReport);
+    String message =
+        "Creating %d %s object(s) as %s"
+            .formatted(objects.size(), klass.getSimpleName(), bundle.getUsername());
+    progress.startingStage(message, objects.size());
+    progress.runStage(
+        objects,
+        IdentifiableObject::getName,
+        object -> {
+          ObjectReport objectReport = new ObjectReport(object, bundle);
+          objectReport.setDisplayName(IdentifiableObjectUtils.getDisplayName(object));
+          typeReport.addObjectReport(objectReport);
 
-      preheatService.connectReferences(object, bundle.getPreheat(), bundle.getPreheatIdentifier());
+          preheatService.connectReferences(
+              object, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
-      if (bundle.getOverrideUser() != null) {
-        object.setCreatedBy(bundle.getOverrideUser());
+          if (bundle.getOverrideUser() != null) {
+            object.setCreatedBy(bundle.getOverrideUser());
 
-        if (object instanceof User) {
-          (object).setCreatedBy(bundle.getOverrideUser());
-        }
-      }
+            if (object instanceof User) {
+              (object).setCreatedBy(bundle.getOverrideUser());
+            }
+          }
 
-      session.save(object);
+          session.save(object);
 
-      bundle.getPreheat().replace(bundle.getPreheatIdentifier(), object);
+          bundle.getPreheat().replace(bundle.getPreheatIdentifier(), object);
 
-      if (log.isDebugEnabled()) {
-        String msg =
-            "("
-                + bundle.getUsername()
-                + ") Created object '"
-                + bundle.getPreheatIdentifier().getIdentifiersWithName(object)
-                + "'";
-        log.debug(msg);
-      }
+          if (log.isDebugEnabled()) {
+            String msg =
+                "(%s) Created object '%s'"
+                    .formatted(
+                        bundle.getUsername(),
+                        bundle.getPreheatIdentifier().getIdentifiersWithName(object));
+            log.debug(msg);
+          }
 
-      if (FlushMode.OBJECT == bundle.getFlushMode()) {
-        session.flush();
-      }
-    }
+          if (FlushMode.OBJECT == bundle.getFlushMode()) {
+            session.flush();
+          }
+        });
 
     session.flush();
 
-    objects.forEach(
+    progress.startingStage("Running postCreate %s bundle hooks".formatted(klass.getSimpleName()));
+    progress.runStage(
+        objects,
+        IdentifiableObject::getName,
         object -> {
           objectBundleHooks.getObjectHooks(object).forEach(hook -> hook.postCreate(object, bundle));
-          eventHookPublisher.publishEvent(
-              EventUtils.metadataCreate((BaseIdentifiableObject) object));
+          eventHookPublisher.publishEvent(metadataCreate((BaseIdentifiableObject) object));
         });
 
     return typeReport;
   }
 
   private <T extends IdentifiableObject> TypeReport handleUpdates(
-      Session session, Class<T> klass, List<T> objects, ObjectBundle bundle) {
+      Session session, Class<T> klass, List<T> objects, ObjectBundle bundle, JobProgress progress) {
     TypeReport typeReport = new TypeReport(klass);
 
     if (objects.isEmpty()) {
       return typeReport;
     }
 
-    String message =
-        "("
-            + bundle.getUsername()
-            + ") Updating "
-            + objects.size()
-            + " object(s) of type "
-            + objects.get(0).getClass().getSimpleName();
+    List<ObjectBundleHook<T>> hooks = objectBundleHooks.getTypeImportHooks(klass);
 
-    log.info(message);
-
-    if (bundle.hasJobId()) {
-      notifier.notify(bundle.getJobId(), message);
-    }
-
-    objects.forEach(
+    progress.startingStage(
+        "Running preUpdate %s bundle hooks".formatted(klass.getSimpleName()), objects.size());
+    progress.runStage(
+        objects,
+        IdentifiableObject::getName,
         object -> {
           T persistedObject = bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
-          objectBundleHooks
-              .getObjectHooks(object)
-              .forEach(hook -> hook.preUpdate(object, persistedObject, bundle));
+          hooks.forEach(hook -> hook.preUpdate(object, persistedObject, bundle));
         });
 
     session.flush();
 
-    for (T object : objects) {
-      T persistedObject = bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
+    String message =
+        "Updating %d %s object(s) as %s"
+            .formatted(objects.size(), klass.getSimpleName(), bundle.getUsername());
+    progress.startingStage(message, objects.size());
+    progress.runStage(
+        objects,
+        IdentifiableObject::getName,
+        object -> {
+          T persistedObject = bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
 
-      ObjectReport objectReport = new ObjectReport(object, bundle);
-      objectReport.setDisplayName(IdentifiableObjectUtils.getDisplayName(object));
-      typeReport.addObjectReport(objectReport);
+          ObjectReport objectReport = new ObjectReport(object, bundle);
+          objectReport.setDisplayName(IdentifiableObjectUtils.getDisplayName(object));
+          typeReport.addObjectReport(objectReport);
 
-      preheatService.connectReferences(object, bundle.getPreheat(), bundle.getPreheatIdentifier());
+          preheatService.connectReferences(
+              object, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
-      if (bundle.getMergeMode() != MergeMode.NONE) {
-        mergeService.merge(
-            new MergeParams<>(object, persistedObject)
-                .setMergeMode(bundle.getMergeMode())
-                .setSkipSharing(bundle.isSkipSharing())
-                .setSkipTranslation(bundle.isSkipTranslation()));
-      }
+          if (bundle.getMergeMode() != MergeMode.NONE) {
+            mergeService.merge(
+                new MergeParams<>(object, persistedObject)
+                    .setMergeMode(bundle.getMergeMode())
+                    .setSkipSharing(bundle.isSkipSharing())
+                    .setSkipTranslation(bundle.isSkipTranslation()));
+          }
 
-      if (bundle.getOverrideUser() != null) {
-        persistedObject.setCreatedBy(bundle.getOverrideUser());
+          if (bundle.getOverrideUser() != null) {
+            persistedObject.setCreatedBy(bundle.getOverrideUser());
 
-        if (object instanceof User) {
-          (object).setCreatedBy(bundle.getOverrideUser());
-        }
-      }
+            if (object instanceof User) {
+              (object).setCreatedBy(bundle.getOverrideUser());
+            }
+          }
 
-      session.update(persistedObject);
+          session.update(persistedObject);
 
-      bundle.getPreheat().replace(bundle.getPreheatIdentifier(), persistedObject);
+          bundle.getPreheat().replace(bundle.getPreheatIdentifier(), persistedObject);
 
-      if (log.isDebugEnabled()) {
-        String msg =
-            "("
-                + bundle.getUsername()
-                + ") Updated object '"
-                + bundle.getPreheatIdentifier().getIdentifiersWithName(persistedObject)
-                + "'";
-        log.debug(msg);
-      }
+          if (log.isDebugEnabled()) {
+            String msg =
+                "(%s) Updated object '%s'"
+                    .formatted(
+                        bundle.getUsername(),
+                        bundle.getPreheatIdentifier().getIdentifiersWithName(persistedObject));
+            log.debug(msg);
+          }
 
-      if (FlushMode.OBJECT == bundle.getFlushMode()) {
-        session.flush();
-      }
-    }
+          if (FlushMode.OBJECT == bundle.getFlushMode()) {
+            session.flush();
+          }
+        });
 
     session.flush();
 
-    objects.forEach(
+    progress.startingStage(
+        "Running postUpdate %s bundle hooks".formatted(klass.getSimpleName()), objects.size());
+    progress.runStage(
+        objects,
+        IdentifiableObject::getName,
         object -> {
           T persistedObject = bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
-          objectBundleHooks
-              .getObjectHooks(object)
-              .forEach(hook -> hook.postUpdate(persistedObject, bundle));
-          eventHookPublisher.publishEvent(
-              EventUtils.metadataUpdate((BaseIdentifiableObject) object));
+          hooks.forEach(hook -> hook.postUpdate(persistedObject, bundle));
+          eventHookPublisher.publishEvent(metadataUpdate((BaseIdentifiableObject) object));
         });
 
     return typeReport;
   }
 
   private <T extends IdentifiableObject> TypeReport handleDeletes(
-      Session session, Class<T> klass, List<T> objects, ObjectBundle bundle) {
+      Session session, Class<T> klass, List<T> objects, ObjectBundle bundle, JobProgress progress) {
     TypeReport typeReport = new TypeReport(klass);
 
     if (objects.isEmpty()) {
       return typeReport;
     }
 
-    String message =
-        "("
-            + bundle.getUsername()
-            + ") Deleting "
-            + objects.size()
-            + " object(s) of type "
-            + objects.get(0).getClass().getSimpleName();
-
-    log.info(message);
-
-    if (bundle.hasJobId()) {
-      notifier.notify(bundle.getJobId(), message);
-    }
-
     List<T> persistedObjects = bundle.getPreheat().getAll(bundle.getPreheatIdentifier(), objects);
+    List<ObjectBundleHook<T>> hooks = objectBundleHooks.getTypeImportHooks(klass);
 
-    for (T object : persistedObjects) {
-      ObjectReport objectReport = new ObjectReport(object, bundle);
-      objectReport.setDisplayName(IdentifiableObjectUtils.getDisplayName(object));
-      typeReport.addObjectReport(objectReport);
+    String message =
+        "Deleting %d %s object(s) as %s"
+            .formatted(objects.size(), klass.getSimpleName(), bundle.getUsername());
+    progress.startingStage(message, persistedObjects.size());
+    AtomicReference<DeleteNotAllowedException> lastEx = new AtomicReference<>();
+    progress.runStage(
+        persistedObjects,
+        IdentifiableObject::getName,
+        object -> {
+          ObjectReport objectReport = new ObjectReport(object, bundle);
+          objectReport.setDisplayName(IdentifiableObjectUtils.getDisplayName(object));
+          typeReport.addObjectReport(objectReport);
 
-      objectBundleHooks.getObjectHooks(object).forEach(hook -> hook.preDelete(object, bundle));
-      manager.delete(object, bundle.getUser());
+          hooks.forEach(hook -> hook.preDelete(object, bundle));
+          try {
+            manager.delete(object, bundle.getUser());
+          } catch (DeleteNotAllowedException ex) {
+            lastEx.set(ex);
+            throw ex;
+          }
 
-      bundle.getPreheat().remove(bundle.getPreheatIdentifier(), object);
+          bundle.getPreheat().remove(bundle.getPreheatIdentifier(), object);
 
-      if (log.isDebugEnabled()) {
-        String msg =
-            "("
-                + bundle.getUsername()
-                + ") Deleted object '"
-                + bundle.getPreheatIdentifier().getIdentifiersWithName(object)
-                + "'";
-        log.debug(msg);
-      }
+          if (log.isDebugEnabled()) {
+            String msg =
+                "(%s) Deleted object '%s'"
+                    .formatted(
+                        bundle.getUsername(),
+                        bundle.getPreheatIdentifier().getIdentifiersWithName(object));
+            log.debug(msg);
+          }
 
-      if (FlushMode.OBJECT == bundle.getFlushMode()) {
-        session.flush();
-      }
-    }
+          if (FlushMode.OBJECT == bundle.getFlushMode()) {
+            session.flush();
+          }
+        });
+    if (lastEx.get() != null) throw lastEx.get();
 
-    objects.forEach(
-        object ->
-            eventHookPublisher.publishEvent(EventUtils.metadataDelete(klass, object.getUid())));
+    progress.startingStage("Publish deletion event for %s objects".formatted(objects.size()));
+    progress.runStage(
+        () ->
+            objects.forEach(
+                object -> eventHookPublisher.publishEvent(metadataDelete(klass, object.getUid()))));
 
     return typeReport;
   }

@@ -228,10 +228,12 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("programnotificationinstance");
     emptyTable("trackedentitydatavalueaudit");
     emptyTable("trackedentityprogramowner");
-    emptyTable("eventcomments");
-    emptyTable("programinstancecomments");
+
+    emptyTable("event_notes");
+    emptyTable("enrollment_notes");
+    emptyTable("note");
     emptyTable("event");
-    emptyTable("programinstance");
+    emptyTable("enrollment");
     emptyTable("programnotificationtemplate");
     emptyTable("programstagedataelement");
     emptyTable("programstagesection_dataelements");
@@ -252,7 +254,7 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("trackedentityattributevalueaudit");
     emptyTable("trackedentitytypeattribute");
     emptyTable("trackedentityattribute");
-    emptyTable("trackedentityinstance");
+    emptyTable("trackedentity");
     emptyTable("trackedentitytype");
 
     emptyTable("minmaxdataelement");
@@ -323,7 +325,6 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("previouspasswords");
     emptyTable("usersetting");
     emptyTable("fileresource");
-    emptyTable("trackedentitycomment");
     emptyTable("userinfo");
     emptyTable("route");
 

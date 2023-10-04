@@ -29,12 +29,10 @@ name: validation_rules_missing_value_strategy_null
 description: All validation rule expressions should have a missing value strategy.
 section: Validation rules
 section_order: 1
-summary_uid: r3zB0LV2vbG
 summary_sql: >-
     SELECT COUNT(*) as value,
     100.0 * count(*) / NULLIF( (select count(*) from expression), 0)  as percent
     from expression where missingvaluestrategy IS NULL;
-details_uid: uvj8KSaZHtw
 details_sql: >-
     SELECT a.uid,a.name,'RHS' as comment
     from validationrule a

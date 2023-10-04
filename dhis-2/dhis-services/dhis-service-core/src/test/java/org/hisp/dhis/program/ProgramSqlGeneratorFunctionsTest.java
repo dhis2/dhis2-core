@@ -444,7 +444,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         is(
             "(select count(*) from relationship r "
                 + "join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid "
-                + "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei"
+                + "join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.te"
                 + " where r.deleted is false)"));
   }
 
@@ -459,7 +459,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
             "(select count(*) from relationship r "
                 + "join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatnTypeA' "
                 + "join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid "
-                + "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei"
+                + "join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.te"
                 + " where r.deleted is false)"));
   }
 

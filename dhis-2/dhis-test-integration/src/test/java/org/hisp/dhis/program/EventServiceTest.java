@@ -30,15 +30,20 @@ package org.hisp.dhis.program;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.TestCache;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.note.Note;
+import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -76,6 +81,8 @@ class EventServiceTest extends TransactionalIntegrationTest {
   @Autowired private TrackedEntityAttributeService attributeService;
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
+
+  @Autowired NoteService noteService;
 
   private OrganisationUnit organisationUnitA;
 
@@ -287,5 +294,29 @@ class EventServiceTest extends TransactionalIntegrationTest {
     assertEquals(eventB, eventService.getEvent(idB));
     assertEquals(eventA, eventService.getEvent("UID-A"));
     assertEquals(eventB, eventService.getEvent("UID-B"));
+  }
+
+  @Test
+  void shouldNoteDeleteNoteWhenDeletingEvent() {
+
+    Event event = new Event(enrollmentA, stageA);
+    event.setDueDate(enrollmentDate);
+    event.setUid(CodeGenerator.generateUid());
+
+    Note note = new Note();
+    note.setCreator(CodeGenerator.generateUid());
+    note.setNoteText("text");
+    noteService.addNote(note);
+
+    event.setNotes(List.of(note));
+
+    eventService.addEvent(event);
+
+    assertNotNull(eventService.getEvent(event.getUid()));
+
+    eventService.deleteEvent(event);
+
+    assertNull(eventService.getEvent(event.getUid()));
+    assertTrue(noteService.noteExists(note.getUid()));
   }
 }

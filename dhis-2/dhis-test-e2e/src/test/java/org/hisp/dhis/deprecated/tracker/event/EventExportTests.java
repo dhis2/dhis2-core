@@ -137,9 +137,28 @@ public class EventExportTests extends DeprecatedTrackerApiTest {
     loginActions.loginAsAdmin();
   }
 
+  Stream<Arguments> shouldFailWhenOrgUnitNotInScope() {
+    return Stream.of(Arguments.of("OU: root", "SELECTED", rootOu));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource
+  void shouldFailWhenOrgUnitNotInScope(String description, String mode, String orgUnitId) {
+    loginActions.loginAsUser(userName, password);
+
+    QueryParamsBuilder builder =
+        new QueryParamsBuilder().add("ouMode", mode).add("orgUnit", orgUnitId);
+
+    eventActions
+        .get(builder.build())
+        .validate()
+        .statusCode(409)
+        .body(
+            "message", equalTo("Organisation unit is not part of your search scope: ImspTQPwCqd"));
+  }
+
   Stream<Arguments> shouldUseCorrectScopeWhenOuIsProvided() {
     return Stream.of(
-        Arguments.of("OU: root", "SELECTED", rootOu, false, null),
         Arguments.of("OU: capture", "SELECTED", captureOu, true, Arrays.asList(captureOu)),
         Arguments.of("OU: search", "SELECTED", searchOu, true, Arrays.asList(searchOu)),
         Arguments.of("OU: data read", "SELECTED", dataReadOu, true, Arrays.asList(dataReadOu)),
@@ -176,13 +195,15 @@ public class EventExportTests extends DeprecatedTrackerApiTest {
       return;
     }
 
-    response.validateStatus(409);
+    response.validateStatus(403);
   }
 
   Stream<Arguments> shouldUseCorrectScopeWhenNoOu() {
     return Stream.of(
         Arguments.of(
-            "should use capture scope when no ou, no program", null, Arrays.asList(captureOu)),
+            "should use search scope when no ou, no program",
+            null,
+            Arrays.asList(captureOu, searchOu, dataReadOu)),
         Arguments.of(
             "should use capture scope when no ou, closed program",
             closedProgramId,
@@ -397,7 +418,7 @@ public class EventExportTests extends DeprecatedTrackerApiTest {
     eventActions
         .get(
             String.format(
-                "?program=%s&ouMode=%s&orgUnit", withoutRegistrationProgram, "ALL", "ImspTQPwCqd"))
+                "?program=%s&ouMode=%s", withoutRegistrationProgram, "ALL", "ImspTQPwCqd"))
         .validate()
         .statusCode(409)
         .body(

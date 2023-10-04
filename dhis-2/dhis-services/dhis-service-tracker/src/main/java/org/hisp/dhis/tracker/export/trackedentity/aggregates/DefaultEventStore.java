@@ -34,10 +34,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.EventDataValueRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.EventRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.NoteRowCallbackHandler;
@@ -53,31 +53,31 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
   private static final String GET_EVENTS_SQL = EventQuery.getQuery();
 
   private static final String GET_DATAVALUES_SQL =
-      "select psi.uid as key, "
-          + "psi.eventdatavalues "
-          + "from event psi "
-          + "where psi.eventid in (:ids)";
+      "select ev.uid as key, "
+          + "ev.eventdatavalues "
+          + "from event ev "
+          + "where ev.eventid in (:ids)";
 
   private static final String GET_NOTES_SQL =
-      "select psi.uid as key, tec.uid, tec.commenttext, "
-          + "tec.creator, tec.created "
-          + "from trackedentitycomment tec "
-          + "join eventcomments psic "
-          + "on tec.trackedentitycommentid = psic.trackedentitycommentid "
-          + "join event psi on psic.eventid = psi.eventid "
-          + "where psic.eventid in (:ids)";
+      "select ev.uid as key, n.uid, n.notetext, "
+          + "n.creator, n.created "
+          + "from note n "
+          + "join event_notes evn "
+          + "on n.noteid = evn.noteid "
+          + "join event ev on evn.eventid = ev.eventid "
+          + "where evn.eventid in (:ids)";
 
   private static final String ACL_FILTER_SQL =
       "CASE WHEN p.type = 'WITH_REGISTRATION' THEN "
           + "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END "
-          + "AND psi.programstageid in (:programStageIds) AND pi.programid IN (:programIds)";
+          + "AND ev.programstageid in (:programStageIds) AND en.programid IN (:programIds)";
 
   private static final String ACL_FILTER_SQL_NO_PROGRAM_STAGE =
       "CASE WHEN p.type = 'WITH_REGISTRATION' THEN "
           + "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END "
-          + "AND pi.programid IN (:programIds)";
+          + "AND en.programid IN (:programIds)";
 
-  private static final String FILTER_OUT_DELETED_EVENTS = "psi.deleted=false";
+  private static final String FILTER_OUT_DELETED_EVENTS = "ev.deleted=false";
 
   public DefaultEventStore(JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
@@ -101,7 +101,7 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
   }
 
   private String getAttributeOptionComboClause(Context ctx) {
-    return " and psi.attributeoptioncomboid not in ("
+    return " and ev.attributeoptioncomboid not in ("
         + "select distinct(cocco.categoryoptioncomboid) "
         + "from categoryoptioncombos_categoryoptions as cocco "
         +
@@ -166,7 +166,7 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
   }
 
   @Override
-  public Multimap<String, TrackedEntityComment> getNotes(List<Long> eventIds) {
+  public Multimap<String, Note> getNotes(List<Long> eventIds) {
     return fetch(GET_NOTES_SQL, new NoteRowCallbackHandler(), eventIds);
   }
 }

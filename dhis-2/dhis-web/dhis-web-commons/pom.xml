@@ -86,19 +86,7 @@
       <artifactId>spring-mobile-device</artifactId>
     </dependency>
 
-    <!--Spring Session and Redis -->
-
-    <dependency>
-      <groupId>org.springframework.session</groupId>
-      <artifactId>spring-session-data-redis</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.lettuce</groupId>
-      <artifactId>lettuce-core</artifactId>
-    </dependency>
-
     <!-- Other -->
-
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>

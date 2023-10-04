@@ -431,7 +431,7 @@ public class TrackedEntityInstanceController {
     // For in memory Jobs
     JobConfiguration jobId =
         new JobConfiguration(
-            "inMemoryEventImport", TEI_IMPORT, currentUserService.getCurrentUser().getUid(), true);
+            "inMemoryEventImport", TEI_IMPORT, currentUserService.getCurrentUser().getUid());
 
     TrackerEntityInstanceRequest trackerEntityInstanceRequest =
         TrackerEntityInstanceRequest.builder()
@@ -454,7 +454,7 @@ public class TrackedEntityInstanceController {
                   ? null
                   : "/api/" + "trackedEntityInstances" + "/" + singleSummary.getReference());
     }
-    return jobConfigurationReport(jobId).setLocation("/system/tasks/" + TEI_IMPORT);
+    return jobConfigurationReport(jobId);
   }
 
   private ImportSummary finalizeTrackedEntityInstancePostRequest(

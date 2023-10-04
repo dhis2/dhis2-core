@@ -31,19 +31,32 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import org.hisp.dhis.jsontree.JsonBuilder;
+import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.scheduling.JobStatus;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingType;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonJobConfiguration;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.scheduling.JobConfigurationController}. Since
- * test setup uses a mock for the {@link org.hisp.dhis.scheduling.SchedulingManager} the actual
- * scheduling cannot be tested. This tests focuses on creation including the serialization of job
- * parameters.
+ * test setup does not start the {@link org.hisp.dhis.scheduling.JobScheduler} the actual scheduling
+ * cannot be tested. This tests focuses on creation including the serialization of job parameters.
  *
  * @author Jan Bernitt
  */
@@ -228,6 +241,199 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
         param.getArray("constants").stringValues());
   }
 
+  private static final Map<String, Object> MINIMAL_CRON_CONFIG =
+      Map.of(
+          "name",
+          "test",
+          "jobType",
+          JobType.DATA_INTEGRITY,
+          "cronExpression",
+          "0 0 12 ? * MON-FRI");
+
+  @Test
+  void testLastExecutedIsIgnored_Create() {
+    assertNull(createExpectSuccess(Map.of("lastExecuted", new Date())).getLastExecuted());
+  }
+
+  @Test
+  void testLastExecutedIsIgnored_Update() {
+    assertNull(
+        updateExpectSuccess(obj -> obj.addMember("lastExecuted", toJson(new Date())))
+            .getLastExecuted());
+  }
+
+  @Test
+  void testLastAliveIsIgnored_Create() {
+    assertNull(createExpectSuccess(Map.of("lastAlive", new Date())).getLastAlive());
+  }
+
+  @Test
+  void testLastAliveIsIgnored_Update() {
+    assertNull(
+        updateExpectSuccess(obj -> obj.addMember("lastAlive", toJson(new Date()))).getLastAlive());
+  }
+
+  @Test
+  void testLastFinishedIsIgnored_Create() {
+    assertNull(createExpectSuccess(Map.of("lastFinished", new Date())).getLastFinished());
+  }
+
+  @Test
+  void testLastFinishedIsIgnored_Update() {
+    assertNull(
+        updateExpectSuccess(obj -> obj.addMember("lastFinished", toJson(new Date())))
+            .getLastFinished());
+  }
+
+  @Test
+  void testLastExecutedStatusIsIgnored_Create() {
+    assertEquals(
+        JobStatus.NOT_STARTED,
+        createExpectSuccess(Map.of("lastExecutedStatus", JobStatus.DISABLED))
+            .getLastExecutedStatus());
+  }
+
+  @Test
+  void testLastExecutedStatusIsReadOnly_Update() {
+    assertEquals(
+        JobStatus.NOT_STARTED,
+        updateExpectSuccess(obj -> obj.addMember("lastExecutedStatus", toJson(JobStatus.DISABLED)))
+            .getLastExecutedStatus());
+  }
+
+  @Test
+  void testJobStatusIsIgnored_Create() {
+    assertEquals(
+        JobStatus.SCHEDULED,
+        createExpectSuccess(Map.of("jobStatus", JobStatus.DISABLED)).getJobStatus());
+  }
+
+  @Test
+  void testJobStatusIsIgnored_Update() {
+    assertEquals(
+        JobStatus.SCHEDULED,
+        updateExpectSuccess(obj -> obj.addMember("jobStatus", toJson(JobStatus.DISABLED)))
+            .getJobStatus());
+  }
+
+  @Test
+  void testSchedulingTypeCron_Create() {
+    JsonJobConfiguration config = createExpectSuccess(Map.of());
+    assertEquals(SchedulingType.CRON, config.getSchedulingType());
+    assertNotNull(config.getCronExpression());
+    assertNull(config.getDelay());
+  }
+
+  @Test
+  void testSchedulingTypeCron_CreateWithDelay() {
+    JsonJobConfiguration config = createExpectSuccess(Map.of("delay", 100));
+    assertEquals(SchedulingType.CRON, config.getSchedulingType());
+    assertNotNull(config.getCronExpression());
+    assertEquals(100, config.getDelay());
+  }
+
+  @Test
+  void testSchedulingTypeFixedDelay_Create() {
+    JsonJobConfiguration config =
+        createExpectSuccess(
+            Map.of("name", "d-test", "jobType", "CONTINUOUS_ANALYTICS_TABLE", "delay", 100),
+            Map.of());
+    assertEquals(SchedulingType.FIXED_DELAY, config.getSchedulingType());
+    assertNull(config.getCronExpression());
+    assertEquals(100, config.getDelay());
+  }
+
+  @Test
+  void testSchedulingTypeFixedDelay_CreateWithCronExpression() {
+    JsonJobConfiguration config =
+        createExpectSuccess(
+            Map.of(
+                "name",
+                "d-test",
+                "jobType",
+                "CONTINUOUS_ANALYTICS_TABLE",
+                "delay",
+                100,
+                "schedulingType",
+                "FIXED_DELAY"),
+            Map.of("cronExpression", "0 0 12 ? * MON-FRI"));
+    assertEquals(SchedulingType.FIXED_DELAY, config.getSchedulingType());
+    assertNotNull(config.getCronExpression());
+    assertEquals(100, config.getDelay());
+  }
+
+  @Test
+  void testSchedulingTypeIsReadWrite_Update() {
+    assertEquals(
+        SchedulingType.FIXED_DELAY, // created like that by default in this test
+        updateExpectSuccess(
+                obj ->
+                    obj.addMember("schedulingType", toJson(SchedulingType.FIXED_DELAY))
+                        .addMember("delay", toJson(420)))
+            .getSchedulingType());
+  }
+
+  @Test
+  void testJobTypeIsReadOnly_Update() {
+    assertEquals(
+        JobType.DATA_INTEGRITY, // created like that by default in this test
+        updateExpectSuccess(obj -> obj.addMember("jobType", toJson(JobType.ANALYTICS_TABLE)))
+            .getJobType());
+  }
+
+  @Test
+  void testQueueNameIsReadOnly_Create() {
+    assertNull(createExpectSuccess(Map.of("queueName", "test-q")).getQueueName());
+  }
+
+  @Test
+  void testQueueNameIsReadOnly_Update() {
+    assertNull(
+        updateExpectSuccess(obj -> obj.addMember("queueName", toJson("test-q"))).getQueueName());
+  }
+
+  @Test
+  void testQueuePositionIsReadOnly_Create() {
+    assertNull(createExpectSuccess(Map.of("queuePosition", 42)).getQueuePosition());
+  }
+
+  @Test
+  void testQueuePositionIsReadOnly_Update() {
+    assertNull(
+        updateExpectSuccess(obj -> obj.addMember("queuePosition", toJson(42))).getQueuePosition());
+  }
+
+  private JsonJobConfiguration createExpectSuccess(Map<String, Object> extra) {
+    return createExpectSuccess(MINIMAL_CRON_CONFIG, extra);
+  }
+
+  private JsonJobConfiguration createExpectSuccess(
+      Map<String, Object> minimal, Map<String, Object> extra) {
+    JsonNode json =
+        JsonBuilder.createObject(
+            obj -> {
+              minimal.forEach((name, value) -> obj.addMember(name, toJson(value)));
+              extra.forEach((name, value) -> obj.addMember(name, toJson(value)));
+            });
+
+    String jobId =
+        assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json.getDeclaration()));
+    return getJsonJobConfiguration(jobId);
+  }
+
+  private JsonJobConfiguration updateExpectSuccess(Consumer<JsonObjectBuilder> addMembers) {
+    JsonJobConfiguration config = createExpectSuccess(Map.of());
+    JsonNode withUpdate = config.node().addMembers(addMembers);
+    String jobId = config.getId();
+    assertStatus(HttpStatus.OK, PUT("/jobConfigurations/" + jobId, withUpdate.getDeclaration()));
+
+    return getJsonJobConfiguration(jobId);
+  }
+
+  private JsonJobConfiguration getJsonJobConfiguration(String jobId) {
+    return GET("/jobConfigurations/{id}", jobId).content().as(JsonJobConfiguration.class);
+  }
+
   private JsonObject assertJobConfigurationExists(String jobId, String expectedJobType) {
     JsonObject jobConfiguration = GET("/jobConfigurations/{id}", jobId).content();
     assertEquals(jobId, jobConfiguration.getString("id").string());
@@ -236,5 +442,13 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
     assertTrue(jobConfiguration.getBoolean("enabled").booleanValue());
     assertEquals(expectedJobType, jobConfiguration.getString("jobType").string());
     return jobConfiguration.getObject("jobParameters");
+  }
+
+  private static JsonNode toJson(Object value) {
+    try {
+      return JsonNode.of(new ObjectMapper().writeValueAsString(value));
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

@@ -35,6 +35,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
+import org.hisp.dhis.dashboard.design.Column;
+import org.hisp.dhis.dashboard.design.Layout;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -47,6 +49,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DashboardCheck implements ObjectValidationCheck {
   private final AclService aclService;
+  public static final byte LAYOUT_COLUMN_LIMIT = 60;
 
   @Override
   public <T extends IdentifiableObject> void check(
@@ -57,16 +60,29 @@ public class DashboardCheck implements ObjectValidationCheck {
       ImportStrategy importStrategy,
       ValidationContext context,
       Consumer<ObjectReport> addReports) {
-    if (!klass.isAssignableFrom(Dashboard.class) || CollectionUtils.isEmpty(persistedObjects)) {
-      return;
-    }
+    if (!klass.isAssignableFrom(Dashboard.class)) return;
+
+    // checks
+    processAclChecks(bundle, klass, persistedObjects, addReports);
+    processLayoutLimitCheck(
+        selectObjectsBasedOnImportStrategy(persistedObjects, nonPersistedObjects, importStrategy),
+        addReports);
+  }
+
+  private <T> void processAclChecks(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      Consumer<ObjectReport> addReports) {
+    if (CollectionUtils.isEmpty(persistedObjects)) return;
 
     persistedObjects.forEach(
         dashboard -> {
           List<ErrorReport> errors = new ArrayList<>();
           checkDashboardItemHasObject(bundle, ((Dashboard) dashboard).getItems(), errors::add);
           if (!errors.isEmpty()) {
-            ObjectReport objectReport = new ObjectReport(klass, 0, dashboard.getUid());
+            ObjectReport objectReport =
+                new ObjectReport(klass, 0, ((Dashboard) dashboard).getUid());
             objectReport.addErrorReports(errors);
             addReports.accept(objectReport);
           }
@@ -136,6 +152,38 @@ public class DashboardCheck implements ObjectValidationCheck {
                                 linkItem.getUid()));
                       }
                     });
+          }
+        });
+  }
+
+  /**
+   * Check if the {@link Layout} has more than 60 columns (UI limitation).
+   *
+   * @param mergedObjects {@link Dashboard}s being imported for checking.
+   * @param addReports add {@link ErrorCode#E4070} if layout column limit exceeded
+   */
+  private <T> void processLayoutLimitCheck(
+      List<T> mergedObjects, Consumer<ObjectReport> addReports) {
+    mergedObjects.forEach(
+        dashboard -> {
+          Layout layout = ((Dashboard) dashboard).getLayout();
+          if (layout == null) return;
+
+          List<Column> columns = layout.getColumns();
+
+          if (CollectionUtils.isEmpty(columns)) return;
+
+          if (columns.size() > LAYOUT_COLUMN_LIMIT) {
+            ErrorReport error =
+                new ErrorReport(
+                    Dashboard.class,
+                    ErrorCode.E4070,
+                    ((Dashboard) dashboard).getUid(),
+                    columns.size());
+            ObjectReport objectReport =
+                new ObjectReport(Dashboard.class, 0, ((Dashboard) dashboard).getUid());
+            objectReport.addErrorReport(error);
+            addReports.accept(objectReport);
           }
         });
   }

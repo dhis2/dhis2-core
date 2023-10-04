@@ -15,7 +15,7 @@
       column="programid" foreign-key="fk_programtempowner_programid" />
 
     <many-to-one name="trackedEntity"
-                 class="org.hisp.dhis.trackedentity.TrackedEntity" column="trackedentityinstanceid"
+                 class="org.hisp.dhis.trackedentity.TrackedEntity" column="trackedentityid"
                  foreign-key="fk_programtempowner_trackedentityinstanceid" />
 
     <property name="validTill" type="timestamp" />

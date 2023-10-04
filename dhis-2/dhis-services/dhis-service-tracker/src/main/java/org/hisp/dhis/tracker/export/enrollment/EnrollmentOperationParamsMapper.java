@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
-
 import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +34,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -93,15 +89,9 @@ class EnrollmentOperationParamsMapper {
     params.setTrackedEntity(trackedEntity);
     params.addOrganisationUnits(orgUnits);
     params.setOrganisationUnitMode(operationParams.getOrgUnitMode());
-    if (!params.isPaging() && !params.isSkipPaging()) {
-      params.setPage(DEFAULT_PAGE);
-      params.setPageSize(DEFAULT_PAGE_SIZE);
-      params.setSkipPaging(false);
-    } else {
-      params.setPage(operationParams.getPage());
-      params.setPageSize(operationParams.getPageSize());
-      params.setSkipPaging(operationParams.isSkipPaging());
-    }
+    params.setPage(operationParams.getPage());
+    params.setPageSize(operationParams.getPageSize());
+    params.setSkipPaging(operationParams.isSkipPaging());
     params.setTotalPages(operationParams.isTotalPages());
     params.setIncludeDeleted(operationParams.isIncludeDeleted());
     params.setUser(user);

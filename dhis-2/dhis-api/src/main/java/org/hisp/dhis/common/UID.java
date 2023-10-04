@@ -27,10 +27,21 @@
  */
 package org.hisp.dhis.common;
 
-import lombok.NoArgsConstructor;
+import static java.util.stream.Collectors.toUnmodifiableSet;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 /**
- * A "virtual" UID type that is "context-sensitive" and points to a UID of the current {@code
+ * UID represents an alphanumeric string of 11 characters starting with a letter.
+ *
+ * <p>A "virtual" UID type that is "context-sensitive" and points to a UID of the current {@code
  * Api.Endpoint}'s {@link org.hisp.dhis.common.OpenApi.EntityType}.
  *
  * <p>In other words by using this type in {@link OpenApi.Param#value()} the annotated parameter
@@ -38,5 +49,39 @@ import lombok.NoArgsConstructor;
  *
  * @author Jan Bernitt
  */
-@NoArgsConstructor
-public final class UID {}
+@Getter
+@EqualsAndHashCode
+public final class UID implements Serializable {
+  private static final String VALID_UID_FORMAT =
+      "UID must be an alphanumeric string of 11 characters starting with a letter.";
+
+  private final String value;
+
+  private UID(String value) {
+    if (!CodeGenerator.isValidUid(value)) {
+      throw new IllegalArgumentException(VALID_UID_FORMAT);
+    }
+    this.value = value;
+  }
+
+  @Override
+  public String toString() {
+    return value;
+  }
+
+  public static UID of(@Nonnull String value) {
+    return new UID(value);
+  }
+
+  public static UID of(@CheckForNull UidObject object) {
+    return object == null ? null : new UID(object.getUid());
+  }
+
+  public static Set<String> toValueSet(Collection<UID> uids) {
+    return uids.stream().map(UID::getValue).collect(toUnmodifiableSet());
+  }
+
+  public static List<String> toValueList(Collection<UID> uids) {
+    return uids.stream().map(UID::getValue).toList();
+  }
+}

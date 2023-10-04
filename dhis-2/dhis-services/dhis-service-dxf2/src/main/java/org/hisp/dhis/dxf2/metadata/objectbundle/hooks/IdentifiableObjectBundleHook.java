@@ -28,19 +28,24 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.Iterator;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.SortableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.preheat.PreheatIdentifier;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -73,6 +78,58 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
     handleAttributeValues(identifiableObject, bundle, schema);
     handleSkipSharing(identifiableObject, bundle);
     handleSkipTranslation(identifiableObject, bundle);
+    handleSortOrder(identifiableObject, bundle, schema);
+  }
+
+  /**
+   * This method loops through all sortable List of given object and sets the sortOrder value for
+   * each item in the List if it is not already set.
+   *
+   * @param identifiableObject Object to set sortOrder on
+   * @param bundle {@link ObjectBundle}
+   * @param schema Schema of given object
+   */
+  private void handleSortOrder(
+      IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema) {
+    findSortableProperty(schema)
+        .forEach(
+            property -> {
+              List<IdentifiableObject> collection =
+                  ListUtils.emptyIfNull(
+                      ReflectionUtils.invokeGetterMethod(
+                          property.getFieldName(), identifiableObject));
+              for (int i = 0; i < collection.size(); i++) {
+                IdentifiableObject item = collection.get(i);
+                IdentifiableObject preheatedItem =
+                    bundle.getPreheat().get(bundle.getPreheatIdentifier(), item);
+                if (preheatedItem == null) {
+                  continue;
+                }
+                SortableObject sortableObject = (SortableObject) preheatedItem;
+                if (sortableObject.getSortOrder() == null || sortableObject.getSortOrder() != i) {
+                  sortableObject.setSortOrder(i);
+                  bundle.getPreheat().put(bundle.getPreheatIdentifier(), preheatedItem);
+                }
+              }
+              bundle.getPreheat().put(bundle.getPreheatIdentifier(), identifiableObject);
+            });
+  }
+
+  /**
+   * Find all properties of given Schema class that are of type List which contains SortableObjects
+   * interface. The property must also have a property called sortOrder.
+   *
+   * @param schema Schema class to search for sortable properties
+   * @return List of properties that are sortable
+   */
+  private List<Property> findSortableProperty(Schema schema) {
+    return schema.getPersistedProperties().values().stream()
+        .filter(
+            p ->
+                p.getKlass().isAssignableFrom(List.class)
+                    && p.getItemKlass() != null
+                    && SortableObject.class.isAssignableFrom(p.getItemKlass()))
+        .toList();
   }
 
   @Override
@@ -86,6 +143,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
     Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
     handleAttributeValues(object, bundle, schema);
+    handleSortOrder(object, bundle, schema);
   }
 
   private void handleAttributeValues(

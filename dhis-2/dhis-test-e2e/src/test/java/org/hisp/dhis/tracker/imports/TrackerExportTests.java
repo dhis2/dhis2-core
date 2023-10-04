@@ -53,7 +53,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
@@ -390,7 +389,7 @@ public class TrackerExportTests extends TrackerApiTest {
         new QueryParamsBuilder()
             .add("orgUnit", "O6uvpzGd5pu")
             .add("program", Constants.TRACKER_PROGRAM_ID)
-            .add("attribute", String.format("kZeSYCgaHTk:%s:%s", operator, searchCriteria));
+            .add("filter", String.format("kZeSYCgaHTk:%s:%s", operator, searchCriteria));
 
     trackerImportExportActions
         .getTrackedEntities(queryParamsBuilder)
@@ -437,19 +436,6 @@ public class TrackerExportTests extends TrackerApiTest {
         .statusCode(200)
         .rootPath("instances[0]")
         .body("event", equalTo("ZwwuwNp6gVd"));
-  }
-
-  @Test
-  // TODO(tracker): remove with old tracker
-  void shouldReturnInvalidPropertyWhenOrderOnLegacyCreatedField() {
-    ApiResponse response = trackerImportExportActions.get("events?order=created:desc");
-    response
-        .validate()
-        .statusCode(400)
-        .body("status", CoreMatchers.equalTo("ERROR"))
-        .body(
-            "message",
-            CoreMatchers.containsString("Order by property `created` is not supported."));
   }
 
   @Test

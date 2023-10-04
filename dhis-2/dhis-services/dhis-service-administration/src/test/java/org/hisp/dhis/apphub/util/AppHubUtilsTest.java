@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.apphub.AppHubUtils;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
@@ -43,50 +43,50 @@ import org.springframework.http.MediaType;
 class AppHubUtilsTest {
 
   @Test
-  void testValidateQuery() {
+  void testValidateQuery() throws ConflictException {
     AppHubUtils.validateQuery("apps");
   }
 
   @Test
   void testValidateInvalidQueryA() {
     assertThrows(
-        IllegalQueryException.class, () -> AppHubUtils.validateQuery("apps/../../evil/endpoint"));
+        ConflictException.class, () -> AppHubUtils.validateQuery("apps/../../evil/endpoint"));
   }
 
   @Test
   void testValidateInvalidQueryB() {
-    assertThrows(IllegalQueryException.class, () -> AppHubUtils.validateQuery("http://evildomain"));
+    assertThrows(ConflictException.class, () -> AppHubUtils.validateQuery("http://evildomain"));
   }
 
   @Test
   void testValidateInvalidQueryC() {
-    assertThrows(IllegalQueryException.class, () -> AppHubUtils.validateQuery(""));
+    assertThrows(ConflictException.class, () -> AppHubUtils.validateQuery(""));
   }
 
   @Test
   void testValidateInvalidQueryD() {
-    assertThrows(IllegalQueryException.class, () -> AppHubUtils.validateQuery(null));
+    assertThrows(ConflictException.class, () -> AppHubUtils.validateQuery(null));
   }
 
   @Test
-  void testValidateApiVersionA() {
+  void testValidateApiVersionA() throws ConflictException {
     AppHubUtils.validateApiVersion("v2");
   }
 
   @Test
-  void testValidateApiVersionB() {
+  void testValidateApiVersionB() throws ConflictException {
     AppHubUtils.validateApiVersion("v146");
   }
 
   @Test
   void testValidateInvalidApiVersionA() {
-    assertThrows(IllegalQueryException.class, () -> AppHubUtils.validateApiVersion("25"));
+    assertThrows(ConflictException.class, () -> AppHubUtils.validateApiVersion("25"));
   }
 
   @Test
   void testValidateInvalidApiVersionB() {
     assertThrows(
-        IllegalQueryException.class, () -> AppHubUtils.validateApiVersion("malicious_script.js"));
+        ConflictException.class, () -> AppHubUtils.validateApiVersion("malicious_script.js"));
   }
 
   @Test

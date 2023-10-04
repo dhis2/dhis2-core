@@ -41,6 +41,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.List;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -186,6 +188,7 @@ class AggregateDataExchangeServiceTest {
             .setDx(List.of("Vz0C3i4Wy3M", "ToaOToReol6"))
             .setPe(List.of("202101", "202102"))
             .setOu(List.of("lGgJFgRkZui", "pvINfKxtqyN", "VOyqQ54TehY"))
+            .setAggregationType(AggregationType.COUNT)
             .setOutputDataElementIdScheme(IdScheme.UID.name())
             .setOutputOrgUnitIdScheme(IdScheme.CODE.name())
             .setOutputIdScheme(IdScheme.CODE.name());
@@ -195,6 +198,9 @@ class AggregateDataExchangeServiceTest {
     assertTrue(query.hasDimension(DimensionalObject.DATA_X_DIM_ID));
     assertTrue(query.hasDimension(DimensionalObject.PERIOD_DIM_ID));
     assertTrue(query.hasDimension(DimensionalObject.ORGUNIT_DIM_ID));
+    assertEquals(
+        new AnalyticsAggregationType(AggregationType.COUNT, AggregationType.COUNT),
+        query.getAggregationType());
     assertEquals(IdScheme.UID, query.getOutputDataElementIdScheme());
     assertEquals(IdScheme.CODE, query.getOutputOrgUnitIdScheme());
     assertEquals(IdScheme.CODE, query.getOutputIdScheme());
@@ -242,6 +248,14 @@ class AggregateDataExchangeServiceTest {
     assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme());
     assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme());
     assertEquals(IdScheme.UID, options.getIdSchemes().getIdScheme());
+  }
+
+  @Test
+  void testToAggregationType() {
+    assertEquals(
+        new AnalyticsAggregationType(AggregationType.COUNT, AggregationType.COUNT),
+        service.toAnalyticsAggregationType(AggregationType.COUNT));
+    assertNull(service.toAnalyticsAggregationType(null));
   }
 
   @Test

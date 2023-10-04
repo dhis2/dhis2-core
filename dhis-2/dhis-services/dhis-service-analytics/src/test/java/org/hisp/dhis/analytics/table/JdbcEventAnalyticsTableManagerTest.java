@@ -56,6 +56,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.time.Year;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
@@ -325,6 +326,32 @@ class JdbcEventAnalyticsTableManagerTest {
             "CASE WHEN psi.createdatclient IS NOT NULL THEN psi.createdatclient ELSE psi.created END"));
   }
 
+  @Test
+  void verifyAnalyticsEventTableHasDefaultPartition() {
+    Program program = createProgram('A');
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+    when(periodDataProvider.getAvailableYears()).thenReturn(List.of(2021, 2022, 2023, 2024, 2025));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
+        .thenReturn(List.of());
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .withLastYears(2)
+            .withStartTime(START_TIME)
+            .withToday(today)
+            .build();
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertThat(tables, hasSize(1));
+
+    assertThat(tables.get(0).getTablePartitions().get(0).getYear(), equalTo(Year.now().getValue()));
+  }
+
   private AnalyticsTableColumn getColumn(String column, AnalyticsTable analyticsTable) {
     return analyticsTable.getDimensionColumns().stream()
         .filter(col -> col.getName().equals(column))
@@ -469,7 +496,7 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
     String aliasTea1 =
         "(select %s from organisationunit ou where ou.uid = (select value from "
-            + "trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
             + "trackedentityattributeid=%d)) as \"%s\"";
 
     AnalyticsTableUpdateParams params =
@@ -598,7 +625,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String ouQuery =
         "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "(select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
             + "trackedentityattributeid=9999)) as \""
             + tea.getUid()
             + "\"";
@@ -674,7 +701,7 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + getDateLinkedToStatus()
                 + ") as supportedyear "
-                + "from event psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+                + "from event psi inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and ("
                 + getDateLinkedToStatus()
                 + ") is not null "
@@ -855,7 +882,7 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + getDateLinkedToStatus()
                 + ") as supportedyear "
-                + "from event psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+                + "from event psi inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and ("
                 + getDateLinkedToStatus()
                 + ") is not null "
@@ -885,7 +912,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String ouQuery =
         "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "(select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
             + "trackedentityattributeid=9999)) as \""
             + tea.getUid()
             + "\"";
@@ -913,7 +940,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + getDateLinkedToStatus()
             + ") as supportedyear "
             + "from event psi inner join "
-            + "programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
+            + "enrollment pi on psi.enrollmentid = pi.enrollmentid where psi.lastupdated <= '"
             + "2019-08-01T00:00:00' and pi.programid = "
             + program.getId()
             + " and ("

@@ -36,6 +36,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -44,9 +45,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 
@@ -61,13 +60,6 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
 @NoArgsConstructor
 class RequestParams extends PagingAndSortingCriteriaAdapter {
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
-
-  /** Query filter for attributes */
-  private String query;
-
-  /** Comma separated list of attribute UIDs */
-  @OpenApi.Property({UID[].class, Attribute.class})
-  private String attribute;
 
   /** Comma separated list of attribute filters */
   private String filter;
@@ -84,8 +76,13 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
   @OpenApi.Property({UID[].class, OrganisationUnit.class})
   private Set<UID> orgUnits = new HashSet<>();
 
-  /** Selection mode for the specified organisation units, default is ACCESSIBLE. */
-  private OrganisationUnitSelectionMode ouMode = OrganisationUnitSelectionMode.DESCENDANTS;
+  /**
+   * @deprecated use {@link #orgUnitMode} instead.
+   */
+  @Deprecated(since = "2.41")
+  private OrganisationUnitSelectionMode ouMode;
+
+  private OrganisationUnitSelectionMode orgUnitMode;
 
   /** a Program UID for which instances in the response must be enrolled in. */
   @OpenApi.Property({UID.class, Program.class})
@@ -165,14 +162,8 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
   /** End date for Event for the given Program. */
   private Date eventOccurredBefore;
 
-  /** Indicates whether not to include metadata in the response. */
-  private boolean skipMeta;
-
   /** Indicates whether to include soft-deleted elements */
   private boolean includeDeleted;
-
-  /** Indicates whether to include all TEI attributes */
-  private boolean includeAllAttributes;
 
   /**
    * Potential Duplicate value for TEI. If null, we don't check whether a TEI is a

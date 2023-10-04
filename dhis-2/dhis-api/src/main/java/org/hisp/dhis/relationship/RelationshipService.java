@@ -103,7 +103,7 @@ public interface RelationshipService {
   }
 
   List<Relationship> getRelationshipsByTrackedEntity(
-      TrackedEntity tei,
+      TrackedEntity te,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
       boolean skipAccessValidation);
 

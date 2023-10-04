@@ -62,7 +62,8 @@ public class UniqueAttributesCheck implements ObjectValidationCheck {
       ImportStrategy importStrategy,
       ValidationContext ctx,
       Consumer<ObjectReport> addReports) {
-    List<T> objects = selectObjects(persistedObjects, nonPersistedObjects, importStrategy);
+    List<T> objects =
+        selectObjectsBasedOnImportStrategy(persistedObjects, nonPersistedObjects, importStrategy);
 
     if (objects.isEmpty()
         || !ctx.getSchemaService()

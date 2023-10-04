@@ -48,7 +48,6 @@ import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.report.Report;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -164,18 +163,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         Constant.class,
-        currentUserService,
-        aclService,
-        true);
-  }
-
-  @Bean("org.hisp.dhis.scheduling.JobConfigurationStore")
-  public HibernateIdentifiableObjectStore<JobConfiguration> jobConfigurationStore() {
-    return new HibernateIdentifiableObjectStore<>(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        JobConfiguration.class,
         currentUserService,
         aclService,
         true);

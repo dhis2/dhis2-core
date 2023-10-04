@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.resourcetable;
 
+import static java.time.temporal.ChronoUnit.YEARS;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import com.google.common.collect.Lists;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +70,7 @@ import org.hisp.dhis.resourcetable.table.OrganisationUnitGroupSetResourceTable;
 import org.hisp.dhis.resourcetable.table.OrganisationUnitStructureResourceTable;
 import org.hisp.dhis.resourcetable.table.PeriodResourceTable;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.stereotype.Service;
@@ -181,9 +184,50 @@ public class DefaultResourceTableService implements ResourceTableService {
   @Override
   @Transactional
   public void generateDatePeriodTable() {
+    List<Integer> availableYears = periodDataProvider.getAvailableYears();
+    checkYearsOffset(availableYears);
+
     resourceTableStore.generateResourceTable(
-        new DatePeriodResourceTable(
-            periodDataProvider.getAvailableYears(), analyticsExportSettings.getTableType()));
+        new DatePeriodResourceTable(availableYears, analyticsExportSettings.getTableType()));
+  }
+
+  /**
+   * This method checks if any of the year in the given list is within the offset defined in system
+   * settings. The constant where the offset is defined can be seen at {@link
+   * SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
+   *
+   * <p>Based on the current year YYYY and the defined offset X. This method allows a range of X
+   * years in the past and X years in the future. Including also the current year YYYY. So, for
+   * YYYY=2023 and offset=2, the valid range would be [2021,2022,2023,2024,2025].
+   *
+   * @param yearsToCheck the list of years to be checked.
+   */
+  private void checkYearsOffset(List<Integer> yearsToCheck) {
+    int maxYearsOffset = analyticsExportSettings.getMaxPeriodYearsOffset();
+    int minRangeAllowed = Year.now().minus(maxYearsOffset, YEARS).getValue();
+    int maxRangeAllowed = Year.now().plus(maxYearsOffset, YEARS).getValue();
+
+    boolean yearsOutOfRange =
+        yearsToCheck.stream().anyMatch(year -> year < minRangeAllowed || year > maxRangeAllowed);
+
+    if (yearsOutOfRange) {
+      String errorMessage = "Your database contains years out of the allowed offset.";
+      errorMessage +=
+          "\n Range of years allowed (based on your system settings and existing data): "
+              + yearsToCheck.stream()
+                  .filter(year -> year >= minRangeAllowed && year <= maxRangeAllowed)
+                  .toList()
+              + ".";
+      errorMessage +=
+          "\n Years out of range found: "
+              + yearsToCheck.stream()
+                  .filter(year -> year < minRangeAllowed || year > maxRangeAllowed)
+                  .toList()
+              + ".";
+
+      log.warn(errorMessage);
+      throw new RuntimeException(errorMessage);
+    }
   }
 
   @Override
