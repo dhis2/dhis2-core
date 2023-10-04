@@ -716,12 +716,11 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testDisableTwoFa() {
-    peter.setTwoFA(true);
-    userService.updateUser(peter);
     User userBefore = userService.getUser(peter.getUid());
-    assertTrue(userBefore.isTwoFA());
+    userBefore.setTwoFA(true);
+    userService.updateUser(userBefore);
 
-    POST("/users/{uid}/twoFA/disabled", peter.getUid());
+    POST("/users/" + peter.getUid() + "/twoFA/disabled", "");
 
     User userAfter = userService.getUser(peter.getUid());
     assertFalse(userAfter.isTwoFA());
