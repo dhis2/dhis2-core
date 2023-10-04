@@ -29,7 +29,6 @@ package org.hisp.dhis.user.hibernate;
 
 import java.util.List;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -48,9 +47,8 @@ public class HibernateUserSettingStore implements UserSettingStore {
 
   private SessionFactory sessionFactory;
 
-  public HibernateUserSettingStore( EntityManager entityManager )
-  {
-    sessionFactory = entityManager.unwrap( Session.class ).getSessionFactory();
+  public HibernateUserSettingStore(EntityManager entityManager) {
+    sessionFactory = entityManager.unwrap(Session.class).getSessionFactory();
   }
 
   // -------------------------------------------------------------------------
