@@ -28,7 +28,10 @@
 package org.hisp.dhis.user.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSetting;
@@ -40,29 +43,31 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @Repository("org.hisp.dhis.user.UserSettingStore")
-public class HibernateUserSettingStore extends Jpa implements UserSettingStore {
+public class HibernateUserSettingStore implements UserSettingStore {
   private static final boolean CACHEABLE = true;
+
+  private SessionFactory sessionFactory;
+
+  public HibernateUserSettingStore( EntityManager entityManager )
+  {
+    sessionFactory = entityManager.unwrap( Session.class ).getSessionFactory();
+  }
 
   // -------------------------------------------------------------------------
   // Dependencies
   // -------------------------------------------------------------------------
-
   // -------------------------------------------------------------------------
   // UserSettingStore implementation
   // -------------------------------------------------------------------------
 
   @Override
   public void addUserSetting(UserSetting userSetting) {
-    Session session = sessionFactory.getCurrentSession();
-
-    session.save(userSetting);
+    sessionFactory.getCurrentSession().save(userSetting);
   }
 
   @Override
   public void updateUserSetting(UserSetting userSetting) {
-    Session session = sessionFactory.getCurrentSession();
-
-    session.update(userSetting);
+    sessionFactory.getCurrentSession().update(userSetting);
   }
 
   @Override

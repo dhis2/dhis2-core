@@ -27,28 +27,30 @@
  */
 package org.hisp.dhis.startup;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
-import org.springframework.transaction.support.TransactionTemplate;
 
 @Slf4j
-@RequiredArgsConstructor
 public class ConfigurationPopulator extends TransactionContextStartupRoutine {
   private final ConfigurationService configurationService;
 
   private final DhisConfigurationProvider dhisConfigurationProvider;
 
-  private final TransactionTemplate transactionTemplate;
+  public ConfigurationPopulator(
+      ConfigurationService configurationService,
+      DhisConfigurationProvider dhisConfigurationProvider) {
+    checkNotNull(configurationService);
+    checkNotNull(dhisConfigurationProvider);
 
-  @Override
-  protected TransactionTemplate getTransactionTemplate() {
-    return this.transactionTemplate;
+    this.configurationService = configurationService;
+    this.dhisConfigurationProvider = dhisConfigurationProvider;
   }
 
   @Override

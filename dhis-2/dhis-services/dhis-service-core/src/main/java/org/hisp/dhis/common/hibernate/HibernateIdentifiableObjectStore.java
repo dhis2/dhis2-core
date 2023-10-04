@@ -127,8 +127,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     object.setLastUpdatedBy(user);
 
     if (clearSharing) {
-      object.setPublicAccess(AccessStringHelper.DEFAULT);
-      SharingUtils.resetAccessCollections(object);
+      object.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+      object.getSharing().resetUserAccesses();
+      object.getSharing().resetUserGroupAccesses();
     }
 
     if (object.getCreatedBy() == null) {
@@ -143,10 +144,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
       if (clearSharing) {
         if (aclService.canMakePublic(user, (BaseIdentifiableObject) object)) {
           if (aclService.defaultPublic((BaseIdentifiableObject) object)) {
-            object.setPublicAccess(AccessStringHelper.READ_WRITE);
+            object.getSharing().setPublicAccess(AccessStringHelper.READ_WRITE);
           }
         } else if (aclService.canMakePrivate(user, (BaseIdentifiableObject) object)) {
-          object.setPublicAccess(AccessStringHelper.newInstance().build());
+          object.getSharing().setPublicAccess(AccessStringHelper.newInstance().build());
         }
       }
 
