@@ -1160,7 +1160,12 @@ public class HibernateTrackedEntityInstanceStore
             .append("TET.uid, ")
             .append("TEI.potentialduplicate, ")
             .append("TEI.inactive ")
-            .append(params.isIncludeDeleted() ? ", TEI.deleted " : "");
+            .append(params.isIncludeDeleted() ? ", TEI.deleted " : "")
+            .append(
+                params.getOrders().stream()
+                        .anyMatch(p -> ENROLLED_AT.isPropertyEqualTo(p.getField()))
+                    ? ", TEI. " + ENROLLED_AT.getColumn()
+                    : "");
 
     for (QueryItem queryItem : sortableAttributesAndFilters(params)) {
       groupBy
