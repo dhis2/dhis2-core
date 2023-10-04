@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.lang.reflect.Member;
@@ -42,14 +43,14 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Value;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.openapi.Api.Endpoint;
+import org.hisp.dhis.webapi.openapi.Api.Parameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -74,6 +75,14 @@ public class ApiFinalise {
     boolean failOnNameClash;
 
     /**
+     * When true, the generation fails if a declaration is declared in an inconsistent way. This
+     * usually indicates a programming error.
+     *
+     * <p>For example, a field/parameter with a default value is marked as required.
+     */
+    boolean failOnInconsistency;
+
+    /**
      * The character(s) used to join the prefix, like {@code Ref} or {@code UID} with the rest of
      * the type name.
      *
@@ -93,10 +102,6 @@ public class ApiFinalise {
     // request bodies
     // responses
     String missingDescription;
-    /*
-     * .missingDescription( "[no description yet]" ) .namePartDelimiter( "_"
-     * )
-     */
   }
 
   Api api;
@@ -112,6 +117,9 @@ public class ApiFinalise {
    * ready for document generation.
    */
   private void finaliseApi() {
+    // 0. validation of the analysis result
+    validateParameters();
+
     // 1. Set and check shared unique names and create the additional schemas for Refs and UIDs
     nameSharedSchemas();
     nameSharedAdditionalSchemas();
@@ -126,6 +134,38 @@ public class ApiFinalise {
 
     // 3. Group and merge endpoints by request path and method
     groupAndMergeEndpoints();
+  }
+
+  /*
+  0. validate the Api result of the analysis step
+   */
+
+  private void validateParameters() {
+    // shared parameters
+    api.getComponents()
+        .getParameters()
+        .values()
+        .forEach(params -> params.forEach(this::validateParameter));
+
+    // non shared parameters
+    api.getControllers()
+        .forEach(
+            c ->
+                c.getEndpoints()
+                    .forEach(e -> e.getParameters().values().forEach(this::validateParameter)));
+  }
+
+  private void validateParameter(Parameter p) {
+    if (p.getDefaultValue().isPresent() && p.isRequired()) {
+      String msg =
+          String.format(
+              "Parameter %s of type %s is both required and has a default value of %s",
+              p.getFullName(),
+              p.getType().getRawType().getSimpleName(),
+              p.getDefaultValue().getValue());
+      if (config.failOnInconsistency) throw new IllegalStateException(msg);
+      log.warn(msg);
+    }
   }
 
   /*
@@ -177,11 +217,11 @@ public class ApiFinalise {
                 api.getComponents().getSchemas().put(schema.getSharedName().getValue(), schema));
   }
 
-  @Data
+  @Value
+  @Accessors(fluent = true)
   private static class SchemaKey {
-    private final Api.Schema.Type type;
-
-    private final Class<?> of;
+    Api.Schema.Type type;
+    Class<?> of;
   }
 
   /**
@@ -301,7 +341,7 @@ public class ApiFinalise {
         (name, params) -> {
           if (params.size() > 1) {
             List<Api.Parameter> paramsInNamespace =
-                params.stream().flatMap(e -> e.getValue().stream()).collect(Collectors.toList());
+                params.stream().flatMap(e -> e.getValue().stream()).collect(toList());
             Set<String> names =
                 paramsInNamespace.stream().map(Api.Parameter::getName).collect(toSet());
             if (paramsInNamespace.size() > names.size()) {
@@ -564,7 +604,6 @@ public class ApiFinalise {
         .anyMatch(response -> response.getContent().containsKey(MediaType.APPLICATION_JSON));
   }
 
-  @SuppressWarnings("java:S3776")
   private Map<String, List<Api.Endpoint>> groupEndpointsByAbsolutePath() {
     // OBS! We use a TreeMap to also get alphabetical order/grouping
     Map<String, List<Api.Endpoint>> endpointsByAbsolutePath = new TreeMap<>();
@@ -573,7 +612,9 @@ public class ApiFinalise {
       for (String cPath : c.getPaths()) {
         for (Api.Endpoint e : c.getEndpoints()) {
           for (String ePath : e.getPaths()) {
-            String absolutePath = cPath + ePath;
+            String absolutePath =
+                (cPath + (cPath.endsWith("/") || ePath.startsWith("/") ? "" : "/") + ePath)
+                    .replace("//", "/");
             if (absolutePath.isEmpty()) {
               absolutePath = "/";
             }
