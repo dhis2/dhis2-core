@@ -66,7 +66,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.util.SharingUtils;
 
 /**
  * @author Bob Jolliffe
@@ -381,7 +380,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   public void setOwner(String userId) {
     getSharing().setOwner(userId);
   }
-
 
   public void setPublicAccess(String publicAccess) {
     this.publicAccess = publicAccess;
