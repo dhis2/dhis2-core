@@ -61,14 +61,17 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import lombok.AccessLevel;
-import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.Value;
+import lombok.experimental.Accessors;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.webapi.openapi.Api.Parameter.In;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.http.HttpStatus;
@@ -102,18 +105,19 @@ final class ApiAnalyse {
    * The included classes can be filtered based on REST API resource path or {@link OpenApi.Tags}
    * present on the controller class level. Method level path and tags will not be considered for
    * this filter.
-   *
-   * @param controllers controllers all potential controllers
-   * @param paths filter based on resource path (empty includes all)
-   * @param tags filter based on tags (empty includes all)
    */
-  @Data
+  @Value
+  @Accessors(fluent = true)
   static class Scope {
-    private final Set<Class<?>> controllers;
 
-    private final Set<String> paths;
+    /** Controllers all potential controllers */
+    Set<Class<?>> controllers;
 
-    private final Set<String> tags;
+    /** filter based on resource path (empty includes all) */
+    Set<String> paths;
+
+    /** filter based on tags (empty includes all) */
+    Set<String> tags;
   }
 
   private static final Map<Class<?>, Api.SchemaGenerator> GENERATORS = new ConcurrentHashMap<>();
@@ -124,6 +128,7 @@ final class ApiAnalyse {
 
   static {
     register(UID.class, SchemaGenerators.UID);
+    register(org.hisp.dhis.common.UID.class, SchemaGenerators.UID);
     register(Api.PropertyNames.class, SchemaGenerators.PROPERTY_NAMES);
   }
 
@@ -197,8 +202,8 @@ final class ApiAnalyse {
   }
 
   private static Api.Endpoint analyseEndpoint(Api.Controller controller, EndpointMapping mapping) {
-    Method source = mapping.getSource();
-    String name = mapping.getName().isEmpty() ? source.getName() : mapping.getName();
+    Method source = mapping.source();
+    String name = mapping.name().isEmpty() ? source.getName() : mapping.name();
     Class<?> entityClass =
         getAnnotated(
             source,
@@ -209,7 +214,7 @@ final class ApiAnalyse {
 
     // request media types
     Set<MediaType> consumes =
-        mapping.getConsumes().stream().map(MediaType::parseMediaType).collect(toSet());
+        mapping.consumes().stream().map(MediaType::parseMediaType).collect(toSet());
     if (consumes.isEmpty()) {
       // assume JSON if nothing is set explicitly
       consumes.add(MediaType.APPLICATION_JSON);
@@ -226,7 +231,7 @@ final class ApiAnalyse {
                 : null);
 
     whenAnnotated(source, OpenApi.Tags.class, a -> endpoint.getTags().addAll(List.of(a.value())));
-    mapping.getPath().stream()
+    mapping.path().stream()
         .map(path -> path.endsWith("/") ? path.substring(0, path.length() - 1) : path)
         .forEach(path -> endpoint.getPaths().add(path));
     endpoint.getMethods().addAll(mapping.method);
@@ -242,9 +247,9 @@ final class ApiAnalyse {
 
   private static Map<HttpStatus, Api.Response> analyseResponses(
       Api.Endpoint endpoint, EndpointMapping mapping, Set<MediaType> consumes) {
-    Method source = mapping.getSource();
+    Method source = mapping.source();
     Set<MediaType> produces =
-        mapping.getProduces().stream().map(MediaType::parseMediaType).collect(toSet());
+        mapping.produces().stream().map(MediaType::parseMediaType).collect(toSet());
     if (produces.isEmpty()) {
       // either make symmetric or assume JSON as standard
       if (consumes.contains(MediaType.APPLICATION_JSON)
@@ -306,7 +311,6 @@ final class ApiAnalyse {
         response.status().length == 0
             ? defaultStatuses
             : stream(response.status()).map(s -> HttpStatus.resolve(s.getCode())).collect(toList());
-
     Set<Api.Header> headers =
         stream(response.headers())
             .map(
@@ -346,14 +350,23 @@ final class ApiAnalyse {
       if (p.isAnnotationPresent(OpenApi.Param.class)) {
         OpenApi.Param a = p.getAnnotation(OpenApi.Param.class);
         EndpointParam param = getParam(p);
-        String name = firstNonEmpty(a.name(), param == null ? "" : param.getName(), p.getName());
-        Api.Parameter.In in = param == null ? Api.Parameter.In.QUERY : param.getIn();
-        boolean required = param == null ? a.required() : param.isRequired();
+        String name = firstNonEmpty(a.name(), param == null ? "" : param.name(), p.getName());
+        Api.Parameter.In in = param == null ? Api.Parameter.In.QUERY : param.in();
+        boolean required = param == null ? a.required() : param.required();
         Api.Schema type = analyseParamSchema(endpoint, p.getParameterizedType(), a.value());
         if (in != Api.Parameter.In.BODY) {
+          String fallbackDefaultValue = param != null ? param.defaultValue() : null;
+          String defaultValue =
+              !a.defaultValue().isEmpty() ? a.defaultValue() : fallbackDefaultValue;
           endpoint
               .getParameters()
-              .computeIfAbsent(name, key -> new Api.Parameter(p, key, in, required, type));
+              .computeIfAbsent(
+                  name,
+                  key -> {
+                    Api.Parameter parameter = new Api.Parameter(p, key, in, required, type);
+                    parameter.getDefaultValue().setValue(defaultValue);
+                    return parameter;
+                  });
         } else {
           Api.RequestBody requestBody =
               endpoint.getRequestBody().init(() -> new Api.RequestBody(p, required));
@@ -375,18 +388,23 @@ final class ApiAnalyse {
                         analyseInputSchema(endpoint, p.getParameterizedType())));
       } else if (p.isAnnotationPresent(RequestParam.class) && p.getType() != Map.class) {
         RequestParam a = p.getAnnotation(RequestParam.class);
+        EndpointParam param = getParam(p);
         String name = firstNonEmpty(a.name(), a.value(), p.getName());
         endpoint
             .getParameters()
             .computeIfAbsent(
                 name,
-                key ->
-                    new Api.Parameter(
-                        p,
-                        key,
-                        Api.Parameter.In.QUERY,
-                        a.required(),
-                        analyseInputSchema(endpoint, p.getParameterizedType())));
+                key -> {
+                  Api.Parameter parameter =
+                      new Api.Parameter(
+                          p,
+                          key,
+                          In.QUERY,
+                          param.required(),
+                          analyseInputSchema(endpoint, p.getParameterizedType()));
+                  parameter.getDefaultValue().setValue(param.defaultValue());
+                  return parameter;
+                });
       } else if (p.isAnnotationPresent(RequestBody.class)) {
         RequestBody a = p.getAnnotation(RequestBody.class);
         Api.RequestBody requestBody =
@@ -461,12 +479,17 @@ final class ApiAnalyse {
   private static Api.Parameter analyseParameter(Api.Endpoint endpoint, Property property) {
     AnnotatedElement member = (AnnotatedElement) property.getSource();
     Type type = property.getType();
+    OpenApi.Property annotated = member.getAnnotation(OpenApi.Property.class);
     Api.Schema schema =
-        type instanceof Class && isGeneratorType((Class<?>) type)
-            ? analyseGeneratorSchema(
-                endpoint, type, member.getAnnotation(OpenApi.Property.class).value())
+        type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null
+            ? analyseGeneratorSchema(endpoint, type, annotated.value())
             : analyseInputSchema(endpoint, getSubstitutedType(endpoint, property, member));
-    return new Api.Parameter(member, property.getName(), Api.Parameter.In.QUERY, false, schema);
+    Api.Parameter param = new Api.Parameter(member, property.getName(), In.QUERY, false, schema);
+    Object defaultValue = property.getDefaultValue();
+    if (defaultValue != null) {
+      param.getDefaultValue().setValue(defaultValue.toString());
+    }
+    return param;
   }
 
   private static Api.Schema analyseParamSchema(
@@ -597,9 +620,9 @@ final class ApiAnalyse {
       return analyseSubTypeSchema(endpoint, member, resolving);
     }
     Type type = getSubstitutedType(endpoint, property, member);
-    if (type instanceof Class && isGeneratorType((Class<?>) type)) {
-      return analyseGeneratorSchema(
-          endpoint, type, member.getAnnotation(OpenApi.Property.class).value());
+    OpenApi.Property annotated = member.getAnnotation(OpenApi.Property.class);
+    if (type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null) {
+      return analyseGeneratorSchema(endpoint, type, annotated.value());
     }
     return analyseTypeSchema(endpoint, type, type == property.getType(), resolving);
   }
@@ -852,18 +875,19 @@ final class ApiAnalyse {
     if (source.isAnnotationPresent(PathVariable.class)) {
       PathVariable a = source.getAnnotation(PathVariable.class);
       return new EndpointParam(
-          Api.Parameter.In.PATH, firstNonEmpty(a.name(), a.value()), a.required());
+          Api.Parameter.In.PATH, firstNonEmpty(a.name(), a.value()), a.required(), null);
     }
     if (source.isAnnotationPresent(RequestParam.class)) {
       RequestParam a = source.getAnnotation(RequestParam.class);
-      boolean required =
-          a.required() && a.defaultValue().equals("\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n");
+      boolean hasDefault = !a.defaultValue().equals("\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n");
+      boolean required = a.required() && !hasDefault;
+      String defaultValue = hasDefault ? a.defaultValue() : null;
       return new EndpointParam(
-          Api.Parameter.In.QUERY, firstNonEmpty(a.name(), a.value()), required);
+          Api.Parameter.In.QUERY, firstNonEmpty(a.name(), a.value()), required, defaultValue);
     }
     if (source.isAnnotationPresent(RequestBody.class)) {
       RequestBody a = source.getAnnotation(RequestBody.class);
-      return new EndpointParam(Api.Parameter.In.BODY, "", a.required());
+      return new EndpointParam(Api.Parameter.In.BODY, "", a.required(), null);
     }
     return null;
   }
@@ -902,26 +926,20 @@ final class ApiAnalyse {
     return stream(samples).filter(e -> e != to).findFirst().orElse(samples[0]);
   }
 
-  @Data
-  private static class EndpointMapping {
-    private final Method source;
+  @Value
+  @Accessors(fluent = true)
+  @AllArgsConstructor
+  static class EndpointMapping {
+    Method source;
+    String name;
+    List<String> path;
+    Set<RequestMethod> method;
+    List<String> params;
+    List<String> headers;
+    List<String> consumes;
+    List<String> produces;
 
-    private final String name;
-
-    private final List<String> path;
-
-    private final Set<RequestMethod> method;
-
-    private final List<String> params;
-
-    private final List<String> headers;
-
-    private final List<String> consumes;
-
-    private final List<String> produces;
-
-    @SuppressWarnings("java:S107")
-    public EndpointMapping(
+    EndpointMapping(
         Method source,
         String name,
         String[] path,
@@ -930,24 +948,25 @@ final class ApiAnalyse {
         String[] headers,
         String[] consumes,
         String[] produces) {
-      this.source = source;
-      this.name = name;
-      this.path = List.of(path);
-      this.method = Set.of(method);
-      this.params = List.of(params);
-      this.headers = List.of(headers);
-      this.consumes = List.of(consumes);
-      this.produces = List.of(produces);
+      this(
+          source,
+          name,
+          List.of(path),
+          Set.of(method),
+          List.of(params),
+          List.of(headers),
+          List.of(consumes),
+          List.of(produces));
     }
   }
 
-  @Data
-  public static class EndpointParam {
-    private final Api.Parameter.In in;
-
-    private final String name;
-
-    private final boolean required;
+  @Value
+  @Accessors(fluent = true)
+  static class EndpointParam {
+    Api.Parameter.In in;
+    String name;
+    boolean required;
+    String defaultValue;
   }
 
   /*
