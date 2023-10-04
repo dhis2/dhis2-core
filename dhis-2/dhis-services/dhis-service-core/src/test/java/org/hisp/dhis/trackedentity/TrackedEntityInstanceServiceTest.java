@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.ENROLLED_AT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -677,6 +678,39 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
             entityInstanceD1.getId(),
             entityInstanceC1.getId()),
         teiIdList);
+  }
+
+  @Test
+  void
+      shouldOrderEntitiesByEnrolledAtDateAndAttributeValueWhenOrderHasAttributeAndEnrollmentDate() {
+    TrackedEntityAttribute tea = createTrackedEntityAttribute();
+
+    addEntityInstances();
+
+    programInstanceService.addProgramInstance(programInstance);
+    addEnrollment(entityInstanceB1, programInstance.getEnrollmentDate(), 'B');
+
+    // enrollments have the same enrollment date but different attribute value
+    createTrackedEntityInstanceAttribute(entityInstanceA1, tea, "B");
+    createTrackedEntityInstanceAttribute(entityInstanceB1, tea, "A");
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+    params.setOrganisationUnits(Set.of(organisationUnit));
+    params.setOrders(
+        List.of(
+            OrderParam.builder()
+                .field(ENROLLED_AT.getPropName())
+                .direction(OrderParam.SortDirection.DESC)
+                .build(),
+            OrderParam.builder()
+                .field(tea.getUid())
+                .direction(OrderParam.SortDirection.DESC)
+                .build()));
+
+    List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
+
+    assertEquals(List.of(entityInstanceA1.getId(), entityInstanceB1.getId()), teiIdList);
   }
 
   @Test
