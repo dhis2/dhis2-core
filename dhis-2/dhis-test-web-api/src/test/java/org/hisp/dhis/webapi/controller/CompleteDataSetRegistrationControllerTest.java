@@ -31,10 +31,11 @@ import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClient.ContentType;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -97,19 +98,22 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
 
   @Test
   void testGetCompleteRegistrationsXmlNoQueryParams() {
-    HttpResponse response = GET("/completeDataSetRegistrations", Accept(CONTENT_TYPE_XML));
-    assertEquals(HttpStatus.BAD_REQUEST, response.status());
-    assertEquals(
-        "Required request parameter 'dataSet' for method parameter type Set is not present",
-        response.error().getMessage());
+    HttpResponse response = GET("/completeDataSetRegistrations", Accept(APPLICATION_XML));
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    String content = response.content(APPLICATION_XML.toString());
+
+    // then
+    assertTrue(
+        content.contains(
+            "At least one organisation unit or organisation unit group must be specified"));
   }
 
   @Test
   void testGetCompleteRegistrationsJsonNoQueryParams() {
-    HttpResponse response = GET("/completeDataSetRegistrations", Accept(CONTENT_TYPE_JSON));
-    assertEquals(HttpStatus.BAD_REQUEST, response.status());
+    HttpResponse response = GET("/completeDataSetRegistrations", Accept(APPLICATION_JSON));
+    assertEquals(HttpStatus.CONFLICT, response.status());
     assertEquals(
-        "Required request parameter 'dataSet' for method parameter type Set is not present",
+        "At least one organisation unit or organisation unit group must be specified",
         response.error().getMessage());
   }
 
@@ -120,7 +124,7 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
 
     // when
     HttpResponse response =
-        GET("/completeDataSetRegistrations?dataSet={ds}", dsId, Accept(CONTENT_TYPE_JSON));
+        GET("/completeDataSetRegistrations?dataSet={ds}", dsId, Accept(APPLICATION_JSON));
 
     // then
     assertEquals(HttpStatus.CONFLICT, response.status());
@@ -136,9 +140,9 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
 
     // when
     HttpResponse response =
-        GET("/completeDataSetRegistrations?dataSet={ds}", dsId, Accept(CONTENT_TYPE_XML));
+        GET("/completeDataSetRegistrations?dataSet={ds}", dsId, Accept(APPLICATION_XML));
     assertEquals(HttpStatus.CONFLICT, response.status());
-    String content = response.content(MediaType.APPLICATION_XML.toString());
+    String content = response.content(APPLICATION_XML.toString());
 
     // then
     assertTrue(
@@ -159,7 +163,7 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
             "/completeDataSetRegistrations?dataSet={ds}&orgUnit={ou}",
             dsId,
             ouId,
-            Accept(CONTENT_TYPE_JSON));
+            Accept(APPLICATION_JSON));
 
     // then
     assertEquals(HttpStatus.CONFLICT, response.status());
@@ -181,11 +185,11 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
             "/completeDataSetRegistrations?dataSet={ds}&orgUnit={ou}",
             dsId,
             ouId,
-            Accept(CONTENT_TYPE_XML));
+            Accept(APPLICATION_XML));
 
     // then
     assertEquals(HttpStatus.CONFLICT, response.status());
-    String content = response.content(MediaType.APPLICATION_XML.toString());
+    String content = response.content(APPLICATION_XML.toString());
     assertTrue(
         content.contains(
             "At least one period, start/end dates, last updated or last updated duration must be specified"));
@@ -206,7 +210,7 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
             dsId,
             ouId,
             period,
-            Accept(CONTENT_TYPE_JSON));
+            Accept(APPLICATION_JSON));
 
     // then
     assertEquals(HttpStatus.OK, response.status());
@@ -228,10 +232,10 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
             dsId,
             ouId,
             period,
-            Accept(CONTENT_TYPE_XML));
+            Accept(APPLICATION_XML));
 
     // then
-    String content = response.content(MediaType.APPLICATION_XML.toString());
+    String content = response.content(APPLICATION_XML.toString());
     assertEquals(
         "<?xml version='1.0' encoding='UTF-8'?><completeDataSetRegistrations xmlns=\"http://dhis2.org/schema/dxf/2.0\"/>",
         content);

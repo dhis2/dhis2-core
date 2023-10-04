@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,10 +42,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -126,13 +124,12 @@ public class CompleteDataSetRegistrationController {
 
   @GetMapping(produces = {CONTENT_TYPE_JSON, CONTENT_TYPE_XML})
   public void getCompleteRegistrations(
-      @Valid CDSR cdsr,
+      CompleteDataSetRegParams cdsrParams,
+      IdSchemes idSchemes,
       @RequestHeader("Accept") MediaType mediaType,
       HttpServletResponse response)
       throws IOException, BadRequestException {
-    System.out.println(mediaType);
-    System.out.println(cdsr);
-    ExportParams params = getExportParams(cdsr);
+    ExportParams params = getExportParams(cdsrParams, idSchemes);
 
     if (APPLICATION_JSON.equals(mediaType) || mediaType.isWildcardType()) {
       processRequestAsJson(response, params);
@@ -312,7 +309,7 @@ public class CompleteDataSetRegistrationController {
     }
   }
 
-  private ExportParams getExportParams(CDSR cdsr) {
+  private ExportParams getExportParams(CompleteDataSetRegParams cdsr, IdSchemes idSchemes) {
     return registrationExchangeService.paramsFromUrl(
         cdsr.getDataSet(),
         cdsr.getOrgUnit(),
@@ -324,25 +321,12 @@ public class CompleteDataSetRegistrationController {
         cdsr.getCreated(),
         cdsr.getCreatedDuration(),
         cdsr.getLimit(),
-        cdsr.getIdSchemes());
+        idSchemes);
   }
 
-//  public record CDSR(
-//      @Nonnull Set<String> dataSet,
-//      Set<String> period,
-//      Date startDate,
-//      Date endDate,
-//      boolean includeChildren,
-//      Set<String> orgUnit,
-//      Set<String> orgUnitGroup,
-//      Date created,
-//      String createdDuration,
-//      Integer limit,
-//      IdSchemes idSchemes) {}
-
   @Data
-  public static class CDSR {
-    @Nonnull Set<String> dataSet;
+  public static class CompleteDataSetRegParams {
+    Set<String> dataSet;
     Set<String> period;
     Date startDate;
     Date endDate;
@@ -352,6 +336,5 @@ public class CompleteDataSetRegistrationController {
     Date created;
     String createdDuration;
     Integer limit;
-    IdSchemes idSchemes;
   }
 }
