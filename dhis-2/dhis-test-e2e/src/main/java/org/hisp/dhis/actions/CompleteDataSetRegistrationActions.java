@@ -25,27 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.actions;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.mapstruct.Mapper;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
-@Mapper
-public interface CategoryOptionMapper {
+/**
+ * @author david mackessy
+ */
+public class CompleteDataSetRegistrationActions extends RestApiActions {
 
-  // NOTE: right now we only support categoryOptionComboIdScheme on export. If we were to add a
-  // categoryOptionIdScheme
-  // we could not simply export the UIDs.
-  default String from(Set<CategoryOption> categoryOptions) {
-    if (categoryOptions == null || categoryOptions.isEmpty()) {
-      return null;
-    }
+  public CompleteDataSetRegistrationActions() {
+    super("/completeDataSetRegistrations");
+  }
 
-    return categoryOptions.stream()
-        .map(CategoryOption::getUid)
-        .collect(Collectors.joining(TextUtils.COMMA));
+  public ApiResponse sendAsync(String body) {
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.addAll("async=true");
+
+    return post("", body, queryParamsBuilder);
+  }
+
+  public ApiResponse getCompleted(String dataSet, String orgUnit, String period) {
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.add("dataSet", dataSet);
+    queryParamsBuilder.add("orgUnit", orgUnit);
+    queryParamsBuilder.add("period", period);
+    return get(queryParamsBuilder);
   }
 }

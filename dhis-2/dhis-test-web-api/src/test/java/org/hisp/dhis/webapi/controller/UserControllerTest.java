@@ -58,6 +58,8 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
@@ -91,6 +93,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   @Autowired private SecurityService securityService;
 
   @Autowired private SystemSettingManager systemSettingManager;
+
+  @Autowired private OrganisationUnitService organisationUnitService;
 
   private User peter;
 
@@ -230,6 +234,97 @@ class UserControllerTest extends DhisControllerConvenienceTest {
             .as(JsonImportSummary.class);
 
     return response;
+  }
+
+  @Test
+  void testRemoveALLNonAllAdmin() {
+    UserRole roleAll = createUserRole("ROLE_ALL", "ALL");
+    userService.addUserRole(roleAll);
+
+    User user = createUserWithAuth("someone", "F_USERROLE_PUBLIC_ADD");
+    userService.updateUser(user);
+    switchContextToUser(user);
+
+    checkRoleChangFailsWhenNonALLAdmin("'ANYTHING'");
+  }
+
+  @Test
+  void testAddALLNonAllAdmin() {
+    UserRole roleAll = createUserRole("ROLE_ALL", "NONE");
+    userService.addUserRole(roleAll);
+
+    User user = createUserWithAuth("someone", "F_USERROLE_PUBLIC_ADD");
+    userService.updateUser(user);
+    switchContextToUser(user);
+
+    checkRoleChangFailsWhenNonALLAdmin("'ALL'");
+  }
+
+  private void checkRoleChangFailsWhenNonALLAdmin(String roleName) {
+    String roleAllId = userService.getUserRoleByName("ROLE_ALL").getUid();
+
+    JsonImportSummary response =
+        PATCH(
+                "/userRoles/" + roleAllId,
+                "["
+                    + " {"
+                    + "   'op': 'add',"
+                    + "   'path': '/authorities',"
+                    + "   'value': ["
+                    + roleName
+                    + "   ]"
+                    + " }"
+                    + "]")
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals(
+        "User `someone` does not have access to user role",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3032)
+            .getMessage());
+  }
+
+  @Test
+  void testChangeOrgUnitLevelGivesAccessError() {
+    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+    OrganisationUnit orgC = createOrganisationUnit('C', orgB);
+    organisationUnitService.addOrganisationUnit(orgC);
+
+    User user = createUserWithAuth("someone", "F_USER_ADD");
+    user.addOrganisationUnit(orgC);
+    userService.updateUser(user);
+
+    switchContextToUser(user);
+
+    JsonImportSummary response =
+        PATCH(
+                "/users/" + user.getUid(),
+                """
+                [{'op':'add','path':'/organisationUnits','value':[{'id':'%s'}]},
+                 {'op':'add','path':'/dataViewOrganisationUnits','value':[{'id':'%s'}]},
+                 {'op':'add','path':'/teiSearchOrganisationUnits','value':[{'id':'%s'}]}]"""
+                    .formatted(orgA.getUid(), orgA.getUid(), orgA.getUid()))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    JsonList<JsonErrorReport> errorReports =
+        response.getList("errorReports", JsonErrorReport.class);
+
+    assertEquals(3, errorReports.size());
+
+    assertEquals(
+        "Organisation unit: `ouabcdefghA` not in hierarchy of current user: `someone`",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E7617)
+            .getMessage());
   }
 
   @Test

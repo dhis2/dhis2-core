@@ -25,27 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.system.util;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.mapstruct.Mapper;
+import static lombok.AccessLevel.PRIVATE;
 
-@Mapper
-public interface CategoryOptionMapper {
+import java.util.regex.Pattern;
+import lombok.NoArgsConstructor;
 
-  // NOTE: right now we only support categoryOptionComboIdScheme on export. If we were to add a
-  // categoryOptionIdScheme
-  // we could not simply export the UIDs.
-  default String from(Set<CategoryOption> categoryOptions) {
-    if (categoryOptions == null || categoryOptions.isEmpty()) {
-      return null;
-    }
+@NoArgsConstructor(access = PRIVATE)
+public class SvgUtils {
 
-    return categoryOptions.stream()
-        .map(CategoryOption::getUid)
-        .collect(Collectors.joining(TextUtils.COMMA));
+  private static final Pattern regexp = Pattern.compile("\\p{Cf}");
+
+  /**
+   * Replace Unicode 'zero width space' (U+200B). This character is misinterpreted by PDF convertor
+   * as '#' (f.e.#2023).
+   *
+   * @param svg svg xml string
+   * @param replaceWith replacement
+   * @return consolidated svg string
+   */
+  public static String replaceUnicodeZeroWidthSpace(String svg, String replaceWith) {
+    return svg.replaceAll(regexp.pattern(), replaceWith);
   }
 }

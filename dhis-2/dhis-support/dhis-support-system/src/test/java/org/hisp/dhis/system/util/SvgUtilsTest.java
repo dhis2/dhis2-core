@@ -25,27 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.system.util;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.mapstruct.Mapper;
+import static org.hisp.dhis.system.util.SvgUtils.replaceUnicodeZeroWidthSpace;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Mapper
-public interface CategoryOptionMapper {
+import org.junit.jupiter.api.Test;
 
-  // NOTE: right now we only support categoryOptionComboIdScheme on export. If we were to add a
-  // categoryOptionIdScheme
-  // we could not simply export the UIDs.
-  default String from(Set<CategoryOption> categoryOptions) {
-    if (categoryOptions == null || categoryOptions.isEmpty()) {
-      return null;
-    }
+class SvgUtilsTest {
+  @Test
+  void testReplaceUnicodeZeroWidthSpace() {
+    // given
+    String svg =
+        "<text x=\"332.58333333332666\" text-anchor=\"middle\" transform=\"translate(0,0)\" style=\"color: rgb(64, 75, 90); cursor: default; font-size: 11px; font-weight: normal; font-style: normal; fill: rgb(64, 75, 90);\" y=\"699\" opacity=\"1\">December<tspan dy=\"14\" x=\"332.58333333332666\">\u200B</tspan>2022</text>";
+    String expected =
+        "<text x=\"332.58333333332666\" text-anchor=\"middle\" transform=\"translate(0,0)\" style=\"color: rgb(64, 75, 90); cursor: default; font-size: 11px; font-weight: normal; font-style: normal; fill: rgb(64, 75, 90);\" y=\"699\" opacity=\"1\">December<tspan dy=\"14\" x=\"332.58333333332666\"> </tspan>2022</text>";
 
-    return categoryOptions.stream()
-        .map(CategoryOption::getUid)
-        .collect(Collectors.joining(TextUtils.COMMA));
+    // when
+    svg = replaceUnicodeZeroWidthSpace(svg, " ");
+
+    // then
+    assertEquals(expected, svg);
   }
 }
