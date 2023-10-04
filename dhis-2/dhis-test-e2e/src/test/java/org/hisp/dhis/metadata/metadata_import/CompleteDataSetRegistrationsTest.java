@@ -61,7 +61,7 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
     loginActions.loginAsSuperUser();
 
     // create data set
-    String dataSet = dataSetWithOrgUnit("O6uvpzGd5pu");
+    String dataSet = dataSetWithOrgUnit(1, "O6uvpzGd5pu");
     ApiResponse dataSetResponse = dataSetActions.post(dataSet);
 
     assertEquals(201, dataSetResponse.statusCode());
@@ -107,11 +107,52 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
         .body("completeDataSetRegistrations[0].storedBy", equalTo("tasuperadmin"));
   }
 
-  private String dataSetWithOrgUnit(String orgUnit) {
+  @Test
+  void completeDataSetRegistrationSync() {
+    loginActions.loginAsSuperUser();
+
+    // create data set
+    String dataSet = dataSetWithOrgUnit(2, "g8upMTyEZGZ");
+    ApiResponse dataSetResponse = dataSetActions.post(dataSet);
+
+    assertEquals(201, dataSetResponse.statusCode());
+    String dataSetId = dataSetResponse.extractUid();
+    assertEquals(11, dataSetId.length());
+
+    // get complete data sets to confirm none completed with given criteria
+    ApiResponse completedResponse = apiActions.getCompleted(dataSetId, "g8upMTyEZGZ", "202301");
+    assertEquals("{}", completedResponse.getAsString());
+
+    // complete the data set and post sync
+    String cds = completeDataSet(dataSetId, "202301", "g8upMTyEZGZ");
+    ApiResponse completeSyncResponse = apiActions.sendSync(cds);
+
+    completeSyncResponse
+        .validate()
+        .statusCode(200)
+        .body("message", equalTo("Import was successful."))
+        .body("response.status", equalTo("SUCCESS"))
+        .body("response.importCount.imported", equalTo(1));
+
+    // get complete data sets which should be 1 now
+    ApiResponse completedResponse2 = apiActions.getCompleted(dataSetId, "g8upMTyEZGZ", "202301");
+
+    // validate sync-completed data set
+    completedResponse2
+        .validate()
+        .statusCode(200)
+        .body("completeDataSetRegistrations[0].period", equalTo("202301"))
+        .body("completeDataSetRegistrations[0].dataSet", equalTo(dataSetId))
+        .body("completeDataSetRegistrations[0].organisationUnit", equalTo("g8upMTyEZGZ"))
+        .body("completeDataSetRegistrations[0].completed", equalTo(true))
+        .body("completeDataSetRegistrations[0].storedBy", equalTo("tasuperadmin"));
+  }
+
+  private String dataSetWithOrgUnit(int name, String orgUnit) {
     return """
         {
-          "name": "test ds 1",
-          "shortName": "test ds 1",
+          "name": "test ds %d",
+          "shortName": "test ds %d",
           "periodType": "Daily",
           "organisationUnits": [
             {
@@ -120,7 +161,7 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
           ]
         }
         """
-        .formatted(orgUnit);
+        .formatted(name, name, orgUnit);
   }
 
   private String completeDataSet(String dataSet, String period, String orgUnit) {

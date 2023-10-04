@@ -46,6 +46,12 @@ public class CompleteDataSetRegistrationActions extends RestApiActions {
     return post("", body, queryParamsBuilder);
   }
 
+  public ApiResponse sendSync(String body) {
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+
+    return post("", body, queryParamsBuilder);
+  }
+
   public ApiResponse getCompleted(String dataSet, String orgUnit, String period) {
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     queryParamsBuilder.add("dataSet", dataSet);

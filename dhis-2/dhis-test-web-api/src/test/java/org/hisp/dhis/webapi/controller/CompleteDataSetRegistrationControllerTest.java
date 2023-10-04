@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClient.ContentType;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -91,5 +93,167 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
     assertEquals(HttpStatus.OK, response.status());
     String content = response.content(MediaType.APPLICATION_XML.toString());
     assertTrue(content.startsWith("<importSummary "));
+  }
+
+  @Test
+  void testGetCompleteRegistrationsXmlNoQueryParams() {
+    HttpResponse response = GET("/completeDataSetRegistrations", Accept(CONTENT_TYPE_XML));
+    assertEquals(HttpStatus.BAD_REQUEST, response.status());
+    assertEquals(
+        "Required request parameter 'dataSet' for method parameter type Set is not present",
+        response.error().getMessage());
+  }
+
+  @Test
+  void testGetCompleteRegistrationsJsonNoQueryParams() {
+    HttpResponse response = GET("/completeDataSetRegistrations", Accept(CONTENT_TYPE_JSON));
+    assertEquals(HttpStatus.BAD_REQUEST, response.status());
+    assertEquals(
+        "Required request parameter 'dataSet' for method parameter type Set is not present",
+        response.error().getMessage());
+  }
+
+  @Test
+  void testGetCompleteRegistrationsJsonWithDataSetOnly() {
+    // given
+    String dsId = createDataSet();
+
+    // when
+    HttpResponse response =
+        GET("/completeDataSetRegistrations?dataSet={ds}", dsId, Accept(CONTENT_TYPE_JSON));
+
+    // then
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    assertEquals(
+        "At least one organisation unit or organisation unit group must be specified",
+        response.error().getMessage());
+  }
+
+  @Test
+  void testGetCompleteRegistrationsXmlWithDataSetOnly() {
+    // given
+    String dsId = createDataSet();
+
+    // when
+    HttpResponse response =
+        GET("/completeDataSetRegistrations?dataSet={ds}", dsId, Accept(CONTENT_TYPE_XML));
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    String content = response.content(MediaType.APPLICATION_XML.toString());
+
+    // then
+    assertTrue(
+        content.contains(
+            "At least one organisation unit or organisation unit group must be specified"));
+  }
+
+  @Test
+  void testGetCompleteRegistrationsJsonWithDataSetAndOrgUnitOnly() {
+    // given
+    String ouId = createOrgUnit();
+    addOrgUnitToUserHierarchy(ouId);
+    String dsId = createDataSet();
+
+    // when
+    HttpResponse response =
+        GET(
+            "/completeDataSetRegistrations?dataSet={ds}&orgUnit={ou}",
+            dsId,
+            ouId,
+            Accept(CONTENT_TYPE_JSON));
+
+    // then
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    assertEquals(
+        "At least one period, start/end dates, last updated or last updated duration must be specified",
+        response.error().getMessage());
+  }
+
+  @Test
+  void testGetCompleteRegistrationsXmlWithDataSetAndOrgUnitOnly() {
+    // given
+    String ouId = createOrgUnit();
+    addOrgUnitToUserHierarchy(ouId);
+    String dsId = createDataSet();
+
+    // when
+    HttpResponse response =
+        GET(
+            "/completeDataSetRegistrations?dataSet={ds}&orgUnit={ou}",
+            dsId,
+            ouId,
+            Accept(CONTENT_TYPE_XML));
+
+    // then
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    String content = response.content(MediaType.APPLICATION_XML.toString());
+    assertTrue(
+        content.contains(
+            "At least one period, start/end dates, last updated or last updated duration must be specified"));
+  }
+
+  @Test
+  void testGetEmptyCompleteRegistrationsJsonWithDataSetOrgUnitAndPeriod() {
+    // given
+    String ouId = createOrgUnit();
+    addOrgUnitToUserHierarchy(ouId);
+    String dsId = createDataSet();
+    String period = "202309";
+
+    // when
+    HttpResponse response =
+        GET(
+            "/completeDataSetRegistrations?dataSet={ds}&orgUnit={ou}&period={p}",
+            dsId,
+            ouId,
+            period,
+            Accept(CONTENT_TYPE_JSON));
+
+    // then
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals("{}", response.content().toString());
+  }
+
+  @Test
+  void testGetEmptyCompleteRegistrationsXmlWithDataSetOrgUnitAndPeriod() {
+    // given
+    String ouId = createOrgUnit();
+    addOrgUnitToUserHierarchy(ouId);
+    String dsId = createDataSet();
+    String period = "202309";
+
+    // when
+    HttpResponse response =
+        GET(
+            "/completeDataSetRegistrations?dataSet={ds}&orgUnit={ou}&period={p}",
+            dsId,
+            ouId,
+            period,
+            Accept(CONTENT_TYPE_XML));
+
+    // then
+    String content = response.content(MediaType.APPLICATION_XML.toString());
+    assertEquals(
+        "<?xml version='1.0' encoding='UTF-8'?><completeDataSetRegistrations xmlns=\"http://dhis2.org/schema/dxf/2.0\"/>",
+        content);
+  }
+
+  private String createOrgUnit() {
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits/",
+            "{'name':'My Org', 'shortName':'OU1', 'openingDate': '2020-01-01', 'code':'OU1' }"));
+  }
+
+  private String createDataSet() {
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST("/dataSets/", "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
+  }
+
+  private void addOrgUnitToUserHierarchy(String orgUnitId) {
+    assertStatus(
+        HttpStatus.OK,
+        POST("/users/" + getCurrentUser().getUid() + "/organisationUnits/" + orgUnitId));
   }
 }
