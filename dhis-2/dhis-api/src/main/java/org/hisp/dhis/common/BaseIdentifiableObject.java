@@ -115,12 +115,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   /** User who created this object. This field is immutable and must not be updated. */
   protected User createdBy;
 
-  /** Access for user groups. */
-  protected transient Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses = new HashSet<>();
-
-  /** Access for users. */
-  protected transient Set<org.hisp.dhis.user.UserAccess> userAccesses = new HashSet<>();
-
   /** Access information for this object. Applies to current user. */
   protected transient Access access;
 
@@ -388,55 +382,15 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     getSharing().setOwner(userId);
   }
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = 8, max = 8)
-  public String getPublicAccess() {
-    return SharingUtils.getDtoPublicAccess(publicAccess, getSharing());
-  }
 
   public void setPublicAccess(String publicAccess) {
     this.publicAccess = publicAccess;
     getSharing().setPublicAccess(publicAccess);
   }
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean getExternalAccess() {
-    return SharingUtils.getDtoExternalAccess(externalAccess, getSharing());
-  }
-
   public void setExternalAccess(boolean externalAccess) {
     this.externalAccess = externalAccess;
     getSharing().setExternal(externalAccess);
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "userGroupAccesses", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0)
-  public Set<org.hisp.dhis.user.UserGroupAccess> getUserGroupAccesses() {
-    return SharingUtils.getDtoUserGroupAccesses(userGroupAccesses, getSharing());
-  }
-
-  public void setUserGroupAccesses(Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses) {
-    getSharing().setDtoUserGroupAccesses(userGroupAccesses);
-    this.userGroupAccesses = userGroupAccesses;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "userAccesses", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "userAccess", namespace = DxfNamespaces.DXF_2_0)
-  public Set<org.hisp.dhis.user.UserAccess> getUserAccesses() {
-    return SharingUtils.getDtoUserAccesses(userAccesses, getSharing());
-  }
-
-  public void setUserAccesses(Set<org.hisp.dhis.user.UserAccess> userAccesses) {
-    getSharing().setDtoUserAccesses(userAccesses);
-    this.userAccesses = userAccesses;
   }
 
   @Override
@@ -587,15 +541,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     }
 
     return null;
-  }
-
-  /**
-   * Set legacy sharing collections to null so that the ImportService will import current object
-   * with new Sharing format.
-   */
-  public void clearLegacySharingCollections() {
-    this.userAccesses = null;
-    this.userGroupAccesses = null;
   }
 
   @Override
