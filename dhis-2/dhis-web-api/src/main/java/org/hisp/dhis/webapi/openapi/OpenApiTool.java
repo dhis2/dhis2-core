@@ -139,7 +139,7 @@ public class OpenApiTool implements ToolProvider {
     String fileExtension = to.endsWith(".yaml") ? ".yaml" : ".json";
     AtomicInteger errorCode = new AtomicInteger(0);
     Map<String, Set<Class<?>>> byTag = new TreeMap<>();
-    scope.getControllers().stream()
+    scope.controllers().stream()
         .filter(cls -> !cls.isAnnotationPresent(OpenApi.Ignore.class))
         .forEach(cls -> byTag.computeIfAbsent(getMainTag(cls), key -> new HashSet<>()).add(cls));
     BiFunction<Api, OpenApiGenerator.Info, String> generator =
@@ -156,7 +156,7 @@ public class OpenApiTool implements ToolProvider {
                   filename,
                   out,
                   err,
-                  new ApiAnalyse.Scope(classes, scope.getPaths(), scope.getTags()),
+                  new ApiAnalyse.Scope(classes, scope.paths(), scope.tags()),
                   generator));
         });
     return errorCode;

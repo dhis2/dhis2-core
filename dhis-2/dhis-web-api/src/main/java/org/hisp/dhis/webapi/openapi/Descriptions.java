@@ -119,7 +119,7 @@ final class Descriptions {
       while (in.hasNextLine()) {
         String line = in.nextLine();
         if (line.startsWith("#")) {
-          if (isDescAtEnd(key, value)) {
+          if (key != null && value.length() > 0) {
             entries.put(key + ".description", trimText(value.toString()));
           }
           key = null;
@@ -128,7 +128,9 @@ final class Descriptions {
         if (line.startsWith("### ")) {
           key = toKey(line.substring(4));
         } else {
-          if (isUrl(key, value, line)) {
+          if (key != null
+              && value.length() == 0
+              && (line.startsWith("http://") || line.startsWith("https://"))) {
             entries.put(key + ".url", line.trim());
           } else {
             // in CommonMark 2 spaces at the end mean new line
@@ -136,20 +138,10 @@ final class Descriptions {
           }
         }
       }
-      if (isDescAtEnd(key, value)) {
+      if (key != null && value.length() > 0) {
         entries.put(key + ".description", trimText(value.toString()));
       }
     }
-  }
-
-  private boolean isDescAtEnd(String key, StringBuilder value) {
-    return key != null && value.length() > 0;
-  }
-
-  private boolean isUrl(String key, StringBuilder value, String line) {
-    return key != null
-        && value.length() == 0
-        && (line.startsWith("http://") || line.startsWith("https://"));
   }
 
   private String trimText(String value) {

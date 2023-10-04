@@ -143,7 +143,13 @@ public @interface OpenApi {
    * <p>Annotate a controller endpoint method parameter to ignore that parameter.
    */
   @Inherited
-  @Target({ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER, ElementType.FIELD})
+  @Target({
+    ElementType.METHOD,
+    ElementType.TYPE,
+    ElementType.PARAMETER,
+    ElementType.FIELD,
+    ElementType.TYPE_USE
+  })
   @Retention(RetentionPolicy.RUNTIME)
   @interface Ignore {
     // marker annotation
@@ -168,6 +174,14 @@ public @interface OpenApi {
     Class<?>[] value() default {};
 
     boolean required() default false;
+
+    /**
+     * If given, this values takes precedence over the actual initial value of a field that might be
+     * present.
+     *
+     * @return the string representation of the default value for the property (must be non-empty)
+     */
+    String defaultValue() default "";
   }
 
   /**
@@ -207,6 +221,14 @@ public @interface OpenApi {
      * @return name of the property to use
      */
     String asProperty() default "";
+
+    /**
+     * If given, this values takes precedence over the actual initial value of a field that might be
+     * present.
+     *
+     * @return the string representation of the default value for the property (must be non-empty)
+     */
+    String defaultValue() default "";
   }
 
   /**
@@ -324,7 +346,8 @@ public @interface OpenApi {
     enum Pattern {
       DEFAULT(""),
       INFO("%sInfo"),
-      TRACKER("Tracker%s");
+      TRACKER("Tracker%s"),
+      DEPRECATED_TRACKER("Deprecated_Tracker%s");
 
       private final String template;
     }

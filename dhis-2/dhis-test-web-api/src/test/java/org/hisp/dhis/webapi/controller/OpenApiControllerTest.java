@@ -40,6 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 import org.openapitools.codegen.DefaultGenerator;
@@ -56,7 +57,8 @@ import org.openapitools.codegen.config.CodegenConfigurator;
 class OpenApiControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testGetOpenApiDocumentJson() {
-    JsonObject doc = GET("/openapi/openapi.json?failOnNameClash=true").content();
+    JsonObject doc =
+        GET("/openapi/openapi.json?failOnNameClash=true&failOnInconsistency=true").content();
     assertTrue(doc.isObject());
     assertTrue(doc.getObject("components.schemas.PropertyNames_OrganisationUnit").isObject());
     assertGreaterOrEqual(150, doc.getObject("paths").size());
@@ -78,7 +80,7 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
         doc.getObject("paths")
             .has("/users/gist", "/users/invite", "/users/invites", "/users/sharing"));
     assertLessOrEqual(26, doc.getObject("paths").size());
-    assertLessOrEqual(24, doc.getObject("components.schemas").size());
+    assertLessOrEqual(25, doc.getObject("components.schemas").size());
   }
 
   @Test
@@ -88,8 +90,39 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
     assertTrue(
         doc.getObject("paths")
             .has("/users/gist", "/users/invite", "/users/invites", "/users/sharing"));
-    assertLessOrEqual(131, doc.getObject("paths").size());
+    assertLessOrEqual(135, doc.getObject("paths").size());
     assertLessOrEqual(60, doc.getObject("components.schemas").size());
+  }
+
+  @Test
+  void testGetOpenApiDocument_DefaultValue() {
+    // defaults in parameter objects (from Property analysis)
+    JsonObject users = GET("/openapi/openapi.json?path=/users").content();
+    JsonObject sharedParams = users.getObject("components.parameters");
+    assertEquals(50, sharedParams.getNumber("{GistParams.pageSize}.schema.default").intValue());
+    assertEquals(
+        "AND", sharedParams.getString("{GistParams.rootJunction}.schema.default").string());
+    assertTrue(sharedParams.getBoolean("{GistParams.translate}.schema.default").booleanValue());
+
+    // defaults in individual parameters (from endpoint method parameter analysis)
+    JsonObject fileResources = GET("/openapi/openapi.json?path=/fileResources").content();
+    JsonObject domain =
+        fileResources.get("paths./fileResources/.post.parameters").asList(JsonObject.class).stream()
+            .filter(p -> "domain".equals(p.getString("name").string()))
+            .findFirst()
+            .orElse(JsonValue.of("{}").asObject());
+    assertEquals("DATA_VALUE", domain.getString("schema.default").string());
+
+    JsonObject audits = GET("/openapi/openapi.json?path=/audits").content();
+    JsonObject pageSize =
+        audits
+            .getArray("paths./audits/trackedEntityAttributeValue.get.parameters")
+            .asList(JsonObject.class)
+            .stream()
+            .filter(p -> "pageSize".equals(p.getString("name").string()))
+            .findFirst()
+            .orElse(JsonValue.of("{}").asObject());
+    assertEquals(50, pageSize.getNumber("schema.default").intValue());
   }
 
   @Test

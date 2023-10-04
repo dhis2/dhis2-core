@@ -45,7 +45,9 @@ public class CodeGenerator {
 
   public static final int CODESIZE = 11;
 
-  private static final Pattern CODE_PATTERN = Pattern.compile("^[a-zA-Z]{1}[a-zA-Z0-9]{10}$");
+  public static final String UID_REGEXP = "^[a-zA-Z][a-zA-Z0-9]{10}$";
+
+  private static final Pattern CODE_PATTERN = Pattern.compile(UID_REGEXP);
 
   /** 192 bit, must be dividable by 3 to avoid padding "=". */
   private static final int URL_RANDOM_TOKEN_LENGTH = 24;
