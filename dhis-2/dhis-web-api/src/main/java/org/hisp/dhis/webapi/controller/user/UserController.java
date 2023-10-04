@@ -67,6 +67,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -237,6 +238,24 @@ public class UserController extends AbstractCrudController<User> {
     user.ifPresent(users::add);
 
     return users;
+  }
+
+  /**
+   * "Disable two-factor authentication for the user with the given uid."
+   *
+   * <p>
+   *
+   * @param uid The uid of the user to disable two-factor authentication for.
+   * @return A WebMessage object.
+   */
+  @PostMapping("/{uid}/twoFA/disabled")
+  @ResponseBody
+  public WebMessage disableTwoFa(@PathVariable("uid") String uid) {
+    User user = userService.getUser(uid);
+    user.setTwoFA(false);
+    userService.updateUser(user);
+
+    return WebMessageUtils.ok();
   }
 
   @Override
