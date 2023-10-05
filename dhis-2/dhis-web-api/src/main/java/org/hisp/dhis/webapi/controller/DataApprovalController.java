@@ -334,7 +334,8 @@ public class DataApprovalController {
     Period period = getAndValidatePeriod(pe);
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ou);
     OrganisationUnit orgUnitFilter = organisationUnitService.getOrganisationUnit(ouFilter);
-    Set<CategoryOptionCombo> attributeOptionCombos = getAndValidateAttributeOptionCombos(aoc);
+    Set<CategoryOptionCombo> attributeOptionCombos =
+        getAndValidateAttributeOptionCombosOrWildcard(aoc);
 
     if (orgUnit != null && orgUnit.isRoot()) {
       orgUnit = null; // Look for all org units.
@@ -747,6 +748,13 @@ public class DataApprovalController {
     }
 
     return dataApprovalLevel;
+  }
+
+  private Set<CategoryOptionCombo> getAndValidateAttributeOptionCombosOrWildcard(Set<String> aoc)
+      throws WebMessageException {
+    return (aoc == null)
+        ? null // Wildcard, all AOCs
+        : getAndValidateAttributeOptionCombos(aoc);
   }
 
   private Set<CategoryOptionCombo> getAndValidateAttributeOptionCombos(Set<String> aoc)
