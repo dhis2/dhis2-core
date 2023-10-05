@@ -316,8 +316,7 @@ public class TrackerExportTests extends TrackerApiTest {
 
     TrackerApiResponse trackedEntity =
         trackerImportExportActions.getTrackedEntity(
-            "Kj6vYde4LHh",
-            new QueryParamsBuilder().add("fields", "*"));
+            "Kj6vYde4LHh", new QueryParamsBuilder().add("fields", "*"));
 
     TrackerApiResponse trackedEntities =
         trackerImportExportActions.getTrackedEntities(
