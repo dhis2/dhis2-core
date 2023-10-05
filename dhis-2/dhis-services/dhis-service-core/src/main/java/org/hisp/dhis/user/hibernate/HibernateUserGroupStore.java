@@ -28,7 +28,7 @@
 package org.hisp.dhis.user.hibernate;
 
 import javax.annotation.Nonnull;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -43,13 +43,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<UserGroup>
     implements UserGroupStore {
   public HibernateUserGroupStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         UserGroup.class,

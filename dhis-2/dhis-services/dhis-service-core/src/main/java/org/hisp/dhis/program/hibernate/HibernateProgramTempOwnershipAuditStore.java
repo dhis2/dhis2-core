@@ -30,10 +30,10 @@ package org.hisp.dhis.program.hibernate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.program.Program;
@@ -52,10 +52,8 @@ public class HibernateProgramTempOwnershipAuditStore
     extends HibernateGenericStore<ProgramTempOwnershipAudit>
     implements ProgramTempOwnershipAuditStore {
   public HibernateProgramTempOwnershipAuditStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher) {
-    super(sessionFactory, jdbcTemplate, publisher, ProgramTempOwnershipAudit.class, false);
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, ProgramTempOwnershipAudit.class, false);
   }
 
   // -------------------------------------------------------------------------

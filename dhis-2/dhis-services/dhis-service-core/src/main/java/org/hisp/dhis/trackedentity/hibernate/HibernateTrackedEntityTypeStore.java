@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -44,13 +44,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateTrackedEntityTypeStore
     extends HibernateIdentifiableObjectStore<TrackedEntityType> implements TrackedEntityTypeStore {
   public HibernateTrackedEntityTypeStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         TrackedEntityType.class,

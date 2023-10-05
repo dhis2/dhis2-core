@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.note.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.note.NoteStore;
@@ -44,13 +44,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note>
     implements NoteStore {
   public HibernateNoteStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory, jdbcTemplate, publisher, Note.class, currentUserService, aclService, false);
+        entityManager, jdbcTemplate, publisher, Note.class, currentUserService, aclService, false);
   }
 
   @Override

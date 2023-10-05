@@ -42,7 +42,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import javax.persistence.NonUniqueResultException;
-import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -64,7 +63,6 @@ import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -81,7 +79,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
 
   protected SessionFactory sessionFactory;
 
-  @PersistenceContext protected EntityManager entityManager;
+  protected EntityManager entityManager;
 
   protected JdbcTemplate jdbcTemplate;
 
@@ -92,17 +90,17 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   protected boolean cacheable;
 
   public HibernateGenericStore(
-      @Qualifier("sessionFactory") SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       Class<T> clazz,
       boolean cacheable) {
-    checkNotNull(sessionFactory);
+    checkNotNull(entityManager);
     checkNotNull(jdbcTemplate);
     checkNotNull(publisher);
     checkNotNull(clazz);
 
-    this.sessionFactory = sessionFactory;
+    this.sessionFactory = entityManager.unwrap(SessionFactory.class);
     this.jdbcTemplate = jdbcTemplate;
     this.publisher = publisher;
     this.clazz = clazz;

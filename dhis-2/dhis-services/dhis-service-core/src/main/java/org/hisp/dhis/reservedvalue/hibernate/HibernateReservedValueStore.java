@@ -33,8 +33,8 @@ import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -57,11 +57,11 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   private final BatchHandlerFactory batchHandlerFactory;
 
   public HibernateReservedValueStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       BatchHandlerFactory batchHandlerFactory) {
-    super(sessionFactory, jdbcTemplate, publisher, ReservedValue.class, false);
+    super(entityManager, jdbcTemplate, publisher, ReservedValue.class, false);
 
     checkNotNull(batchHandlerFactory);
 

@@ -31,10 +31,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
@@ -57,11 +57,11 @@ public class HibernateCompleteDataSetRegistrationStore
   private final PeriodStore periodStore;
 
   public HibernateCompleteDataSetRegistrationStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       PeriodStore periodStore) {
-    super(sessionFactory, jdbcTemplate, publisher, CompleteDataSetRegistration.class, false);
+    super(entityManager, jdbcTemplate, publisher, CompleteDataSetRegistration.class, false);
 
     checkNotNull(periodStore);
 

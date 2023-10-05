@@ -44,12 +44,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -133,7 +133,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private final SystemSettingManager systemSettingManager;
 
   public HibernateTrackedEntityStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
@@ -142,7 +142,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       OrganisationUnitStore organisationUnitStore,
       SystemSettingManager systemSettingManager) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         TrackedEntity.class,

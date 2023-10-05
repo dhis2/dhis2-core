@@ -49,6 +49,7 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -58,7 +59,6 @@ import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
@@ -100,15 +100,14 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   private final SchemaService schemaService;
 
   public HibernateUserStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService,
       SchemaService schemaService,
       QueryCacheManager queryCacheManager) {
-    super(
-        sessionFactory, jdbcTemplate, publisher, User.class, currentUserService, aclService, true);
+    super(entityManager, jdbcTemplate, publisher, User.class, currentUserService, aclService, true);
 
     checkNotNull(schemaService);
     this.schemaService = schemaService;

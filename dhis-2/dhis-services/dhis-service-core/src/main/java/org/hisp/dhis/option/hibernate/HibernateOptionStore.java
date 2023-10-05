@@ -28,7 +28,7 @@
 package org.hisp.dhis.option.hibernate;
 
 import java.util.List;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.option.Option;
@@ -46,19 +46,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Option>
     implements OptionStore {
   public HibernateOptionStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        Option.class,
-        currentUserService,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, Option.class, currentUserService, aclService, true);
   }
 
   // -------------------------------------------------------------------------

@@ -30,11 +30,11 @@ package org.hisp.dhis.period.hibernate;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.Cache;
@@ -65,20 +65,14 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
   private final Cache<Long> periodIdCache;
 
   public HibernatePeriodStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService,
       CacheProvider cacheProvider) {
     super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        Period.class,
-        currentUserService,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, Period.class, currentUserService, aclService, true);
 
     transientIdentifiableProperties = true;
     this.periodIdCache = cacheProvider.createPeriodIdCache();

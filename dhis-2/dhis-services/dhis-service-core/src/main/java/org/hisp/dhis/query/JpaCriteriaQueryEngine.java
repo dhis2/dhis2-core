@@ -40,7 +40,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
@@ -71,13 +70,11 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
       CurrentUserService currentUserService,
       QueryPlanner queryPlanner,
       List<InternalHibernateGenericStore<T>> hibernateGenericStores,
-      SessionFactory sessionFactory,
       QueryCacheManager queryCacheManager,
       EntityManager entityManager) {
     checkNotNull(currentUserService);
     checkNotNull(queryPlanner);
     checkNotNull(hibernateGenericStores);
-    checkNotNull(sessionFactory);
     checkNotNull(entityManager);
 
     this.currentUserService = currentUserService;

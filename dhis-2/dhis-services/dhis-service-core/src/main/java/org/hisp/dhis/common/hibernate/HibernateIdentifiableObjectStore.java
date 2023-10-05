@@ -36,6 +36,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -44,7 +45,6 @@ import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -79,15 +79,14 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   protected boolean transientIdentifiableProperties = false;
 
   public HibernateIdentifiableObjectStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       Class<T> clazz,
       CurrentUserService currentUserService,
       AclService aclService,
       boolean cacheable) {
-    super(
-        sessionFactory, jdbcTemplate, publisher, clazz, aclService, currentUserService, cacheable);
+    super(entityManager, jdbcTemplate, publisher, clazz, aclService, currentUserService, cacheable);
 
     this.cacheable = cacheable;
   }
