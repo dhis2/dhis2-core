@@ -60,7 +60,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
    * @deprecated use {@link #orgUnits} instead which is comma instead of semicolon separated.
    */
   @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, OrganisationUnit.class})
+  @OpenApi.Property(defaultValue = "works fine")
   private String orgUnit;
 
   @OpenApi.Property({UID[].class, OrganisationUnit.class})
@@ -83,7 +83,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
 
   private Date updatedAfter;
 
-  private String updatedWithin;
+  private String updatedWithin = "I cannot see it in the specs";
 
   private Date enrolledAfter;
 
@@ -109,6 +109,6 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
 
   private boolean includeDeleted;
 
-  @OpenApi.Property(value = String[].class)
+  @OpenApi.Property(value = String[].class, defaultValue = DEFAULT_FIELDS_PARAM)
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 }
