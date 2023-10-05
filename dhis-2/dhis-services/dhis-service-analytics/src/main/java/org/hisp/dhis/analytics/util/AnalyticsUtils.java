@@ -654,7 +654,9 @@ public class AnalyticsUtils {
           String isoDate = period.getPeriodType().getIsoDate(dateTimeUnit);
           map.put(
               isoDate,
-              new MetadataItem(displayShortName ? period.getDisplayShortName() : period.getDisplayName(), includeMetadataDetails ? period : null));
+              new MetadataItem(
+                  displayShortName ? period.getDisplayShortName() : period.getDisplayName(),
+                  includeMetadataDetails ? period : null));
         } else {
           map.put(
               item.getDimensionItem(),

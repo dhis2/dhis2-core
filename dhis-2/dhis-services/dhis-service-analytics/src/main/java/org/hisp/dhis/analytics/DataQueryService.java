@@ -33,6 +33,7 @@ import java.util.Set;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -104,6 +105,17 @@ public interface DataQueryService {
    * @return list of DimensionalObjects.
    * @throws IllegalQueryException if the query is illegal.
    */
+  DimensionalObject getDimension(
+      String dimension,
+      List<String> items,
+      Date relativePeriodDate,
+      DisplayProperty displayProperty,
+      List<OrganisationUnit> userOrgUnits,
+      I18nFormat format,
+      boolean allowNull,
+      boolean allowAllPeriods,
+      IdScheme inputIdScheme);
+
   DimensionalObject getDimension(
       String dimension,
       List<String> items,

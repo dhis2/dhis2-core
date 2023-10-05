@@ -353,6 +353,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
                 dimensionId,
                 items,
                 request.getRelativePeriodDate(),
+                request.getDisplayProperty(),
                 userOrgUnits,
                 format,
                 true,
