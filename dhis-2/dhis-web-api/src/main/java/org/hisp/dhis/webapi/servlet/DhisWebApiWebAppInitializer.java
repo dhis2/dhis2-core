@@ -40,7 +40,8 @@ import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.hisp.dhis.system.startup.StartupListener;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.springframework.core.annotation.Order;
-import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
+import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -48,8 +49,8 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 
-@Order(10)
 @Slf4j
+@Order(10)
 public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
   @Override
   public void onStartup(ServletContext context) {
@@ -71,8 +72,26 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     annotationConfigWebApplicationContext.register(WebMvcConfig.class);
 
     context.addListener(new ContextLoaderListener(annotationConfigWebApplicationContext));
+    context.addListener(new StartupListener());
+    context.addListener(new HttpSessionEventPublisher());
 
-    DispatcherServlet servlet = new DispatcherServlet(annotationConfigWebApplicationContext);
+    setupServlets(context, annotationConfigWebApplicationContext);
+  }
+
+  private DhisConfigurationProvider getConfig() {
+    DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
+    locationManager.init();
+
+    DefaultDhisConfigurationProvider configProvider =
+        new DefaultDhisConfigurationProvider(locationManager);
+    configProvider.init();
+
+    return configProvider;
+  }
+
+  public static void setupServlets(
+      ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
+    DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
 
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
     dispatcher.setAsyncSupported(true);
@@ -80,10 +99,13 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     dispatcher.addMapping("/api/*");
     dispatcher.addMapping("/uaa/*");
 
+    context
+        .addFilter("webMetricsFilter", new DelegatingFilterProxy("webMetricsFilter"))
+        .addMappingForUrlPatterns(null, false, "/api/*");
+
     FilterRegistration.Dynamic openSessionInViewFilter =
-        context.addFilter("openEntityManagerInViewFilter", OpenEntityManagerInViewFilter.class);
-    openSessionInViewFilter.setInitParameter(
-        "entityManagerFactoryBeanName", "entityManagerFactory");
+        context.addFilter("openSessionInViewFilter", OpenSessionInViewFilter.class);
+    openSessionInViewFilter.setInitParameter("sessionFactoryBeanName", "sessionFactory");
     openSessionInViewFilter.addMappingForUrlPatterns(null, false, "/*");
     openSessionInViewFilter.addMappingForServletNames(null, false, "dispatcher");
 
@@ -102,16 +124,9 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addFilter("AppOverrideFilter", new DelegatingFilterProxy("appOverrideFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
-    context.addListener(new StartupListener());
-  }
-
-  private DhisConfigurationProvider getConfig() {
-    DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
-    locationManager.init();
-    DefaultDhisConfigurationProvider configProvider =
-        new DefaultDhisConfigurationProvider(locationManager);
-    configProvider.init();
-
-    return configProvider;
+    context
+        .addFilter(
+            "SwitchUserProcessingFilter", new DelegatingFilterProxy("switchUserProcessingFilter"))
+        .addMappingForUrlPatterns(null, true, "/*");
   }
 }
