@@ -54,6 +54,7 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
 
 /**
@@ -63,6 +64,7 @@ import org.hisp.dhis.common.OpenApi;
  *
  * @author Jan Bernitt
  */
+@Slf4j
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 class Property {
@@ -217,6 +219,9 @@ class Property {
       Object obj = source.getDeclaringClass().getConstructor().newInstance();
       source.setAccessible(true);
       return source.get(obj);
+    } catch (IllegalAccessException ex) {
+      log.warn("Cannot access field value for default value: " + source, ex);
+      return null;
     } catch (Exception ex) {
       return null;
     }
