@@ -36,7 +36,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import javax.persistence.EntityManagerFactory;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -101,12 +100,18 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
           Pattern.compile("/(\\d\\d/)?relationships(.xml)?(.+)?"),
           Pattern.compile("/(\\d\\d/)?enrollments(.xml)?(.+)?"),
           Pattern.compile("/(\\d\\d/)?events(.xml)?(.+)?"),
-          Pattern.compile("/(\\d\\d/)?trackedEntityInstances(.xml)?(.+)?"),
+          Pattern.compile(
+              "/(\\d\\d/)?trackedEntityInstances(.xml)?(.+)?"), // TODO(tracker): remove with old
+          // tracker
           Pattern.compile("/(\\d\\d/)?dataValueSets(.xml)?(.+)?"),
           Pattern.compile("/(\\d\\d/)?completeDataSetRegistrations(.xml)?(.+)?"));
 
   public static final List<Pattern> CSV_PATTERNS =
-      List.of(Pattern.compile("/(\\d\\d/)?trackedEntityInstances.csv(.+)?"));
+      List.of(
+          Pattern.compile(
+              "/(\\d\\d/)?trackedEntityInstances.csv(.+)?")); // TODO(tracker): remove with old
+
+  // tracker
 
   @Autowired
   public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
@@ -131,8 +136,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Autowired private MetadataExportService metadataExportService;
 
   @Autowired private FieldFilterService fieldFilterService;
-
-  @Autowired private EntityManagerFactory entityManagerFactory;
 
   @Bean("multipartResolver")
   public MultipartResolver multipartResolver() {
