@@ -153,7 +153,7 @@
     <jfreechart.version>1.5.4</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
-    <poi.version>5.2.3</poi.version>
+    <poi.version>5.2.4</poi.version>
     <itext.version>2.1.7</itext.version>
 
     <!-- GIS -->
