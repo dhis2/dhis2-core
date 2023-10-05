@@ -58,7 +58,7 @@ public class DataApprovalStatus {
    * If the selection of data is approved, the ID of the highest organisation unit at which there is
    * approval.
    */
-  private final int approvedOrgUnitId;
+  private final long approvedOrgUnitId;
 
   /**
    * If the selection of data is approved, the approval level (same as above) but if the selection

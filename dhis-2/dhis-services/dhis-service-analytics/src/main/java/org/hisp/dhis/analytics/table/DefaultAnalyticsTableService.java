@@ -78,7 +78,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
   @Override
   public void update(AnalyticsTableUpdateParams params, JobProgress progress) {
-    int processNo = getProcessNo();
+    int parallelJobs = getParallelJobs();
 
     int tableUpdates = 0;
 
@@ -91,8 +91,8 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
             .startClock()
             .logTime(
                 String.format(
-                    "Starting update of type: %s, table name: '%s', processes: %d",
-                    tableType, tableType.getTableName(), processNo));
+                    "Starting update of type: %s, table name: '%s', parallel jobs: %d",
+                    tableType, tableType.getTableName(), parallelJobs));
 
     progress.startingStage("Validating Analytics Table " + tableType);
     String validState = tableManager.validState();
@@ -207,7 +207,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       AnalyticsTableUpdateParams params,
       List<AnalyticsTablePartition> partitions,
       JobProgress progress) {
-    int parallelism = Math.min(getProcessNo(), partitions.size());
+    int parallelism = Math.min(getParallelJobs(), partitions.size());
     log.info("Populate table task number: " + parallelism);
 
     progress.runStageInParallel(
@@ -241,7 +241,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
         progress.startingStage(
             "Applying aggregation level " + level + " " + tableType, partitions.size());
         progress.runStageInParallel(
-            getProcessNo(),
+            getParallelJobs(),
             partitions,
             AnalyticsTablePartition::getTableName,
             partition -> tableManager.applyAggregationLevels(partition, dataElements, level));
@@ -256,7 +256,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   /** Vacuums the given analytics tables. */
   private void vacuumTables(List<AnalyticsTablePartition> partitions, JobProgress progress) {
     progress.runStageInParallel(
-        getProcessNo(),
+        getParallelJobs(),
         partitions,
         AnalyticsTablePartition::getTableName,
         tableManager::vacuumTables);
@@ -267,7 +267,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     AnalyticsTableType type = getAnalyticsTableType();
 
     progress.runStageInParallel(
-        getProcessNo(),
+        getParallelJobs(),
         indexes,
         index -> getIndexName(index, type).replace("\"", ""),
         tableManager::createIndex);
@@ -299,15 +299,35 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   }
 
   /**
-   * Gets the number of available cores. Uses explicit number from system setting if available.
-   * Detects number of cores from current server runtime if not. Subtracts one to the number of
-   * cores if greater than two to allow one core for general system operations.
+   * Returns the number of parallel jobs to use for processing analytics tables. The order of
+   * determination is:
+   *
+   * <ul>
+   *   <li>The system setting for parallel jobs in analytics table export, if set.
+   *   <li>The system setting for number of available processors of the database server, if set.
+   *   <li>The number of available processors of the application server, minus 1 if > 2.
+   * </ul>
+   *
+   * @return the number of parallel jobs to use for processing analytics tables.
    */
-  private int getProcessNo() {
-    Integer cores = systemSettingManager.getIntegerSetting(SettingKey.DATABASE_SERVER_CPUS);
+  int getParallelJobs() {
+    Integer parallelJobs =
+        systemSettingManager.getIntegerSetting(SettingKey.PARALLEL_JOBS_IN_ANALYTICS_TABLE_EXPORT);
+    Integer databaseCpus = systemSettingManager.getIntegerSetting(SettingKey.DATABASE_SERVER_CPUS);
+    int serverCpus = SystemUtils.getCpuCores();
 
-    cores = (cores == null || cores == 0) ? SystemUtils.getCpuCores() : cores;
+    if (parallelJobs != null && parallelJobs > 0) {
+      return parallelJobs;
+    }
 
-    return cores > 2 ? (cores - 1) : cores;
+    if (databaseCpus != null && databaseCpus > 0) {
+      return databaseCpus;
+    }
+
+    if (serverCpus > 2) {
+      return serverCpus - 1;
+    }
+
+    return serverCpus;
   }
 }

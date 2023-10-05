@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.lang3.Validate.notNull;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_CATEGORYOPTIONCOMBO;
@@ -325,7 +326,8 @@ public class DefaultDataQueryService implements DataQueryService {
         List<String> items = DimensionalObjectUtils.getDimensionItemsFromParam(param);
 
         if (dimension != null && items != null) {
-          list.add(
+          addIgnoreNull(
+              list,
               getDimension(
                   dimension,
                   items,
