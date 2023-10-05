@@ -51,6 +51,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.preheat.mappers.UserMapper;
 import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
@@ -83,7 +84,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
   @Override
   public ImportReport importTracker(TrackerImportParams params) {
     User user = trackerUserService.getUser(params.getUserId());
-    params.setUser(user);
+    params.setUser(UserMapper.INSTANCE.map(user));
 
     TimingsStats opsTimer = new TimingsStats();
 
