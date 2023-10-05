@@ -54,9 +54,20 @@ public class CompleteDataSetRegistrationActions extends RestApiActions {
 
   public ApiResponse getCompleted(String dataSet, String orgUnit, String period) {
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-    queryParamsBuilder.add("dataSet", dataSet);
-    queryParamsBuilder.add("orgUnit", orgUnit);
-    queryParamsBuilder.add("period", period);
+    addRequiredParams(queryParamsBuilder, dataSet, orgUnit, period);
     return get(queryParamsBuilder);
+  }
+
+  public ApiResponse getCompletedWithIdScheme(String dataSet, String orgUnit, String period, String idScheme) {
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    addRequiredParams(queryParamsBuilder, dataSet, orgUnit, period);
+    queryParamsBuilder.add("idScheme", idScheme);
+    return get(queryParamsBuilder);
+  }
+
+  private void addRequiredParams(QueryParamsBuilder builder, String dataSet, String orgUnit, String period) {
+    builder.add("dataSet", dataSet);
+    builder.add("orgUnit", orgUnit);
+    builder.add("period", period);
   }
 }

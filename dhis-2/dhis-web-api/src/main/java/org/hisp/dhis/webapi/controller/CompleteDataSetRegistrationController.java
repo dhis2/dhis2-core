@@ -325,7 +325,7 @@ public class CompleteDataSetRegistrationController {
   }
 
   @Data
-  public static class CompleteDataSetRegParams {
+  private static class CompleteDataSetRegParams {
     Set<String> dataSet;
     Set<String> period;
     Date startDate;

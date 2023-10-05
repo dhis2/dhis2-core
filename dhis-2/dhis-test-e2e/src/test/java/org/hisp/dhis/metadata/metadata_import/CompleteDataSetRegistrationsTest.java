@@ -148,11 +148,45 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
         .body("completeDataSetRegistrations[0].storedBy", equalTo("tasuperadmin"));
   }
 
-  private String dataSetWithOrgUnit(int name, String orgUnit) {
+  @Test
+  void getCompleteDataSetRegistrationWithIdScheme() {
+    loginActions.loginAsSuperUser();
+
+    // create data set
+    String dataSet = dataSetWithOrgUnit(3, "g8upMTyEZGZ");
+    ApiResponse dataSetResponse = dataSetActions.post(dataSet);
+
+    assertEquals(201, dataSetResponse.statusCode());
+    String dataSetId = dataSetResponse.extractUid();
+
+    // complete the data set and post sync
+    String cds = completeDataSet(dataSetId, "202301", "g8upMTyEZGZ");
+    ApiResponse completeSyncResponse = apiActions.sendSync(cds);
+
+    completeSyncResponse
+        .validate()
+        .statusCode(200)
+        .body("message", equalTo("Import was successful."))
+        .body("response.status", equalTo("SUCCESS"))
+        .body("response.importCount.imported", equalTo(1));
+
+    // get complete data sets with id scheme CODE
+    ApiResponse completedResponse2 = apiActions.getCompletedWithIdScheme(dataSetId, "g8upMTyEZGZ", "202301", "CODE");
+
+    // validate sync-completed data set returns CODEs for id scheme
+    completedResponse2
+        .validate()
+        .statusCode(200)
+        .body("completeDataSetRegistrations[0].dataSet", equalTo("TEST_CODE 3"))
+        .body("completeDataSetRegistrations[0].organisationUnit", equalTo("OU_167609"));
+  }
+
+  private String dataSetWithOrgUnit(int uniqueNum, String orgUnit) {
     return """
         {
           "name": "test ds %d",
           "shortName": "test ds %d",
+          "code": "TEST_CODE %d",
           "periodType": "Daily",
           "organisationUnits": [
             {
@@ -161,7 +195,7 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
           ]
         }
         """
-        .formatted(name, name, orgUnit);
+        .formatted(uniqueNum, uniqueNum, uniqueNum, orgUnit);
   }
 
   private String completeDataSet(String dataSet, String period, String orgUnit) {
