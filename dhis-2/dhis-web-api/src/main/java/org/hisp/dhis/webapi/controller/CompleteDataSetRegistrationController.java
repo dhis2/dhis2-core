@@ -38,13 +38,11 @@ import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -76,6 +74,7 @@ import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.webdomain.CompleteDataSetRegQueryParams;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -124,12 +123,12 @@ public class CompleteDataSetRegistrationController {
 
   @GetMapping(produces = {CONTENT_TYPE_JSON, CONTENT_TYPE_XML})
   public void getCompleteRegistrations(
-      CompleteDataSetRegParams cdsrParams,
+      CompleteDataSetRegQueryParams queryParams,
       IdSchemes idSchemes,
       @RequestHeader("Accept") MediaType mediaType,
       HttpServletResponse response)
       throws IOException, BadRequestException {
-    ExportParams params = getExportParams(cdsrParams, idSchemes);
+    ExportParams params = getExportParams(queryParams, idSchemes);
 
     if (APPLICATION_JSON.equals(mediaType) || mediaType.isWildcardType()) {
       processRequestAsJson(response, params);
@@ -309,32 +308,18 @@ public class CompleteDataSetRegistrationController {
     }
   }
 
-  private ExportParams getExportParams(CompleteDataSetRegParams cdsr, IdSchemes idSchemes) {
+  private ExportParams getExportParams(CompleteDataSetRegQueryParams params, IdSchemes idSchemes) {
     return registrationExchangeService.paramsFromUrl(
-        cdsr.getDataSet(),
-        cdsr.getOrgUnit(),
-        cdsr.getOrgUnitGroup(),
-        cdsr.getPeriod(),
-        cdsr.getStartDate(),
-        cdsr.getEndDate(),
-        cdsr.isChildren(),
-        cdsr.getCreated(),
-        cdsr.getCreatedDuration(),
-        cdsr.getLimit(),
+        params.getDataSet(),
+        params.getOrgUnit(),
+        params.getOrgUnitGroup(),
+        params.getPeriod(),
+        params.getStartDate(),
+        params.getEndDate(),
+        params.isChildren(),
+        params.getCreated(),
+        params.getCreatedDuration(),
+        params.getLimit(),
         idSchemes);
-  }
-
-  @Data
-  private static class CompleteDataSetRegParams {
-    Set<String> dataSet;
-    Set<String> period;
-    Date startDate;
-    Date endDate;
-    boolean children;
-    Set<String> orgUnit;
-    Set<String> orgUnitGroup;
-    Date created;
-    String createdDuration;
-    Integer limit;
   }
 }
