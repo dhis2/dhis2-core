@@ -263,6 +263,27 @@ class TrackedEntityRequestParamsMapperTest {
   }
 
   @Test
+  void shouldFailIfGivenRemovedQueryParameter() {
+    requestParams.setQuery("query");
+
+    assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
+  }
+
+  @Test
+  void shouldFailIfGivenRemovedAttributeParameter() {
+    requestParams.setAttribute("IsdLBTOBzMi");
+
+    assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
+  }
+
+  @Test
+  void shouldFailIfGivenRemovedIncludeAllAttributesParameter() {
+    requestParams.setIncludeAllAttributes("true");
+
+    assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
+  }
+
+  @Test
   void shouldMapOrderParameterInGivenOrderWhenFieldsAreOrderable() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
     requestParams.setOrder(
