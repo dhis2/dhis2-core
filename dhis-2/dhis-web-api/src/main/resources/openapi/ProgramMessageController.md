@@ -54,7 +54,7 @@ Number of pages to be loaded
 
 ### `*.parameter.pageSize`
 
-Number of records per page
+Defines the number of elements to return for each page.
 
 ### `*.parameter.ProgramMessageBatch.programMessages`
 
