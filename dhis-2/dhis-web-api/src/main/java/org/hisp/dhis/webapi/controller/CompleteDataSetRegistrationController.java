@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,11 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationRepo
 import static org.hisp.dhis.scheduling.JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -72,6 +73,7 @@ import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.webdomain.CompleteDataSetRegQueryParams;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MimeType;
@@ -116,75 +118,23 @@ public class CompleteDataSetRegistrationController {
   // GET
   // -------------------------------------------------------------------------
 
-  @GetMapping(produces = CONTENT_TYPE_XML)
-  public void getCompleteRegistrationsXml(
-      @RequestParam Set<String> dataSet,
-      @RequestParam(required = false) Set<String> period,
-      @RequestParam(required = false) Date startDate,
-      @RequestParam(required = false) Date endDate,
-      @RequestParam(required = false, name = "children") boolean includeChildren,
-      @RequestParam(required = false) Set<String> orgUnit,
-      @RequestParam(required = false) Set<String> orgUnitGroup,
-      @RequestParam(required = false) Date created,
-      @RequestParam(required = false) String createdDuration,
-      @RequestParam(required = false) Integer limit,
-      IdSchemes idSchemes,
-      HttpServletRequest request,
-      HttpServletResponse response)
+  @GetMapping(produces = CONTENT_TYPE_JSON)
+  public void getCompleteRegistrationsJson(
+      CompleteDataSetRegQueryParams queryParams, IdSchemes idSchemes, HttpServletResponse response)
       throws IOException {
-    response.setContentType(CONTENT_TYPE_XML);
-
-    ExportParams params =
-        registrationExchangeService.paramsFromUrl(
-            dataSet,
-            orgUnit,
-            orgUnitGroup,
-            period,
-            startDate,
-            endDate,
-            includeChildren,
-            created,
-            createdDuration,
-            limit,
-            idSchemes);
-
-    registrationExchangeService.writeCompleteDataSetRegistrationsXml(
+    response.setContentType(CONTENT_TYPE_JSON);
+    ExportParams params = getExportParams(queryParams, idSchemes);
+    registrationExchangeService.writeCompleteDataSetRegistrationsJson(
         params, response.getOutputStream());
   }
 
-  @GetMapping(produces = CONTENT_TYPE_JSON)
-  public void getCompleteRegistrationsJson(
-      @RequestParam Set<String> dataSet,
-      @RequestParam(required = false) Set<String> period,
-      @RequestParam(required = false) Date startDate,
-      @RequestParam(required = false) Date endDate,
-      @RequestParam(required = false, name = "children") boolean includeChildren,
-      @RequestParam(required = false) Set<String> orgUnit,
-      @RequestParam(required = false) Set<String> orgUnitGroup,
-      @RequestParam(required = false) Date created,
-      @RequestParam(required = false) String createdDuration,
-      @RequestParam(required = false) Integer limit,
-      IdSchemes idSchemes,
-      HttpServletRequest request,
-      HttpServletResponse response)
+  @GetMapping(produces = CONTENT_TYPE_XML)
+  public void getCompleteRegistrationsXml(
+      CompleteDataSetRegQueryParams queryParams, IdSchemes idSchemes, HttpServletResponse response)
       throws IOException {
-    response.setContentType(CONTENT_TYPE_JSON);
-
-    ExportParams params =
-        registrationExchangeService.paramsFromUrl(
-            dataSet,
-            orgUnit,
-            orgUnitGroup,
-            period,
-            startDate,
-            endDate,
-            includeChildren,
-            created,
-            createdDuration,
-            limit,
-            idSchemes);
-
-    registrationExchangeService.writeCompleteDataSetRegistrationsJson(
+    response.setContentType(CONTENT_TYPE_XML);
+    ExportParams params = getExportParams(queryParams, idSchemes);
+    registrationExchangeService.writeCompleteDataSetRegistrationsXml(
         params, response.getOutputStream());
   }
 
@@ -198,8 +148,7 @@ public class CompleteDataSetRegistrationController {
       ImportOptions importOptions, HttpServletRequest request)
       throws IOException, ConflictException, NotFoundException {
     if (importOptions.isAsync()) {
-      return asyncImport(
-          importOptions, org.springframework.http.MediaType.APPLICATION_XML, request);
+      return asyncImport(importOptions, APPLICATION_XML, request);
     }
     ImportSummary summary =
         registrationExchangeService.saveCompleteDataSetRegistrationsXml(
@@ -214,8 +163,7 @@ public class CompleteDataSetRegistrationController {
       ImportOptions importOptions, HttpServletRequest request)
       throws IOException, ConflictException, NotFoundException {
     if (importOptions.isAsync()) {
-      return asyncImport(
-          importOptions, org.springframework.http.MediaType.APPLICATION_JSON, request);
+      return asyncImport(importOptions, APPLICATION_JSON, request);
     }
     ImportSummary summary =
         registrationExchangeService.saveCompleteDataSetRegistrationsJson(
@@ -340,5 +288,20 @@ public class CompleteDataSetRegistrationController {
     if (!registrations.isEmpty()) {
       registrationService.deleteCompleteDataSetRegistrations(registrations);
     }
+  }
+
+  private ExportParams getExportParams(CompleteDataSetRegQueryParams params, IdSchemes idSchemes) {
+    return registrationExchangeService.paramsFromUrl(
+        params.getDataSet(),
+        params.getOrgUnit(),
+        params.getOrgUnitGroup(),
+        params.getPeriod(),
+        params.getStartDate(),
+        params.getEndDate(),
+        params.isChildren(),
+        params.getCreated(),
+        params.getCreatedDuration(),
+        params.getLimit(),
+        idSchemes);
   }
 }
