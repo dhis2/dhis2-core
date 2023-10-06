@@ -316,14 +316,12 @@ public class TrackerExportTests extends TrackerApiTest {
 
     TrackerApiResponse trackedEntity =
         trackerImportExportActions.getTrackedEntity(
-            "Kj6vYde4LHh",
-            new QueryParamsBuilder().add("fields", "*").add("includeAllAttributes", "true"));
+            "Kj6vYde4LHh", new QueryParamsBuilder().add("fields", "*"));
 
     TrackerApiResponse trackedEntities =
         trackerImportExportActions.getTrackedEntities(
             new QueryParamsBuilder()
                 .add("fields", "*")
-                .add("includeAllAttributes", "true")
                 .add("trackedEntity", "Kj6vYde4LHh")
                 .add("orgUnit", "O6uvpzGd5pu"));
 
