@@ -317,7 +317,7 @@ public class CompleteDataSetRegistrationController {
         cdsr.getPeriod(),
         cdsr.getStartDate(),
         cdsr.getEndDate(),
-        cdsr.isIncludeChildren(),
+        cdsr.isChildren(),
         cdsr.getCreated(),
         cdsr.getCreatedDuration(),
         cdsr.getLimit(),
@@ -330,7 +330,7 @@ public class CompleteDataSetRegistrationController {
     Set<String> period;
     Date startDate;
     Date endDate;
-    boolean includeChildren;
+    boolean children;
     Set<String> orgUnit;
     Set<String> orgUnitGroup;
     Date created;
