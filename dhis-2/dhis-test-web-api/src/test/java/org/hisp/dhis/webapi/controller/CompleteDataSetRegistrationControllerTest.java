@@ -219,6 +219,28 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
   }
 
   @Test
+  void testGetCompleteRegistrationsJsonWithOrgUnitAndPeriodOnly() {
+    // given
+    String ouId = createOrgUnit();
+    addOrgUnitToUserHierarchy(ouId);
+    String period = "202309";
+
+    // when
+    HttpResponse response =
+        GET(
+            "/completeDataSetRegistrations?orgUnit={ou}&period={p}",
+            ouId,
+            period,
+            Accept(APPLICATION_JSON));
+
+    // then
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    assertEquals(
+        "At least one data set must be specified",
+        response.error().getMessage());
+  }
+
+  @Test
   void testGetEmptyCompleteRegistrationsXmlWithDataSetOrgUnitAndPeriod() {
     // given
     String ouId = createOrgUnit();
