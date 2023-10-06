@@ -47,8 +47,8 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.PROGR
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
 import static org.hisp.dhis.util.DateUtils.addDays;
-import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;

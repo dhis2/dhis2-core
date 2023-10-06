@@ -30,8 +30,8 @@ package org.hisp.dhis.program.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import com.google.common.collect.Lists;
@@ -157,10 +157,7 @@ public class HibernateProgramInstanceStore extends SoftDeleteHibernateObjectStor
               + "'";
     } else if (params.hasLastUpdated()) {
       hql +=
-          hlp.whereAnd()
-              + "pi.lastUpdated >= '"
-              + getLongDateString(params.getLastUpdated())
-              + "'";
+          hlp.whereAnd() + "pi.lastUpdated >= '" + getLongDateString(params.getLastUpdated()) + "'";
     }
 
     if (params.hasTrackedEntityInstance()) {
