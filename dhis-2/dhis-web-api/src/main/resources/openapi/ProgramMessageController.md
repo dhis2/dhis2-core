@@ -50,11 +50,11 @@ Get program messages based on message status
 
 ### `*.parameter.page`
 
-Number of pages to be loaded
+Defines which page number to return.
 
 ### `*.parameter.pageSize`
 
-Number of records per page
+Defines the number of elements to return for each page.
 
 ### `*.parameter.ProgramMessageBatch.programMessages`
 
