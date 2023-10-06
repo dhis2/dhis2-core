@@ -50,7 +50,7 @@ Get program messages based on status for example SENT, SCHEDULED etc
 
 ### `*.parameter.page`
 
-Number of pages to be loaded
+Defines which page number to return.
 
 ### `*.parameter.pageSize`
 
