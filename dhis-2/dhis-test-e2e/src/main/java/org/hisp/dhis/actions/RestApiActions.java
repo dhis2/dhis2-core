@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.actions;
 
+import static io.restassured.config.XmlConfig.xmlConfig;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.oneOf;
 
@@ -183,7 +184,15 @@ public class RestApiActions {
     addCoverage("GET", resourceId + path);
 
     Response response =
-        this.given().contentType(contentType).accept(accept).when().get(resourceId + path);
+        this.given()
+            .config(
+                RestAssured.config()
+                    .xmlConfig(
+                        xmlConfig().namespaceAware(false)))
+            .contentType(contentType)
+            .accept(accept)
+            .when()
+            .get(resourceId + path);
 
     return new ApiResponse(response);
   }

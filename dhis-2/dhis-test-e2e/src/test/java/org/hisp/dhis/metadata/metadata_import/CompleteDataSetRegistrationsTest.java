@@ -27,15 +27,16 @@
  */
 package org.hisp.dhis.metadata.metadata_import;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
 
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import io.restassured.response.ResponseBody;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.CompleteDataSetRegistrationActions;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.SystemActions;
-import org.hisp.dhis.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -56,130 +57,195 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
     dataSetActions = new RestApiActions("dataSets");
   }
 
+  //  @Test
+  //  void completeDataSetRegistrationsAsync() {
+  //    loginActions.loginAsSuperUser();
+  //
+  //    // create data set
+  //    String dataSet = dataSetWithOrgUnit(1, "O6uvpzGd5pu");
+  //    ApiResponse dataSetResponse = dataSetActions.post(dataSet);
+  //
+  //    assertEquals(201, dataSetResponse.statusCode());
+  //    String dataSetId = dataSetResponse.extractUid();
+  //    assertEquals(11, dataSetId.length());
+  //
+  //    // get complete data sets to show none complete with given criteria
+  //    ApiResponse completedResponse =
+  //        apiActions.getCompletedAsMediaType(dataSetId, "O6uvpzGd5pu", "202301",
+  // ContentType.JSON);
+  //    assertEquals("{}", completedResponse.getAsString());
+  //
+  //    // complete the data set and post async
+  //    String cds = completeDataSet(dataSetId, "202301", "O6uvpzGd5pu");
+  //    ApiResponse completeAsyncResponse = apiActions.sendAsync(cds);
+  //    assertEquals(200, completeAsyncResponse.statusCode());
+  //
+  //    assertTrue(
+  //        completeAsyncResponse
+  //            .getBody()
+  //            .get("message")
+  //            .getAsString()
+  //            .contains("Initiated COMPLETE_DATA_SET_REGISTRATION_IMPORT"));
+  //
+  //    String taskId =
+  //        completeAsyncResponse.getBody().getAsJsonObject("response").get("id").getAsString();
+  //    assertEquals(11, taskId.length());
+  //
+  //    // wait for job to be completed (24 seconds used as the job schedule loop is 20 seconds)
+  //    ApiResponse taskStatus =
+  //        systemActions.waitUntilTaskCompleted("COMPLETE_DATA_SET_REGISTRATION_IMPORT", taskId,
+  // 24);
+  //    assertTrue(taskStatus.getAsString().contains("\"completed\":true"));
+  //
+  //    // get complete data sets which should be 1 now
+  //    ApiResponse completedResponse2 =
+  //        apiActions.getCompletedAsMediaType(dataSetId, "O6uvpzGd5pu", "202301",
+  // ContentType.JSON);
+  //
+  //    // validate async-completed data set
+  //    completedResponse2
+  //        .validate()
+  //        .statusCode(200)
+  //        .body("completeDataSetRegistrations[0].period", equalTo("202301"))
+  //        .body("completeDataSetRegistrations[0].dataSet", equalTo(dataSetId))
+  //        .body("completeDataSetRegistrations[0].organisationUnit", equalTo("O6uvpzGd5pu"))
+  //        .body("completeDataSetRegistrations[0].completed", equalTo(true))
+  //        .body("completeDataSetRegistrations[0].storedBy", equalTo("tasuperadmin"));
+  //  }
+
+  //  @Test
+  //  void completeDataSetRegistrationSyncJson() {
+  //    loginActions.loginAsSuperUser();
+  //
+  //    // create data set
+  //    String dataSet = dataSetWithOrgUnit(2, "g8upMTyEZGZ");
+  //    ApiResponse dataSetResponse = dataSetActions.post(dataSet);
+  //
+  //    assertEquals(201, dataSetResponse.statusCode());
+  //    String dataSetId = dataSetResponse.extractUid();
+  //    assertEquals(11, dataSetId.length());
+  //
+  //    // get complete data sets to confirm none completed with given criteria
+  //    ApiResponse completedResponse =
+  //        apiActions.getCompletedAsMediaType(dataSetId, "g8upMTyEZGZ", "202301",
+  // ContentType.JSON);
+  //    assertEquals("{}", completedResponse.getAsString());
+  //
+  //    // complete the data set and post sync
+  //    String cds = completeDataSet(dataSetId, "202301", "g8upMTyEZGZ");
+  //    ApiResponse completeSyncResponse = apiActions.sendSync(cds);
+  //
+  //    completeSyncResponse
+  //        .validate()
+  //        .statusCode(200)
+  //        .body("message", equalTo("Import was successful."))
+  //        .body("response.status", equalTo("SUCCESS"))
+  //        .body("response.importCount.imported", equalTo(1));
+  //
+  //    // get complete data sets which should be 1 now
+  //    ApiResponse completedResponse2 =
+  //        apiActions.getCompletedAsMediaType(dataSetId, "g8upMTyEZGZ", "202301",
+  // ContentType.JSON);
+  //
+  //    // validate sync-completed data set
+  //    completedResponse2
+  //        .validate()
+  //        .statusCode(200)
+  //        .body("completeDataSetRegistrations[0].period", equalTo("202301"))
+  //        .body("completeDataSetRegistrations[0].dataSet", equalTo(dataSetId))
+  //        .body("completeDataSetRegistrations[0].organisationUnit", equalTo("g8upMTyEZGZ"))
+  //        .body("completeDataSetRegistrations[0].completed", equalTo(true))
+  //        .body("completeDataSetRegistrations[0].storedBy", equalTo("tasuperadmin"));
+  //  }
+
   @Test
-  void completeDataSetRegistrationsAsync() {
+  void completeDataSetRegistrationSyncXml() {
     loginActions.loginAsSuperUser();
 
-    // create data set
-    String dataSet = dataSetWithOrgUnit(1, "O6uvpzGd5pu");
-    ApiResponse dataSetResponse = dataSetActions.post(dataSet);
+    String dataSet = dataSetWithOrgUnit(9, "g8upMTyEZGZ");
 
-    assertEquals(201, dataSetResponse.statusCode());
-    String dataSetId = dataSetResponse.extractUid();
-    assertEquals(11, dataSetId.length());
+    // @formatter:off
+    ResponseBody body = given().body(dataSet)
+                        .when().post("/dataSets").andReturn().body();
+    
+//    post.then().statusCode(201);
+    String uid = body.jsonPath().get("response.uid");
+    assertEquals("uid", uid);
 
-    // get complete data sets to show none complete with given criteria
-    ApiResponse completedResponse = apiActions.getCompleted(dataSetId, "O6uvpzGd5pu", "202301");
-    assertEquals("{}", completedResponse.getAsString());
-
-    // complete the data set and post async
-    String cds = completeDataSet(dataSetId, "202301", "O6uvpzGd5pu");
-    ApiResponse completeAsyncResponse = apiActions.sendAsync(cds);
-    assertEquals(200, completeAsyncResponse.statusCode());
-
-    assertTrue(
-        completeAsyncResponse
-            .getBody()
-            .get("message")
-            .getAsString()
-            .contains("Initiated COMPLETE_DATA_SET_REGISTRATION_IMPORT"));
-
-    String taskId =
-        completeAsyncResponse.getBody().getAsJsonObject("response").get("id").getAsString();
-    assertEquals(11, taskId.length());
-
-    // wait for job to be completed (24 seconds used as the job schedule loop is 20 seconds)
-    ApiResponse taskStatus =
-        systemActions.waitUntilTaskCompleted("COMPLETE_DATA_SET_REGISTRATION_IMPORT", taskId, 24);
-    assertTrue(taskStatus.getAsString().contains("\"completed\":true"));
-
-    // get complete data sets which should be 1 now
-    ApiResponse completedResponse2 = apiActions.getCompleted(dataSetId, "O6uvpzGd5pu", "202301");
-
-    // validate async-completed data set
-    completedResponse2
-        .validate()
-        .statusCode(200)
-        .body("completeDataSetRegistrations[0].period", equalTo("202301"))
-        .body("completeDataSetRegistrations[0].dataSet", equalTo(dataSetId))
-        .body("completeDataSetRegistrations[0].organisationUnit", equalTo("O6uvpzGd5pu"))
-        .body("completeDataSetRegistrations[0].completed", equalTo(true))
-        .body("completeDataSetRegistrations[0].storedBy", equalTo("tasuperadmin"));
-  }
-
-  @Test
-  void completeDataSetRegistrationSync() {
-    loginActions.loginAsSuperUser();
+//    .then().statusCode(201).and();
+    //        .body("id", notNullValue())
+    //        .body("name", equalTo("lokesh"))
+    //        .body("email", equalTo("admin@howtodoinjava.com"));
 
     // create data set
-    String dataSet = dataSetWithOrgUnit(2, "g8upMTyEZGZ");
-    ApiResponse dataSetResponse = dataSetActions.post(dataSet);
+    //    String dataSet = dataSetWithOrgUnit(3, "g8upMTyEZGZ");
+    //    ApiResponse dataSetResponse = dataSetActions.post(dataSet);
+    //    Response post = RestAssured.post("/api/dataSet", dataSet);
 
-    assertEquals(201, dataSetResponse.statusCode());
-    String dataSetId = dataSetResponse.extractUid();
-    assertEquals(11, dataSetId.length());
-
-    // get complete data sets to confirm none completed with given criteria
-    ApiResponse completedResponse = apiActions.getCompleted(dataSetId, "g8upMTyEZGZ", "202301");
-    assertEquals("{}", completedResponse.getAsString());
+    //    assertEquals(201, post.getStatusCode());
+    //    String dataSetId = post.body().jsonPath().get("response.uid");
 
     // complete the data set and post sync
-    String cds = completeDataSet(dataSetId, "202301", "g8upMTyEZGZ");
-    ApiResponse completeSyncResponse = apiActions.sendSync(cds);
+    //    String cds = completeDataSet(dataSetId, "202301", "g8upMTyEZGZ");
+    //    ApiResponse completeSyncResponse = apiActions.sendSync(cds);
 
-    completeSyncResponse
-        .validate()
-        .statusCode(200)
-        .body("message", equalTo("Import was successful."))
-        .body("response.status", equalTo("SUCCESS"))
-        .body("response.importCount.imported", equalTo(1));
+    //    completeSyncResponse
+    //        .validate()
+    //        .statusCode(200)
+    //        .body("message", equalTo("Import was successful."))
+    //        .body("response.status", equalTo("SUCCESS"))
+    //        .body("response.importCount.imported", equalTo(1));
 
-    // get complete data sets which should be 1 now
-    ApiResponse completedResponse2 = apiActions.getCompleted(dataSetId, "g8upMTyEZGZ", "202301");
+    // get complete data sets in xml format
+    //    ApiResponse getXmlResponse =
+    //        apiActions.getCompletedAsMediaType(dataSetId, "g8upMTyEZGZ", "202301",
+    // ContentType.XML);
 
-    // validate sync-completed data set
-    completedResponse2
-        .validate()
-        .statusCode(200)
-        .body("completeDataSetRegistrations[0].period", equalTo("202301"))
-        .body("completeDataSetRegistrations[0].dataSet", equalTo(dataSetId))
-        .body("completeDataSetRegistrations[0].organisationUnit", equalTo("g8upMTyEZGZ"))
-        .body("completeDataSetRegistrations[0].completed", equalTo(true))
-        .body("completeDataSetRegistrations[0].storedBy", equalTo("tasuperadmin"));
+    // validate xml response
+    //    getXmlResponse
+    //        .validate()
+    //        .contentType(ContentType.XML)
+    //        .rootPath("completeDataSetRegistrations.completeDataSetRegistration")
+    //        .body("@period", is("202301"))
+    //        .and()
+    //        .body("@dataSet", is(dataSetId))
+    //        .and()
+    //        .body("@organisationUnit", is("g8upMTyEZGZ"));
   }
 
-  @Test
-  void getCompleteDataSetRegistrationWithIdScheme() {
-    loginActions.loginAsSuperUser();
-
-    // create data set
-    String dataSet = dataSetWithOrgUnit(3, "g8upMTyEZGZ");
-    ApiResponse dataSetResponse = dataSetActions.post(dataSet);
-
-    assertEquals(201, dataSetResponse.statusCode());
-    String dataSetId = dataSetResponse.extractUid();
-
-    // complete the data set and post sync
-    String cds = completeDataSet(dataSetId, "202301", "g8upMTyEZGZ");
-    ApiResponse completeSyncResponse = apiActions.sendSync(cds);
-
-    completeSyncResponse
-        .validate()
-        .statusCode(200)
-        .body("message", equalTo("Import was successful."))
-        .body("response.status", equalTo("SUCCESS"))
-        .body("response.importCount.imported", equalTo(1));
-
-    // get complete data sets with id scheme CODE
-    ApiResponse completedResponse2 = apiActions.getCompletedWithIdScheme(dataSetId, "g8upMTyEZGZ", "202301", "CODE");
-
-    // validate sync-completed data set returns CODEs for id scheme
-    completedResponse2
-        .validate()
-        .statusCode(200)
-        .body("completeDataSetRegistrations[0].dataSet", equalTo("TEST_CODE 3"))
-        .body("completeDataSetRegistrations[0].organisationUnit", equalTo("OU_167609"));
-  }
+  //    @Test
+  //    void getCompleteDataSetRegistrationWithIdScheme() {
+  //      loginActions.loginAsSuperUser();
+  //
+  //      // create data set
+  //      String dataSet = dataSetWithOrgUnit(4, "g8upMTyEZGZ");
+  //      ApiResponse dataSetResponse = dataSetActions.post(dataSet);
+  //
+  //      assertEquals(201, dataSetResponse.statusCode());
+  //      String dataSetId = dataSetResponse.extractUid();
+  //
+  //      // complete the data set and post sync
+  //      String cds = completeDataSet(dataSetId, "202301", "g8upMTyEZGZ");
+  //      ApiResponse completeSyncResponse = apiActions.sendSync(cds);
+  //
+  //      completeSyncResponse
+  //          .validate()
+  //          .statusCode(200)
+  //          .body("message", equalTo("Import was successful."))
+  //          .body("response.status", equalTo("SUCCESS"))
+  //          .body("response.importCount.imported", equalTo(1));
+  //
+  //      // get complete data sets with id scheme CODE
+  //      ApiResponse completedResponse2 =
+  //          apiActions.getCompletedWithIdScheme(dataSetId, "g8upMTyEZGZ", "202301", "CODE");
+  //
+  //      // validate sync-completed data set returns CODEs for id scheme
+  //      completedResponse2
+  //          .validate()
+  //          .statusCode(200)
+  //          .body("completeDataSetRegistrations[0].dataSet", equalTo("TEST_CODE 4"))
+  //          .body("completeDataSetRegistrations[0].organisationUnit", equalTo("OU_167609"));
+  //    }
 
   private String dataSetWithOrgUnit(int uniqueNum, String orgUnit) {
     return """

@@ -98,6 +98,7 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
 
   @Test
   void testGetCompleteRegistrationsXmlNoQueryParams() {
+    // when
     HttpResponse response = GET("/completeDataSetRegistrations", Accept(APPLICATION_XML));
     assertEquals(HttpStatus.CONFLICT, response.status());
     String content = response.content(APPLICATION_XML.toString());

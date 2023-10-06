@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.actions;
 
+import io.restassured.http.ContentType;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
@@ -52,20 +53,24 @@ public class CompleteDataSetRegistrationActions extends RestApiActions {
     return post("", body, queryParamsBuilder);
   }
 
-  public ApiResponse getCompleted(String dataSet, String orgUnit, String period) {
+  public ApiResponse getCompletedAsMediaType(
+      String dataSet, String orgUnit, String period, ContentType mediaType) {
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     addRequiredParams(queryParamsBuilder, dataSet, orgUnit, period);
-    return get(queryParamsBuilder);
+    String contentType = mediaType != null ? mediaType.toString() : "application/json";
+    return get("", "", contentType, queryParamsBuilder);
   }
 
-  public ApiResponse getCompletedWithIdScheme(String dataSet, String orgUnit, String period, String idScheme) {
+  public ApiResponse getCompletedWithIdScheme(
+      String dataSet, String orgUnit, String period, String idScheme) {
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     addRequiredParams(queryParamsBuilder, dataSet, orgUnit, period);
     queryParamsBuilder.add("idScheme", idScheme);
     return get(queryParamsBuilder);
   }
 
-  private void addRequiredParams(QueryParamsBuilder builder, String dataSet, String orgUnit, String period) {
+  private void addRequiredParams(
+      QueryParamsBuilder builder, String dataSet, String orgUnit, String period) {
     builder.add("dataSet", dataSet);
     builder.add("orgUnit", orgUnit);
     builder.add("period", period);
