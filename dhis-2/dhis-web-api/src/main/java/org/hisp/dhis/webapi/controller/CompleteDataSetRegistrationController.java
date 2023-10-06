@@ -122,28 +122,18 @@ public class CompleteDataSetRegistrationController {
   public void getCompleteRegistrationsJson(
       CompleteDataSetRegQueryParams queryParams, IdSchemes idSchemes, HttpServletResponse response)
       throws IOException {
+    response.setContentType(CONTENT_TYPE_JSON);
     ExportParams params = getExportParams(queryParams, idSchemes);
-    processRequestAsJson(response, params);
+    registrationExchangeService.writeCompleteDataSetRegistrationsJson(
+        params, response.getOutputStream());
   }
 
   @GetMapping(produces = CONTENT_TYPE_XML)
   public void getCompleteRegistrationsXml(
       CompleteDataSetRegQueryParams queryParams, IdSchemes idSchemes, HttpServletResponse response)
       throws IOException {
-    ExportParams params = getExportParams(queryParams, idSchemes);
-    processRequestAsXml(response, params);
-  }
-
-  private void processRequestAsJson(HttpServletResponse response, ExportParams params)
-      throws IOException {
-    response.setContentType(CONTENT_TYPE_JSON);
-    registrationExchangeService.writeCompleteDataSetRegistrationsJson(
-        params, response.getOutputStream());
-  }
-
-  private void processRequestAsXml(HttpServletResponse response, ExportParams params)
-      throws IOException {
     response.setContentType(CONTENT_TYPE_XML);
+    ExportParams params = getExportParams(queryParams, idSchemes);
     registrationExchangeService.writeCompleteDataSetRegistrationsXml(
         params, response.getOutputStream());
   }
