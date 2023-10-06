@@ -75,13 +75,11 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.CompleteDataSetRegQueryParams;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -120,22 +118,24 @@ public class CompleteDataSetRegistrationController {
   // GET
   // -------------------------------------------------------------------------
 
-  @GetMapping(produces = {CONTENT_TYPE_JSON, CONTENT_TYPE_XML})
-  public void getCompleteRegistrations(
+  @GetMapping(produces = CONTENT_TYPE_JSON)
+  public void getCompleteRegistrationsJson(
       CompleteDataSetRegQueryParams queryParams,
       IdSchemes idSchemes,
-      @RequestHeader(value = "Accept", required = false) MediaType mediaType,
       HttpServletResponse response)
       throws IOException {
-
     ExportParams params = getExportParams(queryParams, idSchemes);
-
-    if (APPLICATION_XML.equals(mediaType)) {
-      processRequestAsXml(response, params);
-      return;
-    }
-
     processRequestAsJsonByDefault(response, params);
+  }
+
+  @GetMapping(produces = CONTENT_TYPE_XML)
+  public void getCompleteRegistrationsXml(
+      CompleteDataSetRegQueryParams queryParams,
+      IdSchemes idSchemes,
+      HttpServletResponse response)
+      throws IOException {
+    ExportParams params = getExportParams(queryParams, idSchemes);
+    processRequestAsXml(response, params);
   }
 
   private void processRequestAsJsonByDefault(HttpServletResponse response, ExportParams params)
