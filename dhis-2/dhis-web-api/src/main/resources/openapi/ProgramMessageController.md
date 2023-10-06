@@ -46,7 +46,7 @@ Get program messages before given date
 
 ### `*.parameter.messageStatus`
 
-Get program messages based on status for example SENT, SCHEDULED etc
+Get program messages based on message status
 
 ### `*.parameter.page`
 

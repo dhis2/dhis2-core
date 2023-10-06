@@ -168,7 +168,7 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS') or hasRole('F_SEND_EMAIL')")
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public BatchResponseStatus saveMessages(HttpServletRequest request, HttpServletResponse response)
+  public BatchResponseStatus sendMessages(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     ProgramMessageBatch batch =
         renderService.fromJson(request.getInputStream(), ProgramMessageBatch.class);
