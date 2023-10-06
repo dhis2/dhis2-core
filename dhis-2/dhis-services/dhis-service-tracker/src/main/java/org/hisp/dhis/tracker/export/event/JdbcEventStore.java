@@ -1058,8 +1058,7 @@ class JdbcEventStore implements EventStore {
   private String createAccessibleSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
 
-    if (isProgramRestricted(params.getProgram())
-        || user.getTeiSearchOrganisationUnits().isEmpty()) {
+    if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
       return createCaptureSql(user, mapSqlParameterSource);
     }
 
@@ -1126,6 +1125,10 @@ class JdbcEventStore implements EventStore {
 
   private boolean isProgramRestricted(Program program) {
     return program != null && (program.isProtected() || program.isClosed());
+  }
+
+  private boolean isUserSearchScopeNotSet(User user) {
+    return user.getTeiSearchOrganisationUnits().isEmpty();
   }
 
   private String createCaptureScopeQuery(
