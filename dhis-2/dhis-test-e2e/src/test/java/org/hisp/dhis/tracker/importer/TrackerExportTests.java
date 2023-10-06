@@ -473,7 +473,10 @@ public class TrackerExportTests extends TrackerNtiApiTest {
             .validateStatus(200)
             .extractList("instances.programStage.flatten()");
 
-    assertEquals(actualPsList, List.of("nlXNK4b7LVr", "PaOOjwLVW23"));
+    assertEquals(
+        List.of("nlXNK4b7LVr", "PaOOjwLVW23"),
+        actualPsList,
+        "Program Stage are not in the correct order");
   }
 
   @Test
