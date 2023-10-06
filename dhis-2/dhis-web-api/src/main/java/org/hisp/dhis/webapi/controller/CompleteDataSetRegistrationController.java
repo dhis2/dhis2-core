@@ -61,7 +61,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -125,24 +124,21 @@ public class CompleteDataSetRegistrationController {
   public void getCompleteRegistrations(
       CompleteDataSetRegQueryParams queryParams,
       IdSchemes idSchemes,
-      @RequestHeader("Accept") MediaType mediaType,
+      @RequestHeader(value = "Accept", required = false) MediaType mediaType,
       HttpServletResponse response)
-      throws IOException, BadRequestException {
+      throws IOException {
+
     ExportParams params = getExportParams(queryParams, idSchemes);
 
-    if (APPLICATION_JSON.equals(mediaType) || mediaType.isWildcardType()) {
-      processRequestAsJson(response, params);
-      return;
-    }
     if (APPLICATION_XML.equals(mediaType)) {
       processRequestAsXml(response, params);
       return;
     }
 
-    throw new BadRequestException("Value '" + mediaType + "' not allowed as Media Type");
+    processRequestAsJsonByDefault(response, params);
   }
 
-  private void processRequestAsJson(HttpServletResponse response, ExportParams params)
+  private void processRequestAsJsonByDefault(HttpServletResponse response, ExportParams params)
       throws IOException {
     response.setContentType(CONTENT_TYPE_JSON);
     registrationExchangeService.writeCompleteDataSetRegistrationsJson(
