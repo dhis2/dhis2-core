@@ -1036,7 +1036,7 @@ public class JdbcEventStore implements EventStore {
             .append("select ")
             .append(getEventSelectIdentifiersByIdScheme(params))
             .append(" psi.uid as psi_uid, ")
-            .append("ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, ")
+            .append("ou.uid as ou_uid, p.uid as p_uid, ")
             .append(
                 "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, ")
             .append(

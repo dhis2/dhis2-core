@@ -51,6 +51,7 @@ import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 import org.hamcrest.Matcher;
@@ -384,7 +385,7 @@ public class TrackerExportTests extends TrackerNtiApiTest {
   @MethodSource()
   @ParameterizedTest
   public void shouldReturnTeisMatchingAttributeCriteria(
-      String operator, String searchCriteria, Matcher everyItemMatcher) {
+      String operator, String searchCriteria, Matcher<?> everyItemMatcher) {
     QueryParamsBuilder queryParamsBuilder =
         new QueryParamsBuilder()
             .add("orgUnit", "O6uvpzGd5pu")
@@ -454,6 +455,26 @@ public class TrackerExportTests extends TrackerNtiApiTest {
     List<String> events = response.extractList("instances.event.flatten()");
     assertEquals(
         List.of("ZwwuwNp6gVd", "olfXZzSGacW"), events, "Events are not in the correct order");
+  }
+
+  @Test
+  public void
+      shouldReturnProgramStageListOrderedByProgramStageDescWhenFieldsAndOrderEqualToProgramStage() {
+    trackerActions
+        .postAndGetJobReport(
+            teiWithEnrollmentAndEventsTemplate, new QueryParamsBuilder().add("async=false"))
+        .validateSuccessfulImport();
+
+    List<String> actualPsList =
+        trackerActions
+            .get("events?order=programStage&fields=programStage&program=f1AyMswryyQ")
+            .validateStatus(200)
+            .extractList("instances.programStage.flatten()");
+
+    List<String> orderedPsList = new ArrayList<>(actualPsList);
+    orderedPsList.sort(Collections.reverseOrder());
+
+    assertThat(actualPsList, equalTo(orderedPsList));
   }
 
   @Test
