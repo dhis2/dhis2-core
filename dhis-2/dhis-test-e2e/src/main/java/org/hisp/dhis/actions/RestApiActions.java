@@ -185,10 +185,7 @@ public class RestApiActions {
 
     Response response =
         this.given()
-            .config(
-                RestAssured.config()
-                    .xmlConfig(
-                        xmlConfig().namespaceAware(false)))
+            .config(RestAssured.config().xmlConfig(xmlConfig().namespaceAware(false)))
             .contentType(contentType)
             .accept(accept)
             .when()
