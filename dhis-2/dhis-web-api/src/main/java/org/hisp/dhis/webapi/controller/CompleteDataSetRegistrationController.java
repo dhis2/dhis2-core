@@ -123,7 +123,7 @@ public class CompleteDataSetRegistrationController {
       CompleteDataSetRegQueryParams queryParams, IdSchemes idSchemes, HttpServletResponse response)
       throws IOException {
     ExportParams params = getExportParams(queryParams, idSchemes);
-    processRequestAsJsonByDefault(response, params);
+    processRequestAsJson(response, params);
   }
 
   @GetMapping(produces = CONTENT_TYPE_XML)
@@ -134,7 +134,7 @@ public class CompleteDataSetRegistrationController {
     processRequestAsXml(response, params);
   }
 
-  private void processRequestAsJsonByDefault(HttpServletResponse response, ExportParams params)
+  private void processRequestAsJson(HttpServletResponse response, ExportParams params)
       throws IOException {
     response.setContentType(CONTENT_TYPE_JSON);
     registrationExchangeService.writeCompleteDataSetRegistrationsJson(
