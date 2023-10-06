@@ -235,9 +235,7 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
 
     // then
     assertEquals(HttpStatus.CONFLICT, response.status());
-    assertEquals(
-        "At least one data set must be specified",
-        response.error().getMessage());
+    assertEquals("At least one data set must be specified", response.error().getMessage());
   }
 
   @Test

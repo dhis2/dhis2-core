@@ -120,9 +120,7 @@ public class CompleteDataSetRegistrationController {
 
   @GetMapping(produces = CONTENT_TYPE_JSON)
   public void getCompleteRegistrationsJson(
-      CompleteDataSetRegQueryParams queryParams,
-      IdSchemes idSchemes,
-      HttpServletResponse response)
+      CompleteDataSetRegQueryParams queryParams, IdSchemes idSchemes, HttpServletResponse response)
       throws IOException {
     ExportParams params = getExportParams(queryParams, idSchemes);
     processRequestAsJsonByDefault(response, params);
@@ -130,9 +128,7 @@ public class CompleteDataSetRegistrationController {
 
   @GetMapping(produces = CONTENT_TYPE_XML)
   public void getCompleteRegistrationsXml(
-      CompleteDataSetRegQueryParams queryParams,
-      IdSchemes idSchemes,
-      HttpServletResponse response)
+      CompleteDataSetRegQueryParams queryParams, IdSchemes idSchemes, HttpServletResponse response)
       throws IOException {
     ExportParams params = getExportParams(queryParams, idSchemes);
     processRequestAsXml(response, params);
