@@ -636,7 +636,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeNAME() {
+  void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeName() {
     // Given
     Option option = new Option("name", "code");
     option.setUid("uid");
@@ -661,7 +661,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeCODE() {
+  void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeCode() {
     // Given
     Option option = new Option("name", "code");
     option.setUid("uid");
@@ -686,7 +686,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeUID() {
+  void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeUid() {
     // Given
     Option option = new Option("name", "code");
     option.setUid("uid");
@@ -711,7 +711,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeNAME() {
+  void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeName() {
     // Given
     Legend legend = new Legend();
     legend.setUid("uid");
@@ -738,7 +738,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeCODE() {
+  void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeCode() {
     // Given
     Legend legend = new Legend();
     legend.setUid("uid");
@@ -765,7 +765,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeUID() {
+  void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeUid() {
     // Given
     Legend legend = new Legend();
     legend.setUid("uid");
