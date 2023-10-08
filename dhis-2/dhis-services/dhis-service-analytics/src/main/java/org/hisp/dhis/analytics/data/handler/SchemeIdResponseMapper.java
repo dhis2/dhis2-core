@@ -265,6 +265,13 @@ public class SchemeIdResponseMapper {
             asTypedList(params.getDataElementOperands()), params.getOutputDataElementIdScheme()));
   }
 
+  /**
+   * Adds the entries to the given map.
+   * 
+   * @param dimensionalItemObjects the list of {@link DimensionalItemObject}.
+   * @param map the map.
+   * @param outputIdScheme the output {@link IdScheme}.
+   */
   private void applyIdSchemeMapping(
       List<DimensionalItemObject> dimensionalItemObjects,
       Map<String, String> map,
