@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics;
 
-import java.util.Set;
+import java.util.EnumSet;
 
 /**
  * Enum which represents the aggregation type.
@@ -57,15 +57,18 @@ public enum AggregationType {
   CUSTOM("custom", false),
   DEFAULT("default", false);
 
-  private static final Set<AggregationType> LAST_TYPES =
-      Set.of(LAST, LAST_AVERAGE_ORG_UNIT, LAST_LAST_ORG_UNIT);
+  private static final EnumSet<AggregationType> LAST_TYPES =
+      EnumSet.of(LAST, LAST_AVERAGE_ORG_UNIT, LAST_LAST_ORG_UNIT);
 
-  private static final Set<AggregationType> FIRST_TYPES =
-      Set.of(FIRST, FIRST_AVERAGE_ORG_UNIT, FIRST_FIRST_ORG_UNIT);
+  private static final EnumSet<AggregationType> FIRST_TYPES =
+      EnumSet.of(FIRST, FIRST_AVERAGE_ORG_UNIT, FIRST_FIRST_ORG_UNIT);
 
-  /** Types that allow non-numeric output such as String or boolean (and possibly also numeric output) */
-  private static final Set<AggregationType> ALLOWS_NONNUMERIC_TYPES =
-      Set.of(LAST, FIRST, MIN, MAX, NONE, CUSTOM, DEFAULT);
+  /**
+   * Types that allow non-numeric output such as String or boolean (and possibly also numeric
+   * output)
+   */
+  private static final EnumSet<AggregationType> ALLOWS_NONNUMERIC_TYPES =
+      EnumSet.of(LAST, FIRST, MIN, MAX, NONE, CUSTOM, DEFAULT);
 
   private final String value;
 
@@ -96,7 +99,7 @@ public enum AggregationType {
     return FIRST_TYPES.contains(this);
   }
 
-  public boolean allowsNonnumeric()  {
+  public boolean allowsNonnumeric() {
     return ALLOWS_NONNUMERIC_TYPES.contains(this);
   }
 
