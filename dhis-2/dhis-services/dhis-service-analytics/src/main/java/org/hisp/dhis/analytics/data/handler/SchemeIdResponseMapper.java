@@ -88,13 +88,13 @@ public class SchemeIdResponseMapper {
 
     // Apply data element output ID scheme
     if (params.isOutputDataElementIdSchemeSet() && !params.getDataElements().isEmpty()) {
-      applyDataElementIdSchemeMapping(
+      applyIdSchemeMapping(
           params.getDataElements(), responseMap, params.getOutputDataElementIdScheme());
     }
 
     // Apply organisation unit output ID scheme
     if (params.isOutputOrgUnitIdSchemeSet() && !params.getOrganisationUnits().isEmpty()) {
-      applyOrgUnitIdSchemeMapping(
+      applyIdSchemeMapping(
           params.getOrganisationUnits(), responseMap, params.getOutputOrgUnitIdScheme());
     }
 
@@ -129,7 +129,7 @@ public class SchemeIdResponseMapper {
 
     if (isNotEmpty(dataElements)) {
       // Replace all data elements respecting their ID scheme definition.
-      applyDataElementIdSchemeMapping(
+      applyIdSchemeMapping(
           dataElements, responseMap, params.getOutputDataElementIdScheme());
     }
 
@@ -137,7 +137,7 @@ public class SchemeIdResponseMapper {
 
     // If "outputOrgUnitIdScheme" is set, we replace all org units values respecting its definition.
     if (params.isOutputOrgUnitIdSchemeSet() && isNotEmpty(orgUnits)) {
-      applyOrgUnitIdSchemeMapping(orgUnits, responseMap, params.getOutputOrgUnitIdScheme());
+      applyIdSchemeMapping(orgUnits, responseMap, params.getOutputOrgUnitIdScheme());
     }
 
     return responseMap;
@@ -265,17 +265,10 @@ public class SchemeIdResponseMapper {
             asTypedList(params.getDataElementOperands()), params.getOutputDataElementIdScheme()));
   }
 
-  private void applyDataElementIdSchemeMapping(
-      List<DimensionalItemObject> dataElements,
+  private void applyIdSchemeMapping(
+      List<DimensionalItemObject> dimensionalItemObjects,
       Map<String, String> map,
-      IdScheme outputDataElementIdScheme) {
-    map.putAll(getDimensionItemIdSchemeMap(asTypedList(dataElements), outputDataElementIdScheme));
-  }
-
-  private void applyOrgUnitIdSchemeMapping(
-      List<DimensionalItemObject> orgUnits,
-      Map<String, String> map,
-      IdScheme outputOrgUnitIdScheme) {
-    map.putAll(getDimensionItemIdSchemeMap(asTypedList(orgUnits), outputOrgUnitIdScheme));
+      IdScheme outputIdScheme) {
+    map.putAll(getDimensionItemIdSchemeMap(asTypedList(dimensionalItemObjects), outputIdScheme));
   }
 }

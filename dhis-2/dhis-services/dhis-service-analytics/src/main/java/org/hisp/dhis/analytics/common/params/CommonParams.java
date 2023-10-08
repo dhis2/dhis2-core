@@ -31,7 +31,6 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -39,9 +38,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -50,10 +46,13 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * This is a reusable and shared representation of queryable items to be used by the service/dao
- * layers.
+ * This is a reusable and shared representation of queryable items to be used by the service and 
+ * store layers.
  *
  * <p>It encapsulates the most common objects that are very likely to be used by the majority of
  * analytics queries.
