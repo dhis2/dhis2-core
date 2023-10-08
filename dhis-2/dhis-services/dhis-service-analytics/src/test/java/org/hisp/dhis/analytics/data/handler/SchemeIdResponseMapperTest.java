@@ -36,6 +36,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
+import static org.hisp.dhis.analytics.OutputFormat.ANALYTICS;
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
@@ -54,7 +55,6 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -539,6 +539,30 @@ class SchemeIdResponseMapperTest {
     assertThat(
         responseMap.get(categoryOptionComboC.getUid()),
         is(equalTo(categoryOptionComboC.getCode())));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeOverridesOutputOrgUnitIdScheme() {
+    List<DataElement> dataElementsStub = stubDataElements();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubDataElementQueryParams(dataElementsStub, orUnitStub, periodStub, ANALYTICS);
+    theDataQueryParams.setOutputIdScheme(NAME);
+    theDataQueryParams.setOutputDataElementIdScheme(CODE);
+
+    Map<String, String> responseMap =
+        schemeIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementsStub.get(0);
+    DataElement dataElementB = dataElementsStub.get(1);
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(orUnitStub.getName())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getName())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(equalTo(dataElementA.getCode())));
+    assertThat(responseMap.get(dataElementB.getUid()), is(equalTo(dataElementB.getCode())));
   }
 
   @Test
