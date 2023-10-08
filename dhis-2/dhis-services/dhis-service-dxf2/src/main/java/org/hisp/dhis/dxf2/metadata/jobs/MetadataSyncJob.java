@@ -28,11 +28,8 @@
 package org.hisp.dhis.dxf2.metadata.jobs;
 
 import static java.lang.String.format;
-
 import java.util.Date;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
@@ -41,7 +38,6 @@ import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
-import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -52,6 +48,8 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This is the runnable that takes care of the Metadata Synchronization. Leverages Spring
@@ -92,8 +90,6 @@ public class MetadataSyncJob implements Job {
   private final SystemSettingManager systemSettingManager;
 
   private final RetryTemplate retryTemplate;
-
-  private final SynchronizationManager synchronizationManager;
 
   private final MetadataSyncPreProcessor metadataSyncPreProcessor;
 

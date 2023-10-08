@@ -28,15 +28,14 @@
 package org.hisp.dhis.dxf2.metadata.jobs;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -47,7 +46,6 @@ import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
-import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.NoopJobProgress;
@@ -77,8 +75,6 @@ class MetadataSyncJobParametersTest {
 
   @Mock private MetadataSyncPostProcessor metadataSyncPostProcessor;
 
-  @Mock private SynchronizationManager synchronizationManager;
-
   @Mock private MetadataSyncService metadataSyncService;
 
   private MetadataSyncJob metadataSyncJob;
@@ -104,7 +100,6 @@ class MetadataSyncJobParametersTest {
         new MetadataSyncJob(
             systemSettingManager,
             retryTemplate,
-            synchronizationManager,
             metadataSyncPreProcessor,
             metadataSyncPostProcessor,
             metadataSyncService,
