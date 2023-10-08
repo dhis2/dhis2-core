@@ -285,8 +285,8 @@ public class DataQueryParams {
   protected IdScheme outputIdScheme;
 
   /**
-   * The identifier scheme specific for data items, including indicators, data elements, data sets
-   * and program indicators
+   * The identifier scheme specific for data items, including indicators, data elements and program 
+   * indicators
    */
   protected IdScheme outputDataItemIdScheme;
 

@@ -70,35 +70,45 @@ public class SchemeIdResponseMapper {
    * @return a map of UID and mapping value.
    */
   public Map<String, String> getSchemeIdResponseMap(DataQueryParams params) {
-    Map<String, String> responseMap =
+    Map<String, String> map =
         getDimensionItemIdSchemeMap(params.getAllDimensionItems(), params.getOutputIdScheme());
 
+    // Apply general output ID scheme
     if (params.isGeneralOutputIdSchemeSet()) {
-      // Apply the general output ID scheme
-      applyIdSchemeMapping(params, responseMap);
+      applyIdSchemeMapping(params, map);
     }
 
     // Handle output format {@link OutputFormat#DATA_VALUE_SET}
     if (params.isOutputFormat(DATA_VALUE_SET) && params.isOutputDataElementIdSchemeSet()) {
       // Apply data element operand output ID scheme
       if (!params.getDataElementOperands().isEmpty()) {
-        applyDataElementOperandIdSchemeMapping(params, responseMap);
+        applyDataElementOperandIdSchemeMapping(params, map);
       }
     }
 
-    // Apply data element output ID scheme
-    if (params.isOutputDataElementIdSchemeSet() && !params.getDataElements().isEmpty()) {
+    // Apply data item output ID scheme
+    if (params.isOutputDataItemIdSchemeSet()) {
       applyIdSchemeMapping(
-          params.getDataElements(), responseMap, params.getOutputDataElementIdScheme());
+          params.getDataElements(), map, params.getOutputDataItemIdScheme());
+      applyIdSchemeMapping(
+          params.getIndicators(), map, params.getOutputDataItemIdScheme());
+      applyIdSchemeMapping(
+          params.getProgramIndicators(), map, params.getOutputDataItemIdScheme());
+    }
+    
+    // Apply data element output ID scheme
+    if (params.isOutputDataElementIdSchemeSet()) {
+      applyIdSchemeMapping(
+          params.getDataElements(), map, params.getOutputDataElementIdScheme());
     }
 
     // Apply organisation unit output ID scheme
-    if (params.isOutputOrgUnitIdSchemeSet() && !params.getOrganisationUnits().isEmpty()) {
+    if (params.isOutputOrgUnitIdSchemeSet()) {
       applyIdSchemeMapping(
-          params.getOrganisationUnits(), responseMap, params.getOutputOrgUnitIdScheme());
+          params.getOrganisationUnits(), map, params.getOutputOrgUnitIdScheme());
     }
 
-    return responseMap;
+    return map;
   }
 
   /**
@@ -116,31 +126,31 @@ public class SchemeIdResponseMapper {
    * @return a map of UID and mapping value.
    */
   public Map<String, String> getSchemeIdResponseMap(CommonParams params) {
-    Map<String, String> responseMap =
+    Map<String, String> map =
         getDimensionItemIdSchemeMap(
             params.delegate().getAllDimensionalItemObjects(), params.getOutputIdScheme());
 
+    // Apply general output ID scheme
     if (params.isGeneralOutputIdSchemeSet()) {
-      // Apply an ID scheme to all data element operands using the general output ID scheme defined.
-      applyIdSchemeMapping(params, responseMap);
+      applyIdSchemeMapping(params, map);
     }
 
     List<DimensionalItemObject> dataElements = params.delegate().getAllDataElements();
 
     if (isNotEmpty(dataElements)) {
-      // Replace all data elements respecting their ID scheme definition.
+      // Apply data element output ID scheme
       applyIdSchemeMapping(
-          dataElements, responseMap, params.getOutputDataElementIdScheme());
+          dataElements, map, params.getOutputDataElementIdScheme());
     }
 
     List<DimensionalItemObject> orgUnits = params.delegate().getOrgUnitDimensionOrFilterItems();
 
-    // If "outputOrgUnitIdScheme" is set, we replace all org units values respecting its definition.
+    // Apply organisation unit output ID scheme
     if (params.isOutputOrgUnitIdSchemeSet() && isNotEmpty(orgUnits)) {
-      applyIdSchemeMapping(orgUnits, responseMap, params.getOutputOrgUnitIdScheme());
+      applyIdSchemeMapping(orgUnits, map, params.getOutputOrgUnitIdScheme());
     }
 
-    return responseMap;
+    return map;
   }
 
   /**
@@ -276,6 +286,8 @@ public class SchemeIdResponseMapper {
       List<DimensionalItemObject> dimensionalItemObjects,
       Map<String, String> map,
       IdScheme outputIdScheme) {
-    map.putAll(getDimensionItemIdSchemeMap(asTypedList(dimensionalItemObjects), outputIdScheme));
+    if (!dimensionalItemObjects.isEmpty()) {
+      map.putAll(getDimensionItemIdSchemeMap(asTypedList(dimensionalItemObjects), outputIdScheme));
+    }
   }
 }
