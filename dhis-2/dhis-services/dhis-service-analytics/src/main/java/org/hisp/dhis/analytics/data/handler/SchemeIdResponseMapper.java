@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElementOperandIdSchemeMap;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemIdSchemeMap;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -88,24 +89,19 @@ public class SchemeIdResponseMapper {
 
     // Apply data item output ID scheme
     if (params.isOutputDataItemIdSchemeSet()) {
-      applyIdSchemeMapping(
-          params.getDataElements(), map, params.getOutputDataItemIdScheme());
-      applyIdSchemeMapping(
-          params.getIndicators(), map, params.getOutputDataItemIdScheme());
-      applyIdSchemeMapping(
-          params.getProgramIndicators(), map, params.getOutputDataItemIdScheme());
+      applyIdSchemeMapping(params.getDataElements(), map, params.getOutputDataItemIdScheme());
+      applyIdSchemeMapping(params.getIndicators(), map, params.getOutputDataItemIdScheme());
+      applyIdSchemeMapping(params.getProgramIndicators(), map, params.getOutputDataItemIdScheme());
     }
-    
+
     // Apply data element output ID scheme
     if (params.isOutputDataElementIdSchemeSet()) {
-      applyIdSchemeMapping(
-          params.getDataElements(), map, params.getOutputDataElementIdScheme());
+      applyIdSchemeMapping(params.getDataElements(), map, params.getOutputDataElementIdScheme());
     }
 
     // Apply organisation unit output ID scheme
     if (params.isOutputOrgUnitIdSchemeSet()) {
-      applyIdSchemeMapping(
-          params.getOrganisationUnits(), map, params.getOutputOrgUnitIdScheme());
+      applyIdSchemeMapping(params.getOrganisationUnits(), map, params.getOutputOrgUnitIdScheme());
     }
 
     return map;
@@ -139,8 +135,7 @@ public class SchemeIdResponseMapper {
 
     if (isNotEmpty(dataElements)) {
       // Apply data element output ID scheme
-      applyIdSchemeMapping(
-          dataElements, map, params.getOutputDataElementIdScheme());
+      applyIdSchemeMapping(dataElements, map, params.getOutputDataElementIdScheme());
     }
 
     List<DimensionalItemObject> orgUnits = params.delegate().getOrgUnitDimensionOrFilterItems();
@@ -277,7 +272,7 @@ public class SchemeIdResponseMapper {
 
   /**
    * Adds the entries to the given map.
-   * 
+   *
    * @param dimensionalItemObjects the list of {@link DimensionalItemObject}.
    * @param map the map.
    * @param outputIdScheme the output {@link IdScheme}.

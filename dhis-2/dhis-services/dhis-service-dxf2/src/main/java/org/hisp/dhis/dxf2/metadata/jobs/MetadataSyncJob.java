@@ -28,8 +28,11 @@
 package org.hisp.dhis.dxf2.metadata.jobs;
 
 import static java.lang.String.format;
+
 import java.util.Date;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
@@ -48,8 +51,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This is the runnable that takes care of the Metadata Synchronization. Leverages Spring
