@@ -306,7 +306,7 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     deC = createDataElement('C');
     deD = createDataElement('D');
     deE = createDataElement('E', INTEGER, SUM);
-    deF = createDataElement('F', BOOLEAN, COUNT);
+    deF = createDataElement('F', BOOLEAN, MAX);
     deG = createDataElement('G', TEXT, MAX);
     deH = createDataElement('H', DATE, MAX);
 
@@ -1115,6 +1115,21 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     assertDataValues(
         Map.of("indicatorAA-ouabcdefghA-201701", 3.0),
+        DataQueryParams.newBuilder()
+            .withOrganisationUnit(ouA)
+            .withIndicators(List.of(inA))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withPeriods(List.of(peJan, peFeb))
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+  }
+
+  @Test
+  void testIndicatorSubexpressionBooleanSum() {
+    withIndicator(inA, "subExpression( if( #{" + deF.getUid() + "}.aggregationType(SUM) > 0, 5, 6 ) )");
+
+    assertDataValues(
+        Map.of("indicatorAA-ouabcdefghA-201701", 5.0),
         DataQueryParams.newBuilder()
             .withOrganisationUnit(ouA)
             .withIndicators(List.of(inA))
