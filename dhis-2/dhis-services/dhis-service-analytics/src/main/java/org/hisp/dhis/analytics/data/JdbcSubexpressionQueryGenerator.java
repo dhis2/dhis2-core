@@ -260,7 +260,8 @@ public class JdbcSubexpressionQueryGenerator {
     String value = quote(dataElement.getValueColumn());
 
     String cast =
-        (dataElement.getValueType().isBoolean() && dataElement.getAggregationType().allowsNonnumeric())
+        (dataElement.getValueType().isBoolean()
+                && dataElement.getAggregationType().allowsNonnumeric())
             ? "::int::bool"
             : "";
 
