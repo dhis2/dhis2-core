@@ -259,7 +259,10 @@ public class JdbcSubexpressionQueryGenerator {
 
     String value = quote(dataElement.getValueColumn());
 
-    String cast = (dataElement.getValueType().isBoolean()) ? "::int::bool" : "";
+    String cast =
+        (dataElement.getValueType().isBoolean() && dataElement.getAggregationType().allowsNonnumeric())
+            ? "::int::bool"
+            : "";
 
     String column = getItemColumnName(deUid, cocUid, aocUid, dataElement.getQueryMods());
 

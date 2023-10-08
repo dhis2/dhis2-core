@@ -63,6 +63,10 @@ public enum AggregationType {
   private static final Set<AggregationType> FIRST_TYPES =
       Set.of(FIRST, FIRST_AVERAGE_ORG_UNIT, FIRST_FIRST_ORG_UNIT);
 
+  /** Types that allow non-numeric output such as String or boolean (and possibly also numeric output) */
+  private static final Set<AggregationType> ALLOWS_NONNUMERIC_TYPES =
+      Set.of(LAST, FIRST, MIN, MAX, NONE, CUSTOM, DEFAULT);
+
   private final String value;
 
   private boolean aggregatable;
@@ -90,6 +94,10 @@ public enum AggregationType {
 
   public boolean isFirst() {
     return FIRST_TYPES.contains(this);
+  }
+
+  public boolean allowsNonnumeric()  {
+    return ALLOWS_NONNUMERIC_TYPES.contains(this);
   }
 
   public static AggregationType fromValue(String value) {
