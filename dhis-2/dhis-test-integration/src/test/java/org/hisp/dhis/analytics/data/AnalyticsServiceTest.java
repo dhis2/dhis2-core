@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.analytics.AggregationType.COUNT;
 import static org.hisp.dhis.analytics.AggregationType.MAX;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
@@ -1126,7 +1125,8 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testIndicatorSubexpressionBooleanSum() {
-    withIndicator(inA, "subExpression( if( #{" + deF.getUid() + "}.aggregationType(SUM) > 0, 5, 6 ) )");
+    withIndicator(
+        inA, "subExpression( if( #{" + deF.getUid() + "}.aggregationType(SUM) > 0, 5, 6 ) )");
 
     assertDataValues(
         Map.of("indicatorAA-ouabcdefghA-201701", 5.0),
