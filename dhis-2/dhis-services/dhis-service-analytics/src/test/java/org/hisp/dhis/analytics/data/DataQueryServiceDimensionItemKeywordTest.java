@@ -54,6 +54,7 @@ import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UserOrgUnitType;
@@ -454,6 +455,22 @@ class DataQueryServiceDimensionItemKeywordTest {
     assertThat(aggregation.getMetadataItem().getUid(), is(dataElementGroup.getUid()));
     assertThat(aggregation.getMetadataItem().getCode(), is(dataElementGroup.getCode()));
     assertThat(aggregation.getMetadataItem().getName(), is(dataElementGroup.getName()));
+  }
+
+  @Test
+  void convertAnalyticsRequestWithOutputIdScheme() {
+    DataQueryRequest request =
+        DataQueryRequest.newBuilder()
+            .outputDataItemIdScheme(IdScheme.CODE)
+            .outputOrgUnitIdScheme(IdScheme.NAME)
+            .outputIdScheme(IdScheme.UID)
+            .build();
+
+    DataQueryParams params = target.getFromRequest(request);
+
+    assertThat(params.getOutputDataItemIdScheme(), is(IdScheme.CODE));
+    assertThat(params.getOutputOrgUnitIdScheme(), is(IdScheme.NAME));
+    assertThat(params.getOutputIdScheme(), is(IdScheme.NAME));
   }
 
   @Test

@@ -160,6 +160,7 @@ public class DefaultDataQueryService implements DataQueryService {
         .withIncludeMetadataDetails(request.isIncludeMetadataDetails())
         .withDisplayProperty(request.getDisplayProperty())
         .withOutputIdScheme(request.getOutputIdScheme())
+        .withOutputDataItemIdScheme(request.getOutputDataItemIdScheme())
         .withOutputDataElementIdScheme(request.getOutputDataElementIdScheme())
         .withOutputOrgUnitIdScheme(request.getOutputOrgUnitIdScheme())
         .withDuplicatesOnly(request.isDuplicatesOnly())

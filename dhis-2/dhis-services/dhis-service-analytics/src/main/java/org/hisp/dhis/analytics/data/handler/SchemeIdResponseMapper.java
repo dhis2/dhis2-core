@@ -87,11 +87,13 @@ public class SchemeIdResponseMapper {
       applyDataElementOperandIdSchemeMapping(params, map);
     }
 
+    System.out.println("IS DATA ITEM SET: " + params.isOutputDataElementIdSchemeSet());
     // Apply data item output ID scheme
     if (params.isOutputDataItemIdSchemeSet()) {
       applyIdSchemeMapping(params.getDataElements(), map, params.getOutputDataItemIdScheme());
       applyIdSchemeMapping(params.getIndicators(), map, params.getOutputDataItemIdScheme());
       applyIdSchemeMapping(params.getProgramIndicators(), map, params.getOutputDataItemIdScheme());
+      System.out.println("SET DATA ITEM ID SCHEME: " + params.getOutputDataItemIdScheme());
     }
 
     // Apply data element output ID scheme

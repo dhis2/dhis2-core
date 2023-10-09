@@ -83,6 +83,8 @@ public class DataQueryRequest {
 
   protected IdScheme outputIdScheme;
 
+  protected IdScheme outputDataItemIdScheme;
+
   protected IdScheme outputDataElementIdScheme;
 
   protected IdScheme outputOrgUnitIdScheme;
@@ -232,6 +234,11 @@ public class DataQueryRequest {
       return this;
     }
 
+    public DataQueryRequestBuilder outputDataItemIdScheme(IdScheme outputDataItemIdScheme) {
+      this.request.outputDataItemIdScheme = outputDataItemIdScheme;
+      return this;
+    }
+
     public DataQueryRequestBuilder outputDataElementIdScheme(IdScheme outputDataElementIdScheme) {
       this.request.outputDataElementIdScheme = outputDataElementIdScheme;
       return this;
@@ -300,8 +307,9 @@ public class DataQueryRequest {
       this.request.order = criteria.getOrder();
       this.request.orgUnitField = criteria.getOrgUnitField();
       this.request.outputIdScheme = criteria.getOutputIdScheme();
-      this.request.outputOrgUnitIdScheme = criteria.getOutputOrgUnitIdScheme();
+      this.request.outputDataItemIdScheme = criteria.getOutputDataItemIdScheme();
       this.request.outputDataElementIdScheme = criteria.getOutputDataElementIdScheme();
+      this.request.outputOrgUnitIdScheme = criteria.getOutputOrgUnitIdScheme();
       this.request.preAggregationMeasureCriteria = criteria.getPreAggregationMeasureCriteria();
       this.request.relativePeriodDate = criteria.getRelativePeriodDate();
       this.request.showHierarchy = criteria.isShowHierarchy();
