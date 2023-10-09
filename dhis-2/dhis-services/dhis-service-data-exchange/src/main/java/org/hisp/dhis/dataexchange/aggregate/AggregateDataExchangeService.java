@@ -265,10 +265,13 @@ public class AggregateDataExchangeService {
     String queryOutputIdScheme = params.getOutputIdScheme();
 
     IdScheme inputIdScheme = toIdSchemeOrDefault(request.getInputIdScheme());
+
     IdScheme outputDataElementIdScheme =
         toIdScheme(queryOutputIdScheme, request.getOutputDataElementIdScheme());
     IdScheme outputOrgUnitIdScheme =
         toIdScheme(queryOutputIdScheme, request.getOutputOrgUnitIdScheme());
+    IdScheme outputDataItemIdScheme =
+        toIdScheme(queryOutputIdScheme, request.getOutputDataItemIdScheme());
     IdScheme outputIdScheme = toIdScheme(queryOutputIdScheme, request.getOutputIdScheme());
 
     List<DimensionalObject> filters =
@@ -282,6 +285,7 @@ public class AggregateDataExchangeService {
         .withAggregationType(toAnalyticsAggregationType(request.getAggregationType()))
         .withOutputDataElementIdScheme(outputDataElementIdScheme)
         .withOutputOrgUnitIdScheme(outputOrgUnitIdScheme)
+        .withOutputDataItemIdScheme(outputDataItemIdScheme)
         .withOutputIdScheme(outputIdScheme)
         .build();
   }
