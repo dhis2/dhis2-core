@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 
@@ -123,11 +122,10 @@ public class OperationsParamsValidator {
       OrganisationUnitService organisationUnitService)
       throws ForbiddenException {
 
-    if (user == null
-        || user.isSuper()
-        || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
+    if (isUserAuthorizedToSearchAllOrgUnits(user)) {
       return;
     }
+
     if (program != null && !aclService.canDataRead(user, program)) {
       throw new ForbiddenException("User has no access to program: " + program.getUid());
     }
@@ -144,5 +142,13 @@ public class OperationsParamsValidator {
             "Organisation unit is not part of your search scope: " + orgUnit.getUid());
       }
     }
+  }
+
+  private static boolean isUserAuthorizedToSearchAllOrgUnits(User user) {
+    // For now we consider a null user to be authorized because the jobs run by the scheduler have
+    // no user, and these jobs have to be treated as if run by an admin user.
+    return user == null
+        || user.isSuper()
+        || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS);
   }
 }

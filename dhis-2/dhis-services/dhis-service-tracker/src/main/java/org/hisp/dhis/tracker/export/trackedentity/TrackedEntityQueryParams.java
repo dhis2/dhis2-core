@@ -192,13 +192,13 @@ public class TrackedEntityQueryParams {
       setOrgUnits(user.getOrganisationUnits());
       setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> orgUnits = new HashSet<>(getOrgUnits());
+      Set<OrganisationUnit> organisationUnits = new HashSet<>(getOrgUnits());
 
       for (OrganisationUnit organisationUnit : getOrgUnits()) {
-        orgUnits.addAll(organisationUnit.getChildren());
+        organisationUnits.addAll(organisationUnit.getChildren());
       }
 
-      setOrgUnits(orgUnits);
+      setOrgUnits(organisationUnits);
       setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
     }
   }
