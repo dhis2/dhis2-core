@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note;
+package org.hisp.dhis.system.util;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import static lombok.AccessLevel.PRIVATE;
 
-/**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- */
-@RequiredArgsConstructor
-public class NoteDeletionHandler extends IdObjectDeletionHandler<Note> {
-  private final NoteService commentService;
+import java.util.regex.Pattern;
+import lombok.NoArgsConstructor;
 
-  @Override
-  protected void registerHandler() {
-    whenDeleting(Enrollment.class, this::deleteEnrollment);
-    whenDeleting(Event.class, this::deleteEvent);
-  }
+@NoArgsConstructor(access = PRIVATE)
+public class SvgUtils {
 
-  private void deleteEnrollment(Enrollment enrollment) {
-    for (Note note : enrollment.getNotes()) {
-      commentService.deleteTrackedEntityComment(note);
-    }
-  }
+  private static final Pattern regexp = Pattern.compile("\\p{Cf}");
 
-  private void deleteEvent(Event event) {
-    for (Note note : event.getNotes()) {
-      commentService.deleteTrackedEntityComment(note);
-    }
+  /**
+   * Replace Unicode 'zero width space' (U+200B). This character is misinterpreted by PDF convertor
+   * as '#' (f.e.#2023).
+   *
+   * @param svg svg xml string
+   * @param replaceWith replacement
+   * @return consolidated svg string
+   */
+  public static String replaceUnicodeZeroWidthSpace(String svg, String replaceWith) {
+    return svg.replaceAll(regexp.pattern(), replaceWith);
   }
 }

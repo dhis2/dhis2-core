@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note;
+package org.hisp.dhis.webapi.webdomain;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.Date;
+import java.util.Set;
+import lombok.Data;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.period.Period;
 
 /**
- * @author Chau Thu Tran
+ * Class to hold query params for {@link org.hisp.dhis.dataset.CompleteDataSetRegistration}
+ *
+ * @author davidmackessy
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentitycomment.NoteService")
-public class DefaultNoteService implements NoteService {
-  private final NoteStore commentStore;
+@Data
+@OpenApi.Shared
+public class CompleteDataSetRegQueryParams {
 
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
+  @OpenApi.Property({UID[].class, DataSet.class})
+  Set<String> dataSet;
 
-  @Override
-  @Transactional
-  public void addNote(Note comment) {
-    commentStore.save(comment);
-  }
+  @OpenApi.Property({Period[].class})
+  Set<String> period;
 
-  @Override
-  @Transactional(readOnly = true)
-  public boolean noteExists(String uid) {
-    return commentStore.exists(uid);
-  }
+  @OpenApi.Property Date startDate;
+
+  @OpenApi.Property Date endDate;
+
+  @OpenApi.Property boolean children;
+
+  @OpenApi.Property({UID[].class, OrganisationUnit.class})
+  Set<String> orgUnit;
+
+  @OpenApi.Property({UID[].class, OrganisationUnitGroup.class})
+  Set<String> orgUnitGroup;
+
+  @OpenApi.Property Date created;
+
+  @OpenApi.Property String createdDuration;
+
+  @OpenApi.Property Integer limit;
 }

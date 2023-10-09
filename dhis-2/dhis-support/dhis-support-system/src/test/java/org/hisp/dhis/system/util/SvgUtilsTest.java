@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note;
+package org.hisp.dhis.system.util;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static org.hisp.dhis.system.util.SvgUtils.replaceUnicodeZeroWidthSpace;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Chau Thu Tran
- */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentitycomment.NoteService")
-public class DefaultNoteService implements NoteService {
-  private final NoteStore commentStore;
+import org.junit.jupiter.api.Test;
 
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
+class SvgUtilsTest {
+  @Test
+  void testReplaceUnicodeZeroWidthSpace() {
+    // given
+    String svg =
+        "<text x=\"332.58333333332666\" text-anchor=\"middle\" transform=\"translate(0,0)\" style=\"color: rgb(64, 75, 90); cursor: default; font-size: 11px; font-weight: normal; font-style: normal; fill: rgb(64, 75, 90);\" y=\"699\" opacity=\"1\">December<tspan dy=\"14\" x=\"332.58333333332666\">\u200B</tspan>2022</text>";
+    String expected =
+        "<text x=\"332.58333333332666\" text-anchor=\"middle\" transform=\"translate(0,0)\" style=\"color: rgb(64, 75, 90); cursor: default; font-size: 11px; font-weight: normal; font-style: normal; fill: rgb(64, 75, 90);\" y=\"699\" opacity=\"1\">December<tspan dy=\"14\" x=\"332.58333333332666\"> </tspan>2022</text>";
 
-  @Override
-  @Transactional
-  public void addNote(Note comment) {
-    commentStore.save(comment);
-  }
+    // when
+    svg = replaceUnicodeZeroWidthSpace(svg, " ");
 
-  @Override
-  @Transactional(readOnly = true)
-  public boolean noteExists(String uid) {
-    return commentStore.exists(uid);
+    // then
+    assertEquals(expected, svg);
   }
 }

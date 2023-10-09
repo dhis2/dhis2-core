@@ -387,7 +387,7 @@ public interface UserService {
    * @param currentUser
    * @return
    */
-  List<ErrorReport> validateUserCreateOrUpdate(User user, User currentUser);
+  List<ErrorReport> validateUserCreateOrUpdateAccess(User user, User currentUser);
 
   List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole user, User currentUser);
 
