@@ -220,7 +220,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToNameForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToName() {
     List<DataElement> dataElementsStub = stubDataElements();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -243,7 +243,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToCodeForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToCode() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -274,7 +274,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUuidForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUuid() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -301,7 +301,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUidForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUid() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -328,7 +328,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToNameForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToName() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -355,7 +355,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToCodeForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToCode() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -382,7 +382,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUuidForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUuid() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -409,7 +409,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUidForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUid() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -436,8 +436,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void
-      testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeOverridesOutputIdScheme() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -471,8 +470,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void
-      testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeOverridesOutputOrgUnitIdScheme() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -507,8 +505,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void
-      testGetSchemeIdResponseMapWhenOutputDataElementAndOrgUnitIdSchemeOverrideOutputOrgUnitIdSchemeForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputDataElementOrgUnitIdSchemeOverrideOutputIdScheme() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
