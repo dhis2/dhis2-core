@@ -80,11 +80,11 @@ public class SchemeIdResponseMapper {
     }
 
     // Handle output format {@link OutputFormat#DATA_VALUE_SET}
-    if (params.isOutputFormat(DATA_VALUE_SET) && params.isOutputDataElementIdSchemeSet()) {
-      // Apply data element operand output ID scheme
-      if (!params.getDataElementOperands().isEmpty()) {
-        applyDataElementOperandIdSchemeMapping(params, map);
-      }
+    // Apply data element operand output ID scheme
+    if (params.isOutputFormat(DATA_VALUE_SET)
+        && params.isOutputDataElementIdSchemeSet()
+        && !params.getDataElementOperands().isEmpty()) {
+      applyDataElementOperandIdSchemeMapping(params, map);
     }
 
     // Apply data item output ID scheme

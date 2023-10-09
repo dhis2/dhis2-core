@@ -55,6 +55,7 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -591,7 +592,8 @@ class SchemeIdResponseMapperTest {
     assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getName())));
     assertThat(responseMap.get(dataElementA.getUid()), is(equalTo(dataElementA.getCode())));
     assertThat(responseMap.get(indicatorA.getUid()), is(equalTo(indicatorA.getCode())));
-    assertThat(responseMap.get(programIndicatorA.getUid()), is(equalTo(programIndicatorA.getCode())));
+    assertThat(
+        responseMap.get(programIndicatorA.getUid()), is(equalTo(programIndicatorA.getCode())));
   }
 
   @Test
@@ -926,23 +928,23 @@ class SchemeIdResponseMapperTest {
 
     return newArrayList(dataElementA, dataElementB);
   }
-  
+
   private List<DimensionalItemObject> stubDataItems() {
     DataElement dataElementA = new DataElement();
     dataElementA.setUid("fM8kR4FOTR6");
     dataElementA.setName("DataElementNameA");
     dataElementA.setCode("DataElementCodeA");
-    
+
     Indicator indicatorA = new Indicator();
     indicatorA.setUid("SN78k0lNyvd");
     indicatorA.setName("IndicatorNameA");
     indicatorA.setCode("IndicatorCodeA");
-    
+
     ProgramIndicator programIndicatorA = new ProgramIndicator();
     programIndicatorA.setUid("fCGiVvsXbkY");
     programIndicatorA.setName("ProgramIndicatorNameA");
     programIndicatorA.setCode("ProgramIndicatorCodeA");
-    
+
     return newArrayList(dataElementA, indicatorA, programIndicatorA);
   }
 
