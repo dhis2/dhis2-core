@@ -32,7 +32,6 @@ import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElementOperandIdSchemeMap;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemIdSchemeMap;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,13 +86,13 @@ public class SchemeIdResponseMapper {
       applyDataElementOperandIdSchemeMapping(params, map);
     }
 
-    System.out.println("IS DATA ITEM SET: " + params.isOutputDataElementIdSchemeSet());
+    System.out.println("IS DATA ITEM SETB: " + params.isOutputDataItemIdSchemeSet());
     // Apply data item output ID scheme
     if (params.isOutputDataItemIdSchemeSet()) {
       applyIdSchemeMapping(params.getDataElements(), map, params.getOutputDataItemIdScheme());
       applyIdSchemeMapping(params.getIndicators(), map, params.getOutputDataItemIdScheme());
       applyIdSchemeMapping(params.getProgramIndicators(), map, params.getOutputDataItemIdScheme());
-      System.out.println("SET DATA ITEM ID SCHEME: " + params.getOutputDataItemIdScheme());
+      System.out.println("SET DATA ITEM ID SCHEMEB: " + params.getOutputDataItemIdScheme());
     }
 
     // Apply data element output ID scheme
@@ -158,7 +157,7 @@ public class SchemeIdResponseMapper {
    * @param grid the {@link Grid}.
    */
   public void applyCustomIdScheme(EventQueryParams params, Grid grid) {
-    if (!params.isSkipMeta() && params.hasCustomIdSchemaSet()) {
+    if (!params.isSkipMeta() && params.hasCustomIdSchemeSet()) {
       grid.substituteMetaData(getSchemeIdResponseMap(params));
     }
   }
