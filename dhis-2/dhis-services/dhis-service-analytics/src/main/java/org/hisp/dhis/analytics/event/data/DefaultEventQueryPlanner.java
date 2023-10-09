@@ -144,8 +144,28 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
    */
   private List<EventQueryParams> withTableNameAndPartitions(List<EventQueryParams> queries) {
     List<EventQueryParams> list = new ArrayList<>();
-    queries.forEach(query -> list.add(withTableNameAndPartitions(query)));
+
+    boolean isMultipleQueries = queries.size() > 1;
+
+    queries.forEach(
+        query ->
+            list.add(withMultipleQueries(isMultipleQueries, withTableNameAndPartitions(query))));
+
     return list;
+  }
+
+  /**
+   * Sets the "multipleQueries" flag in EventParams and builds it
+   *
+   * @param isMultipleQueries flag to detect if multiple queries are to be run
+   * @param eventQueryParams the eventQueryParams template
+   * @return an eventQueryParams with proper "multipleQueries" flag set
+   */
+  private EventQueryParams withMultipleQueries(
+      boolean isMultipleQueries, EventQueryParams eventQueryParams) {
+    return new EventQueryParams.Builder(eventQueryParams)
+        .withMultipleQueries(isMultipleQueries)
+        .build();
   }
 
   /**

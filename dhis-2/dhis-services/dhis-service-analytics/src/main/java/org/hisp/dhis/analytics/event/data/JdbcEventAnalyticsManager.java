@@ -46,6 +46,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSepa
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.isRelationDoesntExist;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
@@ -248,8 +249,15 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         count = jdbcTemplate.queryForObject(sql, Long.class);
       }
     } catch (BadSqlGrammarException ex) {
-      log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
-      throw ex;
+      if (isRelationDoesntExist(ex.getSQLException())) {
+        log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+        throw ex;
+      }
+      if (!params.isMultipleQueries()) {
+        log.warn(AnalyticsUtils.ERR_MSG_SQL_SYNTAX_ERROR, ex);
+        throw ex;
+      }
+      log.warn(AnalyticsUtils.ERR_MSG_SILENT_FALLBACK, ex);
     } catch (DataAccessResourceFailureException ex) {
       log.warn(E7131.getMessage(), ex);
       throw new QueryRuntimeException(E7131);

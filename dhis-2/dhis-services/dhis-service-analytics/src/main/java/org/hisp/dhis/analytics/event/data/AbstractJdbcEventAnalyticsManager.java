@@ -62,6 +62,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.isRelationDoesntExist;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -560,8 +561,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         getAggregatedEventData(grid, params, sql);
       }
     } catch (BadSqlGrammarException ex) {
-      log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
-      throw ex;
+      if (isRelationDoesntExist(ex.getSQLException())) {
+        log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+        throw ex;
+      }
+      if (!params.isMultipleQueries()) {
+        log.warn(AnalyticsUtils.ERR_MSG_SQL_SYNTAX_ERROR, ex);
+        throw ex;
+      }
+      log.warn(AnalyticsUtils.ERR_MSG_SILENT_FALLBACK, ex);
     } catch (DataAccessResourceFailureException ex) {
       log.warn(ErrorCode.E7131.getMessage(), ex);
       throw new QueryRuntimeException(ErrorCode.E7131);

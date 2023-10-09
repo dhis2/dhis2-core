@@ -65,25 +65,40 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 public class DataSourceConfig {
   @Autowired private DhisConfigurationProvider dhisConfig;
 
+  /**
+   * builds a {@link NamedParameterJdbcTemplate} using a dedicated datasource, which is different
+   * than the one used to build the Hibernate {@link org.hibernate.Session}
+   *
+   * @param dataSource a dedicated datasource
+   * @return a namedParameterJdbcTemplate
+   */
   @Bean
-  @DependsOn("dataSource")
+  @DependsOn("jdbcDataSource")
   public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
-      @Qualifier("dataSource") DataSource dataSource) {
+      @Qualifier("jdbcDataSource") DataSource dataSource) {
     return new NamedParameterJdbcTemplate(dataSource);
   }
 
+  /**
+   * builds a {@link JdbcTemplate} using a dedicated datasource, which is different than the one
+   * used to build the Hibernate {@link org.hibernate.Session}
+   *
+   * @param dataSource a dedicated datasource
+   * @return a jdbcTemplate
+   */
   @Bean("jdbcTemplate")
-  @DependsOn("dataSource")
+  @DependsOn("jdbcDataSource")
   @Primary
-  public JdbcTemplate jdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
+  public JdbcTemplate jdbcTemplate(@Qualifier("jdbcDataSource") DataSource dataSource) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(1000);
     return jdbcTemplate;
   }
 
   @Bean("executionPlanJdbcTemplate")
-  @DependsOn("dataSource")
-  public JdbcTemplate executionPlanJdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
+  @DependsOn("jdbcDataSource")
+  public JdbcTemplate executionPlanJdbcTemplate(
+      @Qualifier("jdbcDataSource") DataSource dataSource) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(1000);
     jdbcTemplate.setQueryTimeout(10);
@@ -91,8 +106,8 @@ public class DataSourceConfig {
   }
 
   @Bean("readOnlyJdbcTemplate")
-  @DependsOn("dataSource")
-  public JdbcTemplate readOnlyJdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
+  @DependsOn("jdbcDataSource")
+  public JdbcTemplate readOnlyJdbcTemplate(@Qualifier("jdbcDataSource") DataSource dataSource) {
     DefaultReadOnlyDataSourceManager manager = new DefaultReadOnlyDataSourceManager(dhisConfig);
 
     JdbcTemplate jdbcTemplate =
@@ -102,8 +117,7 @@ public class DataSourceConfig {
     return jdbcTemplate;
   }
 
-  @Bean("actualDataSource")
-  public DataSource actualDataSource(
+  private DataSource getActualDataSource(
       HibernateConfigurationProvider hibernateConfigurationProvider) {
     String jdbcUrl = dhisConfig.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = dhisConfig.getProperty(ConfigurationKey.CONNECTION_USERNAME);
@@ -131,10 +145,7 @@ public class DataSourceConfig {
     }
   }
 
-  @Bean("dataSource")
-  @DependsOn("actualDataSource")
-  @Primary
-  public DataSource dataSource(@Qualifier("actualDataSource") DataSource actualDataSource) {
+  private DataSource getDataSource(DataSource actualDataSource) {
     boolean enableQueryLogging = dhisConfig.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
 
     if (!enableQueryLogging) {
@@ -180,6 +191,31 @@ public class DataSourceConfig {
     }
 
     return builder.build();
+  }
+
+  @Bean("dataSource")
+  @DependsOn("actualDataSource")
+  @Primary
+  public DataSource dataSource(@Qualifier("actualDataSource") DataSource actualDataSource) {
+    return getDataSource(actualDataSource);
+  }
+
+  @Bean("jdbcDataSource")
+  @DependsOn("jdbcActualDataSource")
+  public DataSource jdbcDataSource(@Qualifier("jdbcActualDataSource") DataSource actualDataSource) {
+    return getDataSource(actualDataSource);
+  }
+
+  @Bean("actualDataSource")
+  public DataSource actualDataSource(
+      HibernateConfigurationProvider hibernateConfigurationProvider) {
+    return getActualDataSource(hibernateConfigurationProvider);
+  }
+
+  @Bean("jdbcActualDataSource")
+  public DataSource jdbcActualDataSource(
+      HibernateConfigurationProvider hibernateConfigurationProvider) {
+    return getActualDataSource(hibernateConfigurationProvider);
   }
 
   private static void executeAfterMethod(MethodExecutionContext executionContext) {
