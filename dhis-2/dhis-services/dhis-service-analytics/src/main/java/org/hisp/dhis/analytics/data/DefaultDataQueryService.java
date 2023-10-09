@@ -95,6 +95,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
@@ -391,8 +392,36 @@ public class DefaultDataQueryService implements DataQueryService {
       boolean allowNull,
       boolean allowAllPeriodItems,
       IdScheme inputIdScheme) {
+    return getDimension(
+        dimension,
+        items,
+        relativePeriodDate,
+        DisplayProperty.NAME,
+        userOrgUnits,
+        format,
+        allowNull,
+        allowAllPeriodItems,
+        inputIdScheme);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public DimensionalObject getDimension(
+      String dimension,
+      List<String> items,
+      Date relativePeriodDate,
+      DisplayProperty displayProperty,
+      List<OrganisationUnit> userOrgUnits,
+      I18nFormat format,
+      boolean allowNull,
+      boolean allowAllPeriodItems,
+      IdScheme inputIdScheme) {
     final boolean allItems = items.isEmpty() || items.contains("ALL_ITEMS");
     User user = currentUserService.getCurrentUser();
+
+    if (displayProperty == null) {
+      displayProperty = DisplayProperty.NAME;
+    }
 
     if (DATA_X_DIM_ID.equals(dimension)) {
       List<DimensionalItemObject> dataDimensionItems = new ArrayList<>();
@@ -688,7 +717,9 @@ public class DefaultDataQueryService implements DataQueryService {
             dimObject.getDimension(),
             dimObject.getDimensionType(),
             null,
-            dimObject.getName(),
+            displayProperty == DisplayProperty.NAME
+                ? dimObject.getName()
+                : dimObject.getShortName(),
             dimItems,
             allItems);
       }
