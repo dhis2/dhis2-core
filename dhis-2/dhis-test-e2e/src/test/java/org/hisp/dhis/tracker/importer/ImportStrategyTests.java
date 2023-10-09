@@ -120,7 +120,7 @@ public class ImportStrategyTests extends TrackerNtiApiTest {
                 Constants.TRACKED_ENTITY_TYPE,
                 Constants.ORG_UNIT_IDS[0],
                 Constants.TRACKER_PROGRAM_ID,
-                "PaOOjwLVW23");
+                "paOOjwLVW23");
 
     TrackerApiResponse response =
         trackerActions.postAndGetJobReport(body).validateSuccessfulImport();

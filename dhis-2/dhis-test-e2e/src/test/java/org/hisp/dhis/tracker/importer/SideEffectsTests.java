@@ -53,7 +53,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class SideEffectsTests extends TrackerNtiApiTest {
-  private String trackerProgramStageId = "PaOOjwLVW23";
+  private String trackerProgramStageId = "paOOjwLVW23";
 
   private String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
 
