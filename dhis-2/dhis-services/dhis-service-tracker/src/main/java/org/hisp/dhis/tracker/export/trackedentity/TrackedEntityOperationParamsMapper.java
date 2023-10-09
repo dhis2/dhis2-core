@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAccessibleOrgUnits;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateUser;
 
 import java.util.HashSet;
 import java.util.List;
@@ -45,11 +45,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -70,7 +70,7 @@ class TrackedEntityOperationParamsMapper {
 
   @Nonnull private final TrackedEntityAttributeService attributeService;
 
-  @Nonnull private final TrackerAccessManager trackerAccessManager;
+  @Nonnull private final AclService aclService;
 
   @Transactional(readOnly = true)
   public TrackedEntityQueryParams map(TrackedEntityOperationParams operationParams)
@@ -83,17 +83,10 @@ class TrackedEntityOperationParamsMapper {
     User user = operationParams.getUser();
     Set<OrganisationUnit> requestedOrgUnits =
         validateRequestedOrgUnit(operationParams.getOrganisationUnits());
+    validateUser(
+        user, program, programStage, requestedOrgUnits, aclService, organisationUnitService);
 
     validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
-
-    Set<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            requestedOrgUnits,
-            operationParams.getOrgUnitMode(),
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     mapAttributeFilters(params, operationParams.getFilters());
@@ -113,7 +106,7 @@ class TrackedEntityOperationParamsMapper {
         .setProgramIncidentStartDate(operationParams.getProgramIncidentStartDate())
         .setProgramIncidentEndDate(operationParams.getProgramIncidentEndDate())
         .setTrackedEntityType(trackedEntityType)
-        .setAccessibleOrgUnits(accessibleOrgUnits)
+        .setOrgUnits(requestedOrgUnits)
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setEventStatus(operationParams.getEventStatus())
         .setEventStartDate(operationParams.getEventStartDate())

@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateUser;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
@@ -94,7 +96,10 @@ class EventOperationParamsMapper {
     ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid());
 
     OrganisationUnit orgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
-    validateUser(user, program, programStage, orgUnit);
+    Set<OrganisationUnit> requestedOrgUnits =
+        orgUnit == null ? Collections.emptySet() : Set.of(orgUnit);
+    validateUser(
+        user, program, programStage, requestedOrgUnits, aclService, organisationUnitService);
 
     validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
 
@@ -185,31 +190,6 @@ class EventOperationParamsMapper {
       throw new BadRequestException("Org unit is specified but does not exist: " + orgUnitUid);
     }
     return orgUnit;
-  }
-
-  private void validateUser(
-      User user, Program program, ProgramStage programStage, OrganisationUnit requestedOrgUnit)
-      throws ForbiddenException {
-
-    if (user == null
-        || user.isSuper()
-        || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
-      return;
-    }
-    if (program != null && !aclService.canDataRead(user, program)) {
-      throw new ForbiddenException("User has no access to program: " + program.getUid());
-    }
-
-    if (programStage != null && !aclService.canDataRead(user, programStage)) {
-      throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
-    }
-
-    if (requestedOrgUnit != null
-        && !organisationUnitService.isInUserHierarchy(
-            requestedOrgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
-      throw new ForbiddenException(
-          "Organisation unit is not part of your search scope: " + requestedOrgUnit.getUid());
-    }
   }
 
   private TrackedEntity validateTrackedEntity(String trackedEntityUid) throws BadRequestException {

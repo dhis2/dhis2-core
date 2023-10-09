@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.controller.deprecated.tracker;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
-import static org.hisp.dhis.webapi.controller.deprecated.tracker.EventUtils.getOrgUnitMode;
 
 import java.util.Collections;
 import java.util.Date;
@@ -333,6 +333,14 @@ class EventRequestToSearchParamsMapper {
         .setEvents(events)
         .setEnrollments(enrollments)
         .setIncludeDeleted(includeDeleted);
+  }
+
+  private OrganisationUnitSelectionMode getOrgUnitMode(
+      OrganisationUnit orgUnit, OrganisationUnitSelectionMode orgUnitMode) {
+    if (orgUnitMode == null) {
+      return orgUnit != null ? SELECTED : ACCESSIBLE;
+    }
+    return orgUnitMode;
   }
 
   private QueryItem getQueryItem(String item) {

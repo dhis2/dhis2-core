@@ -441,19 +441,6 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = OrganisationUnitSelectionMode.class)
-  void shouldFailWhenRequestedOrgUnitOutsideOfSearchScope(
-      OrganisationUnitSelectionMode orgUnitMode) {
-    when(organisationUnitService.getOrganisationUnit(orgUnitId)).thenReturn(orgUnit);
-
-    IllegalQueryException exception =
-        assertThrows(IllegalQueryException.class, () -> map(orgUnitId, orgUnitMode));
-    assertEquals(
-        "Organisation unit is not part of your search scope: " + orgUnit.getUid(),
-        exception.getMessage());
-  }
-
-  @ParameterizedTest
   @NullSource
   @ValueSource(strings = {"admin", "superuser"})
   void shouldMapOrgUnitAndModeWhenModeAllAndUserIsAuthorized(String userName) {

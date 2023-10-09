@@ -31,21 +31,17 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -109,102 +105,44 @@ public class OperationsParamsValidator {
   }
 
   /**
-   * Returns a list of all the org units the user has access to
+   * Validates a user has access to the program, program stage and org units provided
    *
-   * @param user the user to check the access of
-   * @param orgUnits parent org units to get descendants/children of
-   * @param orgUnitDescendants function to retrieve org units, in case ou mode is descendants
-   * @param program the program the user wants to access to
-   * @return a list containing the user accessible organisation units
-   * @throws ForbiddenException if the user has no access to any of the provided org units
+   * @param user user whose access will be validated
+   * @param program the program to check whether the user can access
+   * @param programStage the programStage to check whether the user can access
+   * @param requestedOrgUnits all the org units to check whether the user can access
+   * @throws ForbiddenException if the user has no access to any of the three elements described
+   *     above
    */
-  public static Set<OrganisationUnit> validateAccessibleOrgUnits(
+  public static void validateUser(
       User user,
-      Set<OrganisationUnit> orgUnits,
-      OrganisationUnitSelectionMode orgUnitMode,
       Program program,
-      Function<String, List<OrganisationUnit>> orgUnitDescendants,
-      TrackerAccessManager trackerAccessManager)
+      ProgramStage programStage,
+      Set<OrganisationUnit> requestedOrgUnits,
+      AclService aclService,
+      OrganisationUnitService organisationUnitService)
       throws ForbiddenException {
 
-    Set<OrganisationUnit> accessibleOrgUnits = new HashSet<>();
+    if (user == null
+        || user.isSuper()
+        || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
+      return;
+    }
+    if (program != null && !aclService.canDataRead(user, program)) {
+      throw new ForbiddenException("User has no access to program: " + program.getUid());
+    }
 
-    for (OrganisationUnit orgUnit : orgUnits) {
-      Set<OrganisationUnit> accessibleOrgUnitsFound =
-          switch (orgUnitMode) {
-            case DESCENDANTS -> getAccessibleDescendants(
-                user, program, orgUnitDescendants.apply(orgUnit.getUid()));
-            case CHILDREN -> getAccessibleDescendants(
-                user,
-                program,
-                Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream()).toList());
-            case SELECTED -> getSelectedOrgUnits(user, program, orgUnit, trackerAccessManager);
-            default -> Collections.emptySet();
-          };
+    if (programStage != null && !aclService.canDataRead(user, programStage)) {
+      throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
+    }
 
-      if (accessibleOrgUnitsFound.isEmpty()) {
-        throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
+    for (OrganisationUnit orgUnit : requestedOrgUnits) {
+      if (orgUnit != null
+          && !organisationUnitService.isInUserHierarchy(
+              orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
+        throw new ForbiddenException(
+            "Organisation unit is not part of your search scope: " + orgUnit.getUid());
       }
-
-      accessibleOrgUnits.addAll(accessibleOrgUnitsFound);
     }
-
-    if (orgUnitMode == CAPTURE) {
-      return new HashSet<>(user.getOrganisationUnits());
-    } else if (orgUnitMode == ACCESSIBLE) {
-      return getAccessibleOrgUnits(user, program);
-    }
-
-    return accessibleOrgUnits;
-  }
-
-  /**
-   * Returns the org units whose path is contained in the user search or capture scope org unit. If
-   * there's a match, it means the user org unit is at the same level or above the supplied org
-   * unit.
-   *
-   * @param user the user to check the access of
-   * @param program the program the user wants to access to
-   * @param orgUnits the org units to check if the user has access to
-   * @return a list with the org units the user has access to
-   */
-  private static Set<OrganisationUnit> getAccessibleDescendants(
-      User user, Program program, List<OrganisationUnit> orgUnits) {
-    if (orgUnits.isEmpty()) {
-      return Collections.emptySet();
-    }
-
-    Set<OrganisationUnit> userOrgUnits =
-        isProgramAccessRestricted(program)
-            ? user.getOrganisationUnits()
-            : user.getTeiSearchOrganisationUnits();
-
-    return orgUnits.stream()
-        .filter(
-            availableOrgUnit ->
-                userOrgUnits.stream()
-                    .anyMatch(
-                        userOrgUnit -> availableOrgUnit.getPath().contains(userOrgUnit.getPath())))
-        .collect(Collectors.toSet());
-  }
-
-  private static boolean isProgramAccessRestricted(Program program) {
-    return program != null && (program.isClosed() || program.isProtected());
-  }
-
-  private static Set<OrganisationUnit> getAccessibleOrgUnits(User user, Program program) {
-    return isProgramAccessRestricted(program)
-        ? new HashSet<>(user.getOrganisationUnits())
-        : new HashSet<>(user.getTeiSearchOrganisationUnitsWithFallback());
-  }
-
-  private static Set<OrganisationUnit> getSelectedOrgUnits(
-      User user,
-      Program program,
-      OrganisationUnit orgUnit,
-      TrackerAccessManager trackerAccessManager) {
-    return trackerAccessManager.canAccess(user, program, orgUnit)
-        ? Set.of(orgUnit)
-        : Collections.emptySet();
   }
 }

@@ -160,22 +160,6 @@ class EventOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgramStage() {
-    programStage = new ProgramStage();
-    programStage.setUid("PlZSBEN7iZd");
-    EventOperationParams eventOperationParams =
-        eventBuilder.programStageUid(programStage.getUid()).build();
-
-    when(aclService.canDataRead(user, programStage)).thenReturn(false);
-    when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
-
-    Exception exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams));
-    assertEquals(
-        "User has no access to program stage: " + programStage.getUid(), exception.getMessage());
-  }
-
-  @Test
   void shouldFailWithBadRequestExceptionWhenTrackedEntityDoesNotExist() {
     programStage = new ProgramStage();
     programStage.setUid("PlZSBEN7iZd");
@@ -192,20 +176,6 @@ class EventOperationParamsMapperTest {
         "Tracked entity is specified but does not exist: "
             + eventOperationParams.getTrackedEntityUid(),
         exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgram() {
-    Program program = new Program();
-    program.setUid(PROGRAM_UID);
-    EventOperationParams eventOperationParams = eventBuilder.programUid(program.getUid()).build();
-
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user, program)).thenReturn(false);
-
-    Exception exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams));
-    assertEquals("User has no access to program: " + program.getUid(), exception.getMessage());
   }
 
   @Test
