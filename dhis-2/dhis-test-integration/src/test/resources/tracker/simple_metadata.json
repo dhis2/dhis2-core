@@ -1512,6 +1512,61 @@
           "id": "uoNW0E3xXUy"
         }
       ]
+    },
+    {
+      "id": "nIidJVYpQQK",
+      "created": "2020-05-31T08:57:59.048",
+      "surname": "child level 3",
+      "email": "aaaa@dhis2.org",
+      "firstName": "child level 3",
+      "password": "Test123###...",
+      "phoneNumber": "+4740332255",
+      "name": "child level 2",
+      "displayName": "child level 2",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2020-05-31T08:57:59.060",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "childlevel3",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "favorites": [],
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userRoles": [
+        {
+          "id": "UbhT3bXWUyb"
+        }
+      ],
+      "userAccesses": [],
+      "teiSearchOrganisationUnits": [
+        {
+          "id": "uoNW0E3xXUy"
+        }
+      ],
+      "organisationUnits": [
+        {
+          "id": "uoNW0E3xXUy"
+        }
+      ],
+      "dataViewOrganisationUnits": [
+        {
+          "id": "uoNW0E3xXUy"
+        }
+      ]
     }
   ],
   "organisationUnits": [
