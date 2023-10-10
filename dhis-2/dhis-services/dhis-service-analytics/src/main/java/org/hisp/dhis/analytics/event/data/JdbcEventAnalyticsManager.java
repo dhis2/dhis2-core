@@ -92,6 +92,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.postgresql.util.PSQLException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -115,7 +116,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   private final EventTimeFieldSqlRenderer timeFieldSqlRenderer;
 
   public JdbcEventAnalyticsManager(
-      JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       ProgramIndicatorService programIndicatorService,
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EventTimeFieldSqlRenderer timeFieldSqlRenderer,

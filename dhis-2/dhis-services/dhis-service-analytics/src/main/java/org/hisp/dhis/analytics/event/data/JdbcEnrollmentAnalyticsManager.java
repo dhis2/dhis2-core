@@ -77,6 +77,7 @@ import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.util.Assert;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.InvalidResultSetAccessException;
@@ -120,7 +121,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           "enrollmentstatus");
 
   public JdbcEnrollmentAnalyticsManager(
-      JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       ProgramIndicatorService programIndicatorService,
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer,

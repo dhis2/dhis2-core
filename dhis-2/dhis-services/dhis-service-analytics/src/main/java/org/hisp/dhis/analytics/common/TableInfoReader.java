@@ -34,6 +34,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -46,6 +47,8 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class TableInfoReader {
+
+  @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
 
   /**
