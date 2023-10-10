@@ -946,6 +946,13 @@ public class JdbcEventStore implements EventStore {
 
     StringBuilder sqlBuilder =
         new StringBuilder()
+<<<<<<< HEAD
+=======
+            .append("select ")
+            .append(getEventSelectIdentifiersByIdScheme(params))
+            .append(" psi.uid as psi_uid, ")
+            .append("ou.uid as ou_uid, p.uid as p_uid, ")
+>>>>>>> b13ba2fb6f (fix: ps in select duplicate)
             .append(
                 "select "
                     + getEventSelectIdentifiersByIdScheme(params)
