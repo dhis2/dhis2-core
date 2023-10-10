@@ -151,7 +151,9 @@ class EnrollmentOperationParamsMapper {
           throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
         }
 
-        if (!organisationUnitService.isInUserHierarchy(orgUnitUid, possibleSearchOrgUnits)) {
+        if (user != null
+            && !user.isSuper()
+            && !organisationUnitService.isInUserHierarchy(orgUnitUid, possibleSearchOrgUnits)) {
           throw new ForbiddenException(
               "Organisation unit is not part of the search scope: " + orgUnitUid);
         }
