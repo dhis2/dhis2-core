@@ -54,10 +54,11 @@
             "ou": [
               "ImspTQPwCqd"
             ],
-            "inputIdScheme": null,
-            "outputDataElementIdScheme": null,
-            "outputOrgUnitIdScheme": null,
-            "outputIdscheme": null
+            "inputIdScheme": "UID",
+            "outputDataElementIdScheme": "UID",
+            "outputOrgUnitIdScheme": "UID",
+            "outputDataItemIdScheme": "UID",
+            "outputIdscheme": "UID"
           }
         ]
       },
@@ -99,6 +100,7 @@
             "inputIdScheme": "UID",
             "outputDataElementIdScheme": "UID",
             "outputOrgUnitIdScheme": "UID",
+            "outputDataItemIdScheme": "UID",
             "outputIdscheme": "UID"
           }
         ]
@@ -146,6 +148,7 @@
             "inputIdScheme": "UID",
             "outputDataElementIdScheme": "UID",
             "outputOrgUnitIdScheme": "UID",
+            "outputDataItemIdScheme": "UID",
             "outputIdscheme": "UID"
           }
         ]
