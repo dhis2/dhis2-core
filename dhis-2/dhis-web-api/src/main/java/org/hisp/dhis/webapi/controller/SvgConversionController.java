@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.system.util.GeoUtils.replaceUnsafeSvgText;
+import static org.hisp.dhis.system.util.SvgUtils.replaceUnicodeZeroWidthSpace;
 
 import java.awt.*;
 import java.io.OutputStream;
@@ -105,6 +106,7 @@ public class SvgConversionController {
 
   private void convertToPdf(String svg, OutputStream out) throws TranscoderException {
     svg = replaceUnsafeSvgText(svg);
+    svg = replaceUnicodeZeroWidthSpace(svg, " ");
 
     PDFTranscoder transcoder = new PDFTranscoder();
     transcoder.addTranscodingHint(SVGAbstractTranscoder.KEY_ALLOW_EXTERNAL_RESOURCES, false);
