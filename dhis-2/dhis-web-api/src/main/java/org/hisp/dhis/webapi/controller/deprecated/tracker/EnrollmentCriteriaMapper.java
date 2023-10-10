@@ -32,12 +32,12 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentQueryParams;
@@ -48,7 +48,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -68,8 +67,6 @@ public class EnrollmentCriteriaMapper {
   private final TrackedEntityTypeService trackedEntityTypeService;
 
   private final TrackedEntityService trackedEntityService;
-
-  private final TrackerAccessManager trackerAccessManager;
 
   /**
    * Returns a EnrollmentQueryParams based on the given input.
@@ -110,16 +107,15 @@ public class EnrollmentCriteriaMapper {
       boolean totalPages,
       boolean skipPaging,
       boolean includeDeleted,
-      List<OrderCriteria> orderCriteria)
-      throws ForbiddenException {
+      List<OrderCriteria> orderCriteria) {
     EnrollmentQueryParams params = new EnrollmentQueryParams();
+
+    Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
 
     User user = currentUserService.getCurrentUser();
 
-    Program program = programUid != null ? programService.getProgram(programUid) : null;
-
-    if (programUid != null && program == null) {
-      throw new IllegalQueryException("Program does not exist: " + programUid);
+    if (user != null) {
+      possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
     }
 
     if (ou != null) {
@@ -137,13 +133,20 @@ public class EnrollmentCriteriaMapper {
           throw new IllegalQueryException("Organisation unit does not exist: " + orgUnit);
         }
 
-        if (!trackerAccessManager.canAccess(user, program, organisationUnit)) {
-          throw new ForbiddenException(
-              "User does not have access to organisation unit: " + organisationUnit.getUid());
+        if (!organisationUnitService.isInUserHierarchy(
+            organisationUnit.getUid(), possibleSearchOrgUnits)) {
+          throw new IllegalQueryException(
+              "Organisation unit is not part of the search scope: " + orgUnit);
         }
 
         params.getOrganisationUnits().add(organisationUnit);
       }
+    }
+
+    Program pr = programUid != null ? programService.getProgram(programUid) : null;
+
+    if (programUid != null && pr == null) {
+      throw new IllegalQueryException("Program does not exist: " + programUid);
     }
 
     TrackedEntityType te =
@@ -165,7 +168,7 @@ public class EnrollmentCriteriaMapper {
           "Tracked entity instance does not exist: " + trackedEntityInstance);
     }
 
-    params.setProgram(program);
+    params.setProgram(pr);
     params.setProgramStatus(programStatus);
     params.setFollowUp(followUp);
     params.setLastUpdated(lastUpdated);
