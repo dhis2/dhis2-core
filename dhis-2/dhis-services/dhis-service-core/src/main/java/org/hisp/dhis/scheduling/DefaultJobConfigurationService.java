@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -111,6 +112,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
       throws ConflictException {
     try {
       byte[] data = IOUtils.toByteArray(content);
+      String s = new String(data, StandardCharsets.UTF_8);
       FileResource fr =
           new FileResource(
               "job_input_data_for_" + uid,

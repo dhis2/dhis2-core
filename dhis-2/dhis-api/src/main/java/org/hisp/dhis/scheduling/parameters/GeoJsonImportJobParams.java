@@ -25,19 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.geojson;
+package org.hisp.dhis.scheduling.parameters;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.user.User;
 
 @Builder(toBuilder = true)
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class GeoJsonImportParams {
+public class GeoJsonImportJobParams implements JobParameters {
   /**
    * If true the import is validated and processed without actually modifying any organisation unit
    * or storing GeoJSON data.

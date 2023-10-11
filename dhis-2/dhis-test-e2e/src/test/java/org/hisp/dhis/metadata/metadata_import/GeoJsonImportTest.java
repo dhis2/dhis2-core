@@ -68,6 +68,7 @@ class GeoJsonImportTest extends ApiTest {
 
     // post geo json async
     ApiResponse postGeoJsonAsyncResponse = restApiActions.post("/geometry?async=true", geoJson);
+    assertEquals("200", postGeoJsonAsyncResponse.getAsString());
     assertEquals(200, postGeoJsonAsyncResponse.statusCode());
 
     assertTrue(
@@ -98,24 +99,29 @@ class GeoJsonImportTest extends ApiTest {
 
   private String geoJson() {
     return """
-        {
-            "type": "Feature",
-            "id": "ImspTQPwCqd",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [-12.56262192106476,7.376283621891673]
-            },
-            "properties": {
-                "Shape_Leng": 20.8503761122,
-                "Shape_Area": 5.96427565724,
-                "shapeName": "Republic of Sierra Leone",
-                "Level": "ADM0",
-                "shapeISO": "SLE",
-                "shapeID": "SLE-ADM0-89611731B79725766",
-                "shapeGroup": "SLE",
-                "shapeType": "ADM0",
-                "code": "OU_525"
+        { 
+          "type": "FeatureCollection",
+          "features":[
+            {
+              "type": "Feature",
+              "id": "ImspTQPwCqd",
+              "geometry": {
+                  "type": "Point",
+                  "coordinates": [-12.56262192106476,7.376283621891673]
+              },
+              "properties": {
+                  "Shape_Leng": 20.8503761122,
+                  "Shape_Area": 5.96427565724,
+                  "shapeName": "Republic of Sierra Leone",
+                  "Level": "ADM0",
+                  "shapeISO": "SLE",
+                  "shapeID": "SLE-ADM0-89611731B79725766",
+                  "shapeGroup": "SLE",
+                  "shapeType": "ADM0",
+                  "code": "OU_525"
+              }
             }
+          ]
         }
         """;
   }
