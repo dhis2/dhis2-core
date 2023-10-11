@@ -191,6 +191,7 @@ class AggregateDataExchangeServiceTest {
             .setAggregationType(AggregationType.COUNT)
             .setOutputDataElementIdScheme(IdScheme.UID.name())
             .setOutputOrgUnitIdScheme(IdScheme.CODE.name())
+            .setOutputDataItemIdScheme(IdScheme.NAME.name())
             .setOutputIdScheme(IdScheme.CODE.name());
 
     DataQueryParams query = service.toDataQueryParams(sourceRequest, new SourceDataQueryParams());
@@ -203,6 +204,7 @@ class AggregateDataExchangeServiceTest {
         query.getAggregationType());
     assertEquals(IdScheme.UID, query.getOutputDataElementIdScheme());
     assertEquals(IdScheme.CODE, query.getOutputOrgUnitIdScheme());
+    assertEquals(IdScheme.NAME, query.getOutputDataItemIdScheme());
     assertEquals(IdScheme.CODE, query.getOutputIdScheme());
 
     SourceDataQueryParams params =
@@ -212,6 +214,7 @@ class AggregateDataExchangeServiceTest {
 
     assertEquals(IdScheme.CODE, query.getOutputDataElementIdScheme());
     assertEquals(IdScheme.CODE, query.getOutputOrgUnitIdScheme());
+    assertEquals(IdScheme.CODE, query.getOutputDataItemIdScheme());
     assertEquals(IdScheme.CODE, query.getOutputIdScheme());
   }
 

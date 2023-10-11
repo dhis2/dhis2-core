@@ -9,7 +9,7 @@
   <properties>
     <rootDir>..</rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spotless.version>2.39.0</spotless.version>
+    <spotless.version>2.40.0</spotless.version>
     <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
     <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version>
     <maven-surefire-junit5-tree-reporter.version>1.2.1</maven-surefire-junit5-tree-reporter.version>
@@ -18,7 +18,7 @@
     <log4j.version>2.20.0</log4j.version>
     <rest-assured.version>5.3.2</rest-assured.version>
     <jackson.version>2.15.2</jackson.version>
-    <guava.version>32.1.2-jre</guava.version>
+    <guava.version>32.1.3-jre</guava.version>
     <json-tree.version>0.10.1</json-tree.version>
     <epam-reportportal.version>5.1.8</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
@@ -31,11 +31,11 @@
     <awaitility.version>4.2.0</awaitility.version>
     <lombok.version>1.18.30</lombok.version>
     <allure.version>2.24.0</allure.version>
-    <selenium-java.version>4.13.0</selenium-java.version>
+    <selenium-java.version>4.14.0</selenium-java.version>
     <slf4j-simple.version>2.0.9</slf4j-simple.version>
     <fluent-hc.version>4.5.14</fluent-hc.version>
     <httpclient5.version>5.2.1</httpclient5.version>
-    <commons-io.version>2.13.0</commons-io.version>
+    <commons-io.version>2.14.0</commons-io.version>
   </properties>
 
   <dependencies>

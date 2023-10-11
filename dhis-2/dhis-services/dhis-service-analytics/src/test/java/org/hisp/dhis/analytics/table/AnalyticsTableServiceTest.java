@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,83 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.apphub;
+package org.hisp.dhis.analytics.table;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
-/** Created by zubair@dhis2.org on 07.09.17. */
-public class Review {
-  private String id;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-  private String userId;
+/**
+ * @author Lars Helge Overland
+ */
+@ExtendWith(MockitoExtension.class)
+class AnalyticsTableServiceTest {
 
-  private String reviewText;
+  @Mock private SystemSettingManager systemSettingManager;
 
-  private int rate;
+  @InjectMocks private DefaultAnalyticsTableService tableService;
 
-  private Date created;
+  @Test
+  void testGetParallelJobsA() {
+    when(systemSettingManager.getIntegerSetting(SettingKey.PARALLEL_JOBS_IN_ANALYTICS_TABLE_EXPORT))
+        .thenReturn(1);
+    when(systemSettingManager.getIntegerSetting(SettingKey.DATABASE_SERVER_CPUS)).thenReturn(8);
 
-  private Date lastUpdated;
-
-  public Review() {}
-
-  public Review(String userId, String reviewText) {
-    this.userId = userId;
-    this.reviewText = reviewText;
+    assertEquals(1, tableService.getParallelJobs());
   }
 
-  @JsonProperty
-  public String getUserId() {
-    return userId;
-  }
+  @Test
+  void testGetParallelJobsB() {
+    when(systemSettingManager.getIntegerSetting(SettingKey.PARALLEL_JOBS_IN_ANALYTICS_TABLE_EXPORT))
+        .thenReturn(null);
+    when(systemSettingManager.getIntegerSetting(SettingKey.DATABASE_SERVER_CPUS)).thenReturn(8);
 
-  public void setUserId(String userId) {
-    this.userId = userId;
-  }
-
-  @JsonProperty
-  public String getReviewText() {
-    return reviewText;
-  }
-
-  public void setReviewText(String reviewText) {
-    this.reviewText = reviewText;
-  }
-
-  @JsonProperty
-  public int getRate() {
-    return rate;
-  }
-
-  public void setRate(int rate) {
-    this.rate = rate;
-  }
-
-  @JsonProperty
-  public Date getCreated() {
-    return created;
-  }
-
-  public void setCreated(Date created) {
-    this.created = created;
-  }
-
-  @JsonProperty
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  @JsonProperty
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
-
-  public void setLastUpdated(Date lastUpdated) {
-    this.lastUpdated = lastUpdated;
+    assertEquals(8, tableService.getParallelJobs());
   }
 }

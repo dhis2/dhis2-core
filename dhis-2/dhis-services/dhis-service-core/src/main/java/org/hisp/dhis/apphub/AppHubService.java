@@ -28,8 +28,7 @@
 package org.hisp.dhis.apphub;
 
 import java.net.URISyntaxException;
-import java.util.List;
-import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.feedback.ConflictException;
 
 /** Created by zubair@dhis2.org on 07.09.17. */
 public interface AppHubService {
@@ -42,9 +41,6 @@ public interface AppHubService {
    *     "/api/" part and leading forward slashes.
    * @return the App Hub API response as a string.
    */
-  String getAppHubApiResponse(String apiVersion, String query) throws URISyntaxException;
-
-  List<WebApp> getAppHub();
-
-  AppStatus installAppFromAppHub(String id);
+  String getAppHubApiResponse(String apiVersion, String query)
+      throws URISyntaxException, ConflictException;
 }

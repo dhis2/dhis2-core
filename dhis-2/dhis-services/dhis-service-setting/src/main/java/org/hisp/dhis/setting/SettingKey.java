@@ -121,6 +121,8 @@ public enum SettingKey {
       "keyRespectMetaDataStartEndDatesInAnalyticsTableExport", Boolean.FALSE, Boolean.class),
   SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT(
       "keySkipDataTypeValidationInAnalyticsTableExport", Boolean.FALSE, Boolean.class),
+  PARALLEL_JOBS_IN_ANALYTICS_TABLE_EXPORT(
+      "keyParallelJobsInAnalyticsTableExport", -1, Integer.class),
   CUSTOM_LOGIN_PAGE_LOGO("keyCustomLoginPageLogo", Boolean.FALSE, Boolean.class),
   CUSTOM_TOP_MENU_LOGO("keyCustomTopMenuLogo", Boolean.FALSE, Boolean.class),
   DATABASE_SERVER_CPUS("keyDatabaseServerCpus", 0, Integer.class),
@@ -252,6 +254,12 @@ public enum SettingKey {
    * that day is skipped, and it will trigger on the intended time the day after.
    */
   JOBS_MAX_CRON_DELAY_HOURS("jobsMaxCronDelayHours", 4, Integer.class),
+
+  /**
+   * A job running with a smaller delay than the given value is logged on debug level instead of
+   * info to not spam the logs.
+   */
+  JOBS_LOG_DEBUG_BELOW_SECONDS("jobsLogDebugBelowSeconds", 180, Integer.class),
 
   /**
    * Progressive caching factor for the analytics API. To enable, the {@link

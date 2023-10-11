@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
@@ -53,10 +50,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -72,7 +69,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -95,8 +91,6 @@ class TrackedEntityOperationParamsMapperTest {
 
   public static final String TEA_2_UID = "cy2oRh2sNr6";
 
-  public static final String TEA_3_UID = "cy2oRh2sNr7";
-
   private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
 
   private static final String ORG_UNIT_2_UID = "TK4KA0IIWqa";
@@ -116,8 +110,6 @@ class TrackedEntityOperationParamsMapperTest {
   @Mock private TrackedEntityAttributeService attributeService;
 
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
-
-  @Mock private TrackerAccessManager trackerAccessManager;
 
   @InjectMocks private TrackedEntityOperationParamsMapper mapper;
 
@@ -168,11 +160,8 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
     tea2.setUid(TEA_2_UID);
 
-    TrackedEntityAttribute tea3 = new TrackedEntityAttribute();
-    tea3.setUid(TEA_3_UID);
-
-    when(attributeService.getAllTrackedEntityAttributes()).thenReturn(List.of(tea1, tea2, tea3));
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
+    when(attributeService.getTrackedEntityAttribute(TEA_2_UID)).thenReturn(tea2);
 
     trackedEntityType = new TrackedEntityType();
     trackedEntityType.setUid(TRACKED_ENTITY_TYPE_UID);
@@ -279,18 +268,23 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .user(user)
-            .filters(TEA_1_UID + ":eq:2" + "," + TEA_2_UID + ":like:foo")
+            .filters(
+                Map.of(
+                    TEA_1_UID,
+                    List.of(new QueryFilter(QueryOperator.EQ, "2")),
+                    TEA_2_UID,
+                    List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    List<QueryItem> items = params.getFilters();
+    Map<TrackedEntityAttribute, List<QueryFilter>> items = params.getFilters();
     assertNotNull(items);
     // mapping to UIDs as the error message by just relying on QueryItem
     // equals() is not helpful
     assertContainsOnly(
         List.of(TEA_1_UID, TEA_2_UID),
-        items.stream().map(i -> i.getItem().getUid()).collect(Collectors.toList()));
+        items.keySet().stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()));
 
     // QueryItem equals() does not take the QueryFilter into account so
     // assertContainsOnly alone does not ensure operators and filter value
@@ -305,16 +299,16 @@ class TrackedEntityOperationParamsMapperTest {
             TEA_2_UID,
             new QueryFilter(QueryOperator.LIKE, "foo"));
     assertAll(
-        items.stream()
+        items.entrySet().stream()
             .map(
                 i ->
                     (Executable)
                         () -> {
-                          String uid = i.getItem().getUid();
+                          String uid = i.getKey().getUid();
                           QueryFilter expected = expectedFilters.get(uid);
                           assertEquals(
-                              expected.getOperator().getValue() + " " + expected.getFilter(),
-                              i.getFiltersAsString(),
+                              expected,
+                              i.getValue().get(0),
                               () -> String.format("QueryFilter mismatch for TEA with UID %s", uid));
                         })
             .collect(Collectors.toList()));
@@ -326,75 +320,30 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .user(user)
-            .filters(TEA_1_UID + ":gt:10:lt:20")
+            .filters(
+                Map.of(
+                    TEA_1_UID,
+                    List.of(
+                        new QueryFilter(QueryOperator.GT, "10"),
+                        new QueryFilter(QueryOperator.LT, "20"))))
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    List<QueryItem> items = params.getFilters();
+    Map<TrackedEntityAttribute, List<QueryFilter>> items = params.getFilters();
     assertNotNull(items);
     // mapping to UIDs as the error message by just relying on QueryItem
     // equals() is not helpful
     assertContainsOnly(
         List.of(TEA_1_UID),
-        items.stream().map(i -> i.getItem().getUid()).collect(Collectors.toList()));
+        items.keySet().stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()));
 
     // QueryItem equals() does not take the QueryFilter into account so
     // assertContainsOnly alone does not ensure operators and filter value
     // are correct
     assertContainsOnly(
         Set.of(new QueryFilter(QueryOperator.GT, "10"), new QueryFilter(QueryOperator.LT, "20")),
-        items.get(0).getFilters());
-  }
-
-  @Test
-  void testFilterWhenTEAFilterIsRepeated() {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .user(user)
-            .filters(TEA_1_UID + ":gt:10" + "," + TEA_1_UID + ":lt:20")
-            .build();
-
-    BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
-
-    assertStartsWith(
-        "Filter for attribute TvjwTPToKHO was specified more than once.", e.getMessage());
-    assertThat(e.getMessage(), allOf(containsString("GT:10"), containsString("LT:20")));
-    assertThat(
-        e.getMessage(),
-        anyOf(containsString("TvjwTPToKHO:GT:10"), containsString("TvjwTPToKHO:LT:20")));
-  }
-
-  @Test
-  void testFilterWhenMultipleTEAFiltersAreRepeated() {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .user(user)
-            .filters(
-                TEA_1_UID + ":gt:10" + "," + TEA_1_UID + ":lt:20" + "," + TEA_2_UID + ":gt:30" + ","
-                    + TEA_2_UID + ":lt:40")
-            .build();
-
-    BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
-
-    assertThat(
-        e.getMessage(),
-        containsString("Filter for attribute " + TEA_1_UID + " was specified more than once."));
-    assertThat(e.getMessage(), allOf(containsString("GT:10"), containsString("LT:20")));
-    assertThat(
-        e.getMessage(),
-        anyOf(containsString(TEA_1_UID + ":GT:10"), containsString(TEA_1_UID + ":LT:20")));
-    assertThat(
-        e.getMessage(),
-        containsString("Filter for attribute " + TEA_2_UID + " was specified more than once."));
-    assertThat(e.getMessage(), allOf(containsString("GT:30"), containsString("LT:40")));
-    assertThat(
-        e.getMessage(),
-        anyOf(containsString(TEA_2_UID + ":GT:30"), containsString(TEA_2_UID + ":LT:40")));
+        items.values().stream().findAny().get());
   }
 
   @Test
@@ -501,7 +450,7 @@ class TrackedEntityOperationParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    assertContainsOnly(Set.of(orgUnit1, orgUnit2), params.getAccessibleOrgUnits());
+    assertContainsOnly(Set.of(orgUnit1, orgUnit2), params.getOrgUnits());
   }
 
   @Test
@@ -529,7 +478,8 @@ class TrackedEntityOperationParamsMapperTest {
 
     ForbiddenException e =
         assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
-    assertEquals("User does not have access to orgUnit: " + ORG_UNIT_1_UID, e.getMessage());
+    assertEquals(
+        "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID, e.getMessage());
   }
 
   @Test
@@ -611,139 +561,5 @@ class TrackedEntityOperationParamsMapperTest {
     Exception exception =
         assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
     assertStartsWith("Cannot order by 'lastUpdated'", exception.getMessage());
-  }
-
-  @Test
-  void shouldCreateCriteriaFiltersWithFirstOperatorWhenMultipleValidOperandAreNotValid()
-      throws BadRequestException, ForbiddenException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .user(user)
-            .filters(TEA_2_UID + ":like:project/:x/:eq/:2")
-            .build();
-    TrackedEntityQueryParams params = mapper.map(operationParams);
-
-    List<QueryFilter> actualFilters =
-        params.getFilters().stream()
-            .flatMap(f -> f.getFilters().stream())
-            .collect(Collectors.toList());
-
-    assertContainsOnly(
-        List.of(new QueryFilter(QueryOperator.LIKE, "project:x:eq:2")), actualFilters);
-  }
-
-  @Test
-  void shouldThrowBadRequestWhenCriteriaFilterHasOperatorInWrongFormat() {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .user(user)
-            .filters(TEA_1_UID + ":lke:value")
-            .build();
-
-    BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
-    assertEquals(
-        "Query item or filter is invalid: " + TEA_1_UID + ":lke:value", exception.getMessage());
-  }
-
-  @Test
-  void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatDateWithMilliSecondsAndTimeZone()
-      throws ForbiddenException, BadRequestException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .user(user)
-            .filters(
-                TEA_1_UID
-                    + ":ge:2020-01-01T00/:00/:00.001 +05/:30:le:2021-01-01T00/:00/:00.001 +05/:30")
-            .build();
-
-    List<QueryFilter> actualFilters =
-        mapper.map(operationParams).getFilters().stream()
-            .flatMap(f -> f.getFilters().stream())
-            .collect(Collectors.toList());
-
-    assertContainsOnly(
-        List.of(
-            new QueryFilter(QueryOperator.GE, "2020-01-01T00:00:00.001 +05:30"),
-            new QueryFilter(QueryOperator.LE, "2021-01-01T00:00:00.001 +05:30")),
-        actualFilters);
-  }
-
-  @Test
-  void shouldCreateQueryFilterWhenCriteriaFilterHasMultipleOperatorAndTextRange()
-      throws ForbiddenException, BadRequestException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .user(user)
-            .filters(TEA_1_UID + ":sw:project/:x:ew:project/:le/:")
-            .build();
-
-    List<QueryFilter> actualFilters =
-        mapper.map(operationParams).getFilters().stream()
-            .flatMap(f -> f.getFilters().stream())
-            .collect(Collectors.toList());
-
-    assertContainsOnly(
-        List.of(
-            new QueryFilter(QueryOperator.SW, "project:x"),
-            new QueryFilter(QueryOperator.EW, "project:le:")),
-        actualFilters);
-  }
-
-  @Test
-  void shouldCreateQueryFilterWhenCriteriaMultipleFilterMixedCommaAndSlash()
-      throws ForbiddenException, BadRequestException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .user(user)
-            .filters(
-                TEA_1_UID
-                    + ":eq:project///,/,//"
-                    + ","
-                    + TEA_2_UID
-                    + ":eq:project//"
-                    + ","
-                    + TEA_3_UID
-                    + ":eq:project//")
-            .build();
-
-    List<QueryFilter> actualFilters =
-        mapper.map(operationParams).getFilters().stream()
-            .flatMap(f -> f.getFilters().stream())
-            .collect(Collectors.toList());
-
-    assertContainsOnly(
-        List.of(
-            new QueryFilter(QueryOperator.EQ, "project/,,/"),
-            new QueryFilter(QueryOperator.EQ, "project/"),
-            new QueryFilter(QueryOperator.EQ, "project/")),
-        actualFilters);
-  }
-
-  @Test
-  void shouldCreateQueryFilterWhenCriteriaMultipleOperatorHasFinalColon()
-      throws ForbiddenException, BadRequestException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .user(user)
-            .filters(TEA_1_UID + ":like:value1/::like:value2")
-            .build();
-
-    List<QueryFilter> actualFilters =
-        mapper.map(operationParams).getFilters().stream()
-            .flatMap(f -> f.getFilters().stream())
-            .collect(Collectors.toList());
-
-    assertContainsOnly(
-        List.of(
-            new QueryFilter(QueryOperator.LIKE, "value1:"),
-            new QueryFilter(QueryOperator.LIKE, "value2")),
-        actualFilters);
   }
 }

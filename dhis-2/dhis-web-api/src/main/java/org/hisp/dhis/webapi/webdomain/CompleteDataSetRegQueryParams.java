@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note;
+package org.hisp.dhis.webapi.webdomain;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import java.util.Date;
+import java.util.Set;
+import lombok.Data;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.period.Period;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * Class to hold query params for {@link org.hisp.dhis.dataset.CompleteDataSetRegistration}
+ *
+ * @author davidmackessy
  */
-@RequiredArgsConstructor
-public class NoteDeletionHandler extends IdObjectDeletionHandler<Note> {
-  private final NoteService commentService;
+@Data
+@OpenApi.Shared
+public class CompleteDataSetRegQueryParams {
 
-  @Override
-  protected void registerHandler() {
-    whenDeleting(Enrollment.class, this::deleteEnrollment);
-    whenDeleting(Event.class, this::deleteEvent);
-  }
+  @OpenApi.Property({UID[].class, DataSet.class})
+  Set<String> dataSet;
 
-  private void deleteEnrollment(Enrollment enrollment) {
-    for (Note note : enrollment.getNotes()) {
-      commentService.deleteTrackedEntityComment(note);
-    }
-  }
+  @OpenApi.Property({Period[].class})
+  Set<String> period;
 
-  private void deleteEvent(Event event) {
-    for (Note note : event.getNotes()) {
-      commentService.deleteTrackedEntityComment(note);
-    }
-  }
+  @OpenApi.Property Date startDate;
+
+  @OpenApi.Property Date endDate;
+
+  @OpenApi.Property boolean children;
+
+  @OpenApi.Property({UID[].class, OrganisationUnit.class})
+  Set<String> orgUnit;
+
+  @OpenApi.Property({UID[].class, OrganisationUnitGroup.class})
+  Set<String> orgUnitGroup;
+
+  @OpenApi.Property Date created;
+
+  @OpenApi.Property String createdDuration;
+
+  @OpenApi.Property Integer limit;
 }

@@ -86,7 +86,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
-import org.hisp.dhis.external.location.DefaultLocationManager;
+import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -129,7 +129,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
 
   private final I18nManager i18nManager;
 
-  private final DefaultLocationManager locationManager;
+  private final LocationManager locationManager;
 
   private final ProgramRuleService programRuleService;
 

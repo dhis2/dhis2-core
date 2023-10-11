@@ -61,6 +61,16 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
 class RequestParams extends PagingAndSortingCriteriaAdapter {
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
 
+  @Deprecated(forRemoval = true, since = "2.41")
+  // Removed field without previous deprecation.
+  // It is still here in order to be validated and warn the client about the removal
+  private String query;
+
+  @Deprecated(forRemoval = true, since = "2.41")
+  // Removed field without previous deprecation.
+  // It is still here in order to be validated and warn the client about the removal
+  private String attribute;
+
   /** Comma separated list of attribute filters */
   private String filter;
 
@@ -170,6 +180,11 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
    * potentialDuplicate or not
    */
   private Boolean potentialDuplicate;
+
+  @Deprecated(forRemoval = true, since = "2.41")
+  // Removed field without previous deprecation.
+  // It is still here in order to be validated and warn the client about the removal
+  private String includeAllAttributes;
 
   @OpenApi.Property(value = String[].class)
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);

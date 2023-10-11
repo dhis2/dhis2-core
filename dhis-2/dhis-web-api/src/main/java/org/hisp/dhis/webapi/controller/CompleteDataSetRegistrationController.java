@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,28 +33,19 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationRepo
 import static org.hisp.dhis.scheduling.JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_XML;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.io.IOUtils;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -64,24 +55,28 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeService;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
-import org.hisp.dhis.dxf2.dataset.tasks.ImportCompleteDataSetRegistrationsTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.webapi.webdomain.CompleteDataSetRegQueryParams;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -98,100 +93,48 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping(value = CompleteDataSetRegistrationController.RESOURCE_PATH)
+@RequiredArgsConstructor
 public class CompleteDataSetRegistrationController {
   public static final String RESOURCE_PATH = "/completeDataSetRegistrations";
 
-  @Autowired private CompleteDataSetRegistrationService registrationService;
+  private final CompleteDataSetRegistrationService registrationService;
 
-  @Autowired private DataSetService dataSetService;
+  private final DataSetService dataSetService;
 
-  @Autowired private IdentifiableObjectManager manager;
+  private final IdentifiableObjectManager manager;
 
-  @Autowired private OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-  @Autowired private CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-  @Autowired private InputUtils inputUtils;
+  private final InputUtils inputUtils;
 
-  @Autowired private DefaultCompleteDataSetRegistrationExchangeService registrationExchangeService;
+  private final CompleteDataSetRegistrationExchangeService registrationExchangeService;
 
-  @Autowired private AsyncTaskExecutor taskExecutor;
-
-  @Autowired private SessionFactory sessionFactory;
+  private final JobConfigurationService jobConfigurationService;
+  private final JobSchedulerService jobSchedulerService;
 
   // -------------------------------------------------------------------------
   // GET
   // -------------------------------------------------------------------------
 
-  @GetMapping(produces = CONTENT_TYPE_XML)
-  public void getCompleteRegistrationsXml(
-      @RequestParam Set<String> dataSet,
-      @RequestParam(required = false) Set<String> period,
-      @RequestParam(required = false) Date startDate,
-      @RequestParam(required = false) Date endDate,
-      @RequestParam(required = false, name = "children") boolean includeChildren,
-      @RequestParam(required = false) Set<String> orgUnit,
-      @RequestParam(required = false) Set<String> orgUnitGroup,
-      @RequestParam(required = false) Date created,
-      @RequestParam(required = false) String createdDuration,
-      @RequestParam(required = false) Integer limit,
-      IdSchemes idSchemes,
-      HttpServletRequest request,
-      HttpServletResponse response)
+  @GetMapping(produces = CONTENT_TYPE_JSON)
+  public void getCompleteRegistrationsJson(
+      CompleteDataSetRegQueryParams queryParams, IdSchemes idSchemes, HttpServletResponse response)
       throws IOException {
-    response.setContentType(CONTENT_TYPE_XML);
-
-    ExportParams params =
-        registrationExchangeService.paramsFromUrl(
-            dataSet,
-            orgUnit,
-            orgUnitGroup,
-            period,
-            startDate,
-            endDate,
-            includeChildren,
-            created,
-            createdDuration,
-            limit,
-            idSchemes);
-
-    registrationExchangeService.writeCompleteDataSetRegistrationsXml(
+    response.setContentType(CONTENT_TYPE_JSON);
+    ExportParams params = getExportParams(queryParams, idSchemes);
+    registrationExchangeService.writeCompleteDataSetRegistrationsJson(
         params, response.getOutputStream());
   }
 
-  @GetMapping(produces = CONTENT_TYPE_JSON)
-  public void getCompleteRegistrationsJson(
-      @RequestParam Set<String> dataSet,
-      @RequestParam(required = false) Set<String> period,
-      @RequestParam(required = false) Date startDate,
-      @RequestParam(required = false) Date endDate,
-      @RequestParam(required = false, name = "children") boolean includeChildren,
-      @RequestParam(required = false) Set<String> orgUnit,
-      @RequestParam(required = false) Set<String> orgUnitGroup,
-      @RequestParam(required = false) Date created,
-      @RequestParam(required = false) String createdDuration,
-      @RequestParam(required = false) Integer limit,
-      IdSchemes idSchemes,
-      HttpServletRequest request,
-      HttpServletResponse response)
+  @GetMapping(produces = CONTENT_TYPE_XML)
+  public void getCompleteRegistrationsXml(
+      CompleteDataSetRegQueryParams queryParams, IdSchemes idSchemes, HttpServletResponse response)
       throws IOException {
-    response.setContentType(CONTENT_TYPE_JSON);
-
-    ExportParams params =
-        registrationExchangeService.paramsFromUrl(
-            dataSet,
-            orgUnit,
-            orgUnitGroup,
-            period,
-            startDate,
-            endDate,
-            includeChildren,
-            created,
-            createdDuration,
-            limit,
-            idSchemes);
-
-    registrationExchangeService.writeCompleteDataSetRegistrationsJson(
+    response.setContentType(CONTENT_TYPE_XML);
+    ExportParams params = getExportParams(queryParams, idSchemes);
+    registrationExchangeService.writeCompleteDataSetRegistrationsXml(
         params, response.getOutputStream());
   }
 
@@ -202,9 +145,10 @@ public class CompleteDataSetRegistrationController {
   @PostMapping(consumes = CONTENT_TYPE_XML, produces = CONTENT_TYPE_XML)
   @ResponseBody
   public WebMessage postCompleteRegistrationsXml(
-      ImportOptions importOptions, HttpServletRequest request) throws IOException {
+      ImportOptions importOptions, HttpServletRequest request)
+      throws IOException, ConflictException, NotFoundException {
     if (importOptions.isAsync()) {
-      return asyncImport(importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_XML, request);
+      return asyncImport(importOptions, APPLICATION_XML, request);
     }
     ImportSummary summary =
         registrationExchangeService.saveCompleteDataSetRegistrationsXml(
@@ -216,10 +160,10 @@ public class CompleteDataSetRegistrationController {
   @PostMapping(consumes = CONTENT_TYPE_JSON, produces = CONTENT_TYPE_JSON)
   @ResponseBody
   public WebMessage postCompleteRegistrationsJson(
-      ImportOptions importOptions, HttpServletRequest request) throws IOException {
+      ImportOptions importOptions, HttpServletRequest request)
+      throws IOException, ConflictException, NotFoundException {
     if (importOptions.isAsync()) {
-      return asyncImport(
-          importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_JSON, request);
+      return asyncImport(importOptions, APPLICATION_JSON, request);
     }
     ImportSummary summary =
         registrationExchangeService.saveCompleteDataSetRegistrationsJson(
@@ -308,39 +252,17 @@ public class CompleteDataSetRegistrationController {
   // -------------------------------------------------------------------------
 
   private WebMessage asyncImport(
-      ImportOptions importOptions, String format, HttpServletRequest request) throws IOException {
-    Pair<InputStream, Path> tmpFile = saveTmpFile(request.getInputStream());
+      ImportOptions importOptions, MimeType mimeType, HttpServletRequest request)
+      throws IOException, ConflictException, NotFoundException {
 
-    JobConfiguration jobId =
-        new JobConfiguration(
-            "inMemoryCompleteDataSetRegistrationImport",
-            COMPLETE_DATA_SET_REGISTRATION_IMPORT,
-            currentUserService.getCurrentUser().getUid());
+    JobConfiguration jobConfig = new JobConfiguration(COMPLETE_DATA_SET_REGISTRATION_IMPORT);
 
-    taskExecutor.executeTask(
-        new ImportCompleteDataSetRegistrationsTask(
-            registrationExchangeService,
-            sessionFactory,
-            tmpFile.getLeft(),
-            tmpFile.getRight(),
-            importOptions,
-            format,
-            jobId));
+    jobConfig.setJobParameters(importOptions);
+    jobConfig.setExecutedBy(currentUserService.getCurrentUser().getUid());
+    jobSchedulerService.executeNow(
+        jobConfigurationService.create(jobConfig, mimeType, request.getInputStream()));
 
-    return jobConfigurationReport(jobId);
-  }
-
-  private Pair<InputStream, Path> saveTmpFile(InputStream in) throws IOException {
-    String filename = CodeGenerator.generateCode(6);
-
-    File tmpFile = File.createTempFile(filename, null);
-    tmpFile.deleteOnExit();
-
-    try (FileOutputStream out = new FileOutputStream(tmpFile)) {
-      IOUtils.copy(in, out);
-    }
-
-    return Pair.of(new BufferedInputStream(new FileInputStream(tmpFile)), tmpFile.toPath());
+    return jobConfigurationReport(jobConfig);
   }
 
   private void unRegisterCompleteDataSet(
@@ -366,5 +288,20 @@ public class CompleteDataSetRegistrationController {
     if (!registrations.isEmpty()) {
       registrationService.deleteCompleteDataSetRegistrations(registrations);
     }
+  }
+
+  private ExportParams getExportParams(CompleteDataSetRegQueryParams params, IdSchemes idSchemes) {
+    return registrationExchangeService.paramsFromUrl(
+        params.getDataSet(),
+        params.getOrgUnit(),
+        params.getOrgUnitGroup(),
+        params.getPeriod(),
+        params.getStartDate(),
+        params.getEndDate(),
+        params.isChildren(),
+        params.getCreated(),
+        params.getCreatedDuration(),
+        params.getLimit(),
+        idSchemes);
   }
 }

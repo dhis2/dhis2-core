@@ -172,7 +172,7 @@ public class MetadataHandler {
    */
   void applyIdScheme(DataQueryParams params, Grid grid) {
     if (!params.isSkipMeta()) {
-      if (params.hasCustomIdSchemaSet()) {
+      if (params.hasCustomIdSchemeSet()) {
         grid.substituteMetaData(schemeIdResponseMapper.getSchemeIdResponseMap(params));
       }
     }

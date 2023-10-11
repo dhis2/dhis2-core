@@ -37,7 +37,6 @@ import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -55,7 +54,6 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -311,7 +309,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   public TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams);
-    final List<Long> ids = getTrackedEntityIds(queryParams, false, false);
+    final List<Long> ids = getTrackedEntityIds(queryParams);
 
     List<TrackedEntity> trackedEntities =
         this.trackedEntityAggregate.find(
@@ -341,27 +339,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return TrackedEntities.of(trackedEntities, pager);
   }
 
-  public List<Long> getTrackedEntityIds(
-      TrackedEntityQueryParams params,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation) {
-    if (!params.hasProgram()) {
-      Collection<TrackedEntityAttribute> attributes =
-          trackedEntityAttributeService.getTrackedEntityAttributesDisplayInListNoProgram();
-      params.addFiltersIfNotExist(QueryItem.getQueryItems(attributes));
-    }
-
+  public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
     decideAccess(params);
-
-    // AccessValidation should be skipped only and only if it is internal
-    // service that runs the task (for example sync job)
-    if (!skipAccessValidation) {
-      validate(params);
-    }
-
-    if (!skipSearchScopeValidation) {
-      validateSearchScope(params);
-    }
+    validate(params);
+    validateSearchScope(params);
 
     return trackedEntityStore.getTrackedEntityIds(params);
   }
@@ -446,10 +427,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       violation = "Event start and end date must be specified when event status is specified";
     }
 
-    if (!params.getDuplicateFilters().isEmpty()) {
-      violation = "Filters cannot be specified more than once: " + params.getDuplicateFilters();
-    }
-
     if (params.hasLastUpdatedDuration()
         && (params.hasLastUpdatedStartDate() || params.hasLastUpdatedEndDate())) {
       violation =
@@ -487,7 +464,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (!params.hasProgram()
         && !params.hasTrackedEntityType()
         && params.hasFilters()
-        && !params.hasAccessibleOrgUnits()) {
+        && !params.hasOrganisationUnits()) {
       List<String> uniqueAttributeIds =
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
               .map(TrackedEntityAttribute::getUid)
@@ -575,10 +552,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
 
     if (params.isOrganisationUnitMode(SELECTED)) {
-      searchOrgUnits = params.getAccessibleOrgUnits();
+      searchOrgUnits = params.getOrgUnits();
     } else if (params.isOrganisationUnitMode(CHILDREN)
         || params.isOrganisationUnitMode(DESCENDANTS)) {
-      for (OrganisationUnit orgUnit : params.getAccessibleOrgUnits()) {
+      for (OrganisationUnit orgUnit : params.getOrgUnits()) {
         searchOrgUnits.addAll(orgUnit.getChildren());
       }
     } else if (params.isOrganisationUnitMode(ALL)) {

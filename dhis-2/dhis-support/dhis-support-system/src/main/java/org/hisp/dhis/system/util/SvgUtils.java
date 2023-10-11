@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.apphub;
+package org.hisp.dhis.system.util;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static lombok.AccessLevel.PRIVATE;
 
-/** Created by zubair@dhis2.org on 07.09.17. */
-public class Developer {
-  private String name;
+import java.util.regex.Pattern;
+import lombok.NoArgsConstructor;
 
-  private String organisation;
+@NoArgsConstructor(access = PRIVATE)
+public class SvgUtils {
 
-  private String address;
+  private static final Pattern regexp = Pattern.compile("\\p{Cf}");
 
-  private String email;
-
-  public Developer() {
-    // empty constructor
-  }
-
-  @JsonProperty
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  @JsonProperty
-  public String getOrganisation() {
-    return organisation;
-  }
-
-  public void setOrganisation(String organisation) {
-    this.organisation = organisation;
-  }
-
-  @JsonProperty
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  @JsonProperty
-  public String getAddress() {
-    return address;
-  }
-
-  public void setAddress(String address) {
-    this.address = address;
+  /**
+   * Replace Unicode 'zero width space' (U+200B). This character is misinterpreted by PDF convertor
+   * as '#' (f.e.#2023).
+   *
+   * @param svg svg xml string
+   * @param replaceWith replacement
+   * @return consolidated svg string
+   */
+  public static String replaceUnicodeZeroWidthSpace(String svg, String replaceWith) {
+    return svg.replaceAll(regexp.pattern(), replaceWith);
   }
 }

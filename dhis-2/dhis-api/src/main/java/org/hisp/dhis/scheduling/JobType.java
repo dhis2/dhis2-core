@@ -198,6 +198,7 @@ public enum JobType {
         || this == PUSH_ANALYSIS
         || this == PREDICTOR
         || this == DATAVALUE_IMPORT
+        || this == COMPLETE_DATA_SET_REGISTRATION_IMPORT
         || this == METADATA_IMPORT;
   }
 

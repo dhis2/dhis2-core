@@ -72,6 +72,9 @@ public class SourceRequest implements Serializable {
   /** Output org unit identifier scheme. */
   @JsonProperty private String outputOrgUnitIdScheme;
 
+  /** Output data item identifier scheme. */
+  @JsonProperty private String outputDataItemIdScheme;
+
   /** Output identifier scheme. */
   @JsonProperty private String outputIdScheme;
 }

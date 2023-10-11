@@ -48,6 +48,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.openapi.Api.Endpoint;
+import org.hisp.dhis.webapi.openapi.Api.Parameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -72,6 +73,14 @@ public class ApiFinalise {
     boolean failOnNameClash;
 
     /**
+     * When true, the generation fails if a declaration is declared in an inconsistent way. This
+     * usually indicates a programming error.
+     *
+     * <p>For example, a field/parameter with a default value is marked as required.
+     */
+    boolean failOnInconsistency;
+
+    /**
      * The character(s) used to join the prefix, like {@code Ref} or {@code UID} with the rest of
      * the type name.
      *
@@ -91,10 +100,6 @@ public class ApiFinalise {
     // request bodies
     // responses
     String missingDescription;
-    /*
-     * .missingDescription( "[no description yet]" ) .namePartDelimiter( "_"
-     * )
-     */
   }
 
   Api api;
@@ -110,6 +115,9 @@ public class ApiFinalise {
    * ready for document generation.
    */
   private void finaliseApi() {
+    // 0. validation of the analysis result
+    validateParameters();
+
     // 1. Set and check shared unique names and create the additional schemas for Refs and UIDs
     nameSharedSchemas();
     nameSharedAdditionalSchemas();
@@ -124,6 +132,38 @@ public class ApiFinalise {
 
     // 3. Group and merge endpoints by request path and method
     groupAndMergeEndpoints();
+  }
+
+  /*
+  0. validate the Api result of the analysis step
+   */
+
+  private void validateParameters() {
+    // shared parameters
+    api.getComponents()
+        .getParameters()
+        .values()
+        .forEach(params -> params.forEach(this::validateParameter));
+
+    // non shared parameters
+    api.getControllers()
+        .forEach(
+            c ->
+                c.getEndpoints()
+                    .forEach(e -> e.getParameters().values().forEach(this::validateParameter)));
+  }
+
+  private void validateParameter(Parameter p) {
+    if (p.getDefaultValue().isPresent() && p.isRequired()) {
+      String msg =
+          "Parameter %s of type %s is both required and has a default value of %s"
+              .formatted(
+                  p.getFullName(),
+                  p.getType().getRawType().getSimpleName(),
+                  p.getDefaultValue().getValue());
+      if (config.failOnInconsistency) throw new IllegalStateException(msg);
+      log.warn(msg);
+    }
   }
 
   /*
@@ -565,7 +605,9 @@ public class ApiFinalise {
       for (String cPath : c.getPaths()) {
         for (Api.Endpoint e : c.getEndpoints()) {
           for (String ePath : e.getPaths()) {
-            String absolutePath = cPath + ePath;
+            String absolutePath =
+                (cPath + (cPath.endsWith("/") || ePath.startsWith("/") ? "" : "/") + ePath)
+                    .replace("//", "/");
             if (absolutePath.isEmpty()) {
               absolutePath = "/";
             }

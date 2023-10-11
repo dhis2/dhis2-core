@@ -287,7 +287,10 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         @JsonSubTypes.Type(
             value = LockExceptionCleanupJobParameters.class,
             name = "LOCK_EXCEPTION_CLEANUP"),
-        @JsonSubTypes.Type(value = TestJobParameters.class, name = "TEST")
+        @JsonSubTypes.Type(value = TestJobParameters.class, name = "TEST"),
+        @JsonSubTypes.Type(
+            value = ImportOptions.class,
+            name = "COMPLETE_DATA_SET_REGISTRATION_IMPORT")
       })
   public JobParameters getJobParameters() {
     return jobParameters;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,87 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.apphub;
+package org.hisp.dhis.system.util;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
+import static org.hisp.dhis.system.util.SvgUtils.replaceUnicodeZeroWidthSpace;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** Created by zubair@dhis2.org on 07.09.17. */
-public class ImageResource {
-  private String id;
+import org.junit.jupiter.api.Test;
 
-  private String caption;
+class SvgUtilsTest {
+  @Test
+  void testReplaceUnicodeZeroWidthSpace() {
+    // given
+    String svg =
+        "<text x=\"332.58333333332666\" text-anchor=\"middle\" transform=\"translate(0,0)\" style=\"color: rgb(64, 75, 90); cursor: default; font-size: 11px; font-weight: normal; font-style: normal; fill: rgb(64, 75, 90);\" y=\"699\" opacity=\"1\">December<tspan dy=\"14\" x=\"332.58333333332666\">\u200B</tspan>2022</text>";
+    String expected =
+        "<text x=\"332.58333333332666\" text-anchor=\"middle\" transform=\"translate(0,0)\" style=\"color: rgb(64, 75, 90); cursor: default; font-size: 11px; font-weight: normal; font-style: normal; fill: rgb(64, 75, 90);\" y=\"699\" opacity=\"1\">December<tspan dy=\"14\" x=\"332.58333333332666\"> </tspan>2022</text>";
 
-  private String description;
+    // when
+    svg = replaceUnicodeZeroWidthSpace(svg, " ");
 
-  private String imageUrl;
-
-  private boolean logo;
-
-  private Date created;
-
-  private Date lastUpdated;
-
-  @JsonProperty
-  public String getCaption() {
-    return caption;
-  }
-
-  public void setCaption(String caption) {
-    this.caption = caption;
-  }
-
-  @JsonProperty
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  @JsonProperty
-  public boolean isLogo() {
-    return logo;
-  }
-
-  public void setLogo(boolean logo) {
-    this.logo = logo;
-  }
-
-  @JsonProperty
-  public String getImageUrl() {
-    return imageUrl;
-  }
-
-  public void setImageUrl(String imageUrl) {
-    this.imageUrl = imageUrl;
-  }
-
-  @JsonProperty
-  public Date getCreated() {
-    return created;
-  }
-
-  public void setCreated(Date created) {
-    this.created = created;
-  }
-
-  @JsonProperty
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
-
-  public void setLastUpdated(Date lastUpdated) {
-    this.lastUpdated = lastUpdated;
-  }
-
-  @JsonProperty
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
+    // then
+    assertEquals(expected, svg);
   }
 }
