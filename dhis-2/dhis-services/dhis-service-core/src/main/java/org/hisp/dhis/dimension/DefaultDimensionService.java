@@ -496,7 +496,9 @@ public class DefaultDimensionService implements DimensionService {
       String stageUid = substringBefore(dimensionalObject.getProgramStage().getUid(), "[");
       ProgramStage programStage = idObjectManager.get(ProgramStage.class, stageUid);
 
-      dimensionalObject.getProgramStage().setProgram(programStage.getProgram());
+      if (programStage != null) {
+        dimensionalObject.getProgramStage().setProgram(programStage.getProgram());
+      }
     }
   }
 

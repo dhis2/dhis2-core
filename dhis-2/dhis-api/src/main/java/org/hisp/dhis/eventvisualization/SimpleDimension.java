@@ -134,7 +134,7 @@ public class SimpleDimension implements Serializable {
   public SimpleDimension(
       @JsonProperty("parent") @Nonnull Attribute parent,
       @JsonProperty("dimension") @Nonnull String dimension,
-      @JsonProperty("program") @Nonnull String program,
+      @JsonProperty("program") String program,
       @JsonProperty("programStage") @Nonnull String programStage,
       @JsonProperty("values") @Nonnull List<String> values) {
     this.parent = parent;

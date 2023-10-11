@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.joining;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
@@ -145,17 +146,20 @@ public class DimensionalObjectUtils {
     if (isNotEmpty(repetitions)) {
       for (EventRepetition eventRepetition : repetitions) {
         String dimension = dimensionalObject.getDimension();
-        associateEventRepetitionDimensions(
-            eventRepetition,
-            dimensionalObject.getProgram(),
-            dimensionalObject.getProgramStage(),
-            parent,
-            dimension);
 
-        boolean associationFound = dimension.equals(eventRepetition.getDimension());
+        if (isNotBlank(dimension)) {
+          associateEventRepetitionDimensions(
+              eventRepetition,
+              dimensionalObject.getProgram(),
+              dimensionalObject.getProgramStage(),
+              parent,
+              dimension);
 
-        if (associationFound) {
-          ((BaseDimensionalObject) dimensionalObject).setEventRepetition(eventRepetition);
+          boolean associationFound = dimension.equals(eventRepetition.getDimension());
+
+          if (associationFound) {
+            ((BaseDimensionalObject) dimensionalObject).setEventRepetition(eventRepetition);
+          }
         }
       }
     }
