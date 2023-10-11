@@ -464,7 +464,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (!params.hasProgram()
         && !params.hasTrackedEntityType()
         && params.hasFilters()
-        && !params.hasAccessibleOrgUnits()) {
+        && !params.hasOrganisationUnits()) {
       List<String> uniqueAttributeIds =
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
               .map(TrackedEntityAttribute::getUid)
@@ -552,10 +552,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
 
     if (params.isOrganisationUnitMode(SELECTED)) {
-      searchOrgUnits = params.getAccessibleOrgUnits();
+      searchOrgUnits = params.getOrgUnits();
     } else if (params.isOrganisationUnitMode(CHILDREN)
         || params.isOrganisationUnitMode(DESCENDANTS)) {
-      for (OrganisationUnit orgUnit : params.getAccessibleOrgUnits()) {
+      for (OrganisationUnit orgUnit : params.getOrgUnits()) {
         searchOrgUnits.addAll(orgUnit.getChildren());
       }
     } else if (params.isOrganisationUnitMode(ALL)) {
