@@ -56,47 +56,47 @@ class GeoJsonImportTest extends ApiTest {
   }
 
   @Test
-  void completeDataSetRegistrationsAsync() {
+  void geoJsonImportAsync() {
     loginActions.loginAsSuperUser();
 
     // create geo json
-    String geoJson2 = geoJson2();
+    String geoJson = geoJson();
 
     // get org unit geometry to show currently empty
-    ApiResponse completedResponse = restApiActions.get("/ImspTQPwCqd");
-    assertNull(completedResponse.getBody().get("geometry"));
+    ApiResponse getOrgUnitResponse = restApiActions.get("/ImspTQPwCqd");
+    assertNull(getOrgUnitResponse.getBody().get("geometry"));
 
     // post geo json async
-    ApiResponse completeAsyncResponse = restApiActions.post("/geometry?async=true", geoJson2);
-    assertEquals(200, completeAsyncResponse.statusCode());
+    ApiResponse postGeoJsonAsyncResponse = restApiActions.post("/geometry?async=true", geoJson);
+    assertEquals(200, postGeoJsonAsyncResponse.statusCode());
 
     assertTrue(
-        completeAsyncResponse
+        postGeoJsonAsyncResponse
             .getBody()
             .get("message")
             .getAsString()
             .contains("Initiated GeoJSON import"));
 
     String taskId =
-        completeAsyncResponse.getBody().getAsJsonObject("response").get("id").getAsString();
+        postGeoJsonAsyncResponse.getBody().getAsJsonObject("response").get("id").getAsString();
     assertEquals(11, taskId.length());
 
     // wait for job to be completed (24 seconds used as the job schedule loop is 20 seconds)
     ApiResponse taskStatus = systemActions.waitUntilTaskCompleted("GEOJSON_IMPORT", taskId, 24);
     assertTrue(taskStatus.getAsString().contains("\"completed\":true"));
 
-    // get complete data sets which should be 1 now
-    ApiResponse completedResponse3 = restApiActions.get("/ImspTQPwCqd");
+    // get org unit again which should now contain geometry property
+    ApiResponse getUpdatedOrgUnit = restApiActions.get("/ImspTQPwCqd");
 
     // validate async-completed geo json import
-    completedResponse3
+    getUpdatedOrgUnit
         .validate()
         .statusCode(200)
         .body("geometry.type", equalTo("Point"))
         .body("geometry.coordinates.size()", equalTo(2));
   }
 
-  private String geoJson2() {
+  private String geoJson() {
     return """
         {
             "type": "Feature",
