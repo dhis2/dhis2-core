@@ -200,7 +200,7 @@
     <commons-codec.version>1.15</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.5</commons-email.version>
-    <httpcomponents-core.version>4.4.15</httpcomponents-core.version>
+    <httpcomponents-core.version>4.4.16</httpcomponents-core.version>
     <httpcomponents-client.version>4.5.13</httpcomponents-client.version>
 
     <!-- Monitoring -->
