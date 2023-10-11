@@ -175,7 +175,7 @@
     <jsmpp.version>3.0.0</jsmpp.version>
     <json-path.version>2.8.0</json-path.version>
     <jsoup.version>1.16.1</jsoup.version>
-    <jetty.version>10.0.16</jetty.version>
+    <jetty.version>10.0.17</jetty.version>
 
     <!-- Div. utils -->
     <guava.version>32.1.2-jre</guava.version>
