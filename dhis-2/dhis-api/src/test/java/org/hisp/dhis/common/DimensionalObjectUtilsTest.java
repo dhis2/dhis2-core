@@ -27,6 +27,12 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.asActualDimension;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asQualifiedDimension;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getQualifiedDimensions;
+import static org.hisp.dhis.common.DimensionalObjectUtils.linkAssociations;
+import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
+import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -44,8 +50,11 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.eventvisualization.EventRepetition;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -271,11 +280,259 @@ class DimensionalObjectUtilsTest {
             new DimensionItemObjectValue(deA, 10D),
             new DimensionItemObjectValue(deB, 20D),
             new DimensionItemObjectValue(deC, 30D));
-    final Map<DimensionalItemObject, Object> asMap =
+    Map<DimensionalItemObject, Object> asMap =
         DimensionalObjectUtils.convertToDimItemValueMap(list);
     assertEquals(asMap.size(), 3);
-    assertEquals(((Double) asMap.get(deA)).intValue(), 10);
-    assertEquals(((Double) asMap.get(deB)).intValue(), 20);
-    assertEquals(((Double) asMap.get(deC)).intValue(), 30);
+    assertEquals(10, ((Double) asMap.get(deA)).intValue());
+    assertEquals(20, ((Double) asMap.get(deB)).intValue());
+    assertEquals(30, ((Double) asMap.get(deC)).intValue());
+  }
+
+  @Test
+  void testLinkAssociationsSuccessfully() {
+    // Given
+    EventAnalyticalObject eventAnalyticalObject = stubEventAnalyticalObject();
+    BaseDimensionalObject dimensionalObject = stubDimensionalObject();
+    org.hisp.dhis.eventvisualization.Attribute parent = COLUMN;
+
+    // When
+    DimensionalObject result = linkAssociations(eventAnalyticalObject, dimensionalObject, parent);
+
+    // Then
+    assertEquals(eventAnalyticalObject.getEventRepetitions().get(0), result.getEventRepetition());
+  }
+
+  @Test
+  void testLinkAssociationsDoesNotFindValidAssociation() {
+    // Given
+    EventAnalyticalObject eventAnalyticalObject = stubEventAnalyticalObject();
+    BaseDimensionalObject dimensionalObject = stubDimensionalObject();
+    dimensionalObject.setUid("nonLinkableUid");
+    org.hisp.dhis.eventvisualization.Attribute parent = COLUMN;
+
+    // When
+    DimensionalObject result = linkAssociations(eventAnalyticalObject, dimensionalObject, parent);
+
+    // Then
+    assertNull(result.getEventRepetition());
+  }
+
+  @Test
+  void testLinkAssociationsWithProgramAndStage() {
+    // Given
+    EventAnalyticalObject eventAnalyticalObject = stubEventAnalyticalObject();
+    BaseDimensionalObject dimensionalObject = stubDimensionalObject();
+    org.hisp.dhis.eventvisualization.Attribute parent = COLUMN;
+
+    // When
+    DimensionalObject result = linkAssociations(eventAnalyticalObject, dimensionalObject, parent);
+
+    // Then
+    assertEquals(eventAnalyticalObject.getEventRepetitions().get(0), result.getEventRepetition());
+    assertEquals(
+        eventAnalyticalObject.getEventRepetitions().get(0).getParent(),
+        result.getEventRepetition().getParent());
+    assertEquals(dimensionalObject.getProgram(), result.getProgram());
+    assertEquals(dimensionalObject.getProgramStage(), result.getProgramStage());
+  }
+
+  @Test
+  void testLinkAssociationsWithProgramOnly() {
+    // Given
+    EventAnalyticalObject eventAnalyticalObject = stubEventAnalyticalObject();
+    BaseDimensionalObject dimensionalObject = stubDimensionalObject();
+    dimensionalObject.setProgramStage(null);
+    org.hisp.dhis.eventvisualization.Attribute parent = COLUMN;
+
+    // When
+    DimensionalObject result = linkAssociations(eventAnalyticalObject, dimensionalObject, parent);
+
+    // Then
+    assertEquals(eventAnalyticalObject.getEventRepetitions().get(0), result.getEventRepetition());
+    assertEquals(
+        eventAnalyticalObject.getEventRepetitions().get(0).getParent(),
+        result.getEventRepetition().getParent());
+    assertEquals(dimensionalObject.getProgram(), result.getProgram());
+    assertNull(result.getProgramStage());
+  }
+
+  @Test
+  void testLinkAssociationsWithProgramStageOnly() {
+    // Given
+    EventAnalyticalObject eventAnalyticalObject = stubEventAnalyticalObject();
+    BaseDimensionalObject dimensionalObject = stubDimensionalObject();
+    dimensionalObject.setProgram(null);
+    org.hisp.dhis.eventvisualization.Attribute parent = COLUMN;
+
+    // When
+    DimensionalObject result = linkAssociations(eventAnalyticalObject, dimensionalObject, parent);
+
+    // Then
+    assertEquals(eventAnalyticalObject.getEventRepetitions().get(0), result.getEventRepetition());
+    assertEquals(
+        eventAnalyticalObject.getEventRepetitions().get(0).getParent(),
+        result.getEventRepetition().getParent());
+    assertNull(result.getProgram());
+    assertEquals(dimensionalObject.getProgramStage(), result.getProgramStage());
+  }
+
+  @Test
+  void testGetQualifiedDimensionsWithFullValue() {
+    // Given
+    List<DimensionalObject> dimensionalObjects = List.of(stubDimensionalObject());
+
+    // When
+    List<String> results = getQualifiedDimensions(dimensionalObjects);
+
+    // Then
+    assertEquals("programUid.programStageUid.dimensionUid", results.get(0));
+  }
+
+  @Test
+  void testGetQualifiedDimensionsOnlyProgram() {
+    // Given
+    BaseDimensionalObject dimensionalObject = stubDimensionalObject();
+    dimensionalObject.setProgramStage(null);
+    List<DimensionalObject> dimensionalObjects = List.of(dimensionalObject);
+
+    // When
+    List<String> results = getQualifiedDimensions(dimensionalObjects);
+
+    // Then
+    assertEquals("programUid.dimensionUid", results.get(0));
+  }
+
+  @Test
+  void testGetQualifiedDimensionsOnlyDimensionItem() {
+    // Given
+    BaseDimensionalObject dimensionalObject = stubDimensionalObject();
+    dimensionalObject.setProgram(null);
+    dimensionalObject.setProgramStage(null);
+    List<DimensionalObject> dimensionalObjects = List.of(dimensionalObject);
+
+    // When
+    List<String> results = getQualifiedDimensions(dimensionalObjects);
+
+    // Then
+    assertEquals("dimensionUid", results.get(0));
+  }
+
+  @Test
+  void testAsQualifiedDimensionUsingAll() {
+    // Given
+    String programUid = "programUid";
+    String programStageUid = "programStageUid";
+    String dimensionUid = "dimensionUid";
+
+    // When
+    String result = asQualifiedDimension(dimensionUid, programUid, programStageUid);
+
+    // Then
+    assertEquals("programUid.programStageUid.dimensionUid", result);
+  }
+
+  @Test
+  void testAsQualifiedDimensionNoProgramStage() {
+    // Given
+    String programUid = "programUid";
+    String programStageUid = null;
+    String dimensionUid = "dimensionUid";
+
+    // When
+    String result = asQualifiedDimension(dimensionUid, programUid, programStageUid);
+
+    // Then
+    assertEquals("programUid.dimensionUid", result);
+  }
+
+  @Test
+  void testAsQualifiedDimensionOnlyDimension() {
+    // Given
+    String programUid = null;
+    String programStageUid = null;
+    String dimensionUid = "dimensionUid";
+
+    // When
+    String result = asQualifiedDimension(dimensionUid, programUid, programStageUid);
+
+    // Then
+    assertEquals("dimensionUid", result);
+  }
+
+  @Test
+  void testAsActualDimension() {
+    // Given
+    String qualifiedDim = "programUid.programStageUid.dimensionUid";
+
+    // When
+    String result = asActualDimension(qualifiedDim);
+
+    // Then
+    assertEquals("dimensionUid", result);
+  }
+
+  @Test
+  void testAsActualDimensionNoProgramStage() {
+    // Given
+    String qualifiedDim = "programUid.dimensionUid";
+
+    // When
+    String result = asActualDimension(qualifiedDim);
+
+    // Then
+    assertEquals("dimensionUid", result);
+  }
+
+  @Test
+  void testAsActualDimensionOnlyDimensionItem() {
+    // Given
+    String qualifiedDim = "dimensionUid";
+
+    // When
+    String result = asActualDimension(qualifiedDim);
+
+    // Then
+    assertEquals("dimensionUid", result);
+  }
+
+  private BaseDimensionalObject stubDimensionalObject() {
+    BaseDimensionalObject baseDimensionalObject = new BaseDimensionalObject();
+    baseDimensionalObject.setDimension("dimensionUid");
+    baseDimensionalObject.setProgram(stubProgram());
+    baseDimensionalObject.setProgramStage(stubProgramStage());
+
+    return baseDimensionalObject;
+  }
+
+  private EventAnalyticalObject stubEventAnalyticalObject() {
+    EventVisualization eventVisualization = new EventVisualization();
+    eventVisualization.setType(PIVOT_TABLE);
+    eventVisualization.setEventRepetitions(List.of(stubEventRepetition()));
+
+    return eventVisualization;
+  }
+
+  private EventRepetition stubEventRepetition() {
+    EventRepetition eventRepetition =
+        new EventRepetition(
+            COLUMN, "dimensionUid", "programUid", "programStageUid", List.of(-1, 2));
+    eventRepetition.setProgram(stubProgram().getUid());
+    eventRepetition.setProgramStage(stubProgramStage().getUid());
+
+    return eventRepetition;
+  }
+
+  private Program stubProgram() {
+    Program program = new Program();
+    program.setUid("programUid");
+
+    return program;
+  }
+
+  private ProgramStage stubProgramStage() {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid("programStageUid");
+
+    return programStage;
   }
 }

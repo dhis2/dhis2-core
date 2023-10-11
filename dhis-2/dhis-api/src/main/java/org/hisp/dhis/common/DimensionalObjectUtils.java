@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.common;
 
+import static java.util.stream.Collectors.joining;
+import static lombok.AccessLevel.PRIVATE;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
@@ -46,14 +51,21 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.eventvisualization.Attribute;
+import org.hisp.dhis.eventvisualization.EventRepetition;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Lars Helge Overland
  */
+@NoArgsConstructor(access = PRIVATE)
 public class DimensionalObjectUtils {
   public static final String COMPOSITE_DIM_OBJECT_ESCAPED_SEP = "\\.";
 
@@ -112,6 +124,161 @@ public class DimensionalObjectUtils {
     }
 
     return dims;
+  }
+
+  /**
+   * This method links existing associations between objects. This is mainly needed in cases where
+   * attributes need to be programmatically associated to fulfill client requirements.
+   *
+   * @param eventAnalyticalObject the source object
+   * @param dimensionalObject where the associations will happen
+   * @param parent the parent attribute, where the association object should be appended to
+   * @return the dimensional object containing the correct associations.
+   */
+  public static DimensionalObject linkAssociations(
+      EventAnalyticalObject eventAnalyticalObject,
+      DimensionalObject dimensionalObject,
+      Attribute parent) {
+    // Associating event repetitions.
+    List<EventRepetition> repetitions = eventAnalyticalObject.getEventRepetitions();
+
+    if (isNotEmpty(repetitions)) {
+      for (EventRepetition eventRepetition : repetitions) {
+        String dimension = dimensionalObject.getDimension();
+        associateEventRepetitionDimensions(
+            eventRepetition,
+            dimensionalObject.getProgram(),
+            dimensionalObject.getProgramStage(),
+            parent,
+            dimension);
+
+        boolean associationFound = dimension.equals(eventRepetition.getDimension());
+
+        if (associationFound) {
+          ((BaseDimensionalObject) dimensionalObject).setEventRepetition(eventRepetition);
+        }
+      }
+    }
+
+    return dimensionalObject;
+  }
+
+  /**
+   * This method will associate the given objects with the given event repetition, populating the
+   * respective objects in the event repetition.
+   *
+   * @param eventRepetition the {@link EventRepetition}.
+   * @param program the {@link Program} to be associated.
+   * @param programStage the {@link ProgramStage} to be associated.
+   * @param parent the parent {@link Attribute}
+   * @param dimension the dimension to be associated.
+   */
+  private static void associateEventRepetitionDimensions(
+      EventRepetition eventRepetition,
+      Program program,
+      ProgramStage programStage,
+      Attribute parent,
+      String dimension) {
+    boolean belongsToProgram =
+        program != null && program.getUid().equals(eventRepetition.getProgram());
+    boolean belongsToProgramStage =
+        programStage != null && programStage.getUid().equals(eventRepetition.getProgramStage());
+    boolean belongsToDimension =
+        dimension != null
+            && dimension.equals(eventRepetition.getDimension())
+            && parent == eventRepetition.getParent();
+    boolean hasNoProgramOrStage = program == null && programStage == null;
+
+    if (belongsToDimension) {
+      eventRepetition.setParent(parent);
+
+      if (hasNoProgramOrStage) {
+        eventRepetition.setDimension(dimension);
+      }
+
+      if (belongsToProgram) {
+        eventRepetition.setProgram(program.getUid());
+      }
+
+      if (belongsToProgramStage) {
+        eventRepetition.setProgramStage(programStage.getUid());
+      }
+    }
+  }
+
+  /**
+   * This method will iterate through each {@link DimensionalObject} in the given list and join the
+   * "program" + "stage" + "dimension" present in the respective {@link DimensionalObject}. This
+   * will result in a list of qualified dimensions in the format:
+   * "programUid.stageUid.dimensionUid".
+   *
+   * @param dimensionalObjects the list of {@link DimensionalObject}.
+   * @return the list of qualified dimensions.
+   */
+  public static List<String> getQualifiedDimensions(List<DimensionalObject> dimensionalObjects) {
+    List<String> dims = new ArrayList<>();
+
+    if (dimensionalObjects != null) {
+      for (DimensionalObject dimension : dimensionalObjects) {
+        dims.add(getQualifiedDimension(dimension));
+      }
+    }
+
+    return dims;
+  }
+
+  /**
+   * This method takes a {@link DimensionalObject} and join the "program" + "stage" + "dimension"
+   * present in the {@link DimensionalObject}. This will result in a list of qualified dimensions in
+   * the format: "programUid.stageUid.dimensionUid" or "programUid.dimensionUid". If there is no
+   * program and no stage, a simple dimension is returned, ie: "dimensionUid".
+   *
+   * @param dimensionalObject the {@link DimensionalObject}.
+   * @return the qualified dimension.
+   */
+  private static String getQualifiedDimension(DimensionalObject dimensionalObject) {
+    String programUid =
+        dimensionalObject.getProgram() != null ? dimensionalObject.getProgram().getUid() : null;
+    String programStageUid = null;
+
+    if (dimensionalObject.hasProgramStage()) {
+      programStageUid = dimensionalObject.getProgramStage().getUid();
+
+      if (dimensionalObject.getProgramStage().getProgram() != null) {
+        programUid = dimensionalObject.getProgramStage().getProgram().getUid();
+      }
+    }
+
+    return asQualifiedDimension(dimensionalObject.getDimension(), programUid, programStageUid);
+  }
+
+  /**
+   * Based on the given input dimensions, this method will simply join them together using "." as
+   * separator. ie: "programUid.programStageUid.dimensionUid" or "programUid.dimensionUid". If there
+   * is no program and no stage, a simple dimension is returned, ie: "dimensionUid".
+   *
+   * @param dimension the representation of a dimension uid.
+   * @param program the representation of a program uid.
+   * @param programStage the representation of a program stage uid.
+   * @return the qualified dimension.
+   */
+  public static String asQualifiedDimension(String dimension, String program, String programStage) {
+    return Stream.of(program, programStage, dimension)
+        .filter(StringUtils::isNotBlank)
+        .collect(joining(COMPOSITE_DIM_OBJECT_PLAIN_SEP));
+  }
+
+  /**
+   * Simply removes any prefix from the qualified dimension, and returns only the actual dimension,
+   * represented by the last "dimensionUid" of the argument.
+   *
+   * @param qualifiedDimension the full dimension, ie. "programUid.programStageUid.dimensionUid"
+   * @return the uid of the actual dimension, ie: "dimensionUid", or itself if the given argument is
+   *     blank/null/empty.
+   */
+  public static String asActualDimension(String qualifiedDimension) {
+    return defaultIfBlank(
+        substringAfterLast(qualifiedDimension, COMPOSITE_DIM_OBJECT_PLAIN_SEP), qualifiedDimension);
   }
 
   /**
@@ -600,7 +767,7 @@ public class DimensionalObjectUtils {
   public static String getKey(List<DimensionalItemObject> objects) {
     return objects.stream()
         .map(DimensionalItemObject::getShortName)
-        .collect(Collectors.joining(NAME_SEP))
+        .collect(joining(NAME_SEP))
         .replaceAll(" ", NAME_SEP)
         .toLowerCase();
   }
@@ -612,9 +779,7 @@ public class DimensionalObjectUtils {
    * @return a column name string.
    */
   public static String getName(List<DimensionalItemObject> objects) {
-    return objects.stream()
-        .map(DimensionalItemObject::getShortName)
-        .collect(Collectors.joining(COL_SEP));
+    return objects.stream().map(DimensionalItemObject::getShortName).collect(joining(COL_SEP));
   }
 
   /**

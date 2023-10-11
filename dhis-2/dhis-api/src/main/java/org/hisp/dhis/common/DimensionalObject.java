@@ -181,6 +181,11 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
   /** Gets the program (not persisted). */
   Program getProgram();
 
+  /** Indicates whether this dimension has a program (not persisted). */
+  default boolean hasProgram() {
+    return getProgram() != null;
+  }
+
   /** Indicates whether this dimension has a program stage (not persisted). */
   default boolean hasProgramStage() {
     return getProgramStage() != null;

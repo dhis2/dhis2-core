@@ -29,8 +29,7 @@ package org.hisp.dhis.eventvisualization;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
-import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asActualDimension;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.eventvisualization.Attribute.FILTER;
 import static org.hisp.dhis.eventvisualization.Attribute.ROW;
@@ -70,17 +69,20 @@ public class SimpleDimensionHandler {
    * representing the associated DimensionalObject. It actually returns an instance of
    * BaseDimensionalObject.
    *
-   * @param dimension the dimension, ie: dx, pe, eventDate
-   * @param parent the parent attribute
-   * @return the respective dimensional object
+   * @param qualifiedDimension the dimension, ie: dx, pe, eventDate, program.eventDate,
+   *     program.stage.dimension.
+   * @param parent the parent attribute.
+   * @return the respective dimensional object.
    * @throws IllegalArgumentException if the dimension does not exist in {@link
-   *     SimpleDimension.Type}
+   *     SimpleDimension.Type}.
    */
-  public DimensionalObject getDimensionalObject(String dimension, Attribute parent) {
-    String actualDim = defaultIfBlank(substringAfterLast(dimension, "."), dimension);
+  public DimensionalObject getDimensionalObject(String qualifiedDimension, Attribute parent) {
+    String actualDim = asActualDimension(qualifiedDimension);
 
     return new BaseDimensionalObject(
-        dimension, from(actualDim).getParentType(), loadDimensionalItems(dimension, parent));
+        qualifiedDimension,
+        from(actualDim).getParentType(),
+        getSimpleDimensionalItems(qualifiedDimension, parent));
   }
 
   /**
@@ -97,25 +99,41 @@ public class SimpleDimensionHandler {
     associateDimensionalObjects(eventAnalyticalObject.getFilters(), FILTER);
   }
 
+  /**
+   * Makes the correct internal associations where applicable, for each one of the given {@link
+   * DimensionalObject} in the list.
+   *
+   * @param dimensionalObjects the list of {@link DimensionalObject}.
+   * @param parent the parent {@link Attribute} of the possible association.
+   */
   private void associateDimensionalObjects(
-      List<DimensionalObject> dimensionalObjects, Attribute attribute) {
+      List<DimensionalObject> dimensionalObjects, Attribute parent) {
     if (isNotEmpty(dimensionalObjects)) {
       for (DimensionalObject object : dimensionalObjects) {
         if (object != null && contains(object.getUid())) {
           eventAnalyticalObject
               .getSimpleDimensions()
-              .add(createSimpleEventDimensionFor(object, attribute));
+              .add(createSimpleEventDimensionFor(object, parent));
         }
       }
     }
   }
 
-  private List<BaseDimensionalItemObject> loadDimensionalItems(
-      String dimension, Attribute parent) {
-     List<BaseDimensionalItemObject> items = new ArrayList<>();
+  /**
+   * Returns a list of {@link BaseDimensionalItemObject} based on the internal list of {@link
+   * SimpleDimension} objects, and also based on the given dimension. The items returned must have
+   * the same qualified dimension and same parent.
+   *
+   * @param qualifiedDimension the qualified dimension.
+   * @param parent the parent {@link Attribute} of the association.
+   * @return the list of {@link BaseDimensionalItemObject}.
+   */
+  private List<BaseDimensionalItemObject> getSimpleDimensionalItems(
+      String qualifiedDimension, Attribute parent) {
+    List<BaseDimensionalItemObject> items = new ArrayList<>();
 
     for (SimpleDimension simpleDimension : eventAnalyticalObject.getSimpleDimensions()) {
-      boolean hasSameDimension = simpleDimension.getDimension().equals(dimension);
+      boolean hasSameDimension = simpleDimension.asQualifiedDimension().equals(qualifiedDimension);
 
       if (simpleDimension.belongsTo(parent) && hasSameDimension) {
         items.addAll(
@@ -128,20 +146,29 @@ public class SimpleDimensionHandler {
     return items;
   }
 
+  /**
+   * Simply creates a new {@link SimpleDimension} object based on the given arguments.
+   *
+   * @param dimensionalObject the {@link DimensionalObject}.
+   * @param parent the parent {@link Attribute} of the association.
+   * @return an instance of {@link SimpleDimension}.
+   */
   private SimpleDimension createSimpleEventDimensionFor(
-      DimensionalObject dimensionalObject, Attribute attribute) {
-    String programUid = dimensionalObject.getProgram() != null ? dimensionalObject.getProgram().getUid() : null;
-    String programStageUid = dimensionalObject.getProgramStage().getUid() != null ? dimensionalObject.getProgramStage().getUid() : null;
-    String actualDim = defaultIfBlank(substringAfterLast(dimensionalObject.getUid(), "."), dimensionalObject.getUid());
+      DimensionalObject dimensionalObject, Attribute parent) {
+    String programUid =
+        dimensionalObject.getProgram() != null ? dimensionalObject.getProgram().getUid() : null;
+    String programStageUid =
+        dimensionalObject.getProgramStage() != null
+            ? dimensionalObject.getProgramStage().getUid()
+            : null;
+    String actualDim = asActualDimension(dimensionalObject.getUid());
 
     SimpleDimension simpleDimension =
-        new SimpleDimension(attribute, actualDim, programUid, programStageUid);
+        new SimpleDimension(parent, actualDim, programUid, programStageUid);
 
     if (isNotEmpty(dimensionalObject.getItems())) {
       simpleDimension.setValues(
-          dimensionalObject.getItems().stream()
-              .map(DimensionalItemObject::getUid)
-              .collect(toList()));
+          dimensionalObject.getItems().stream().map(DimensionalItemObject::getUid).toList());
     }
 
     return simpleDimension;

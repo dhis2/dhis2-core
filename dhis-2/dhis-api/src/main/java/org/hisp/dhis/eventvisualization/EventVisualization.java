@@ -28,7 +28,7 @@
 package org.hisp.dhis.eventvisualization;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.ArrayUtils.contains;
+import static org.apache.commons.lang3.StringUtils.containsAny;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.common.AnalyticsType.EVENT;
@@ -54,8 +54,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.EventDataType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.common.AnalyticsType;
@@ -82,6 +80,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
 
@@ -109,6 +108,9 @@ public class EventVisualization extends BaseAnalyticalObject
 
   /** Program stage. */
   private ProgramStage programStage;
+
+  /** Tracked entity type associated. */
+  private TrackedEntityType trackedEntityType;
 
   /** Data element value dimension. */
   private DataElement dataElementValueDimension;
@@ -367,7 +369,7 @@ public class EventVisualization extends BaseAnalyticalObject
   /**
    * Some EventVisualization's may not have columnDimensions.
    *
-   * <p>PIE, GAUGE and others don't not have rowDimensions.
+   * <p>PIE, GAUGE and others do not have rowDimensions.
    */
   @Override
   public void populateAnalyticalProperties() {
@@ -417,10 +419,15 @@ public class EventVisualization extends BaseAnalyticalObject
         s -> {
           if (isBlank(s.getDimension()) || s.getDirection() == null) {
             throw new IllegalArgumentException("Sorting is not valid");
-          } else if (columns.stream().noneMatch(c -> StringUtils.contains(s.getDimension(), c))) {
+          } else if (columns.stream()
+              .noneMatch(c -> containsAny(s.getDimension(), c.split("\\.")))) {
             throw new IllegalStateException(s.getDimension());
           }
         });
+  }
+
+  public boolean isMultiProgram() {
+    return trackedEntityType != null;
   }
 
   public AnalyticsType getAnalyticsType() {
@@ -453,6 +460,17 @@ public class EventVisualization extends BaseAnalyticalObject
 
   public void setProgramStage(ProgramStage programStage) {
     this.programStage = programStage;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public TrackedEntityType getTrackedEntityType() {
+    return trackedEntityType;
+  }
+
+  public void setTrackedEntityType(TrackedEntityType trackedEntityType) {
+    this.trackedEntityType = trackedEntityType;
   }
 
   @JsonProperty

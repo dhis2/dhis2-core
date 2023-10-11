@@ -28,8 +28,8 @@
 package org.hisp.dhis.dimension;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
-import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.substringBefore;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
 import static org.hisp.dhis.common.DimensionType.DATA_ELEMENT_GROUP_SET;
@@ -433,13 +433,22 @@ public class DefaultDimensionService implements DimensionService {
       EventAnalyticalObject object, List<DimensionalObject> dimensionalObjects, Attribute parent) {
     if (isNotEmpty(dimensionalObjects)) {
       for (DimensionalObject dimensionalObject : dimensionalObjects) {
-        boolean hasEventRepetition = dimensionalObject.getEventRepetition() != null;
-        boolean hasSameDimension = hasEventRepetition && dimensionalObject.getDimension() != null;
+        EventRepetition eventRepetition = dimensionalObject.getEventRepetition();
+        String dimension = dimensionalObject.getDimension();
+        boolean associateEventRepetition = eventRepetition != null && isNotBlank(dimension);
 
-        if (hasEventRepetition && hasSameDimension) {
-          EventRepetition eventRepetition = dimensionalObject.getEventRepetition();
+        if (associateEventRepetition) {
           eventRepetition.setParent(parent);
-          eventRepetition.setDimension(dimensionalObject.getDimension());
+          eventRepetition.setDimension(dimension);
+
+          if (dimensionalObject.hasProgramStage()) {
+            eventRepetition.setProgramStage(dimensionalObject.getProgramStage().getUid());
+            eventRepetition.setProgram(dimensionalObject.getProgramStage().getProgram().getUid());
+          }
+
+          if (dimensionalObject.hasProgram()) {
+            eventRepetition.setProgram(dimensionalObject.getProgram().getUid());
+          }
 
           object.getEventRepetitions().add(eventRepetition);
         }
@@ -475,6 +484,23 @@ public class DefaultDimensionService implements DimensionService {
   }
 
   /**
+   * Loads a program associated with the incoming program stage, if any, so it can be used later in
+   * the processing flow.
+   *
+   * @param dimensionalObject
+   */
+  private void loadProgramForStage(DimensionalObject dimensionalObject) {
+    if (dimensionalObject.hasProgramStage()) {
+      // Sometimes we may have the index of the event, so it needs to be removed. ie.:
+      // "stage_uid[-2]".
+      String stageUid = substringBefore(dimensionalObject.getProgramStage().getUid(), "[");
+      ProgramStage programStage = idObjectManager.get(ProgramStage.class, stageUid);
+
+      dimensionalObject.getProgramStage().setProgram(programStage.getProgram());
+    }
+  }
+
+  /**
    * Sets persistent objects for dimensional associations on the given BaseAnalyticalObject based on
    * the given list of transient DimensionalObjects.
    *
@@ -492,7 +518,9 @@ public class DefaultDimensionService implements DimensionService {
     }
 
     for (DimensionalObject dimension : dimensions) {
-      String dimensionId = defaultIfBlank(substringAfterLast(dimension.getDimension(), "."), dimension.getDimension());
+      String dimensionId = dimension.getDimension();
+      loadProgramForStage(dimension);
+
       DimensionType type = getDimensionType(dimensionId);
       List<DimensionalItemObject> items = dimension.getItems();
 
