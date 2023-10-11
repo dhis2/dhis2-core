@@ -117,8 +117,8 @@ public class TrackedEntityQueryParams {
   /** Tracked entity types to fetch. */
   private List<TrackedEntityType> trackedEntityTypes = Lists.newArrayList();
 
-  /** Selection mode for the specified organisation units, default is DESCENDANTS. */
-  private OrganisationUnitSelectionMode orgUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
+  /** Selection mode for the specified organisation units */
+  private OrganisationUnitSelectionMode orgUnitMode;
 
   private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 

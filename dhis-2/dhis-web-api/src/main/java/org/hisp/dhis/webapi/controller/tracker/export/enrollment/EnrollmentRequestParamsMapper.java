@@ -69,7 +69,7 @@ class EnrollmentRequestParamsMapper {
         validateDeprecatedParameter(
             "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
 
-    validateOrgUnitMode(orgUnits, orgUnitMode);
+    orgUnitMode = validateOrgUnitMode(orgUnits, orgUnitMode);
 
     validateOrderParams(requestParams.getOrder(), ORDERABLE_FIELD_NAMES);
 
