@@ -61,7 +61,6 @@ import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -81,7 +80,6 @@ public class DefaultTrackerImportService implements TrackerImportService {
   @NonNull private final Notifier notifier;
 
   @Override
-  @Transactional
   public TrackerImportReport importTracker(TrackerImportParams params) {
     User user = trackerUserService.getUser(params.getUserId());
     params.setUser(user);
