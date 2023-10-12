@@ -30,6 +30,7 @@ package org.hisp.dhis.dataexchange.client;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.net.URI;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdScheme;
@@ -67,14 +68,14 @@ class Dhis2ClientTest {
 
     String uriA = client.getDataValueSetUri(optionsA).toString();
     String uriB = client.getDataValueSetUri(optionsB).toString();
-    
+
     String expectedA = base + "/api/dataValueSets?dataElementIdScheme=CODE&orgUnitIdScheme=CODE";
     String expectedB = base + "/api/dataValueSets?orgUnitIdScheme=CODE&idScheme=CODE";
 
     assertEquals(expectedA, uriA);
     assertEquals(expectedB, uriB);
   }
-  
+
   @Test
   void testGetDataValueSetUriB() {
     String base = "https://play.dhis2.org/2.38.0";
@@ -94,7 +95,7 @@ class Dhis2ClientTest {
 
     String uriA = client.getDataValueSetUri(optionsA).toString();
     String uriB = client.getDataValueSetUri(optionsB).toString();
-    
+
     String expectedA = base + "/api/dataValueSets?importStrategy=CREATE&skipAudit=true&dryRun=true";
     String expectedB = base + "/api/dataValueSets";
 
@@ -153,7 +154,7 @@ class Dhis2ClientTest {
     client.addIfNotDefault(builder, "dataElementIdScheme", IdScheme.CODE);
     client.addIfNotDefault(builder, "orgUnitIdScheme", null);
     client.addIfNotDefault(builder, "idScheme", IdScheme.UID);
-    
+
     String expected = "https://server.org?dataElementIdScheme=CODE";
 
     assertEquals(expected, builder.build().toString());
@@ -171,9 +172,10 @@ class Dhis2ClientTest {
     client.addIfNotDefault(builder, "orgUnitIdScheme", IdScheme.UID);
     client.addIfNotDefault(builder, "idScheme", IdScheme.from(new Attribute("fd0zFf0ylhI")));
 
-    String expected = "https://server.org?" + 
-        "dataElementIdScheme=ATTRIBUTE:bFOVPzWwQiC&idScheme=ATTRIBUTE:fd0zFf0ylhI";
-    
+    String expected =
+        "https://server.org?"
+            + "dataElementIdScheme=ATTRIBUTE:bFOVPzWwQiC&idScheme=ATTRIBUTE:fd0zFf0ylhI";
+
     assertEquals(expected, builder.build().toString());
   }
 
@@ -191,7 +193,7 @@ class Dhis2ClientTest {
         ImportStrategy.CREATE_AND_UPDATE);
     client.addIfNotDefault(builder, "skipAudit", true, false);
     client.addIfNotDefault(builder, "dryRun", false, false);
-    
+
     String expected = "https://server.org?skipAudit=true";
 
     assertEquals(expected, builder.build().toString());
@@ -208,7 +210,7 @@ class Dhis2ClientTest {
         builder, "importStrategy", ImportStrategy.CREATE, ImportStrategy.CREATE_AND_UPDATE);
     client.addIfNotDefault(builder, "skipAudit", false, false);
     client.addIfNotDefault(builder, "dryRun", true, false);
-    
+
     String expected = "https://server.org?importStrategy=CREATE&dryRun=true";
 
     assertEquals(expected, builder.build().toString());

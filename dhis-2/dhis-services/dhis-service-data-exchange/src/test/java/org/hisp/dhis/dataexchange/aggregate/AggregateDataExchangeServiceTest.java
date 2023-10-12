@@ -38,6 +38,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
+
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
