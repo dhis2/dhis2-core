@@ -28,12 +28,10 @@
 package org.hisp.dhis.dataexchange.client;
 
 import static java.lang.String.format;
-
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
-
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
@@ -55,10 +53,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -211,9 +207,13 @@ public class Dhis2Client {
 
     addIfNotDefault(builder, "dataElementIdScheme", idSchemes.getDataElementIdScheme());
     addIfNotDefault(builder, "orgUnitIdScheme", idSchemes.getOrgUnitIdScheme());
-    addIfNotDefault(
-        builder, "categoryOptionComboIdScheme", idSchemes.getCategoryOptionComboIdScheme());
+    addIfNotDefault(builder, "categoryOptionComboIdScheme", 
+        idSchemes.getCategoryOptionComboIdScheme());
     addIfNotDefault(builder, "idScheme", idSchemes.getIdScheme());
+    addIfNotDefault(builder, "importStrategy", 
+        options.getImportStrategy(), ImportOptions.DEFAULT_IMPORT_STRATEGY);
+    addIfNotDefault(builder, "skipAudit", options.isSkipAudit(), false);
+    addIfNotDefault(builder, "dryRun", options.isDryRun(), false);    
 
     return builder.build().toUri();
   }
@@ -231,7 +231,22 @@ public class Dhis2Client {
       builder.queryParam(queryParam, idScheme.name());
     }
   }
-
+  
+  /**
+   * Adds the given value to the URI builder if not equal to the given default value.
+   * 
+   * @param builder the {@link UriComponentsBuilder}.
+   * @param queryParam the query parameter name.
+   * @param value the value.
+   * @param defaultValue the default value.
+   */
+  void addIfNotDefault(UriComponentsBuilder builder, 
+      String queryParam, Object value, Object defaultValue) {
+    if (!Objects.equals(defaultValue, value)) {
+      builder.queryParam(queryParam, value);
+    }
+  }
+  
   /**
    * Returns a {@link ResponseEntity} for the given body and {@link HttpClientErrorException}.
    *

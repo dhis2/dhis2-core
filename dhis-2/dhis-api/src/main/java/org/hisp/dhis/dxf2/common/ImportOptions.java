@@ -27,6 +27,15 @@
  */
 package org.hisp.dhis.dxf2.common;
 
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.user.User;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -38,15 +47,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.user.User;
 
 /**
  * The idScheme is a general setting which will apply to all objects. The idSchemes can also be
@@ -66,6 +66,12 @@ import org.hisp.dhis.user.User;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ImportOptions implements JobParameters {
 
+  public static final ImportStrategy DEFAULT_IMPORT_STRATEGY = ImportStrategy.CREATE_AND_UPDATE;
+  
+  public static final MergeMode DEFAULT_MERGE_MODE = MergeMode.REPLACE;
+  
+  public static final ImportReportMode DEFAULT_REPORT_MODE = ImportReportMode.FULL;
+  
   @ToString.Exclude private transient User user;
 
   @OpenApi.Ignore
@@ -81,13 +87,13 @@ public class ImportOptions implements JobParameters {
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
   private boolean async;
 
-  private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
+  private ImportStrategy importStrategy = DEFAULT_IMPORT_STRATEGY;
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
-  private MergeMode mergeMode = MergeMode.REPLACE;
+  private MergeMode mergeMode = DEFAULT_MERGE_MODE;
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
-  private ImportReportMode reportMode = ImportReportMode.FULL;
+  private ImportReportMode reportMode = DEFAULT_REPORT_MODE;
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
   private boolean skipExistingCheck;
