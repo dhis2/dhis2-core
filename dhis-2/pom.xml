@@ -101,7 +101,7 @@
     <jasypt.version>1.9.3</jasypt.version>
     <nimbus.jose.jwt.version>9.24.4</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.0</com.google.zxing.core.version>
-    <com.google.zxing.javase.version>3.5.0</com.google.zxing.javase.version>
+    <com.google.zxing.javase.version>3.5.2</com.google.zxing.javase.version>
 
     <!-- Spring -->
     <spring.version>5.3.30</spring.version>
