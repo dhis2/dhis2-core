@@ -83,14 +83,14 @@ public class ObjectUtils {
 
   /**
    * Indicates whether the given object is null.
-   * 
+   *
    * @param the object.
    * @return true if not null.
    */
   public static boolean notNull(Object object) {
     return object != null;
   }
-  
+
   /**
    * Indicates whether any of the given conditions are not null and true.
    *

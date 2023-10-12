@@ -33,6 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -80,9 +84,6 @@ import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

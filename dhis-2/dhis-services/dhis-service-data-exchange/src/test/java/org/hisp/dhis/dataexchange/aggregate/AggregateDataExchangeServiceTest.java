@@ -38,6 +38,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
+
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
@@ -246,9 +247,7 @@ class AggregateDataExchangeServiceTest {
   @Test
   void testToImportOptionsB() {
     TargetRequest request =
-        new TargetRequest()
-            .setDataElementIdScheme("uid")
-            .setOrgUnitIdScheme("code");
+        new TargetRequest().setDataElementIdScheme("uid").setOrgUnitIdScheme("code");
     Target target = new Target().setType(TargetType.EXTERNAL).setApi(new Api()).setRequest(request);
     AggregateDataExchange exchange = new AggregateDataExchange().setTarget(target);
 
