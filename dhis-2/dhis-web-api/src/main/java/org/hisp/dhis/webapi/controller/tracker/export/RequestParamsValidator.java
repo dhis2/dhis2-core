@@ -336,63 +336,62 @@ public class RequestParamsValidator {
    * @throws BadRequestException if a wrong combination of org unit and org unit mode supplied
    */
   public static OrganisationUnitSelectionMode validateOrgUnitMode(
-      Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
+      Set<UID> orgUnits,
+      OrganisationUnitSelectionMode orgUnitMode,
+      Set<UID> trackedEntities,
+      boolean validateTrackedEntities)
+      throws BadRequestException {
 
     if (orgUnitMode == null) {
       return orgUnits.isEmpty() ? ACCESSIBLE : SELECTED;
     }
 
-    if (!orgUnits.isEmpty()
-        && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE || orgUnitMode == ALL)) {
+    if (orgUnitModeDoesNotRequireOrgUnit(orgUnitMode) && !orgUnits.isEmpty()) {
       throw new BadRequestException(
           String.format(
               "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
               orgUnitMode));
     }
 
-    if ((orgUnitMode == CHILDREN || orgUnitMode == SELECTED || orgUnitMode == DESCENDANTS)
-        && orgUnits.isEmpty()) {
-      throw new BadRequestException(
-          String.format(
-              "At least one org unit is required for orgUnitMode: %s. Please add an orgUnit or use a different orgUnitMode.",
-              orgUnitMode));
+    if (validateTrackedEntities) {
+      validateOrgUnitOrTrackedEntityIsPresent(orgUnitMode, orgUnits, trackedEntities);
+    } else {
+      validateOrgUnitIsPresent(orgUnitMode, orgUnits);
     }
 
     return orgUnitMode;
   }
 
-  /**
-   * Validates that the org unit is not present if the ou mode is ACCESSIBLE or CAPTURE. If it is,
-   * an exception will be thrown. If the org unit mode is not defined, SELECTED will be used by
-   * default if an org unit is present. Otherwise, ACCESSIBLE will be the default.
-   *
-   * @param orgUnit the org unit to validate
-   * @return a valid org unit mode
-   * @throws BadRequestException if a wrong combination of org unit and org unit mode supplied
-   */
-  public static OrganisationUnitSelectionMode validateOrgUnitMode(
-      UID orgUnit, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
-
-    if (orgUnitMode == null) {
-      orgUnitMode = orgUnit != null ? SELECTED : ACCESSIBLE;
-    }
-
-    if ((orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE) && orgUnit != null) {
+  private static void validateOrgUnitOrTrackedEntityIsPresent(
+      OrganisationUnitSelectionMode orgUnitMode, Set<UID> orgUnits, Set<UID> trackedEntities)
+      throws BadRequestException {
+    if (orgUnitModeRequiresOrgUnit(orgUnitMode)
+        && orgUnits.isEmpty()
+        && trackedEntities.isEmpty()) {
       throw new BadRequestException(
           String.format(
-              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
+              "At least one org unit or tracked entity is required for orgUnitMode: %s. Please add one of the two or use a different orgUnitMode.",
               orgUnitMode));
     }
+  }
 
-    if ((orgUnitMode == CHILDREN || orgUnitMode == SELECTED || orgUnitMode == DESCENDANTS)
-        && orgUnit == null) {
+  private static void validateOrgUnitIsPresent(
+      OrganisationUnitSelectionMode orgUnitMode, Set<UID> orgUnits) throws BadRequestException {
+    if (orgUnitModeRequiresOrgUnit(orgUnitMode) && orgUnits.isEmpty()) {
       throw new BadRequestException(
           String.format(
-              "orgUnit is required for orgUnitMode: %s. Please add an orgUnit or use a different orgUnitMode.",
+              "At least one org unit is required for orgUnitMode: %s. Please add one org unit or use a different orgUnitMode.",
               orgUnitMode));
     }
+  }
 
-    return orgUnitMode;
+  private static boolean orgUnitModeRequiresOrgUnit(OrganisationUnitSelectionMode orgUnitMode) {
+    return orgUnitMode == CHILDREN || orgUnitMode == SELECTED || orgUnitMode == DESCENDANTS;
+  }
+
+  private static boolean orgUnitModeDoesNotRequireOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    return orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE || orgUnitMode == ALL;
   }
 
   public static void validatePaginationParameters(PageRequestParams params)

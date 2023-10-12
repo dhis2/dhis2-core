@@ -304,7 +304,7 @@ class RequestParamsValidatorTest {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), orgUnitMode));
+            () -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), orgUnitMode, emptySet(), false));
 
     assertStartsWith(
         String.format("orgUnitMode %s cannot be used with orgUnits.", orgUnitMode),
@@ -317,7 +317,7 @@ class RequestParamsValidatorTest {
       names = {"CAPTURE", "ACCESSIBLE", "ALL"})
   void shouldPassWhenNoOrgUnitSuppliedAndOrgUnitModeDoesNotRequireOrgUnit(
       OrganisationUnitSelectionMode orgUnitMode) {
-    assertDoesNotThrow(() -> validateOrgUnitMode(emptySet(), orgUnitMode));
+    assertDoesNotThrow(() -> validateOrgUnitMode(emptySet(), orgUnitMode, emptySet(), false));
   }
 
   @ParameterizedTest
@@ -326,7 +326,18 @@ class RequestParamsValidatorTest {
       names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
   void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeRequiresOrgUnit(
       OrganisationUnitSelectionMode orgUnitMode) {
-    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), orgUnitMode));
+    assertDoesNotThrow(
+        () -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), orgUnitMode, emptySet(), false));
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldPassWhenTrackedEntitySuppliedAndOrgUnitModeRequiresOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    assertDoesNotThrow(
+        () -> validateOrgUnitMode(emptySet(), orgUnitMode, Set.of(UID.of(TEA_1_UID)), true));
   }
 
   @ParameterizedTest
@@ -336,10 +347,29 @@ class RequestParamsValidatorTest {
   void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeRequiresOrgUnit(
       OrganisationUnitSelectionMode orgUnitMode) {
     Exception exception =
-        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), orgUnitMode));
+        assertThrows(
+            BadRequestException.class,
+            () -> validateOrgUnitMode(emptySet(), orgUnitMode, emptySet(), false));
 
     assertStartsWith(
         String.format("At least one org unit is required for orgUnitMode: %s", orgUnitMode),
+        exception.getMessage());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldFailWhenNoOrgUnitNorTrackedEntitySuppliedAndOrgUnitModeRequiresOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateOrgUnitMode(emptySet(), orgUnitMode, emptySet(), true));
+
+    assertStartsWith(
+        String.format(
+            "At least one org unit or tracked entity is required for orgUnitMode: %s", orgUnitMode),
         exception.getMessage());
   }
 

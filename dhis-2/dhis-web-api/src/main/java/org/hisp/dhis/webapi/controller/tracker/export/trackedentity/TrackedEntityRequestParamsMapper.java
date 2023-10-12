@@ -91,7 +91,8 @@ class TrackedEntityRequestParamsMapper {
         validateDeprecatedParameter(
             "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
 
-    orgUnitMode = validateOrgUnitMode(orgUnitUids, orgUnitMode);
+    orgUnitMode =
+        validateOrgUnitMode(orgUnitUids, orgUnitMode, requestParams.getTrackedEntities(), true);
 
     Set<UID> trackedEntities =
         validateDeprecatedUidsParameter(

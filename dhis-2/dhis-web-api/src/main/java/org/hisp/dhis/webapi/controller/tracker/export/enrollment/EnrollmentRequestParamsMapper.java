@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
+import static java.util.Collections.emptySet;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
@@ -69,7 +70,7 @@ class EnrollmentRequestParamsMapper {
         validateDeprecatedParameter(
             "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
 
-    orgUnitMode = validateOrgUnitMode(orgUnits, orgUnitMode);
+    orgUnitMode = validateOrgUnitMode(orgUnits, orgUnitMode, emptySet(), false);
 
     validateOrderParams(requestParams.getOrder(), ORDERABLE_FIELD_NAMES);
 
