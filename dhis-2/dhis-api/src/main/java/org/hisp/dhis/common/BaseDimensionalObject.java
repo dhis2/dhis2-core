@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.asBaseObjects;
 import static org.hisp.dhis.common.DisplayProperty.SHORTNAME;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -44,6 +45,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.tuple.Triple;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.eventvisualization.EventRepetition;
@@ -134,39 +136,23 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
 
   public BaseDimensionalObject(String dimension) {
     if (dimension != null) {
-      assignDimensions(dimension);
+      with(dimension);
     }
   }
 
   /**
    * This method will split the given dimension into individual "uid" and assign each one to the
-   * respective object.
+   * respective object, for each internal association.
    *
-   * @param dimension the dimension. It can be a simple uid like "dimUid", or a qualified value like
-   *     "programUid.stageUid.dimUid".
+   * @param qualifiedDimension the dimension. It can be a simple uid like "dimUid", or a qualified
+   *     value like "programUid.stageUid.dimUid".
    */
-  private void assignDimensions(String dimension) {
-    String[] dims = dimension.split("\\.");
+  private void with(String qualifiedDimension) {
+    Triple<Program, ProgramStage, BaseDimensionalObject> tripe = asBaseObjects(qualifiedDimension);
 
-    if (dims.length == 1) {
-      this.uid = dimension;
-    } else if (dims.length == 2) {
-      Program p = new Program();
-      p.setUid(dims[0]);
-      this.program = p;
-
-      this.uid = dims[1];
-    } else if (dims.length == 3) {
-      Program p = new Program();
-      p.setUid(dims[0]);
-      this.program = p;
-
-      ProgramStage ps = new ProgramStage();
-      ps.setUid(dims[1]);
-      this.programStage = ps;
-
-      this.uid = dims[2];
-    }
+    this.program = tripe.getLeft() != null ? tripe.getLeft() : null;
+    this.programStage = tripe.getMiddle() != null ? tripe.getMiddle() : null;
+    this.uid = tripe.getRight() != null ? tripe.getRight().getUid() : qualifiedDimension;
   }
 
   public BaseDimensionalObject(

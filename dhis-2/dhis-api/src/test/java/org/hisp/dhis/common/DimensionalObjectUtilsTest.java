@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.asActualDimension;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asBaseObjects;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asQualifiedDimension;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getQualifiedDimensions;
 import static org.hisp.dhis.common.DimensionalObjectUtils.linkAssociations;
@@ -44,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.tuple.Triple;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -457,6 +459,48 @@ class DimensionalObjectUtilsTest {
 
     // Then
     assertEquals("dimensionUid", result);
+  }
+
+  @Test
+  void testAsBaseObjects() {
+    // Given
+    String qualifiedDim = "programUid.programStageUid.dimensionUid";
+
+    // When
+    Triple<Program, ProgramStage, BaseDimensionalObject> result = asBaseObjects(qualifiedDim);
+
+    // Then
+    assertEquals("programUid", result.getLeft().getUid());
+    assertEquals("programStageUid", result.getMiddle().getUid());
+    assertEquals("dimensionUid", result.getRight().getUid());
+  }
+
+  @Test
+  void testBaseObjectsNoProgramStage() {
+    // Given
+    String qualifiedDim = "programUid.dimensionUid";
+
+    // When
+    Triple<Program, ProgramStage, BaseDimensionalObject> result = asBaseObjects(qualifiedDim);
+
+    // Then
+    assertEquals("programUid", result.getLeft().getUid());
+    assertEquals(null, result.getMiddle());
+    assertEquals("dimensionUid", result.getRight().getUid());
+  }
+
+  @Test
+  void testBaseObjectsOnlyDimensionItem() {
+    // Given
+    String qualifiedDim = "dimensionUid";
+
+    // When
+    Triple<Program, ProgramStage, BaseDimensionalObject> result = asBaseObjects(qualifiedDim);
+
+    // Then
+    assertEquals(null, result.getLeft());
+    assertEquals(null, result.getMiddle());
+    assertEquals("dimensionUid", result.getRight().getUid());
   }
 
   @Test

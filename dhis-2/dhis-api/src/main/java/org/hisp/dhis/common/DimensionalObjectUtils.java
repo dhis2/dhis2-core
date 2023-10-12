@@ -56,6 +56,7 @@ import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
 import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.eventvisualization.Attribute;
@@ -165,6 +166,45 @@ public class DimensionalObjectUtils {
     }
 
     return dimensionalObject;
+  }
+
+  /**
+   * This method will split the given dimension into individual "uid" and create each object {@link
+   * Triple} based on their respective "uid".
+   *
+   * @param qualifiedDimension the dimension. It can be a simple uid like "dimUid", or a qualified
+   *     value like "programUid.stageUid.dimUid".
+   * @return a {@link Triple} of {@link Program}, {@link ProgramStage} and {@link
+   *     BaseDimensionalObject}.
+   */
+  public static Triple<Program, ProgramStage, BaseDimensionalObject> asBaseObjects(
+      String qualifiedDimension) {
+    String[] uids = qualifiedDimension.split("\\.");
+    BaseDimensionalObject dimensionalObject = new BaseDimensionalObject();
+
+    if (uids.length == 1) {
+      dimensionalObject.setUid(qualifiedDimension);
+      return Triple.of(null, null, dimensionalObject);
+    } else if (uids.length == 2) {
+      dimensionalObject.setUid(uids[1]);
+
+      Program p = new Program();
+      p.setUid(uids[0]);
+
+      return Triple.of(p, null, dimensionalObject);
+    } else if (uids.length == 3) {
+      dimensionalObject.setUid(uids[2]);
+
+      Program p = new Program();
+      p.setUid(uids[0]);
+
+      ProgramStage ps = new ProgramStage();
+      ps.setUid(uids[1]);
+
+      return Triple.of(p, ps, dimensionalObject);
+    }
+
+    return Triple.of(null, null, null);
   }
 
   /**
