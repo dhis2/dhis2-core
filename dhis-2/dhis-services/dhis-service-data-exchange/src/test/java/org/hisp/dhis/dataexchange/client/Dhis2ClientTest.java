@@ -30,7 +30,6 @@ package org.hisp.dhis.dataexchange.client;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.net.URI;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdScheme;
@@ -49,10 +48,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 class Dhis2ClientTest {
   @Test
-  void testGetDataValueSetUri() {
-    String baseUrl = "https://play.dhis2.org/2.38.0";
+  void testGetDataValueSetUriA() {
+    String base = "https://play.dhis2.org/2.38.0";
 
-    Dhis2Client client = Dhis2Client.withBasicAuth(baseUrl, "admin", "district");
+    Dhis2Client client = Dhis2Client.withBasicAuth(base, "admin", "district");
 
     ImportOptions optionsA =
         new ImportOptions()
@@ -68,10 +67,39 @@ class Dhis2ClientTest {
 
     String uriA = client.getDataValueSetUri(optionsA).toString();
     String uriB = client.getDataValueSetUri(optionsB).toString();
+    
+    String expectedA = base + "/api/dataValueSets?dataElementIdScheme=CODE&orgUnitIdScheme=CODE";
+    String expectedB = base + "/api/dataValueSets?orgUnitIdScheme=CODE&idScheme=CODE";
 
-    assertEquals(
-        baseUrl + "/api/dataValueSets?dataElementIdScheme=CODE&orgUnitIdScheme=CODE", uriA);
-    assertEquals(baseUrl + "/api/dataValueSets?orgUnitIdScheme=CODE&idScheme=CODE", uriB);
+    assertEquals(expectedA, uriA);
+    assertEquals(expectedB, uriB);
+  }
+  
+  @Test
+  void testGetDataValueSetUriB() {
+    String base = "https://play.dhis2.org/2.38.0";
+
+    Dhis2Client client = Dhis2Client.withBasicAuth(base, "admin", "district");
+
+    ImportOptions optionsA =
+        new ImportOptions()
+            .setImportStrategy(ImportStrategy.CREATE)
+            .setSkipAudit(true)
+            .setDryRun(true);
+    ImportOptions optionsB =
+        new ImportOptions()
+            .setImportStrategy(ImportStrategy.CREATE_AND_UPDATE)
+            .setSkipAudit(false)
+            .setDryRun(false);
+
+    String uriA = client.getDataValueSetUri(optionsA).toString();
+    String uriB = client.getDataValueSetUri(optionsB).toString();
+    
+    String expectedA = base + "/api/dataValueSets?importStrategy=CREATE&skipAudit=true&dryRun=true";
+    String expectedB = base + "/api/dataValueSets";
+
+    assertEquals(expectedA, uriA);
+    assertEquals(expectedB, uriB);
   }
 
   @Test
@@ -125,8 +153,10 @@ class Dhis2ClientTest {
     client.addIfNotDefault(builder, "dataElementIdScheme", IdScheme.CODE);
     client.addIfNotDefault(builder, "orgUnitIdScheme", null);
     client.addIfNotDefault(builder, "idScheme", IdScheme.UID);
+    
+    String expected = "https://server.org?dataElementIdScheme=CODE";
 
-    assertEquals("https://server.org?dataElementIdScheme=CODE", builder.build().toString());
+    assertEquals(expected, builder.build().toString());
   }
 
   @Test
@@ -141,9 +171,10 @@ class Dhis2ClientTest {
     client.addIfNotDefault(builder, "orgUnitIdScheme", IdScheme.UID);
     client.addIfNotDefault(builder, "idScheme", IdScheme.from(new Attribute("fd0zFf0ylhI")));
 
-    assertEquals(
-        "https://server.org?dataElementIdScheme=ATTRIBUTE:bFOVPzWwQiC&idScheme=ATTRIBUTE:fd0zFf0ylhI",
-        builder.build().toString());
+    String expected = "https://server.org?" + 
+        "dataElementIdScheme=ATTRIBUTE:bFOVPzWwQiC&idScheme=ATTRIBUTE:fd0zFf0ylhI";
+    
+    assertEquals(expected, builder.build().toString());
   }
 
   @Test
@@ -160,8 +191,10 @@ class Dhis2ClientTest {
         ImportStrategy.CREATE_AND_UPDATE);
     client.addIfNotDefault(builder, "skipAudit", true, false);
     client.addIfNotDefault(builder, "dryRun", false, false);
+    
+    String expected = "https://server.org?skipAudit=true";
 
-    assertEquals("https://server.org?skipAudit=true", builder.build().toString());
+    assertEquals(expected, builder.build().toString());
   }
 
   @Test
@@ -175,9 +208,10 @@ class Dhis2ClientTest {
         builder, "importStrategy", ImportStrategy.CREATE, ImportStrategy.CREATE_AND_UPDATE);
     client.addIfNotDefault(builder, "skipAudit", false, false);
     client.addIfNotDefault(builder, "dryRun", true, false);
+    
+    String expected = "https://server.org?importStrategy=CREATE&dryRun=true";
 
-    assertEquals(
-        "https://server.org?importStrategy=CREATE&dryRun=true", builder.build().toString());
+    assertEquals(expected, builder.build().toString());
   }
 
   @Test
