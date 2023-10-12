@@ -43,6 +43,10 @@ public interface JsonRelationship extends JsonObject {
     return getString("relationshipType").string();
   }
 
+  default String getCreatedAtClient() {
+    return getString("createdAtClient").string();
+  }
+
   default JsonRelationshipItem getFrom() {
     return get("from").as(JsonRelationshipItem.class);
   }

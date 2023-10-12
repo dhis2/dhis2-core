@@ -188,6 +188,7 @@ public class DefaultRelationshipService implements RelationshipService {
     result.setRelationshipType(relationship.getRelationshipType());
     result.setFrom(withNestedEntity(relationship.getFrom()));
     result.setTo(withNestedEntity(relationship.getTo()));
+    result.setCreatedAtClient(relationship.getCreatedAtClient());
     return result;
   }
 
