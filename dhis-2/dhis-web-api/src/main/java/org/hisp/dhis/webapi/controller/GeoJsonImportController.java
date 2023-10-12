@@ -109,16 +109,17 @@ public class GeoJsonImportController {
   private WebMessage runImport(
       boolean async, GeoJsonImportJobParams params, HttpServletRequest request)
       throws ConflictException, NotFoundException, IOException {
+    User currentUser = currentUserService.getCurrentUser();
     if (async) {
       JobConfiguration jobConfig = new JobConfiguration(JobType.GEOJSON_IMPORT);
       jobConfig.setJobParameters(params);
-      jobConfig.setExecutedBy(currentUserService.getCurrentUser().getUid());
+      jobConfig.setExecutedBy(currentUser.getUid());
       jobSchedulerService.executeNow(
           jobConfigurationService.create(jobConfig, APPLICATION_JSON, request.getInputStream()));
 
       return jobConfigurationReport(jobConfig);
     }
-
+    params.setUser(currentUser);
     return toWebMessage(geoJsonService.importGeoData(params, request.getInputStream()));
   }
 

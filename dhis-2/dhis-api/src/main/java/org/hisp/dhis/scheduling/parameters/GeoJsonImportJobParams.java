@@ -33,12 +33,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.user.User;
 
 @Builder(toBuilder = true)
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class GeoJsonImportJobParams implements JobParameters {
@@ -58,5 +60,5 @@ public class GeoJsonImportJobParams implements JobParameters {
    */
   @JsonProperty private String attributeId;
 
-  @JsonProperty private User user;
+  private User user;
 }

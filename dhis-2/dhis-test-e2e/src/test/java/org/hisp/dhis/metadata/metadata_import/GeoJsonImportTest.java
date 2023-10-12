@@ -59,6 +59,10 @@ class GeoJsonImportTest extends ApiTest {
   void geoJsonImportAsync() {
     loginActions.loginAsSuperUser();
 
+    // make sure org unit has no geo json data
+    ApiResponse deleteOrgUnitResponse = restApiActions.delete("/ImspTQPwCqd/geometry");
+    assertEquals(200, deleteOrgUnitResponse.statusCode());
+
     // create geo json
     String geoJson = geoJson();
 
@@ -84,6 +88,43 @@ class GeoJsonImportTest extends ApiTest {
     // wait for job to be completed (24 seconds used as the job schedule loop is 20 seconds)
     ApiResponse taskStatus = systemActions.waitUntilTaskCompleted("GEOJSON_IMPORT", taskId, 24);
     assertTrue(taskStatus.getAsString().contains("\"completed\":true"));
+
+    // get org unit again which should now contain geometry property
+    ApiResponse getUpdatedOrgUnit = restApiActions.get("/ImspTQPwCqd");
+
+    // validate async-completed geo json import
+    getUpdatedOrgUnit
+        .validate()
+        .statusCode(200)
+        .body("geometry.type", equalTo("Point"))
+        .body("geometry.coordinates.size()", equalTo(2));
+  }
+
+  @Test
+  void geoJsonImportSync() {
+    loginActions.loginAsSuperUser();
+
+    // make sure org unit has no geo json data
+    ApiResponse deleteOrgUnitResponse = restApiActions.delete("/ImspTQPwCqd/geometry");
+    assertEquals(200, deleteOrgUnitResponse.statusCode());
+
+    // create geo json
+    String geoJson = geoJson();
+
+    // get org unit geometry to show currently empty
+    ApiResponse getOrgUnitResponse = restApiActions.get("/ImspTQPwCqd");
+    assertNull(getOrgUnitResponse.getBody().get("geometry"));
+
+    // post geo json async
+    ApiResponse postGeoJsonAsyncResponse = restApiActions.post("/geometry", geoJson);
+    assertEquals(200, postGeoJsonAsyncResponse.statusCode());
+
+    assertTrue(
+        postGeoJsonAsyncResponse
+            .getBody()
+            .get("message")
+            .getAsString()
+            .contains("Import successful."));
 
     // get org unit again which should now contain geometry property
     ApiResponse getUpdatedOrgUnit = restApiActions.get("/ImspTQPwCqd");
