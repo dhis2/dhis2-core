@@ -70,7 +70,7 @@ public class GeoJsonImportJob implements Job {
       progress.startingStage("Importing GeoJSON started");
       GeoJsonImportReport report = geoJsonService.importGeoData(jobParams, input);
       progress.completedStage("Importing GeoJSON completed");
-      progress.completedProcess("GeoJSON import completed");
+      progress.completedProcess("GeoJSON import completed : " + report.getImportCount());
       notifier.addJobSummary(jobConfig, report, GeoJsonImportReport.class);
     } catch (IOException e) {
       progress.failedProcess(e);
