@@ -87,15 +87,14 @@ class ValidationResultStoreHqlTest {
   @BeforeEach
   void setUp() {
     EntityManager entityManager = mock(EntityManager.class);
-    SessionFactory sessionFactory = mock(SessionFactory.class);
     JdbcTemplate jdbcTemplate = new JdbcTemplate();
+    Session session = mock(Session.class);
     ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
+    when(entityManager.unwrap(Session.class)).thenReturn(session);
     currentUserService = mock(CurrentUserService.class);
     store =
         new HibernateValidationResultStore(
             entityManager, jdbcTemplate, publisher, currentUserService);
-    Session session = mock(Session.class);
-    when(entityManager.unwrap(SessionFactory.class)).thenReturn(sessionFactory);
     when(session.createQuery(anyString()))
         .then(
             createQueryInvocation -> {

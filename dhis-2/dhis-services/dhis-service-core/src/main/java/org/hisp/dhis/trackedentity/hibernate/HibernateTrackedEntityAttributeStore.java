@@ -169,8 +169,7 @@ public class HibernateTrackedEntityAttributeStore
   @SuppressWarnings({"unchecked", "rawtypes"})
   public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes() {
     Query query =
-        sessionFactory
-            .getCurrentSession()
+       getSession()
             .createQuery("select trackedEntityTypeAttributes from TrackedEntityType");
 
     Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new HashSet<>(query.list());
@@ -186,18 +185,15 @@ public class HibernateTrackedEntityAttributeStore
     Set<TrackedEntityAttribute> result = new HashSet<>();
 
     Query<TrackedEntityAttribute> programTeaQuery =
-        sessionFactory
-            .getCurrentSession()
+        getSession()
             .createQuery(
                 "select attribute from ProgramTrackedEntityAttribute ptea where ptea.searchable=true and ptea.attribute.valueType in ('TEXT','LONG_TEXT','PHONE_NUMBER','EMAIL','USERNAME','URL')");
     Query<TrackedEntityAttribute> tetypeAttributeQuery =
-        sessionFactory
-            .getCurrentSession()
+        getSession()
             .createQuery(
                 "select trackedEntityAttribute from TrackedEntityTypeAttribute teta where teta.searchable=true and teta.trackedEntityAttribute.valueType in ('TEXT','LONG_TEXT','PHONE_NUMBER','EMAIL','USERNAME','URL')");
     Query<TrackedEntityAttribute> uniqueAttributeQuery =
-        sessionFactory
-            .getCurrentSession()
+        getSession()
             .createQuery("from TrackedEntityAttribute tea where tea.unique=true");
 
     List<TrackedEntityAttribute> programSearchableTrackedEntityAttributes = programTeaQuery.list();
@@ -218,7 +214,7 @@ public class HibernateTrackedEntityAttributeStore
     Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
 
     Query query =
-        sessionFactory.getCurrentSession().createQuery("select p.programAttributes from Program p");
+        getSession().createQuery("select p.programAttributes from Program p");
 
     List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.list();
 

@@ -425,7 +425,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
       return new ArrayList<>();
     }
 
-    CriteriaBuilder cb = sessionFactory.getCurrentSession().getCriteriaBuilder();
+    CriteriaBuilder cb = entityManager.getCriteriaBuilder();
     CriteriaQuery<Enrollment> cr = cb.createQuery(Enrollment.class);
     Root<Enrollment> enrollment = cr.from(Enrollment.class);
 
@@ -445,7 +445,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
 
     cr.select(enrollment).where(cb.or(predicates.toArray(new Predicate[] {})));
 
-    return sessionFactory.getCurrentSession().createQuery(cr).getResultList();
+    return entityManager.createQuery(cr).getResultList();
   }
 
   private String toDateProperty(NotificationTrigger trigger) {

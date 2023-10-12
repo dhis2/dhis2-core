@@ -167,7 +167,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
 
   @Override
   public Period reloadPeriod(Period period) {
-    Session session = sessionFactory.getCurrentSession();
+    Session session = getSession();
 
     if (session.contains(period)) {
       return period; // Already in session, no reload needed
@@ -208,23 +208,17 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
 
   @Override
   public int addPeriodType(PeriodType periodType) {
-    Session session = sessionFactory.getCurrentSession();
-
-    return (Integer) session.save(periodType);
+    return (Integer) getSession().save(periodType);
   }
 
   @Override
   public void deletePeriodType(PeriodType periodType) {
-    Session session = sessionFactory.getCurrentSession();
-
-    session.delete(periodType);
+    getSession().delete(periodType);
   }
 
   @Override
   public PeriodType getPeriodType(int id) {
-    Session session = sessionFactory.getCurrentSession();
-
-    return session.get(PeriodType.class, id);
+    return getSession().get(PeriodType.class, id);
   }
 
   @Override
@@ -249,9 +243,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
 
   @Override
   public PeriodType reloadPeriodType(PeriodType periodType) {
-    Session session = sessionFactory.getCurrentSession();
-
-    if (periodType == null || session.contains(periodType)) {
+    if (periodType == null || getSession().contains(periodType)) {
       return periodType;
     }
 
@@ -267,7 +259,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
 
   @Override
   public Period insertIsoPeriodInStatelessSession(Period period) {
-    StatelessSession session = sessionFactory.openStatelessSession();
+    StatelessSession session = getSession().getSessionFactory().openStatelessSession();
     try {
       Serializable id = session.insert(period);
       periodIdCache.put(period.getCacheKey(), (Long) id);
@@ -288,6 +280,6 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
 
   @Override
   public void deleteRelativePeriods(RelativePeriods relativePeriods) {
-    sessionFactory.getCurrentSession().delete(relativePeriods);
+    getSession().delete(relativePeriods);
   }
 }

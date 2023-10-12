@@ -62,14 +62,13 @@ public class HibernateProgramTempOwnershipAuditStore
 
   @Override
   public void addProgramTempOwnershipAudit(ProgramTempOwnershipAudit programTempOwnershipAudit) {
-    sessionFactory.getCurrentSession().save(programTempOwnershipAudit);
+    getSession().save(programTempOwnershipAudit);
   }
 
   @Override
   public void deleteProgramTempOwnershipAudit(Program program) {
     String hql = "delete ProgramTempOwnershipAudit where program = :program";
-    sessionFactory
-        .getCurrentSession()
+    entityManager
         .createQuery(hql)
         .setParameter("program", program)
         .executeUpdate();

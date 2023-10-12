@@ -56,8 +56,7 @@ public class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note>
   @Override
   public boolean exists(String uid) {
     return (boolean)
-        sessionFactory
-            .getCurrentSession()
+        entityManager
             .createNativeQuery("select exists(select 1 from note where uid=:uid)")
             .setParameter("uid", uid)
             .getSingleResult();

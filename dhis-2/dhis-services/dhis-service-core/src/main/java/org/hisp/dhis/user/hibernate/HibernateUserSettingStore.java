@@ -45,10 +45,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class HibernateUserSettingStore implements UserSettingStore {
   private static final boolean CACHEABLE = true;
 
-  private SessionFactory sessionFactory;
+  private EntityManager entityManager;
+
+  private Session session;
 
   public HibernateUserSettingStore(EntityManager entityManager) {
-    sessionFactory = entityManager.unwrap(Session.class).getSessionFactory();
+    this.entityManager = entityManager;
+    this.session = entityManager.unwrap(Session.class);
   }
 
   // -------------------------------------------------------------------------
@@ -60,12 +63,12 @@ public class HibernateUserSettingStore implements UserSettingStore {
 
   @Override
   public void addUserSetting(UserSetting userSetting) {
-    sessionFactory.getCurrentSession().save(userSetting);
+   session.save(userSetting);
   }
 
   @Override
   public void updateUserSetting(UserSetting userSetting) {
-    sessionFactory.getCurrentSession().update(userSetting);
+    session.update(userSetting);
   }
 
   @Override
@@ -77,7 +80,6 @@ public class HibernateUserSettingStore implements UserSettingStore {
   @Override
   @SuppressWarnings("unchecked")
   public UserSetting getUserSetting(User user, String name) {
-    Session session = sessionFactory.getCurrentSession();
     Query<UserSetting> query =
         session.createQuery("from UserSetting us where us.user = :user and us.name = :name");
     query.setParameter("user", user);
@@ -90,7 +92,6 @@ public class HibernateUserSettingStore implements UserSettingStore {
   @Override
   @SuppressWarnings("unchecked")
   public List<UserSetting> getAllUserSettings(User user) {
-    Session session = sessionFactory.getCurrentSession();
     Query<UserSetting> query = session.createQuery("from UserSetting us where us.user = :user");
     query.setParameter("user", user);
     query.setCacheable(CACHEABLE);
@@ -100,15 +101,11 @@ public class HibernateUserSettingStore implements UserSettingStore {
 
   @Override
   public void deleteUserSetting(UserSetting userSetting) {
-    Session session = sessionFactory.getCurrentSession();
-
     session.delete(userSetting);
   }
 
   @Override
   public void removeUserSettings(User user) {
-    Session session = sessionFactory.getCurrentSession();
-
     String hql = "delete from UserSetting us where us.user = :user";
 
     session.createQuery(hql).setParameter("user", user).executeUpdate();

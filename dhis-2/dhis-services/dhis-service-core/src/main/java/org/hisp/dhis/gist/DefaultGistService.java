@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -66,7 +67,7 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
    */
   private static final String NOW_PARAMETER_VALUE = "now";
 
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
 
   private final SchemaService schemaService;
 
@@ -81,7 +82,7 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
   private final ObjectMapper jsonMapper;
 
   private Session getSession() {
-    return sessionFactory.getCurrentSession();
+    return entityManager.unwrap(Session.class);
   }
 
   @Override

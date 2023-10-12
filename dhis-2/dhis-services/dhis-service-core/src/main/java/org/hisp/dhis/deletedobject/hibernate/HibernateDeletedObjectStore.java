@@ -28,6 +28,8 @@
 package org.hisp.dhis.deletedobject.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -46,10 +48,10 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("org.hisp.dhis.deletedobject.DeletedObjectStore")
 public class HibernateDeletedObjectStore implements DeletedObjectStore {
-  private SessionFactory sessionFactory;
+  private EntityManager entityManager;
 
-  public HibernateDeletedObjectStore(SessionFactory sessionFactory) {
-    this.sessionFactory = sessionFactory;
+  public HibernateDeletedObjectStore(EntityManager entityManager) {
+    this.entityManager = entityManager;
   }
 
   @Override
@@ -174,6 +176,6 @@ public class HibernateDeletedObjectStore implements DeletedObjectStore {
   }
 
   private Session getCurrentSession() {
-    return sessionFactory.getCurrentSession();
+    return entityManager.unwrap(Session.class);
   }
 }

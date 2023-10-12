@@ -55,7 +55,7 @@ public class HibernateProgramTempOwnerStore extends HibernateGenericStore<Progra
 
   @Override
   public void addProgramTempOwner(ProgramTempOwner programTempOwner) {
-    sessionFactory.getCurrentSession().save(programTempOwner);
+    getSession().save(programTempOwner);
   }
 
   @Override

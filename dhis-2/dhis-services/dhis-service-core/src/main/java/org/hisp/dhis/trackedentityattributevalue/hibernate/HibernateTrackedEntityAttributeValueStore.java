@@ -61,7 +61,7 @@ public class HibernateTrackedEntityAttributeValueStore
 
   @Override
   public void saveVoid(TrackedEntityAttributeValue attributeValue) {
-    sessionFactory.getCurrentSession().save(attributeValue);
+    getSession().save(attributeValue);
   }
 
   @Override

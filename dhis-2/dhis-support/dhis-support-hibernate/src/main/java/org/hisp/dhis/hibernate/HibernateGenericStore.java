@@ -51,8 +51,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.StatelessSession;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.query.NativeQuery;
@@ -77,8 +75,6 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
 
   protected static final int OBJECT_FETCH_SIZE = 2000;
 
-  protected SessionFactory sessionFactory;
-
   protected EntityManager entityManager;
 
   protected JdbcTemplate jdbcTemplate;
@@ -100,7 +96,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     checkNotNull(publisher);
     checkNotNull(clazz);
 
-    this.sessionFactory = entityManager.unwrap(SessionFactory.class);
+    this.entityManager = entityManager;
     this.jdbcTemplate = jdbcTemplate;
     this.publisher = publisher;
     this.clazz = clazz;
@@ -139,10 +135,6 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
 
   protected final EntityManager getEntityManager() {
     return entityManager;
-  }
-
-  protected final StatelessSession getStatelessSession() {
-    return sessionFactory.openStatelessSession();
   }
 
   /**

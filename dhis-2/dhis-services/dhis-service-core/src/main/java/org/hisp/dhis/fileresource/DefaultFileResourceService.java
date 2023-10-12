@@ -40,7 +40,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -59,7 +61,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Halvdan Hoem Grelland
  */
-@RequiredArgsConstructor
 @Service("org.hisp.dhis.fileresource.FileResourceService")
 public class DefaultFileResourceService implements FileResourceService {
   private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
@@ -74,13 +75,31 @@ public class DefaultFileResourceService implements FileResourceService {
 
   private final PeriodService periodService;
 
-  private final SessionFactory sessionFactory;
-
   private final FileResourceContentStore fileResourceContentStore;
 
   private final ImageProcessingService imageProcessingService;
 
   private final ApplicationEventPublisher fileEventPublisher;
+
+  private EntityManager entityManager;
+
+  private Session session;
+
+  // Constructor
+
+  public DefaultFileResourceService(FileResourceStore fileResourceStore,
+      PeriodService periodService,
+      FileResourceContentStore fileResourceContentStore,
+      ImageProcessingService imageProcessingService, ApplicationEventPublisher fileEventPublisher,
+      EntityManager entityManager) {
+    this.fileResourceStore = fileResourceStore;
+    this.periodService = periodService;
+    this.fileResourceContentStore = fileResourceContentStore;
+    this.imageProcessingService = imageProcessingService;
+    this.fileEventPublisher = fileEventPublisher;
+    this.entityManager = entityManager;
+    this.session = entityManager.unwrap(Session.class);
+  }
 
   // -------------------------------------------------------------------------
   // FileResourceService implementation
@@ -163,7 +182,7 @@ public class DefaultFileResourceService implements FileResourceService {
 
     fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
     fileResourceStore.save(fileResource);
-    sessionFactory.getCurrentSession().flush();
+    session.flush();
 
     if (FileResource.isImage(fileResource.getContentType())
         && FileResourceDomain.isDomainForMultipleImages(fileResource.getDomain())) {
@@ -182,7 +201,7 @@ public class DefaultFileResourceService implements FileResourceService {
   public String saveFileResource(FileResource fileResource, byte[] bytes) {
     fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
     fileResourceStore.save(fileResource);
-    sessionFactory.getCurrentSession().flush();
+    session.flush();
 
     final String uid = fileResource.getUid();
 

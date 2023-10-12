@@ -39,6 +39,8 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.Map;
+import javax.persistence.EntityManager;
+import javax.swing.text.html.parser.Entity;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -73,6 +75,8 @@ class FileResourceServiceTest {
 
   @Mock private ApplicationEventPublisher fileEventPublisher;
 
+  @Mock private EntityManager entityManager;
+
   @Mock private Session session;
 
   @Captor private ArgumentCaptor<FileSavedEvent> fileSavedEventCaptor;
@@ -89,10 +93,11 @@ class FileResourceServiceTest {
         new DefaultFileResourceService(
             fileResourceStore,
             periodService,
-            sessionFactory,
             fileResourceContentStore,
             imageProcessingService,
-            fileEventPublisher);
+            fileEventPublisher,
+            entityManager);
+    when(entityManager.unwrap(Session.class)).thenReturn(session);
   }
 
   @Test
@@ -104,8 +109,6 @@ class FileResourceServiceTest {
     fileResource.setUid("fileRes1");
 
     File file = new File("");
-
-    when(sessionFactory.getCurrentSession()).thenReturn(session);
 
     subject.saveFileResource(fileResource, file);
 
@@ -215,8 +218,6 @@ class FileResourceServiceTest {
     Map<ImageFileDimension, File> imageFiles = Map.of(ImageFileDimension.LARGE, file);
 
     when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
-
-    when(sessionFactory.getCurrentSession()).thenReturn(session);
 
     fileResource.setUid("imageUid1");
 
