@@ -52,6 +52,7 @@ Get relationships in given order. Relationships can be ordered by the following 
 properties
 
 * `createdAt`
+* `createdAtClient`
 
 Valid `sortDirection`s are `asc` and `desc`. `sortDirection` is case-insensitive. `sortDirection`
 defaults to `asc` for properties without explicit `sortDirection` as in `order=createdAt`.
