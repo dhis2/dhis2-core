@@ -30,7 +30,6 @@ package org.hisp.dhis.dataexchange.client;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.net.URI;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdScheme;
@@ -40,6 +39,7 @@ import org.hisp.dhis.dataexchange.client.response.Status;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -115,7 +115,7 @@ class Dhis2ClientTest {
   }
 
   @Test
-  void testAddIfNotDefaultA() throws Exception {
+  void testAddIfNotDefaultIdSchemeA() throws Exception {
     Dhis2Client client =
         Dhis2Client.withBasicAuth("https://play.dhis2.org/2.38.0", "admin", "district");
 
@@ -129,7 +129,7 @@ class Dhis2ClientTest {
   }
 
   @Test
-  void testAddIfNotDefaultB() throws Exception {
+  void testAddIfNotDefaultIdSchemeB() throws Exception {
     Dhis2Client client =
         Dhis2Client.withBasicAuth("https://play.dhis2.org/2.38.0", "admin", "district");
 
@@ -143,6 +143,36 @@ class Dhis2ClientTest {
     assertEquals(
         "https://server.org?dataElementIdScheme=ATTRIBUTE:bFOVPzWwQiC&idScheme=ATTRIBUTE:fd0zFf0ylhI",
         builder.build().toString());
+  }
+  
+  @Test
+  void testAddIfNotDefaultA() throws Exception {
+    Dhis2Client client =
+        Dhis2Client.withBasicAuth("https://play.dhis2.org/2.38.0", "admin", "district");
+
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUri(new URI("https://server.org"));
+    
+    client.addIfNotDefault(builder, "importStrategy", ImportStrategy.CREATE_AND_UPDATE, ImportStrategy.CREATE_AND_UPDATE);
+    client.addIfNotDefault(builder, "skipAudit", true, false);
+    client.addIfNotDefault(builder, "dryRun", false, false);
+    
+    assertEquals(
+        "https://server.org?skipAudit=true", builder.build().toString());
+  }
+
+  @Test
+  void testAddIfNotDefaultB() throws Exception {
+    Dhis2Client client =
+        Dhis2Client.withBasicAuth("https://play.dhis2.org/2.38.0", "admin", "district");
+
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUri(new URI("https://server.org"));
+    
+    client.addIfNotDefault(builder, "importStrategy", ImportStrategy.CREATE, ImportStrategy.CREATE_AND_UPDATE);
+    client.addIfNotDefault(builder, "skipAudit", false, false);
+    client.addIfNotDefault(builder, "dryRun", true, false);
+    
+    assertEquals(
+        "https://server.org?importStrategy=CREATE&dryRun=true", builder.build().toString());
   }
 
   @Test
