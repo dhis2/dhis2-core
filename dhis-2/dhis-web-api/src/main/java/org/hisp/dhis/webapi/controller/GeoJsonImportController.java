@@ -82,7 +82,7 @@ public class GeoJsonImportController {
 
   @PostMapping(
       value = "/geometry",
-      consumes = {"application/json"})
+      consumes = {"application/geo+json", "application/json"})
   public WebMessage postImport(
       @RequestParam(defaultValue = "true") boolean geoJsonId,
       @RequestParam(required = false) String geoJsonProperty,

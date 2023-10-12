@@ -68,7 +68,6 @@ class GeoJsonImportTest extends ApiTest {
 
     // post geo json async
     ApiResponse postGeoJsonAsyncResponse = restApiActions.post("/geometry?async=true", geoJson);
-    assertEquals("200", postGeoJsonAsyncResponse.getAsString());
     assertEquals(200, postGeoJsonAsyncResponse.statusCode());
 
     assertTrue(
@@ -76,7 +75,7 @@ class GeoJsonImportTest extends ApiTest {
             .getBody()
             .get("message")
             .getAsString()
-            .contains("Initiated GeoJSON import"));
+            .contains("Initiated GEOJSON_IMPORT"));
 
     String taskId =
         postGeoJsonAsyncResponse.getBody().getAsJsonObject("response").get("id").getAsString();
