@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import org.hisp.dhis.importexport.ImportStrategy;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -50,4 +51,13 @@ public class TargetRequest implements Serializable {
 
   /** General identifier scheme. */
   @JsonProperty private String idScheme;
+  
+  /** Import strategy. */
+  @JsonProperty private ImportStrategy importStrategy;
+  
+  /** Indicates whether to skip audit records. */
+  @JsonProperty private Boolean skipAudit;
+
+  /** Indicates whether to do a dry run. */
+  @JsonProperty private Boolean dryRun;
 }
