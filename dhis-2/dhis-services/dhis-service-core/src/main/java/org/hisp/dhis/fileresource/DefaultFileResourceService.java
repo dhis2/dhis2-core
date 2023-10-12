@@ -41,9 +41,7 @@ import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
-import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
@@ -87,10 +85,12 @@ public class DefaultFileResourceService implements FileResourceService {
 
   // Constructor
 
-  public DefaultFileResourceService(FileResourceStore fileResourceStore,
+  public DefaultFileResourceService(
+      FileResourceStore fileResourceStore,
       PeriodService periodService,
       FileResourceContentStore fileResourceContentStore,
-      ImageProcessingService imageProcessingService, ApplicationEventPublisher fileEventPublisher,
+      ImageProcessingService imageProcessingService,
+      ApplicationEventPublisher fileEventPublisher,
       EntityManager entityManager) {
     this.fileResourceStore = fileResourceStore;
     this.periodService = periodService;
@@ -182,7 +182,7 @@ public class DefaultFileResourceService implements FileResourceService {
 
     fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
     fileResourceStore.save(fileResource);
-    session.flush();
+    entityManager.flush();
 
     if (FileResource.isImage(fileResource.getContentType())
         && FileResourceDomain.isDomainForMultipleImages(fileResource.getDomain())) {

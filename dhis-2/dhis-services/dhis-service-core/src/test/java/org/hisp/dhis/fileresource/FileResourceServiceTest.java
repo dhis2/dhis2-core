@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,7 +41,6 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.util.Map;
 import javax.persistence.EntityManager;
-import javax.swing.text.html.parser.Entity;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -67,8 +67,6 @@ class FileResourceServiceTest {
 
   @Mock private PeriodService periodService;
 
-  @Mock private SessionFactory sessionFactory;
-
   @Mock private FileResourceContentStore fileResourceContentStore;
 
   @Mock private ImageProcessingService imageProcessingService;
@@ -76,8 +74,6 @@ class FileResourceServiceTest {
   @Mock private ApplicationEventPublisher fileEventPublisher;
 
   @Mock private EntityManager entityManager;
-
-  @Mock private Session session;
 
   @Captor private ArgumentCaptor<FileSavedEvent> fileSavedEventCaptor;
 
@@ -97,7 +93,6 @@ class FileResourceServiceTest {
             imageProcessingService,
             fileEventPublisher,
             entityManager);
-    when(entityManager.unwrap(Session.class)).thenReturn(session);
   }
 
   @Test
@@ -113,7 +108,7 @@ class FileResourceServiceTest {
     subject.saveFileResource(fileResource, file);
 
     verify(fileResourceStore).save(fileResource);
-    verify(session).flush();
+    verify(entityManager).flush();
 
     verify(fileEventPublisher, times(1)).publishEvent(fileSavedEventCaptor.capture());
 
@@ -163,14 +158,12 @@ class FileResourceServiceTest {
 
     when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
 
-    when(sessionFactory.getCurrentSession()).thenReturn(session);
-
     fileResource.setUid("imageUid1");
 
     subject.saveFileResource(fileResource, file);
 
     verify(fileResourceStore).save(fileResource);
-    verify(session).flush();
+    verify(entityManager).flush();
 
     verify(fileEventPublisher, times(1)).publishEvent(imageFileSavedEventCaptor.capture());
 
@@ -224,7 +217,7 @@ class FileResourceServiceTest {
     subject.saveFileResource(fileResource, file);
 
     verify(fileResourceStore).save(fileResource);
-    verify(session).flush();
+    verify(entityManager).flush();
 
     verify(fileEventPublisher, times(1)).publishEvent(imageFileSavedEventCaptor.capture());
 

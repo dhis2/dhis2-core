@@ -48,7 +48,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.persistence.EntityManager;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.calendar.DateUnitType;
 import org.hisp.dhis.category.Category;

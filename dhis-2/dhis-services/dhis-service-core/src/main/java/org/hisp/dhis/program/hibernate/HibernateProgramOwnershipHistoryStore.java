@@ -28,8 +28,6 @@
 package org.hisp.dhis.program.hibernate;
 
 import javax.persistence.EntityManager;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryStore;
 import org.springframework.stereotype.Repository;

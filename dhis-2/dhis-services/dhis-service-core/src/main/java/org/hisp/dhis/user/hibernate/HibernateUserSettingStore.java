@@ -30,7 +30,6 @@ package org.hisp.dhis.user.hibernate;
 import java.util.List;
 import javax.persistence.EntityManager;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSetting;
@@ -63,7 +62,7 @@ public class HibernateUserSettingStore implements UserSettingStore {
 
   @Override
   public void addUserSetting(UserSetting userSetting) {
-   session.save(userSetting);
+    session.save(userSetting);
   }
 
   @Override

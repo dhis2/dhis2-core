@@ -68,10 +68,7 @@ public class HibernateProgramTempOwnershipAuditStore
   @Override
   public void deleteProgramTempOwnershipAudit(Program program) {
     String hql = "delete ProgramTempOwnershipAudit where program = :program";
-    entityManager
-        .createQuery(hql)
-        .setParameter("program", program)
-        .executeUpdate();
+    entityManager.createQuery(hql).setParameter("program", program).executeUpdate();
   }
 
   @Override

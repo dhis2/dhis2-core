@@ -169,8 +169,7 @@ public class HibernateTrackedEntityAttributeStore
   @SuppressWarnings({"unchecked", "rawtypes"})
   public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes() {
     Query query =
-       getSession()
-            .createQuery("select trackedEntityTypeAttributes from TrackedEntityType");
+        getSession().createQuery("select trackedEntityTypeAttributes from TrackedEntityType");
 
     Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new HashSet<>(query.list());
 
@@ -193,8 +192,7 @@ public class HibernateTrackedEntityAttributeStore
             .createQuery(
                 "select trackedEntityAttribute from TrackedEntityTypeAttribute teta where teta.searchable=true and teta.trackedEntityAttribute.valueType in ('TEXT','LONG_TEXT','PHONE_NUMBER','EMAIL','USERNAME','URL')");
     Query<TrackedEntityAttribute> uniqueAttributeQuery =
-        getSession()
-            .createQuery("from TrackedEntityAttribute tea where tea.unique=true");
+        getSession().createQuery("from TrackedEntityAttribute tea where tea.unique=true");
 
     List<TrackedEntityAttribute> programSearchableTrackedEntityAttributes = programTeaQuery.list();
     List<TrackedEntityAttribute> trackedEntityTypeSearchableAttributes =
@@ -213,8 +211,7 @@ public class HibernateTrackedEntityAttributeStore
   public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram() {
     Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
 
-    Query query =
-        getSession().createQuery("select p.programAttributes from Program p");
+    Query query = getSession().createQuery("select p.programAttributes from Program p");
 
     List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.list();
 

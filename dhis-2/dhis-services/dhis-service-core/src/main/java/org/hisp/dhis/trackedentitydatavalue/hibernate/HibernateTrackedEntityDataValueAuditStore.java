@@ -40,7 +40,6 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
@@ -68,7 +67,6 @@ public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityD
 
   public HibernateTrackedEntityDataValueAuditStore(EntityManager entityManager) {
     this.entityManager = entityManager;
-
   }
 
   // -------------------------------------------------------------------------
@@ -129,20 +127,14 @@ public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityD
   public void deleteTrackedEntityDataValueAudit(DataElement dataElement) {
     String hql = "delete from TrackedEntityDataValueAudit d where d.dataElement = :de";
 
-    entityManager
-        .createQuery(hql)
-        .setParameter("de", dataElement)
-        .executeUpdate();
+    entityManager.createQuery(hql).setParameter("de", dataElement).executeUpdate();
   }
 
   @Override
   public void deleteTrackedEntityDataValueAudit(Event event) {
     String hql = "delete from TrackedEntityDataValueAudit d where d.event = :event";
 
-    entityManager
-        .createQuery(hql)
-        .setParameter("event", event)
-        .executeUpdate();
+    entityManager.createQuery(hql).setParameter("event", event).executeUpdate();
   }
 
   private List<Predicate> getTrackedEntityDataValueAuditCriteria(

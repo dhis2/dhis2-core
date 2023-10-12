@@ -51,8 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @RequiredArgsConstructor
 public class HibernateDataIntegrityStore implements DataIntegrityStore {
-  @PersistenceContext
-  private final EntityManager entityManager;
+  @PersistenceContext private final EntityManager entityManager;
 
   @Override
   @Transactional(readOnly = true)

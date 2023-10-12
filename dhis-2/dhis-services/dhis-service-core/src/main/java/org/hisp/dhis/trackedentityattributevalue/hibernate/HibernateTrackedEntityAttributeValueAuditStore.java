@@ -35,7 +35,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
@@ -82,8 +81,7 @@ public class HibernateTrackedEntityAttributeValueAuditStore
 
     criteria.where(predicates.toArray(new Predicate[0])).orderBy(builder.desc(root.get("created")));
 
-    Query<TrackedEntityAttributeValueAudit> query =
-        session.createQuery(criteria);
+    Query<TrackedEntityAttributeValueAudit> query = session.createQuery(criteria);
 
     if (params.hasPager()) {
       query

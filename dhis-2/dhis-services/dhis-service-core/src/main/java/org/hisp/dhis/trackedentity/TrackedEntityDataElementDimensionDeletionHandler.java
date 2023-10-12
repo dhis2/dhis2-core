@@ -32,7 +32,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -55,8 +54,8 @@ public class TrackedEntityDataElementDimensionDeletionHandler extends DeletionHa
     // TODO Move this get-method to service layer
 
     Query query =
-        entityManager
-            .createQuery("FROM TrackedEntityDataElementDimension WHERE legendSet=:legendSet");
+        entityManager.createQuery(
+            "FROM TrackedEntityDataElementDimension WHERE legendSet=:legendSet");
     query.setParameter("legendSet", legendSet);
 
     List<TrackedEntityDataElementDimension> dataElementDimensions = query.getResultList();
