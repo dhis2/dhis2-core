@@ -139,7 +139,7 @@ class GeoJsonImportTest extends ApiTest {
 
   private String geoJson() {
     return """
-        { 
+        {
           "type": "FeatureCollection",
           "features":[
             {
