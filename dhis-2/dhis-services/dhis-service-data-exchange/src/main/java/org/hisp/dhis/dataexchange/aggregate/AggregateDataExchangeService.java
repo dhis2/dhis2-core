@@ -35,6 +35,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
+import static org.hisp.dhis.util.ObjectUtils.notNull;
 
 import java.util.Date;
 import java.util.List;
@@ -250,6 +251,15 @@ public class AggregateDataExchangeService {
     if (isNotBlank(request.getIdScheme())) {
       options.setIdScheme(request.getIdScheme());
     }
+    if (notNull(request.getImportStrategy())) {
+      options.setImportStrategy(request.getImportStrategy());
+    }
+    if (notNull(request.getSkipAudit())) {
+      options.setSkipAudit(request.getSkipAudit());
+    }
+    if (notNull(request.getDryRun())) {
+      options.setDryRun(request.getDryRun());
+    }
 
     return options;
   }
@@ -337,7 +347,6 @@ public class AggregateDataExchangeService {
    */
   IdScheme toIdScheme(String... idSchemes) {
     String idScheme = ObjectUtils.firstNonNull(idSchemes);
-
     return idScheme != null ? IdScheme.from(idScheme) : null;
   }
 

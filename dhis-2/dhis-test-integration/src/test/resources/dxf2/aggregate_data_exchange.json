@@ -58,7 +58,7 @@
             "outputDataElementIdScheme": "UID",
             "outputOrgUnitIdScheme": "UID",
             "outputDataItemIdScheme": "UID",
-            "outputIdscheme": "UID"
+            "outputIdScheme": "UID"
           }
         ]
       },
@@ -68,7 +68,10 @@
           "dataElementIdScheme": null,
           "orgUnitIdScheme": null,
           "categoryOptionComboIdScheme": null,
-          "idScheme": null
+          "idScheme": null,
+          "importStrategy": "CREATE_AND_UPDATE",
+          "skipAudit": false,
+          "dryRun": false
         }
       }
     },
@@ -101,7 +104,7 @@
             "outputDataElementIdScheme": "UID",
             "outputOrgUnitIdScheme": "UID",
             "outputDataItemIdScheme": "UID",
-            "outputIdscheme": "UID"
+            "outputIdScheme": "UID"
           }
         ]
       },
@@ -116,7 +119,10 @@
           "dataElementIdScheme": "UID",
           "orgUnitIdScheme": "UID",
           "categoryOptionComboIdScheme": "UID",
-          "idScheme": "UID"
+          "idScheme": "UID",
+          "importStrategy": "CREATE_AND_UPDATE",
+          "skipAudit": false,
+          "dryRun": false
         }
       }
     },
@@ -149,7 +155,7 @@
             "outputDataElementIdScheme": "UID",
             "outputOrgUnitIdScheme": "UID",
             "outputDataItemIdScheme": "UID",
-            "outputIdscheme": "UID"
+            "outputIdScheme": "UID"
           }
         ]
       },
@@ -163,7 +169,10 @@
           "dataElementIdScheme": "UID",
           "orgUnitIdScheme": "UID",
           "categoryOptionComboIdScheme": "UID",
-          "idScheme": "UID"
+          "idScheme": "UID",
+          "importStrategy": "CREATE_AND_UPDATE",
+          "skipAudit": false,
+          "dryRun": false
         }
       }
     }
