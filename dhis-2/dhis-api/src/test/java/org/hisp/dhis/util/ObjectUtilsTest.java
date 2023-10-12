@@ -28,11 +28,13 @@
 package org.hisp.dhis.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.google.common.collect.Lists;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.junit.jupiter.api.Test;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -48,5 +50,11 @@ class ObjectUtilsTest {
     String actual = ObjectUtils.join(elements, ", ", de -> de.getName());
     assertEquals("DataElementA, DataElementB, DataElementC", actual);
     assertEquals(null, ObjectUtils.join(null, ", ", null));
+  }
+  
+  @Test
+  void testNotNull() {
+    assertTrue(ObjectUtils.notNull(ImportStrategy.CREATE_AND_UPDATE));
+    assertFalse(ObjectUtils.notNull(null));
   }
 }
