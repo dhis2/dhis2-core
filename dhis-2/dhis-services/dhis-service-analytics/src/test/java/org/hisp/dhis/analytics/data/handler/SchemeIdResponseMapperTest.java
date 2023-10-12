@@ -36,6 +36,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
+import static org.hisp.dhis.analytics.OutputFormat.ANALYTICS;
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
@@ -68,11 +69,13 @@ import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
@@ -80,6 +83,7 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
@@ -216,12 +220,12 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToNameForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToName() {
     List<DataElement> dataElementsStub = stubDataElements();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
     DataQueryParams theDataQueryParams =
-        stubDataElementQueryParams(dataElementsStub, orUnitStub, periodStub, DATA_VALUE_SET);
+        stubDataItemQueryParams(dataElementsStub, orUnitStub, periodStub, DATA_VALUE_SET);
     theDataQueryParams.setOutputDataElementIdScheme(NAME);
 
     Map<String, String> responseMap =
@@ -239,7 +243,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToCodeForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToCode() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -270,7 +274,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUuidForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUuid() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -297,7 +301,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUidForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUid() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -324,7 +328,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToNameForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToName() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -351,7 +355,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToCodeForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToCode() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -378,7 +382,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUuidForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUuid() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -405,7 +409,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUidForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUid() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -432,8 +436,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void
-      testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeOverridesOutputIdScheme() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -467,8 +470,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void
-      testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeOverridesOutputOrgUnitIdScheme() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -503,8 +505,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void
-      testGetSchemeIdResponseMapWhenOutputDataElementAndOrgUnitIdSchemeOverrideOutputOrgUnitIdSchemeForDataValueSet() {
+  void testGetSchemeIdResponseMapWhenOutputDataElementOrgUnitIdSchemeOverrideOutputIdScheme() {
     List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
     OrganisationUnit orUnitStub = stubOrgUnit();
     Period periodStub = stubPeriod();
@@ -539,6 +540,57 @@ class SchemeIdResponseMapperTest {
     assertThat(
         responseMap.get(categoryOptionComboC.getUid()),
         is(equalTo(categoryOptionComboC.getCode())));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeOverridesOutputIdScheme() {
+    List<DataElement> dataElementsStub = stubDataElements();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubDataItemQueryParams(dataElementsStub, orUnitStub, periodStub, ANALYTICS);
+    theDataQueryParams.setOutputIdScheme(NAME);
+    theDataQueryParams.setOutputDataElementIdScheme(CODE);
+
+    Map<String, String> responseMap =
+        schemeIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementsStub.get(0);
+    DataElement dataElementB = dataElementsStub.get(1);
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(orUnitStub.getName())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getName())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(equalTo(dataElementA.getCode())));
+    assertThat(responseMap.get(dataElementB.getUid()), is(equalTo(dataElementB.getCode())));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputDataItemIdSchemeOverridesOutputIdScheme() {
+    List<DimensionalItemObject> itemStub = stubDataItems();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubDataItemQueryParams(itemStub, orUnitStub, periodStub, ANALYTICS);
+    theDataQueryParams.setOutputIdScheme(NAME);
+    theDataQueryParams.setOutputDataItemIdScheme(CODE);
+
+    Map<String, String> responseMap =
+        schemeIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DimensionalItemObject dataElementA = itemStub.get(0);
+    DimensionalItemObject indicatorA = itemStub.get(1);
+    DimensionalItemObject programIndicatorA = itemStub.get(2);
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(orUnitStub.getName())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getName())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(equalTo(dataElementA.getCode())));
+    assertThat(responseMap.get(indicatorA.getUid()), is(equalTo(indicatorA.getCode())));
+    assertThat(
+        responseMap.get(programIndicatorA.getUid()), is(equalTo(programIndicatorA.getCode())));
   }
 
   @Test
@@ -583,7 +635,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeNAME() {
+  void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeName() {
     // Given
     Option option = new Option("name", "code");
     option.setUid("uid");
@@ -608,7 +660,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeCODE() {
+  void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeCode() {
     // Given
     Option option = new Option("name", "code");
     option.setUid("uid");
@@ -633,7 +685,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeUID() {
+  void testApplyOptionAndLegendSetMappingWhenHasOptionSetAndSchemeUid() {
     // Given
     Option option = new Option("name", "code");
     option.setUid("uid");
@@ -658,7 +710,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeNAME() {
+  void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeName() {
     // Given
     Legend legend = new Legend();
     legend.setUid("uid");
@@ -685,7 +737,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeCODE() {
+  void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeCode() {
     // Given
     Legend legend = new Legend();
     legend.setUid("uid");
@@ -712,7 +764,7 @@ class SchemeIdResponseMapperTest {
   }
 
   @Test
-  void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeUID() {
+  void testApplyOptionAndLegendSetMappingWhenHasLegendSetAndSchemeUid() {
     // Given
     Legend legend = new Legend();
     legend.setUid("uid");
@@ -817,13 +869,13 @@ class SchemeIdResponseMapperTest {
         .build();
   }
 
-  private DataQueryParams stubDataElementQueryParams(
-      List<DataElement> dataElements,
+  private DataQueryParams stubDataItemQueryParams(
+      List<? extends DimensionalItemObject> dataItems,
       OrganisationUnit organisationUnit,
       Period period,
       OutputFormat outputFormat) {
     return newBuilder()
-        .addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, dataElements))
+        .addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, dataItems))
         .addDimension(
             new BaseDimensionalObject(
                 ORGUNIT_DIM_ID, ORGANISATION_UNIT, newArrayList(organisationUnit)))
@@ -872,6 +924,25 @@ class SchemeIdResponseMapperTest {
     dataElementB.setCode("CodeB");
 
     return newArrayList(dataElementA, dataElementB);
+  }
+
+  private List<DimensionalItemObject> stubDataItems() {
+    DataElement dataElementA = new DataElement();
+    dataElementA.setUid("fM8kR4FOTR6");
+    dataElementA.setName("DataElementNameA");
+    dataElementA.setCode("DataElementCodeA");
+
+    Indicator indicatorA = new Indicator();
+    indicatorA.setUid("SN78k0lNyvd");
+    indicatorA.setName("IndicatorNameA");
+    indicatorA.setCode("IndicatorCodeA");
+
+    ProgramIndicator programIndicatorA = new ProgramIndicator();
+    programIndicatorA.setUid("fCGiVvsXbkY");
+    programIndicatorA.setName("ProgramIndicatorNameA");
+    programIndicatorA.setCode("ProgramIndicatorCodeA");
+
+    return newArrayList(dataElementA, indicatorA, programIndicatorA);
   }
 
   private OrganisationUnit stubOrgUnit() {

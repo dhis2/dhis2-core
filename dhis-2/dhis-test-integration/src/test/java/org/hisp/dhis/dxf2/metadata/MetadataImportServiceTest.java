@@ -1025,6 +1025,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     assertNotNull(srA);
     assertNotNull(srA.getName());
     assertNotNull(srA.getVisualization());
+    assertNotNull("UID", srA.getOutputDataItemIdScheme());
     assertNotNull(aeA.getTarget());
     assertEquals("iFOyIpQciyk", aeA.getUid());
     assertEquals(TargetType.INTERNAL, aeA.getTarget().getType());
@@ -1039,6 +1040,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     assertNotNull(srB);
     assertNotNull(srB.getName());
     assertNotNull(srB.getVisualization());
+    assertNotNull("UID", srB.getOutputDataItemIdScheme());
     assertNotNull(aeB.getTarget());
     assertEquals("PnWccbwCJLQ", aeB.getUid());
     assertEquals(TargetType.EXTERNAL, aeB.getTarget().getType());
@@ -1056,6 +1058,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     assertNotNull(srC);
     assertNotNull(srC.getName());
     assertNotNull(srC.getVisualization());
+    assertNotNull("UID", srC.getOutputDataItemIdScheme());
     assertNotNull(aeC.getTarget());
     assertEquals("VpQ4qVEseyM", aeC.getUid());
     assertEquals(TargetType.EXTERNAL, aeC.getTarget().getType());

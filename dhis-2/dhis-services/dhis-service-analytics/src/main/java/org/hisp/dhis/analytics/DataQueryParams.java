@@ -124,11 +124,8 @@ import org.springframework.util.Assert;
  * Example instantiation:
  *
  * <pre>
- * DataQueryParams params = DataQueryParams.newBuilder()
- *     .withDataElements( deA, deB )
- *     .withOrganisationUnits( ouA, ouB )
- *     .withFilterPeriods( peA, peB )
- *     .build();
+ * DataQueryParams params = DataQueryParams.newBuilder().withDataElements(deA, deB)
+ *     .withOrganisationUnits(ouA, ouB).withFilterPeriods(peA, peB).build();
  * </pre>
  *
  * @author Lars Helge Overland
@@ -297,28 +294,19 @@ public class DataQueryParams {
   /** Indicates which property to display for meta-data. */
   protected DisplayProperty displayProperty;
 
-  /**
-   * The general id scheme, which drives the values in the query response.
-   *
-   * <p>For implementation details @see
-   * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams, Grid)
-   */
+  /** The general identifier scheme, which drives the values in the query response. */
   protected IdScheme outputIdScheme;
 
   /**
-   * The id schema specific for data elements.
-   *
-   * <p>For implementation details @see
-   * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams, Grid)
+   * The identifier scheme specific for data items, including indicators, data elements and program
+   * indicators
    */
+  protected IdScheme outputDataItemIdScheme;
+
+  /** The identifier scheme specific for data elements. */
   protected IdScheme outputDataElementIdScheme;
 
-  /**
-   * The id schema specific for org units.
-   *
-   * <p>For implementation details @see
-   * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams, Grid)
-   */
+  /** The identifier scheme specific for org units. */
   protected IdScheme outputOrgUnitIdScheme;
 
   /** The output format, default is OutputFormat.ANALYTICS. */
@@ -515,6 +503,7 @@ public class DataQueryParams {
     params.includeMetadataDetails = this.includeMetadataDetails;
     params.displayProperty = this.displayProperty;
     params.outputIdScheme = this.outputIdScheme;
+    params.outputDataItemIdScheme = this.outputDataItemIdScheme;
     params.outputDataElementIdScheme = this.outputDataElementIdScheme;
     params.outputOrgUnitIdScheme = this.outputOrgUnitIdScheme;
     params.outputFormat = this.outputFormat;
@@ -601,6 +590,7 @@ public class DataQueryParams {
         .add("includeMetadataDetails", includeMetadataDetails)
         .add("displayProperty", displayProperty)
         .add("outputIdScheme", outputIdScheme)
+        .add("outputDataItemIdScheme", outputDataItemIdScheme)
         .add("outputDataElementIdScheme", outputDataElementIdScheme)
         .add("outputOrgUnitIdScheme", outputOrgUnitIdScheme)
         .add("outputFormat", outputFormat)
@@ -1205,24 +1195,29 @@ public class DataQueryParams {
     return getStartEndDatesAsPeriod().getDaysInPeriod();
   }
 
-  /** Indicates whether this query defines a master identifier scheme different from UID. */
+  /** Indicates whether this query defines an identifier scheme different from UID. */
   public boolean isGeneralOutputIdSchemeSet() {
     return outputIdScheme != null && !IdScheme.UID.equals(outputIdScheme);
   }
 
-  /** Indicates whether this query defines a master identifier scheme different from UID. */
+  public boolean isOutputDataItemIdSchemeSet() {
+    return outputDataItemIdScheme != null && !IdScheme.UID.equals(outputDataItemIdScheme);
+  }
+
+  /** Indicates whether this query defines an identifier scheme different from UID. */
   public boolean isOutputDataElementIdSchemeSet() {
     return outputDataElementIdScheme != null && !IdScheme.UID.equals(outputDataElementIdScheme);
   }
 
-  /** Indicates whether this query defines a master identifier scheme different from UID. */
+  /** Indicates whether this query defines an identifier scheme different from UID. */
   public boolean isOutputOrgUnitIdSchemeSet() {
     return outputOrgUnitIdScheme != null && !IdScheme.UID.equals(outputOrgUnitIdScheme);
   }
 
   /** Indicates whether a non-default identifier scheme is specified. */
-  public boolean hasCustomIdSchemaSet() {
+  public boolean hasCustomIdSchemeSet() {
     return isGeneralOutputIdSchemeSet()
+        || isOutputDataItemIdSchemeSet()
         || isOutputDataElementIdSchemeSet()
         || isOutputOrgUnitIdSchemeSet();
   }
@@ -2003,6 +1998,10 @@ public class DataQueryParams {
     return outputIdScheme;
   }
 
+  public IdScheme getOutputDataItemIdScheme() {
+    return outputDataItemIdScheme;
+  }
+
   public IdScheme getOutputDataElementIdScheme() {
     return outputDataElementIdScheme;
   }
@@ -2061,6 +2060,10 @@ public class DataQueryParams {
 
   public void setOutputIdScheme(IdScheme outputIdScheme) {
     this.outputIdScheme = outputIdScheme;
+  }
+
+  public void setOutputDataItemIdScheme(IdScheme outputDataItemIdScheme) {
+    this.outputDataItemIdScheme = outputDataItemIdScheme;
   }
 
   public void setOutputDataElementIdScheme(IdScheme outputDataElementIdScheme) {
@@ -2830,6 +2833,11 @@ public class DataQueryParams {
 
     public Builder withOutputIdScheme(IdScheme outputIdScheme) {
       this.params.outputIdScheme = outputIdScheme;
+      return this;
+    }
+
+    public Builder withOutputDataItemIdScheme(IdScheme outputDataItemIdScheme) {
+      this.params.outputDataItemIdScheme = outputDataItemIdScheme;
       return this;
     }
 
