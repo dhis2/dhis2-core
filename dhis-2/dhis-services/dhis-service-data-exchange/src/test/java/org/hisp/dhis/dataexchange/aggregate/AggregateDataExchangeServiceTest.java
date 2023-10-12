@@ -58,6 +58,7 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -224,7 +225,10 @@ class AggregateDataExchangeServiceTest {
         new TargetRequest()
             .setDataElementIdScheme("code")
             .setOrgUnitIdScheme("code")
-            .setIdScheme("uid");
+            .setIdScheme("uid")
+            .setImportStrategy(ImportStrategy.CREATE)
+            .setSkipAudit(Boolean.TRUE)
+            .setDryRun(Boolean.TRUE);
     Target target = new Target().setType(TargetType.EXTERNAL).setApi(new Api()).setRequest(request);
     AggregateDataExchange exchange = new AggregateDataExchange().setTarget(target);
 
@@ -235,6 +239,9 @@ class AggregateDataExchangeServiceTest {
     assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme());
     assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme());
     assertEquals(IdScheme.UID, options.getIdSchemes().getIdScheme());
+    assertEquals(ImportStrategy.CREATE, options.getImportStrategy());
+    assertTrue(options.isSkipAudit());
+    assertTrue(options.isDryRun());
   }
 
   @Test
@@ -251,6 +258,9 @@ class AggregateDataExchangeServiceTest {
     assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme());
     assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme());
     assertEquals(IdScheme.UID, options.getIdSchemes().getIdScheme());
+    assertEquals(ImportStrategy.CREATE_AND_UPDATE, options.getImportStrategy());
+    assertFalse(options.isSkipAudit());
+    assertFalse(options.isDryRun());
   }
 
   @Test
