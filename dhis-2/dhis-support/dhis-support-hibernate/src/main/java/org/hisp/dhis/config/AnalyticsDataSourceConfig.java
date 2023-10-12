@@ -27,12 +27,21 @@
  */
 package org.hisp.dhis.config;
 
-import static org.hisp.dhis.config.DataSourceConfig.getActualDataSource;
-import static org.hisp.dhis.config.DataSourceConfig.getDataSource;
+import static org.hisp.dhis.config.DataSourceConfig.createLoggingDataSource;
+import static org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper.ANALYTICS;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
 
 import com.google.common.base.MoreObjects;
+import java.beans.PropertyVetoException;
+import java.sql.SQLException;
 import javax.sql.DataSource;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.DefaultReadOnlyDataSourceManager;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -43,21 +52,61 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @Configuration
+@Slf4j
+@RequiredArgsConstructor
 public class AnalyticsDataSourceConfig {
+
+  private final DhisConfigurationProvider dhisConfig;
 
   @Bean("analyticsDataSource")
   @DependsOn("analyticsActualDataSource")
   public DataSource jdbcDataSource(
-      DhisConfigurationProvider dhisConfig,
       @Qualifier("analyticsActualDataSource") DataSource actualDataSource) {
-    return getDataSource(dhisConfig, actualDataSource);
+    return createLoggingDataSource(dhisConfig, actualDataSource);
   }
 
   @Bean("analyticsActualDataSource")
   public DataSource jdbcActualDataSource(
-      DhisConfigurationProvider dhisConfig,
+      @Qualifier("actualDataSource") DataSource actualDataSource,
       HibernateConfigurationProvider hibernateConfigurationProvider) {
-    return getActualDataSource(dhisConfig, hibernateConfigurationProvider);
+
+    String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
+
+    if (StringUtils.isNotBlank(jdbcUrl)) {
+      return createActualDataSourceFromAnalyticsConfiguration();
+    }
+    // if no analytics connection url is specified, use the same datasource as the main database
+    log.info(
+        "No analytics connection url is specified ("
+            + ANALYTICS_CONNECTION_URL.getKey()
+            + "). Analytics won't have a dedicated datasource");
+    return actualDataSource;
+  }
+
+  private DataSource createActualDataSourceFromAnalyticsConfiguration() {
+    String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
+
+    String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
+
+    DatabasePoolUtils.PoolConfig poolConfig =
+        DatabasePoolUtils.PoolConfig.builder()
+            .dhisConfig(dhisConfig)
+            .mapper(ANALYTICS)
+            .dbPoolType(dbPoolType)
+            .build();
+
+    try {
+      return DatabasePoolUtils.createDbPool(poolConfig);
+    } catch (SQLException | PropertyVetoException e) {
+      String message =
+          String.format(
+              "Connection test failed for analytics database pool, " + "jdbcUrl: '%s'", jdbcUrl);
+
+      log.error(message);
+      log.error(DebugUtils.getStackTrace(e));
+
+      throw new IllegalStateException(message, e);
+    }
   }
 
   @Bean("analyticsNamedParameterJdbcTemplate")
@@ -80,7 +129,6 @@ public class AnalyticsDataSourceConfig {
   @Bean("analyticsReadOnlyJdbcTemplate")
   @DependsOn("analyticsDataSource")
   public JdbcTemplate readOnlyJdbcTemplate(
-      DhisConfigurationProvider dhisConfig,
       @Qualifier("analyticsDataSource") DataSource dataSource) {
     DefaultReadOnlyDataSourceManager manager = new DefaultReadOnlyDataSourceManager(dhisConfig);
 
