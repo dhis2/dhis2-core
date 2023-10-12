@@ -37,7 +37,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -48,15 +48,14 @@ class GeoJsonImportTest extends ApiTest {
   private SystemActions systemActions;
   private RestApiActions restApiActions;
 
-  @BeforeAll
+  private String geoJson;
+
+  @BeforeEach
   public void before() {
     loginActions = new LoginActions();
     systemActions = new SystemActions();
     restApiActions = new RestApiActions("organisationUnits");
-  }
 
-  @Test
-  void geoJsonImportAsync() {
     loginActions.loginAsSuperUser();
 
     // make sure org unit has no geo json data
@@ -64,8 +63,11 @@ class GeoJsonImportTest extends ApiTest {
     assertEquals(200, deleteOrgUnitResponse.statusCode());
 
     // create geo json
-    String geoJson = geoJson();
+    geoJson = geoJson();
+  }
 
+  @Test
+  void geoJsonImportAsync() {
     // get org unit geometry to show currently empty
     ApiResponse getOrgUnitResponse = restApiActions.get("/ImspTQPwCqd");
     assertNull(getOrgUnitResponse.getBody().get("geometry"));
@@ -102,25 +104,16 @@ class GeoJsonImportTest extends ApiTest {
 
   @Test
   void geoJsonImportSync() {
-    loginActions.loginAsSuperUser();
-
-    // make sure org unit has no geo json data
-    ApiResponse deleteOrgUnitResponse = restApiActions.delete("/ImspTQPwCqd/geometry");
-    assertEquals(200, deleteOrgUnitResponse.statusCode());
-
-    // create geo json
-    String geoJson = geoJson();
-
     // get org unit geometry to show currently empty
     ApiResponse getOrgUnitResponse = restApiActions.get("/ImspTQPwCqd");
     assertNull(getOrgUnitResponse.getBody().get("geometry"));
 
-    // post geo json async
-    ApiResponse postGeoJsonAsyncResponse = restApiActions.post("/geometry", geoJson);
-    assertEquals(200, postGeoJsonAsyncResponse.statusCode());
+    // post geo json sync
+    ApiResponse postGeoJsonSyncResponse = restApiActions.post("/geometry", geoJson);
+    assertEquals(200, postGeoJsonSyncResponse.statusCode());
 
     assertTrue(
-        postGeoJsonAsyncResponse
+        postGeoJsonSyncResponse
             .getBody()
             .get("message")
             .getAsString()
@@ -129,7 +122,7 @@ class GeoJsonImportTest extends ApiTest {
     // get org unit again which should now contain geometry property
     ApiResponse getUpdatedOrgUnit = restApiActions.get("/ImspTQPwCqd");
 
-    // validate async-completed geo json import
+    // validate sync-completed geo json import
     getUpdatedOrgUnit
         .validate()
         .statusCode(200)
