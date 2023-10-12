@@ -40,7 +40,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -63,8 +62,6 @@ class EnrollmentOperationParamsMapper {
 
   private final TrackedEntityService trackedEntityService;
 
-  private final TrackerAccessManager trackerAccessManager;
-
   @Transactional(readOnly = true)
   public EnrollmentQueryParams map(EnrollmentOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
@@ -74,8 +71,7 @@ class EnrollmentOperationParamsMapper {
     TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
 
     User user = currentUserService.getCurrentUser();
-    Set<OrganisationUnit> orgUnits =
-        validateOrgUnits(user, operationParams.getOrgUnitUids(), program);
+    Set<OrganisationUnit> orgUnits = validateOrgUnits(operationParams.getOrgUnitUids(), user);
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
     params.setProgram(program);
@@ -139,9 +135,13 @@ class EnrollmentOperationParamsMapper {
     return trackedEntity;
   }
 
-  private Set<OrganisationUnit> validateOrgUnits(
-      User user, Set<String> orgUnitUids, Program program)
+  private Set<OrganisationUnit> validateOrgUnits(Set<String> orgUnitUids, User user)
       throws BadRequestException, ForbiddenException {
+    Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
+    if (user != null) {
+      possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+    }
+
     Set<OrganisationUnit> orgUnits = new HashSet<>();
     if (orgUnitUids != null) {
       for (String orgUnitUid : orgUnitUids) {
@@ -151,9 +151,11 @@ class EnrollmentOperationParamsMapper {
           throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
         }
 
-        if (!trackerAccessManager.canAccess(user, program, orgUnit)) {
+        if (user != null
+            && !user.isSuper()
+            && !organisationUnitService.isInUserHierarchy(orgUnitUid, possibleSearchOrgUnits)) {
           throw new ForbiddenException(
-              "User does not have access to organisation unit: " + orgUnit.getUid());
+              "Organisation unit is not part of the search scope: " + orgUnitUid);
         }
         orgUnits.add(orgUnit);
       }
