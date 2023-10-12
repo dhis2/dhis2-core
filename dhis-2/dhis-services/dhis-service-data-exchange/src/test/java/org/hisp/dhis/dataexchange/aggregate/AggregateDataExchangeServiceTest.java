@@ -38,7 +38,6 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
-
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
@@ -258,7 +257,7 @@ class AggregateDataExchangeServiceTest {
     assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme());
     assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme());
     assertEquals(IdScheme.UID, options.getIdSchemes().getIdScheme());
-    assertNull(options.getImportStrategy());
+    assertEquals(ImportStrategy.CREATE_AND_UPDATE, options.getImportStrategy());
     assertFalse(options.isSkipAudit());
     assertFalse(options.isDryRun());
   }
