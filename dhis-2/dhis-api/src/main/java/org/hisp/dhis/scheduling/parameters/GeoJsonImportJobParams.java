@@ -60,5 +60,10 @@ public class GeoJsonImportJobParams implements JobParameters {
    */
   @JsonProperty private String attributeId;
 
+  /**
+   * no @JsonProperty added to User here as the User property is not needed in the JSONB object when
+   * job config is being persisted (job params are persisted as JSONB). The User property is used in
+   * the non-async import so is still required here.
+   */
   private User user;
 }
