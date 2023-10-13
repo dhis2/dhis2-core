@@ -67,7 +67,7 @@ public class DataSourceConfig {
 
   private final DhisConfigurationProvider dhisConfig;
 
-  @Bean("defaultNamedParameterJdbcTemplate")
+  @Bean("namedParameterJdbcTemplate")
   @Primary
   @DependsOn("dataSource")
   public NamedParameterJdbcTemplate namedParameterJdbcTemplate(

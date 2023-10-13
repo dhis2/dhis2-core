@@ -178,11 +178,6 @@ public class ServiceConfig {
         .collect(Collectors.toMap(e -> (Class<? extends T>) e.getClass(), Functions.identity()));
   }
 
-  @Bean
-  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(JdbcTemplate jdbcTemplate) {
-    return new NamedParameterJdbcTemplate(jdbcTemplate);
-  }
-
   @Bean("retryTemplate")
   public RetryTemplate retryTemplate() {
     ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
