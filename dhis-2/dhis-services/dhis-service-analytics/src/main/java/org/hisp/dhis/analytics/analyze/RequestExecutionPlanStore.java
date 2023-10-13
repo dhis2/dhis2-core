@@ -64,7 +64,9 @@ public class RequestExecutionPlanStore implements ExecutionPlanStore {
 
   @Nonnull private final JdbcTemplate jdbcTemplate;
 
-  @Nonnull private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+  @Nonnull
+  @Qualifier("analyticsNamedParameterJdbcTemplate")
+  private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   @Nonnull private final ScheduledExecutorService executorService;
 

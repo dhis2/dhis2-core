@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
 public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult> {
   @Nonnull private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-  public SqlQueryExecutor(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
+  public SqlQueryExecutor(@Qualifier("analyticsReadOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
     this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
   }
 
