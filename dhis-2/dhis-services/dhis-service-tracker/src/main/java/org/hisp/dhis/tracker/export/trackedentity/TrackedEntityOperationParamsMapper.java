@@ -27,15 +27,13 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAccessibleOrgUnits;
-import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -49,7 +47,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -70,8 +67,6 @@ class TrackedEntityOperationParamsMapper {
 
   @Nonnull private final TrackedEntityAttributeService attributeService;
 
-  @Nonnull private final TrackerAccessManager trackerAccessManager;
-
   @Transactional(readOnly = true)
   public TrackedEntityQueryParams map(TrackedEntityOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
@@ -81,19 +76,9 @@ class TrackedEntityOperationParamsMapper {
         validateTrackedEntityType(operationParams.getTrackedEntityTypeUid());
 
     User user = operationParams.getUser();
-    Set<OrganisationUnit> requestedOrgUnits =
-        validateRequestedOrgUnit(operationParams.getOrganisationUnits());
-
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
-
-    Set<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            requestedOrgUnits,
-            operationParams.getOrgUnitMode(),
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
+    Set<OrganisationUnit> orgUnits =
+        validateOrgUnits(
+            user, operationParams.getOrganisationUnits(), operationParams.getOrgUnitMode());
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     mapAttributeFilters(params, operationParams.getFilters());
@@ -113,7 +98,7 @@ class TrackedEntityOperationParamsMapper {
         .setProgramIncidentStartDate(operationParams.getProgramIncidentStartDate())
         .setProgramIncidentEndDate(operationParams.getProgramIncidentEndDate())
         .setTrackedEntityType(trackedEntityType)
-        .setAccessibleOrgUnits(accessibleOrgUnits)
+        .addOrgUnits(orgUnits)
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setEventStatus(operationParams.getEventStatus())
         .setEventStartDate(operationParams.getEventStartDate())
@@ -154,17 +139,29 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private Set<OrganisationUnit> validateRequestedOrgUnit(Set<String> orgUnitIds)
-      throws BadRequestException {
+  private Set<OrganisationUnit> validateOrgUnits(
+      User user, Set<String> orgUnitIds, OrganisationUnitSelectionMode orgUnitMode)
+      throws BadRequestException, ForbiddenException {
     Set<OrganisationUnit> orgUnits = new HashSet<>();
     for (String orgUnitUid : orgUnitIds) {
       OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid);
-
       if (orgUnit == null) {
         throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
       }
 
+      if (user != null
+          && !user.isSuper()
+          && !organisationUnitService.isInUserHierarchy(
+              orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
+        throw new ForbiddenException(
+            "Organisation unit is not part of the search scope: " + orgUnit.getUid());
+      }
+
       orgUnits.add(orgUnit);
+    }
+
+    if (orgUnitMode == OrganisationUnitSelectionMode.CAPTURE && user != null) {
+      orgUnits.addAll(user.getOrganisationUnits());
     }
 
     return orgUnits;

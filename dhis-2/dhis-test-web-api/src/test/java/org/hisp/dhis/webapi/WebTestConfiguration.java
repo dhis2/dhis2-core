@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationStoreConfiguration;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.config.AnalyticsDataSourceConfig;
 import org.hisp.dhis.config.DataSourceConfig;
 import org.hisp.dhis.config.HibernateConfig;
 import org.hisp.dhis.config.HibernateEncryptionConfig;
@@ -54,6 +55,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.webapi.mvc.ContentNegotiationConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -63,6 +65,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
@@ -93,6 +96,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Import({
   HibernateConfig.class,
   DataSourceConfig.class,
+  AnalyticsDataSourceConfig.class,
   JdbcConfig.class,
   FlywayConfig.class,
   HibernateEncryptionConfig.class,
@@ -125,7 +129,14 @@ public class WebTestConfiguration {
 
   @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
 
-  @Bean("dataSource")
+  @Bean(name = {"namedParameterJdbcTemplate", "analyticsNamedParameterJdbcTemplate"})
+  @Primary
+  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
+      @Qualifier("dataSource") DataSource dataSource) {
+    return new NamedParameterJdbcTemplate(dataSource);
+  }
+
+  @Bean(name = {"dataSource", "analyticsDataSource"})
   @Primary
   public DataSource actualDataSource(
       HibernateConfigurationProvider hibernateConfigurationProvider) {

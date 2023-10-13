@@ -29,8 +29,9 @@ package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getQualifiedDimensions;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
@@ -111,14 +112,13 @@ public class EventVisualizationController extends AbstractCrudController<EventVi
       @RequestParam(value = "attachment", required = false) boolean attachment,
       HttpServletResponse response)
       throws IOException, WebMessageException {
-    // TODO no acl?
     EventVisualization eventVisualization = eventVisualizationService.getEventVisualization(uid);
 
     if (eventVisualization == null) {
       throw new WebMessageException(notFound("Event visualization does not exist: " + uid));
     }
 
-    doesNotAllowPivotAndReportChart(eventVisualization);
+    checkChartGenerationConditions(eventVisualization);
 
     OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit(ou) : null;
 
@@ -243,9 +243,15 @@ public class EventVisualizationController extends AbstractCrudController<EventVi
     eventVisualization.getFilterDimensions().clear();
     eventVisualization.getSimpleDimensions().clear();
 
-    eventVisualization.getColumnDimensions().addAll(getDimensions(eventVisualization.getColumns()));
-    eventVisualization.getRowDimensions().addAll(getDimensions(eventVisualization.getRows()));
-    eventVisualization.getFilterDimensions().addAll(getDimensions(eventVisualization.getFilters()));
+    eventVisualization
+        .getColumnDimensions()
+        .addAll(getQualifiedDimensions(eventVisualization.getColumns()));
+    eventVisualization
+        .getRowDimensions()
+        .addAll(getQualifiedDimensions(eventVisualization.getRows()));
+    eventVisualization
+        .getFilterDimensions()
+        .addAll(getQualifiedDimensions(eventVisualization.getFilters()));
     eventVisualization.associateSimpleDimensions();
 
     maybeLoadLegendSetInto(eventVisualization);
@@ -268,11 +274,18 @@ public class EventVisualizationController extends AbstractCrudController<EventVi
     }
   }
 
-  private void doesNotAllowPivotAndReportChart(EventVisualization eventVisualization)
+  private void checkChartGenerationConditions(EventVisualization eventVisualization)
       throws WebMessageException {
     if (eventVisualization.getType() == PIVOT_TABLE || eventVisualization.getType() == LINE_LIST) {
       throw new WebMessageException(
-          notFound("Cannot generate chart for " + eventVisualization.getType()));
+          conflict("Cannot generate chart for " + eventVisualization.getType()));
+    }
+
+    if (eventVisualization.isMultiProgram()) {
+      throw new WebMessageException(
+          conflict(
+              "Cannot generate chart for multi-program visualization "
+                  + eventVisualization.getUid()));
     }
   }
 }
