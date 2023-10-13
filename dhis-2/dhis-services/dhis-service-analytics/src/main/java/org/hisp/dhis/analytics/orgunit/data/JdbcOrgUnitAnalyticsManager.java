@@ -49,6 +49,7 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -60,6 +61,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class JdbcOrgUnitAnalyticsManager implements OrgUnitAnalyticsManager {
   private final TableInfoReader tableInfoReader;
+
+  @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
 
   @Override
