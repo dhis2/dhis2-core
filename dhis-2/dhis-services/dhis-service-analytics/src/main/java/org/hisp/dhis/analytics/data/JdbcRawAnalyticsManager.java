@@ -73,7 +73,7 @@ import org.springframework.util.Assert;
 public class JdbcRawAnalyticsManager implements RawAnalyticsManager {
   private static final String DIM_NAME_OU = "ou.path";
 
-  @Qualifier("readOnlyJdbcTemplate")
+  @Qualifier("analyticsReadOnlyJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
 
   // -------------------------------------------------------------------------
