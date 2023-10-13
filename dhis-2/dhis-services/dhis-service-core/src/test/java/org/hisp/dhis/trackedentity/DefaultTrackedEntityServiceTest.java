@@ -101,6 +101,7 @@ class DefaultTrackedEntityServiceTest {
     params.setProgram(new Program("Test program"));
     params.getProgram().setMaxTeiCountToReturn(10);
     params.setTrackedEntityUids(Set.of("1"));
+    params.setSkipPaging(true);
   }
 
   @Test
