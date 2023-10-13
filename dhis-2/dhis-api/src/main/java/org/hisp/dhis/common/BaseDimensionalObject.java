@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.asBaseObjects;
 import static org.hisp.dhis.common.DisplayProperty.SHORTNAME;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -44,11 +45,13 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.tuple.Triple;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
 @JacksonXmlRootElement(localName = "dimension", namespace = DxfNamespaces.DXF_2_0)
@@ -95,6 +98,9 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
   /** The program stage for this dimension. */
   private ProgramStage programStage;
 
+  /** The program for this dimension. */
+  private Program program;
+
   /** The aggregation type for this dimension. */
   protected AggregationType aggregationType;
 
@@ -129,12 +135,29 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
   public BaseDimensionalObject() {}
 
   public BaseDimensionalObject(String dimension) {
-    this.uid = dimension;
+    if (dimension != null) {
+      with(dimension);
+    }
+  }
+
+  /**
+   * This method will split the given dimension into individual "uid" and assign each one to the
+   * respective object, for each internal association.
+   *
+   * @param qualifiedDimension the dimension. It can be a simple uid like "dimUid", or a qualified
+   *     value like "programUid.stageUid.dimUid".
+   */
+  private void with(String qualifiedDimension) {
+    Triple<Program, ProgramStage, BaseDimensionalObject> tripe = asBaseObjects(qualifiedDimension);
+
+    this.program = tripe.getLeft() != null ? tripe.getLeft() : null;
+    this.programStage = tripe.getMiddle() != null ? tripe.getMiddle() : null;
+    this.uid = tripe.getRight() != null ? tripe.getRight().getUid() : qualifiedDimension;
   }
 
   public BaseDimensionalObject(
       String dimension, DimensionType dimensionType, List<? extends DimensionalItemObject> items) {
-    this.uid = dimension;
+    this(dimension);
     this.dimensionType = dimensionType;
     this.items = new ArrayList<>(items);
   }
@@ -164,6 +187,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
       DimensionType dimensionType,
       List<? extends DimensionalItemObject> items,
       ValueType valueType) {
+    this(dimension, dimensionType, null, items);
     this.uid = dimension;
     this.dimensionType = dimensionType;
     this.items = new ArrayList<>(items);
@@ -231,6 +255,8 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
     this.filter = filter;
     this.valueType = valueType;
     this.optionSet = optionSet;
+
+    setProgram();
   }
 
   // TODO aggregationType in constructors
@@ -256,6 +282,12 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
     object.fixed = this.fixed;
     object.dimensionalKeywords = this.dimensionalKeywords;
     return object;
+  }
+
+  private void setProgram() {
+    if (programStage != null) {
+      program = programStage.getProgram();
+    }
   }
 
   @Override
@@ -430,6 +462,18 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
 
   public void setProgramStage(ProgramStage programStage) {
     this.programStage = programStage;
+  }
+
+  @Override
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Program getProgram() {
+    return program;
+  }
+
+  public void setProgram(Program program) {
+    this.program = program;
   }
 
   @Override
