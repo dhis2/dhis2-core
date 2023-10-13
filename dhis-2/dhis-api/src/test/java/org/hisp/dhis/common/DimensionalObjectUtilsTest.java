@@ -485,7 +485,7 @@ class DimensionalObjectUtilsTest {
 
     // Then
     assertEquals("programUid", result.getLeft().getUid());
-    assertEquals(null, result.getMiddle());
+    assertNull(result.getMiddle());
     assertEquals("dimensionUid", result.getRight().getUid());
   }
 
@@ -498,8 +498,8 @@ class DimensionalObjectUtilsTest {
     Triple<Program, ProgramStage, BaseDimensionalObject> result = asBaseObjects(qualifiedDim);
 
     // Then
-    assertEquals(null, result.getLeft());
-    assertEquals(null, result.getMiddle());
+    assertNull(result.getLeft());
+    assertNull(result.getMiddle());
     assertEquals("dimensionUid", result.getRight().getUid());
   }
 
