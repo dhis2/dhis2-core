@@ -30,7 +30,6 @@ package org.hisp.dhis.datastore;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -39,18 +38,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.jsontree.JsonNode;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Stian Sandvold (initial)
@@ -67,8 +65,6 @@ public class DefaultDatastoreService implements DatastoreService {
   private final CurrentUserService currentUserService;
 
   private final AclService aclService;
-
-  private final RenderService renderService;
 
   @Override
   public void addProtection(DatastoreNamespaceProtection protection) {
