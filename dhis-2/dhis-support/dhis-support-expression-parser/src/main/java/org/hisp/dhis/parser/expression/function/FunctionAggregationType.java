@@ -33,7 +33,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.ExpressionItemWithSql;
 
 /**
  * Function aggregationType (for indicator expressions)
@@ -42,30 +42,20 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class FunctionAggregationType implements ExpressionItem {
+public class FunctionAggregationType implements ExpressionItemWithSql {
   @Override
   public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
-    return visitWithAggregationType(ctx, visitor);
-  }
+    AggregationType aggregationType = parseAggregationType(ctx.aggregationType.getText());
 
-  @Override
-  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
-    return visitWithAggregationType(ctx, visitor);
+    QueryModifiers queryMods =
+            visitor.getState().getQueryModsBuilder().aggregationType(aggregationType).build();
+
+    return visitor.visitWithQueryMods(ctx.expr(0), queryMods);
   }
 
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
-
-  /** Visits the expression fragment with aggregation type applied */
-  private Object visitWithAggregationType(ExprContext ctx, CommonExpressionVisitor visitor) {
-    AggregationType aggregationType = parseAggregationType(ctx.aggregationType.getText());
-
-    QueryModifiers queryMods =
-        visitor.getState().getQueryModsBuilder().aggregationType(aggregationType).build();
-
-    return visitor.visitWithQueryMods(ctx.expr(0), queryMods);
-  }
 
   /** Parses the aggregation type */
   private AggregationType parseAggregationType(String text) {

@@ -146,19 +146,19 @@ class JdbcSubexpressionQueryGeneratorTest {
 
     String expected =
         "select ax.\"pe\",'subexprxUID' as \"dx\","
-            + "sum(\"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghDMIN\") as \"value\" "
+            + "sum(\"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghD_agg_MIN\") as \"value\" "
             + "from (select ax.\"pe\", "
-            + "sum(case when ax.\"dx\"='deabcdefghA' then \"value\" else null end) as \"deabcdefghA\","
-            + "sum(case when ax.\"dx\"='deabcdefghB' and ax.\"co\"='cuabcdefghA' then \"value\" else null end) as \"deabcdefghB_cuabcdefghA\","
-            + "sum(case when ax.\"dx\"='deabcdefghC' and ax.\"co\"='cuabcdefghB' and ax.\"ao\"='cuabcdefghC' then \"value\" else null end) as \"deabcdefghC_cuabcdefghB_cuabcdefghC\","
-            + "sum(case when ax.\"dx\"='deabcdefghD' and ax.\"ao\"='cuabcdefghD' then \"value\" else null end) as \"deabcdefghD__cuabcdefghD\","
-            + "min(case when ax.\"dx\"='deabcdefghE' then \"value\" else null end) as \"deabcdefghEMIN\" "
+            + "sum(case when ax.\"dx\"='deabcdefghA' then \"value\"::numeric else null end) as \"deabcdefghA\","
+            + "sum(case when ax.\"dx\"='deabcdefghB' and ax.\"co\"='cuabcdefghA' then \"value\"::numeric else null end) as \"deabcdefghB_cuabcdefghA\","
+            + "sum(case when ax.\"dx\"='deabcdefghC' and ax.\"co\"='cuabcdefghB' and ax.\"ao\"='cuabcdefghC' then \"value\"::numeric else null end) as \"deabcdefghC_cuabcdefghB_cuabcdefghC\","
+            + "sum(case when ax.\"dx\"='deabcdefghD' and ax.\"ao\"='cuabcdefghD' then \"value\"::numeric else null end) as \"deabcdefghD__cuabcdefghD\","
+            + "min(case when ax.\"dx\"='deabcdefghE' then \"value\"::numeric else null end) as \"deabcdefghE_agg_MIN\" "
             + "from analytics as ax "
             + "where ax.\"pe\" in ('202305') "
             + "and ( ax.\"ou\" in ('ouabcdefghA') ) "
             + "and ax.\"dx\" in ('deabcdefghA','deabcdefghB','deabcdefghC','deabcdefghD','deabcdefghE')  "
             + "group by ax.\"pe\",ax.\"ou\") as ax "
-            + "where \"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghDMIN\" is not null "
+            + "where \"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghD_agg_MIN\" is not null "
             + "group by ax.\"pe\" ";
 
     String actual = anonymize(target.getSql());

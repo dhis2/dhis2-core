@@ -40,6 +40,7 @@ import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.DataType.TEXT;
+import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.getParamsWithOffsetPeriods;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
@@ -73,6 +74,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
+import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.table.PartitionUtils;
@@ -180,6 +182,10 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         params = queryPlanner.assignPartitionsFromQueryPeriods(params, tableType);
       }
 
+      if (params.hasSubexpressions() && params.getSubexpression().hasPeriodOffsets()) {
+        params = getParamsWithOffsetPartitions(params, tableType);
+      }
+
       String sql = getSql(params, tableType);
 
       log.debug(sql);
@@ -271,6 +277,23 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
+
+  /**
+   * For params with subexpression period offsets, inserts the partitions we will need to fetch the
+   * offset data from the database.
+   *
+   * <p>Note that the params query periods are not changed because these are still the reporting
+   * periods that we need to know when constructing the subexpression sub-query.
+   */
+  private DataQueryParams getParamsWithOffsetPartitions(
+      DataQueryParams params, AnalyticsTableType tableType) {
+
+    DataQueryParams paramsWithOffsetPeriods = getParamsWithOffsetPeriods(params);
+    DataQueryParams paramsWithOffsetPartitions =
+        queryPlanner.assignPartitionsFromQueryPeriods(paramsWithOffsetPeriods, tableType);
+    Partitions offsetParitions = paramsWithOffsetPartitions.getPartitions();
+    return DataQueryParams.newBuilder(params).withPartitions(offsetParitions).build();
+  }
 
   /**
    * Generates the query SQL.

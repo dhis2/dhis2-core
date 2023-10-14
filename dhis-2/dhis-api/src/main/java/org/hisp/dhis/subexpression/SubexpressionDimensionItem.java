@@ -73,6 +73,10 @@ public class SubexpressionDimensionItem extends BaseDimensionalItemObject {
   // Logic
   // -------------------------------------------------------------------------
 
+  public boolean hasPeriodOffsets() {
+    return getItems().stream().anyMatch(i -> i.getPeriodOffset() != 0);
+  }
+
   /**
    * Gets a quoted SQL column name for a data element uid and optionally a category option combo
    * uid. These column names are generated in the SQL fragment for each item and referenced in the
@@ -90,9 +94,24 @@ public class SubexpressionDimensionItem extends BaseDimensionalItemObject {
 
     String aoc = isEmpty(aocUid) ? "" : "_" + aocUid;
 
-    String aggregationName =
-        (mods != null && mods.getAggregationType() != null) ? mods.getAggregationType().name() : "";
+    String periodOffsetMod = (mods != null && mods.getPeriodOffset() != 0)
+            ? formatOffsetValue(mods.getPeriodOffset())
+            : "";
 
-    return "\"" + deUid + separator + coc + aoc + aggregationName + "\"";
+    String aggregationMod = (mods != null && mods.getAggregationType() != null)
+            ? "_agg_" + mods.getAggregationType().name()
+            : "";
+
+    return "\"" + deUid + separator + coc + aoc + periodOffsetMod + aggregationMod + "\"";
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private static String formatOffsetValue(int offset) {
+    return (offset < 0)
+            ? "_minus_" + Integer.toString(-offset)
+            : "_plus_" + Integer.toString(offset);
   }
 }

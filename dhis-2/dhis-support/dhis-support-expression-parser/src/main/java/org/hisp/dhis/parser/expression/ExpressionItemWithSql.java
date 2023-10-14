@@ -25,37 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.parser.expression.function;
+package org.hisp.dhis.parser.expression;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-import static org.hisp.dhis.system.util.MathUtils.parseInt;
-
-import org.hisp.dhis.common.QueryModifiers;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItemWithSql;
-import org.hisp.dhis.parser.expression.ExpressionState;
 
 /**
- * Function periodOffset
+ * A parsed item from an ANTLR expression, using the evaluate method to generate SQL (or to pass
+ * through the call to generate SQL.)
  *
- * @author Enrico Colasante
+ * @author Jim Grace
  */
-public class PeriodOffset implements ExpressionItemWithSql {
+public interface ExpressionItemWithSql extends ExpressionItem {
+
+  /**
+   * Generates the SQL for an expression item using the evaluate method.
+   *
+   * @param ctx the expression context
+   * @param visitor the tree visitor
+   * @return the generated SQL (as a String) for the item
+   */
   @Override
-  public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
-    ExpressionState state = visitor.getState();
-
-    int existingPeriodOffset =
-            (state.getQueryMods() == null) ? 0 : state.getQueryMods().getPeriodOffset();
-
-    int parsedPeriodOffset =
-            (ctx.period == null) ? 0 : firstNonNull(parseInt(ctx.period.getText()), 0);
-
-    int periodOffset = existingPeriodOffset + parsedPeriodOffset;
-
-    QueryModifiers queryMods = state.getQueryModsBuilder().periodOffset(periodOffset).build();
-
-    return visitor.visitWithQueryMods(ctx.expr(0), queryMods);
+  default Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return evaluate(ctx, visitor);
   }
 }
