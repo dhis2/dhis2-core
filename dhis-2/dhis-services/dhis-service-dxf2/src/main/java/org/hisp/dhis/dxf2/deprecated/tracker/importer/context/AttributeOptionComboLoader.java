@@ -70,7 +70,7 @@ public class AttributeOptionComboLoader {
           + "join categoryoptioncombos_categoryoptions coco on coc.categoryoptioncomboid = coco.categoryoptioncomboid "
           + "join categorycombo c on co.categorycomboid = c.categorycomboid "
           + "join categorycombos_categories cc on c.categorycomboid = cc.categorycomboid "
-          + "join dataelementcategory dec on cc.categoryid = dec.categoryid where coc."
+          + "join category dec on cc.categoryid = dec.categoryid where coc."
           + "${resolvedScheme} "
           + "group by coc.categoryoptioncomboid, coc.uid, coc.code, coc.ignoreapproval, coc.name, cc_uid, cc_name";
 
@@ -309,7 +309,7 @@ public class AttributeOptionComboLoader {
     final String sql =
         "select "
             + key
-            + ", uid, code, name, startdate, enddate, sharing from dataelementcategoryoption "
+            + ", uid, code, name, startdate, enddate, sharing from categoryoption "
             + "where "
             + resolveId(idScheme, key, id);
 
