@@ -44,7 +44,6 @@ import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.jsontree.JsonNode;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -67,8 +66,6 @@ public class DefaultDatastoreService implements DatastoreService {
   private final CurrentUserService currentUserService;
 
   private final AclService aclService;
-
-  private final RenderService renderService;
 
   @Override
   public void addProtection(DatastoreNamespaceProtection protection) {

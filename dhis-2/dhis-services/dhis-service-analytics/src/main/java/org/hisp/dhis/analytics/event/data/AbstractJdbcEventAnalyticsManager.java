@@ -989,8 +989,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                                 OUTER_SQL_ALIAS
                                     + "."
                                     + ((Period) it).getPeriodType().getPeriodTypeEnum().getName())
-                        .toList()
-                        .stream()
                         .distinct())
             .collect(joining(","));
 
