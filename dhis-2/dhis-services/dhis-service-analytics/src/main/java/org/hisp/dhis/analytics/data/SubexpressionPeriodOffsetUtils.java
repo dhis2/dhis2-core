@@ -27,20 +27,19 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.shiftPeriod;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.period.Period;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.shiftPeriod;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 
 /**
  * Utility methods for generating a subExpression query containing periodOffsets.
