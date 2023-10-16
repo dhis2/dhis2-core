@@ -6,6 +6,10 @@
 
 Send event or enrollment messages.
 
+### `*.sendMessages.request.description`
+
+Send batch of program messages
+
 ### `getScheduledSentMessage`
 
 Get all of those scheduled messages which were sent successfully.
@@ -14,11 +18,19 @@ Get all of those scheduled messages which were sent successfully.
 
 Get program messages matching given query criteria.
 
-## List of supported parameters
-
 ### `*.parameter.ou`
 
 Get program messages for given set of OrganisationUnits
+
+### `*.parameter.messageStatus`
+
+Get program messages based on message status
+
+### `*.parameter.beforeDate`
+
+Get program messages before given date
+
+## Common for all endpoints
 
 ### `*.parameter.enrollment`
 
@@ -44,14 +56,6 @@ Get program messages for given event
 
 Get program messages after given date
 
-### `*.parameter.beforeDate`
-
-Get program messages before given date
-
-### `*.parameter.messageStatus`
-
-Get program messages based on message status
-
 ### `*.parameter.page`
 
 Defines which page number to return.
@@ -59,7 +63,3 @@ Defines which page number to return.
 ### `*.parameter.pageSize`
 
 Defines the number of elements to return for each page.
-
-### `*.parameter.ProgramMessageBatch.programMessages`
-
-Send batch of program messages
