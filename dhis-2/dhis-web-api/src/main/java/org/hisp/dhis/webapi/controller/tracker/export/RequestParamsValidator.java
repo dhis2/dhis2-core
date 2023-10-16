@@ -330,7 +330,7 @@ public class RequestParamsValidator {
       Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode, Set<UID> trackedEntities)
       throws BadRequestException {
 
-    validateOrgUnitMode(orgUnitMode, orgUnits);
+    orgUnitMode = validateOrgUnitMode(orgUnitMode, orgUnits);
     validateOrgUnitOrTrackedEntityIsPresent(orgUnitMode, orgUnits, trackedEntities);
 
     return orgUnitMode;
@@ -339,7 +339,7 @@ public class RequestParamsValidator {
   public static OrganisationUnitSelectionMode validateOrgUnitModeForEnrollmentsAndEvents(
       Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
 
-    validateOrgUnitMode(orgUnitMode, orgUnits);
+    orgUnitMode = validateOrgUnitMode(orgUnitMode, orgUnits);
     validateOrgUnitIsPresent(orgUnitMode, orgUnits);
 
     return orgUnitMode;
