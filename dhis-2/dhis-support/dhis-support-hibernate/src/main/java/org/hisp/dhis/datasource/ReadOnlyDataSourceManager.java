@@ -31,22 +31,23 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
+
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import javax.sql.DataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.util.ObjectUtils;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class responsible for detecting read-only databases configured in the DHIS 2 configuration file.
- * 
+ *
  * @author Lars Helge Overland
  */
 @Slf4j
@@ -116,10 +117,9 @@ public class ReadOnlyDataSourceManager {
       String connectionUrlKey = String.format(FORMAT_CONNECTION_URL, i);
       String connectionUsernameKey = String.format(FORMAT_CONNECTION_USERNAME, i);
       String connectionPasswordKey = String.format(FORMAT_CONNECTION_PASSWORD, i);
-      
-      log.info("Searching for read-only connection with URL key: '{}'", 
-          connectionUrlKey);
-      
+
+      log.info("Searching for read-only connection with URL key: '{}'", connectionUrlKey);
+
       String jdbcUrl = props.getProperty(connectionUrlKey);
       String username = props.getProperty(connectionUsernameKey);
       String password = props.getProperty(connectionPasswordKey);
@@ -141,8 +141,10 @@ public class ReadOnlyDataSourceManager {
 
         try {
           dataSources.add(DatabasePoolUtils.createDbPool(builder.build()));
-          log.info("Read-only connection found with URL key: '{}' and value '{}'", 
-              connectionUrlKey, jdbcUrl);
+          log.info(
+              "Read-only connection found with URL key: '{}' and value '{}'",
+              connectionUrlKey,
+              jdbcUrl);
         } catch (SQLException | PropertyVetoException e) {
           String message =
               String.format(
