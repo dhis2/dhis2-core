@@ -409,6 +409,9 @@
         },
         {
           "id": "PaOOjwLVW23"
+        },
+        {
+          "id": "xaOOjwLVW23"
         }
       ]
     },
@@ -1159,6 +1162,84 @@
           "userGroupAccesses": [],
           "attributeValues": [],
           "userAccesses": []
+        }
+      ],
+      "translations": [],
+      "attributeValues": [],
+      "programStageSections": []
+    },
+    {
+      "code": "TA_TRACKER_PROGRAM_THIRD_STAGE",
+      "lastUpdated": "2022-01-07T12:50:38.506",
+      "id": "xaOOjwLVW23",
+      "created": "2022-01-07T11:57:37.577",
+      "name": "TA third stage - repeatable",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "openAfterEnrollment": false,
+      "repeatable": true,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": false,
+      "sortOrder": 2,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": false,
+      "minDaysFromStart": 3,
+      "program": {
+        "id": "f1AyMswryyQ"
+      },
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "access": "rwrw----",
+            "id": "OPVIvvXzNTw"
+          }
+        },
+        "external": false,
+        "public": "rwrw----",
+        "users": {}
+      },
+      "notificationTemplates": [],
+      "programStageDataElements": [
+        {
+          "lastUpdated": "2022-01-07T12:50:38.507",
+          "id": "fACOFO8XvbY",
+          "created": "2022-01-07T12:50:38.507",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "renderOptionsAsRadio": false,
+          "skipAnalytics": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "write": true,
+            "delete": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "xaOOjwLVW23"
+          },
+          "dataElement": {
+            "id": "mB2QHw1tU96"
+          },
+          "sharing": {
+            "userGroups": {},
+            "external": false,
+            "users": {}
+          },
+          "favorites": [],
+          "translations": [],
+          "attributeValues": []
         }
       ],
       "translations": [],
