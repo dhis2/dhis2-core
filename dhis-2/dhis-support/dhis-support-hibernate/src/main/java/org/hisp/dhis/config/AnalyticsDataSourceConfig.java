@@ -30,17 +30,13 @@ package org.hisp.dhis.config;
 import static org.hisp.dhis.config.DataSourceConfig.createLoggingDataSource;
 import static org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper.ANALYTICS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
-
-import com.google.common.base.MoreObjects;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import javax.sql.DataSource;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
-import org.hisp.dhis.datasource.DefaultReadOnlyDataSourceManager;
+import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
@@ -50,6 +46,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import com.google.common.base.MoreObjects;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @Slf4j
@@ -130,8 +129,9 @@ public class AnalyticsDataSourceConfig {
   @DependsOn("analyticsDataSource")
   public JdbcTemplate readOnlyJdbcTemplate(
       @Qualifier("analyticsDataSource") DataSource dataSource) {
-    DefaultReadOnlyDataSourceManager manager = new DefaultReadOnlyDataSourceManager(dhisConfig);
-
+    log.info("LOOKING FOR analyticsReadOnlyJdbcTemplate");
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(dhisConfig);
+    log.info("READ REPLICA COUNT " + manager.getReadReplicaCount());
     JdbcTemplate jdbcTemplate =
         new JdbcTemplate(MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
     jdbcTemplate.setFetchSize(1000);
