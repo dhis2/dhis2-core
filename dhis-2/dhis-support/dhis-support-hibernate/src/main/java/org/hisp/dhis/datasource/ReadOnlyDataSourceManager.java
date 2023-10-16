@@ -31,21 +31,22 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
+
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import javax.sql.DataSource;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.ReadOnlyDataSourceConfig;
 import org.hisp.dhis.util.ObjectUtils;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class responsible for detecting read-only databases configured in the DHIS 2 configuration file.
@@ -74,7 +75,7 @@ public class ReadOnlyDataSourceManager {
   public ReadOnlyDataSourceManager(DhisConfigurationProvider config) {
     checkNotNull(config);
     init(config);
-  } 
+  }
 
   /** State holder for the resolved read only data source. */
   private DataSource internalReadOnlyDataSource;
@@ -113,7 +114,7 @@ public class ReadOnlyDataSourceManager {
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     List<DataSource> dataSources = new ArrayList<>();
-    
+
     List<ReadOnlyDataSourceConfig> dataSourceConfigs = getReadOnlyDataSourceConfigs(config);
 
     for (ReadOnlyDataSourceConfig dataSourceConfig : dataSourceConfigs) {
@@ -134,8 +135,7 @@ public class ReadOnlyDataSourceManager {
 
       try {
         dataSources.add(DatabasePoolUtils.createDbPool(builder.build()));
-        log.info(
-            "Read-only connection found with URL: '{}'", url);
+        log.info("Read-only connection found with URL: '{}'", url);
       } catch (SQLException | PropertyVetoException e) {
         String message =
             String.format(
@@ -159,21 +159,21 @@ public class ReadOnlyDataSourceManager {
 
     return dataSources;
   }
-  
+
   /**
-   * Returns a list of read-only data source configurations. The configurations are detected from the DHIS 2 configuration file.
-   * 
+   * Returns a list of read-only data source configurations. The configurations are detected from
+   * the DHIS 2 configuration file.
+   *
    * @param config the {@link DhisConfigurationProvider}.
    * @return a list of {@link ReadOnlyDataSourceConfig}.
    */
-  List<ReadOnlyDataSourceConfig> getReadOnlyDataSourceConfigs(DhisConfigurationProvider config)
-  {
+  List<ReadOnlyDataSourceConfig> getReadOnlyDataSourceConfigs(DhisConfigurationProvider config) {
     List<ReadOnlyDataSourceConfig> dataSources = new ArrayList<>();
-    
+
     Properties props = config.getProperties();
 
     String mainUser = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
-    String mainPassword = config.getProperty(ConfigurationKey.CONNECTION_PASSWORD);    
+    String mainPassword = config.getProperty(ConfigurationKey.CONNECTION_PASSWORD);
 
     for (int i = 1; i <= MAX_READ_REPLICAS; i++) {
       String connectionUrlKey = String.format(FORMAT_CONNECTION_URL, i);
@@ -188,12 +188,12 @@ public class ReadOnlyDataSourceManager {
 
       username = StringUtils.defaultIfEmpty(username, mainUser);
       password = StringUtils.defaultIfEmpty(password, mainPassword);
-      
-      if (ObjectUtils.allNonNull(url, username, password)) {      
+
+      if (ObjectUtils.allNonNull(url, username, password)) {
         dataSources.add(new ReadOnlyDataSourceConfig(url, username, password));
       }
     }
-    
+
     return dataSources;
   }
 }
