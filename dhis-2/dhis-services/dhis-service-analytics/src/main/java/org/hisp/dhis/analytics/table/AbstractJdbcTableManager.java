@@ -46,8 +46,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsIndex;
-import org.hisp.dhis.analytics.AnalyticsSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
@@ -133,7 +133,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final JdbcTemplate jdbcTemplate;
 
-  protected final AnalyticsSettings analyticsSettings;
+  protected final AnalyticsExportSettings analyticsExportSettings;
 
   protected final PeriodDataProvider periodDataProvider;
 
@@ -170,7 +170,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   private void distributeTableIfNecessary(AnalyticsTable table) {
-    if (analyticsSettings.isCitusExtensionEnabled(jdbcTemplate)) {
+    if (analyticsExportSettings.isCitusExtensionEnabled()) {
       String tableName = table.getTempTableName();
       String distributionColumn = table.getTableType().getDistributionColumn();
 
@@ -362,7 +362,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     sqlCreate
         .append("create ")
-        .append(analyticsSettings.getTableType())
+        .append(analyticsExportSettings.getTableType())
         .append(" table ")
         .append(tableName)
         .append(" (");
@@ -403,7 +403,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
       sqlCreate
           .append("create ")
-          .append(analyticsSettings.getTableType())
+          .append(analyticsExportSettings.getTableType())
           .append(" table ")
           .append(tableName)
           .append("(");

@@ -82,7 +82,7 @@ public enum ConfigurationKey {
   CONNECTION_DIALECT("connection.dialect", "", false),
 
   /** Postgres Citus extension */
-  CITUS_EXTENSION("citus.extension", Constants.ON, false),
+  CITUS_EXTENSION("citus.extension", Constants.OFF, false),
 
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),

@@ -43,7 +43,7 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsSettings;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -85,7 +85,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsSettings analyticsSettings,
+      AnalyticsExportSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
@@ -99,7 +99,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         partitionManager,
         databaseInfo,
         jdbcTemplate,
-        analyticsSettings,
+        analyticsExportSettings,
         periodDataProvider);
   }
 

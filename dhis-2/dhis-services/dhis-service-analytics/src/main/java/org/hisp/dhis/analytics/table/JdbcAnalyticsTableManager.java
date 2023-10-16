@@ -48,7 +48,7 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsSettings;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -130,7 +130,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsSettings analyticsSettings,
+      AnalyticsExportSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
@@ -144,7 +144,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         partitionManager,
         databaseInfo,
         jdbcTemplate,
-        analyticsSettings,
+        analyticsExportSettings,
         periodDataProvider);
   }
 

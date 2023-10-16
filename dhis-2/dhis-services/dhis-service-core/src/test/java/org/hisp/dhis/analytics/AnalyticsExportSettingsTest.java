@@ -31,7 +31,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CITUS_EXTENSION;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -48,48 +47,46 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 @ExtendWith(MockitoExtension.class)
-class AnalyticsSettingsTest {
+class AnalyticsExportSettingsTest {
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
+  @Mock private JdbcTemplate jdbcTemplate;
+
   private CitusSettings citusSettings;
 
   @BeforeEach
   public void setUp() {
-    citusSettings = new CitusSettings(dhisConfigurationProvider);
+    citusSettings = new CitusSettings(dhisConfigurationProvider, jdbcTemplate);
   }
 
   @Test
   void testIsCitusEnabledWhenDisabledByConfig() {
     when(dhisConfigurationProvider.isEnabled(CITUS_EXTENSION)).thenReturn(false);
-    assertFalse(citusSettings.isCitusExtensionEnabled(null));
+    assertFalse(citusSettings.isCitusExtensionEnabled());
   }
 
   @Test
   void testIsCitusEnabledWhenNoCitusExtensionInstalled() {
     when(dhisConfigurationProvider.isEnabled(CITUS_EXTENSION)).thenReturn(true);
-    JdbcTemplate mockedJdbcTemplate = mockTemplate(Collections.emptyList());
-    assertFalse(citusSettings.isCitusExtensionEnabled(mockedJdbcTemplate));
+    mockTemplate(Collections.emptyList());
+    assertFalse(citusSettings.isCitusExtensionEnabled());
   }
 
   @Test
   void testIsCitusEnabledWhenInstalledButNotCreated() {
     when(dhisConfigurationProvider.isEnabled(CITUS_EXTENSION)).thenReturn(true);
-    JdbcTemplate mockedJdbcTemplate = mockTemplate(List.of(new PgExtension("citus", null)));
-    assertFalse(citusSettings.isCitusExtensionEnabled(mockedJdbcTemplate));
+    mockTemplate(List.of(new PgExtension("citus", null)));
+    assertFalse(citusSettings.isCitusExtensionEnabled());
   }
 
   @Test
   void testIsCitusEnabledWhenInstalledAndCreated() {
     when(dhisConfigurationProvider.isEnabled(CITUS_EXTENSION)).thenReturn(true);
-    JdbcTemplate mockedJdbcTemplate = mockTemplate(List.of(new PgExtension("citus", "V1.0")));
-    assertTrue(citusSettings.isCitusExtensionEnabled(mockedJdbcTemplate));
+    mockTemplate(List.of(new PgExtension("citus", "V1.0")));
+    assertTrue(citusSettings.isCitusExtensionEnabled());
   }
 
-  private JdbcTemplate mockTemplate(List<PgExtension> objects) {
-    JdbcTemplate mockedJdbcTemplate = mock(JdbcTemplate.class);
-
-    when(mockedJdbcTemplate.query(any(String.class), any(RowMapper.class))).thenReturn(objects);
-
-    return mockedJdbcTemplate;
+  private void mockTemplate(List<PgExtension> objects) {
+    when(jdbcTemplate.query(any(String.class), any(RowMapper.class))).thenReturn(objects);
   }
 }

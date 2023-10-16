@@ -35,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -52,18 +53,30 @@ public class CitusSettings {
 
   private final DhisConfigurationProvider dhisConfigurationProvider;
 
+  @Qualifier("analyticsJdbcTemplate")
+  private final JdbcTemplate jdbcTemplate;
+
+  private Boolean cachedValue = null;
+
   /**
-   * Returns true if the citus extension is enabled in the provided jdbcTemplate.
-   *
-   * @param jdbcTemplate the jdbcTemplate to use
-   * @return true if the citus extension is enabled
+   * @return true if the citus extension is installed, enabled and database was created with citus
+   *     extension
    */
-  public boolean isCitusExtensionEnabled(JdbcTemplate jdbcTemplate) {
+  public boolean isCitusExtensionEnabled() {
+    synchronized (this) {
+      if (cachedValue == null) {
+        cachedValue = isCitusExtensionEnabledInternal();
+      }
+      return cachedValue;
+    }
+  }
+
+  private boolean isCitusExtensionEnabledInternal() {
     if (isCitusDisabledByConfig()) {
       log.info("Citus extension is disabled in dhis.conf");
       return false;
     }
-    return isCitusExtensionInstalledAndCreated(jdbcTemplate);
+    return isCitusExtensionInstalledAndCreated();
   }
 
   /**
@@ -77,11 +90,10 @@ public class CitusSettings {
    * Returns true if the citus extension is installed and created in the database whose jdbcTemplate
    * refers to.
    *
-   * @param jdbcTemplate the jdbcTemplate to use
    * @return true if the citus extension is installed and created
    */
-  private boolean isCitusExtensionInstalledAndCreated(JdbcTemplate jdbcTemplate) {
-    List<PgExtension> installedExtensions = getPostgresInstalledCitusExtensions(jdbcTemplate);
+  private boolean isCitusExtensionInstalledAndCreated() {
+    List<PgExtension> installedExtensions = getPostgresInstalledCitusExtensions();
 
     logFoundExtensions(installedExtensions);
 
@@ -101,18 +113,17 @@ public class CitusSettings {
       return;
     }
     log.info(
-        "Citus extension software is not installed in the database. You need to install it first, "
-            + "depending on the OS: https://docs.citusdata.com/en/latest/installation/multi_node.html");
+        "Citus extension software is not installed in the database. "
+            + "You need to install it first: https://docs.citusdata.com/en/latest/installation/multi_node.html");
   }
 
   /**
    * Returns the list of citus extensions installed, along with version, in the database whose
    * jdbcTemplate refers to.
    *
-   * @param jdbcTemplate the jdbcTemplate to use
    * @return the list of citus extensions installed
    */
-  private List<PgExtension> getPostgresInstalledCitusExtensions(JdbcTemplate jdbcTemplate) {
+  private List<PgExtension> getPostgresInstalledCitusExtensions() {
     return jdbcTemplate.query(
         "select name, installed_version "
             + "from pg_available_extensions "

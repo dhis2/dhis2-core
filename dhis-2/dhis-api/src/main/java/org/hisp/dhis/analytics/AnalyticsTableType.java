@@ -71,9 +71,7 @@ public enum AnalyticsTableType {
       boolean periodDimension,
       boolean latestPartition,
       String distributionColumn) {
-    this.tableName = tableName;
-    this.periodDimension = periodDimension;
-    this.latestPartition = latestPartition;
+    this(tableName, periodDimension, latestPartition);
     this.distributionColumn = distributionColumn;
   }
 

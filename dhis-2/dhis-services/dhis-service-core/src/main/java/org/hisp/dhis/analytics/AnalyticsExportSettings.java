@@ -35,8 +35,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.setting.CitusSettings;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,7 +48,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class AnalyticsSettings {
+public class AnalyticsExportSettings {
   private final DhisConfigurationProvider dhisConfigurationProvider;
 
   @Delegate private final CitusSettings citusSettings;

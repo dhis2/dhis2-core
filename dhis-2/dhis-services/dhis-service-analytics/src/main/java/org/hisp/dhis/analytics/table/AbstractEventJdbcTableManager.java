@@ -35,7 +35,7 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsSettings;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
@@ -72,7 +72,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
       JdbcTemplate jdbcTemplate,
-      AnalyticsSettings analyticsSettings,
+      AnalyticsExportSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
@@ -86,7 +86,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         partitionManager,
         databaseInfo,
         jdbcTemplate,
-        analyticsSettings,
+        analyticsExportSettings,
         periodDataProvider);
   }
 
