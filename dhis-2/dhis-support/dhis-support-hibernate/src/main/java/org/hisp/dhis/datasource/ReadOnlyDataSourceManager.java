@@ -134,7 +134,7 @@ public class ReadOnlyDataSourceManager {
 
       try {
         dataSources.add(DatabasePoolUtils.createDbPool(builder.build()));
-        log.info("Read-only connection found with URL: '{}'", url);
+        log.info("Created read-only data source with connection URL: '{}'", url);
       } catch (SQLException | PropertyVetoException e) {
         String message =
             String.format(
