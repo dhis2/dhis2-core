@@ -326,6 +326,25 @@ public class RequestParamsValidator {
     }
   }
 
+  public static OrganisationUnitSelectionMode validateOrgUnitModeForTrackedEntities(
+      Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode, Set<UID> trackedEntities)
+      throws BadRequestException {
+
+    validateOrgUnitMode(orgUnitMode, orgUnits);
+    validateOrgUnitOrTrackedEntityIsPresent(orgUnitMode, orgUnits, trackedEntities);
+
+    return orgUnitMode;
+  }
+
+  public static OrganisationUnitSelectionMode validateOrgUnitModeForEnrollmentsAndEvents(
+      Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
+
+    validateOrgUnitMode(orgUnitMode, orgUnits);
+    validateOrgUnitIsPresent(orgUnitMode, orgUnits);
+
+    return orgUnitMode;
+  }
+
   /**
    * Validates that no org unit is present if the ou mode is ACCESSIBLE or CAPTURE. If it is, an
    * exception will be thrown. If the org unit mode is not defined, SELECTED will be used by default
@@ -335,13 +354,8 @@ public class RequestParamsValidator {
    * @return a valid org unit mode
    * @throws BadRequestException if a wrong combination of org unit and org unit mode supplied
    */
-  public static OrganisationUnitSelectionMode validateOrgUnitMode(
-      Set<UID> orgUnits,
-      OrganisationUnitSelectionMode orgUnitMode,
-      Set<UID> trackedEntities,
-      boolean validateTrackedEntities)
-      throws BadRequestException {
-
+  private static OrganisationUnitSelectionMode validateOrgUnitMode(
+      OrganisationUnitSelectionMode orgUnitMode, Set<UID> orgUnits) throws BadRequestException {
     if (orgUnitMode == null) {
       return orgUnits.isEmpty() ? ACCESSIBLE : SELECTED;
     }
@@ -351,12 +365,6 @@ public class RequestParamsValidator {
           String.format(
               "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
               orgUnitMode));
-    }
-
-    if (validateTrackedEntities) {
-      validateOrgUnitOrTrackedEntityIsPresent(orgUnitMode, orgUnits, trackedEntities);
-    } else {
-      validateOrgUnitIsPresent(orgUnitMode, orgUnits);
     }
 
     return orgUnitMode;

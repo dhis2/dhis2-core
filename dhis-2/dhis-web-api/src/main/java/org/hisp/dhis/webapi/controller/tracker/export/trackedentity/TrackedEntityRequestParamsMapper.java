@@ -34,7 +34,7 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValida
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
 
 import java.util.List;
 import java.util.Map;
@@ -92,7 +92,8 @@ class TrackedEntityRequestParamsMapper {
             "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
 
     orgUnitMode =
-        validateOrgUnitMode(orgUnitUids, orgUnitMode, requestParams.getTrackedEntities(), true);
+        validateOrgUnitModeForTrackedEntities(
+            orgUnitUids, orgUnitMode, requestParams.getTrackedEntities());
 
     Set<UID> trackedEntities =
         validateDeprecatedUidsParameter(

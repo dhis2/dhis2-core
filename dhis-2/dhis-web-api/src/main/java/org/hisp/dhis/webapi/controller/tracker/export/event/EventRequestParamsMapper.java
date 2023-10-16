@@ -32,7 +32,7 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValida
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 
 import java.util.List;
 import java.util.Map;
@@ -65,11 +65,9 @@ class EventRequestParamsMapper {
             "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
 
     orgUnitMode =
-        validateOrgUnitMode(
+        validateOrgUnitModeForEnrollmentsAndEvents(
             requestParams.getOrgUnit() != null ? Set.of(requestParams.getOrgUnit()) : emptySet(),
-            orgUnitMode,
-            emptySet(),
-            false);
+            orgUnitMode);
 
     UID attributeCategoryCombo =
         validateDeprecatedParameter(
