@@ -120,16 +120,17 @@ public class RelationshipTrackerConverterService
     org.hisp.dhis.relationship.RelationshipItem toItem =
         new org.hisp.dhis.relationship.RelationshipItem();
 
+    Date now = new Date();
     if (toRelationship == null) {
-      Date now = new Date();
 
       toRelationship = new org.hisp.dhis.relationship.Relationship();
       toRelationship.setUid(fromRelationship.getRelationship());
       toRelationship.setCreated(now);
-      toRelationship.setLastUpdated(now);
     }
+    toRelationship.setLastUpdated(now);
 
     toRelationship.setRelationshipType(relationshipType);
+    toRelationship.setCreatedAtClient(DateUtils.fromInstant(fromRelationship.getCreatedAtClient()));
 
     if (fromRelationship.getRelationship() != null) {
       toRelationship.setUid(fromRelationship.getRelationship());

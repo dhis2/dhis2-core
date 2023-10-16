@@ -46,7 +46,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 class RequestParams extends PagingAndSortingCriteriaAdapter {
 
   static final String DEFAULT_FIELDS_PARAM =
-      "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
+      "relationship,relationshipType,createdAtClient,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
 
   /**
    * @deprecated use {@link #trackedEntity} instead

@@ -31,12 +31,14 @@ import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.RelationshipUtils;
@@ -59,6 +61,8 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -277,11 +281,60 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
             .collect(Collectors.toList()));
   }
 
+  @Test
+  void shouldOrderRelationshipsByUpdatedAtClientInDescOrder()
+      throws ForbiddenException, NotFoundException {
+    Relationship relationshipA = relationship(teA, teB, DateTime.now().toDate());
+    Relationship relationshipB = relationship(teA, eventA, DateTime.now().minusDays(1).toDate());
+
+    RelationshipOperationParams operationParams =
+        RelationshipOperationParams.builder()
+            .type(TRACKED_ENTITY)
+            .identifier(teA.getUid())
+            .orderBy("createdAtClient", SortDirection.DESC)
+            .build();
+    List<String> relationshipIds =
+        relationshipService.getRelationships(operationParams).getRelationships().stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toList());
+
+    assertEquals(List.of(relationshipA.getUid(), relationshipB.getUid()), relationshipIds);
+  }
+
+  @Test
+  void shouldOrderRelationshipsByUpdatedAtClientInAscOrder()
+      throws ForbiddenException, NotFoundException {
+    Relationship relationshipA = relationship(teA, teB, DateTime.now().toDate());
+    Relationship relationshipB = relationship(teA, eventA, DateTime.now().minusDays(1).toDate());
+
+    RelationshipOperationParams operationParams =
+        RelationshipOperationParams.builder()
+            .type(TRACKED_ENTITY)
+            .identifier(teA.getUid())
+            .orderBy("createdAtClient", SortDirection.ASC)
+            .build();
+    List<String> relationshipIds =
+        relationshipService.getRelationships(operationParams).getRelationships().stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toList());
+
+    assertEquals(List.of(relationshipB.getUid(), relationshipA.getUid()), relationshipIds);
+  }
+
   private Relationship relationship(TrackedEntity from, TrackedEntity to) {
-    return relationship(from, to, teToTeType);
+    return relationship(from, to, teToTeType, new Date());
+  }
+
+  private Relationship relationship(TrackedEntity from, TrackedEntity to, Date createdAtClient) {
+    return relationship(from, to, teToTeType, createdAtClient);
   }
 
   private Relationship relationship(TrackedEntity from, TrackedEntity to, RelationshipType type) {
+    return relationship(from, to, type, new Date());
+  }
+
+  private Relationship relationship(
+      TrackedEntity from, TrackedEntity to, RelationshipType type, Date createdAtClient) {
     Relationship relationship = new Relationship();
     relationship.setUid(CodeGenerator.generateUid());
     relationship.setRelationshipType(type);
@@ -289,7 +342,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     relationship.setTo(item(to));
     relationship.setKey(RelationshipUtils.generateRelationshipKey(relationship));
     relationship.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationship));
-
+    relationship.setCreatedAtClient(createdAtClient);
     manager.save(relationship);
 
     return relationship;
@@ -313,11 +366,16 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     return relationship;
   }
 
-  private Relationship relationship(TrackedEntity from, Event to) {
-    return relationship(from, to, teToEvType);
+  private Relationship relationship(TrackedEntity from, Event to, Date createdAtClient) {
+    return relationship(from, to, teToEvType, createdAtClient);
   }
 
-  private Relationship relationship(TrackedEntity from, Event to, RelationshipType type) {
+  private Relationship relationship(TrackedEntity from, Event to) {
+    return relationship(from, to, teToEvType, new Date());
+  }
+
+  private Relationship relationship(
+      TrackedEntity from, Event to, RelationshipType type, Date createdAtClient) {
     Relationship relationship = new Relationship();
     relationship.setUid(CodeGenerator.generateUid());
     relationship.setRelationshipType(type);
@@ -325,6 +383,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     relationship.setTo(item(to));
     relationship.setKey(RelationshipUtils.generateRelationshipKey(relationship));
     relationship.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationship));
+    relationship.setCreatedAtClient(createdAtClient);
 
     manager.save(relationship);
 
