@@ -55,8 +55,6 @@ public class PredictionPreprocessor {
 
   private final ExpressionService expressionService;
 
-  private static final String FOR_EACH = "forEach";
-
   /**
    * Preprocesses a predictor, possibly splitting it into multiple predictors.
    *

@@ -55,6 +55,36 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
   }
 
   @Test
+  public void singleValueWithMultiplePeriodTypes() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=pe:LAST_12_MONTHS;TODAY")
+            .add("filter=ou:USER_ORGUNIT")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=SHORTNAME")
+            .add("skipMeta=true")
+            .add("dimension=dx:FTRrcoaog83")
+            .add("relativePeriodDate=2022-01-01");
+    // When
+    ApiResponse response = analyticsActions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(2)))
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
+        .body("width", equalTo(2))
+        .body("headerWidth", equalTo(2));
+
+    // Assert rows.
+    validateRow(response, List.of("FTRrcoaog83", "46"));
+  }
+
+  @Test
   public void query1And3CoverageYearly() {
     // Given
     QueryParamsBuilder params =
@@ -168,5 +198,22 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
             "mxc1T932aWM",
             "202210",
             "Cholera is an infection of the small intestine caused by the bacterium Vibrio cholerae.\n\nThe main symptoms are watery diarrhea and vomiting. This may result in dehydration and in severe cases grayish-bluish skin.[1] Transmission occurs primarily by drinking water or eating food that has been contaminated by the feces (waste product) of an infected person, including one with no apparent symptoms.\n\nThe severity of the diarrhea and vomiting can lead to rapid dehydration and electrolyte imbalance, and death in some cases. The primary treatment is oral rehydration therapy, typically with oral rehydration solution, to replace water and electrolytes. If this is not tolerated or does not provide improvement fast enough, intravenous fluids can also be used. Antibacterial drugs are beneficial in those with severe disease to shorten its duration and severity."));
+  }
+
+  @Test
+  public void testQueryFailsGracefullyIfMultipleQueries() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add(
+                "dimension=cX5k9anHEHd:apsOixVZlf1;jRbMi0aBjYn,dx:luLGbE2WKGP;nq5ohBSWj6E,pe:LAST_12_MONTHS")
+            .add("filter=ou:USER_ORGUNIT")
+            .add("displayProperty=SHORTNAME");
+
+    // When
+    ApiResponse response = analyticsActions.get(params);
+
+    // Then
+    response.validate().statusCode(200);
   }
 }

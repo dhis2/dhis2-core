@@ -63,13 +63,4 @@ public class AnalyticsEventActions extends RestApiActions {
 
     return this.get("/dimensions", queryParamsBuilder).validateStatus(200);
   }
-
-  public ApiResponse getDimensionsByDimensionType(String programStage, String dimensionType) {
-    return this.get(
-            "/dimensions",
-            new QueryParamsBuilder()
-                .add("programStageId", programStage)
-                .add("filter", "dimensionType:eq:" + dimensionType))
-        .validateStatus(200);
-  }
 }

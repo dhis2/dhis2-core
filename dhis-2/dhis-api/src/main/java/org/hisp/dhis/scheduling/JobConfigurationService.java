@@ -150,9 +150,14 @@ public interface JobConfigurationService {
    * Get all job configurations that should start within the next n seconds.
    *
    * @param dueInNextSeconds number of seconds from now the job should start
+   * @param limitToNext1 true, to only return a single config per {@link JobType}, false to return
+   *     all due jobs
+   * @param includeWaiting true to also list jobs that cannot run because another job of the same
+   *     type is already running
    * @return only jobs that should start soon within the given number of seconds
    */
-  List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds);
+  List<JobConfiguration> getDueJobConfigurations(
+      int dueInNextSeconds, boolean limitToNext1, boolean includeWaiting);
 
   /**
    * Finds stale jobs.

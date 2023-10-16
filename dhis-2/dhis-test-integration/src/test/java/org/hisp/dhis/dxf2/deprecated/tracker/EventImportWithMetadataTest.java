@@ -41,6 +41,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.feedback.Status;
@@ -79,9 +80,8 @@ class EventImportWithMetadataTest extends SingleSetupIntegrationTestBase {
     MetadataImportParams params = new MetadataImportParams();
     params.setImportMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
-    params.setObjects(metadata);
     params.setSkipSharing(true);
-    ImportReport report = importService.importMetadata(params);
+    ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
     assertEquals(Status.OK, report.getStatus());
     idSchemes.setDataElementIdScheme("UID");
     idSchemes.setOrgUnitIdScheme("CODE");

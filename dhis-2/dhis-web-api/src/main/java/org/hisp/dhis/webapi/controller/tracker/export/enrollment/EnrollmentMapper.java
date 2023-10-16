@@ -74,7 +74,6 @@ public interface EnrollmentMapper
   @Mapping(target = "trackedEntity", source = "trackedEntity.uid")
   @Mapping(target = "program", source = "program.uid")
   @Mapping(target = "orgUnit", source = "organisationUnit.uid")
-  @Mapping(target = "orgUnitName", source = "organisationUnit.name")
   @Mapping(target = "enrolledAt", source = "enrollmentDate")
   @Mapping(target = "occurredAt", source = "incidentDate")
   @Mapping(target = "followUp", source = "followup")
@@ -83,7 +82,7 @@ public interface EnrollmentMapper
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "relationships", source = "relationshipItems")
   @Mapping(target = "attributes", source = "trackedEntity.trackedEntityAttributeValues")
-  @Mapping(target = "notes", source = "comments")
+  @Mapping(target = "notes", source = "notes")
   @Override
   org.hisp.dhis.webapi.controller.tracker.view.Enrollment from(Enrollment enrollment);
 }

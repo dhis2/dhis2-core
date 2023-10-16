@@ -57,11 +57,6 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
  * @author Lars Helge Overland
  */
 class EventQueryParams {
-
-  public static final int DEFAULT_PAGE = 1;
-
-  public static final int DEFAULT_PAGE_SIZE = 50;
-
   private Program program;
 
   private ProgramStage programStage;
@@ -72,7 +67,7 @@ class EventQueryParams {
 
   private Boolean followUp;
 
-  private List<OrganisationUnit> accessibleOrgUnits = new ArrayList<>();
+  private OrganisationUnit orgUnit;
 
   private OrganisationUnitSelectionMode orgUnitMode;
 
@@ -107,14 +102,6 @@ class EventQueryParams {
 
   private IdSchemes idSchemes = new IdSchemes();
 
-  private Integer page;
-
-  private Integer pageSize;
-
-  private boolean totalPages;
-
-  private boolean skipPaging;
-
   private boolean includeRelationships;
 
   /**
@@ -135,8 +122,6 @@ class EventQueryParams {
   private boolean includeAllDataElements;
 
   private Set<String> events = new HashSet<>();
-
-  private Boolean skipEventId;
 
   /**
    * Each attribute will affect the final SQL query. Some attributes are filtered on, while
@@ -168,38 +153,7 @@ class EventQueryParams {
 
   @Getter private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
   public EventQueryParams() {}
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public boolean isPaging() {
-    return page != null || pageSize != null;
-  }
-
-  public int getPageWithDefault() {
-    return page != null && page > 0 ? page : DEFAULT_PAGE;
-  }
-
-  public int getPageSizeWithDefault() {
-    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-  }
-
-  public int getOffset() {
-    return (getPageWithDefault() - 1) * getPageSizeWithDefault();
-  }
-
-  /** Sets paging properties to default values. */
-  public void setDefaultPaging() {
-    this.page = DEFAULT_PAGE;
-    this.pageSize = DEFAULT_PAGE_SIZE;
-    this.skipPaging = false;
-  }
 
   public boolean hasProgram() {
     return program != null;
@@ -230,11 +184,6 @@ class EventQueryParams {
    */
   public boolean hasDataElementFilter() {
     return this.hasDataElementFilter;
-  }
-
-  /** Null-safe check for skip event ID parameter. */
-  public boolean isSkipEventId() {
-    return skipEventId != null && skipEventId;
   }
 
   public Program getProgram() {
@@ -282,12 +231,12 @@ class EventQueryParams {
     return this;
   }
 
-  public List<OrganisationUnit> getAccessibleOrgUnits() {
-    return accessibleOrgUnits;
+  public OrganisationUnit getOrgUnit() {
+    return orgUnit;
   }
 
-  public EventQueryParams setAccessibleOrgUnits(List<OrganisationUnit> accessibleOrgUnits) {
-    this.accessibleOrgUnits = accessibleOrgUnits;
+  public EventQueryParams setOrgUnit(OrganisationUnit orgUnit) {
+    this.orgUnit = orgUnit;
     return this;
   }
 
@@ -437,42 +386,6 @@ class EventQueryParams {
     return this;
   }
 
-  public Integer getPage() {
-    return page;
-  }
-
-  public EventQueryParams setPage(Integer page) {
-    this.page = page;
-    return this;
-  }
-
-  public Integer getPageSize() {
-    return pageSize;
-  }
-
-  public EventQueryParams setPageSize(Integer pageSize) {
-    this.pageSize = pageSize;
-    return this;
-  }
-
-  public boolean isTotalPages() {
-    return totalPages;
-  }
-
-  public EventQueryParams setTotalPages(boolean totalPages) {
-    this.totalPages = totalPages;
-    return this;
-  }
-
-  public boolean isSkipPaging() {
-    return skipPaging;
-  }
-
-  public EventQueryParams setSkipPaging(boolean skipPaging) {
-    this.skipPaging = skipPaging;
-    return this;
-  }
-
   public boolean isIncludeAttributes() {
     return includeAttributes;
   }
@@ -530,15 +443,6 @@ class EventQueryParams {
 
   public EventQueryParams setEvents(Set<String> events) {
     this.events = events;
-    return this;
-  }
-
-  public Boolean getSkipEventId() {
-    return skipEventId;
-  }
-
-  public EventQueryParams setSkipEventId(Boolean skipEventId) {
-    this.skipEventId = skipEventId;
     return this;
   }
 

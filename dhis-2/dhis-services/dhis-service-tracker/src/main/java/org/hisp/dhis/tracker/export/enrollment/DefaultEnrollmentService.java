@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.export.enrollment;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
@@ -133,7 +132,7 @@ class DefaultEnrollmentService
     result.setCreatedByUserInfo(enrollment.getCreatedByUserInfo());
     result.setLastUpdatedByUserInfo(enrollment.getLastUpdatedByUserInfo());
     result.setDeleted(enrollment.isDeleted());
-    result.setComments(enrollment.getComments());
+    result.setNotes(enrollment.getNotes());
     if (params.isIncludeEvents()) {
       result.setEvents(getEvents(user, enrollment, includeDeleted));
     }
@@ -273,11 +272,6 @@ class DefaultEnrollmentService
     }
 
     User user = params.getUser();
-
-    if (!params.hasOrganisationUnits()
-        && !(params.isOrganisationUnitMode(ALL) || params.isOrganisationUnitMode(ACCESSIBLE))) {
-      violation = "At least one organisation unit must be specified";
-    }
 
     if (params.isOrganisationUnitMode(ACCESSIBLE)
         && (user == null || !user.hasDataViewOrganisationUnitWithFallback())) {

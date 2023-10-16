@@ -40,7 +40,7 @@ import org.hisp.dhis.dto.ApiResponse;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TestCleanUp {
-  private Logger logger = LogManager.getLogger(TestCleanUp.class.getName());
+  private final Logger logger = LogManager.getLogger(TestCleanUp.class.getName());
 
   private int deleteCount = 0;
 
@@ -53,10 +53,7 @@ public class TestCleanUp {
     List<String> reverseOrderedKeys = new ArrayList<>(createdEntities.keySet());
     Collections.reverse(reverseOrderedKeys);
 
-    Iterator<String> iterator = reverseOrderedKeys.iterator();
-
-    while (iterator.hasNext()) {
-      String key = iterator.next();
+    for (String key : reverseOrderedKeys) {
       boolean deleted = deleteEntity(createdEntities.get(key), key);
       if (deleted) {
         TestRunStorage.removeEntity(createdEntities.get(key), key);
@@ -97,11 +94,8 @@ public class TestCleanUp {
   }
 
   public void deleteCreatedEntities(LinkedHashMap<String, String> entitiesToDelete) {
-    Iterator<String> iterator = entitiesToDelete.keySet().iterator();
 
-    while (iterator.hasNext()) {
-      String key = iterator.next();
-
+    for (String key : entitiesToDelete.keySet()) {
       deleteEntity(entitiesToDelete.get(key), key);
     }
   }

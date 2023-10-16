@@ -41,6 +41,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.isRelationDoesntExist;
 
 import com.google.common.collect.Sets;
 import java.util.Arrays;
@@ -76,6 +77,7 @@ import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.util.Assert;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.InvalidResultSetAccessException;
@@ -119,7 +121,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           "enrollmentstatus");
 
   public JdbcEnrollmentAnalyticsManager(
-      JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       ProgramIndicatorService programIndicatorService,
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer,
@@ -131,7 +133,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   public void getEnrollments(EventQueryParams params, Grid grid, int maxLimit) {
-    String sql = getEventsOrEnrollmentsSql(params, maxLimit);
+    String sql =
+        params.isAggregatedEnrollments()
+            ? getAggregatedEnrollmentsSql(grid.getHeaders(), params)
+            : getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {
       executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql);
@@ -158,12 +163,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     grid.setLastDataRow(true);
 
     while (rowSet.next()) {
-      if (++rowsRed > params.getPageSizeWithDefault()
-          && !params.isTotalPages()
-          && !unlimitedPaging) {
-        grid.setLastDataRow(false);
-
-        continue;
+      if (params.isComingFromQuery()) {
+        rowsRed++;
+        if (isLastRowAfterPageSize(params, unlimitedPaging, rowsRed)) {
+          grid.setLastDataRow(false);
+          continue; // skips the last row in n+1 query scenario
+        }
       }
 
       grid.addRow();
@@ -258,8 +263,15 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         count = jdbcTemplate.queryForObject(sql, Long.class);
       }
     } catch (BadSqlGrammarException ex) {
-      log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
-      throw ex;
+      if (isRelationDoesntExist(ex.getSQLException())) {
+        log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+        throw ex;
+      }
+      if (!params.isMultipleQueries()) {
+        log.warn(AnalyticsUtils.ERR_MSG_SQL_SYNTAX_ERROR, ex);
+        throw ex;
+      }
+      log.warn(AnalyticsUtils.ERR_MSG_SILENT_FALLBACK, ex);
     } catch (DataAccessResourceFailureException ex) {
       log.warn(ErrorCode.E7131.getMessage(), ex);
       throw new QueryRuntimeException(ErrorCode.E7131);
@@ -440,7 +452,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   protected String getSelectClause(EventQueryParams params) {
-    List<String> selectCols = ListUtils.distinctUnion(COLUMNS, getSelectColumns(params, false));
+    List<String> selectCols =
+        ListUtils.distinctUnion(
+            params.isAggregatedEnrollments() ? List.of("pi") : COLUMNS,
+            getSelectColumns(params, false));
 
     return "select " + StringUtils.join(selectCols, ",") + " ";
   }

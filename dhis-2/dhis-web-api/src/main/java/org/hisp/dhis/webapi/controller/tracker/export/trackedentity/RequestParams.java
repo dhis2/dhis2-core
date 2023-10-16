@@ -46,7 +46,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 
@@ -62,11 +61,14 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
 class RequestParams extends PagingAndSortingCriteriaAdapter {
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
 
-  /** Query filter for attributes */
+  @Deprecated(forRemoval = true, since = "2.41")
+  // Removed field without previous deprecation.
+  // It is still here in order to be validated and warn the client about the removal
   private String query;
 
-  /** Comma separated list of attribute UIDs */
-  @OpenApi.Property({UID[].class, Attribute.class})
+  @Deprecated(forRemoval = true, since = "2.41")
+  // Removed field without previous deprecation.
+  // It is still here in order to be validated and warn the client about the removal
   private String attribute;
 
   /** Comma separated list of attribute filters */
@@ -170,20 +172,19 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
   /** End date for Event for the given Program. */
   private Date eventOccurredBefore;
 
-  /** Indicates whether not to include metadata in the response. */
-  private boolean skipMeta;
-
   /** Indicates whether to include soft-deleted elements */
   private boolean includeDeleted;
-
-  /** Indicates whether to include all TEI attributes */
-  private boolean includeAllAttributes;
 
   /**
    * Potential Duplicate value for TEI. If null, we don't check whether a TEI is a
    * potentialDuplicate or not
    */
   private Boolean potentialDuplicate;
+
+  @Deprecated(forRemoval = true, since = "2.41")
+  // Removed field without previous deprecation.
+  // It is still here in order to be validated and warn the client about the removal
+  private String includeAllAttributes;
 
   @OpenApi.Property(value = String[].class)
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);

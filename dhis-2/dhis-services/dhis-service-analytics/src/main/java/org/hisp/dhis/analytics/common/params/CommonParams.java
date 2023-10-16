@@ -52,8 +52,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 
 /**
- * This is a reusable and shared representation of queryable items to be used by the service/dao
- * layers.
+ * This is a reusable and shared representation of queryable items to be used by the service and
+ * store layers.
  *
  * <p>It encapsulates the most common objects that are very likely to be used by the majority of
  * analytics queries.

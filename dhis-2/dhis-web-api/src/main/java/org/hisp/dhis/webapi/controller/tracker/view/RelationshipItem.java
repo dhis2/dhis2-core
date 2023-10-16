@@ -121,8 +121,6 @@ public class RelationshipItem {
 
     @JsonProperty private String orgUnit;
 
-    @JsonProperty private String orgUnitName;
-
     @JsonProperty private Instant enrolledAt;
 
     @JsonProperty private Instant occurredAt;
@@ -169,8 +167,6 @@ public class RelationshipItem {
     @JsonProperty private String enrollment;
 
     @JsonProperty private String orgUnit;
-
-    @JsonProperty private String orgUnitName;
 
     @JsonProperty private Instant occurredAt;
 

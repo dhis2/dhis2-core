@@ -60,7 +60,7 @@ public class ExpirationDaysCheck implements Checker {
 
     if (importOptions == null
         || importOptions.getUser() == null
-        || importOptions.getUser().isAuthorized(Authorities.F_EDIT_EXPIRED.getAuthority())) {
+        || importOptions.getUser().isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return success();
     }
 

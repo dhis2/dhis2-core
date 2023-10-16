@@ -28,6 +28,8 @@
 package org.hisp.dhis.common;
 
 import static org.hisp.dhis.common.BaseIdentifiableObject.copySet;
+import static org.hisp.dhis.common.IdScheme.CODE;
+import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -86,5 +88,27 @@ class BaseIdentifiableObjectTest {
     Set<ProgramSection> copiedSections = copySet(program, null, ProgramSection.copyOf);
 
     assertTrue(copiedSections.isEmpty());
+  }
+
+  @Test
+  void testGetDisplayPropertyValueName() {
+    IdScheme idSchemeName = NAME;
+    Program p = new Program("Any program");
+    p.setCode("AnyCode");
+
+    String value = p.getDisplayPropertyValue(idSchemeName);
+
+    assertEquals("Any program", value);
+  }
+
+  @Test
+  void testGetDisplayPropertyValueCode() {
+    IdScheme idSchemeCode = CODE;
+    Program p = new Program("Any program");
+    p.setCode("AnyCode");
+
+    String value = p.getDisplayPropertyValue(idSchemeCode);
+
+    assertEquals("AnyCode", value);
   }
 }

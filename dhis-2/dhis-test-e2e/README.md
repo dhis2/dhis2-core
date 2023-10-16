@@ -169,10 +169,13 @@ Currently, the supported generators are (along with their respective accepted UR
 ```
 AnalyticsAggregatedTestGenerator.java -> /analytics?
 EnrollmentQueryTestGenerator.java -> /analytics/enrollments/query/{program}.json?
+EnrollmentAggregatedTestGenerator.java -> /analytics/enrollments/aggregate/{program}.json?
 EventAggregatedTestGenerator.java -> /analytics/events/aggregate/{program}.json?
 EventQueryTestGenerator.java -> /analytics/events/query/{program}.json?
 TeiQueryTestGenerator.java -> /analytics/trackedEntities/query/{trackedEntityType}.json?
 ```
+_**NOTE**_: `.json` behind the program uid is mandatory
+
 
 ### How to generate the test(s)
 1. Add the URL(s) into `test-urls.txt` (check inside the file for examples)

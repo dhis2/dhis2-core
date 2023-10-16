@@ -66,10 +66,16 @@ import org.hisp.dhis.user.User;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ImportOptions implements JobParameters {
 
+  public static final ImportStrategy DEFAULT_IMPORT_STRATEGY = ImportStrategy.CREATE_AND_UPDATE;
+
+  public static final MergeMode DEFAULT_MERGE_MODE = MergeMode.REPLACE;
+
+  public static final ImportReportMode DEFAULT_REPORT_MODE = ImportReportMode.FULL;
+
   @ToString.Exclude private transient User user;
 
-  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
   @OpenApi.Ignore
+  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
   private IdSchemes idSchemes = new IdSchemes();
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -81,13 +87,13 @@ public class ImportOptions implements JobParameters {
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
   private boolean async;
 
-  private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
+  private ImportStrategy importStrategy = DEFAULT_IMPORT_STRATEGY;
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
-  private MergeMode mergeMode = MergeMode.REPLACE;
+  private MergeMode mergeMode = DEFAULT_MERGE_MODE;
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
-  private ImportReportMode reportMode = ImportReportMode.FULL;
+  private ImportReportMode reportMode = DEFAULT_REPORT_MODE;
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
   private boolean skipExistingCheck;

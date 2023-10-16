@@ -71,20 +71,17 @@ public class RelationshipActions extends RestApiActions {
       String fromEntityId,
       String toEntity,
       String toEntityId) {
-    JsonObject relationship =
-        new JsonObjectBuilder()
-            .addProperty("relationshipType", relationshipTypeId)
-            .addObject(
-                "from",
-                new JsonObjectBuilder()
-                    .addObject(
-                        fromEntity, new JsonObjectBuilder().addProperty(fromEntity, fromEntityId)))
-            .addObject(
-                "to",
-                new JsonObjectBuilder()
-                    .addObject(toEntity, new JsonObjectBuilder().addProperty(toEntity, toEntityId)))
-            .build();
-
-    return relationship;
+    return new JsonObjectBuilder()
+        .addProperty("relationshipType", relationshipTypeId)
+        .addObject(
+            "from",
+            new JsonObjectBuilder()
+                .addObject(
+                    fromEntity, new JsonObjectBuilder().addProperty(fromEntity, fromEntityId)))
+        .addObject(
+            "to",
+            new JsonObjectBuilder()
+                .addObject(toEntity, new JsonObjectBuilder().addProperty(toEntity, toEntityId)))
+        .build();
   }
 }

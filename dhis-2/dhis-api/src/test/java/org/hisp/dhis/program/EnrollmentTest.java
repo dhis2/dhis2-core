@@ -39,9 +39,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -61,7 +61,7 @@ class EnrollmentTest {
 
     assertEquals(original.getEvents(), copy.getEvents());
     assertEquals(original.getStatus(), copy.getStatus());
-    assertEquals(original.getComments(), copy.getComments());
+    assertEquals(original.getNotes(), copy.getNotes());
     assertEquals(original.getName(), copy.getName());
     assertEquals(original.getIncidentDate(), copy.getIncidentDate());
     assertEquals(original.getEnrollmentDate(), copy.getEnrollmentDate());
@@ -94,7 +94,7 @@ class EnrollmentTest {
     assertEquals(original.getName(), copy.getName());
     assertEquals(original.getOrganisationUnit(), copy.getOrganisationUnit());
     assertEquals(original.getStatus(), copy.getStatus());
-    assertTrue(copy.getComments().isEmpty());
+    assertTrue(copy.getNotes().isEmpty());
     assertTrue(copy.getMessageConversations().isEmpty());
     assertTrue(copy.getEvents().isEmpty());
     assertTrue(copy.getRelationshipItems().isEmpty());
@@ -115,7 +115,7 @@ class EnrollmentTest {
     Enrollment e = new Enrollment();
     Program program = getNewProgram();
     e.setAutoFields();
-    e.setComments(List.of(new TrackedEntityComment("comment1", "amin")));
+    e.setNotes(List.of(new Note("note", "amin")));
     e.setCompletedBy("admin");
     e.setEndDate(new Date());
     e.setEnrollmentDate(new Date());
@@ -136,7 +136,7 @@ class EnrollmentTest {
   private Enrollment getNewEnrollmentWithNulls() {
     Enrollment e = new Enrollment();
     e.setName(null);
-    e.setComments(null);
+    e.setNotes(null);
     e.setCompletedBy(null);
     e.setEndDate(null);
     e.setEnrollmentDate(null);

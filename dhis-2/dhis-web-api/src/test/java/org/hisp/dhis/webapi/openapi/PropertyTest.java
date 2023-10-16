@@ -27,11 +27,16 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.util.stream.Collectors.toMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
+import java.util.function.Function;
+import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.common.OpenApi;
 import org.junit.jupiter.api.Test;
 
@@ -75,5 +80,33 @@ class PropertyTest {
   void testGetPropertiesGivenOpenApiIgnoreAndJsonPropertyAnnotatedField() {
     Collection<Property> properties = Property.getProperties(IgnoredProperty.class);
     assertEquals(0, properties.size());
+  }
+
+  @Getter
+  @Setter
+  public static class DefaultProperty {
+    private String initial = "hello";
+
+    @JsonProperty(defaultValue = "42")
+    private int annotated;
+
+    @OpenApi.Property(defaultValue = "true")
+    private boolean annotatedOpenApi;
+
+    @JsonProperty
+    public String getInitial() {
+      return initial;
+    }
+  }
+
+  @Test
+  void testGetPropertiesDefaultValues() {
+    Map<String, Property> properties =
+        Property.getProperties(DefaultProperty.class).stream()
+            .collect(toMap(Property::getName, Function.identity()));
+    assertEquals(3, properties.size());
+    assertEquals("hello", properties.get("initial").getDefaultValue());
+    assertEquals("42", properties.get("annotated").getDefaultValue());
+    assertEquals("true", properties.get("annotatedOpenApi").getDefaultValue());
   }
 }

@@ -180,7 +180,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
+    requestParams.setOrgUnit(UID.of(orgUnit));
     requestParams.setOrgUnitMode(SELECTED);
 
     EventOperationParams params = mapper.map(requestParams);
@@ -203,7 +203,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldReturnOrgUnitWhenCorrectOrgUnitMapped() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
+    requestParams.setOrgUnit(UID.of(orgUnit));
 
     EventOperationParams params = mapper.map(requestParams);
 
@@ -565,7 +565,7 @@ class EventRequestParamsMapperTest {
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
 
     RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnit(UID.of(orgUnit.getUid()));
+    requestParams.setOrgUnit(UID.of(orgUnit));
     requestParams.setOrgUnitMode(orgUnitMode);
 
     Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));

@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -87,7 +86,7 @@ class NoteValidatorTest {
     // Given
     final Note note = rnd.nextObject(Note.class);
 
-    when(preheat.getNote(note.getNote())).thenReturn(Optional.of(new TrackedEntityComment()));
+    when(preheat.getNote(note.getNote())).thenReturn(Optional.of(new org.hisp.dhis.note.Note()));
     enrollment.setNotes(Collections.singletonList(note));
 
     // When

@@ -29,8 +29,10 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -56,14 +58,8 @@ public class TrackedEntityOperationParams {
 
   @Builder.Default private TrackedEntityParams trackedEntityParams = TrackedEntityParams.FALSE;
 
-  /** Query value, will apply to all relevant attributes. */
-  private QueryFilter query;
-
-  /** Attributes to be included in the response. Can be used to filter response. */
-  private String attributes;
-
-  /** Filters for the response. */
-  private String filters;
+  /** Tracked entity attribute filters per attribute UID. */
+  @Builder.Default private Map<String, List<QueryFilter>> filters = new HashMap<>();
 
   /**
    * Organisation units for which instances in the response were registered at. Is related to the
@@ -126,9 +122,6 @@ public class TrackedEntityOperationParams {
   /** End date for event for the given program. */
   private Date eventEndDate;
 
-  /** Indicates whether not to include meta data in the response. */
-  private boolean skipMeta;
-
   /** Page number. */
   private Integer page;
 
@@ -146,9 +139,6 @@ public class TrackedEntityOperationParams {
 
   /** Indicates whether to include soft-deleted elements. Default to false */
   @Builder.Default private boolean includeDeleted = false;
-
-  /** Indicates whether to include all te attributes */
-  private boolean includeAllAttributes;
 
   /**
    * Indicates whether the search is internal triggered by the system. The system should trigger

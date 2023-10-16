@@ -33,6 +33,7 @@ import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.Serializable;
@@ -42,6 +43,7 @@ import java.util.NoSuchElementException;
 import javax.annotation.Nonnull;
 import lombok.Data;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObjectUtils;
 
 /**
  * This is used to represents dimensions that are needed by clients but do not actually exists in
@@ -84,7 +86,7 @@ public class SimpleDimension implements Serializable {
       return parentType;
     }
 
-    public static boolean contains(final String dimension) {
+    public static boolean contains(String dimension) {
       return stream(Type.values()).anyMatch(t -> t.getDimension().equals(dimension));
     }
 
@@ -108,24 +110,46 @@ public class SimpleDimension implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
+  private String program;
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String programStage;
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
   @Nonnull
   private List<String> values;
 
   public SimpleDimension(@Nonnull Attribute parent, @Nonnull String dimension) {
-    this(parent, dimension, new ArrayList<>());
+    this(parent, dimension, null, null, new ArrayList<>());
+  }
+
+  public SimpleDimension(
+      @Nonnull Attribute parent, @Nonnull String dimension, String program, String programStage) {
+    this(parent, dimension, program, programStage, new ArrayList<>());
   }
 
   @JsonCreator
   public SimpleDimension(
       @JsonProperty("parent") @Nonnull Attribute parent,
       @JsonProperty("dimension") @Nonnull String dimension,
+      @JsonProperty("program") String program,
+      @JsonProperty("programStage") String programStage,
       @JsonProperty("values") @Nonnull List<String> values) {
     this.parent = parent;
     this.dimension = dimension;
+    this.program = program;
+    this.programStage = programStage;
     this.values = values;
   }
 
-  boolean belongsTo(final Attribute parent) {
+  boolean belongsTo(Attribute parent) {
     return this.parent == parent;
+  }
+
+  @JsonIgnore
+  public String asQualifiedDimension() {
+    return DimensionalObjectUtils.asQualifiedDimension(dimension, program, programStage);
   }
 }

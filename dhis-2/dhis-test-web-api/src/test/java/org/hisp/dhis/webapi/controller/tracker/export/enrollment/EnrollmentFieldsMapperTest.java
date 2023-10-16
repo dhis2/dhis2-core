@@ -56,7 +56,7 @@ class EnrollmentFieldsMapperTest extends DhisControllerConvenienceTest {
         arguments("events", false, true, false),
         arguments("!attributes", false, false, false),
         arguments("attributes", true, false, false),
-        arguments("!attributes", "attributes", false, false, false),
+        arguments("!attributes,attributes", false, false, false),
         arguments("!attributes[*]", false, false, false),
         arguments("attributes[createdAt],attributes,attributes,!attributes", false, false, false),
         arguments("events[!createdAt]", false, true, false),

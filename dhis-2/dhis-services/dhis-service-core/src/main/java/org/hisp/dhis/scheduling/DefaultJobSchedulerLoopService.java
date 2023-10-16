@@ -34,6 +34,8 @@ import static org.hisp.dhis.eventhook.EventUtils.schedulerStart;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,6 +48,8 @@ import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.AuthenticationService;
 import org.slf4j.MDC;
@@ -63,6 +67,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
 
+  private final SystemSettingManager systemSettings;
   private final LeaderManager leaderManager;
   private final JobConfigurationStore jobConfigurationStore;
   private final JobConfigurationService jobConfigurationService;
@@ -106,7 +111,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   @Override
   @Transactional(readOnly = true)
   public List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds) {
-    return jobConfigurationService.getDueJobConfigurations(dueInNextSeconds);
+    return jobConfigurationService.getDueJobConfigurations(dueInNextSeconds, true, false);
   }
 
   @Override
@@ -224,8 +229,13 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
         job.getJobType().isUsingNotifications()
             ? new NotifierJobProgress(notifier, job)
             : NoopJobProgress.INSTANCE;
+    boolean logInfoOnDebug =
+        job.getSchedulingType() != SchedulingType.ONCE_ASAP
+            && job.getLastExecuted() != null
+            && Duration.between(job.getLastExecuted().toInstant(), Instant.now()).getSeconds()
+                < systemSettings.getIntSetting(SettingKey.JOBS_LOG_DEBUG_BELOW_SECONDS);
     RecordingJobProgress progress =
-        new RecordingJobProgress(messages, job, tracker, true, observer);
+        new RecordingJobProgress(messages, job, tracker, true, observer, logInfoOnDebug);
     recordingsById.put(job.getUid(), progress);
     return progress;
   }

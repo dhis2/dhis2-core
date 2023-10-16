@@ -46,6 +46,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSepa
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.isRelationDoesntExist;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
@@ -91,6 +92,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.postgresql.util.PSQLException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -114,7 +116,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   private final EventTimeFieldSqlRenderer timeFieldSqlRenderer;
 
   public JdbcEventAnalyticsManager(
-      JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       ProgramIndicatorService programIndicatorService,
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EventTimeFieldSqlRenderer timeFieldSqlRenderer,
@@ -126,7 +128,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   public Grid getEvents(EventQueryParams params, Grid grid, int maxLimit) {
-    String sql = getEventsOrEnrollmentsSql(params, maxLimit);
+    String sql = getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {
       executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql);
@@ -154,12 +156,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     grid.setLastDataRow(true);
 
     while (rowSet.next()) {
-      if (++rowsRed > params.getPageSizeWithDefault()
-          && !params.isTotalPages()
-          && !unlimitedPaging) {
-        grid.setLastDataRow(false);
-
-        continue;
+      if (params.isComingFromQuery()) {
+        rowsRed++;
+        if (isLastRowAfterPageSize(params, unlimitedPaging, rowsRed)) {
+          grid.setLastDataRow(false);
+          continue; // skips the last row in n+1 query scenario
+        }
       }
 
       grid.addRow();
@@ -248,8 +250,15 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         count = jdbcTemplate.queryForObject(sql, Long.class);
       }
     } catch (BadSqlGrammarException ex) {
-      log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
-      throw ex;
+      if (isRelationDoesntExist(ex.getSQLException())) {
+        log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+        throw ex;
+      }
+      if (!params.isMultipleQueries()) {
+        log.warn(AnalyticsUtils.ERR_MSG_SQL_SYNTAX_ERROR, ex);
+        throw ex;
+      }
+      log.warn(AnalyticsUtils.ERR_MSG_SILENT_FALLBACK, ex);
     } catch (DataAccessResourceFailureException ex) {
       log.warn(E7131.getMessage(), ex);
       throw new QueryRuntimeException(E7131);

@@ -12,6 +12,10 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    ignore:
+      - dependency-name: "codecov/codecov-action"
+        versions:
+          - ">= 4.0" # is breaking the build probably due to https://github.com/codecov/codecov-action/issues/837
   - package-ecosystem: "maven"
     directory: "/dhis-2"
     schedule:
@@ -80,6 +84,10 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    ignore:
+      - dependency-name: "codecov/codecov-action"
+        versions:
+          - ">= 4.0" # is breaking the build probably due to https://github.com/codecov/codecov-action/issues/837
     target-branch: "2.40"
   - package-ecosystem: "maven"
     directory: "/dhis-2"
@@ -127,6 +135,9 @@ updates:
       - dependency-name: "org.hisp.dhis.rules:*" # Rule engine must be upgraded manually due to circular dependency with ANTLR parser
         versions:
           - ">= 2.0"
+      - dependency-name: "org.hisp.dhis:json-tree" # It needs to be updated only in master
+        versions:
+          - "> 0.5.0"
   # 2.39
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -139,6 +150,10 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    ignore:
+      - dependency-name: "codecov/codecov-action"
+        versions:
+          - ">= 4.0" # is breaking the build probably due to https://github.com/codecov/codecov-action/issues/837
     target-branch: "2.39"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
   - package-ecosystem: "maven"
@@ -187,6 +202,9 @@ updates:
       - dependency-name: "org.hisp.dhis.rules:*" # Rule engine must be upgraded manually due to circular dependency with ANTLR parser
         versions:
           - ">= 2.0"
+      - dependency-name: "org.hisp.dhis:json-tree" # It needs to be updated only in master
+        versions:
+          - "> 0.5.0"
     target-branch: "2.39"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
   # 2.38
@@ -201,6 +219,10 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    ignore:
+      - dependency-name: "codecov/codecov-action"
+        versions:
+          - ">= 4.0" # is breaking the build probably due to https://github.com/codecov/codecov-action/issues/837
     target-branch: "2.38"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
   - package-ecosystem: "maven"
@@ -249,5 +271,8 @@ updates:
       - dependency-name: "org.hisp.dhis.rules:*" # Rule engine must be upgraded manually due to circular dependency with ANTLR parser
         versions:
           - ">= 2.0"
+      - dependency-name: "org.hisp.dhis:json-tree" # It needs to be updated only in master
+        versions:
+          - "> 0.5.0"
     target-branch: "2.38"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources

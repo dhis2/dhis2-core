@@ -60,6 +60,8 @@ public class TextUtils {
 
   public static final String SEMICOLON = ";";
 
+  public static final String COMMA = ",";
+
   private static final Pattern LINK_PATTERN =
       Pattern.compile("((http://|https://|www\\.).+?)($|\\n|\\r|\\r\\n| )");
 

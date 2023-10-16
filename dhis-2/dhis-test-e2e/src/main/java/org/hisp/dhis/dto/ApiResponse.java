@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.dto;
 
-import static org.hamcrest.core.IsNot.not;
-import static org.hamcrest.text.IsEmptyString.emptyOrNullString;
-
 import com.google.gson.JsonObject;
 import io.restassured.path.json.config.JsonParserType;
 import io.restassured.path.json.config.JsonPathConfig;
@@ -78,12 +75,6 @@ public class ApiResponse {
   }
 
   public String extractString(String path) {
-    return raw.jsonPath().getString(path);
-  }
-
-  public String extractStringFailIfEmpty(String path) {
-    this.validate().body(path, not(emptyOrNullString()));
-
     return raw.jsonPath().getString(path);
   }
 
@@ -149,11 +140,13 @@ public class ApiResponse {
 
     if (this.extract(pathToImportSummaries + "responseType") != null) {
       switch (this.extract(pathToImportSummaries + "responseType").toString()) {
-        case "ImportSummaries":
+        case "ImportSummaries" -> {
           return this.extractList(pathToImportSummaries + "importSummaries", ImportSummary.class);
-        case "ImportSummary":
+        }
+        case "ImportSummary" -> {
           return Collections.singletonList(
               this.raw.jsonPath().getObject(pathToImportSummaries, ImportSummary.class));
+        }
       }
     }
 

@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
+import java.util.Date;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
@@ -50,6 +51,8 @@ import org.hisp.dhis.common.SoftDeletableObject;
 public class Relationship extends SoftDeletableObject implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = 3818815755138507997L;
+
+  private Date createdAtClient;
 
   @AuditAttribute private RelationshipType relationshipType;
 
@@ -84,6 +87,15 @@ public class Relationship extends SoftDeletableObject implements Serializable {
   // -------------------------------------------------------------------------
   // Getters and setters
   // -------------------------------------------------------------------------
+
+  @JsonProperty
+  public Date getCreatedAtClient() {
+    return createdAtClient;
+  }
+
+  public void setCreatedAtClient(Date createdAtClient) {
+    this.createdAtClient = createdAtClient;
+  }
 
   /**
    * @return the relationshipType

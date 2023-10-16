@@ -109,6 +109,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentService;
@@ -129,8 +130,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -187,7 +186,7 @@ public abstract class AbstractEventService
 
   protected TrackedEntityService entityInstanceService;
 
-  protected TrackedEntityCommentService commentService;
+  protected NoteService commentService;
 
   protected EventStore eventStore;
 
@@ -688,7 +687,7 @@ public abstract class AbstractEventService
       }
     }
 
-    event.getNotes().addAll(NoteHelper.convertNotes(programStageInstance.getComments()));
+    event.getNotes().addAll(NoteHelper.convertNotes(programStageInstance.getNotes()));
 
     if (eventParams.isIncludeRelationships()) {
       event.setRelationships(
@@ -899,11 +898,10 @@ public abstract class AbstractEventService
       String noteUid =
           CodeGenerator.isValidUid(note.getNote()) ? note.getNote() : CodeGenerator.generateUid();
 
-      if (!commentService.trackedEntityCommentExists(noteUid)
-          && !StringUtils.isEmpty(note.getValue())) {
-        TrackedEntityComment comment = new TrackedEntityComment();
+      if (!commentService.noteExists(noteUid) && !StringUtils.isEmpty(note.getValue())) {
+        org.hisp.dhis.note.Note comment = new org.hisp.dhis.note.Note();
         comment.setUid(noteUid);
-        comment.setCommentText(note.getValue());
+        comment.setNoteText(note.getValue());
         comment.setCreator(getValidUsername(note.getStoredBy(), null, storedBy));
 
         Date created = DateUtils.parseDate(note.getStoredDate());
@@ -912,9 +910,9 @@ public abstract class AbstractEventService
         comment.setLastUpdatedBy(user);
         comment.setLastUpdated(new Date());
 
-        commentService.addTrackedEntityComment(comment);
+        commentService.addNote(comment);
 
-        programStageInstance.getComments().add(comment);
+        programStageInstance.getNotes().add(comment);
       }
     }
   }

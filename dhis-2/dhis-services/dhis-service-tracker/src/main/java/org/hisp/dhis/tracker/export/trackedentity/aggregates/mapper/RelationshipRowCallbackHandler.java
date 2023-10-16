@@ -82,6 +82,7 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
     relationship.setRelationshipType(type);
     relationship.setCreated(rs.getTimestamp("created"));
     relationship.setLastUpdated(rs.getTimestamp("lastupdated"));
+    relationship.setCreatedAtClient(rs.getTimestamp("createdatclient"));
 
     RelationshipItem from = createItem(rs.getString("from_uid"));
     from.setRelationship(relationship);

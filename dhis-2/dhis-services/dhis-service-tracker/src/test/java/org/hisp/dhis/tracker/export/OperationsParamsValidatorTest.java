@@ -27,45 +27,28 @@
  */
 package org.hisp.dhis.tracker.export;
 
-import static java.util.Collections.emptySet;
-import static org.hisp.dhis.common.AccessLevel.OPEN;
-import static org.hisp.dhis.common.AccessLevel.PROTECTED;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAccessibleOrgUnits;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class OperationsParamsValidatorTest {
 
-  @Mock OrganisationUnitService organisationUnitService;
-
-  @Mock TrackerAccessManager trackerAccessManager;
-
-  private OrganisationUnit organisationUnit;
   private static final String PARENT_ORG_UNIT_UID = "parent-org-unit";
 
   private final OrganisationUnit captureScopeOrgUnit = createOrgUnit("captureScopeOrgUnit", "uid3");
@@ -74,271 +57,10 @@ class OperationsParamsValidatorTest {
 
   private final Program program = new Program("program");
 
-  private final User user = new User();
-
-  private final List<OrganisationUnit> orgUnitDescendants =
-      List.of(
-          createOrgUnit("orgUnit1", "uid1"),
-          createOrgUnit("orgUnit2", "uid2"),
-          captureScopeOrgUnit,
-          searchScopeOrgUnit);
-
   @BeforeEach
   public void setUp() {
-    organisationUnit = createOrgUnit("orgUnit", PARENT_ORG_UNIT_UID);
+    OrganisationUnit organisationUnit = createOrgUnit("orgUnit", PARENT_ORG_UNIT_UID);
     organisationUnit.setChildren(Set.of(captureScopeOrgUnit, searchScopeOrgUnit));
-  }
-
-  @Test
-  void shouldMapCaptureScopeOrgUnitWhenProgramProtectedAndOuModeDescendants()
-      throws ForbiddenException {
-    when(organisationUnitService.getOrganisationUnitWithChildren(PARENT_ORG_UNIT_UID))
-        .thenReturn(orgUnitDescendants);
-
-    program.setAccessLevel(PROTECTED);
-    user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
-
-    Set<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            Set.of(organisationUnit),
-            DESCENDANTS,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
-
-    assertContainsOnly(Set.of(captureScopeOrgUnit), accessibleOrgUnits);
-  }
-
-  @Test
-  void shouldMapSearchScopeOrgUnitWhenProgramOpenAndOuModeDescendants() throws ForbiddenException {
-    when(organisationUnitService.getOrganisationUnitWithChildren(PARENT_ORG_UNIT_UID))
-        .thenReturn(orgUnitDescendants);
-
-    program.setAccessLevel(OPEN);
-    user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
-
-    Set<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            Set.of(organisationUnit),
-            DESCENDANTS,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
-
-    assertContainsOnly(Set.of(searchScopeOrgUnit), accessibleOrgUnits);
-  }
-
-  @Test
-  void shouldFailWhenProgramProtectedAndOuModeDescendantsAndUserHasNoAccessToCaptureScopeOrgUnit() {
-    when(organisationUnitService.getOrganisationUnitWithChildren(PARENT_ORG_UNIT_UID))
-        .thenReturn(orgUnitDescendants);
-
-    program.setAccessLevel(PROTECTED);
-    user.setOrganisationUnits(Set.of(createOrgUnit("made-up-org-unit", "made-up-org-unit-uid")));
-
-    Exception exception =
-        Assertions.assertThrows(
-            ForbiddenException.class,
-            () ->
-                validateAccessibleOrgUnits(
-                    user,
-                    Set.of(organisationUnit),
-                    DESCENDANTS,
-                    program,
-                    organisationUnitService::getOrganisationUnitWithChildren,
-                    trackerAccessManager));
-
-    assertEquals(
-        String.format("User does not have access to orgUnit: %s", PARENT_ORG_UNIT_UID),
-        exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenProgramOpenAndOuModeDescendantsAndUserHasNoAccessToSearchScopeOrgUnit() {
-    when(organisationUnitService.getOrganisationUnitWithChildren(PARENT_ORG_UNIT_UID))
-        .thenReturn(orgUnitDescendants);
-
-    program.setAccessLevel(OPEN);
-    user.setTeiSearchOrganisationUnits(
-        Set.of(createOrgUnit("made-up-org-unit", "made-up-org-unit-uid")));
-
-    Exception exception =
-        Assertions.assertThrows(
-            ForbiddenException.class,
-            () ->
-                validateAccessibleOrgUnits(
-                    user,
-                    Set.of(organisationUnit),
-                    DESCENDANTS,
-                    program,
-                    organisationUnitService::getOrganisationUnitWithChildren,
-                    trackerAccessManager));
-
-    assertEquals(
-        String.format("User does not have access to orgUnit: %s", PARENT_ORG_UNIT_UID),
-        exception.getMessage());
-  }
-
-  @Test
-  void shouldMapCaptureScopeOrgUnitWhenProgramProtectedAndOuModeChildren()
-      throws ForbiddenException {
-    program.setAccessLevel(PROTECTED);
-    user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
-
-    Set<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            Set.of(organisationUnit),
-            CHILDREN,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
-
-    assertContainsOnly(Set.of(captureScopeOrgUnit), accessibleOrgUnits);
-  }
-
-  @Test
-  void shouldMapSearchScopeOrgUnitWhenProgramOpenAndOuModeChildren() throws ForbiddenException {
-    program.setAccessLevel(OPEN);
-    user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
-
-    Set<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            Set.of(organisationUnit),
-            CHILDREN,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
-
-    assertContainsOnly(Set.of(searchScopeOrgUnit), accessibleOrgUnits);
-  }
-
-  @Test
-  void shouldFailWhenProgramProtectedAndOuModeChildrenAndUserHasNoAccessToCaptureScopeOrgUnit() {
-    program.setAccessLevel(PROTECTED);
-    user.setOrganisationUnits(Set.of(createOrgUnit("made-up-org-unit", "made-up-org-unit-uid")));
-
-    Exception exception =
-        Assertions.assertThrows(
-            ForbiddenException.class,
-            () ->
-                validateAccessibleOrgUnits(
-                    user,
-                    Set.of(organisationUnit),
-                    CHILDREN,
-                    program,
-                    organisationUnitService::getOrganisationUnitWithChildren,
-                    trackerAccessManager));
-
-    assertEquals(
-        String.format("User does not have access to orgUnit: %s", PARENT_ORG_UNIT_UID),
-        exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenProgramOpenAndOuModeChildrenAndUserHasNoAccessToSearchScopeOrgUnit() {
-    program.setAccessLevel(OPEN);
-    user.setTeiSearchOrganisationUnits(
-        Set.of(createOrgUnit("made-up-org-unit", "made-up-org-unit-uid")));
-
-    Exception exception =
-        Assertions.assertThrows(
-            ForbiddenException.class,
-            () ->
-                validateAccessibleOrgUnits(
-                    user,
-                    Set.of(organisationUnit),
-                    CHILDREN,
-                    program,
-                    organisationUnitService::getOrganisationUnitWithChildren,
-                    trackerAccessManager));
-
-    assertEquals(
-        String.format("User does not have access to orgUnit: %s", PARENT_ORG_UNIT_UID),
-        exception.getMessage());
-  }
-
-  @Test
-  void shouldMapCaptureScopeOrgUnitWhenOuModeCapture() throws ForbiddenException {
-    program.setAccessLevel(OPEN);
-    user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
-
-    Set<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            emptySet(),
-            CAPTURE,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
-
-    assertContainsOnly(Set.of(captureScopeOrgUnit), accessibleOrgUnits);
-  }
-
-  @Test
-  void shouldMapSearchScopeOrgUnitWhenOuModeAccessibleAndProgramOpen() throws ForbiddenException {
-    program.setAccessLevel(OPEN);
-    user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
-
-    Set<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            emptySet(),
-            ACCESSIBLE,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
-
-    assertContainsOnly(Set.of(searchScopeOrgUnit), accessibleOrgUnits);
-  }
-
-  @Test
-  void shouldMapCaptureScopeOrgUnitWhenOuModeAccessibleAndProgramProtected()
-      throws ForbiddenException {
-    program.setAccessLevel(PROTECTED);
-    user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
-
-    Set<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            emptySet(),
-            ACCESSIBLE,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
-
-    assertContainsOnly(Set.of(captureScopeOrgUnit), accessibleOrgUnits);
-  }
-
-  @Test
-  void shouldMapRequestedOrgUnitWhenOuModeSelected() throws ForbiddenException {
-    program.setAccessLevel(PROTECTED);
-    user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
-
-    when(trackerAccessManager.canAccess(user, program, organisationUnit)).thenReturn(true);
-
-    Set<OrganisationUnit> accessibleOrgUnits =
-        validateAccessibleOrgUnits(
-            user,
-            Set.of(organisationUnit),
-            SELECTED,
-            program,
-            organisationUnitService::getOrganisationUnitWithChildren,
-            trackerAccessManager);
-
-    assertContainsOnly(Set.of(organisationUnit), accessibleOrgUnits);
-  }
-
-  @Test
-  void shouldFailWhenOuModeCaptureAndUserNull() {
-    Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(CAPTURE, null, program));
-
-    assertEquals("User is required for orgUnitMode: CAPTURE", exception.getMessage());
   }
 
   @Test
@@ -350,34 +72,18 @@ class OperationsParamsValidatorTest {
     assertEquals("User needs to be assigned data capture orgunits", exception.getMessage());
   }
 
-  @Test
-  void shouldFailWhenOuModeAccessibleAndUserNull() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "ACCESSIBLE", "DESCENDANTS", "CHILDREN"})
+  void shouldFailWhenOuModeRequiresUserScopeOrgUnitAndUserHasNoOrgUnitsAssigned(
+      OrganisationUnitSelectionMode orgUnitMode) {
     Exception exception =
         Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(ACCESSIBLE, null, program));
-
-    assertEquals("User is required for orgUnitMode: ACCESSIBLE", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenOuModeAccessibleAndUserHasNoOrgUnitsAssigned() {
-    Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(ACCESSIBLE, new User(), program));
+            BadRequestException.class, () -> validateOrgUnitMode(orgUnitMode, new User(), program));
 
     assertEquals(
-        "User needs to be assigned either TE search, data view or data capture org units",
-        exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenOuModeAllAndUserNull() {
-    Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(ALL, null, program));
-
-    assertEquals(
-        "Current user is not authorized to query across all organisation units",
+        "User needs to be assigned either search or data capture org units",
         exception.getMessage());
   }
 

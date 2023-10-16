@@ -80,7 +80,7 @@ interface MetadataIdentifierMapper {
       return Collections.emptySet();
     }
 
-    return TextUtils.splitToSet(identifiers, TextUtils.SEMICOLON).stream()
+    return TextUtils.splitToSet(identifiers, TextUtils.COMMA).stream()
         .map(String::trim)
         .filter(not(String::isEmpty))
         .map(id -> idSchemeParams.getCategoryOptionIdScheme().toMetadataIdentifier(id))
