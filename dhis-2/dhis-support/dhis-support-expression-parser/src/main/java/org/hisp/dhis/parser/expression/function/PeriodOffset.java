@@ -47,10 +47,10 @@ public class PeriodOffset implements ExpressionItemWithSql {
     ExpressionState state = visitor.getState();
 
     int existingPeriodOffset =
-            (state.getQueryMods() == null) ? 0 : state.getQueryMods().getPeriodOffset();
+        (state.getQueryMods() == null) ? 0 : state.getQueryMods().getPeriodOffset();
 
     int parsedPeriodOffset =
-            (ctx.period == null) ? 0 : firstNonNull(parseInt(ctx.period.getText()), 0);
+        (ctx.period == null) ? 0 : firstNonNull(parseInt(ctx.period.getText()), 0);
 
     int periodOffset = existingPeriodOffset + parsedPeriodOffset;
 

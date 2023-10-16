@@ -48,7 +48,7 @@ public class FunctionAggregationType implements ExpressionItemWithSql {
     AggregationType aggregationType = parseAggregationType(ctx.aggregationType.getText());
 
     QueryModifiers queryMods =
-            visitor.getState().getQueryModsBuilder().aggregationType(aggregationType).build();
+        visitor.getState().getQueryModsBuilder().aggregationType(aggregationType).build();
 
     return visitor.visitWithQueryMods(ctx.expr(0), queryMods);
   }

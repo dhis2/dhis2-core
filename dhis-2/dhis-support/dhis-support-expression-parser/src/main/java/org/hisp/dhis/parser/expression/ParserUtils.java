@@ -63,7 +63,6 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.Date;
-
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.dataitem.ItemConstant;
