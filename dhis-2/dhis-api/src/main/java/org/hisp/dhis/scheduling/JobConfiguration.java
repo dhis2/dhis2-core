@@ -55,6 +55,7 @@ import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
 import org.hisp.dhis.scheduling.parameters.LockExceptionCleanupJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
@@ -290,7 +291,8 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         @JsonSubTypes.Type(value = TestJobParameters.class, name = "TEST"),
         @JsonSubTypes.Type(
             value = ImportOptions.class,
-            name = "COMPLETE_DATA_SET_REGISTRATION_IMPORT")
+            name = "COMPLETE_DATA_SET_REGISTRATION_IMPORT"),
+        @JsonSubTypes.Type(value = GeoJsonImportJobParams.class, name = "GEO_JSON_IMPORT")
       })
   public JobParameters getJobParameters() {
     return jobParameters;

@@ -50,6 +50,5 @@ public class GoogleAccessToken {
   @JsonProperty(value = "expires_in")
   private long expiresInSeconds;
 
-  @JsonIgnore
-  private LocalDateTime expiresOn;
+  @JsonIgnore private LocalDateTime expiresOn;
 }
