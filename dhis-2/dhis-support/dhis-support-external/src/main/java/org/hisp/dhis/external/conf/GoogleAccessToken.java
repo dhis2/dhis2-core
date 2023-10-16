@@ -27,57 +27,29 @@
  */
 package org.hisp.dhis.external.conf;
 
+import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author Lars Helge Overland
  */
+@Getter
+@Setter
+@NoArgsConstructor
 public class GoogleAccessToken {
+  @JsonProperty(value = "access_token")
   private String accessToken;
 
+  @JsonProperty(value = "client_id")
   private String clientId;
 
+  @JsonProperty(value = "expires_in")
   private long expiresInSeconds;
 
-  private LocalDateTime expiresOn;
-
-  public GoogleAccessToken() {}
-
-  @JsonProperty(value = "access_token")
-  public String getAccessToken() {
-    return accessToken;
-  }
-
-  public void setAccessToken(String accessToken) {
-    this.accessToken = accessToken;
-  }
-
-  @JsonProperty(value = "client_id")
-  public String getClientId() {
-    return clientId;
-  }
-
-  public void setClientId(String clientId) {
-    this.clientId = clientId;
-  }
-
-  @JsonProperty(value = "expires_in")
-  public long getExpiresInSeconds() {
-    return expiresInSeconds;
-  }
-
-  public void setExpiresInSeconds(long expiresInSeconds) {
-    this.expiresInSeconds = expiresInSeconds;
-  }
-
   @JsonIgnore
-  public LocalDateTime getExpiresOn() {
-    return expiresOn;
-  }
-
-  public void setExpiresOn(LocalDateTime expiresOn) {
-    this.expiresOn = expiresOn;
-  }
+  private LocalDateTime expiresOn;
 }
