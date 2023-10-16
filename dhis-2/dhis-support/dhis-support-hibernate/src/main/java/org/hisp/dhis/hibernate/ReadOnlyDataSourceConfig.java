@@ -4,6 +4,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Encapsulation of a read only data source configuration.
+ * 
+ * @author Lars Helge Overland
+ */
 @Getter
 @Setter
 @RequiredArgsConstructor
