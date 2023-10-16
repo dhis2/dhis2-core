@@ -31,19 +31,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
-
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import javax.sql.DataSource;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.hibernate.ReadOnlyDataSourceConfig;
 import org.hisp.dhis.util.ObjectUtils;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class responsible for detecting read-only databases configured in the DHIS 2 configuration file.
@@ -51,6 +53,7 @@ import org.hisp.dhis.util.ObjectUtils;
  * @author Lars Helge Overland
  */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 public class ReadOnlyDataSourceManager {
   private static final String FORMAT_READ_PREFIX = "read%d.";
 
@@ -71,7 +74,7 @@ public class ReadOnlyDataSourceManager {
   public ReadOnlyDataSourceManager(DhisConfigurationProvider config) {
     checkNotNull(config);
     init(config);
-  }
+  } 
 
   /** State holder for the resolved read only data source. */
   private DataSource internalReadOnlyDataSource;
@@ -109,54 +112,41 @@ public class ReadOnlyDataSourceManager {
     String maxPoolSize = config.getProperty(ConfigurationKey.CONNECTION_POOL_MAX_SIZE);
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    Properties props = config.getProperties();
-
     List<DataSource> dataSources = new ArrayList<>();
+    
+    List<ReadOnlyDataSourceConfig> dataSourceConfigs = getReadOnlyDataSourceConfigs(config);
 
-    for (int i = 1; i <= MAX_READ_REPLICAS; i++) {
-      String connectionUrlKey = String.format(FORMAT_CONNECTION_URL, i);
-      String connectionUsernameKey = String.format(FORMAT_CONNECTION_USERNAME, i);
-      String connectionPasswordKey = String.format(FORMAT_CONNECTION_PASSWORD, i);
+    for (ReadOnlyDataSourceConfig dataSourceConfig : dataSourceConfigs) {
+      String url = dataSourceConfig.getUrl();
+      String username = StringUtils.defaultIfEmpty(dataSourceConfig.getUsername(), mainUser);
+      String password = StringUtils.defaultIfEmpty(dataSourceConfig.getPassword(), mainPassword);
 
-      log.info("Searching for read-only connection with URL key: '{}'", connectionUrlKey);
+      DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder =
+          DatabasePoolUtils.PoolConfig.builder();
+      builder.dhisConfig(config);
+      builder.password(password);
+      builder.username(username);
+      builder.jdbcUrl(url);
+      builder.dbPoolType(dbPoolType);
+      builder.maxPoolSize(maxPoolSize);
+      builder.acquireIncrement(String.valueOf(VAL_ACQUIRE_INCREMENT));
+      builder.maxIdleTime(String.valueOf(VAL_MAX_IDLE_TIME));
 
-      String jdbcUrl = props.getProperty(connectionUrlKey);
-      String username = props.getProperty(connectionUsernameKey);
-      String password = props.getProperty(connectionPasswordKey);
+      try {
+        dataSources.add(DatabasePoolUtils.createDbPool(builder.build()));
+        log.info(
+            "Read-only connection found with URL: '{}'", url);
+      } catch (SQLException | PropertyVetoException e) {
+        String message =
+            String.format(
+                "Connection test failed for read replica database pool with "
+                    + "driver class: '%s', URL: '%s', username: '%s'",
+                driverClass, url, username);
 
-      username = StringUtils.defaultIfEmpty(username, mainUser);
-      password = StringUtils.defaultIfEmpty(password, mainPassword);
+        log.error(message);
+        log.error(DebugUtils.getStackTrace(e));
 
-      if (ObjectUtils.allNonNull(jdbcUrl, username, password)) {
-        DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder =
-            DatabasePoolUtils.PoolConfig.builder();
-        builder.dhisConfig(config);
-        builder.password(password);
-        builder.username(username);
-        builder.jdbcUrl(jdbcUrl);
-        builder.dbPoolType(dbPoolType);
-        builder.maxPoolSize(maxPoolSize);
-        builder.acquireIncrement(String.valueOf(VAL_ACQUIRE_INCREMENT));
-        builder.maxIdleTime(String.valueOf(VAL_MAX_IDLE_TIME));
-
-        try {
-          dataSources.add(DatabasePoolUtils.createDbPool(builder.build()));
-          log.info(
-              "Read-only connection found with URL key: '{}' and value '{}'",
-              connectionUrlKey,
-              jdbcUrl);
-        } catch (SQLException | PropertyVetoException e) {
-          String message =
-              String.format(
-                  "Connection test failed for read replica database pool with "
-                      + "driver class: '%s', URL: '%s', username: '%s'",
-                  driverClass, jdbcUrl, username);
-
-          log.error(message);
-          log.error(DebugUtils.getStackTrace(e));
-
-          throw new IllegalStateException(message, e);
-        }
+        throw new IllegalStateException(message, e);
       }
     }
 
@@ -167,6 +157,43 @@ public class ReadOnlyDataSourceManager {
 
     log.info("Read only configuration initialized, read replicas found: " + dataSources.size());
 
+    return dataSources;
+  }
+  
+  /**
+   * Returns a list of read-only data source configurations. The configurations are detected from the DHIS 2 configuration file.
+   * 
+   * @param config the {@link DhisConfigurationProvider}.
+   * @return a list of {@link ReadOnlyDataSourceConfig}.
+   */
+  List<ReadOnlyDataSourceConfig> getReadOnlyDataSourceConfigs(DhisConfigurationProvider config)
+  {
+    List<ReadOnlyDataSourceConfig> dataSources = new ArrayList<>();
+    
+    Properties props = config.getProperties();
+
+    String mainUser = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
+    String mainPassword = config.getProperty(ConfigurationKey.CONNECTION_PASSWORD);    
+
+    for (int i = 1; i <= MAX_READ_REPLICAS; i++) {
+      String connectionUrlKey = String.format(FORMAT_CONNECTION_URL, i);
+      String connectionUsernameKey = String.format(FORMAT_CONNECTION_USERNAME, i);
+      String connectionPasswordKey = String.format(FORMAT_CONNECTION_PASSWORD, i);
+
+      log.info("Searching for read-only connection with URL key: '{}'", connectionUrlKey);
+
+      String url = props.getProperty(connectionUrlKey);
+      String username = props.getProperty(connectionUsernameKey);
+      String password = props.getProperty(connectionPasswordKey);
+
+      username = StringUtils.defaultIfEmpty(username, mainUser);
+      password = StringUtils.defaultIfEmpty(password, mainPassword);
+      
+      if (ObjectUtils.allNonNull(url, username, password)) {      
+        dataSources.add(new ReadOnlyDataSourceConfig(url, username, password));
+      }
+    }
+    
     return dataSources;
   }
 }
