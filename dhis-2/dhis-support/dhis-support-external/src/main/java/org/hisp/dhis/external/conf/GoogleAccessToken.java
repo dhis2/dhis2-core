@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.external.conf;
 
-import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -50,6 +50,5 @@ public class GoogleAccessToken {
   @JsonProperty(value = "expires_in")
   private long expiresInSeconds;
 
-  @JsonIgnore
-  private LocalDateTime expiresOn;
+  @JsonIgnore private LocalDateTime expiresOn;
 }
