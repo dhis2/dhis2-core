@@ -28,7 +28,6 @@
 package org.hisp.dhis.external.location;
 
 import static java.io.File.separator;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -41,14 +40,16 @@ import javax.annotation.PostConstruct;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.util.LogOnceLogger;
 import org.slf4j.event.Level;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 public class DefaultLocationManager extends LogOnceLogger implements LocationManager {
   private static final String DEFAULT_DHIS2_HOME = "/opt/dhis2";
 
@@ -60,18 +61,11 @@ public class DefaultLocationManager extends LogOnceLogger implements LocationMan
 
   private String externalDir;
 
-  private String environmentVariable;
+  private final String environmentVariable;
 
-  private String systemProperty;
+  private final String systemProperty;
 
-  private String contextVariable;
-
-  public DefaultLocationManager(
-      String environmentVariable, String systemProperty, String contextVariable) {
-    this.environmentVariable = environmentVariable;
-    this.systemProperty = systemProperty;
-    this.contextVariable = contextVariable;
-  }
+  private final String contextVariable;
 
   public static DefaultLocationManager getDefault() {
     return new DefaultLocationManager(DEFAULT_ENV_VAR, DEFAULT_SYS_PROP, DEFAULT_CTX_VAR);
