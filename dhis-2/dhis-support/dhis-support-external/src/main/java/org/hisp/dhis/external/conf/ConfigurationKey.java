@@ -31,11 +31,13 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.Arrays;
 import java.util.Optional;
+import lombok.Getter;
 import org.hisp.dhis.security.utils.CspConstants;
 
 /**
  * @author Lars Helge Overland
  */
+@Getter
 public enum ConfigurationKey {
   /** System mode for database read operations only, can be 'off', 'on'. (default: off). */
   SYSTEM_READ_ONLY_MODE("system.read_only_mode", Constants.OFF, false),
@@ -640,22 +642,6 @@ public enum ConfigurationKey {
     this.defaultValue = defaultValue;
     this.confidential = confidential;
     this.aliases = aliases;
-  }
-
-  public String getKey() {
-    return key;
-  }
-
-  public String getDefaultValue() {
-    return defaultValue;
-  }
-
-  public boolean isConfidential() {
-    return confidential;
-  }
-
-  public String[] getAliases() {
-    return aliases;
   }
 
   public static Optional<ConfigurationKey> getByKey(String key) {

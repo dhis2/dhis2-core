@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,37 +28,33 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.lang.String.format;
-import static org.apache.commons.io.IOUtils.toBufferedInputStream;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hisp.dhis.common.IdentifiableProperty.UID;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
-import lombok.AllArgsConstructor;
-import org.hibernate.SessionFactory;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dbms.DbmsUtils;
-import org.hisp.dhis.dxf2.geojson.GeoJsonImportParams;
 import org.hisp.dhis.dxf2.geojson.GeoJsonImportReport;
 import org.hisp.dhis.dxf2.geojson.GeoJsonService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.security.SecurityContextRunnable;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -74,17 +70,15 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.Tags("data")
 @RequestMapping("/organisationUnits")
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class GeoJsonImportController {
   private final GeoJsonService geoJsonService;
 
-  private final Notifier notifier;
+  private final JobSchedulerService jobSchedulerService;
 
-  private final TaskExecutor taskExecutor;
+  private final JobConfigurationService jobConfigurationService;
 
-  private final SessionFactory sessionFactory;
-
-  private final UserService userService;
+  private final CurrentUserService currentUserService;
 
   @PostMapping(
       value = "/geometry",
@@ -96,11 +90,10 @@ public class GeoJsonImportController {
       @RequestParam(required = false) String attributeId,
       @RequestParam(required = false) boolean dryRun,
       @RequestParam(required = false, defaultValue = "false") boolean async,
-      HttpServletRequest request,
-      @CurrentUser User currentUser)
-      throws IOException {
-    GeoJsonImportParams params =
-        GeoJsonImportParams.builder()
+      HttpServletRequest request)
+      throws IOException, ConflictException, NotFoundException {
+    GeoJsonImportJobParams params =
+        GeoJsonImportJobParams.builder()
             .attributeId(attributeId)
             .dryRun(dryRun)
             .idType(
@@ -108,22 +101,26 @@ public class GeoJsonImportController {
                     ? UID
                     : IdentifiableProperty.valueOf(orgUnitProperty.toUpperCase()))
             .orgUnitIdProperty(geoJsonId ? "id" : "properties." + geoJsonProperty)
-            .user(currentUser)
             .build();
 
-    return runImport(async, params, request.getInputStream());
+    return runImport(async, params, request);
   }
 
-  private WebMessage runImport(boolean async, GeoJsonImportParams params, ServletInputStream data)
-      throws IOException {
+  private WebMessage runImport(
+      boolean async, GeoJsonImportJobParams params, HttpServletRequest request)
+      throws ConflictException, NotFoundException, IOException {
+    User currentUser = currentUserService.getCurrentUser();
     if (async) {
-      JobConfiguration config =
-          new JobConfiguration("GeoJSON import", JobType.GEOJSON_IMPORT, params.getUser().getUid());
-      taskExecutor.execute(new GeoJsonAsyncImporter(params, config, toBufferedInputStream(data)));
-      return jobConfigurationReport(config);
-    }
+      JobConfiguration jobConfig = new JobConfiguration(JobType.GEOJSON_IMPORT);
+      jobConfig.setJobParameters(params);
+      jobConfig.setExecutedBy(currentUser.getUid());
+      jobSchedulerService.executeNow(
+          jobConfigurationService.create(jobConfig, APPLICATION_JSON, request.getInputStream()));
 
-    return toWebMessage(geoJsonService.importGeoData(params, data));
+      return jobConfigurationReport(jobConfig);
+    }
+    params.setUser(currentUser);
+    return toWebMessage(geoJsonService.importGeoData(params, request.getInputStream()));
   }
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
@@ -141,8 +138,8 @@ public class GeoJsonImportController {
       @RequestParam(required = false) boolean dryRun,
       @RequestBody String geometry,
       @CurrentUser User currentUser) {
-    GeoJsonImportParams params =
-        GeoJsonImportParams.builder()
+    GeoJsonImportJobParams params =
+        GeoJsonImportJobParams.builder()
             .user(currentUser)
             .attributeId(attributeId)
             .dryRun(dryRun)
@@ -178,52 +175,5 @@ public class GeoJsonImportController {
       status = Status.WARNING;
     }
     return ok(msg).setStatus(status).setResponse(report);
-  }
-
-  @AllArgsConstructor
-  private class GeoJsonAsyncImporter extends SecurityContextRunnable {
-
-    private final GeoJsonImportParams params;
-
-    private final JobConfiguration config;
-
-    private final InputStream data;
-
-    @Override
-    public void before() {
-      DbmsUtils.bindSessionToThread(sessionFactory);
-    }
-
-    @Override
-    public void after() {
-      DbmsUtils.unbindSessionFromThread(sessionFactory);
-    }
-
-    @Override
-    public void call() {
-      notifier.clear(config);
-      notifier.notify(config, NotificationLevel.INFO, "GeoJSON import stared", false);
-      GeoJsonImportReport report = geoJsonService.importGeoData(reattachedParams(), data);
-      notifier.notify(
-          config,
-          NotificationLevel.INFO,
-          "GeoJSON import complete. " + report.getImportCount(),
-          true);
-      notifier.addJobSummary(config, report, GeoJsonImportReport.class);
-    }
-
-    @Override
-    public void handleError(Throwable ex) {
-      notifier.notify(
-          config, NotificationLevel.ERROR, "GeoJSON import failed: " + ex.getMessage(), true);
-    }
-
-    /**
-     * This is a work-around for the time being because the user otherwise is not attached to the
-     * session. What we should be using here instead is the CurrentUserDetails
-     */
-    private GeoJsonImportParams reattachedParams() {
-      return params.toBuilder().user(userService.getUser(params.getUser().getUid())).build();
-    }
   }
 }
