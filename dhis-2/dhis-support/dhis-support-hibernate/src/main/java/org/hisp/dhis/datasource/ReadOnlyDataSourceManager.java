@@ -179,7 +179,7 @@ public class ReadOnlyDataSourceManager {
       String connectionUsernameKey = String.format(FORMAT_CONNECTION_USERNAME, i);
       String connectionPasswordKey = String.format(FORMAT_CONNECTION_PASSWORD, i);
 
-      log.debug("Searching for read-only data source config with URL key: '{}'", connectionUrlKey);
+      log.debug("Searching read-only data source with connection URL key: '{}'", connectionUrlKey);
 
       String url = props.getProperty(connectionUrlKey);
       String username = props.getProperty(connectionUsernameKey);
@@ -190,9 +190,8 @@ public class ReadOnlyDataSourceManager {
 
       if (ObjectUtils.allNonNull(url, username, password)) {
         dataSources.add(new ReadOnlyDataSourceConfig(url, username, password));
-        
-        log.info("Read-only data source config found with URL key: '{}'", connectionUrlKey);
 
+        log.info("Read-only data source found with connection URL: '{}'", connectionUrlKey);
       }
     }
 
