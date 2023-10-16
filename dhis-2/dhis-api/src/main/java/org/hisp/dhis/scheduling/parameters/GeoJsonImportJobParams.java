@@ -25,34 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.geojson;
+package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.user.User;
 
 @Builder(toBuilder = true)
 @Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class GeoJsonImportParams {
+public class GeoJsonImportJobParams implements JobParameters {
   /**
    * If true the import is validated and processed without actually modifying any organisation unit
    * or storing GeoJSON data.
    */
-  private final boolean dryRun;
+  @JsonProperty private boolean dryRun;
 
-  private final String orgUnitIdProperty;
+  @JsonProperty private String orgUnitIdProperty;
 
-  private final IdentifiableProperty idType;
+  @JsonProperty private IdentifiableProperty idType;
 
   /**
    * Optional UID that refers to an {@link org.hisp.dhis.attribute.Attribute} for which the geometry
    * is stored.
    */
-  private final String attributeId;
+  @JsonProperty private String attributeId;
 
-  private final User user;
+  /**
+   * no `@JsonProperty` added to {@link User} here as the User property is not needed in the JSONB
+   * object when job config is being persisted (job params are persisted as JSONB). The {@link User}
+   * property is used in the non-async import so is still required here.
+   */
+  private User user;
 }

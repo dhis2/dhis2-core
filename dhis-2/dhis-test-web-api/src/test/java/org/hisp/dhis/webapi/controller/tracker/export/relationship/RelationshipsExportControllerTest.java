@@ -171,7 +171,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
             .content(HttpStatus.OK)
             .as(JsonRelationship.class);
 
-    assertHasOnlyMembers(relationship, "relationship", "relationshipType", "from", "to");
+    assertHasOnlyMembers(
+        relationship, "relationship", "relationshipType", "createdAtClient", "from", "to");
     assertRelationship(r, relationship);
     assertHasOnlyUid(from.getUid(), "event", relationship.getObject("from"));
     assertHasOnlyUid(to.getUid(), "trackedEntity", relationship.getObject("to"));
@@ -245,9 +246,26 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
             .getList("instances", JsonRelationship.class);
 
     JsonObject relationship = assertFirstRelationship(r, relationships);
-    assertHasOnlyMembers(relationship, "relationship", "relationshipType", "from", "to");
+    assertHasOnlyMembers(
+        relationship, "relationship", "relationshipType", "createdAtClient", "from", "to");
     assertHasOnlyUid(from.getUid(), "event", relationship.getObject("from"));
     assertHasOnlyUid(to.getUid(), "trackedEntity", relationship.getObject("to"));
+  }
+
+  @Test
+  void getRelationshipsByEventWithAllFields() {
+    TrackedEntity to = trackedEntity();
+    Event from = event(enrollment(to));
+    Relationship r = relationship(from, to);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/relationships?event={uid}&fields=*", from.getUid())
+            .content(HttpStatus.OK)
+            .getList("instances", JsonRelationship.class);
+
+    JsonRelationship relationship = assertFirstRelationship(r, relationships);
+    assertEventWithinRelationshipItem(from, relationship.getFrom());
+    assertTrackedEntityWithinRelationshipItem(to, relationship.getTo());
   }
 
   @Test
@@ -782,6 +800,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     r.setAutoFields();
     r.getSharing().setOwner(owner);
+    r.setCreatedAtClient(new Date());
     manager.save(r, false);
     return r;
   }

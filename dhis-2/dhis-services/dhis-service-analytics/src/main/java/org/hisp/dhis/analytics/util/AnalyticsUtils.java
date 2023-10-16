@@ -114,7 +114,13 @@ public class AnalyticsUtils {
       Pattern.compile(DataQueryParams.PREFIX_ORG_UNIT_LEVEL + "(\\d+)");
 
   public static final String ERR_MSG_TABLE_NOT_EXISTING =
-      "Query failed, likely because the requested analytics table does not exist";
+      "Query failed, likely because the requested analytics table does not exist: ";
+
+  public static final String ERR_MSG_SQL_SYNTAX_ERROR =
+      "An error occurred during the execution of an analytics query: ";
+
+  public static final String ERR_MSG_SILENT_FALLBACK =
+      "An exception occurred - silently fallback since it's multiple analytics query: ";
 
   /**
    * Returns an SQL statement for retrieving raw data values for an aggregate query.

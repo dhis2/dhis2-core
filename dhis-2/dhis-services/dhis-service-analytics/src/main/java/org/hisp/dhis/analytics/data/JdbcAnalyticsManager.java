@@ -152,7 +152,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
   private final QueryPlanner queryPlanner;
 
-  @Qualifier("readOnlyJdbcTemplate")
+  @Qualifier("analyticsReadOnlyJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
 
   private final ExecutionPlanStore executionPlanStore;
