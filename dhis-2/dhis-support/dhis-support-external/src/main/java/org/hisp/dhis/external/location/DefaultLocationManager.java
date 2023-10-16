@@ -28,6 +28,7 @@
 package org.hisp.dhis.external.location;
 
 import static java.io.File.separator;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -40,10 +41,10 @@ import javax.annotation.PostConstruct;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import org.hisp.dhis.external.util.LogOnceLogger;
-import org.slf4j.event.Level;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.external.util.LogOnceLogger;
+import org.slf4j.event.Level;
 
 /**
  * @author Lars Helge Overland
