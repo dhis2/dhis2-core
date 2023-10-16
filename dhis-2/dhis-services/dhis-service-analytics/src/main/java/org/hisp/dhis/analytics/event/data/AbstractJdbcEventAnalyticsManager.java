@@ -62,7 +62,9 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.isRelationDoesntExist;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
+import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -126,6 +128,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Markus Bekken
@@ -155,7 +158,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private static final Collector<CharSequence, ?, String> AND_JOINER = joining(AND);
 
-  @Qualifier("readOnlyJdbcTemplate")
+  @Qualifier("analyticsReadOnlyJdbcTemplate")
   protected final JdbcTemplate jdbcTemplate;
 
   protected final ProgramIndicatorService programIndicatorService;
@@ -510,6 +513,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         .map(RepeatableStageParams::getDimension);
   }
 
+  @Transactional(readOnly = true, propagation = REQUIRES_NEW)
   public Grid getAggregatedEventData(EventQueryParams params, Grid grid, int maxLimit) {
     String aggregateClause = getAggregateClause(params);
 
@@ -560,8 +564,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         getAggregatedEventData(grid, params, sql);
       }
     } catch (BadSqlGrammarException ex) {
-      log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
-      throw ex;
+      if (isRelationDoesntExist(ex.getSQLException())) {
+        log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+        throw ex;
+      }
+      if (!params.isMultipleQueries()) {
+        log.warn(AnalyticsUtils.ERR_MSG_SQL_SYNTAX_ERROR, ex);
+        throw ex;
+      }
+      log.warn(AnalyticsUtils.ERR_MSG_SILENT_FALLBACK, ex);
     } catch (DataAccessResourceFailureException ex) {
       log.warn(ErrorCode.E7131.getMessage(), ex);
       throw new QueryRuntimeException(ErrorCode.E7131);

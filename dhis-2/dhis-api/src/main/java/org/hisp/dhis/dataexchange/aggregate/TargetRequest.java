@@ -33,6 +33,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.hisp.dhis.importexport.ImportStrategy;
 
 @Getter
 @Setter
@@ -50,4 +51,13 @@ public class TargetRequest implements Serializable {
 
   /** General identifier scheme. */
   @JsonProperty private String idScheme;
+
+  /** Import strategy. */
+  @JsonProperty private ImportStrategy importStrategy;
+
+  /** Indicates whether to skip audit records. */
+  @JsonProperty private Boolean skipAudit;
+
+  /** Indicates whether to do a dry run. */
+  @JsonProperty private Boolean dryRun;
 }

@@ -180,11 +180,13 @@ class EnrollmentOperationParamsMapperTest {
   void shouldThrowExceptionWhenOrgUnitNotInScope() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitUids(Set.of(ORG_UNIT_1_UID)).build();
-    when(trackerAccessManager.canAccess(user, program, orgUnit1)).thenReturn(false);
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(false);
 
     Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
     assertEquals(
-        "User does not have access to organisation unit: " + ORG_UNIT_1_UID,
+        "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID,
         exception.getMessage());
   }
 

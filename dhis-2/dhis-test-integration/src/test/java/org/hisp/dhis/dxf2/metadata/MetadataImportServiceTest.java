@@ -53,6 +53,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
+import org.hisp.dhis.dataexchange.aggregate.Target;
 import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
@@ -1017,6 +1018,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
 
     AggregateDataExchange aeA = manager.get(AggregateDataExchange.class, "iFOyIpQciyk");
     assertNotNull(aeA);
+    assertEquals("iFOyIpQciyk", aeA.getUid());
     assertNotNull(aeA.getSource());
     assertNotNull(aeA.getSource().getParams());
     assertNotEmpty(aeA.getSource().getParams().getPeriodTypes());
@@ -1025,12 +1027,15 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     assertNotNull(srA);
     assertNotNull(srA.getName());
     assertNotNull(srA.getVisualization());
-    assertNotNull(aeA.getTarget());
-    assertEquals("iFOyIpQciyk", aeA.getUid());
-    assertEquals(TargetType.INTERNAL, aeA.getTarget().getType());
+    assertNotNull("UID", srA.getOutputDataItemIdScheme());
+    Target tA = aeA.getTarget();
+    assertNotNull(tA);
+    assertEquals(TargetType.INTERNAL, tA.getType());
+    assertEquals(ImportStrategy.CREATE_AND_UPDATE, tA.getRequest().getImportStrategy());
 
     AggregateDataExchange aeB = manager.get(AggregateDataExchange.class, "PnWccbwCJLQ");
     assertNotNull(aeB);
+    assertEquals("PnWccbwCJLQ", aeB.getUid());
     assertNotNull(aeB.getSource());
     assertNotNull(aeB.getSource().getParams());
     assertNotEmpty(aeB.getSource().getParams().getPeriodTypes());
@@ -1039,15 +1044,18 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     assertNotNull(srB);
     assertNotNull(srB.getName());
     assertNotNull(srB.getVisualization());
-    assertNotNull(aeB.getTarget());
-    assertEquals("PnWccbwCJLQ", aeB.getUid());
-    assertEquals(TargetType.EXTERNAL, aeB.getTarget().getType());
-    assertEquals("https://play.dhis2.org/2.38.1", aeB.getTarget().getApi().getUrl());
-    assertEquals("admin", aeB.getTarget().getApi().getUsername());
-    assertNotNull(aeB.getTarget().getApi().getPassword()); // Encrypted
+    assertNotNull("UID", srB.getOutputDataItemIdScheme());
+    Target tB = aeB.getTarget();
+    assertNotNull(tB);
+    assertEquals(TargetType.EXTERNAL, tB.getType());
+    assertEquals("https://play.dhis2.org/2.38.1", tB.getApi().getUrl());
+    assertEquals("admin", tB.getApi().getUsername());
+    assertNotNull(tB.getApi().getPassword()); // Encrypted
+    assertEquals(ImportStrategy.CREATE_AND_UPDATE, tB.getRequest().getImportStrategy());
 
     AggregateDataExchange aeC = manager.get(AggregateDataExchange.class, "VpQ4qVEseyM");
     assertNotNull(aeC);
+    assertEquals("VpQ4qVEseyM", aeC.getUid());
     assertNotNull(aeC.getSource());
     assertNotNull(aeC.getSource().getParams());
     assertNotEmpty(aeC.getSource().getParams().getPeriodTypes());
@@ -1056,11 +1064,13 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     assertNotNull(srC);
     assertNotNull(srC.getName());
     assertNotNull(srC.getVisualization());
-    assertNotNull(aeC.getTarget());
-    assertEquals("VpQ4qVEseyM", aeC.getUid());
-    assertEquals(TargetType.EXTERNAL, aeC.getTarget().getType());
-    assertEquals("https://play.dhis2.org/2.38.1", aeC.getTarget().getApi().getUrl());
-    assertNotNull(aeC.getTarget().getApi().getAccessToken()); // Encrypted
+    assertNotNull("UID", srC.getOutputDataItemIdScheme());
+    Target tC = aeC.getTarget();
+    assertNotNull(tC);
+    assertEquals(TargetType.EXTERNAL, tC.getType());
+    assertEquals("https://play.dhis2.org/2.38.1", tC.getApi().getUrl());
+    assertNotNull(tC.getApi().getAccessToken()); // Encrypted
+    assertEquals(ImportStrategy.CREATE_AND_UPDATE, tC.getRequest().getImportStrategy());
   }
 
   /** Test to make sure createdBy field is immutable. */

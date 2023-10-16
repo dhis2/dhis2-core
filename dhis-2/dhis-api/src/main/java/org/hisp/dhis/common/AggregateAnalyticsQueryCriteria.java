@@ -138,16 +138,22 @@ public class AggregateAnalyticsQueryCriteria {
   private IdScheme outputIdScheme;
 
   /**
-   * Identifier scheme to use for metadata items the query response. Specific to org units. See
+   * Identifier scheme to use for metadata items the query response. Specific to data items. See
    * {@link IdScheme} for valid values.
    */
-  private IdScheme outputOrgUnitIdScheme;
+  private IdScheme outputDataItemIdScheme;
 
   /**
    * Identifier scheme to use for metadata items the query response. Specific to data elements. See
    * {@link IdScheme} for valid values.
    */
   private IdScheme outputDataElementIdScheme;
+
+  /**
+   * Identifier scheme to use for metadata items the query response. Specific to org units. See
+   * {@link IdScheme} for valid values.
+   */
+  private IdScheme outputOrgUnitIdScheme;
 
   /**
    * Identifier scheme to use for metadata items in the query request, can be an identifier, code or
