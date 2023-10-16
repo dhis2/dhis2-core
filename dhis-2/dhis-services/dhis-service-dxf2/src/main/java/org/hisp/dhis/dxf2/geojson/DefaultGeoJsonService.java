@@ -59,6 +59,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
+import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.locationtech.jts.geom.Geometry;
@@ -110,7 +111,7 @@ public class DefaultGeoJsonService implements GeoJsonService {
   @Override
   @Transactional
   public GeoJsonImportReport importGeoData(
-      GeoJsonImportParams params, InputStream geoJsonFeatureCollection) {
+      GeoJsonImportJobParams params, InputStream geoJsonFeatureCollection) {
     GeoJsonImportReport report = new GeoJsonImportReport();
     Attribute attribute = validateAttribute(params.getAttributeId(), report);
     if (report.getConflictCount() > 0) {
@@ -183,7 +184,7 @@ public class DefaultGeoJsonService implements GeoJsonService {
   }
 
   private Function<OrganisationUnit, String> getGeoJsonFeatureToOrgUnitIdentifier(
-      GeoJsonImportParams params) {
+      GeoJsonImportJobParams params) {
     switch (params.getIdType()) {
       case CODE:
         return OrganisationUnit::getCode;
@@ -195,7 +196,7 @@ public class DefaultGeoJsonService implements GeoJsonService {
   }
 
   private List<OrganisationUnit> fetchOrganisationUnits(
-      GeoJsonImportParams params, @Nonnull Set<String> ouIdentifiers) {
+      GeoJsonImportJobParams params, @Nonnull Set<String> ouIdentifiers) {
     switch (params.getIdType()) {
       case CODE:
         return organisationUnitStore.getByCode(ouIdentifiers, params.getUser());
@@ -230,7 +231,7 @@ public class DefaultGeoJsonService implements GeoJsonService {
   }
 
   private boolean validateGeometry(
-      GeoJsonImportParams params,
+      GeoJsonImportJobParams params,
       OrganisationUnit target,
       JsonObject geometry,
       GeoJsonImportReport report,
@@ -298,7 +299,7 @@ public class DefaultGeoJsonService implements GeoJsonService {
   }
 
   private void updateGeometry(
-      GeoJsonImportParams params,
+      GeoJsonImportJobParams params,
       Attribute attribute,
       OrganisationUnit target,
       JsonObject geometry,
@@ -373,7 +374,7 @@ public class DefaultGeoJsonService implements GeoJsonService {
   }
 
   private void executeUpdate(
-      GeoJsonImportParams params, GeoJsonImportReport report, GeometryUpdate update) {
+      GeoJsonImportJobParams params, GeoJsonImportReport report, GeometryUpdate update) {
     try {
       if (update.needsUpdate() && !params.isDryRun()) {
         organisationUnitStore.update(update.target());
