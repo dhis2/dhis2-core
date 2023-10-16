@@ -94,11 +94,13 @@ public class SubexpressionDimensionItem extends BaseDimensionalItemObject {
 
     String aoc = isEmpty(aocUid) ? "" : "_" + aocUid;
 
-    String periodOffsetMod = (mods != null && mods.getPeriodOffset() != 0)
+    String periodOffsetMod =
+        (mods != null && mods.getPeriodOffset() != 0)
             ? formatOffsetValue(mods.getPeriodOffset())
             : "";
 
-    String aggregationMod = (mods != null && mods.getAggregationType() != null)
+    String aggregationMod =
+        (mods != null && mods.getAggregationType() != null)
             ? "_agg_" + mods.getAggregationType().name()
             : "";
 
@@ -111,7 +113,7 @@ public class SubexpressionDimensionItem extends BaseDimensionalItemObject {
 
   private static String formatOffsetValue(int offset) {
     return (offset < 0)
-            ? "_minus_" + Integer.toString(-offset)
-            : "_plus_" + Integer.toString(offset);
+        ? "_minus_" + Integer.toString(-offset)
+        : "_plus_" + Integer.toString(offset);
   }
 }

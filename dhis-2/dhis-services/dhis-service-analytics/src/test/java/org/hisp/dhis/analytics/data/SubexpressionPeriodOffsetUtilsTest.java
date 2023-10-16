@@ -102,7 +102,7 @@ class SubexpressionPeriodOffsetUtilsTest {
   }
 
   @Test
-  void getParamsWithOffsetPeriodsWithoutData() {
+  void testGetParamsWithOffsetPeriodsWithoutData() {
     DataQueryParams result =
         SubexpressionPeriodOffsetUtils.getParamsWithOffsetPeriodsWithoutData(params);
 

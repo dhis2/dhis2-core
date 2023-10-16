@@ -53,6 +53,9 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
  * @author Jim Grace
  */
 public class SubexpressionPeriodOffsetUtils {
+  private SubexpressionPeriodOffsetUtils() {
+    throw new UnsupportedOperationException("util");
+  }
 
   protected static final String SHIFT = "shift";
 

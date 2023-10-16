@@ -60,7 +60,10 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
@@ -251,10 +254,12 @@ public class JdbcSubexpressionQueryGenerator {
 
   /** Gets the subquery where clause. */
   private String getWhereSubquery() {
-    DataQueryParams paramsWithDatabasePeriodsWithoutData =
+    DataQueryParams whereSubQueryParams =
         hasPeriodOffsets ? getParamsWithOffsetPeriodsWithoutData(params) : paramsWithoutData;
 
-    String sql = jam.getWhereClause(paramsWithDatabasePeriodsWithoutData, tableType);
+    whereSubQueryParams = getParamsWithPeriodType(whereSubQueryParams);
+
+    String sql = jam.getWhereClause(whereSubQueryParams, tableType);
 
     if (!sql.isEmpty()) {
       sql += "and ";
@@ -270,7 +275,7 @@ public class JdbcSubexpressionQueryGenerator {
     DataQueryParams groupByParams =
         hasPeriodOffsets
             ? DataQueryParams.newBuilder(paramsWithoutData).removeDimension(PERIOD_DIM_ID).build()
-            : paramsWithoutData;
+            : getParamsWithPeriodType(paramsWithoutData);
 
     List<String> cols = jam.getQuotedDimensionColumns(groupByParams.getDimensions());
 
@@ -281,6 +286,25 @@ public class JdbcSubexpressionQueryGenerator {
     }
 
     return " group by " + join(",", cols);
+  }
+
+  /**
+   * Gets parameters where the period type will be the selected column for the period (so a query
+   * for this column will also data from enclosed, shorter periods).
+   */
+  private DataQueryParams getParamsWithPeriodType(DataQueryParams query) {
+    String periodType = query.getPeriodType();
+    if (periodType != null) {
+      BaseDimensionalObject periodDim =
+          new BaseDimensionalObject(
+              DimensionalObject.PERIOD_DIM_ID,
+              DimensionType.PERIOD,
+              periodType.toLowerCase(),
+              null,
+              query.getPeriods());
+      query = DataQueryParams.newBuilder(query).replaceDimension(periodDim).build();
+    }
+    return query;
   }
 
   /** Gets a comma-separated list of the quoted UIDs of the data elements in the subexpression. */

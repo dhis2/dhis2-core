@@ -121,7 +121,7 @@ class JdbcSubexpressionQueryGeneratorTest {
     String deoACol = getItemColumnName(deB.getUid(), cocA.getUid(), null, null);
     String deoBCol = getItemColumnName(deC.getUid(), cocB.getUid(), cocC.getUid(), null);
     String deoCCol = getItemColumnName(deD.getUid(), null, cocD.getUid(), null);
-    String deECol = getItemColumnName(deD.getUid(), null, null, queryModsMin);
+    String deECol = getItemColumnName(deE.getUid(), null, null, queryModsMin);
 
     String subexSql = deACol + "*(" + deoACol + "+" + deoBCol + ")+" + deoCCol + "-" + deECol;
 
@@ -139,6 +139,7 @@ class JdbcSubexpressionQueryGeneratorTest {
                     ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList(ouA)))
             .addDimension(
                 new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, getList(peA)))
+            .withPeriodType("monthly")
             .build();
 
     JdbcSubexpressionQueryGenerator target =
@@ -146,7 +147,7 @@ class JdbcSubexpressionQueryGeneratorTest {
 
     String expected =
         "select ax.\"pe\",'subexprxUID' as \"dx\","
-            + "sum(\"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghD_agg_MIN\") as \"value\" "
+            + "sum(\"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghE_agg_MIN\") as \"value\" "
             + "from (select ax.\"pe\", "
             + "sum(case when ax.\"dx\"='deabcdefghA' then \"value\"::numeric else null end) as \"deabcdefghA\","
             + "sum(case when ax.\"dx\"='deabcdefghB' and ax.\"co\"='cuabcdefghA' then \"value\"::numeric else null end) as \"deabcdefghB_cuabcdefghA\","
@@ -154,11 +155,11 @@ class JdbcSubexpressionQueryGeneratorTest {
             + "sum(case when ax.\"dx\"='deabcdefghD' and ax.\"ao\"='cuabcdefghD' then \"value\"::numeric else null end) as \"deabcdefghD__cuabcdefghD\","
             + "min(case when ax.\"dx\"='deabcdefghE' then \"value\"::numeric else null end) as \"deabcdefghE_agg_MIN\" "
             + "from analytics as ax "
-            + "where ax.\"pe\" in ('202305') "
+            + "where ax.\"monthly\" in ('202305') "
             + "and ( ax.\"ou\" in ('ouabcdefghA') ) "
             + "and ax.\"dx\" in ('deabcdefghA','deabcdefghB','deabcdefghC','deabcdefghD','deabcdefghE')  "
-            + "group by ax.\"pe\",ax.\"ou\") as ax "
-            + "where \"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghD_agg_MIN\" is not null "
+            + "group by ax.\"monthly\",ax.\"ou\") as ax "
+            + "where \"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghE_agg_MIN\" is not null "
             + "group by ax.\"pe\" ";
 
     String actual = anonymize(target.getSql());
