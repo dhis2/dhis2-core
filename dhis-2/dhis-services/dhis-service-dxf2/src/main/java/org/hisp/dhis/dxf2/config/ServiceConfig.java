@@ -130,8 +130,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
@@ -176,11 +174,6 @@ public class ServiceConfig {
   private <T> Map<Class<? extends T>, T> byClass(Collection<T> items) {
     return items.stream()
         .collect(Collectors.toMap(e -> (Class<? extends T>) e.getClass(), Functions.identity()));
-  }
-
-  @Bean
-  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(JdbcTemplate jdbcTemplate) {
-    return new NamedParameterJdbcTemplate(jdbcTemplate);
   }
 
   @Bean("retryTemplate")

@@ -116,10 +116,13 @@
         <property name="userOrganisationUnitGrandChildren"/>
 
         <many-to-one name="program" class="org.hisp.dhis.program.Program"
-                     column="programid" not-null="true" foreign-key="fk_evisualization_programid"/>
+                     column="programid" foreign-key="fk_evisualization_programid"/>
 
         <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
                      column="programstageid" foreign-key="fk_evisualization_programstageid"/>
+
+        <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
+                     column="trackedentitytypeid" foreign-key="fk_evisualization_trackedentitytypeid"/>
 
         <property name="startDate"/>
 

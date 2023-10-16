@@ -133,8 +133,7 @@ public class EventChartController extends AbstractCrudController<EventChart> {
       @RequestParam(value = "attachment", required = false) boolean attachment,
       HttpServletResponse response)
       throws IOException, WebMessageException {
-    EventChart chart = eventChartService.getEventChart(uid); // TODO no
-    // acl?
+    EventChart chart = eventChartService.getEventChart(uid);
 
     if (chart == null) {
       throw new WebMessageException(notFound("Event chart does not exist: " + uid));
@@ -164,7 +163,7 @@ public class EventChartController extends AbstractCrudController<EventChart> {
   /**
    * @deprecated This is a temporary workaround to keep EventChart backward compatible with the new
    *     EventVisualization entity. Only legacy and chart related types can be returned by this
-   *     endpoint.
+   *     endpoint. Also, multi-program charts cannot be generated, so they are filtered out.
    * @param filters
    */
   @Deprecated

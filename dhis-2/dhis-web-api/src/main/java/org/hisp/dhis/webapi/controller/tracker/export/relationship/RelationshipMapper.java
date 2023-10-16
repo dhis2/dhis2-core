@@ -46,13 +46,15 @@ public interface RelationshipMapper
    * Relationships can be ordered by given fields which correspond to fields on {@link
    * org.hisp.dhis.relationship.Relationship}.
    */
-  Map<String, String> ORDERABLE_FIELDS = Map.ofEntries(entry("createdAt", "created"));
+  Map<String, String> ORDERABLE_FIELDS =
+      Map.ofEntries(entry("createdAt", "created"), entry("createdAtClient", "createdAtClient"));
 
   @Mapping(target = "relationship", source = "uid")
   @Mapping(target = "relationshipType", source = "relationshipType.uid")
   @Mapping(target = "relationshipName", source = "relationshipType.name")
   @Mapping(target = "bidirectional", source = "relationshipType.bidirectional")
   @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")
   @Override
   Relationship from(org.hisp.dhis.relationship.Relationship relationship);
