@@ -135,7 +135,7 @@ public class DatabasePoolUtils {
     }
   }
 
-  public enum dbPoolTypes {
+  public enum DbPoolType {
     C3P0,
     HIKARI
   }
@@ -172,11 +172,11 @@ public class DatabasePoolUtils {
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
 
-    dbPoolTypes dbType = dbPoolTypes.valueOf(config.dbPoolType.toUpperCase());
+    DbPoolType dbType = DbPoolType.valueOf(config.dbPoolType.toUpperCase());
 
-    if (dbType == dbPoolTypes.C3P0) {
+    if (dbType == DbPoolType.C3P0) {
       return createC3p0DbPool(config);
-    } else if (dbType == dbPoolTypes.HIKARI) {
+    } else if (dbType == DbPoolType.HIKARI) {
       return createHikariDbPool(config);
     }
 
