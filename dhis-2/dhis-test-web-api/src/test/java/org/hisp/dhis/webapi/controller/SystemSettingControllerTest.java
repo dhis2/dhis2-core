@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.stream;
+import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClient.ContentType;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
@@ -162,5 +163,35 @@ class SystemSettingControllerTest extends DhisControllerConvenienceTest {
     stream(SettingKey.values())
         .filter(SettingKey::isConfidential)
         .forEach(key -> assertFalse(setting.get(key.getName()).exists(), key.getName()));
+  }
+
+  @Test
+  void testGetSystemSettingsJson_KeyDoesNotExist() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "Setting does not exist or is marked as confidential",
+        GET("/systemSettings/keyDoesNotExist").content(HttpStatus.NOT_FOUND));
+  }
+
+  @Test
+  void testGetSystemSettingsText_KeyDoesNotExist() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "Setting does not exist or is marked as confidential",
+        GET("/systemSettings/keyDoesNotExist", Accept("text/plain")).content(HttpStatus.NOT_FOUND));
+  }
+
+  @Test
+  void testGetSystemSettingsJsonQueryParam_KeyDoesNotExist() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "Setting does not exist or is marked as confidential",
+        GET("/systemSettings?key=keyDoesNotExist").content(HttpStatus.NOT_FOUND));
   }
 }
