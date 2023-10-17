@@ -303,8 +303,8 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("expressiondimensionitem");
     emptyTable("categoryoptioncombo");
     emptyTable("categorycombo");
-    emptyTable("dataelementcategory");
-    emptyTable("dataelementcategoryoption");
+    emptyTable("category");
+    emptyTable("categoryoption");
 
     emptyTable("optionvalue");
     emptyTable("optionset");

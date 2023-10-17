@@ -135,7 +135,7 @@ class AttributeOptionComboLoaderTest {
 
     when(jdbcTemplate.queryForObject(
             eq(
-                "select categoryoptionid, uid, code, name, startdate, enddate, sharing from dataelementcategoryoption where uid = 'abcdef'"),
+                "select categoryoptionid, uid, code, name, startdate, enddate, sharing from categoryoption where uid = 'abcdef'"),
             any(RowMapper.class)))
         .thenReturn(categoryOption);
 
