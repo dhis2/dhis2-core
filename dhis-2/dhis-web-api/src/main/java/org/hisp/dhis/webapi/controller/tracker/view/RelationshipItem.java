@@ -176,6 +176,7 @@ public class RelationshipItem {
 
     @JsonProperty private boolean followUp;
 
+    @Deprecated(since = "2.41", forRemoval = true)
     @JsonProperty("followup")
     private boolean legacyFollowUp;
 
