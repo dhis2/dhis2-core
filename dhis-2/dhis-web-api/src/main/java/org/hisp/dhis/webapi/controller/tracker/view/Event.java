@@ -80,7 +80,10 @@ public class Event {
 
   @JsonProperty private String storedBy;
 
-  @JsonProperty private boolean followup;
+  @JsonProperty private boolean followUp;
+
+  @JsonProperty("followup")
+  private boolean legacyFollowUp;
 
   @JsonProperty private boolean deleted;
 

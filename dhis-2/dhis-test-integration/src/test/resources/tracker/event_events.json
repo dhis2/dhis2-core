@@ -52,7 +52,6 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
       "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID",
@@ -102,7 +101,6 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
       "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID",
@@ -148,7 +146,6 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
       "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID",
@@ -194,7 +191,6 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
       "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID",
@@ -240,7 +236,6 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
       "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID",
@@ -286,7 +281,6 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
       "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID",
@@ -372,7 +366,6 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
       "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID",
@@ -459,7 +452,6 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
       "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID",

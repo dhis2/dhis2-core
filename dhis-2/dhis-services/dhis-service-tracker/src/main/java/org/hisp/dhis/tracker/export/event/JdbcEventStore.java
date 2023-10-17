@@ -197,7 +197,7 @@ class JdbcEventStore implements EventStore {
           entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
           entry("enrollment.trackedEntity.uid", COLUMN_TRACKEDENTITY_UID),
           entry("executionDate", COLUMN_EVENT_EXECUTION_DATE),
-          entry("enrollment.followup", COLUMN_ENROLLMENT_FOLLOWUP),
+          entry("enrollment.followUp", COLUMN_ENROLLMENT_FOLLOWUP),
           entry("status", COLUMN_EVENT_STATUS),
           entry("dueDate", COLUMN_EVENT_DUE_DATE),
           entry("storedBy", COLUMN_EVENT_STORED_BY),

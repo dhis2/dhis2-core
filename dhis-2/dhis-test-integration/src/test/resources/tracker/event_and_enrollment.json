@@ -395,7 +395,7 @@
       "occurredAt": "2019-01-25T12:10:38.100",
       "scheduledAt": "2019-01-28T12:32:38.100",
       "storedBy": "admin",
-      "followup": false,
+      "followUp": true,
       "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID",
@@ -474,7 +474,7 @@
       "executionDate": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
+      "followUp": true,
       "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID",
@@ -557,7 +557,7 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
+      "followUp": true,
       "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID",
@@ -592,7 +592,7 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
+      "followUp": true,
       "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID",
@@ -887,7 +887,7 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
+      "followUp": true,
       "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID",

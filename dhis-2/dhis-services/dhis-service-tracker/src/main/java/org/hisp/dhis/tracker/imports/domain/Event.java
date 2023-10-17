@@ -70,8 +70,6 @@ public class Event implements TrackerDto {
 
   @JsonProperty private String storedBy;
 
-  @JsonProperty private boolean followup;
-
   @JsonProperty private boolean deleted;
 
   @JsonProperty private Instant createdAt;
