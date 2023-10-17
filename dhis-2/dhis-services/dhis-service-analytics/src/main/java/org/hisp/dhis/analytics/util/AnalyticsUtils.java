@@ -714,6 +714,8 @@ public class AnalyticsUtils {
 
     boolean includeMetadataDetails = params.isIncludeMetadataDetails();
 
+    boolean displayShortName = params.getDisplayProperty() == DisplayProperty.SHORTNAME;
+
     for (DimensionalObject dimension : dimensions) {
       for (DimensionalItemObject item : dimension.getItems()) {
         if (DimensionType.PERIOD == dimension.getDimensionType() && !calendar.isIso8601()) {
@@ -722,7 +724,9 @@ public class AnalyticsUtils {
           String isoDate = period.getPeriodType().getIsoDate(dateTimeUnit);
           map.put(
               isoDate,
-              new MetadataItem(period.getDisplayName(), includeMetadataDetails ? period : null));
+              new MetadataItem(
+                  displayShortName ? period.getDisplayShortName() : period.getDisplayName(),
+                  includeMetadataDetails ? period : null));
         } else {
           map.put(
               item.getDimensionItem(),
