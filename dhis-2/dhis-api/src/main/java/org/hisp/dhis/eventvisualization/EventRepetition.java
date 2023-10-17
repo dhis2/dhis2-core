@@ -62,6 +62,16 @@ public class EventRepetition implements Serializable, EmbeddedObject {
   @Nonnull
   private String dimension;
 
+  /** The program associated with the event repetition. */
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String program;
+
+  /** The program stage associated with the event repetition. */
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String programStage;
+
   /**
    * Represents the list of event indexes to be queried. It holds a list of integers that are
    * interpreted as follows:

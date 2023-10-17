@@ -45,6 +45,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.util.DateUtils;
 
 public class JsonAssertions {
 
@@ -67,6 +68,10 @@ public class JsonAssertions {
   public static void assertRelationship(Relationship expected, JsonRelationship actual) {
     assertFalse(actual.isEmpty(), "relationship should not be empty");
     assertEquals(expected.getUid(), actual.getRelationship(), "relationship UID");
+    assertEquals(
+        DateUtils.getIso8601NoTz(expected.getCreatedAtClient()),
+        actual.getCreatedAtClient(),
+        "createdAtClient date");
     assertEquals(
         expected.getRelationshipType().getUid(),
         actual.getRelationshipType(),

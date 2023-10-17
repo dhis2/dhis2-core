@@ -65,7 +65,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
    * Relationships can be ordered by given fields which correspond to fields on {@link
    * org.hisp.dhis.relationship.Relationship}.
    */
-  private static final Set<String> ORDERABLE_FIELDS = Set.of("created");
+  private static final Set<String> ORDERABLE_FIELDS = Set.of("created", "createdAtClient");
 
   private static final String TRACKED_ENTITY = "trackedEntity";
 

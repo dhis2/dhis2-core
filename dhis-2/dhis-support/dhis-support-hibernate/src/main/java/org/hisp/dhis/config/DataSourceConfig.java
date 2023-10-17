@@ -33,6 +33,7 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import net.ttddyy.dsproxy.listener.logging.DefaultQueryLogEntryCreator;
@@ -47,7 +48,6 @@ import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.DefaultReadOnlyDataSourceManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -61,10 +61,13 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
  */
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class DataSourceConfig {
-  @Autowired private DhisConfigurationProvider dhisConfig;
 
-  @Bean
+  private final DhisConfigurationProvider dhisConfig;
+
+  @Bean("namedParameterJdbcTemplate")
+  @Primary
   @DependsOn("dataSource")
   public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
       @Qualifier("dataSource") DataSource dataSource) {
@@ -80,15 +83,6 @@ public class DataSourceConfig {
     return jdbcTemplate;
   }
 
-  @Bean("executionPlanJdbcTemplate")
-  @DependsOn("dataSource")
-  public JdbcTemplate executionPlanJdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    jdbcTemplate.setFetchSize(1000);
-    jdbcTemplate.setQueryTimeout(10);
-    return jdbcTemplate;
-  }
-
   @Bean("readOnlyJdbcTemplate")
   @DependsOn("dataSource")
   public JdbcTemplate readOnlyJdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
@@ -101,18 +95,19 @@ public class DataSourceConfig {
     return jdbcTemplate;
   }
 
-  @Bean("actualDataSource")
-  public DataSource actualDataSource() {
+  static DataSource createActualDataSource(DhisConfigurationProvider dhisConfig) {
     String jdbcUrl = dhisConfig.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = dhisConfig.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
-    builder.dhisConfig(dhisConfig);
-    builder.dbPoolType(dbPoolType);
+    DatabasePoolUtils.PoolConfig poolConfig =
+        DatabasePoolUtils.PoolConfig.builder()
+            .dhisConfig(dhisConfig)
+            .dbPoolType(dbPoolType)
+            .build();
 
     try {
-      return DatabasePoolUtils.createDbPool(builder.build());
+      return DatabasePoolUtils.createDbPool(poolConfig);
     } catch (SQLException | PropertyVetoException e) {
       String message =
           String.format(
@@ -126,10 +121,8 @@ public class DataSourceConfig {
     }
   }
 
-  @Bean("dataSource")
-  @DependsOn("actualDataSource")
-  @Primary
-  public DataSource dataSource(@Qualifier("actualDataSource") DataSource actualDataSource) {
+  static DataSource createLoggingDataSource(
+      DhisConfigurationProvider dhisConfig, DataSource actualDataSource) {
     boolean enableQueryLogging = dhisConfig.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
 
     if (!enableQueryLogging) {
@@ -144,7 +137,7 @@ public class DataSourceConfig {
     listener.setLogLevel(SLF4JLogLevel.INFO);
     listener.setQueryLogEntryCreator(creator);
 
-    ProxyDataSourceBuilder b =
+    ProxyDataSourceBuilder builder =
         ProxyDataSourceBuilder.create(actualDataSource)
             .name(
                 "ProxyDS_DHIS2_"
@@ -165,16 +158,28 @@ public class DataSourceConfig {
         dhisConfig.isEnabled(ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED);
 
     if (methodLoggingEnabled) {
-      b.afterMethod(DataSourceConfig::executeAfterMethod);
+      builder.afterMethod(DataSourceConfig::executeAfterMethod);
     }
 
     if (elapsedTimeLogging) {
-      b.afterQuery(
+      builder.afterQuery(
           (execInfo, queryInfoList) ->
               log.info("Query took " + execInfo.getElapsedTime() + "msec"));
     }
 
-    return b.build();
+    return builder.build();
+  }
+
+  @Bean("dataSource")
+  @DependsOn("actualDataSource")
+  @Primary
+  public DataSource dataSource(@Qualifier("actualDataSource") DataSource actualDataSource) {
+    return createLoggingDataSource(dhisConfig, actualDataSource);
+  }
+
+  @Bean("actualDataSource")
+  public DataSource actualDataSource() {
+    return createActualDataSource(dhisConfig);
   }
 
   private static void executeAfterMethod(MethodExecutionContext executionContext) {
@@ -200,7 +205,7 @@ public class DataSourceConfig {
         String className1 = nextElement.getClassName();
 
         log.info(
-            "---- JDBC: "
+            "JDBC: "
                 + className
                 + "#"
                 + methodName
@@ -214,7 +219,6 @@ public class DataSourceConfig {
   }
 
   private static class PrettyQueryEntryCreator extends DefaultQueryLogEntryCreator {
-    // use hibernate to format queries
     private final Formatter formatter = FormatStyle.HIGHLIGHT.getFormatter();
 
     @Override
@@ -225,7 +229,8 @@ public class DataSourceConfig {
       } catch (Exception e) {
         log.error("Query formatter failed!", e);
       }
-      return "FORMATTER ERROR!";
+
+      return "Formatter error!";
     }
   }
 }
