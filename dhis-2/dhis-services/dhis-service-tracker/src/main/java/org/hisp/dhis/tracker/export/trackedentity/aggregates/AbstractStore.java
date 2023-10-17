@@ -51,7 +51,7 @@ abstract class AbstractStore {
           + "where ri.%s in (:ids)";
   private static final String GET_RELATIONSHIP_BY_RELATIONSHIP_ID =
       "select "
-          + "r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
+          + "r.uid as rel_uid, r.created, r.createdatclient, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
           + "coalesce((select 'te|' || te.uid from trackedentity te "
           + "join relationshipitem ri on te.trackedentityid = ri.trackedentityid "
           + "where ri.relationshipitemid = r.to_relationshipitemid) , (select 'en|' || en.uid "

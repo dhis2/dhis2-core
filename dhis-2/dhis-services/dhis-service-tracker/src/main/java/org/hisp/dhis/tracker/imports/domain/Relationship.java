@@ -51,6 +51,8 @@ public class Relationship implements TrackerDto {
 
   @JsonProperty private Instant createdAt;
 
+  @JsonProperty private Instant createdAtClient;
+
   @JsonProperty private Instant updatedAt;
 
   @JsonProperty private boolean bidirectional;

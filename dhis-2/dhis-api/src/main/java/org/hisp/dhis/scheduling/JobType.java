@@ -46,6 +46,7 @@ import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
 import org.hisp.dhis.scheduling.parameters.LockExceptionCleanupJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
@@ -102,7 +103,7 @@ public enum JobType {
   DATAVALUE_IMPORT_INTERNAL(),
   METADATA_IMPORT(),
   DATAVALUE_IMPORT(ImportOptions.class),
-  GEOJSON_IMPORT(),
+  GEOJSON_IMPORT(GeoJsonImportJobParams.class),
   EVENT_IMPORT(),
   ENROLLMENT_IMPORT(),
   TEI_IMPORT(),
@@ -199,7 +200,8 @@ public enum JobType {
         || this == PREDICTOR
         || this == DATAVALUE_IMPORT
         || this == COMPLETE_DATA_SET_REGISTRATION_IMPORT
-        || this == METADATA_IMPORT;
+        || this == METADATA_IMPORT
+        || this == GEOJSON_IMPORT;
   }
 
   public boolean isUsingErrorNotification() {
