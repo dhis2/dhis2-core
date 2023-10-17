@@ -166,7 +166,14 @@ class SystemSettingControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testGetSystemSettingsJson_KeyDoesNotExist() {
+  void testGetSystemSettingAsText_KeyExists() {
+    assertEquals(
+        "yyyy-MM-dd",
+        GET("/systemSettings/keyDateFormat", Accept("text/plain")).content("text/plain"));
+  }
+
+  @Test
+  void testGetSystemSettingAsJson_KeyDoesNotExist() {
     assertWebMessage(
         "Not Found",
         404,
@@ -176,22 +183,36 @@ class SystemSettingControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testGetSystemSettingsText_KeyDoesNotExist() {
-    assertWebMessage(
-        "Not Found",
-        404,
-        "ERROR",
-        "Setting does not exist or is marked as confidential",
-        GET("/systemSettings/keyDoesNotExist", Accept("text/plain")).content(HttpStatus.NOT_FOUND));
+  void testGetSystemSettingAsText_KeyDoesNotExist() {
+    HttpResponse response = GET("/systemSettings/keyDoesNotExist", Accept("text/plain"));
+    assertEquals(HttpStatus.NOT_FOUND, response.status());
+    assertEquals(
+        "Setting does not exist or is marked as confidential", response.content("text/plain"));
   }
 
   @Test
-  void testGetSystemSettingsJsonQueryParam_KeyDoesNotExist() {
+  void testGetSystemSettingAsJsonQueryParam_KeyDoesNotExist() {
     assertWebMessage(
         "Not Found",
         404,
         "ERROR",
         "Setting does not exist or is marked as confidential",
         GET("/systemSettings?key=keyDoesNotExist").content(HttpStatus.NOT_FOUND));
+  }
+
+  @Test
+  void testGetSystemSettingAsJsonQueryParam_MultipleKeysDoExist() {
+    JsonObject content =
+        GET("/systemSettings?key=keyDateFormat,jobsRescheduleAfterMinutes").content(HttpStatus.OK);
+    assertEquals(
+        "{\"keyDateFormat\":\"yyyy-MM-dd\",\"jobsRescheduleAfterMinutes\":10}", content.toString());
+  }
+
+  @Test
+  void testGetSystemSettingAsJsonQueryParam_OneKeyExistsFromTwo() {
+    JsonObject content =
+        GET("/systemSettings?key=keyDoesNotExist,jobsRescheduleAfterMinutes").content(HttpStatus.OK);
+    assertEquals(
+        "{\"jobsRescheduleAfterMinutes\":10}", content.toString());
   }
 }
