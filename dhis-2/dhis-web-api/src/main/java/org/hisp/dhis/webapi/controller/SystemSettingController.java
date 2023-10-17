@@ -89,7 +89,8 @@ public class SystemSettingController {
 
   private final UserSettingService userSettingService;
 
-  private static final String SETTING_DOESNT_EXIST_OR_CONFIDENTIAL = "Setting does not exist or is marked as confidential";
+  private static final String SETTING_DOESNT_EXIST_OR_CONFIDENTIAL =
+      "Setting does not exist or is marked as confidential";
 
   // -------------------------------------------------------------------------
   // Create

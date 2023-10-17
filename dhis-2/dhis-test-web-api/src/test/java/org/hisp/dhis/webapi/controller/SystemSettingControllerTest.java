@@ -211,8 +211,8 @@ class SystemSettingControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testGetSystemSettingAsJsonQueryParam_OneKeyExistsFromTwo() {
     JsonObject content =
-        GET("/systemSettings?key=keyDoesNotExist,jobsRescheduleAfterMinutes").content(HttpStatus.OK);
-    assertEquals(
-        "{\"jobsRescheduleAfterMinutes\":10}", content.toString());
+        GET("/systemSettings?key=keyDoesNotExist,jobsRescheduleAfterMinutes")
+            .content(HttpStatus.OK);
+    assertEquals("{\"jobsRescheduleAfterMinutes\":10}", content.toString());
   }
 }
