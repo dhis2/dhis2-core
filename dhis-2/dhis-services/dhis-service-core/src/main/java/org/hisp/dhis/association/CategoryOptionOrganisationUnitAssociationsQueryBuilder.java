@@ -45,7 +45,7 @@ public class CategoryOptionOrganisationUnitAssociationsQueryBuilder
   private final String joinColumnName = "categoryoptionid";
 
   @Getter(AccessLevel.PROTECTED)
-  private final String baseTableName = "dataelementcategoryoption";
+  private final String baseTableName = "categoryoption";
 
   public CategoryOptionOrganisationUnitAssociationsQueryBuilder(
       CurrentUserService currentUserService) {

@@ -71,7 +71,7 @@ public class EventQuery {
         new Subselect(
             "( "
                 + "SELECT string_agg(opt.uid::text, ';') "
-                + "FROM dataelementcategoryoption opt "
+                + "FROM categoryoption opt "
                 + "join categoryoptioncombos_categoryoptions ccc "
                 + "on opt.categoryoptionid = ccc.categoryoptionid "
                 + "WHERE coc.categoryoptioncomboid = ccc.categoryoptioncomboid )",

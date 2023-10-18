@@ -374,7 +374,7 @@ public class SpringDataValueSetStore implements DataValueSetStore {
         // Get inaccessible category options
         "where cocco.categoryoptionid not in ( "
         + "select co.categoryoptionid "
-        + "from dataelementcategoryoption co  "
+        + "from categoryoption co  "
         + " where "
         + JpaQueryUtils.generateSQlQueryForSharingCheck(
             "co.sharing", user, AclService.LIKE_READ_DATA)

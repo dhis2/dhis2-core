@@ -29,10 +29,10 @@ name: categories_one_default_category_option
 description: Only one "default" category option should exist
 section: Categories
 summary_sql: >-
-  SELECT count(*) AS count FROM dataelementcategoryoption
+  SELECT count(*) AS count FROM categoryoption
   WHERE name = 'default' AND uid != 'xYerKDKCefk';
 details_sql: >-
-  SELECT uid, name FROM dataelementcategoryoption
+  SELECT uid, name FROM categoryoption
   WHERE name = 'default' AND uid != 'xYerKDKCefk'
   ORDER BY categoryoptionid;
 details_id_type: categoryOptions
