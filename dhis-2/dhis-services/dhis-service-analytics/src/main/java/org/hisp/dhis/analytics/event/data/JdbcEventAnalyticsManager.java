@@ -243,15 +243,15 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     log.debug("Analytics event count SQL: '{}'", sql);
 
-    final String immutableValue = sql;
+    final String finalSqlValue = sql;
 
     if (params.analyzeOnly()) {
       withExceptionHandling(
-          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), immutableValue),
+          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue),
           params.isMultipleQueries());
     } else {
       count =
-          withExceptionHandling(() -> jdbcTemplate.queryForObject(immutableValue, Long.class))
+          withExceptionHandling(() -> jdbcTemplate.queryForObject(finalSqlValue, Long.class))
               .orElse(0l);
     }
 
@@ -278,9 +278,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     Rectangle rectangle = new Rectangle();
 
-    final String immutableValue = sql;
+    final String finalSqlValue = sql;
 
-    SqlRowSet rowSet = withExceptionHandling(() -> queryForRows(immutableValue)).get();
+    SqlRowSet rowSet = withExceptionHandling(() -> queryForRows(finalSqlValue)).get();
 
     if (rowSet.next()) {
       Object extent = rowSet.getObject(COL_EXTENT);

@@ -554,14 +554,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // Grid
     // ---------------------------------------------------------------------
 
-    final String immutableValue = sql;
+    final String finalSqlValue = sql;
 
     if (params.analyzeOnly()) {
       withExceptionHandling(
-          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), immutableValue));
+          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue));
     } else {
       withExceptionHandling(
-          () -> getAggregatedEventData(grid, params, immutableValue), params.isMultipleQueries());
+          () -> getAggregatedEventData(grid, params, finalSqlValue), params.isMultipleQueries());
     }
 
     return grid;

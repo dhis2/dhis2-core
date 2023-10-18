@@ -253,15 +253,15 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     log.debug("Analytics enrollment count SQL: " + sql);
 
-    final String immutableValue = sql;
+    final String finalSqlValue = sql;
 
     if (params.analyzeOnly()) {
       withExceptionHandling(
-          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), immutableValue));
+          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue));
     } else {
       count =
           withExceptionHandling(
-                  () -> jdbcTemplate.queryForObject(immutableValue, Long.class),
+                  () -> jdbcTemplate.queryForObject(finalSqlValue, Long.class),
                   params.isMultipleQueries())
               .orElse(0l);
     }
