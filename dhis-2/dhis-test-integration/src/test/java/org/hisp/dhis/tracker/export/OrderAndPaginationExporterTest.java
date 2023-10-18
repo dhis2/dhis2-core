@@ -585,7 +585,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         () -> assertEquals(List.of("nxP7UnKhomJ"), uids(firstPage.getItems())));
 
     Page<Enrollment> secondPage =
-        enrollmentService.getEnrollments(operationParams, new PageParams(1, 1, true));
+        enrollmentService.getEnrollments(operationParams, new PageParams(2, 1, true));
 
     assertAll(
         "second (last) page",
@@ -593,7 +593,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         () -> assertEquals(List.of("TvctPPhpD8z"), uids(secondPage.getItems())));
 
     Page<Enrollment> thirdPage =
-        enrollmentService.getEnrollments(operationParams, new PageParams(1, 1, true));
+        enrollmentService.getEnrollments(operationParams, new PageParams(3, 1, true));
 
     assertIsEmpty(thirdPage.getItems());
   }
