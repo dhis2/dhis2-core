@@ -408,6 +408,24 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
+  void testExportEventsWithProgramStageOrder() {
+
+    EventQueryParams params = new EventQueryParams();
+
+    params.setEvents(Set.of("pTzf9KYMk72", "QRYjLTiJTrA"));
+    params.setOrders(List.of(orderBy("programStage", SortDirection.ASC)));
+
+    Events events = eventService.getEvents(params);
+
+    assertNotEmpty(events.getEvents());
+
+    assertEquals(
+        List.of("NpsdDv6kKSO", "qLZC0lvvxQH"),
+        events.getEvents().stream().map(Event::getProgramStage).collect(Collectors.toList()),
+        "Program Stage are not in the correct order");
+  }
+
+  @Test
   void shouldReturnEventsGivenCategoryOptionCombo() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));

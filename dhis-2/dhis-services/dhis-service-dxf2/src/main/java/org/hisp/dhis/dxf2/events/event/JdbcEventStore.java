@@ -950,7 +950,7 @@ public class JdbcEventStore implements EventStore {
                 "select "
                     + getEventSelectIdentifiersByIdScheme(params)
                     + " psi.uid as psi_uid, "
-                    + "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, "
+                    + "ou.uid as ou_uid, p.uid as p_uid, "
                     + "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, "
                     + "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
                     + "psi.created as psi_created, psi.createdbyuserinfo as psi_createdbyuserinfo, psi.lastupdated as psi_lastupdated, psi.lastupdatedbyuserinfo as psi_lastupdatedbyuserinfo, "
