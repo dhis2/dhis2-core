@@ -166,7 +166,8 @@ case-sensitive properties
 * `enrollment`
 * `enrollmentStatus`
 * `event`
-* `followup`
+* `followup` (deprecated)
+* `followUp`
 * `occurredAt`
 * `orgUnit`
 * `program`

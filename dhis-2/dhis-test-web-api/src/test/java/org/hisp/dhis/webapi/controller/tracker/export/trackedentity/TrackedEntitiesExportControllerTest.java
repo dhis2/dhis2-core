@@ -648,6 +648,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertHasMember(jsonEvent, "createdAtClient");
     assertHasMember(jsonEvent, "updatedAt");
     assertHasMember(jsonEvent, "notes");
+    assertHasMember(jsonEvent, "followUp");
     assertHasMember(jsonEvent, "followup");
 
     JsonDataValue dataValue = jsonEvent.getDataValues().get(0);
