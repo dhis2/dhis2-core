@@ -54,7 +54,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @Tag("analytics")
 public class NoAnalyticsTablesErrorsScenariosTest {
 
-  private final AnalyticsEnrollmentsActions analyticsEnrollmentsActions = new AnalyticsEnrollmentsActions();
+  private final AnalyticsEnrollmentsActions analyticsEnrollmentsActions =
+      new AnalyticsEnrollmentsActions();
   private final AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
   private final AnalyticsTeiActions analyticsTeiActions = new AnalyticsTeiActions();
   private final RestApiActions analyticsAggregateActions = new RestApiActions("analytics");
@@ -97,12 +98,11 @@ public class NoAnalyticsTablesErrorsScenariosTest {
   @Test
   void testEnrollmentsQueryAnalyticsWhenAnalyticsTablesAreMissing() {
     // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("dimension=ou:ImspTQPwCqd");
+    QueryParamsBuilder params = new QueryParamsBuilder().add("dimension=ou:ImspTQPwCqd");
 
     // When
-    ApiResponse response = analyticsEnrollmentsActions.query().get("IpHINAT79UW", JSON, JSON, params);
+    ApiResponse response =
+        analyticsEnrollmentsActions.query().get("IpHINAT79UW", JSON, JSON, params);
 
     // Then
     assertNoAnalyticsTableResponse(response);
@@ -143,7 +143,10 @@ public class NoAnalyticsTablesErrorsScenariosTest {
         .validate()
         .statusCode(409)
         .body("status", equalTo("ERROR"))
-        .body("message", equalTo("Query failed because a referenced table does not exist. Please ensure analytics job was run (SqlState: 42P01)"))
+        .body(
+            "message",
+            equalTo(
+                "Query failed because a referenced table does not exist. Please ensure analytics job was run (SqlState: 42P01)"))
         .body("errorCode", equalTo("E7144"))
         .body("devMessage", equalTo("SqlState: 42P01"));
   }

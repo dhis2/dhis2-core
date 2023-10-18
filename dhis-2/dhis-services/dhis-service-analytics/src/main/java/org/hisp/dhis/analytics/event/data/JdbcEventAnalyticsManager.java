@@ -47,7 +47,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.relationDoesNotExist;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
@@ -74,7 +73,6 @@ import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
-import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -96,7 +94,6 @@ import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -244,30 +241,18 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     long count = 0;
 
-    try {
-      log.debug("Analytics event count SQL: '{}'", sql);
+    log.debug("Analytics event count SQL: '{}'", sql);
 
-      if (params.analyzeOnly()) {
-        executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql);
-      } else {
-        count = jdbcTemplate.queryForObject(sql, Long.class);
-      }
-    } catch (BadSqlGrammarException ex) {
-      if (relationDoesNotExist(ex.getSQLException())) {
-        log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
-        throw ex;
-      }
-      if (!params.isMultipleQueries()) {
-        log.warn(AnalyticsUtils.ERR_MSG_SQL_SYNTAX_ERROR, ex);
-        throw ex;
-      }
-      log.warn(AnalyticsUtils.ERR_MSG_SILENT_FALLBACK, ex);
-    } catch (DataAccessResourceFailureException ex) {
-      log.warn(E7131.getMessage(), ex);
-      throw new QueryRuntimeException(E7131);
-    } catch (DataIntegrityViolationException ex) {
-      log.warn(E7132.getMessage(), ex);
-      throw new QueryRuntimeException(E7132);
+    final String immutableValue = sql;
+
+    if (params.analyzeOnly()) {
+      withExceptionHandling(
+          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), immutableValue),
+          params.isMultipleQueries());
+    } else {
+      count =
+          withExceptionHandling(() -> jdbcTemplate.queryForObject(immutableValue, Long.class))
+              .orElse(0l);
     }
 
     return count;
@@ -293,7 +278,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     Rectangle rectangle = new Rectangle();
 
-    SqlRowSet rowSet = queryForRows(sql);
+    final String immutableValue = sql;
+
+    SqlRowSet rowSet = withExceptionHandling(() -> queryForRows(immutableValue)).get();
 
     if (rowSet.next()) {
       Object extent = rowSet.getObject(COL_EXTENT);

@@ -1098,7 +1098,7 @@ public class AnalyticsUtils {
    * @return the {@link Optional} wrapping th result of the supplier execution.
    */
   public static <T> Optional<T> withExceptionHandling(Supplier<T> supplier) {
-    return withExceptionHandling(() -> supplier.get(), false);
+    return withExceptionHandling(supplier::get, false);
   }
 
   /**
@@ -1119,17 +1119,18 @@ public class AnalyticsUtils {
         throw ex;
       }
       if (!isMultipleQueries) {
-        log.warn(ERR_MSG_SQL_SYNTAX_ERROR, ex);
+        log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
         throw ex;
       }
-      log.warn(ERR_MSG_SILENT_FALLBACK, ex);
+      log.info(ERR_MSG_SILENT_FALLBACK, ex);
     } catch (QueryRuntimeException ex) {
+      log.error("Internal runtime exception", ex);
       throw ex;
     } catch (DataIntegrityViolationException ex) {
-      log.warn(E7132.getMessage(), ex);
+      log.error(E7132.getMessage(), ex);
       throw new QueryRuntimeException(E7132);
     } catch (DataAccessResourceFailureException ex) {
-      log.warn(E7131.getMessage(), ex);
+      log.error(E7131.getMessage(), ex);
       throw new QueryRuntimeException(E7131);
     }
 

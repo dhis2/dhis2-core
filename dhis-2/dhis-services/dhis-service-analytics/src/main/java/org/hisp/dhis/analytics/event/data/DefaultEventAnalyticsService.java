@@ -47,7 +47,6 @@ import static org.hisp.dhis.analytics.event.LabelMapper.getEventDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getIncidentDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getScheduledDateLabel;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -593,13 +592,9 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
         // Query might be either an enrollment or event indicator
 
         if (query.hasEnrollmentProgramIndicatorDimension()) {
-          withExceptionHandling(
-              () -> enrollmentAnalyticsManager.getAggregatedEventData(query, grid, maxLimit),
-              query.isMultipleQueries());
+          enrollmentAnalyticsManager.getAggregatedEventData(query, grid, maxLimit);
         } else {
-          withExceptionHandling(
-              () -> eventAnalyticsManager.getAggregatedEventData(query, grid, maxLimit),
-              query.isMultipleQueries());
+          eventAnalyticsManager.getAggregatedEventData(query, grid, maxLimit);
         }
       }
 
@@ -792,15 +787,11 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
     EventQueryParams immutableParams = new EventQueryParams.Builder(params).build();
 
     if (params.getPartitions().hasAny() || params.isSkipPartitioning()) {
-      withExceptionHandling(
-          () ->
-              eventAnalyticsManager.getEvents(immutableParams, grid, queryValidator.getMaxLimit()),
-          immutableParams.isMultipleQueries());
+
+      eventAnalyticsManager.getEvents(immutableParams, grid, queryValidator.getMaxLimit());
 
       if (params.isPaging() && params.isTotalPages()) {
-        count =
-            withExceptionHandling(() -> eventAnalyticsManager.getEventCount(immutableParams))
-                .orElse(0l);
+        count = eventAnalyticsManager.getEventCount(immutableParams);
       }
 
       timer.getTime("Got events " + grid.getHeight());
