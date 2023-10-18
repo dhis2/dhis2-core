@@ -34,10 +34,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
@@ -68,9 +69,11 @@ class EventsExportControllerUnitTest {
     Entry<String, String> missing1 = iterator.next();
     Entry<String, String> missing2 = iterator.next();
     Map<String, String> orderableFields = new HashMap<>(EventMapper.ORDERABLE_FIELDS);
-    orderableFields.remove(missing1.getKey());
-    orderableFields.remove(missing2.getKey());
-    when(eventService.getOrderableFields()).thenReturn(new HashSet<>(orderableFields.values()));
+    Set<String> orderableValues =
+        orderableFields.values().stream()
+            .filter(v -> !v.equals(missing1.getValue()) && !v.equals(missing2.getValue()))
+            .collect(Collectors.toSet());
+    when(eventService.getOrderableFields()).thenReturn(orderableValues);
 
     Exception exception =
         assertThrows(
