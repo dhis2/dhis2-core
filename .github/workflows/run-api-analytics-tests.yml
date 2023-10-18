@@ -12,7 +12,7 @@ concurrency:
   group: ${{ github.workflow}}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  api-test:
+  api-analytics-test:
     env:
       CORE_IMAGE_NAME: "dhis2/core-dev:local"
       PR_NUMBER: ${{ github.event.number }}
