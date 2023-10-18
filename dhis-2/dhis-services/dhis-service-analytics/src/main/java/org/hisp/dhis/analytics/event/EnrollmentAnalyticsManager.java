@@ -59,5 +59,5 @@ public interface EnrollmentAnalyticsManager {
    * @param params the qyery to count enrollments for,
    * @return number of enrollments macting the parameter criteria.
    */
-  Long getEnrollmentCount(EventQueryParams params);
+  long getEnrollmentCount(EventQueryParams params);
 }

@@ -242,7 +242,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   @Override
-  public Long getEnrollmentCount(EventQueryParams params) {
+  public long getEnrollmentCount(EventQueryParams params) {
     String sql = "select count(pi) ";
 
     sql += getFromClause(params);
