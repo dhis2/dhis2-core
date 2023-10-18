@@ -60,12 +60,16 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
 class DefaultEnrollmentService
@@ -193,9 +197,19 @@ class DefaultEnrollmentService
   }
 
   @Override
-  public Enrollments getEnrollments(EnrollmentOperationParams params)
-      throws ForbiddenException, BadRequestException {
+  public List<Enrollment> getEnrollments(EnrollmentOperationParams params)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    if (!params.getEnrollmentUids().isEmpty()) {
+      List<org.hisp.dhis.program.Enrollment> enrollments = new ArrayList<>();
+      for (String uid : params.getEnrollmentUids()) {
+        enrollments.add(
+            getEnrollment(uid, params.getEnrollmentParams(), params.isIncludeDeleted()));
+      }
+      return enrollments;
+    }
+
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
+    queryParams.setSkipPaging(true);
 
     decideAccess(queryParams);
     validate(queryParams);
@@ -216,27 +230,78 @@ class DefaultEnrollmentService
       queryParams.setOrganisationUnits(organisationUnits);
     }
 
-    List<Enrollment> enrollmentList =
+    return getEnrollments(
+        new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
+        params.getEnrollmentParams(),
+        params.isIncludeDeleted());
+  }
+
+  @Override
+  public Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    EnrollmentQueryParams queryParams = paramsMapper.map(params);
+
+    if (!params.getEnrollmentUids().isEmpty()) {
+      List<org.hisp.dhis.program.Enrollment> enrollments = new ArrayList<>();
+      for (String uid : params.getEnrollmentUids()) {
+        enrollments.add(
+            getEnrollment(uid, params.getEnrollmentParams(), params.isIncludeDeleted()));
+      }
+
+      Pager pager;
+
+      if (pageParams.isPageTotal()) {
+        queryParams.setSkipPaging(true);
+        int count = enrollmentStore.countEnrollments(queryParams);
+        pager = new Pager(pageParams.getPage(), count, pageParams.getPageSize());
+      } else {
+        pager = handleLastPageFlag(queryParams, enrollments);
+      }
+
+      return Page.of(enrollments, pager);
+    }
+
+    queryParams.setPage(pageParams.getPage());
+    queryParams.setPageSize(pageParams.getPageSize());
+    queryParams.setTotalPages(pageParams.isPageTotal());
+    queryParams.setSkipPaging(false);
+
+    decideAccess(queryParams);
+    validate(queryParams);
+
+    User user = currentUserService.getCurrentUser();
+
+    if (user != null
+        && queryParams.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
+      queryParams.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
+      queryParams.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    } else if (queryParams.isOrganisationUnitMode(CHILDREN)) {
+      Set<OrganisationUnit> organisationUnits = new HashSet<>(queryParams.getOrganisationUnits());
+
+      for (OrganisationUnit organisationUnit : queryParams.getOrganisationUnits()) {
+        organisationUnits.addAll(organisationUnit.getChildren());
+      }
+
+      queryParams.setOrganisationUnits(organisationUnits);
+    }
+
+    List<Enrollment> enrollments =
         getEnrollments(
             new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
             params.getEnrollmentParams(),
             params.isIncludeDeleted());
 
-    if (params.isSkipPaging()) {
-      return Enrollments.withoutPagination(enrollmentList);
-    }
-
     Pager pager;
 
-    if (params.isTotalPages()) {
+    if (pageParams.isPageTotal()) {
       queryParams.setSkipPaging(true);
       int count = enrollmentStore.countEnrollments(queryParams);
-      pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
+      pager = new Pager(pageParams.getPage(), count, pageParams.getPageSize());
     } else {
-      pager = handleLastPageFlag(queryParams, enrollmentList);
+      pager = handleLastPageFlag(queryParams, enrollments);
     }
 
-    return Enrollments.of(enrollmentList, pager);
+    return Page.of(enrollments, pager);
   }
 
   public void decideAccess(EnrollmentQueryParams params) {

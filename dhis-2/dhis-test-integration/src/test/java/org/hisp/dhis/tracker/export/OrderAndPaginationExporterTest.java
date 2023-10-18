@@ -67,9 +67,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.EnrollmentOperationParamsBuilder;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.enrollment.Enrollments;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.tracker.export.event.EventService;
@@ -540,69 +538,69 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSize()
-      throws ForbiddenException, BadRequestException {
-    EnrollmentOperationParamsBuilder builder =
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
-            .orderBy("enrollmentDate", SortDirection.ASC);
+            .orderBy("enrollmentDate", SortDirection.ASC)
+            .build();
 
-    EnrollmentOperationParams params = builder.page(1).pageSize(1).build();
-
-    Enrollments firstPage = enrollmentService.getEnrollments(params);
+    Page<Enrollment> firstPage =
+        enrollmentService.getEnrollments(operationParams, new PageParams(1, 1, false));
 
     assertAll(
         "first page",
         () -> assertSlimPager(1, 1, false, firstPage.getPager()),
-        () -> assertEquals(List.of("nxP7UnKhomJ"), uids(firstPage.getEnrollments())));
+        () -> assertEquals(List.of("nxP7UnKhomJ"), uids(firstPage.getItems())));
 
-    params = builder.page(2).pageSize(1).build();
-
-    Enrollments secondPage = enrollmentService.getEnrollments(params);
+    Page<Enrollment> secondPage =
+        enrollmentService.getEnrollments(operationParams, new PageParams(2, 1, false));
 
     assertAll(
         "second (last) page",
         () -> assertSlimPager(2, 1, true, secondPage.getPager()),
-        () -> assertEquals(List.of("TvctPPhpD8z"), uids(secondPage.getEnrollments())));
+        () -> assertEquals(List.of("TvctPPhpD8z"), uids(secondPage.getItems())));
 
-    params = builder.page(3).pageSize(1).build();
+    Page<Enrollment> thirdPage =
+        enrollmentService.getEnrollments(operationParams, new PageParams(3, 1, false));
 
-    assertIsEmpty(getEnrollments(params));
+    assertIsEmpty(thirdPage.getItems());
   }
 
   @Test
   void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSizeAndTotalPages()
-      throws ForbiddenException, BadRequestException {
-    EnrollmentOperationParamsBuilder builder =
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
-            .orderBy("enrollmentDate", SortDirection.ASC);
+            .orderBy("enrollmentDate", SortDirection.ASC)
+            .build();
 
-    EnrollmentOperationParams params = builder.page(1).pageSize(1).totalPages(true).build();
-
-    Enrollments firstPage = enrollmentService.getEnrollments(params);
+    Page<Enrollment> firstPage =
+        enrollmentService.getEnrollments(operationParams, new PageParams(1, 1, true));
 
     assertAll(
         "first page",
         () -> assertPager(1, 1, 2, firstPage.getPager()),
-        () -> assertEquals(List.of("nxP7UnKhomJ"), uids(firstPage.getEnrollments())));
+        () -> assertEquals(List.of("nxP7UnKhomJ"), uids(firstPage.getItems())));
 
-    params = builder.page(2).pageSize(1).totalPages(true).build();
-
-    Enrollments secondPage = enrollmentService.getEnrollments(params);
+    Page<Enrollment> secondPage =
+        enrollmentService.getEnrollments(operationParams, new PageParams(1, 1, true));
 
     assertAll(
         "second (last) page",
         () -> assertPager(2, 1, 2, secondPage.getPager()),
-        () -> assertEquals(List.of("TvctPPhpD8z"), uids(secondPage.getEnrollments())));
+        () -> assertEquals(List.of("TvctPPhpD8z"), uids(secondPage.getItems())));
 
-    params = builder.page(3).pageSize(1).totalPages(true).build();
+    Page<Enrollment> thirdPage =
+        enrollmentService.getEnrollments(operationParams, new PageParams(1, 1, true));
 
-    assertIsEmpty(getEnrollments(params));
+    assertIsEmpty(thirdPage.getItems());
   }
 
   @Test
   void shouldOrderEnrollmentsByPrimaryKeyDescByDefault()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     Enrollment nxP7UnKhomJ = get(Enrollment.class, "nxP7UnKhomJ");
     Enrollment TvctPPhpD8z = get(Enrollment.class, "TvctPPhpD8z");
     List<String> expected =
@@ -620,7 +618,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEnrollmentsByEnrolledAtAsc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEnrollmentsByEnrolledAtAsc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
@@ -633,7 +632,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEnrollmentsByEnrolledAtDesc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEnrollmentsByEnrolledAtDesc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
@@ -1321,8 +1321,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   private List<String> getEnrollments(EnrollmentOperationParams params)
-      throws ForbiddenException, BadRequestException {
-    return uids(enrollmentService.getEnrollments(params).getEnrollments());
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    return uids(enrollmentService.getEnrollments(params));
   }
 
   private List<String> getEvents(EventOperationParams params)
