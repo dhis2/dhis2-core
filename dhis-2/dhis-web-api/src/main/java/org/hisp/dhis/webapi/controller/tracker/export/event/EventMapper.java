@@ -70,7 +70,8 @@ public interface EventMapper
           entry("enrollment", "enrollment.uid"),
           entry("enrollmentStatus", "enrollment.status"),
           entry("event", "uid"),
-          entry("followup", "enrollment.followup"),
+          entry("followUp", "enrollment.followUp"),
+          entry("followup", "enrollment.followUp"), // Deprecated 2.41
           entry("occurredAt", "executionDate"),
           entry("orgUnit", "organisationUnit.uid"),
           entry("program", "enrollment.program.uid"),
@@ -90,7 +91,8 @@ public interface EventMapper
   @Mapping(target = "orgUnit", source = "organisationUnit.uid")
   @Mapping(target = "occurredAt", source = "executionDate")
   @Mapping(target = "scheduledAt", source = "dueDate")
-  @Mapping(target = "followup", source = "enrollment.followup")
+  @Mapping(target = "legacyFollowUp", source = "enrollment.followup") // Deprecated 2.41
+  @Mapping(target = "followUp", source = "enrollment.followup")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")
