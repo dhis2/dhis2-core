@@ -33,7 +33,8 @@ import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fromOrderString;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -304,7 +305,7 @@ class RequestParamsValidatorTest {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), orgUnitMode));
+            () -> validateOrgUnitModeForEnrollmentsAndEvents(Set.of(UID.of(orgUnit)), orgUnitMode));
 
     assertStartsWith(
         String.format("orgUnitMode %s cannot be used with orgUnits.", orgUnitMode),
@@ -317,7 +318,7 @@ class RequestParamsValidatorTest {
       names = {"CAPTURE", "ACCESSIBLE", "ALL"})
   void shouldPassWhenNoOrgUnitSuppliedAndOrgUnitModeDoesNotRequireOrgUnit(
       OrganisationUnitSelectionMode orgUnitMode) {
-    assertDoesNotThrow(() -> validateOrgUnitMode(emptySet(), orgUnitMode));
+    assertDoesNotThrow(() -> validateOrgUnitModeForEnrollmentsAndEvents(emptySet(), orgUnitMode));
   }
 
   @ParameterizedTest
@@ -326,7 +327,20 @@ class RequestParamsValidatorTest {
       names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
   void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeRequiresOrgUnit(
       OrganisationUnitSelectionMode orgUnitMode) {
-    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit)), orgUnitMode));
+    assertDoesNotThrow(
+        () -> validateOrgUnitModeForEnrollmentsAndEvents(Set.of(UID.of(orgUnit)), orgUnitMode));
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldPassWhenTrackedEntitySuppliedAndOrgUnitModeRequiresOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    assertDoesNotThrow(
+        () ->
+            validateOrgUnitModeForTrackedEntities(
+                emptySet(), orgUnitMode, Set.of(UID.of(TEA_1_UID))));
   }
 
   @ParameterizedTest
@@ -336,10 +350,29 @@ class RequestParamsValidatorTest {
   void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeRequiresOrgUnit(
       OrganisationUnitSelectionMode orgUnitMode) {
     Exception exception =
-        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), orgUnitMode));
+        assertThrows(
+            BadRequestException.class,
+            () -> validateOrgUnitModeForEnrollmentsAndEvents(emptySet(), orgUnitMode));
 
     assertStartsWith(
         String.format("At least one org unit is required for orgUnitMode: %s", orgUnitMode),
+        exception.getMessage());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldFailWhenNoOrgUnitNorTrackedEntitySuppliedAndOrgUnitModeRequiresOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateOrgUnitModeForTrackedEntities(emptySet(), orgUnitMode, emptySet()));
+
+    assertStartsWith(
+        String.format(
+            "At least one org unit or tracked entity is required for orgUnitMode: %s", orgUnitMode),
         exception.getMessage());
   }
 
