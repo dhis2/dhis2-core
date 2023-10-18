@@ -455,7 +455,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     for (Integer year : years) {
       table.addPartitionTable(
-          year, PartitionUtils.getStartDate(year), PartitionUtils.getEndDate(year));
+          year,
+          PartitionUtils.getStartDate(year),
+          PartitionUtils.getEndDate(year),
+          params.isCitusExtensionEnabled());
     }
 
     return table;
@@ -493,7 +496,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     if (hasUpdatedData) {
       table.addPartitionTable(
-          AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate);
+          AnalyticsTablePartition.LATEST_PARTITION,
+          lastFullTableUpdate,
+          endDate,
+          params.isCitusExtensionEnabled());
       log.info(
           "Added latest analytics partition with start: '{}' and end: '{}'",
           getLongDateString(lastFullTableUpdate),

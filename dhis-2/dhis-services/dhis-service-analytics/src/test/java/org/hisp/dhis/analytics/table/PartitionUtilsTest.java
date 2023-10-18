@@ -99,9 +99,15 @@ class PartitionUtilsTest {
     List<AnalyticsTableColumn> values = List.of(new AnalyticsTableColumn("value", DOUBLE, "value"));
     AnalyticsTable tA = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, dimensions, values);
     tA.addPartitionTable(
-        2010, new DateTime(2010, 1, 1, 0, 0).toDate(), new DateTime(2010, 12, 31, 0, 0).toDate());
+        2010,
+        new DateTime(2010, 1, 1, 0, 0).toDate(),
+        new DateTime(2010, 12, 31, 0, 0).toDate(),
+        false);
     tA.addPartitionTable(
-        2011, new DateTime(2011, 1, 1, 0, 0).toDate(), new DateTime(2011, 12, 31, 0, 0).toDate());
+        2011,
+        new DateTime(2011, 1, 1, 0, 0).toDate(),
+        new DateTime(2011, 12, 31, 0, 0).toDate(),
+        false);
     AnalyticsTable tB = new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, dimensions, values);
     List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions(List.of(tA, tB));
 

@@ -103,7 +103,14 @@ public class AnalyticsTable {
    * @param endDate the end date.
    * @return this analytics table.
    */
-  public AnalyticsTable addPartitionTable(Integer year, Date startDate, Date endDate) {
+  public AnalyticsTable addPartitionTable(
+      Integer year, Date startDate, Date endDate, boolean isCitusEnabled) {
+
+    // skipping partition creation for distributed tables when citus is enabled
+    if (isDistributed() && isCitusEnabled) {
+      return this;
+    }
+
     Assert.notNull(year, "Year must be specified");
 
     AnalyticsTablePartition tablePartition =
@@ -249,5 +256,9 @@ public class AnalyticsTable {
   @Override
   public String toString() {
     return "[Table name: " + getTableName() + ", partitions: " + tablePartitions + "]";
+  }
+
+  public boolean isDistributed() {
+    return tableType.isDistributed();
   }
 }

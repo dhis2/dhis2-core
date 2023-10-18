@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Getter;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -76,6 +77,8 @@ public class AnalyticsTableUpdateParams {
   private Date today;
 
   private final Map<String, Object> extraParameters = new HashMap<>();
+
+  @Getter private boolean citusExtensionEnabled = false;
 
   public void addExtraParam(String prefix, String key, Object value) {
     extraParameters.put(prefix + key, value);
@@ -191,6 +194,7 @@ public class AnalyticsTableUpdateParams {
     params.jobId = this.jobId;
     params.startTime = this.startTime;
     params.lastSuccessfulUpdate = this.lastSuccessfulUpdate;
+    params.citusExtensionEnabled = this.citusExtensionEnabled;
 
     return this;
   }
@@ -261,7 +265,6 @@ public class AnalyticsTableUpdateParams {
      * @param date A mock Date
      */
     public Builder withToday(Date date) {
-
       this.params.today = date;
       return this;
     }
@@ -269,6 +272,11 @@ public class AnalyticsTableUpdateParams {
     public AnalyticsTableUpdateParams build() {
       checkNotNull(this.params.startTime);
       return this.params;
+    }
+
+    public Builder withCitusEnabled(boolean citusExtensionEnabled) {
+      this.params.citusExtensionEnabled = citusExtensionEnabled;
+      return this;
     }
   }
 }
