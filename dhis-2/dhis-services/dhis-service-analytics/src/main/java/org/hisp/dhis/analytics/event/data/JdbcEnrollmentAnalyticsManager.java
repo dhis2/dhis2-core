@@ -253,7 +253,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     log.debug("Analytics enrollment count SQL: " + sql);
 
-    final String immutableValue = new String(sql);
+    final String immutableValue = sql;
 
     if (params.analyzeOnly()) {
       withExceptionHandling(
