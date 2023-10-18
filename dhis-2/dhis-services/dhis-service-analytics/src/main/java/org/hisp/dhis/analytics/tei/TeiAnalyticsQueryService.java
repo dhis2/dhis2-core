@@ -29,8 +29,7 @@ package org.hisp.dhis.analytics.tei;
 
 import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING;
-import static org.hisp.dhis.feedback.ErrorCode.E7131;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.List;
@@ -47,11 +46,9 @@ import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreator;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreatorService;
+import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -92,23 +89,17 @@ public class TeiAnalyticsQueryService {
 
     SqlQueryCreator queryCreator = sqlQueryCreatorService.getSqlQueryCreator(queryParams);
 
-    Optional<SqlQueryResult> result = Optional.empty();
+    Optional<SqlQueryResult> result =
+        withExceptionHandling(() -> queryExecutor.find(queryCreator.createForSelect()));
+
     long rowsCount = 0;
 
-    try {
-      result = Optional.of(queryExecutor.find(queryCreator.createForSelect()));
+    AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
 
-      AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
-
-      if (pagingParams.showTotalPages()) {
-        rowsCount = queryExecutor.count(queryCreator.createForCount());
-      }
-    } catch (BadSqlGrammarException ex) {
-      log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
-      throw ex;
-    } catch (DataAccessResourceFailureException ex) {
-      log.warn(E7131.getMessage(), ex);
-      throw new QueryRuntimeException(E7131);
+    if (pagingParams.showTotalPages()) {
+      rowsCount =
+          withExceptionHandling(() -> queryExecutor.count(queryCreator.createForCount()))
+              .orElse(0l);
     }
 
     List<Field> fields = queryCreator.getRenderableSqlQuery().getSelectFields();
@@ -129,27 +120,23 @@ public class TeiAnalyticsQueryService {
 
     Grid grid = new ListGrid();
 
-    try {
-      String explainId = randomUUID().toString();
+    String explainId = randomUUID().toString();
 
-      SqlQueryCreator sqlQueryCreator = sqlQueryCreatorService.getSqlQueryCreator(queryParams);
+    SqlQueryCreator sqlQueryCreator = sqlQueryCreatorService.getSqlQueryCreator(queryParams);
 
-      executionPlanStore.addExecutionPlan(explainId, sqlQueryCreator.createForSelect());
+    executionPlanStore.addExecutionPlan(explainId, sqlQueryCreator.createForSelect());
 
-      AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
+    AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
 
-      if (pagingParams.showTotalPages()) {
-        executionPlanStore.addExecutionPlan(explainId, sqlQueryCreator.createForCount());
-      }
-
-      grid.addPerformanceMetrics(executionPlanStore.getExecutionPlans(explainId));
-    } catch (BadSqlGrammarException ex) {
-      log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
-      throw ex;
-    } catch (DataAccessResourceFailureException ex) {
-      log.warn(E7131.getMessage(), ex);
-      throw new QueryRuntimeException(E7131);
+    if (pagingParams.showTotalPages()) {
+      executionPlanStore.addExecutionPlan(explainId, sqlQueryCreator.createForCount());
     }
+
+    List<ExecutionPlan> executionPlans =
+        withExceptionHandling(() -> executionPlanStore.getExecutionPlans(explainId))
+            .orElse(List.of());
+
+    grid.addPerformanceMetrics(executionPlans);
 
     return grid;
   }

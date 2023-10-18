@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
@@ -180,13 +181,19 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
     for (EventQueryParams queryParams : paramsList) {
       timer.getSplitTime("Planned event query, got partitions: " + queryParams.getPartitions());
       if (queryParams.isTotalPages() && !params.isAggregatedEnrollments()) {
-        count += enrollmentAnalyticsManager.getEnrollmentCount(queryParams);
+        count +=
+            withExceptionHandling(
+                    () -> enrollmentAnalyticsManager.getEnrollmentCount(queryParams),
+                    queryParams.isMultipleQueries())
+                .orElse(0L);
       }
 
       // maxLimit == 0 means unlimited paging
       int maxLimit = params.isAggregatedEnrollments() ? 0 : queryValidator.getMaxLimit();
 
-      enrollmentAnalyticsManager.getEnrollments(queryParams, grid, maxLimit);
+      withExceptionHandling(
+          () -> enrollmentAnalyticsManager.getEnrollments(queryParams, grid, maxLimit),
+          params.isMultipleQueries());
 
       timer.getTime("Got enrollments " + grid.getHeight());
     }

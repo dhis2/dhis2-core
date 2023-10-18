@@ -43,10 +43,11 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.isRelationDoesntExist;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.relationDoesNotExist;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
@@ -131,9 +132,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     String sql = getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {
-      executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql);
+      withExceptionHandling(
+          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
     } else {
-      withExceptionHandling(() -> getEvents(params, grid, sql, maxLimit == 0));
+      withExceptionHandling(
+          () -> getEvents(params, grid, sql, maxLimit == 0), params.isMultipleQueries());
     }
 
     return grid;
@@ -250,7 +253,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         count = jdbcTemplate.queryForObject(sql, Long.class);
       }
     } catch (BadSqlGrammarException ex) {
-      if (isRelationDoesntExist(ex.getSQLException())) {
+      if (relationDoesNotExist(ex.getSQLException())) {
         log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
         throw ex;
       }
