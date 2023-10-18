@@ -1,4 +1,4 @@
-# Send Message
+    # Send Message
 
 ## Specific endpoints
 
@@ -6,7 +6,7 @@
 
 Send event or enrollment messages.
 
-### `*.sendMessages.request.description`
+### `sendMessages.request.description`
 
 Send batch of program messages
 
@@ -18,15 +18,15 @@ Get all of those scheduled messages which were sent successfully.
 
 Get program messages matching given query criteria.
 
-### `*.parameter.ou`
+### `getProgramMessages.parameter.ou`
 
 Get program messages for given set of OrganisationUnits
 
-### `*.parameter.messageStatus`
+### `getProgramMessages.parameter.messageStatus`
 
 Get program messages based on message status
 
-### `*.parameter.beforeDate`
+### `getProgramMessages.parameter.beforeDate`
 
 Get program messages before given date
 
