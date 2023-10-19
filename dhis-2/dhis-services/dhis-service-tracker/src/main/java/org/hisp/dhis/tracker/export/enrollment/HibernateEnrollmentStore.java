@@ -27,17 +27,20 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Function;
+import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -49,12 +52,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -118,20 +125,57 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
 
     Query<Enrollment> query = getQuery(hql);
 
-    if (!params.isSkipPaging()) {
-      query.setFirstResult(params.getOffset());
-      query.setMaxResults(params.getPageSizeWithDefault());
-    }
-
-    // When the clients choose to not show the total of pages.
-    if (!params.isTotalPages() && !params.isSkipPaging()) {
-      // Get pageSize + 1, so we are able to know if there is another
-      // page available. It adds one additional element into the list,
-      // as consequence. The caller needs to remove the last element.
-      query.setMaxResults(params.getPageSizeWithDefault() + 1);
-    }
-
     return query.list();
+  }
+
+  @Override
+  public Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams) {
+    String hql = buildEnrollmentHql(params).getFullQuery();
+
+    Query<Enrollment> query = getQuery(hql);
+    query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
+    query.setMaxResults(pageParams.getPageSize());
+
+    IntSupplier enrollmentCount = () -> countEnrollments(params);
+    return getPage(pageParams, query.list(), enrollmentCount);
+  }
+
+  /**
+   * Returns a page of enrollments potentially containing a total of enrollments and pages {@link
+   * Pager} or only the information whether this is the last page or not {@link SlimPager}.
+   *
+   * <p>If we do not fetch the total number of enrollments {@link PageParams#isPageTotal()}=false
+   * {@code pageSize + 1} enrollments are fetched by {@link #getEnrollments(EnrollmentQueryParams,
+   * PageParams)}. That is done to determine if this is the last page or not. This in turn means
+   * that we need to remove the extra enrollment.
+   *
+   * @param pageParams the page params
+   * @param enrollments the list of enrollments
+   * @param enrollmentCount a supplier of the number of enrollments in the final Page
+   * @return a full Pager in case the page totals are fetched and a SlimPager otherwise
+   */
+  private Page<Enrollment> getPage(
+      PageParams pageParams, List<Enrollment> enrollments, IntSupplier enrollmentCount) {
+    if (pageParams.isPageTotal()) {
+      Pager pager =
+          new Pager(pageParams.getPage(), enrollmentCount.getAsInt(), pageParams.getPageSize());
+      return Page.of(enrollments, pager);
+    }
+
+    List<Enrollment> result = enrollments;
+    boolean isLastPage = false;
+    if (isNotEmpty(enrollments)) {
+      isLastPage = enrollments.size() <= pageParams.getPageSize();
+      if (!isLastPage) {
+        // Get the same number of elements of the pageSize, forcing
+        // the removal of the last additional element added at querying
+        // time.
+        result = new ArrayList<>(enrollments.subList(0, pageParams.getPageSize()));
+      }
+    }
+
+    SlimPager slimPager = new SlimPager(pageParams.getPage(), pageParams.getPageSize(), isLastPage);
+    return Page.of(result, slimPager);
   }
 
   private QueryWithOrderBy buildEnrollmentHql(EnrollmentQueryParams params) {
