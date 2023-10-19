@@ -550,15 +550,15 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "first page",
-        () -> assertSlimPager(1, 1, false, firstPage.getPager()),
+        () -> assertPager(1, 1, firstPage),
         () -> assertEquals(List.of("nxP7UnKhomJ"), uids(firstPage.getItems())));
 
     Page<Enrollment> secondPage =
         enrollmentService.getEnrollments(operationParams, new PageParams(2, 1, false));
 
     assertAll(
-        "second (last) page",
-        () -> assertSlimPager(2, 1, true, secondPage.getPager()),
+        "second page is last page",
+        () -> assertPager(2, 1, secondPage),
         () -> assertEquals(List.of("TvctPPhpD8z"), uids(secondPage.getItems())));
 
     Page<Enrollment> thirdPage =
