@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis;
+package org.hisp.dhis.system.util;
 
-import java.util.Arrays;
-import org.hisp.dhis.dto.Program;
+import static org.hisp.dhis.system.util.SvgUtils.replaceUnicodeZeroWidthSpace;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-public class Constants {
-  public static final String USER_PASSWORD = "Test1212?";
+import org.junit.jupiter.api.Test;
 
-  public static final String TRACKED_ENTITY_TYPE = "Q9GufDoplCL";
+class SvgUtilsTest {
+  @Test
+  void testReplaceUnicodeZeroWidthSpace() {
+    // given
+    String svg =
+        "<text x=\"332.58333333332666\" text-anchor=\"middle\" transform=\"translate(0,0)\" style=\"color: rgb(64, 75, 90); cursor: default; font-size: 11px; font-weight: normal; font-style: normal; fill: rgb(64, 75, 90);\" y=\"699\" opacity=\"1\">December<tspan dy=\"14\" x=\"332.58333333332666\">\u200B</tspan>2022</text>";
+    String expected =
+        "<text x=\"332.58333333332666\" text-anchor=\"middle\" transform=\"translate(0,0)\" style=\"color: rgb(64, 75, 90); cursor: default; font-size: 11px; font-weight: normal; font-style: normal; fill: rgb(64, 75, 90);\" y=\"699\" opacity=\"1\">December<tspan dy=\"14\" x=\"332.58333333332666\"> </tspan>2022</text>";
 
-  public static String ORG_UNIT_GROUP_ID = "n9bh3KM5wmu";
+    // when
+    svg = replaceUnicodeZeroWidthSpace(svg, " ");
 
-  public static String SUPER_USER_ID = "PQD6wXJ2r5j";
-
-  public static String ADMIN_ID = "PQD6wXJ2r5k";
-
-  public static String USER_GROUP_ID = "OPVIvvXzNTw";
-
-  public static String USER_ROLE_ID = "yrB6vc5Ip7r";
-
-  public static String EVENT_PROGRAM_ID = "Zd2rkv8FsWq";
-
-  public static String EVENT_PROGRAM_STAGE_ID = "jKLB23QZS4I";
-
-  public static Program TRACKER_PROGRAM =
-      new Program()
-          .setUid("f1AyMswryyQ")
-          .setProgramStages(Arrays.asList("PaOOjwLVW23", "nlXNK4b7LVr", "xaOOjwLVW23"));
-
-  public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ"; // todo: remove and
-  // use
-  // TRACKER_PROGRAM
-  // with associated
-  // program stages
-  // to avoid GET
-  // /programs/id/programStages
-  // calls
-
-  public static String ANOTHER_TRACKER_PROGRAM_ID = "f1AyMswryyX";
-
-  public static String[] ORG_UNIT_IDS = {
-    "DiszpKrYNg8", "g8upMTyEZGZ", "O6uvpzGd5pu", "YuQRtpLP10I"
-  };
+    // then
+    assertEquals(expected, svg);
+  }
 }

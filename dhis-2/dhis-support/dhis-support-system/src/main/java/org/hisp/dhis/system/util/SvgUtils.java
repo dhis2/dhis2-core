@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis;
+package org.hisp.dhis.system.util;
 
-import java.util.Arrays;
-import org.hisp.dhis.dto.Program;
+import static lombok.AccessLevel.PRIVATE;
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-public class Constants {
-  public static final String USER_PASSWORD = "Test1212?";
+import java.util.regex.Pattern;
+import lombok.NoArgsConstructor;
 
-  public static final String TRACKED_ENTITY_TYPE = "Q9GufDoplCL";
+@NoArgsConstructor(access = PRIVATE)
+public class SvgUtils {
 
-  public static String ORG_UNIT_GROUP_ID = "n9bh3KM5wmu";
+  private static final Pattern regexp = Pattern.compile("\\p{Cf}");
 
-  public static String SUPER_USER_ID = "PQD6wXJ2r5j";
-
-  public static String ADMIN_ID = "PQD6wXJ2r5k";
-
-  public static String USER_GROUP_ID = "OPVIvvXzNTw";
-
-  public static String USER_ROLE_ID = "yrB6vc5Ip7r";
-
-  public static String EVENT_PROGRAM_ID = "Zd2rkv8FsWq";
-
-  public static String EVENT_PROGRAM_STAGE_ID = "jKLB23QZS4I";
-
-  public static Program TRACKER_PROGRAM =
-      new Program()
-          .setUid("f1AyMswryyQ")
-          .setProgramStages(Arrays.asList("PaOOjwLVW23", "nlXNK4b7LVr", "xaOOjwLVW23"));
-
-  public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ"; // todo: remove and
-  // use
-  // TRACKER_PROGRAM
-  // with associated
-  // program stages
-  // to avoid GET
-  // /programs/id/programStages
-  // calls
-
-  public static String ANOTHER_TRACKER_PROGRAM_ID = "f1AyMswryyX";
-
-  public static String[] ORG_UNIT_IDS = {
-    "DiszpKrYNg8", "g8upMTyEZGZ", "O6uvpzGd5pu", "YuQRtpLP10I"
-  };
+  /**
+   * Replace Unicode 'zero width space' (U+200B). This character is misinterpreted by PDF convertor
+   * as '#' (f.e.#2023).
+   *
+   * @param svg svg xml string
+   * @param replaceWith replacement
+   * @return consolidated svg string
+   */
+  public static String replaceUnicodeZeroWidthSpace(String svg, String replaceWith) {
+    return svg.replaceAll(regexp.pattern(), replaceWith);
+  }
 }

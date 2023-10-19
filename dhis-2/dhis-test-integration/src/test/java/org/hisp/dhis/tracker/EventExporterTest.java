@@ -107,6 +107,8 @@ class EventExporterTest extends TrackerTest {
 
   private ProgramStage programStage;
 
+  private ProgramStage programStage1;
+
   private Program program;
 
   final Function<EventQueryParams, List<String>> eventsFunction =
@@ -135,6 +137,7 @@ class EventExporterTest extends TrackerTest {
             fromJson("tracker/event_and_enrollment.json", importUser.getUid())));
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
+    programStage1 = get(ProgramStage.class, "qLZC0lvvxQH");
     program = programStage.getProgram();
     trackedEntityInstance = get(TrackedEntityInstance.class, "dUE514NMOlo");
 
@@ -1453,6 +1456,24 @@ class EventExporterTest extends TrackerTest {
                 String.format(
                     "Expected %s to be in %s", event.getDueDate(), "2019-01-28T12:32:38.100")),
         () -> assertHasTimeStamp(event.getCompletedDate()));
+  }
+
+  @Test
+  void testExportEventsWithProgramStageOrder() {
+
+    EventQueryParams params = new EventQueryParams();
+
+    params.setEvents(Set.of("pTzf9KYMk72", "QRYjLTiJTrA"));
+    params.addOrders(List.of(new OrderParam("programStage", SortDirection.ASC)));
+
+    Events events = eventService.getEvents(params);
+
+    assertNotEmpty(events.getEvents());
+
+    assertEquals(
+        List.of("NpsdDv6kKSO", "qLZC0lvvxQH"),
+        events.getEvents().stream().map(Event::getProgramStage).collect(Collectors.toList()),
+        "Program Stage are not in the correct order");
   }
 
   private void assertNote(User expectedLastUpdatedBy, String expectedNote, Note actual) {

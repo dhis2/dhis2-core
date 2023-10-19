@@ -430,6 +430,29 @@ public class TrackerExportTests extends TrackerNtiApiTest {
   }
 
   @Test
+  public void
+      shouldReturnProgramStageListOrderedByProgramStageAscWhenFieldsAndOrderEqualToProgramStage() {
+    TrackerApiResponse response =
+        trackerActions
+            .postAndGetJobReport(
+                teiWithEnrollmentAndEventsTemplate, new QueryParamsBuilder().add("async=false"))
+            .validateSuccessfulImport();
+
+    List<String> actualPsList =
+        trackerActions
+            .get(
+                "events?order=programStage&fields=programStage&program=f1AyMswryyQ&event=ZwwuwNp6gVd;"
+                    + response.extractImportedEvents().get(0))
+            .validateStatus(200)
+            .extractList("instances.programStage.flatten()");
+
+    assertEquals(
+        List.of("nlXNK4b7LVr", "xaOOjwLVW23"),
+        actualPsList,
+        "Program Stage are not in the correct order");
+  }
+
+  @Test
   void getTeiByPotentialDuplicateParamNull() {
     ApiResponse response = teiActions.get(teiParamsBuilder());
 

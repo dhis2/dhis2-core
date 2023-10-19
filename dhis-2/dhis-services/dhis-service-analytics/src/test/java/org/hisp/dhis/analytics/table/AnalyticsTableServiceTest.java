@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis;
+package org.hisp.dhis.analytics.table;
 
-import java.util.Arrays;
-import org.hisp.dhis.dto.Program;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Lars Helge Overland
  */
-public class Constants {
-  public static final String USER_PASSWORD = "Test1212?";
+@ExtendWith(MockitoExtension.class)
+class AnalyticsTableServiceTest {
 
-  public static final String TRACKED_ENTITY_TYPE = "Q9GufDoplCL";
+  @Mock private SystemSettingManager systemSettingManager;
 
-  public static String ORG_UNIT_GROUP_ID = "n9bh3KM5wmu";
+  @InjectMocks private DefaultAnalyticsTableService tableService;
 
-  public static String SUPER_USER_ID = "PQD6wXJ2r5j";
+  @Test
+  void testGetParallelJobsA() {
+    when(systemSettingManager.getIntegerSetting(SettingKey.PARALLEL_JOBS_IN_ANALYTICS_TABLE_EXPORT))
+        .thenReturn(1);
+    when(systemSettingManager.getIntegerSetting(SettingKey.DATABASE_SERVER_CPUS)).thenReturn(8);
 
-  public static String ADMIN_ID = "PQD6wXJ2r5k";
+    assertEquals(1, tableService.getParallelJobs());
+  }
 
-  public static String USER_GROUP_ID = "OPVIvvXzNTw";
+  @Test
+  void testGetParallelJobsB() {
+    when(systemSettingManager.getIntegerSetting(SettingKey.PARALLEL_JOBS_IN_ANALYTICS_TABLE_EXPORT))
+        .thenReturn(null);
+    when(systemSettingManager.getIntegerSetting(SettingKey.DATABASE_SERVER_CPUS)).thenReturn(8);
 
-  public static String USER_ROLE_ID = "yrB6vc5Ip7r";
-
-  public static String EVENT_PROGRAM_ID = "Zd2rkv8FsWq";
-
-  public static String EVENT_PROGRAM_STAGE_ID = "jKLB23QZS4I";
-
-  public static Program TRACKER_PROGRAM =
-      new Program()
-          .setUid("f1AyMswryyQ")
-          .setProgramStages(Arrays.asList("PaOOjwLVW23", "nlXNK4b7LVr", "xaOOjwLVW23"));
-
-  public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ"; // todo: remove and
-  // use
-  // TRACKER_PROGRAM
-  // with associated
-  // program stages
-  // to avoid GET
-  // /programs/id/programStages
-  // calls
-
-  public static String ANOTHER_TRACKER_PROGRAM_ID = "f1AyMswryyX";
-
-  public static String[] ORG_UNIT_IDS = {
-    "DiszpKrYNg8", "g8upMTyEZGZ", "O6uvpzGd5pu", "YuQRtpLP10I"
-  };
+    assertEquals(8, tableService.getParallelJobs());
+  }
 }

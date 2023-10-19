@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.hisp.dhis</groupId>
   <artifactId>dhis</artifactId>
-  <version>2.39.3-SNAPSHOT</version>
+  <version>2.39.4-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>DHIS 2</name>
 
@@ -86,7 +86,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>2.1.8</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>2.1.8.0</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.1</dhis-hisp-quick.version>
@@ -94,18 +94,18 @@
     <dhis-json-tree.version>0.5.0</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.8.6</spring-security.version>
+    <spring-security.version>5.8.8</spring-security.version>
     <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
     <nimbus.jose.jwt.version>9.24.4</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.0</com.google.zxing.core.version>
-    <com.google.zxing.javase.version>3.5.0</com.google.zxing.javase.version>
+    <com.google.zxing.javase.version>3.5.2</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.27</spring.version>
-    <spring-data-redis.version>2.7.2</spring-data-redis.version>
+    <spring.version>5.3.30</spring.version>
+    <spring-data-redis.version>2.7.16</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>1.3.4</spring-retry.version>
@@ -150,21 +150,21 @@
 
     <!-- Reporting -->
     <jasperreports.version>6.20.0</jasperreports.version>
-    <jfreechart.version>1.5.3</jfreechart.version>
+    <jfreechart.version>1.5.4</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
-    <poi.version>5.2.2</poi.version>
+    <poi.version>5.2.4</poi.version>
     <itext.version>2.1.7</itext.version>
 
     <!-- GIS -->
-    <batik-transcoder.version>1.16</batik-transcoder.version>
+    <batik-transcoder.version>1.17</batik-transcoder.version>
     <fop.version>2.8</fop.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
     <geotools.version>29.0</geotools.version>
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis.version>2.30.0</artemis.version>
+    <artemis.version>2.31.0</artemis.version>
     <netty-all.version>4.1.85.Final</netty-all.version>
     <classgraph.version>4.8.157</classgraph.version>
 
@@ -174,7 +174,7 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.0</jsmpp.version>
     <json-path.version>2.8.0</json-path.version>
-    <jsoup.version>1.15.4</jsoup.version>
+    <jsoup.version>1.16.1</jsoup.version>
     <jetty.version>10.0.15</jetty.version>
 
     <!-- Div. utils -->
@@ -183,7 +183,7 @@
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.2.0</google-api-client.version>
-    <lombok.version>1.18.24</lombok.version>
+    <lombok.version>1.18.30</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.12.5</joda-time.version>
     <cron-utils.version>9.2.0</cron-utils.version>
@@ -196,11 +196,11 @@
     <commons-fileupload.version>1.5</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.7</commons-validator.version>
-    <commons-io.version>2.12.0</commons-io.version>
+    <commons-io.version>2.14.0</commons-io.version>
     <commons-codec.version>1.15</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.5</commons-email.version>
-    <httpcomponents-core.version>4.4.15</httpcomponents-core.version>
+    <httpcomponents-core.version>4.4.16</httpcomponents-core.version>
     <httpcomponents-client.version>4.5.13</httpcomponents-client.version>
 
     <!-- Monitoring -->
@@ -217,7 +217,7 @@
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.18.1</testcontainers.version>
+    <testcontainers.version>1.19.1</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
     <easy-random.version>5.0.0</easy-random.version>
@@ -226,19 +226,19 @@
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.1.0</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.0.0-M7</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-    <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
+    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.2.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.0</versions-maven-plugin.version>
     <dependency-check-maven.version>8.1.2</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.2.0</spotbugs-maven-plugin.version>
-    <spotless.version>2.37.0</spotless.version>
+    <spotless.version>2.40.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.1.11</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.33</dhis-antlr-expression-parser.version>

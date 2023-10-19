@@ -170,4 +170,9 @@ public class ProgramTrackedEntityAttributeDimensionItem extends BaseDimensionalI
   public String getDisplayName() {
     return program.getDisplayName() + " " + attribute.getDisplayName();
   }
+
+  @Override
+  public String getDisplayShortName() {
+    return program.getDisplayName() + " " + attribute.getDisplayShortName();
+  }
 }
