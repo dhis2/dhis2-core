@@ -27,16 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -73,6 +69,13 @@ class EnrollmentRequestParamsMapper {
 
     validateOrderParams(requestParams.getOrder(), ORDERABLE_FIELD_NAMES);
 
+    Set<UID> enrollmentUids =
+        validateDeprecatedUidsParameter(
+            "enrollment",
+            requestParams.getEnrollment(),
+            "enrollments",
+            requestParams.getEnrollments());
+
     EnrollmentOperationParamsBuilder builder =
         EnrollmentOperationParams.builder()
             .programUid(
@@ -93,11 +96,8 @@ class EnrollmentRequestParamsMapper {
                     : null)
             .orgUnitUids(UID.toValueSet(orgUnits))
             .orgUnitMode(orgUnitMode)
-            .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
-            .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
-            .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
-            .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
             .includeDeleted(requestParams.isIncludeDeleted())
+            .enrollmentUids(UID.toValueSet(enrollmentUids))
             .enrollmentParams(fieldsParamMapper.map(requestParams.getFields()));
 
     mapOrderParam(builder, requestParams.getOrder());
