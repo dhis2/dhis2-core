@@ -49,9 +49,6 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 @Data
 @Accessors(chain = true)
 class EnrollmentQueryParams {
-  public static final int DEFAULT_PAGE = 1;
-
-  public static final int DEFAULT_PAGE_SIZE = 50;
 
   /** Last updated for enrollment. */
   private Date lastUpdated;
@@ -90,18 +87,6 @@ class EnrollmentQueryParams {
 
   /** Tracked entity instance. */
   private TrackedEntity trackedEntity;
-
-  /** Page number. */
-  private Integer page;
-
-  /** Page size. */
-  private Integer pageSize;
-
-  /** Indicates whether to include the total number of pages in the paging response. */
-  private boolean totalPages;
-
-  /** Indicates whether paging should be skipped. */
-  private boolean skipPaging;
 
   /** Indicates whether to include soft-deleted enrollments */
   private boolean includeDeleted;
@@ -190,33 +175,6 @@ class EnrollmentQueryParams {
   /** Indicates whether this params is of the given organisation unit mode. */
   public boolean isOrganisationUnitMode(OrganisationUnitSelectionMode mode) {
     return organisationUnitMode != null && organisationUnitMode.equals(mode);
-  }
-
-  /** Indicates whether paging is enabled. */
-  public boolean isPaging() {
-    return page != null || pageSize != null;
-  }
-
-  /** Returns the page number, falls back to default value of 1 if not specified. */
-  public int getPageWithDefault() {
-    return page != null && page > 0 ? page : DEFAULT_PAGE;
-  }
-
-  /** Returns the page size, falls back to default value of 50 if not specified. */
-  public int getPageSizeWithDefault() {
-    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-  }
-
-  /** Returns the offset based on the page number and page size. */
-  public int getOffset() {
-    return (getPageWithDefault() - 1) * getPageSizeWithDefault();
-  }
-
-  /** Sets paging properties to default values. */
-  public void setDefaultPaging() {
-    this.page = DEFAULT_PAGE;
-    this.pageSize = DEFAULT_PAGE_SIZE;
-    this.skipPaging = false;
   }
 
   /**
