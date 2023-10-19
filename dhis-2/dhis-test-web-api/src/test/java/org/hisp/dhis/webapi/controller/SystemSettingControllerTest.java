@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.stream;
+import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClient.ContentType;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
@@ -162,5 +163,56 @@ class SystemSettingControllerTest extends DhisControllerConvenienceTest {
     stream(SettingKey.values())
         .filter(SettingKey::isConfidential)
         .forEach(key -> assertFalse(setting.get(key.getName()).exists(), key.getName()));
+  }
+
+  @Test
+  void testGetSystemSettingAsText_KeyExists() {
+    assertEquals(
+        "yyyy-MM-dd",
+        GET("/systemSettings/keyDateFormat", Accept("text/plain")).content("text/plain"));
+  }
+
+  @Test
+  void testGetSystemSettingAsJson_KeyDoesNotExist() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "Setting does not exist or is marked as confidential",
+        GET("/systemSettings/keyDoesNotExist").content(HttpStatus.NOT_FOUND));
+  }
+
+  @Test
+  void testGetSystemSettingAsText_KeyDoesNotExist() {
+    HttpResponse response = GET("/systemSettings/keyDoesNotExist", Accept("text/plain"));
+    assertEquals(HttpStatus.NOT_FOUND, response.status());
+    assertEquals(
+        "Setting does not exist or is marked as confidential", response.content("text/plain"));
+  }
+
+  @Test
+  void testGetSystemSettingAsJsonQueryParam_KeyDoesNotExist() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "Setting does not exist or is marked as confidential",
+        GET("/systemSettings?key=keyDoesNotExist").content(HttpStatus.NOT_FOUND));
+  }
+
+  @Test
+  void testGetSystemSettingAsJsonQueryParam_MultipleKeysDoExist() {
+    JsonObject content =
+        GET("/systemSettings?key=keyDateFormat,jobsRescheduleAfterMinutes").content(HttpStatus.OK);
+    assertEquals(
+        "{\"keyDateFormat\":\"yyyy-MM-dd\",\"jobsRescheduleAfterMinutes\":10}", content.toString());
+  }
+
+  @Test
+  void testGetSystemSettingAsJsonQueryParam_OneKeyExistsFromTwo() {
+    JsonObject content =
+        GET("/systemSettings?key=keyDoesNotExist,jobsRescheduleAfterMinutes")
+            .content(HttpStatus.OK);
+    assertEquals("{\"jobsRescheduleAfterMinutes\":10}", content.toString());
   }
 }
