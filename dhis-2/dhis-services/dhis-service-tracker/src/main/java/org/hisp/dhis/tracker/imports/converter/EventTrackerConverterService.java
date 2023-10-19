@@ -37,7 +37,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -89,7 +88,6 @@ public class EventTrackerConverterService
               new org.hisp.dhis.tracker.imports.domain.Event();
           e.setEvent(event.getUid());
 
-          e.setFollowup(BooleanUtils.toBoolean(event.getEnrollment().getFollowup()));
           e.setStatus(event.getStatus());
           e.setOccurredAt(DateUtils.instantFromDate(event.getExecutionDate()));
           e.setScheduledAt(DateUtils.instantFromDate(event.getDueDate()));

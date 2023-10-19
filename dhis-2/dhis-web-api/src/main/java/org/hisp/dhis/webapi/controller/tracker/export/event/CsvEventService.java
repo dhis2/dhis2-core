@@ -102,7 +102,7 @@ class CsvEventService implements CsvService<Event> {
     result.setOccurredAt(event.getOccurredAt() == null ? null : event.getOccurredAt().toString());
     result.setScheduledAt(
         event.getScheduledAt() == null ? null : event.getScheduledAt().toString());
-    result.setFollowup(event.isFollowup());
+    result.setFollowUp(event.isFollowUp());
     result.setDeleted(event.isDeleted());
     result.setCreatedAt(event.getCreatedAt() == null ? null : event.getCreatedAt().toString());
     result.setCreatedAtClient(

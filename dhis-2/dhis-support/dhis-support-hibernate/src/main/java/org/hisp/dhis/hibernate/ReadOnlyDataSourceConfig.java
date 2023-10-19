@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.deprecated.tracker;
+package org.hisp.dhis.hibernate;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+/**
+ * Encapsulation of a read only data source configuration.
+ *
+ * @author Lars Helge Overland
+ */
+@Getter
+@Setter
+@RequiredArgsConstructor
+public class ReadOnlyDataSourceConfig {
+  private final String url;
 
-@Slf4j
-public class EventUtils {
-  private EventUtils() {
-    throw new UnsupportedOperationException("Utility class");
-  }
+  private final String username;
 
-  /**
-   * Returns the same org unit mode if not null. If null, and an org unit is present, SELECT mode is
-   * used by default, mode ACCESSIBLE is used otherwise.
-   *
-   * @param orgUnit
-   * @param orgUnitMode
-   * @return an org unit mode given the two input params
-   */
-  public static OrganisationUnitSelectionMode getOrgUnitMode(
-      OrganisationUnit orgUnit, OrganisationUnitSelectionMode orgUnitMode) {
-    if (orgUnitMode == null) {
-      return orgUnit != null ? SELECTED : ACCESSIBLE;
-    }
-    return orgUnitMode;
-  }
+  private final String password;
 }
