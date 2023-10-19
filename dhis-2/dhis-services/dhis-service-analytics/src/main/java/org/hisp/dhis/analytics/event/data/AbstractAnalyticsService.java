@@ -35,9 +35,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS_USER_ORGUNIT_GRANDCHILDREN;
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS_USER_ORG_UNIT;
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNITS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
@@ -92,6 +89,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 
 /**
@@ -105,6 +103,7 @@ public abstract class AbstractAnalyticsService {
 
   protected final SchemeIdResponseMapper schemeIdResponseMapper;
 
+  private final CurrentUserService currentUserService;
   /**
    * Returns a grid based on the given query.
    *
@@ -390,20 +389,26 @@ public abstract class AbstractAnalyticsService {
             optionsPresentInGrid.values().stream()
                 .flatMap(Collection::stream)
                 .distinct()
-                .collect(toList()));
+                .toList());
       } else {
         optionItems.addAll(getItemOptionsAsFilter(params.getItemOptions(), params.getItems()));
       }
 
-      Map<String, Object>userOrganisationUnits = AnalyticsOrganisationUnitUtils.getUserOrganisationUnits(params);
+      List<Object> items = new ArrayList<>();
+      items.add(AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsUidList(currentUserService.getCurrentUser(),
+              asTypedList(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID))));
 
       if (params.isComingFromQuery()) {
-        metadata.put(ITEMS.getKey(),
-                List.of(getMetadataItems(params, periodKeywords, optionItems, grid), userOrganisationUnits));
-        metadata.put(
-            DIMENSIONS.getKey(), getDimensionItems(params, Optional.of(optionsPresentInGrid)));
+        items.add(getMetadataItems(params, periodKeywords, optionItems, grid));
       } else {
-        metadata.put(ITEMS.getKey(), List.of(getMetadataItems(params, periodKeywords, optionItems, grid), userOrganisationUnits));
+        items.add(getMetadataItems(params, periodKeywords, optionItems, grid));
+      }
+
+      metadata.put(ITEMS.getKey(), items);
+
+      if (params.isComingFromQuery()) {
+        metadata.put(DIMENSIONS.getKey(), getDimensionItems(params, Optional.of(optionsPresentInGrid)));
+      } else {
         metadata.put(DIMENSIONS.getKey(), getDimensionItems(params, empty()));
       }
 

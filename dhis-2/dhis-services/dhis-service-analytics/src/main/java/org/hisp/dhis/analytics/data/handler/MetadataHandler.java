@@ -49,6 +49,8 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
 import com.google.common.collect.Sets;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +64,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,6 +75,8 @@ public class MetadataHandler {
   private final DataQueryService dataQueryService;
 
   private final SchemeIdResponseMapper schemeIdResponseMapper;
+
+  private final CurrentUserService currentUserService;
 
   /**
    * Adds meta data values to the given grid based on the given data query parameters.
@@ -91,7 +96,13 @@ public class MetadataHandler {
 
       Map<String, String> cocNameMap = getCocNameMap(params);
 
-      metaData.put(ITEMS.getKey(), List.of(getDimensionMetadataItemMap(params, grid), AnalyticsOrganisationUnitUtils.getUserOrganisationUnits(params)));
+      List<Object> items = new ArrayList<>();
+
+      items.add(getDimensionMetadataItemMap(params, grid));
+      items.add(AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsUidList(currentUserService.getCurrentUser(),
+              asTypedList(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID))));
+
+      metaData.put(ITEMS.getKey(), items);
 
       // -----------------------------------------------------------------
       // Item order elements
