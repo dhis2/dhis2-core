@@ -223,7 +223,7 @@ public class JdbcEventStore implements EventStore {
           .put(EVENT_CREATED_ID, "psi_created")
           .put(EVENT_LAST_UPDATED_ID, "psi_lastupdated")
           .put(EVENT_COMPLETED_BY_ID, "psi_completedby")
-          .put(EVENT_ATTRIBUTE_OPTION_COMBO_ID, "psi_aoc")
+          .put(EVENT_ATTRIBUTE_OPTION_COMBO_ID, "coc_uid")
           .put(EVENT_COMPLETED_DATE_ID, "psi_completeddate")
           .put(EVENT_DELETED, "psi_deleted")
           .put("assignedUser", "user_assigned_username")
