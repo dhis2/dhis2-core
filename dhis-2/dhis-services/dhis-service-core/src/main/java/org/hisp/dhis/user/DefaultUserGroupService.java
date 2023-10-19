@@ -34,11 +34,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -144,7 +142,7 @@ public class DefaultUserGroupService implements UserGroupService {
 
     boolean canUpdate = aclService.canUpdate(currentUser, userGroup);
     boolean canAddMember =
-        currentUser.isAuthorized(Authorities.F_USER_GROUPS_READ_ONLY_ADD_MEMBERS);
+        currentUser.isAuthorized(UserGroup.AUTH_ADD_MEMBERS_TO_READ_ONLY_USER_GROUPS);
 
     return canUpdate || canAddMember;
   }
