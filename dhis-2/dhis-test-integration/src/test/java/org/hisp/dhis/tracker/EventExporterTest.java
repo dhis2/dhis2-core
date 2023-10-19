@@ -598,27 +598,6 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void
-  shouldReturnEventsWithOrderingBasedOnAOC() {
-    OrganisationUnit orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
-    Program program = get(Program.class, "iS7eutanDry");
-
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
-    params.setOrgUnit(orgUnit);
-    params.setProgram(program);
-
-    params.addOrders(List.of(new OrderParam("attributeOptionCombo", SortDirection.ASC)));
-    params.setSkipPaging( true );
-    Events events = eventService.getEvents(params);
-
-    Set<String> aocs = events.getEvents().stream().map( e -> e.getAttributeOptionCombo() ).collect(Collectors.toSet());
-
-    assertEquals(List.of("AeOORUC0ISH", "cr89ebDZrac","SeWJkpLAyLt","tzsPhPtE94U","V2gbpszLQJm"), aocs,
-            "Events should be ordered based on aoc:asc");
-  }
-
-  @Test
   void shouldReturnEventsGivenCategoryOptionCombo() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);

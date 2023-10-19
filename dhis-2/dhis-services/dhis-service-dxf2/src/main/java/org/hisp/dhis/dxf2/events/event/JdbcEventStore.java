@@ -223,7 +223,7 @@ public class JdbcEventStore implements EventStore {
           .put(EVENT_CREATED_ID, "psi_created")
           .put(EVENT_LAST_UPDATED_ID, "psi_lastupdated")
           .put(EVENT_COMPLETED_BY_ID, "psi_completedby")
-          .put(EVENT_ATTRIBUTE_OPTION_COMBO_ID, "coc_uid")
+          .put(EVENT_ATTRIBUTE_OPTION_COMBO_ID, "psi_aoc")
           .put(EVENT_COMPLETED_DATE_ID, "psi_completeddate")
           .put(EVENT_DELETED, "psi_deleted")
           .put("assignedUser", "user_assigned_username")
@@ -1039,6 +1039,9 @@ public class JdbcEventStore implements EventStore {
             .append("ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, ")
             .append(
                 "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, ")
+            .append("psi.attributeoptioncomboid as ")
+            .append("psi_aoc")
+            .append(", ")
             .append(
                 "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, ")
             .append(
