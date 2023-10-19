@@ -124,17 +124,17 @@ public class TeiAnalyticsQueryService {
 
     SqlQueryCreator sqlQueryCreator = sqlQueryCreatorService.getSqlQueryCreator(queryParams);
 
-    executionPlanStore.addExecutionPlan(explainId, sqlQueryCreator.createForSelect());
+    withExceptionHandling(
+        () -> executionPlanStore.addExecutionPlan(explainId, sqlQueryCreator.createForSelect()));
 
     AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
 
     if (pagingParams.showTotalPages()) {
-      executionPlanStore.addExecutionPlan(explainId, sqlQueryCreator.createForCount());
+      withExceptionHandling(
+          () -> executionPlanStore.addExecutionPlan(explainId, sqlQueryCreator.createForCount()));
     }
 
-    List<ExecutionPlan> executionPlans =
-        withExceptionHandling(() -> executionPlanStore.getExecutionPlans(explainId))
-            .orElse(List.of());
+    List<ExecutionPlan> executionPlans = executionPlanStore.getExecutionPlans(explainId);
 
     grid.addPerformanceMetrics(executionPlans);
 
