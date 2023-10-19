@@ -85,12 +85,12 @@ public class DefaultAnalyticsService implements AnalyticsService {
 
     queryValidator.validate(params);
 
-    if (analyticsCache.isEnabled() && !params.analyzeOnly()) {
-      DataQueryParams immutableParams = newBuilder(params).build();
-
-      return analyticsCache.getOrFetch(
-          params, p -> dataAggregator.getAggregatedDataValueGrid(immutableParams));
-    }
+//    if (analyticsCache.isEnabled() && !params.analyzeOnly()) {
+//      DataQueryParams immutableParams = newBuilder(params).build();
+//
+//      return analyticsCache.getOrFetch(
+//          params, p -> dataAggregator.getAggregatedDataValueGrid(immutableParams));
+//    }
 
     return dataAggregator.getAggregatedDataValueGrid(params);
   }

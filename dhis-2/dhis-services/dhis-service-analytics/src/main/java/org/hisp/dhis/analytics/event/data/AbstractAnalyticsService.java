@@ -35,6 +35,9 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS_USER_ORGUNIT_GRANDCHILDREN;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS_USER_ORG_UNIT;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNITS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
@@ -68,6 +71,7 @@ import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
+import org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionItemKeywords;
@@ -391,12 +395,15 @@ public abstract class AbstractAnalyticsService {
         optionItems.addAll(getItemOptionsAsFilter(params.getItemOptions(), params.getItems()));
       }
 
+      Map<String, Object>userOrganisationUnits = AnalyticsOrganisationUnitUtils.getUserOrganisationUnits(params);
+
       if (params.isComingFromQuery()) {
-        metadata.put(ITEMS.getKey(), getMetadataItems(params, periodKeywords, optionItems, grid));
+        metadata.put(ITEMS.getKey(),
+                List.of(getMetadataItems(params, periodKeywords, optionItems, grid), userOrganisationUnits));
         metadata.put(
             DIMENSIONS.getKey(), getDimensionItems(params, Optional.of(optionsPresentInGrid)));
       } else {
-        metadata.put(ITEMS.getKey(), getMetadataItems(params));
+        metadata.put(ITEMS.getKey(), List.of(getMetadataItems(params, periodKeywords, optionItems, grid), userOrganisationUnits));
         metadata.put(DIMENSIONS.getKey(), getDimensionItems(params, empty()));
       }
 

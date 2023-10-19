@@ -56,6 +56,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
+import org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -90,7 +91,7 @@ public class MetadataHandler {
 
       Map<String, String> cocNameMap = getCocNameMap(params);
 
-      metaData.put(ITEMS.getKey(), getDimensionMetadataItemMap(params, grid));
+      metaData.put(ITEMS.getKey(), List.of(getDimensionMetadataItemMap(params, grid), AnalyticsOrganisationUnitUtils.getUserOrganisationUnits(params)));
 
       // -----------------------------------------------------------------
       // Item order elements

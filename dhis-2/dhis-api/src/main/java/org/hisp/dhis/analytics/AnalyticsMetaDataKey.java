@@ -36,9 +36,13 @@ public enum AnalyticsMetaDataKey {
   ITEMS("items"),
   DIMENSIONS("dimensions"),
   PAGER("pager"),
+  ORG_UNITS("organisationUnits"),
   ORG_UNIT_HIERARCHY("ouHierarchy"),
   ORG_UNIT_NAME_HIERARCHY("ouNameHierarchy"),
-  ORG_UNIT_ANCESTORS("ouAncestors");
+  ORG_UNIT_ANCESTORS("ouAncestors"),
+  ITEMS_USER_ORG_UNIT("USER_ORGUNIT"),
+  ITEMS_USER_ORGUNIT_CHILDREN("USER_ORGUNIT_CHILDREN"),
+  ITEMS_USER_ORGUNIT_GRANDCHILDREN("USER_ORGUNIT_GRANDCHILDREN");;
 
   private String key;
 

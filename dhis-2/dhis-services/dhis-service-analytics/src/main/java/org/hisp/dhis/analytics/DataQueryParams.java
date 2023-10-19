@@ -420,6 +420,8 @@ public class DataQueryParams {
   /** Used to set the type of OrgUnit from the current user to the {@see DataQueryParams} object */
   protected UserOrgUnitType userOrgUnitType;
 
+  protected Map<String, OrganisationUnit> userOrganisationUnits;
+
   /** Mapping of organisation unit sub-hierarchy roots and lowest available data approval levels. */
   protected transient Map<OrganisationUnit, Integer> dataApprovalLevels = new HashMap<>();
 

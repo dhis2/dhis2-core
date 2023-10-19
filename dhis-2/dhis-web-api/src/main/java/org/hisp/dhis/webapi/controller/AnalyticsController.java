@@ -348,6 +348,7 @@ public class AnalyticsController {
     DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria, apiVersion));
     params.setDownloadFlag(!ContextUtils.CONTENT_TYPE_JSON.equals(contentType));
 
+
     if (isNotBlank(configurationProvider.getServerBaseUrl())) {
       params =
           DataQueryParams.newBuilder(params)
