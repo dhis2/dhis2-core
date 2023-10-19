@@ -88,6 +88,7 @@ class EnrollmentOperationParamsMapper {
     params.setIncludeDeleted(operationParams.isIncludeDeleted());
     params.setUser(user);
     params.setOrder(operationParams.getOrder());
+    params.setEnrollmentUids(operationParams.getEnrollmentUids());
 
     return params;
   }
