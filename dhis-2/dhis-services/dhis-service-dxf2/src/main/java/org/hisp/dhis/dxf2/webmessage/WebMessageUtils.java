@@ -276,12 +276,16 @@ public final class WebMessageUtils {
 
   /**
    * Utility method to detect if the {@link SQLException} refers to a missing relation in the
-   * database
+   * database.
    *
    * @param ex a {@link SQLException} to analyze
    * @return true if the error is a missing relation error, false otherwise
    */
   public static boolean relationDoesNotExist(SQLException ex) {
-    return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
+    if (ex != null) {
+      return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
+    }
+
+    return false;
   }
 }
