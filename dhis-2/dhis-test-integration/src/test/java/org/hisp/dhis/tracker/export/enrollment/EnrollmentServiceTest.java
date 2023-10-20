@@ -400,6 +400,25 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
+  void shouldGetEnrollmentWhenEnrollmentsAndOtherParamsAreSpecified()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+
+    manager.updateNoAcl(programA);
+
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder()
+            .programUid(programA.getUid())
+            .enrollmentUids(Set.of(enrollmentA.getUid()))
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+
+    assertNotNull(enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
+  }
+
+  @Test
   void shouldGetEnrollmentsByTrackedEntityWhenUserHasAccessToTrackedEntityType()
       throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -49,6 +51,9 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 @Data
 @Accessors(chain = true)
 class EnrollmentQueryParams {
+
+  /** Set of enrollment uids to explicitly select. */
+  private Set<String> enrollmentUids = new HashSet<>();
 
   /** Last updated for enrollment. */
   private Date lastUpdated;
@@ -170,6 +175,10 @@ class EnrollmentQueryParams {
   /** Indicates whether this params specifies a tracked entity instance. */
   public boolean hasTrackedEntity() {
     return this.trackedEntity != null;
+  }
+
+  public boolean hasEnrollmentUids() {
+    return isNotEmpty(this.enrollmentUids);
   }
 
   /** Indicates whether this params is of the given organisation unit mode. */

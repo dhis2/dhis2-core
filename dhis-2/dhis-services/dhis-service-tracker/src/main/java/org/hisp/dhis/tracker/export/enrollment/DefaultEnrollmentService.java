@@ -40,8 +40,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -195,15 +193,6 @@ class DefaultEnrollmentService
   @Override
   public List<Enrollment> getEnrollments(EnrollmentOperationParams params)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    if (!params.getEnrollmentUids().isEmpty()) {
-      List<org.hisp.dhis.program.Enrollment> enrollments = new ArrayList<>();
-      for (String uid : params.getEnrollmentUids()) {
-        enrollments.add(
-            getEnrollment(uid, params.getEnrollmentParams(), params.isIncludeDeleted()));
-      }
-      return enrollments;
-    }
-
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
     decideAccess(queryParams);
@@ -235,25 +224,6 @@ class DefaultEnrollmentService
   public Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
       throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
-
-    if (!params.getEnrollmentUids().isEmpty()) {
-      List<org.hisp.dhis.program.Enrollment> enrollments = new ArrayList<>();
-      for (String uid : params.getEnrollmentUids()) {
-        enrollments.add(
-            getEnrollment(uid, params.getEnrollmentParams(), params.isIncludeDeleted()));
-      }
-
-      Pager pager;
-
-      if (pageParams.isPageTotal()) {
-        int count = enrollmentStore.countEnrollments(queryParams);
-        pager = new Pager(pageParams.getPage(), count, pageParams.getPageSize());
-      } else {
-        pager = new SlimPager(pageParams.getPage(), pageParams.getPageSize(), true);
-      }
-
-      return Page.of(enrollments, pager);
-    }
 
     decideAccess(queryParams);
     validate(queryParams);

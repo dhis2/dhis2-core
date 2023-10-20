@@ -154,6 +154,14 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     String hql = "from Enrollment en";
     SqlHelper hlp = new SqlHelper(true);
 
+    if (params.hasEnrollmentUids()) {
+      hql +=
+          hlp.whereAnd()
+              + "en.uid in ("
+              + getQuotedCommaDelimitedString(params.getEnrollmentUids())
+              + ")";
+    }
+
     if (params.hasLastUpdatedDuration()) {
       hql +=
           hlp.whereAnd()
