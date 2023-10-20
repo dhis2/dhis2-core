@@ -405,12 +405,15 @@ public enum ErrorCode {
   E7129("Program is specified but does not exist: `{0}`"),
   E7130("Program stage is specified but does not exist: `{0}`"),
   E7131("Query failed, likely because the query timed out"),
-  E7132("An indicator expression caused division by zero operation"),
+  E7132("Expression violation. Maybe an indicator caused division by zero?"),
   E7133("Query cannot be executed, possibly because of invalid types or invalid operation"),
   E7134("Cannot retrieve total value for data elements with skip total category combination"),
   E7135("Date time is not parsable: `{0}`"),
   E7136("Program is not specified"),
   E7143("Organisation unit or organisation unit level is not valid"),
+  E7144(
+      "Query failed because a referenced table does not exist. Please ensure analytics job was run"),
+  E7145("Query failed because of a syntax error"),
 
   /* Event analytics */
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
