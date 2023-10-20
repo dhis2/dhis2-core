@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -38,13 +39,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -255,6 +260,47 @@ class ProgramInstanceServiceTest extends DhisSpringTest {
                 .setOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED));
     assertEquals(1, programInstances.size());
     assertTrue(programInstances.contains(programInstanceA));
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"ACCESSIBLE", "CAPTURE"})
+  void shouldFindEnrollmentsWhenOrgUnitModeDoesNotRequireOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    User user = new User();
+    user.setOrganisationUnits(Set.of(organisationUnitA));
+    programInstanceService.addProgramInstance(programInstanceA);
+    programInstanceService.addProgramInstance(programInstanceC);
+    programInstanceService.addProgramInstance(programInstanceD);
+
+    List<ProgramInstance> programInstances =
+        programInstanceService.getProgramInstances(
+            new ProgramInstanceQueryParams().setOrganisationUnitMode(orgUnitMode).setUser(user));
+    assertEquals(3, programInstances.size());
+    assertTrue(programInstances.contains(programInstanceA));
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"CHILDREN", "DESCENDANTS", "SELECTED"})
+  void shouldFailWhenOrgUnitModeRequiresOrgUnit(OrganisationUnitSelectionMode orgUnitMode) {
+    User user = new User();
+    user.setOrganisationUnits(Set.of(organisationUnitA));
+    programInstanceService.addProgramInstance(programInstanceA);
+    programInstanceService.addProgramInstance(programInstanceC);
+    programInstanceService.addProgramInstance(programInstanceD);
+
+    ProgramInstanceQueryParams queryParams =
+        new ProgramInstanceQueryParams().setOrganisationUnitMode(orgUnitMode).setUser(user);
+
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> programInstanceService.getProgramInstances(queryParams));
+
+    assertEquals("At least one organisation unit must be specified", exception.getMessage());
   }
 
   @Test
