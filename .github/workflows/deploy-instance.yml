@@ -49,7 +49,7 @@ jobs:
         run: timeout 300 bash -c 'while [[ "$(curl -fsSL -o /dev/null -w %{http_code} $INSTANCE_HOST/$INSTANCE_NAME)" != "200" ]]; do sleep 5; done'
 
       - name: Generate analytics
-        run: curl -X POST -u 'admin:district' "$INSTANCE_HOST/$INSTANCE_NAME/api/resourceTables/analytics"
+        run: curl -X POST -u "${{ secrets.DHIS2_USERNAME }}:${{ secrets.DHIS2_PASSWORD }}" "$INSTANCE_HOST/$INSTANCE_NAME/api/resourceTables/analytics" -d 'executeTei=true'
 
       - name: Comment instance URL
         uses: actions-cool/maintain-one-comment@v3
