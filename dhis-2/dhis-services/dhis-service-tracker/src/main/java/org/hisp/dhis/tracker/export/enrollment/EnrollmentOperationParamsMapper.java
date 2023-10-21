@@ -85,13 +85,10 @@ class EnrollmentOperationParamsMapper {
     params.setTrackedEntity(trackedEntity);
     params.addOrganisationUnits(orgUnits);
     params.setOrganisationUnitMode(operationParams.getOrgUnitMode());
-    params.setPage(operationParams.getPage());
-    params.setPageSize(operationParams.getPageSize());
-    params.setSkipPaging(operationParams.isSkipPaging());
-    params.setTotalPages(operationParams.isTotalPages());
     params.setIncludeDeleted(operationParams.isIncludeDeleted());
     params.setUser(user);
     params.setOrder(operationParams.getOrder());
+    params.setEnrollmentUids(operationParams.getEnrollmentUids());
 
     return params;
   }

@@ -28,8 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
@@ -61,6 +59,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 class TrackedEntityRequestParamsMapper {
+
+  private static final int DEFAULT_PAGE = 1;
+  private static final int DEFAULT_PAGE_SIZE = 50;
 
   private static final Set<String> ORDERABLE_FIELD_NAMES =
       TrackedEntityMapper.ORDERABLE_FIELDS.keySet();
