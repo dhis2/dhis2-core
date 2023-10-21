@@ -453,13 +453,13 @@ public class DimensionalObjectProducer {
         continue;
       }
       if (KEY_USER_ORGUNIT.equals(ou) && isNotEmpty(userOrgUnits)) {
-        userOrgUnits.forEach( uou -> uou.setType(ou));
+        userOrgUnits.forEach(uou -> uou.setType(ou));
         ous.addAll(userOrgUnits);
       } else if (KEY_USER_ORGUNIT_CHILDREN.equals(ou) && isNotEmpty(userOrgUnits)) {
-        userOrgUnits.forEach( uou -> uou.setType(ou));
+        userOrgUnits.forEach(uou -> uou.setType(ou));
         ous.addAll(getSortedChildren(userOrgUnits));
       } else if (KEY_USER_ORGUNIT_GRANDCHILDREN.equals(ou) && isNotEmpty(userOrgUnits)) {
-        userOrgUnits.forEach( uou -> uou.setType(ou));
+        userOrgUnits.forEach(uou -> uou.setType(ou));
         ous.addAll(getSortedGrandChildren(userOrgUnits));
       } else if (ou.startsWith(KEY_LEVEL)) {
         String level = getValueFromKeywordParam(ou);

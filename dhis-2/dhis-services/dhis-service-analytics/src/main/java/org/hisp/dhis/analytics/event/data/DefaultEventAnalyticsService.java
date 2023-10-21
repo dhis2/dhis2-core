@@ -188,18 +188,18 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
   private final AnalyticsCache analyticsCache;
 
   public DefaultEventAnalyticsService(
-          DataElementService dataElementService,
-          TrackedEntityAttributeService trackedEntityAttributeService,
-          EventAnalyticsManager eventAnalyticsManager,
-          EventDataQueryService eventDataQueryService,
-          AnalyticsSecurityManager securityManager,
-          EventQueryPlanner queryPlanner,
-          EventQueryValidator queryValidator,
-          DatabaseInfo databaseInfo,
-          AnalyticsCache analyticsCache,
-          EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-          SchemeIdResponseMapper schemeIdResponseMapper,
-          CurrentUserService currentUserService) {
+      DataElementService dataElementService,
+      TrackedEntityAttributeService trackedEntityAttributeService,
+      EventAnalyticsManager eventAnalyticsManager,
+      EventDataQueryService eventDataQueryService,
+      AnalyticsSecurityManager securityManager,
+      EventQueryPlanner queryPlanner,
+      EventQueryValidator queryValidator,
+      DatabaseInfo databaseInfo,
+      AnalyticsCache analyticsCache,
+      EnrollmentAnalyticsManager enrollmentAnalyticsManager,
+      SchemeIdResponseMapper schemeIdResponseMapper,
+      CurrentUserService currentUserService) {
     super(securityManager, queryValidator, schemeIdResponseMapper, currentUserService);
 
     checkNotNull(dataElementService);
@@ -252,10 +252,11 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
 
     queryValidator.validate(params);
 
-//    if (analyticsCache.isEnabled() && !params.analyzeOnly()) {
-//      EventQueryParams immutableParams = new EventQueryParams.Builder(params).build();
-//      return analyticsCache.getOrFetch(params, p -> getAggregatedEventDataGrid(immutableParams));
-//    }
+    //    if (analyticsCache.isEnabled() && !params.analyzeOnly()) {
+    //      EventQueryParams immutableParams = new EventQueryParams.Builder(params).build();
+    //      return analyticsCache.getOrFetch(params, p ->
+    // getAggregatedEventDataGrid(immutableParams));
+    //    }
 
     return getAggregatedEventDataGrid(params);
   }

@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -42,12 +43,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
 
 @Builder
 @Getter
@@ -109,6 +112,8 @@ public class EventDataQueryRequest {
 
   private String userOrgUnit;
 
+  protected List<AnalyticsMetaDataKey> userOrganisationUnitsCriteria;
+
   private DhisApiVersion apiVersion;
 
   private OrganisationUnitSelectionMode ouMode;
@@ -145,6 +150,8 @@ public class EventDataQueryRequest {
 
   /** flag to enable row context in grid response */
   private boolean rowContext;
+
+  protected String userOrganisationUnitCriteria;
 
   /**
    * Copies all properties of this request onto the given request.
@@ -197,6 +204,7 @@ public class EventDataQueryRequest {
     queryRequest.enhancedConditions = this.enhancedConditions;
     queryRequest.outputIdScheme = outputIdScheme;
     queryRequest.rowContext = rowContext;
+    queryRequest.userOrganisationUnitCriteria = userOrganisationUnitCriteria;
     return request;
   }
 
@@ -256,6 +264,8 @@ public class EventDataQueryRequest {
               .endpointItem(criteria.getEndpointItem())
               .endpointAction(criteria.getEndpointAction())
               .enhancedConditions(criteria.isEnhancedConditions())
+              .userOrganisationUnitCriteria(
+                  OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria(criteria))
               .rowContext(criteria.isRowContext());
 
       if (criteria.getDimension() == null) {
@@ -332,6 +342,8 @@ public class EventDataQueryRequest {
               .endpointItem(criteria.getEndpointItem())
               .endpointAction(criteria.getEndpointAction())
               .enhancedConditions(criteria.isEnhancedConditions())
+              .userOrganisationUnitCriteria(
+                  OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria(criteria))
               .rowContext(criteria.isRowContext());
 
       if (criteria.getDimension() == null) {

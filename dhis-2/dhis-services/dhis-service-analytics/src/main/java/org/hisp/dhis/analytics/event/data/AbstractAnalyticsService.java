@@ -104,6 +104,7 @@ public abstract class AbstractAnalyticsService {
   protected final SchemeIdResponseMapper schemeIdResponseMapper;
 
   private final CurrentUserService currentUserService;
+
   /**
    * Returns a grid based on the given query.
    *
@@ -386,28 +387,27 @@ public abstract class AbstractAnalyticsService {
 
       if (hasResults) {
         optionItems.addAll(
-            optionsPresentInGrid.values().stream()
-                .flatMap(Collection::stream)
-                .distinct()
-                .toList());
+            optionsPresentInGrid.values().stream().flatMap(Collection::stream).distinct().toList());
       } else {
         optionItems.addAll(getItemOptionsAsFilter(params.getItemOptions(), params.getItems()));
       }
 
-      List<Object> items = new ArrayList<>();
-      items.add(AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsUidList(currentUserService.getCurrentUser(),
-              asTypedList(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID))));
+      Map<String, Object> items = new HashMap<>();
+      AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsUidList(
+              currentUserService.getCurrentUser(), params.getUserOrganisationUnitsCriteria())
+          .forEach(items::putAll);
 
       if (params.isComingFromQuery()) {
-        items.add(getMetadataItems(params, periodKeywords, optionItems, grid));
+        items.putAll(getMetadataItems(params, periodKeywords, optionItems, grid));
       } else {
-        items.add(getMetadataItems(params, periodKeywords, optionItems, grid));
+        items.putAll(getMetadataItems(params, periodKeywords, optionItems, grid));
       }
 
       metadata.put(ITEMS.getKey(), items);
 
       if (params.isComingFromQuery()) {
-        metadata.put(DIMENSIONS.getKey(), getDimensionItems(params, Optional.of(optionsPresentInGrid)));
+        metadata.put(
+            DIMENSIONS.getKey(), getDimensionItems(params, Optional.of(optionsPresentInGrid)));
       } else {
         metadata.put(DIMENSIONS.getKey(), getDimensionItems(params, empty()));
       }

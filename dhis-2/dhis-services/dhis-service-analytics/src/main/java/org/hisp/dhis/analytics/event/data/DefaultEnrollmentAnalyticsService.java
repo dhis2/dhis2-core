@@ -94,12 +94,12 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
   private final EventQueryPlanner queryPlanner;
 
   public DefaultEnrollmentAnalyticsService(
-          EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-          AnalyticsSecurityManager securityManager,
-          EventQueryPlanner queryPlanner,
-          EventQueryValidator queryValidator,
-          SchemeIdResponseMapper schemeIdResponseMapper,
-          CurrentUserService currentUserService) {
+      EnrollmentAnalyticsManager enrollmentAnalyticsManager,
+      AnalyticsSecurityManager securityManager,
+      EventQueryPlanner queryPlanner,
+      EventQueryValidator queryValidator,
+      SchemeIdResponseMapper schemeIdResponseMapper,
+      CurrentUserService currentUserService) {
     super(securityManager, queryValidator, schemeIdResponseMapper, currentUserService);
 
     checkNotNull(enrollmentAnalyticsManager);

@@ -49,8 +49,6 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
 import com.google.common.collect.Sets;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,19 +92,18 @@ public class MetadataHandler {
       // Items / names element
       // -----------------------------------------------------------------
 
-      Map<String, String> cocNameMap = getCocNameMap(params);
+      Map<String, Object> items = new HashMap<>(getDimensionMetadataItemMap(params, grid));
 
-      List<Object> items = new ArrayList<>();
-
-      items.add(getDimensionMetadataItemMap(params, grid));
-      items.add(AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsUidList(currentUserService.getCurrentUser(),
-              asTypedList(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID))));
+      AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsUidList(
+              currentUserService.getCurrentUser(), params.getUserOrganisationUnitsCriteria())
+          .forEach(items::putAll);
 
       metaData.put(ITEMS.getKey(), items);
 
       // -----------------------------------------------------------------
       // Item order elements
       // -----------------------------------------------------------------
+      Map<String, String> cocNameMap = getCocNameMap(params);
 
       Map<String, Object> dimensionItems = new HashMap<>();
 

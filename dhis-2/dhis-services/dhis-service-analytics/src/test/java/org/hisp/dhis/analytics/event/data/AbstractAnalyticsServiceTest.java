@@ -96,7 +96,8 @@ class AbstractAnalyticsServiceTest {
   @BeforeEach
   public void setUp() {
     dummyAnalyticsService =
-        new DummyAnalyticsService(securityManager, eventQueryValidator, schemeIdResponseMapper, currentUserService);
+        new DummyAnalyticsService(
+            securityManager, eventQueryValidator, schemeIdResponseMapper, currentUserService);
 
     peA = MonthlyPeriodType.getPeriodFromIsoString("201701");
     ouA = createOrganisationUnit('A');

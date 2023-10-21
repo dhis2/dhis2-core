@@ -32,6 +32,7 @@ import java.util.Set;
 import lombok.Getter;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
 
 @Getter
 public class DataQueryRequest {
@@ -100,6 +101,8 @@ public class DataQueryRequest {
   protected UserOrgUnitType userOrgUnitType;
 
   protected DhisApiVersion apiVersion;
+
+  protected String userOrganisationUnitCriteria;
 
   public boolean hasAggregationType() {
     return aggregationType != null;
@@ -319,6 +322,8 @@ public class DataQueryRequest {
       this.request.startDate = criteria.getStartDate();
       this.request.timeField = criteria.getTimeField();
       this.request.userOrgUnit = criteria.getUserOrgUnit();
+      this.request.userOrganisationUnitCriteria =
+          OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria(criteria);
       this.request.userOrgUnitType = criteria.getUserOrgUnitType();
       return this;
     }

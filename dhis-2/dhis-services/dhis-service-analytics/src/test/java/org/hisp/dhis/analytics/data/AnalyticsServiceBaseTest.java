@@ -107,7 +107,8 @@ abstract class AnalyticsServiceBaseTest {
   @BeforeEach
   public void baseSetUp() {
     HeaderHandler headerHandler = new HeaderHandler();
-    MetadataHandler metadataHandler = new MetadataHandler(dataQueryService, schemeIdResponseMapper, currentUserService);
+    MetadataHandler metadataHandler =
+        new MetadataHandler(dataQueryService, schemeIdResponseMapper, currentUserService);
     DataHandler dataHandler =
         new DataHandler(
             eventAnalyticsService,
