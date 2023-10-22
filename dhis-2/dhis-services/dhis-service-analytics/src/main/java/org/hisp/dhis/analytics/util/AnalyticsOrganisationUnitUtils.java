@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.analytics.util;
 
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS_USER_ORGUNIT_CHILDREN;
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS_USER_ORGUNIT_GRANDCHILDREN;
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS_USER_ORG_UNIT;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNITS;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.USER_ORGUNIT;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,24 +59,23 @@ public class AnalyticsOrganisationUnitUtils {
       return userOrganisations;
     }
 
-    if (userOrganisationUnitsCriteria.contains(ITEMS_USER_ORG_UNIT)) {
+    if (userOrganisationUnitsCriteria.contains(USER_ORGUNIT)) {
       Map<String, Object> userOrganisationUnits =
-          AnalyticsOrganisationUnitUtils.getUserOrganisationUnitUidList(
-              ITEMS_USER_ORG_UNIT, currentUser);
+          AnalyticsOrganisationUnitUtils.getUserOrganisationUnitUidList(USER_ORGUNIT, currentUser);
       userOrganisations.add(userOrganisationUnits);
     }
 
-    if (userOrganisationUnitsCriteria.contains(ITEMS_USER_ORGUNIT_CHILDREN)) {
+    if (userOrganisationUnitsCriteria.contains(USER_ORGUNIT_CHILDREN)) {
       Map<String, Object> userChildrenOrganisationUnits =
           AnalyticsOrganisationUnitUtils.getUserOrganisationUnitUidList(
-              ITEMS_USER_ORGUNIT_CHILDREN, currentUser);
+              USER_ORGUNIT_CHILDREN, currentUser);
       userOrganisations.add(userChildrenOrganisationUnits);
     }
 
-    if (userOrganisationUnitsCriteria.contains(ITEMS_USER_ORGUNIT_GRANDCHILDREN)) {
+    if (userOrganisationUnitsCriteria.contains(USER_ORGUNIT_GRANDCHILDREN)) {
       Map<String, Object> userGrandChildrenOrganisationUnits =
           AnalyticsOrganisationUnitUtils.getUserOrganisationUnitUidList(
-              ITEMS_USER_ORGUNIT_GRANDCHILDREN, currentUser);
+              USER_ORGUNIT_GRANDCHILDREN, currentUser);
       userOrganisations.add(userGrandChildrenOrganisationUnits);
     }
 
@@ -89,14 +88,14 @@ public class AnalyticsOrganisationUnitUtils {
     List<String> userOrgUnitList = new ArrayList<>();
 
     switch (analyticsMetaDataKey) {
-      case ITEMS_USER_ORG_UNIT -> userOrgUnitList =
+      case USER_ORGUNIT -> userOrgUnitList =
           currentUser.getOrganisationUnits().stream().map(BaseIdentifiableObject::getUid).toList();
-      case ITEMS_USER_ORGUNIT_CHILDREN -> userOrgUnitList =
+      case USER_ORGUNIT_CHILDREN -> userOrgUnitList =
           currentUser.getOrganisationUnits().stream()
               .flatMap(ou -> ou.getChildren().stream())
               .map(BaseIdentifiableObject::getUid)
               .toList();
-      case ITEMS_USER_ORGUNIT_GRANDCHILDREN -> userOrgUnitList =
+      case USER_ORGUNIT_GRANDCHILDREN -> userOrgUnitList =
           currentUser.getOrganisationUnits().stream()
               .flatMap(ou -> ou.getGrandChildren().stream())
               .map(BaseIdentifiableObject::getUid)

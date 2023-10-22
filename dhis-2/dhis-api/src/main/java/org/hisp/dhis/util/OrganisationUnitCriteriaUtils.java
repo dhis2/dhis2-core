@@ -47,25 +47,16 @@ public class OrganisationUnitCriteriaUtils {
     if (userOrganisationUnitsCriteria == null || userOrganisationUnitsCriteria.isEmpty()) {
       return keys;
     }
+
     userOrganisationUnitsCriteria = userOrganisationUnitsCriteria.replace("ou:", StringUtils.EMPTY);
     List<String> criteria = Arrays.stream(userOrganisationUnitsCriteria.split(";")).toList();
     return criteria.stream()
         .filter(
             c ->
-                c.equalsIgnoreCase(AnalyticsMetaDataKey.ITEMS_USER_ORG_UNIT.getKey())
-                    || c.equalsIgnoreCase(AnalyticsMetaDataKey.ITEMS_USER_ORGUNIT_CHILDREN.getKey())
-                    || c.equalsIgnoreCase(
-                        AnalyticsMetaDataKey.ITEMS_USER_ORGUNIT_GRANDCHILDREN.getKey()))
-        .map(
-            c -> {
-              if (AnalyticsMetaDataKey.ITEMS_USER_ORG_UNIT.getKey().equalsIgnoreCase(c)) {
-                return AnalyticsMetaDataKey.ITEMS_USER_ORG_UNIT;
-              }
-              if (AnalyticsMetaDataKey.ITEMS_USER_ORGUNIT_CHILDREN.getKey().equalsIgnoreCase(c)) {
-                return AnalyticsMetaDataKey.ITEMS_USER_ORGUNIT_CHILDREN;
-              }
-              return AnalyticsMetaDataKey.ITEMS_USER_ORGUNIT_GRANDCHILDREN;
-            })
+                c.equalsIgnoreCase(AnalyticsMetaDataKey.USER_ORGUNIT.getKey())
+                    || c.equalsIgnoreCase(AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN.getKey())
+                    || c.equalsIgnoreCase(AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN.getKey()))
+        .map(AnalyticsMetaDataKey::valueOf)
         .toList();
   }
 

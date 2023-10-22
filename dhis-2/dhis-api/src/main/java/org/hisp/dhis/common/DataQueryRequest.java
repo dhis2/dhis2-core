@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.util.OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria;
+
 import java.util.Date;
 import java.util.Set;
 import lombok.Getter;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
 
 @Getter
 public class DataQueryRequest {
@@ -322,8 +323,7 @@ public class DataQueryRequest {
       this.request.startDate = criteria.getStartDate();
       this.request.timeField = criteria.getTimeField();
       this.request.userOrgUnit = criteria.getUserOrgUnit();
-      this.request.userOrganisationUnitCriteria =
-          OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria(criteria);
+      this.request.userOrganisationUnitCriteria = getAnalyticsQueryCriteria(criteria);
       this.request.userOrgUnitType = criteria.getUserOrgUnitType();
       return this;
     }

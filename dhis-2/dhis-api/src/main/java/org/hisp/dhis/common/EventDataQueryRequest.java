@@ -30,6 +30,7 @@ package org.hisp.dhis.common;
 import static org.hisp.dhis.common.CustomDateHelper.getCustomDateFilters;
 import static org.hisp.dhis.common.CustomDateHelper.getDimensionsWithRefactoredPeDimension;
 import static org.hisp.dhis.common.CustomDateHelper.isPeDimension;
+import static org.hisp.dhis.util.OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -50,7 +51,6 @@ import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
 
 @Builder
 @Getter
@@ -264,8 +264,7 @@ public class EventDataQueryRequest {
               .endpointItem(criteria.getEndpointItem())
               .endpointAction(criteria.getEndpointAction())
               .enhancedConditions(criteria.isEnhancedConditions())
-              .userOrganisationUnitCriteria(
-                  OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria(criteria))
+              .userOrganisationUnitCriteria(getAnalyticsQueryCriteria(criteria))
               .rowContext(criteria.isRowContext());
 
       if (criteria.getDimension() == null) {
@@ -342,8 +341,7 @@ public class EventDataQueryRequest {
               .endpointItem(criteria.getEndpointItem())
               .endpointAction(criteria.getEndpointAction())
               .enhancedConditions(criteria.isEnhancedConditions())
-              .userOrganisationUnitCriteria(
-                  OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria(criteria))
+              .userOrganisationUnitCriteria(getAnalyticsQueryCriteria(criteria))
               .rowContext(criteria.isRowContext());
 
       if (criteria.getDimension() == null) {
