@@ -185,9 +185,9 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
       if (params.analyzeOnly()) {
         withExceptionHandling(
-                () ->
-                        executionPlanStore.addExecutionPlan(
-                                immutableParams.getExplainOrderId(), finalSqlValue));
+            () ->
+                executionPlanStore.addExecutionPlan(
+                    immutableParams.getExplainOrderId(), finalSqlValue));
         return new AsyncResult<>(Maps.newHashMap());
       }
 
@@ -195,8 +195,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
       try {
         map =
-                withExceptionHandling(() -> getKeyValueMap(immutableParams, finalSqlValue, maxLimit))
-                        .orElse(Map.of());
+            withExceptionHandling(() -> getKeyValueMap(immutableParams, finalSqlValue, maxLimit))
+                .orElse(Map.of());
       } catch (BadSqlGrammarException ex) {
         if (relationDoesNotExist(ex.getSQLException())) {
           throw ex;
