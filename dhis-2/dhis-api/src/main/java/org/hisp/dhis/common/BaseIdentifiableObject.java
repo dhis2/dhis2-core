@@ -521,15 +521,15 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   @Override
   public String getPropertyValue(IdScheme idScheme) {
     if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
-      return uid;
+      return getUid();
     } else if (idScheme.is(IdentifiableProperty.CODE)) {
-      return code;
+      return getCode();
     } else if (idScheme.is(IdentifiableProperty.NAME)) {
-      return name;
+      return getName();
     } else if (idScheme.is(IdentifiableProperty.ID)) {
-      return id > 0 ? String.valueOf(id) : null;
+      return getId() > 0 ? String.valueOf(getId()) : null;
     } else if (idScheme.is(IdentifiableProperty.ATTRIBUTE)) {
-      for (AttributeValue attributeValue : attributeValues) {
+      for (AttributeValue attributeValue : getAttributeValues()) {
         if (idScheme.getAttribute().equals(attributeValue.getAttribute().getUid())) {
           return attributeValue.getValue();
         }

@@ -160,7 +160,6 @@ public class Legend extends BaseIdentifiableObject implements EmbeddedObject {
     this.legendSet = legendSet;
   }
 
-  @Override
   @JsonProperty(value = "id")
   @JacksonXmlProperty(localName = "id", isAttribute = true)
   @Description("The Unique Identifier for this Object.")
@@ -170,18 +169,21 @@ public class Legend extends BaseIdentifiableObject implements EmbeddedObject {
     return uid;
   }
 
-  @Override
   public void setUid(String uid) {
     this.uid = uid;
   }
 
-  @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   @Description("The name of this Object. Required and unique.")
   @PropertyRange(min = 1)
   public String getName() {
     return name;
+  }
+
+  @Override
+  public long getId() {
+    return this.id;
   }
 
   public void setName(String name) {
