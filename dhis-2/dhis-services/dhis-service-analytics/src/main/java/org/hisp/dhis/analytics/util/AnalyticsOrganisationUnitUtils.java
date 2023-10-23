@@ -85,7 +85,7 @@ public class AnalyticsOrganisationUnitUtils {
   private static Map<String, Object> getUserOrganisationUnitUidList(
       AnalyticsMetaDataKey analyticsMetaDataKey, User currentUser) {
 
-    List<String> userOrgUnitList = new ArrayList<>();
+    List<String> userOrgUnitList;
 
     switch (analyticsMetaDataKey) {
       case USER_ORGUNIT -> userOrgUnitList =
@@ -100,6 +100,7 @@ public class AnalyticsOrganisationUnitUtils {
               .flatMap(ou -> ou.getGrandChildren().stream())
               .map(BaseIdentifiableObject::getUid)
               .toList();
+      default -> userOrgUnitList = new ArrayList<>();
     }
 
     return Map.of(analyticsMetaDataKey.getKey(), Map.of(ORG_UNITS.getKey(), userOrgUnitList));

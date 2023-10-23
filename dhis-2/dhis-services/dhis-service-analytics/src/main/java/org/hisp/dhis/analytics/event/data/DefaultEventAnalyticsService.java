@@ -252,11 +252,10 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
 
     queryValidator.validate(params);
 
-    //    if (analyticsCache.isEnabled() && !params.analyzeOnly()) {
-    //      EventQueryParams immutableParams = new EventQueryParams.Builder(params).build();
-    //      return analyticsCache.getOrFetch(params, p ->
-    // getAggregatedEventDataGrid(immutableParams));
-    //    }
+    if (analyticsCache.isEnabled() && !params.analyzeOnly()) {
+      EventQueryParams immutableParams = new EventQueryParams.Builder(params).build();
+      return analyticsCache.getOrFetch(params, p -> getAggregatedEventDataGrid(immutableParams));
+    }
 
     return getAggregatedEventDataGrid(params);
   }
