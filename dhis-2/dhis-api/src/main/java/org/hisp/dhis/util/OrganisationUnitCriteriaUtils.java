@@ -32,6 +32,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
@@ -61,20 +62,24 @@ public class OrganisationUnitCriteriaUtils {
   }
 
   public static String getAnalyticsQueryCriteria(EnrollmentAnalyticsQueryCriteria criteria) {
-    return criteria.getDimension().stream()
+    return hasDimensions(criteria.getDimension()) ? criteria.getDimension().stream()
         .filter(d -> d.contains(ORGUNIT_DIM_ID))
-        .collect(Collectors.joining(","));
+        .collect(Collectors.joining(",")) : StringUtils.EMPTY;
   }
 
   public static String getAnalyticsQueryCriteria(EventsAnalyticsQueryCriteria criteria) {
-    return criteria.getDimension().stream()
-        .filter(d -> d.contains(ORGUNIT_DIM_ID))
-        .collect(Collectors.joining(","));
+    return hasDimensions(criteria.getDimension()) ? criteria.getDimension().stream()
+            .filter(d -> d.contains(ORGUNIT_DIM_ID))
+            .collect(Collectors.joining(",")) : StringUtils.EMPTY;
   }
 
   public static String getAnalyticsQueryCriteria(AggregateAnalyticsQueryCriteria criteria) {
-    return criteria.getDimension().stream()
-        .filter(d -> d.contains(ORGUNIT_DIM_ID))
-        .collect(Collectors.joining(","));
+    return hasDimensions(criteria.getDimension()) ? criteria.getDimension().stream()
+            .filter(d -> d.contains(ORGUNIT_DIM_ID))
+            .collect(Collectors.joining(",")) : StringUtils.EMPTY;
+  }
+
+  private static boolean hasDimensions(Set<String> dimensions) {
+    return dimensions != null && !dimensions.isEmpty();
   }
 }
