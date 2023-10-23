@@ -31,20 +31,29 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.USER_ORGUNIT;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN;
 import static org.hisp.dhis.util.OrganisationUnitCriteriaUtils.getAnalyticsMetaDataKeys;
+import static org.hisp.dhis.util.OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
+import org.hisp.dhis.common.AggregateAnalyticsQueryCriteria;
+import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
+import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.junit.jupiter.api.Test;
 
 class OrganisationUnitCriteriaUtilsTest {
+  private static final String validOuDimensions =
+      "ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN;USER_ORGUNIT_GRANDCHILDREN";
+  private static final String invalidOuDimensions =
+      "USER_ORGUNIT;USER_ORGUNIT_CHILDREN;USER_ORGUNIT_GRANDCHILDREN";
+
   @Test
   void testGetAnalyticsMetaDataKeys_All() {
     // given
     // when
-    List<AnalyticsMetaDataKey> keys =
-        getAnalyticsMetaDataKeys(
-            "ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN;USER_ORGUNIT_GRANDCHILDREN");
+    List<AnalyticsMetaDataKey> keys = getAnalyticsMetaDataKeys(validOuDimensions);
     // then
     assertEquals(3, keys.size());
     assertEquals(USER_ORGUNIT.getKey(), keys.get(0).getKey());
@@ -56,8 +65,91 @@ class OrganisationUnitCriteriaUtilsTest {
   void testGetAnalyticsMetaDataKeys_Unsupported() {
     // given
     // when
-    List<AnalyticsMetaDataKey> keys = getAnalyticsMetaDataKeys("ou:USER_ORGUNIT_");
+    List<AnalyticsMetaDataKey> keys = getAnalyticsMetaDataKeys(invalidOuDimensions);
+
     // then
     assertEquals(0, keys.size());
+  }
+
+  @Test
+  void testGetAnalyticsQueryCriteria_Enrollment() {
+    // given
+    EnrollmentAnalyticsQueryCriteria enrollmentAnalyticsQueryCriteria =
+        new EnrollmentAnalyticsQueryCriteria();
+    enrollmentAnalyticsQueryCriteria.setDimension(Set.of(validOuDimensions));
+
+    // when
+    String analyticsQueryCriteria = getAnalyticsQueryCriteria(enrollmentAnalyticsQueryCriteria);
+
+    // then
+    assertEquals(validOuDimensions, analyticsQueryCriteria);
+  }
+
+  @Test
+  void testGetAnalyticsQueryCriteria_Event() {
+    // given
+    EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria = new EventsAnalyticsQueryCriteria();
+    eventsAnalyticsQueryCriteria.setDimension(Set.of(validOuDimensions));
+
+    // when
+    String analyticsQueryCriteria = getAnalyticsQueryCriteria(eventsAnalyticsQueryCriteria);
+
+    // then
+    assertEquals(validOuDimensions, analyticsQueryCriteria);
+  }
+
+  @Test
+  void testGetAnalyticsQueryCriteria_Aggregate() {
+    // given
+    AggregateAnalyticsQueryCriteria aggregateAnalyticsQueryCriteria =
+        new AggregateAnalyticsQueryCriteria();
+    aggregateAnalyticsQueryCriteria.setDimension(Set.of(validOuDimensions));
+
+    // when
+    String analyticsQueryCriteria = getAnalyticsQueryCriteria(aggregateAnalyticsQueryCriteria);
+
+    // then
+    assertEquals(validOuDimensions, analyticsQueryCriteria);
+  }
+
+  @Test
+  void testGetAnalyticsQueryCriteria_Enrollment_No_Dimension() {
+    // given
+    EnrollmentAnalyticsQueryCriteria enrollmentAnalyticsQueryCriteria =
+        new EnrollmentAnalyticsQueryCriteria();
+    enrollmentAnalyticsQueryCriteria.setDimension(Set.of(invalidOuDimensions));
+
+    // when
+    String analyticsQueryCriteria = getAnalyticsQueryCriteria(enrollmentAnalyticsQueryCriteria);
+
+    // then
+    assertEquals(StringUtils.EMPTY, analyticsQueryCriteria);
+  }
+
+  @Test
+  void testGetAnalyticsQueryCriteria_Event_No_Dimension() {
+    // given
+    EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria = new EventsAnalyticsQueryCriteria();
+    eventsAnalyticsQueryCriteria.setDimension(Set.of(invalidOuDimensions));
+
+    // when
+    String analyticsQueryCriteria = getAnalyticsQueryCriteria(eventsAnalyticsQueryCriteria);
+
+    // then
+    assertEquals(StringUtils.EMPTY, analyticsQueryCriteria);
+  }
+
+  @Test
+  void testGetAnalyticsQueryCriteria_Aggregate_No_Dimension() {
+    // given
+    AggregateAnalyticsQueryCriteria aggregateAnalyticsQueryCriteria =
+        new AggregateAnalyticsQueryCriteria();
+    aggregateAnalyticsQueryCriteria.setDimension(Set.of(invalidOuDimensions));
+
+    // when
+    String analyticsQueryCriteria = getAnalyticsQueryCriteria(aggregateAnalyticsQueryCriteria);
+
+    // then
+    assertEquals(StringUtils.EMPTY, analyticsQueryCriteria);
   }
 }

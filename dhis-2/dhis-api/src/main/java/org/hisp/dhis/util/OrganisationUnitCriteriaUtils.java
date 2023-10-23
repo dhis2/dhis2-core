@@ -48,7 +48,9 @@ public class OrganisationUnitCriteriaUtils {
       String userOrganisationUnitsCriteria) {
     List<AnalyticsMetaDataKey> keys = new ArrayList<>();
 
-    if (userOrganisationUnitsCriteria == null || userOrganisationUnitsCriteria.isEmpty()) {
+    if (userOrganisationUnitsCriteria == null
+        || userOrganisationUnitsCriteria.isEmpty()
+        || !userOrganisationUnitsCriteria.contains("ou:")) {
       return keys;
     }
 
