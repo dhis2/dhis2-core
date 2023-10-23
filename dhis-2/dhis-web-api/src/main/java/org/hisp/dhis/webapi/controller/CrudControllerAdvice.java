@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.PersistenceException;
@@ -66,6 +67,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
@@ -150,6 +152,15 @@ public class CrudControllerAdvice {
       message.setResponse(new ErrorReportsWebMessageResponse(ex.getErrorReports()));
     }
     return message;
+  }
+
+  @ExceptionHandler
+  @ResponseBody
+  public WebMessage badSqlGrammarException(BadSqlGrammarException ex) {
+    return Optional.of(ex)
+        .map(BadSqlGrammarException::getSQLException)
+        .map(WebMessageUtils::createWebMessage)
+        .orElse(defaultExceptionHandler(ex));
   }
 
   @ExceptionHandler(org.hisp.dhis.feedback.ConflictException.class)

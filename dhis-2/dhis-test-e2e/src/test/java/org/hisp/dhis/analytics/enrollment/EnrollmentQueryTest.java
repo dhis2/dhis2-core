@@ -239,6 +239,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
             .add("totalPages=false")
             .add("pageSize=2")
             .add("page=4")
+            .add("relativePeriodDate=2023-09-27")
             .add("rowContext=true");
 
     // When
