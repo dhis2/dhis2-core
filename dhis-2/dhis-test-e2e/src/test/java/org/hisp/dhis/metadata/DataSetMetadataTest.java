@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,20 +55,17 @@ class DataSetMetadataTest extends ApiTest {
   void dataSetMetadataEtagFunctionalityTest() {
     // call endpoint to get current state
     Response response1 =
-        given()
-            .get("http://localhost:8080/api/dataEntry/metadata")
-            .then()
-            .extract()
-            .response();
+        given().get("http://localhost:8080/api/dataEntry/metadata").then().extract().response();
 
     int statusCode1 = response1.getStatusCode();
     assertEquals(200, statusCode1);
     String responseBody1 = response1.body().asString();
     assertNotNull(responseBody1);
-    //get etag value from current state
+    // get etag value from current state
     String eTagValue1 = response1.getHeader(HttpHeaders.ETAG);
 
-    //make the same call again, this time passing the 'If-None-Match' header and the ETag value from response 1
+    // make the same call again, this time passing the 'If-None-Match' header and the ETag value
+    // from response 1
     Response response2 =
         given()
             .header(new Header(HttpHeaders.IF_NONE_MATCH, eTagValue1))
@@ -76,13 +73,13 @@ class DataSetMetadataTest extends ApiTest {
             .then()
             .extract()
             .response();
-    
+
     int statusCode2 = response2.getStatusCode();
-    
-    //response status code should be 304 to indicate that the data has not changed
+
+    // response status code should be 304 to indicate that the data has not changed
     assertEquals(304, statusCode2);
 
-    //body should be empty as no data returned when no change in data
+    // body should be empty as no data returned when no change in data
     assertEquals("", response2.body().asString());
 
     // ETags should match from response 1 & 2
@@ -91,14 +88,15 @@ class DataSetMetadataTest extends ApiTest {
     assertEquals(34, eTagValue2.length());
     assertEquals(eTagValue1, eTagValue2);
 
-    //create new data set to trigger a change of data seen by the API
+    // create new data set to trigger a change of data seen by the API
     given()
         .header("Content-type", "application/json")
         .and()
         .body(newDataSet())
         .when()
         .post("http://localhost:8080/api/dataSets")
-        .then().statusCode(201);
+        .then()
+        .statusCode(201);
 
     // call again with 'If-None-Match' header and the previous ETag header value
     Response response3 =
@@ -112,10 +110,10 @@ class DataSetMetadataTest extends ApiTest {
     // new ETag should be received
     String eTagValue3 = response3.getHeader(HttpHeaders.ETAG);
     assertNotEquals(eTagValue1, eTagValue3);
-    
+
     int statusCode3 = response3.getStatusCode();
 
-    //response 1 & 3 bodies should not match
+    // response 1 & 3 bodies should not match
     assertNotEquals(responseBody1, response3.body().asString());
     assertEquals(200, statusCode3);
 
@@ -133,6 +131,7 @@ class DataSetMetadataTest extends ApiTest {
         "periodType": "Daily",
         "organisationUnits": []
       }
-    """.strip();
+    """
+        .strip();
   }
 }
