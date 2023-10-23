@@ -121,6 +121,13 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     return jobConfigurationStore.getNextInQueue(queue, fromPosition);
   }
 
+  @CheckForNull
+  @Override
+  @Transactional(readOnly = true)
+  public JobConfiguration getJobConfiguration(String jobId) {
+    return jobConfigurationStore.getByUid(jobId);
+  }
+
   @Override
   @Transactional
   public boolean tryRun(@Nonnull String jobId) {

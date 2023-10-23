@@ -34,12 +34,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
@@ -92,6 +88,7 @@ public class JobScheduler implements Runnable, JobRunner {
   private final JobSchedulerLoopService service;
   private final SystemSettingManager systemSettings;
   private final ExecutorService workers = Executors.newCachedThreadPool();
+  private final Map<JobType, Queue<String>> continuousJobsByType = new ConcurrentHashMap<>();
 
   public void start() {
     long loopTimeMs = LOOP_SECONDS * 1000L;
@@ -121,7 +118,7 @@ public class JobScheduler implements Runnable, JobRunner {
             service.getDueJobConfigurations(LOOP_SECONDS).stream()
                 .collect(groupingBy(JobConfiguration::getJobType));
         // only attempt to start one per type per loop invocation
-        readyByType.forEach((type, jobs) -> runIfDue(now, jobs.get(0)));
+        readyByType.forEach((type, jobs) -> runIfDue(now, type, jobs));
       }
     } catch (Exception ex) {
       log.error("Exceptions thrown in scheduler loop", ex);
@@ -129,13 +126,59 @@ public class JobScheduler implements Runnable, JobRunner {
     }
   }
 
+  private void runIfDue(Instant now, JobType type, List<JobConfiguration> jobs) {
+    if (!type.isUsingContinuousExecution()) {
+      runIfDue(now, jobs.get(0));
+      return;
+    }
+    Queue<String> jobIds =
+        continuousJobsByType.computeIfAbsent(type, key -> new ConcurrentLinkedQueue<>());
+    // add a worker either if no worker is on it (empty new queue) or if there are many jobs
+    boolean spawnWorker = jobIds.isEmpty();
+    // add those IDs to the queue that are not yet in it
+    jobs.stream()
+        .map(JobConfiguration::getUid)
+        .filter(jobId -> !jobIds.contains(jobId))
+        .forEach(jobIds::add);
+    if (spawnWorker) {
+      // we want to prevent starting more than one worker per job type
+      // but if this does happen it is no issue as both will be pulling
+      // from the same queue
+      workers.submit(() -> runContinuous(type));
+    }
+  }
+
+  private void runContinuous(JobType type) {
+    try {
+      Queue<String> jobIds = continuousJobsByType.get(type);
+      String jobId = jobIds.poll();
+      while (jobId != null) {
+        JobConfiguration config = service.getJobConfiguration(jobId);
+        if (config != null) {
+          Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+          Instant dueTime = dueTime(now, config);
+          runDueJob(config, dueTime);
+        }
+        jobId = jobIds.poll();
+      }
+    } finally {
+      // need to be done so that we never have a queue without a worker by accident
+      continuousJobsByType.remove(type);
+    }
+  }
+
   private void runIfDue(Instant now, JobConfiguration config) {
+    Instant dueTime = dueTime(now, config);
+    if (dueTime != null) {
+      workers.submit(() -> runDueJob(config, dueTime));
+    }
+  }
+
+  private Instant dueTime(Instant now, JobConfiguration config) {
     Duration maxCronDelay =
         Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
     Instant dueTime = config.nextExecutionTime(now, maxCronDelay);
-    if (dueTime != null && !dueTime.isAfter(now)) {
-      workers.submit(() -> runDueJob(config, dueTime));
-    }
+    return dueTime != null && !dueTime.isAfter(now) ? dueTime : null;
   }
 
   @Override
