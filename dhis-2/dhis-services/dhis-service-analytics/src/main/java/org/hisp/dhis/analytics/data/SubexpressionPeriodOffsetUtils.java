@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.shiftPeriod;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -56,13 +57,13 @@ public class SubexpressionPeriodOffsetUtils {
     throw new UnsupportedOperationException("util");
   }
 
-  protected static final String SHIFT = "shift";
+  static final String SHIFT = "shift";
 
-  protected static final String DELTA = quote("delta");
+  static final String DELTA = quote("delta");
 
-  protected static final String REPORTPERIOD = quote("reportperiod");
+  static final String REPORTPERIOD = quote("reportperiod");
 
-  protected static final String DATAPERIOD = quote("dataperiod");
+  private static final String DATAPERIOD = quote("dataperiod");
 
   /**
    * For {@link DataQueryParams} containing a subexpression with periodOffsets, joins an inline
@@ -90,29 +91,21 @@ public class SubexpressionPeriodOffsetUtils {
     for (Integer delta : periodOffsets) {
       for (Period reportPeriod : reportPeriods) {
         Period dataPeriod = shiftPeriod(reportPeriod, delta);
-        sb.append("(")
-            .append(delta)
-            .append(",'")
-            .append(reportPeriod.getIsoDate())
-            .append("','")
-            .append(dataPeriod.getIsoDate())
-            .append("'),");
+        sb.append(
+            format("(%s,'%s','%s'),", delta, reportPeriod.getIsoDate(), dataPeriod.getIsoDate()));
       }
     }
     sb.setLength(sb.length() - 1); // Remove final ","
 
-    sb.append(") as ")
-        .append(SHIFT)
-        .append(" (")
-        .append(DELTA)
-        .append(", ")
-        .append(REPORTPERIOD)
-        .append(", ")
-        .append(DATAPERIOD)
-        .append(") on ")
-        .append(DATAPERIOD)
-        .append(" = ")
-        .append(quote(params.getPeriodType().toLowerCase()));
+    sb.append(
+        format(
+            ") as %s (%s, %s, %s) on %s = %s",
+            SHIFT,
+            DELTA,
+            REPORTPERIOD,
+            DATAPERIOD,
+            DATAPERIOD,
+            quote(params.getPeriodType().toLowerCase())));
 
     return sb.toString();
   }
