@@ -105,6 +105,6 @@ class EnrollmentAnalyticsControllerTest extends DhisControllerConvenienceTest {
     assertEquals(409, jsonWebMessage.getHttpStatusCode());
     assertEquals("ERROR", jsonWebMessage.getStatus());
     assertEquals(
-        "Query failed because of a syntax error (SqlState: 90022)", jsonWebMessage.getMessage());
+        "Query failed because of a syntax error (SqlState: 42S02)", jsonWebMessage.getMessage());
   }
 }
