@@ -62,21 +62,27 @@ public class OrganisationUnitCriteriaUtils {
   }
 
   public static String getAnalyticsQueryCriteria(EnrollmentAnalyticsQueryCriteria criteria) {
-    return hasDimensions(criteria.getDimension()) ? criteria.getDimension().stream()
-        .filter(d -> d.contains(ORGUNIT_DIM_ID))
-        .collect(Collectors.joining(",")) : StringUtils.EMPTY;
+    return hasDimensions(criteria.getDimension())
+        ? criteria.getDimension().stream()
+            .filter(d -> d.contains(ORGUNIT_DIM_ID))
+            .collect(Collectors.joining(","))
+        : StringUtils.EMPTY;
   }
 
   public static String getAnalyticsQueryCriteria(EventsAnalyticsQueryCriteria criteria) {
-    return hasDimensions(criteria.getDimension()) ? criteria.getDimension().stream()
+    return hasDimensions(criteria.getDimension())
+        ? criteria.getDimension().stream()
             .filter(d -> d.contains(ORGUNIT_DIM_ID))
-            .collect(Collectors.joining(",")) : StringUtils.EMPTY;
+            .collect(Collectors.joining(","))
+        : StringUtils.EMPTY;
   }
 
   public static String getAnalyticsQueryCriteria(AggregateAnalyticsQueryCriteria criteria) {
-    return hasDimensions(criteria.getDimension()) ? criteria.getDimension().stream()
+    return hasDimensions(criteria.getDimension())
+        ? criteria.getDimension().stream()
             .filter(d -> d.contains(ORGUNIT_DIM_ID))
-            .collect(Collectors.joining(",")) : StringUtils.EMPTY;
+            .collect(Collectors.joining(","))
+        : StringUtils.EMPTY;
   }
 
   private static boolean hasDimensions(Set<String> dimensions) {
