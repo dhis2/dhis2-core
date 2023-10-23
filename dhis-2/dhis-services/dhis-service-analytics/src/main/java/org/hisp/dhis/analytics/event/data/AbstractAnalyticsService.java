@@ -400,7 +400,7 @@ public abstract class AbstractAnalyticsService {
       if (params.isComingFromQuery()) {
         items.putAll(getMetadataItems(params, periodKeywords, optionItems, grid));
       } else {
-        items.putAll(getMetadataItems(params, periodKeywords, optionItems, grid));
+        items.putAll(getMetadataItems(params));
       }
 
       metadata.put(ITEMS.getKey(), items);

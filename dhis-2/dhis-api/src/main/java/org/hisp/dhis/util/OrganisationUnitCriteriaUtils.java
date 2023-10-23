@@ -34,12 +34,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.common.AggregateAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrganisationUnitCriteriaUtils {
   public static List<AnalyticsMetaDataKey> getAnalyticsMetaDataKeys(
       String userOrganisationUnitsCriteria) {
