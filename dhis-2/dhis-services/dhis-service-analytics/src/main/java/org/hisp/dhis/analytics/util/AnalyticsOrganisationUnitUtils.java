@@ -100,7 +100,7 @@ public class AnalyticsOrganisationUnitUtils {
               .flatMap(ou -> ou.getGrandChildren().stream())
               .map(BaseIdentifiableObject::getUid)
               .toList();
-      default -> userOrgUnitList = new ArrayList<>();
+      default -> userOrgUnitList = List.of();
     }
 
     return Map.of(analyticsMetaDataKey.getKey(), Map.of(ORG_UNITS.getKey(), userOrgUnitList));
