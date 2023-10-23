@@ -94,7 +94,7 @@
     <dhis-json-tree.version>0.10.1</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.8.7</spring-security.version>
+    <spring-security.version>5.8.8</spring-security.version>
 
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
@@ -106,7 +106,7 @@
     <!-- Spring -->
     <spring.version>5.3.30</spring.version>
     <spring-data-redis.version>2.7.17</spring-data-redis.version>
-    <spring-session-data-redis.version>2.7.3</spring-session-data-redis.version>
+    <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>1.3.4</spring-retry.version>
     <spring-restdocs.version>2.0.7.RELEASE</spring-restdocs.version>
@@ -218,7 +218,7 @@
     <testcontainers.version>1.19.1</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
-    <swagger.version>2.1.16</swagger.version>
+    <swagger.version>2.1.18</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.2.224</h2.version>

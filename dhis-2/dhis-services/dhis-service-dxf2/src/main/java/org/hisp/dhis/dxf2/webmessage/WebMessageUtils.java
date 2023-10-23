@@ -268,7 +268,7 @@ public final class WebMessageUtils {
   }
 
   public static ErrorCode getErrorCode(SQLException ex) {
-    if (isRelationDoesntExist(ex)) {
+    if (relationDoesNotExist(ex)) {
       return ErrorCode.E7144;
     }
     return ErrorCode.E7145;
@@ -276,12 +276,16 @@ public final class WebMessageUtils {
 
   /**
    * Utility method to detect if the {@link SQLException} refers to a missing relation in the
-   * database
+   * database.
    *
    * @param ex a {@link SQLException} to analyze
    * @return true if the error is a missing relation error, false otherwise
    */
-  public static boolean isRelationDoesntExist(SQLException ex) {
-    return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
+  public static boolean relationDoesNotExist(SQLException ex) {
+    if (ex != null) {
+      return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
+    }
+
+    return false;
   }
 }

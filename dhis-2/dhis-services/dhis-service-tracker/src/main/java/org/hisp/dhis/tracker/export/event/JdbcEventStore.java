@@ -197,7 +197,7 @@ class JdbcEventStore implements EventStore {
           entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
           entry("enrollment.trackedEntity.uid", COLUMN_TRACKEDENTITY_UID),
           entry("executionDate", COLUMN_EVENT_EXECUTION_DATE),
-          entry("enrollment.followup", COLUMN_ENROLLMENT_FOLLOWUP),
+          entry("enrollment.followUp", COLUMN_ENROLLMENT_FOLLOWUP),
           entry("status", COLUMN_EVENT_STATUS),
           entry("dueDate", COLUMN_EVENT_DUE_DATE),
           entry("storedBy", COLUMN_EVENT_STORED_BY),
@@ -1393,7 +1393,7 @@ class JdbcEventStore implements EventStore {
             + " string_agg(co.uid, ',') as co_uids, count(co.categoryoptionid) as co_count"
             + " from categoryoptioncombo coc "
             + " inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid"
-            + " inner join dataelementcategoryoption co on cocco.categoryoptionid = co.categoryoptionid"
+            + " inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid"
             + " group by coc.categoryoptioncomboid ";
 
     if (!isSuper(user)) {

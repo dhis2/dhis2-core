@@ -645,7 +645,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
             "where not exists ( "
             + "select 1 "
             + "from categoryoptioncombos_categoryoptions cocco "
-            + "join dataelementcategoryoption co on co.categoryoptionid = cocco.categoryoptionid "
+            + "join categoryoption co on co.categoryoptionid = cocco.categoryoptionid "
             + "where cocco.categoryoptioncomboid = coc.categoryoptioncomboid "
             + "and ( "
             +

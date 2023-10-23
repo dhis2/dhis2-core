@@ -162,8 +162,8 @@ We have the capability to auto-generate analytics e2e tests.
 The class located at `src/test/java/org/hisp/dhis/analytics/generator/Main.java`
 can be executed in order to generate e2e tests based on the URL(s) present in `src/test/java/org/hisp/dhis/analytics/generator/test-urls.txt`
 
-There are a few different generators that can be used. The correct generator to use depends on the URL(s) to be tested.
-The respective generator implementation should be set at `src/test/java/org/hisp/dhis/analytics/generator/TestGenerator.java`.
+There are a few different generators available. The usage of the correct one depends on the URL/API to be tested.
+Based on the URL/API, the respective generator implementation should be set at `src/test/java/org/hisp/dhis/analytics/generator/TestGenerator.java`.
 Currently, the supported generators are (along with their respective accepted URL format):
 
 ```
@@ -174,8 +174,7 @@ EventAggregatedTestGenerator.java -> /analytics/events/aggregate/{program}.json?
 EventQueryTestGenerator.java -> /analytics/events/query/{program}.json?
 TeiQueryTestGenerator.java -> /analytics/trackedEntities/query/{trackedEntityType}.json?
 ```
-_**NOTE**_: `.json` behind the program uid is mandatory
-
+_**NOTE**_: The `.json` extension in some URLs above. It's mandatory for all cases where we expect and `uid` of the respective entity/object.
 
 ### How to generate the test(s)
 1. Add the URL(s) into `test-urls.txt` (check inside the file for examples)
@@ -188,5 +187,5 @@ that is up and running. The tests are based on the request/response of each URL.
 
 **Important**: This generator only supports "happy" paths at the moment. In order to test validation
 errors or invalid requests, one should implement them programmatically. Also, if multiple URL(s) are defined
-in the `test-urls.txt` file, they all have to have the same format - remember that the implementation of the generator
-must match the URL(s) format expected.
+in the `test-urls.txt` file, they must have the same format - remember that the implementation of the generator
+must match the URL(s) format expected, and we can pick only one generator at time.
