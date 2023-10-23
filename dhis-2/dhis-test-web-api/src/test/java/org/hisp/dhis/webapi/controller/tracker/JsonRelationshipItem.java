@@ -98,6 +98,10 @@ public interface JsonRelationshipItem extends JsonObject {
     default JsonList<JsonNote> getNotes() {
       return get("notes").asList(JsonNote.class);
     }
+
+    default Boolean getFollowUp() {
+      return getBoolean("followUp").bool();
+    }
   }
 
   interface JsonEvent extends JsonObject {
@@ -127,6 +131,14 @@ public interface JsonRelationshipItem extends JsonObject {
 
     default JsonList<JsonNote> getNotes() {
       return get("notes").asList(JsonNote.class);
+    }
+
+    default Boolean getFollowUp() {
+      return getBoolean("followUp").bool();
+    }
+
+    default Boolean getLegacyFollowUp() {
+      return getBoolean("followup").bool();
     }
   }
 }

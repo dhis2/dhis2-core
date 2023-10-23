@@ -410,7 +410,7 @@ public enum ErrorCode {
   E7129("Program is specified but does not exist: `{0}`"),
   E7130("Program stage is specified but does not exist: `{0}`"),
   E7131("Query failed, likely because the query timed out"),
-  E7132("An indicator expression caused division by zero operation"),
+  E7132("Expression violation. Maybe an indicator caused division by zero?"),
   E7133("Query cannot be executed, possibly because of invalid types or invalid operation"),
   E7134("Cannot retrieve total value for data elements with skip total category combination"),
   E7135("Date time is not parsable: `{0}`"),
