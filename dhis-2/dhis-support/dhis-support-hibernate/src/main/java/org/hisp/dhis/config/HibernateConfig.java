@@ -35,6 +35,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.SharedCacheMode;
 import javax.persistence.ValidationMode;
 import javax.sql.DataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
@@ -67,6 +68,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Configuration
 @EnableTransactionManagement
+@Slf4j
 public class HibernateConfig {
   @Bean("hibernateConfigurationProvider")
   public HibernateConfigurationProvider hibernateConfigurationProvider(
@@ -185,7 +187,7 @@ public class HibernateConfig {
       }
       return list.toArray(new String[0]);
     } catch (IOException e) {
-      e.printStackTrace();
+      log.error(e.getMessage(), e);
     }
     return ArrayUtils.EMPTY_STRING_ARRAY;
   }
