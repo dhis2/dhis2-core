@@ -552,7 +552,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * avoid removing any rows if there is no value for a given attribute and te. The result of this
    * LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and main query.
    *
-   * @return a SQL LEFT JOIN for attributes used for ordering, or empty string if not attributes is
+   * @return a SQL LEFT JOIN for attributes used for ordering, or empty string if no attributes is
    *     used in order.
    */
   private String getFromSubQueryJoinOrderByAttributes(TrackedEntityQueryParams params) {

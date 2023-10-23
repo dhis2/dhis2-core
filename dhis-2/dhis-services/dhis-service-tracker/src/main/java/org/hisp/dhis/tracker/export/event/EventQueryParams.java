@@ -35,7 +35,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Getter;
+import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.IdSchemes;
@@ -408,6 +410,13 @@ class EventQueryParams {
     return Collections.unmodifiableList(this.order);
   }
 
+  private Set<TrackedEntityAttribute> getOrderAttributes() {
+    return order.stream()
+        .filter(o -> o.getField() instanceof TrackedEntityAttribute)
+        .map(o -> (TrackedEntityAttribute) o.getField())
+        .collect(Collectors.toSet());
+  }
+
   /** Order by an event field of the given {@code field} name in given sort {@code direction}. */
   public EventQueryParams orderBy(String field, SortDirection direction) {
     this.order.add(new Order(field, direction));
@@ -448,6 +457,17 @@ class EventQueryParams {
 
   public Map<TrackedEntityAttribute, List<QueryFilter>> getAttributes() {
     return this.attributes;
+  }
+
+  /** Returns attributes that are only ordered by and not present in any filter. */
+  public Set<TrackedEntityAttribute> leftJoinAttributes() {
+    return SetUtils.difference(getOrderAttributes(), filterableAttributes().keySet());
+  }
+
+  public Map<TrackedEntityAttribute, List<QueryFilter>> filterableAttributes() {
+    return attributes.entrySet().stream()
+        .filter(a -> !a.getValue().isEmpty())
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   public Map<DataElement, List<QueryFilter>> getDataElements() {
