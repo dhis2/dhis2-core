@@ -27,12 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,8 +40,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -199,17 +193,7 @@ class DefaultEnrollmentService
   @Override
   public List<Enrollment> getEnrollments(EnrollmentOperationParams params)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    if (!params.getEnrollmentUids().isEmpty()) {
-      List<org.hisp.dhis.program.Enrollment> enrollments = new ArrayList<>();
-      for (String uid : params.getEnrollmentUids()) {
-        enrollments.add(
-            getEnrollment(uid, params.getEnrollmentParams(), params.isIncludeDeleted()));
-      }
-      return enrollments;
-    }
-
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
-    queryParams.setSkipPaging(true);
 
     decideAccess(queryParams);
     validate(queryParams);
@@ -241,31 +225,6 @@ class DefaultEnrollmentService
       throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
-    if (!params.getEnrollmentUids().isEmpty()) {
-      List<org.hisp.dhis.program.Enrollment> enrollments = new ArrayList<>();
-      for (String uid : params.getEnrollmentUids()) {
-        enrollments.add(
-            getEnrollment(uid, params.getEnrollmentParams(), params.isIncludeDeleted()));
-      }
-
-      Pager pager;
-
-      if (pageParams.isPageTotal()) {
-        queryParams.setSkipPaging(true);
-        int count = enrollmentStore.countEnrollments(queryParams);
-        pager = new Pager(pageParams.getPage(), count, pageParams.getPageSize());
-      } else {
-        pager = handleLastPageFlag(queryParams, enrollments);
-      }
-
-      return Page.of(enrollments, pager);
-    }
-
-    queryParams.setPage(pageParams.getPage());
-    queryParams.setPageSize(pageParams.getPageSize());
-    queryParams.setTotalPages(pageParams.isPageTotal());
-    queryParams.setSkipPaging(false);
-
     decideAccess(queryParams);
     validate(queryParams);
 
@@ -285,23 +244,12 @@ class DefaultEnrollmentService
       queryParams.setOrganisationUnits(organisationUnits);
     }
 
+    Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
     List<Enrollment> enrollments =
         getEnrollments(
-            new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
-            params.getEnrollmentParams(),
-            params.isIncludeDeleted());
+            enrollmentsPage.getItems(), params.getEnrollmentParams(), params.isIncludeDeleted());
 
-    Pager pager;
-
-    if (pageParams.isPageTotal()) {
-      queryParams.setSkipPaging(true);
-      int count = enrollmentStore.countEnrollments(queryParams);
-      pager = new Pager(pageParams.getPage(), count, pageParams.getPageSize());
-    } else {
-      pager = handleLastPageFlag(queryParams, enrollments);
-    }
-
-    return Page.of(enrollments, pager);
+    return Page.of(enrollments, enrollmentsPage.getPager());
   }
 
   public void decideAccess(EnrollmentQueryParams params) {
@@ -378,37 +326,6 @@ class DefaultEnrollmentService
 
       throw new IllegalQueryException(violation);
     }
-  }
-
-  /**
-   * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link
-   * HibernateEnrollmentStore#getEnrollments(EnrollmentQueryParams)}
-   *
-   * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
-   * allow us to evaluate if we are in the last page or not. And this is what his method does,
-   * returning the respective Pager object.
-   *
-   * @param params the request params
-   * @param enrollments the reference to the list of Enrollment
-   * @return the populated SlimPager instance
-   */
-  private Pager handleLastPageFlag(EnrollmentQueryParams params, List<Enrollment> enrollments) {
-    Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
-    Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
-    boolean isLastPage = false;
-
-    if (isNotEmpty(enrollments)) {
-      isLastPage = enrollments.size() <= originalPageSize;
-      if (!isLastPage) {
-        // Get the same number of elements of the pageSize, forcing
-        // the removal of the last additional element added at querying
-        // time.
-        enrollments.retainAll(enrollments.subList(0, originalPageSize));
-      }
-    }
-
-    return new SlimPager(originalPage, originalPageSize, isLastPage);
   }
 
   private List<Enrollment> getEnrollments(
