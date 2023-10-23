@@ -770,11 +770,13 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
 
     long count = 0;
 
+    EventQueryParams immutableParams = new EventQueryParams.Builder(params).build();
+
     if (params.getPartitions().hasAny() || params.isSkipPartitioning()) {
-      eventAnalyticsManager.getEvents(params, grid, queryValidator.getMaxLimit());
+      eventAnalyticsManager.getEvents(immutableParams, grid, queryValidator.getMaxLimit());
 
       if (params.isPaging() && params.isTotalPages()) {
-        count = eventAnalyticsManager.getEventCount(params);
+        count = eventAnalyticsManager.getEventCount(immutableParams);
       }
 
       timer.getTime("Got events " + grid.getHeight());

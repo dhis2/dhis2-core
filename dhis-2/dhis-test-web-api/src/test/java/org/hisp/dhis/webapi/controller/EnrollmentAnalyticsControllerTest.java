@@ -33,7 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonGrid;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -70,6 +72,8 @@ class EnrollmentAnalyticsControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  @Disabled(
+      "generated query will fail on H2 database and we are now propagating BadSqlGrammarException since DHIS2-15184")
   void testGetQueryJson() {
     JsonGrid grid =
         GET(
@@ -84,5 +88,23 @@ class EnrollmentAnalyticsControllerTest extends DhisControllerConvenienceTest {
     assertEquals(
         orgUnitId,
         grid.getMetaData().getDimensions().get("ou").get(0).as(JsonString.class).string());
+  }
+
+  @Test
+  void testBadGrammarException() {
+    /* We know this query will fail since it runs on H2 with postgres specific syntax */
+    JsonWebMessage jsonWebMessage =
+        GET(
+                "/analytics/enrollments/query/{program}?dimension=ou:{unit}&startDate=2019-01-01&endDate=2021-01-01",
+                programId,
+                orgUnitId)
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+
+    assertEquals("Conflict", jsonWebMessage.getHttpStatus());
+    assertEquals(409, jsonWebMessage.getHttpStatusCode());
+    assertEquals("ERROR", jsonWebMessage.getStatus());
+    assertEquals(
+        "Query failed because of a syntax error (SqlState: 42S02)", jsonWebMessage.getMessage());
   }
 }

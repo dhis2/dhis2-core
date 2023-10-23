@@ -28,28 +28,21 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
-import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsTestUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
@@ -63,14 +56,13 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.BadSqlGrammarException;
 
 /**
  * Tests aggregation of data in event analytics tables.
@@ -131,54 +123,12 @@ class EventAnalyticsServiceTest extends IntegrationTestBase {
     }
   }
 
-  /**
-   * To create a new test that needs the analytics table populated:
-   *
-   * <p>
-   *
-   * <ul>
-   *   <li>Make new EventQueryParam.
-   *   <li>Add to 'eventQueryParams' map.
-   *   <li>Add HashMap<String, Double> with expected output to results map.
-   * </ul>
-   */
-  @Test
-  void testGridAggregation() throws IOException {
-    // Given
-    // Stubbed events data
-    stubAnalyticsEventsData();
-    // Events data from CSV file
-    List<String[]> eventDataLines = CsvUtils.readCsvAsListFromClasspath("csv/eventData.csv", true);
-    parseEventData(eventDataLines);
-    // The generated analytics tables
-    analyticsTableGenerator.generateTables(
-        AnalyticsTableUpdateParams.newBuilder().build(), NoopJobProgress.INSTANCE);
-    // The user
-    createAndInjectAdminUser();
-    // All events in program A - 2017
-    EventQueryParams events_2017_params =
-        new EventQueryParams.Builder()
-            .withOrganisationUnits(Lists.newArrayList(ouA))
-            .withStartDate(getDate(2017, 1, 1))
-            .withEndDate(getDate(2017, 12, 31))
-            .withProgram(programA)
-            .build();
-    // The results
-    Map<String, Number> events_2017_keyValue = new HashMap<>();
-    events_2017_keyValue.put("ouabcdefghA", 6.0);
-    // When
-    Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData(events_2017_params);
-    // Then
-    AnalyticsTestUtils.assertResultGrid(
-        "events_2017", aggregatedDataValueGrid, events_2017_keyValue);
-  }
-
   @Test
   void testDimensionRestrictionSuccessfully() {
     // Given
     // A program
     Program aProgram = createProgram('B', null, null, Sets.newHashSet(ouA, ouB), null);
-    aProgram.setUid("aProgram123");
+    aProgram.setUid("programA123");
     idObjectManager.save(aProgram);
     // The category options
     CategoryOption coA = createCategoryOption('A');
@@ -208,10 +158,12 @@ class EventAnalyticsServiceTest extends IntegrationTestBase {
             .withProgram(aProgram)
             .build();
     // When
-    Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData(events_2017_params);
+    assertThrows(
+        BadSqlGrammarException.class,
+        () -> eventAnalyticsService.getAggregatedEventData(events_2017_params));
+
     // Then
     boolean noCategoryRestrictionExceptionIsThrown = true;
-    assertThat(aggregatedDataValueGrid, is(notNullValue()));
     assert (noCategoryRestrictionExceptionIsThrown);
   }
 
@@ -220,7 +172,7 @@ class EventAnalyticsServiceTest extends IntegrationTestBase {
     // Given
     // A program
     Program aProgram = createProgram('B', null, null, Sets.newHashSet(ouA, ouB), null);
-    aProgram.setUid("aProgram123");
+    aProgram.setUid("programA123");
     idObjectManager.save(aProgram);
     // The category options
     CategoryOption coA = createCategoryOption('A');

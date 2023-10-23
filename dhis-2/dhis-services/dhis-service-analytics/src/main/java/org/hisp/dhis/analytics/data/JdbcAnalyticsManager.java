@@ -44,11 +44,14 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.relationDoesNotExist;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import com.google.common.collect.ImmutableMap;
@@ -177,17 +180,28 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
       log.debug(sql);
 
+      final String finalSqlValue = sql;
+      final DataQueryParams immutableParams = DataQueryParams.newBuilder(params).build();
+
       if (params.analyzeOnly()) {
-        executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql);
+        withExceptionHandling(
+            () ->
+                executionPlanStore.addExecutionPlan(
+                    immutableParams.getExplainOrderId(), finalSqlValue));
         return new AsyncResult<>(Maps.newHashMap());
       }
 
       Map<String, Object> map;
 
       try {
-        map = getKeyValueMap(params, sql, maxLimit);
+        map =
+            withExceptionHandling(() -> getKeyValueMap(immutableParams, finalSqlValue, maxLimit))
+                .orElse(Map.of());
       } catch (BadSqlGrammarException ex) {
-        log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+        if (relationDoesNotExist(ex.getSQLException())) {
+          throw ex;
+        }
+        log.warn(ERR_MSG_SILENT_FALLBACK, ex);
         return new AsyncResult<>(Maps.newHashMap());
       }
 
@@ -195,7 +209,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
       return new AsyncResult<>(map);
     } catch (DataAccessResourceFailureException ex) {
-      log.warn(ErrorCode.E7131.getMessage(), ex);
       throw new QueryRuntimeException(ErrorCode.E7131, ex);
     } catch (RuntimeException ex) {
       log.error(DebugUtils.getStackTrace(ex));

@@ -54,6 +54,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -61,6 +62,7 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
+import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -101,7 +103,6 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.InQueryFilter;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
@@ -116,10 +117,9 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 /**
@@ -494,6 +494,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         .map(RepeatableStageParams::getDimension);
   }
 
+  @Transactional(readOnly = true, propagation = REQUIRES_NEW)
   public Grid getAggregatedEventData(EventQueryParams params, Grid grid, int maxLimit) {
     String aggregateClause = getAggregateClause(params);
 
@@ -537,17 +538,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // Grid
     // ---------------------------------------------------------------------
 
-    try {
-      if (params.analyzeOnly()) {
-        executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql);
-      } else {
-        getAggregatedEventData(grid, params, sql);
-      }
-    } catch (BadSqlGrammarException ex) {
-      log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
-    } catch (DataAccessResourceFailureException ex) {
-      log.warn(ErrorCode.E7131.getMessage(), ex);
-      throw new QueryRuntimeException(ErrorCode.E7131, ex);
+    final String finalSqlValue = sql;
+
+    if (params.analyzeOnly()) {
+      withExceptionHandling(
+          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue));
+    } else {
+      withExceptionHandling(
+          () -> getAggregatedEventData(grid, params, finalSqlValue), params.isMultipleQueries());
     }
 
     return grid;
@@ -898,23 +896,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     sql += getPagingClause(params, maxLimit);
 
     return sql;
-  }
-
-  /**
-   * Wraps the provided interface around a common exception handling strategy
-   *
-   * @param r a {@see Runnable} interface containing the code block to execute and wrap around the
-   *     exception handling
-   */
-  void withExceptionHandling(Runnable r) {
-    try {
-      r.run();
-    } catch (BadSqlGrammarException ex) {
-      log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
-    } catch (DataAccessResourceFailureException ex) {
-      log.warn(ErrorCode.E7131.getMessage(), ex);
-      throw new QueryRuntimeException(ErrorCode.E7131, ex);
-    }
   }
 
   protected void addGridValue(
