@@ -275,8 +275,6 @@ public abstract class DhisConvenienceTest {
   @Autowired(required = false)
   protected CategoryService internalCategoryService;
 
-  @Autowired protected HibernateService hibernateService;
-
   protected static CategoryService categoryService;
 
   @PostConstruct
@@ -2605,7 +2603,6 @@ public abstract class DhisConvenienceTest {
       return;
     }
 
-    hibernateService.flushSession();
     user = userService.getUser(user.getUid());
 
     CurrentUserDetails currentUserDetails = userService.createUserDetails(user);
