@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.util;
 
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -46,7 +46,8 @@ import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrganisationUnitCriteriaUtils {
   /**
-   * Converts the given user organisation unit criteria into a list of {@link AnalyticsMetaDataKey} (MetaData).
+   * Converts the given user organisation unit criteria into a list of {@link AnalyticsMetaDataKey}
+   * (MetaData).
    *
    * @param userOrganisationUnitsCriteria {@link String}.
    * @return a list of {@link AnalyticsMetaDataKeys} or an empty list.
@@ -74,13 +75,14 @@ public class OrganisationUnitCriteriaUtils {
   }
 
   /**
-   * Transform criteria into a string.
+   * Transform request criteria into a comma separated string
+   * (USER_ORG_UNIT,USER_ORGUNIT_CHILDREN,USER_ORGUNIT_GRANDCHILDREN)
    *
    * @param criteria {@link EnrollmentAnalyticsQueryCriteria}.
    * @return string of the criteria, or empty.
    */
   public static String getAnalyticsQueryCriteria(EnrollmentAnalyticsQueryCriteria criteria) {
-    return hasDimensions(criteria.getDimension())
+    return isNotEmpty(criteria.getDimension())
         ? criteria.getDimension().stream()
             .filter(d -> d.contains(ORGUNIT_DIM_ID))
             .collect(Collectors.joining(","))
@@ -88,13 +90,14 @@ public class OrganisationUnitCriteriaUtils {
   }
 
   /**
-   * Transform criteria in the string
+   * Transform request criteria into a comma separated string
+   * (USER_ORG_UNIT,USER_ORGUNIT_CHILDREN,USER_ORGUNIT_GRANDCHILDREN)
    *
    * @param criteria {@link EventsAnalyticsQueryCriteria}.
    * @return string of criteria
    */
   public static String getAnalyticsQueryCriteria(EventsAnalyticsQueryCriteria criteria) {
-    return hasDimensions(criteria.getDimension())
+    return isNotEmpty(criteria.getDimension())
         ? criteria.getDimension().stream()
             .filter(d -> d.contains(ORGUNIT_DIM_ID))
             .collect(Collectors.joining(","))
@@ -102,20 +105,17 @@ public class OrganisationUnitCriteriaUtils {
   }
 
   /**
-   * Transform criteria in the string
+   * Transform request criteria into a comma separated string
+   * (USER_ORG_UNIT,USER_ORGUNIT_CHILDREN,USER_ORGUNIT_GRANDCHILDREN)
    *
    * @param criteria {@link AggregateAnalyticsQueryCriteria}.
    * @return string of criteria
    */
   public static String getAnalyticsQueryCriteria(AggregateAnalyticsQueryCriteria criteria) {
-    return hasDimensions(criteria.getDimension())
+    return isNotEmpty(criteria.getDimension())
         ? criteria.getDimension().stream()
             .filter(d -> d.contains(ORGUNIT_DIM_ID))
             .collect(Collectors.joining(","))
         : StringUtils.EMPTY;
-  }
-
-  private static boolean hasDimensions(Set<String> dimensions) {
-    return dimensions != null && !dimensions.isEmpty();
   }
 }
