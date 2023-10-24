@@ -79,7 +79,8 @@ class OrganisationUnitCriteriaUtilsTest {
     enrollmentAnalyticsQueryCriteria.setDimension(Set.of(validOuDimensions));
 
     // when
-    String analyticsQueryCriteria = getAnalyticsQueryCriteria(enrollmentAnalyticsQueryCriteria);
+    String analyticsQueryCriteria =
+        getAnalyticsQueryCriteria(enrollmentAnalyticsQueryCriteria.getDimension());
 
     // then
     assertEquals(validOuDimensions, analyticsQueryCriteria);
@@ -92,7 +93,8 @@ class OrganisationUnitCriteriaUtilsTest {
     eventsAnalyticsQueryCriteria.setDimension(Set.of(validOuDimensions));
 
     // when
-    String analyticsQueryCriteria = getAnalyticsQueryCriteria(eventsAnalyticsQueryCriteria);
+    String analyticsQueryCriteria =
+        getAnalyticsQueryCriteria(eventsAnalyticsQueryCriteria.getDimension());
 
     // then
     assertEquals(validOuDimensions, analyticsQueryCriteria);
@@ -106,7 +108,8 @@ class OrganisationUnitCriteriaUtilsTest {
     aggregateAnalyticsQueryCriteria.setDimension(Set.of(validOuDimensions));
 
     // when
-    String analyticsQueryCriteria = getAnalyticsQueryCriteria(aggregateAnalyticsQueryCriteria);
+    String analyticsQueryCriteria =
+        getAnalyticsQueryCriteria(aggregateAnalyticsQueryCriteria.getDimension());
 
     // then
     assertEquals(validOuDimensions, analyticsQueryCriteria);
@@ -120,7 +123,8 @@ class OrganisationUnitCriteriaUtilsTest {
     enrollmentAnalyticsQueryCriteria.setDimension(Set.of(invalidOuDimensions));
 
     // when
-    String analyticsQueryCriteria = getAnalyticsQueryCriteria(enrollmentAnalyticsQueryCriteria);
+    String analyticsQueryCriteria =
+        getAnalyticsQueryCriteria(enrollmentAnalyticsQueryCriteria.getDimension());
 
     // then
     assertEquals(StringUtils.EMPTY, analyticsQueryCriteria);
@@ -133,7 +137,8 @@ class OrganisationUnitCriteriaUtilsTest {
     eventsAnalyticsQueryCriteria.setDimension(Set.of(invalidOuDimensions));
 
     // when
-    String analyticsQueryCriteria = getAnalyticsQueryCriteria(eventsAnalyticsQueryCriteria);
+    String analyticsQueryCriteria =
+        getAnalyticsQueryCriteria(eventsAnalyticsQueryCriteria.getDimension());
 
     // then
     assertEquals(StringUtils.EMPTY, analyticsQueryCriteria);
@@ -147,7 +152,8 @@ class OrganisationUnitCriteriaUtilsTest {
     aggregateAnalyticsQueryCriteria.setDimension(Set.of(invalidOuDimensions));
 
     // when
-    String analyticsQueryCriteria = getAnalyticsQueryCriteria(aggregateAnalyticsQueryCriteria);
+    String analyticsQueryCriteria =
+        getAnalyticsQueryCriteria(aggregateAnalyticsQueryCriteria.getDimension());
 
     // then
     assertEquals(StringUtils.EMPTY, analyticsQueryCriteria);

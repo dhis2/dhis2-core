@@ -264,7 +264,7 @@ public class EventDataQueryRequest {
               .endpointItem(criteria.getEndpointItem())
               .endpointAction(criteria.getEndpointAction())
               .enhancedConditions(criteria.isEnhancedConditions())
-              .userOrganisationUnitCriteria(getAnalyticsQueryCriteria(criteria))
+              .userOrganisationUnitCriteria(getAnalyticsQueryCriteria(criteria.getDimension()))
               .rowContext(criteria.isRowContext());
 
       if (criteria.getDimension() == null) {
@@ -341,7 +341,7 @@ public class EventDataQueryRequest {
               .endpointItem(criteria.getEndpointItem())
               .endpointAction(criteria.getEndpointAction())
               .enhancedConditions(criteria.isEnhancedConditions())
-              .userOrganisationUnitCriteria(getAnalyticsQueryCriteria(criteria))
+              .userOrganisationUnitCriteria(getAnalyticsQueryCriteria(criteria.getDimension()))
               .rowContext(criteria.isRowContext());
 
       if (criteria.getDimension() == null) {

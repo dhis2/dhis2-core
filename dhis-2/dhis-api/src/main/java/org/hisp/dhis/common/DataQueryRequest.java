@@ -323,7 +323,8 @@ public class DataQueryRequest {
       this.request.startDate = criteria.getStartDate();
       this.request.timeField = criteria.getTimeField();
       this.request.userOrgUnit = criteria.getUserOrgUnit();
-      this.request.userOrganisationUnitCriteria = getAnalyticsQueryCriteria(criteria);
+      this.request.userOrganisationUnitCriteria =
+          getAnalyticsQueryCriteria(criteria.getDimension());
       this.request.userOrgUnitType = criteria.getUserOrgUnitType();
       return this;
     }

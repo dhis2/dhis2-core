@@ -27,20 +27,18 @@
  */
 package org.hisp.dhis.util;
 
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
-import org.hisp.dhis.common.AggregateAnalyticsQueryCriteria;
-import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
-import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 
 /** Utilities for organisation unit criteria of incoming analytics request. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -78,42 +76,12 @@ public class OrganisationUnitCriteriaUtils {
    * Transform request criteria into a comma separated string
    * (USER_ORG_UNIT,USER_ORGUNIT_CHILDREN,USER_ORGUNIT_GRANDCHILDREN)
    *
-   * @param criteria {@link EnrollmentAnalyticsQueryCriteria}.
+   * @param dimensions, set of the requested dimensions
    * @return string of the criteria, or empty.
    */
-  public static String getAnalyticsQueryCriteria(EnrollmentAnalyticsQueryCriteria criteria) {
-    return isNotEmpty(criteria.getDimension())
-        ? criteria.getDimension().stream()
-            .filter(d -> d.contains(ORGUNIT_DIM_ID))
-            .collect(Collectors.joining(","))
-        : StringUtils.EMPTY;
-  }
-
-  /**
-   * Transform request criteria into a comma separated string
-   * (USER_ORG_UNIT,USER_ORGUNIT_CHILDREN,USER_ORGUNIT_GRANDCHILDREN)
-   *
-   * @param criteria {@link EventsAnalyticsQueryCriteria}.
-   * @return string of criteria
-   */
-  public static String getAnalyticsQueryCriteria(EventsAnalyticsQueryCriteria criteria) {
-    return isNotEmpty(criteria.getDimension())
-        ? criteria.getDimension().stream()
-            .filter(d -> d.contains(ORGUNIT_DIM_ID))
-            .collect(Collectors.joining(","))
-        : StringUtils.EMPTY;
-  }
-
-  /**
-   * Transform request criteria into a comma separated string
-   * (USER_ORG_UNIT,USER_ORGUNIT_CHILDREN,USER_ORGUNIT_GRANDCHILDREN)
-   *
-   * @param criteria {@link AggregateAnalyticsQueryCriteria}.
-   * @return string of criteria
-   */
-  public static String getAnalyticsQueryCriteria(AggregateAnalyticsQueryCriteria criteria) {
-    return isNotEmpty(criteria.getDimension())
-        ? criteria.getDimension().stream()
+  public static String getAnalyticsQueryCriteria(Set<String> dimensions) {
+    return isNotEmpty(dimensions)
+        ? dimensions.stream()
             .filter(d -> d.contains(ORGUNIT_DIM_ID))
             .collect(Collectors.joining(","))
         : StringUtils.EMPTY;
