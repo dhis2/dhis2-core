@@ -171,16 +171,16 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   private void distributeTableIfNecessary(AnalyticsTable table) {
     if (analyticsExportSettings.isCitusExtensionEnabled()) {
-      String tableName = table.getTempTableName();
-      String distributionColumn = table.getTableType().getDistributionColumn();
-
-      if (StringUtils.isBlank(distributionColumn)) {
+      if (!table.isTableTypeDistributed()) {
         log.warn(
             "No distribution column defined for table "
                 + table.getTableName()
                 + " so it won't be distributed");
         return;
       }
+
+      String tableName = table.getTempTableName();
+      String distributionColumn = table.getTableType().getDistributionColumn();
 
       try {
         jdbcTemplate.execute(
@@ -414,11 +414,16 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         sqlCreate.append(TextUtils.removeLastComma(sqlCheck.toString()));
       }
 
-      sqlCreate
-          .append(") inherits (")
-          .append(table.getTempTableName())
-          .append(") ")
-          .append(getTableOptions());
+      sqlCreate.append(")");
+
+      // only use partitioned (inherited) tables when we should not distribute the table
+      if (!table.isTableDistributed()) {
+        sqlCreate
+            .append("inherits (")
+            .append(table.getTempTableName())
+            .append(") ")
+            .append(getTableOptions());
+      }
 
       log.info("Creating partition table: '{}'", tableName);
       log.debug("Create SQL: {}", sqlCreate);
@@ -455,10 +460,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     for (Integer year : years) {
       table.addPartitionTable(
-          year,
-          PartitionUtils.getStartDate(year),
-          PartitionUtils.getEndDate(year),
-          params.isCitusExtensionEnabled());
+          year, PartitionUtils.getStartDate(year), PartitionUtils.getEndDate(year));
     }
 
     return table;
@@ -496,10 +498,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     if (hasUpdatedData) {
       table.addPartitionTable(
-          AnalyticsTablePartition.LATEST_PARTITION,
-          lastFullTableUpdate,
-          endDate,
-          params.isCitusExtensionEnabled());
+          AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate);
       log.info(
           "Added latest analytics partition with start: '{}' and end: '{}'",
           getLongDateString(lastFullTableUpdate),

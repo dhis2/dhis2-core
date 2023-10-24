@@ -300,8 +300,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         table.addPartitionTable(
             year,
             PartitionUtils.getStartDate(calendar, year),
-            PartitionUtils.getEndDate(calendar, year),
-            params.isCitusExtensionEnabled());
+            PartitionUtils.getEndDate(calendar, year));
       }
 
       if (table.hasPartitionTables()) {
@@ -351,11 +350,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         AnalyticsTable table =
             new AnalyticsTable(
                 getAnalyticsTableType(), getDimensionColumns(program), List.of(), program);
-        table.addPartitionTable(
-            AnalyticsTablePartition.LATEST_PARTITION,
-            startDate,
-            endDate,
-            params.isCitusExtensionEnabled());
+        table.addPartitionTable(AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
         tables.add(table);
 
         log.info(
