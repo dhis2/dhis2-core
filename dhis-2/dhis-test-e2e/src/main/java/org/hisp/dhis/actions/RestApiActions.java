@@ -35,6 +35,7 @@ import com.google.gson.JsonArray;
 import io.restassured.RestAssured;
 import io.restassured.config.ObjectMapperConfig;
 import io.restassured.http.ContentType;
+import io.restassured.http.Headers;
 import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
@@ -160,6 +161,25 @@ public class RestApiActions {
     addCoverage("GET", resourceId + path);
 
     Response response = this.given().contentType(ContentType.TEXT).when().get(resourceId + path);
+
+    return new ApiResponse(response);
+  }
+
+  /**
+   * Sends get request with provided path, headers & queryParams appended to URL.
+   *
+   * @param resourceId Id of resource
+   * @param queryParamsBuilder Query params to append to url
+   * @param headers headers to send as part of the request
+   */
+  public ApiResponse getWithHeaders(
+      String resourceId, QueryParamsBuilder queryParamsBuilder, Headers headers) {
+    String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
+    addCoverage("GET", resourceId + path);
+
+    Response response =
+        this.given().contentType(ContentType.TEXT).headers(headers).when().get(resourceId + path);
 
     return new ApiResponse(response);
   }
