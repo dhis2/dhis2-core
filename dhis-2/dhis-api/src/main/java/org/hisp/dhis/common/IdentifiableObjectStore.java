@@ -450,4 +450,13 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @return List of objects found.
    */
   List<T> findByCreatedBy(@Nonnull User user);
+
+  /**
+   * Look up list objects which have property createdBy or lastUpdatedBy linked to given {@link
+   * User}
+   *
+   * @param user the {@link User} for filtering
+   * @return TRUE if objects exist. FALSE otherwise.
+   */
+  boolean existsByUser(@Nonnull User user, final Set<String> checkProperties);
 }

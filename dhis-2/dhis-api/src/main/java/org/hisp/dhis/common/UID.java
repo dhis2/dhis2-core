@@ -29,9 +29,12 @@ package org.hisp.dhis.common;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -48,7 +51,7 @@ import lombok.Getter;
  */
 @Getter
 @EqualsAndHashCode
-public final class UID {
+public final class UID implements Serializable {
   private static final String VALID_UID_FORMAT =
       "UID must be an alphanumeric string of 11 characters starting with a letter.";
 
@@ -66,12 +69,12 @@ public final class UID {
     return value;
   }
 
-  public static UID of(String value) {
+  public static UID of(@Nonnull String value) {
     return new UID(value);
   }
 
-  public static UID of(UidObject object) {
-    return new UID(object.getUid());
+  public static UID of(@CheckForNull UidObject object) {
+    return object == null ? null : new UID(object.getUid());
   }
 
   public static Set<String> toValueSet(Collection<UID> uids) {

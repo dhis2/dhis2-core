@@ -280,7 +280,7 @@ public class DefaultDataSetService implements DataSetService {
       CategoryOptionCombo attributeOptionCombo,
       User user,
       Date now) {
-    if (user == null || !user.isAuthorized(Authorities.F_EDIT_EXPIRED.getAuthority())) {
+    if (user == null || !user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       now = now != null ? now : new Date();
 
       boolean expired = dataElement.isExpired(period, now);

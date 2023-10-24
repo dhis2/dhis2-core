@@ -28,42 +28,41 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static java.util.Collections.emptySet;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
 import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fromOrderString;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
+import lombok.Data;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.export.OperationParamUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /** Tests {@link RequestParamsValidator}. */
 class RequestParamsValidatorTest {
@@ -72,17 +71,9 @@ class RequestParamsValidatorTest {
 
   private static final String TEA_2_UID = "cy2oRh2sNr6";
 
-  private Map<String, TrackedEntityAttribute> attributes;
+  public static final String TEA_3_UID = "cy2oRh2sNr7";
 
   private static final OrganisationUnit orgUnit = new OrganisationUnit();
-
-  @BeforeEach
-  void setUp() {
-    attributes =
-        Map.of(
-            TEA_1_UID, trackedEntityAttribute(TEA_1_UID),
-            TEA_2_UID, trackedEntityAttribute(TEA_2_UID));
-  }
 
   @Test
   void shouldPassOrderParamsValidationWhenGivenOrderIsOrderable() throws BadRequestException {
@@ -154,92 +145,6 @@ class RequestParamsValidatorTest {
   }
 
   @Test
-  void testParseQueryItem() throws BadRequestException {
-    String param = TEA_1_UID + ":lt:20:gt:10";
-
-    QueryItem item = parseQueryItem(param, id -> new QueryItem(attributes.get(id)));
-
-    assertNotNull(item);
-    assertAll(
-        () -> assertEquals(attributes.get(TEA_1_UID), item.getItem()),
-        // QueryItem equals() does not take the QueryFilter into account, so
-        // we need to assert on filters separately
-        () ->
-            assertEquals(
-                List.of(
-                    new QueryFilter(QueryOperator.LT, "20"),
-                    new QueryFilter(QueryOperator.GT, "10")),
-                item.getFilters()));
-  }
-
-  @Test
-  void testParseQueryItemWithOnlyIdentifier() throws BadRequestException {
-    QueryItem item = parseQueryItem(TEA_1_UID, id -> new QueryItem(attributes.get(id)));
-
-    assertNotNull(item);
-    assertAll(
-        () -> assertEquals(attributes.get(TEA_1_UID), item.getItem()),
-        () -> assertIsEmpty(item.getFilters()));
-  }
-
-  @Test
-  void testParseQueryItemWithIdentifierAndTrailingColon() throws BadRequestException {
-    String param = TEA_1_UID + ":";
-
-    QueryItem item = parseQueryItem(param, id -> new QueryItem(attributes.get(id)));
-
-    assertNotNull(item);
-    assertAll(
-        () -> assertEquals(attributes.get(TEA_1_UID), item.getItem()),
-        () -> assertIsEmpty(item.getFilters()));
-  }
-
-  @Test
-  void testParseQueryItemWithMissingValue() {
-    String param = TEA_1_UID + ":lt";
-
-    Exception exception =
-        assertThrows(
-            BadRequestException.class,
-            () -> parseQueryItem(param, id -> new QueryItem(attributes.get(id))));
-    assertEquals("Query item or filter is invalid: " + param, exception.getMessage());
-  }
-
-  @Test
-  void testParseQueryItemWithMissingValueAndTrailingColon() {
-    String param = TEA_1_UID + ":lt:";
-
-    Exception exception =
-        assertThrows(
-            BadRequestException.class,
-            () -> parseQueryItem(param, id -> new QueryItem(attributes.get(id))));
-    assertEquals("Query item or filter is invalid: " + param, exception.getMessage());
-  }
-
-  @Test
-  void testParseAttributeQueryItemWhenNoTEAExist() {
-    String param = TEA_1_UID + ":eq:2";
-    Map<String, TrackedEntityAttribute> attributes = Collections.emptyMap();
-
-    Exception exception =
-        assertThrows(
-            BadRequestException.class,
-            () -> OperationParamUtils.parseAttributeQueryItems(param, attributes));
-    assertEquals("Attribute does not exist: " + TEA_1_UID, exception.getMessage());
-  }
-
-  @Test
-  void testParseAttributeQueryWhenTEAInFilterDoesNotExist() {
-    String param = "JM5zWuf1mkb:eq:2";
-
-    Exception exception =
-        assertThrows(
-            BadRequestException.class,
-            () -> OperationParamUtils.parseAttributeQueryItems(param, attributes));
-    assertEquals("Attribute does not exist: JM5zWuf1mkb", exception.getMessage());
-  }
-
-  @Test
   void shouldParseFilters() throws BadRequestException {
     Map<String, List<QueryFilter>> filters =
         parseFilters(TEA_1_UID + ":lt:20:gt:10," + TEA_2_UID + ":like:foo");
@@ -305,11 +210,84 @@ class RequestParamsValidatorTest {
   }
 
   @Test
-  void shouldCreateQueryFiltersWhenQueryHasOperatorAndValueWithDelimiter()
-      throws BadRequestException {
+  void shouldParseFiltersWithFilterNameHasSeparationCharInIt() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters = parseFilters(TEA_2_UID + ":like:project/:x/:eq/:2");
+
     assertEquals(
-        new QueryFilter(QueryOperator.LIKE, "project:x"),
-        OperationParamUtils.parseQueryFilter("like:project/:x"));
+        Map.of(TEA_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "project:x:eq:2"))), filters);
+  }
+
+  @Test
+  void shouldThrowBadRequestWhenFilterHasOperatorInWrongFormat() {
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(TEA_1_UID + ":lke:value"));
+    assertEquals(
+        "Query item or filter is invalid: " + TEA_1_UID + ":lke:value", exception.getMessage());
+  }
+
+  @Test
+  void shouldParseFilterWhenFilterHasDatesFormatDateWithMilliSecondsAndTimeZone()
+      throws BadRequestException {
+    Map<String, List<QueryFilter>> filters =
+        parseFilters(
+            TEA_1_UID
+                + ":ge:2020-01-01T00/:00/:00.001 +05/:30:le:2021-01-01T00/:00/:00.001 +05/:30");
+
+    assertEquals(
+        Map.of(
+            TEA_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.GE, "2020-01-01T00:00:00.001 +05:30"),
+                new QueryFilter(QueryOperator.LE, "2021-01-01T00:00:00.001 +05:30"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFilterWhenFilterHasMultipleOperatorAndTextRange() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters =
+        parseFilters(TEA_1_UID + ":sw:project/:x:ew:project/:le/:");
+
+    assertEquals(
+        Map.of(
+            TEA_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.SW, "project:x"),
+                new QueryFilter(QueryOperator.EW, "project:le:"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFilterWhenMultipleFiltersAreMixedCommaAndSlash() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters =
+        parseFilters(
+            TEA_1_UID
+                + ":eq:project///,/,//"
+                + ","
+                + TEA_2_UID
+                + ":eq:project//"
+                + ","
+                + TEA_3_UID
+                + ":eq:project//");
+
+    assertEquals(
+        Map.of(
+            TEA_1_UID, List.of(new QueryFilter(QueryOperator.EQ, "project/,,/")),
+            TEA_2_UID, List.of(new QueryFilter(QueryOperator.EQ, "project/")),
+            TEA_3_UID, List.of(new QueryFilter(QueryOperator.EQ, "project/"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFilterWhenFilterHasMultipleOperatorWithFinalColon() throws BadRequestException {
+    Map<String, List<QueryFilter>> filters = parseFilters(TEA_1_UID + ":like:value1/::like:value2");
+
+    assertEquals(
+        Map.of(
+            TEA_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.LIKE, "value1:"),
+                new QueryFilter(QueryOperator.LIKE, "value2"))),
+        filters);
   }
 
   private TrackedEntityAttribute trackedEntityAttribute(String uid) {
@@ -318,76 +296,191 @@ class RequestParamsValidatorTest {
     return tea;
   }
 
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"CAPTURE", "ACCESSIBLE", "ALL"})
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeDoesNotRequireOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), ACCESSIBLE));
+            () -> validateOrgUnitModeForEnrollmentsAndEvents(Set.of(UID.of(orgUnit)), orgUnitMode));
 
     assertStartsWith(
-        "orgUnitMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
+        String.format("orgUnitMode %s cannot be used with orgUnits.", orgUnitMode),
+        exception.getMessage());
   }
 
-  @Test
-  void shouldPassWhenNoOrgUnitSuppliedAndOrgUnitModeAccessible() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(emptySet(), ACCESSIBLE));
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"CAPTURE", "ACCESSIBLE", "ALL"})
+  void shouldPassWhenNoOrgUnitSuppliedAndOrgUnitModeDoesNotRequireOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    assertDoesNotThrow(() -> validateOrgUnitModeForEnrollmentsAndEvents(emptySet(), orgUnitMode));
   }
 
-  @Test
-  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeRequiresOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    assertDoesNotThrow(
+        () -> validateOrgUnitModeForEnrollmentsAndEvents(Set.of(UID.of(orgUnit)), orgUnitMode));
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldPassWhenTrackedEntitySuppliedAndOrgUnitModeRequiresOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    assertDoesNotThrow(
+        () ->
+            validateOrgUnitModeForTrackedEntities(
+                emptySet(), orgUnitMode, Set.of(UID.of(TEA_1_UID))));
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeRequiresOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), CAPTURE));
-
-    assertStartsWith("orgUnitMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
-  }
-
-  @Test
-  void shouldPassWhenNoOrgUnitSuppliedAndOrgUnitModeCapture() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(emptySet(), CAPTURE));
-  }
-
-  @Test
-  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeSelected() {
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), SELECTED));
+            () -> validateOrgUnitModeForEnrollmentsAndEvents(emptySet(), orgUnitMode));
 
     assertStartsWith(
-        "At least one org unit is required for orgUnitMode: SELECTED", exception.getMessage());
+        String.format("At least one org unit is required for orgUnitMode: %s", orgUnitMode),
+        exception.getMessage());
   }
 
-  @Test
-  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeSelected() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), SELECTED));
-  }
-
-  @Test
-  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeDescendants() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OrganisationUnitSelectionMode.class,
+      names = {"SELECTED", "DESCENDANTS", "CHILDREN"})
+  void shouldFailWhenNoOrgUnitNorTrackedEntitySuppliedAndOrgUnitModeRequiresOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
     Exception exception =
-        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), DESCENDANTS));
+        assertThrows(
+            BadRequestException.class,
+            () -> validateOrgUnitModeForTrackedEntities(emptySet(), orgUnitMode, emptySet()));
 
     assertStartsWith(
-        "At least one org unit is required for orgUnitMode: DESCENDANTS", exception.getMessage());
+        String.format(
+            "At least one org unit or tracked entity is required for orgUnitMode: %s", orgUnitMode),
+        exception.getMessage());
   }
 
-  @Test
-  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeDescendants() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), DESCENDANTS));
+  @Data
+  private static class PaginationParameters implements PageRequestParams {
+    private Integer page;
+    private Integer pageSize;
+    private Boolean totalPages;
+    private Boolean skipPaging;
   }
 
-  @Test
-  void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeChildren() {
+  private static Stream<Arguments> mutuallyExclusivePaginationParameters() {
+    return Stream.of(
+        arguments(null, 1, null, true),
+        arguments(null, 1, false, true),
+        arguments(null, 1, false, true),
+        arguments(1, 1, false, true),
+        arguments(1, 1, true, true),
+        arguments(null, null, true, true));
+  }
+
+  @MethodSource("mutuallyExclusivePaginationParameters")
+  @ParameterizedTest
+  void shouldFailWhenGivenMutuallyExclusivePaginationParameters(
+      Integer page, Integer pageSize, Boolean totalPages, Boolean skipPaging) {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPage(page);
+    paginationParameters.setPageSize(pageSize);
+    paginationParameters.setTotalPages(totalPages);
+    paginationParameters.setSkipPaging(skipPaging);
+
     Exception exception =
-        assertThrows(BadRequestException.class, () -> validateOrgUnitMode(emptySet(), CHILDREN));
+        assertThrows(
+            BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
 
-    assertStartsWith(
-        "At least one org unit is required for orgUnitMode: CHILDREN", exception.getMessage());
+    assertStartsWith("Paging cannot be skipped with", exception.getMessage());
   }
 
-  @Test
-  void shouldPassWhenOrgUnitSuppliedAndOrgUnitModeChildren() {
-    assertDoesNotThrow(() -> validateOrgUnitMode(Set.of(UID.of(orgUnit.getUid())), CHILDREN));
+  private static Stream<Arguments> validPaginationParameters() {
+    return Stream.of(
+        arguments(null, null, null, null),
+        arguments(null, null, null, false),
+        arguments(null, 1, true, null),
+        arguments(null, 1, false, null),
+        arguments(null, 1, false, false),
+        arguments(null, null, true, false),
+        arguments(1, 1, false, false),
+        arguments(null, null, true, null),
+        arguments(null, 1, true, false),
+        arguments(null, null, null, true),
+        arguments(null, null, false, true));
+  }
+
+  @MethodSource("validPaginationParameters")
+  @ParameterizedTest
+  void shouldPassWhenGivenValidPaginationParameters(
+      Integer page, Integer pageSize, Boolean totalPages, Boolean skipPaging)
+      throws BadRequestException {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPage(page);
+    paginationParameters.setPage(pageSize);
+    paginationParameters.setTotalPages(totalPages);
+    paginationParameters.setSkipPaging(skipPaging);
+
+    validatePaginationParameters(paginationParameters);
+  }
+
+  @ValueSource(ints = {-1, 0})
+  @ParameterizedTest
+  void shouldFailWhenGivenPageLessThanOrEqualToZero(int page) {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPage(page);
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
+
+    assertStartsWith("page must be greater", exception.getMessage());
+  }
+
+  @ValueSource(ints = {1, 2})
+  @ParameterizedTest
+  void shouldPassWhenGivenPageGreaterThanOrEqualToOne(int page) throws BadRequestException {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPage(page);
+
+    validatePaginationParameters(paginationParameters);
+  }
+
+  @ValueSource(ints = {-1, 0})
+  @ParameterizedTest
+  void shouldFailWhenGivenPageSizeLessThanOrEqualToZero(int pageSize) {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPageSize(pageSize);
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
+
+    assertStartsWith("pageSize must be greater", exception.getMessage());
+  }
+
+  @ValueSource(ints = {1, 2})
+  @ParameterizedTest
+  void shouldPassWhenGivenPageSizeGreaterThanOrEqualToOne(int pageSize) throws BadRequestException {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPageSize(pageSize);
+
+    validatePaginationParameters(paginationParameters);
   }
 }

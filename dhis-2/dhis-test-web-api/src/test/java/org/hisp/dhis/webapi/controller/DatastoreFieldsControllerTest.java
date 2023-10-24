@@ -30,15 +30,15 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.utils.JavaToJson.toJson;
 
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.hisp.dhis.datastore.DatastoreParams;
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests specifically the {@code fields} parameter aspect of the {@link
- * DatastoreController#getEntries(String, String, boolean, HttpServletRequest, HttpServletResponse)}
+ * DatastoreController#getEntries(String, String, boolean, DatastoreParams, HttpServletResponse)}
  * method using (mocked) REST requests.
  *
  * <p>Tests will use {@code filter} but only to pick keys in order to reduce the matches.

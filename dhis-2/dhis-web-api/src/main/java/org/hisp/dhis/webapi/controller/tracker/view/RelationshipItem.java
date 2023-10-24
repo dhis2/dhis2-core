@@ -121,8 +121,6 @@ public class RelationshipItem {
 
     @JsonProperty private String orgUnit;
 
-    @JsonProperty private String orgUnitName;
-
     @JsonProperty private Instant enrolledAt;
 
     @JsonProperty private Instant occurredAt;
@@ -170,15 +168,17 @@ public class RelationshipItem {
 
     @JsonProperty private String orgUnit;
 
-    @JsonProperty private String orgUnitName;
-
     @JsonProperty private Instant occurredAt;
 
     @JsonProperty private Instant scheduledAt;
 
     @JsonProperty private String storedBy;
 
-    @JsonProperty private boolean followup;
+    @JsonProperty private boolean followUp;
+
+    @Deprecated(since = "2.41", forRemoval = true)
+    @JsonProperty("followup")
+    private boolean legacyFollowUp;
 
     @JsonProperty private boolean deleted;
 

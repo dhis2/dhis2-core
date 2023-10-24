@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.mapstruct.Mapper;
 
 @Mapper
@@ -43,6 +44,8 @@ public interface CategoryOptionMapper {
       return null;
     }
 
-    return categoryOptions.stream().map(CategoryOption::getUid).collect(Collectors.joining(";"));
+    return categoryOptions.stream()
+        .map(CategoryOption::getUid)
+        .collect(Collectors.joining(TextUtils.COMMA));
   }
 }

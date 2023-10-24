@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.stream.Stream;
+import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.cache.DefaultCacheBuilderProvider;
@@ -53,18 +54,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class DefaultAppManagerTest {
+
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
-
+  @Mock private AppHubService appHubService;
   @Mock private AppStorageService localAppStorageService;
-
   @Mock private AppStorageService jCloudsAppStorageService;
-
   @Mock private DatastoreService datastoreService;
-
   @Mock private Cache<App> appCache;
-
   @Mock private DefaultCacheBuilderProvider cacheBuilderProvider;
-
   @Mock private CacheBuilder cacheBuilder;
 
   private AppManager appManager;
@@ -119,6 +116,7 @@ class DefaultAppManagerTest {
     appManager =
         new DefaultAppManager(
             dhisConfigurationProvider,
+            appHubService,
             localAppStorageService,
             jCloudsAppStorageService,
             datastoreService,

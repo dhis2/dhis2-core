@@ -75,8 +75,6 @@ public class EventReportController extends AbstractCrudController<EventReport> {
   // CRUD
   // --------------------------------------------------------------------------
 
-  // TODO: ONLY allow querying LINE_LIST and PIVOT_TABLE type.
-
   @Override
   protected EventReport deserializeJsonEntity(HttpServletRequest request) throws IOException {
     EventReport eventReport = super.deserializeJsonEntity(request);

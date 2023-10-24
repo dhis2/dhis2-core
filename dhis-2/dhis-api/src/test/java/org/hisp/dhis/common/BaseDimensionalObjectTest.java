@@ -32,6 +32,10 @@ import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -94,6 +98,47 @@ class BaseDimensionalObjectTest {
     assertThat(
         cloned.getDimensionItemKeywords().getKeywords(),
         hasSize(target.getDimensionItemKeywords().getKeywords().size()));
+  }
+
+  @Test
+  void testConstructorWithFullQualifiedDimension() {
+    // When
+    BaseDimensionalObject baseDimensionalObject =
+        new BaseDimensionalObject("programUid.programStageUid.dimensionUid");
+
+    // Then
+    assertTrue(baseDimensionalObject.hasProgram());
+    assertTrue(baseDimensionalObject.hasProgramStage());
+    assertEquals("programUid", baseDimensionalObject.getProgram().getUid());
+    assertEquals("programStageUid", baseDimensionalObject.getProgramStage().getUid());
+    assertEquals("dimensionUid", baseDimensionalObject.getUid());
+  }
+
+  @Test
+  void testConstructorQualifiedDimensionNoStage() {
+    // When
+    BaseDimensionalObject baseDimensionalObject =
+        new BaseDimensionalObject("programUid.dimensionUid");
+
+    // Then
+    assertTrue(baseDimensionalObject.hasProgram());
+    assertFalse(baseDimensionalObject.hasProgramStage());
+    assertEquals("programUid", baseDimensionalObject.getProgram().getUid());
+    assertNull(baseDimensionalObject.getProgramStage());
+    assertEquals("dimensionUid", baseDimensionalObject.getUid());
+  }
+
+  @Test
+  void testConstructorQualifiedDimensionOnlyDimensionItem() {
+    // When
+    BaseDimensionalObject baseDimensionalObject = new BaseDimensionalObject("dimensionUid");
+
+    // Then
+    assertFalse(baseDimensionalObject.hasProgram());
+    assertFalse(baseDimensionalObject.hasProgramStage());
+    assertNull(baseDimensionalObject.getProgram());
+    assertNull(baseDimensionalObject.getProgramStage());
+    assertEquals("dimensionUid", baseDimensionalObject.getUid());
   }
 
   private DimensionalItemObject buildDimensionalItemObject() {

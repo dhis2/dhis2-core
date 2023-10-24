@@ -39,10 +39,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -192,8 +194,9 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService {
     if (obj == null) {
       return createJsonErrorReport(proposal);
     }
-    MetadataImportParams params = createImportParams(mode, ImportStrategy.CREATE, obj);
-    ImportReport report = importService.importMetadata(params);
+    MetadataImportParams params = createImportParams(mode, ImportStrategy.CREATE);
+    ImportReport report =
+        importService.importMetadata(params, new MetadataObjects().addObject(obj));
     if (report.getStatus() == Status.OK) {
       TypeReport typeReport = report.getTypeReport(objType);
       ObjectReport objectReport = new ObjectReport(obj, object -> 0);
@@ -215,27 +218,26 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService {
       log.error("Failed to apply proposed object update: " + proposal.getChange(), ex);
       return createJsonErrorReport(proposal);
     }
-    return importService.importMetadata(createImportParams(mode, ImportStrategy.UPDATE, patched));
+    return importService.importMetadata(
+        createImportParams(mode, ImportStrategy.UPDATE), new MetadataObjects().addObject(patched));
   }
 
   private ImportReport acceptRemove(MetadataProposal proposal, ObjectBundleMode mode) {
     return importService.importMetadata(
-        createImportParams(
-            mode,
-            ImportStrategy.DELETE,
-            objectManager.get(proposal.getTarget().getType(), proposal.getTargetId())));
+        createImportParams(mode, ImportStrategy.DELETE),
+        new MetadataObjects()
+            .addObject(objectManager.get(proposal.getTarget().getType(), proposal.getTargetId())));
   }
 
-  private MetadataImportParams createImportParams(
-      ObjectBundleMode mode, ImportStrategy strategy, IdentifiableObject obj) {
+  private MetadataImportParams createImportParams(ObjectBundleMode mode, ImportStrategy strategy) {
     return new MetadataImportParams()
-        .addObject(obj)
         .setImportStrategy(strategy)
         .setImportMode(mode)
         .setUser(
-            mode == ObjectBundleMode.VALIDATE
-                ? userService.getUserByUsername("system")
-                : currentUserService.getCurrentUser());
+            UID.of(
+                mode == ObjectBundleMode.VALIDATE
+                    ? userService.getUserByUsername("system")
+                    : currentUserService.getCurrentUser()));
   }
 
   private void checkHasStatus(MetadataProposal proposal, MetadataProposalStatus expected) {

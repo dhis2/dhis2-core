@@ -70,7 +70,7 @@ public class NoteSupplier extends AbstractSupplier<Map<String, Note>> {
             .collect(Collectors.toSet());
 
     if (isNotEmpty(notesUid)) {
-      final String sql = "select uid from trackedentitycomment where uid in  (:ids)";
+      final String sql = "select uid from note where uid in  (:ids)";
 
       MapSqlParameterSource parameters = new MapSqlParameterSource();
       parameters.addValue("ids", notesUid);

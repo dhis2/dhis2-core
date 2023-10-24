@@ -57,6 +57,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -90,10 +91,13 @@ class AbstractAnalyticsServiceTest {
 
   @Mock private SchemeIdResponseMapper schemeIdResponseMapper;
 
+  @Mock private CurrentUserService currentUserService;
+
   @BeforeEach
   public void setUp() {
     dummyAnalyticsService =
-        new DummyAnalyticsService(securityManager, eventQueryValidator, schemeIdResponseMapper);
+        new DummyAnalyticsService(
+            securityManager, eventQueryValidator, schemeIdResponseMapper, currentUserService);
 
     peA = MonthlyPeriodType.getPeriodFromIsoString("201701");
     ouA = createOrganisationUnit('A');
@@ -249,8 +253,9 @@ class DummyAnalyticsService extends AbstractAnalyticsService {
   public DummyAnalyticsService(
       AnalyticsSecurityManager securityManager,
       EventQueryValidator queryValidator,
-      SchemeIdResponseMapper schemeIdResponseMapper) {
-    super(securityManager, queryValidator, schemeIdResponseMapper);
+      SchemeIdResponseMapper schemeIdResponseMapper,
+      CurrentUserService currentUserService) {
+    super(securityManager, queryValidator, schemeIdResponseMapper, currentUserService);
   }
 
   @Override
@@ -259,7 +264,7 @@ class DummyAnalyticsService extends AbstractAnalyticsService {
   }
 
   @Override
-  protected long addEventData(Grid grid, EventQueryParams params) {
+  protected long addData(Grid grid, EventQueryParams params) {
     return 0;
   }
 }

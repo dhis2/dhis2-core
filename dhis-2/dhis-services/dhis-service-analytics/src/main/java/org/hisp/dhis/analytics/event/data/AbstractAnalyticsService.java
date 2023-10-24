@@ -29,10 +29,9 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
-import static java.util.stream.Collectors.counting;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
@@ -64,10 +63,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.common.processing.MetadataItemsHandler;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
+import org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionItemKeywords;
@@ -88,6 +89,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 
 /**
@@ -100,6 +102,8 @@ public abstract class AbstractAnalyticsService {
   protected final EventQueryValidator queryValidator;
 
   protected final SchemeIdResponseMapper schemeIdResponseMapper;
+
+  private final CurrentUserService currentUserService;
 
   /**
    * Returns a grid based on the given query.
@@ -129,6 +133,8 @@ public abstract class AbstractAnalyticsService {
             .flatMap(dk -> dk.getKeywords().stream())
             .collect(toList());
 
+    List<DimensionalObject> periods = getPeriods(params);
+
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     // ---------------------------------------------------------------------
@@ -138,6 +144,16 @@ public abstract class AbstractAnalyticsService {
     Grid grid = createGridWithHeaders(params);
 
     for (DimensionalObject dimension : params.getDimensions()) {
+      grid.addHeader(
+          new GridHeader(
+              dimension.getDimension(),
+              dimension.getDimensionDisplayName(),
+              ValueType.TEXT,
+              false,
+              true));
+    }
+
+    for (DimensionalObject dimension : periods) {
       grid.addHeader(
           new GridHeader(
               dimension.getDimension(),
@@ -217,7 +233,13 @@ public abstract class AbstractAnalyticsService {
     long count = 0;
 
     if (!params.isSkipData() || params.analyzeOnly()) {
-      count = addEventData(grid, params);
+      if (!periods.isEmpty()) {
+        params =
+            new EventQueryParams.Builder(params)
+                .withPeriods(periods.stream().flatMap(p -> p.getItems().stream()).toList(), EMPTY)
+                .build();
+      }
+      count = addData(grid, params);
     }
 
     // ---------------------------------------------------------------------
@@ -324,7 +346,7 @@ public abstract class AbstractAnalyticsService {
 
   protected abstract Grid createGridWithHeaders(EventQueryParams params);
 
-  protected abstract long addEventData(Grid grid, EventQueryParams params);
+  protected abstract long addData(Grid grid, EventQueryParams params);
 
   /**
    * Applies headers to the given if the given query specifies headers.
@@ -365,20 +387,28 @@ public abstract class AbstractAnalyticsService {
 
       if (hasResults) {
         optionItems.addAll(
-            optionsPresentInGrid.values().stream()
-                .flatMap(Collection::stream)
-                .distinct()
-                .collect(toList()));
+            optionsPresentInGrid.values().stream().flatMap(Collection::stream).distinct().toList());
       } else {
         optionItems.addAll(getItemOptionsAsFilter(params.getItemOptions(), params.getItems()));
       }
 
+      Map<String, Object> items = new HashMap<>();
+      AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsUidList(
+              currentUserService.getCurrentUser(), params.getUserOrganisationUnitsCriteria())
+          .forEach(items::putAll);
+
       if (params.isComingFromQuery()) {
-        metadata.put(ITEMS.getKey(), getMetadataItems(params, periodKeywords, optionItems, grid));
+        items.putAll(getMetadataItems(params, periodKeywords, optionItems, grid));
+      } else {
+        items.putAll(getMetadataItems(params));
+      }
+
+      metadata.put(ITEMS.getKey(), items);
+
+      if (params.isComingFromQuery()) {
         metadata.put(
             DIMENSIONS.getKey(), getDimensionItems(params, Optional.of(optionsPresentInGrid)));
       } else {
-        metadata.put(ITEMS.getKey(), getMetadataItems(params));
         metadata.put(DIMENSIONS.getKey(), getDimensionItems(params, empty()));
       }
 
@@ -601,6 +631,8 @@ public abstract class AbstractAnalyticsService {
                     option.getDisplayProperty(params.getDisplayProperty()),
                     includeDetails ? option.getUid() : null,
                     option.getCode())));
+
+    new MetadataItemsHandler().addOptionsSetIntoMap(metadataItemMap, itemOptions);
   }
 
   /**
@@ -690,5 +722,15 @@ public abstract class AbstractAnalyticsService {
     }
 
     return dimensionUids;
+  }
+
+  /**
+   * retrieve all periods as list of dimensional objects
+   *
+   * @param params
+   * @return {@link EventQueryParams} object
+   */
+  protected List<DimensionalObject> getPeriods(EventQueryParams params) {
+    return List.of();
   }
 }

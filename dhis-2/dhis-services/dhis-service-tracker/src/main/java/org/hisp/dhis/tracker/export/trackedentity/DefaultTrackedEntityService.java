@@ -37,7 +37,6 @@ import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -55,7 +54,6 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -311,7 +309,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   public TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams);
-    final List<Long> ids = getTrackedEntityIds(queryParams, false, false);
+    final List<Long> ids = getTrackedEntityIds(queryParams);
 
     List<TrackedEntity> trackedEntities =
         this.trackedEntityAggregate.find(
@@ -341,28 +339,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return TrackedEntities.of(trackedEntities, pager);
   }
 
-  public List<Long> getTrackedEntityIds(
-      TrackedEntityQueryParams params,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation) {
-    if (params.isOrQuery() && !params.hasAttributes() && !params.hasProgram()) {
-      Collection<TrackedEntityAttribute> attributes =
-          trackedEntityAttributeService.getTrackedEntityAttributesDisplayInListNoProgram();
-      params.addAttributes(QueryItem.getQueryItems(attributes));
-      params.addFiltersIfNotExist(QueryItem.getQueryItems(attributes));
-    }
-
+  public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
     decideAccess(params);
-
-    // AccessValidation should be skipped only and only if it is internal
-    // service that runs the task (for example sync job)
-    if (!skipAccessValidation) {
-      validate(params);
-    }
-
-    if (!skipSearchScopeValidation) {
-      validateSearchScope(params);
-    }
+    validate(params);
+    validateSearchScope(params);
 
     return trackedEntityStore.getTrackedEntityIds(params);
   }
@@ -447,19 +427,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       violation = "Event start and end date must be specified when event status is specified";
     }
 
-    if (params.isOrQuery() && params.hasFilters()) {
-      violation = "Query cannot be specified together with filters";
-    }
-
-    if (!params.getDuplicateAttributes().isEmpty()) {
-      violation =
-          "Attributes cannot be specified more than once: " + params.getDuplicateAttributes();
-    }
-
-    if (!params.getDuplicateFilters().isEmpty()) {
-      violation = "Filters cannot be specified more than once: " + params.getDuplicateFilters();
-    }
-
     if (params.hasLastUpdatedDuration()
         && (params.hasLastUpdatedStartDate() || params.hasLastUpdatedEndDate())) {
       violation =
@@ -496,14 +463,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     if (!params.hasProgram()
         && !params.hasTrackedEntityType()
-        && params.hasAttributesOrFilters()
-        && !params.hasAccessibleOrgUnits()) {
+        && params.hasFilters()
+        && !params.hasOrganisationUnits()) {
       List<String> uniqueAttributeIds =
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
               .map(TrackedEntityAttribute::getUid)
               .toList();
 
-      for (String att : params.getAttributeAndFilterIds()) {
+      for (String att : params.getFilterIds()) {
         if (!uniqueAttributeIds.contains(att)) {
           throw new IllegalQueryException(
               "Either a program or tracked entity type must be specified");
@@ -514,16 +481,12 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (!isLocalSearch(params, user)) {
       int maxTeiLimit = 0; // no limit
 
-      if (params.hasQuery()) {
-        throw new IllegalQueryException("Query cannot be used during global search");
-      }
-
       if (params.hasProgram() && params.hasTrackedEntityType()) {
         throw new IllegalQueryException(
             "Program and tracked entity cannot be specified simultaneously");
       }
 
-      if (params.hasAttributesOrFilters()) {
+      if (params.hasFilters()) {
         List<String> searchableAttributeIds = new ArrayList<>();
 
         if (params.hasProgram()) {
@@ -543,7 +506,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
         List<String> violatingAttributes = new ArrayList<>();
 
-        for (String attributeId : params.getAttributeAndFilterIds()) {
+        for (String attributeId : params.getFilterIds()) {
           if (!searchableAttributeIds.contains(attributeId)) {
             violatingAttributes.add(attributeId);
           }
@@ -589,10 +552,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
 
     if (params.isOrganisationUnitMode(SELECTED)) {
-      searchOrgUnits = params.getAccessibleOrgUnits();
+      searchOrgUnits = params.getOrgUnits();
     } else if (params.isOrganisationUnitMode(CHILDREN)
         || params.isOrganisationUnitMode(DESCENDANTS)) {
-      for (OrganisationUnit orgUnit : params.getAccessibleOrgUnits()) {
+      for (OrganisationUnit orgUnit : params.getOrgUnits()) {
         searchOrgUnits.addAll(orgUnit.getChildren());
       }
     } else if (params.isOrganisationUnitMode(ALL)) {
@@ -616,13 +579,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     return (!params.hasFilters()
-            && !params.hasAttributes()
             && params.getTrackedEntityType().getMinAttributesRequiredToSearch() > 0)
         || (params.hasFilters()
             && params.getFilters().size()
-                < params.getTrackedEntityType().getMinAttributesRequiredToSearch())
-        || (params.hasAttributes()
-            && params.getAttributes().size()
                 < params.getTrackedEntityType().getMinAttributesRequiredToSearch());
   }
 
@@ -631,14 +590,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       return false;
     }
 
-    return (!params.hasFilters()
-            && !params.hasAttributes()
-            && params.getProgram().getMinAttributesRequiredToSearch() > 0)
+    return (!params.hasFilters() && params.getProgram().getMinAttributesRequiredToSearch() > 0)
         || (params.hasFilters()
-            && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch())
-        || (params.hasAttributes()
-            && params.getAttributes().size()
-                < params.getProgram().getMinAttributesRequiredToSearch());
+            && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch());
   }
 
   private void checkIfMaxTeiLimitIsReached(TrackedEntityQueryParams params, int maxTeiLimit) {

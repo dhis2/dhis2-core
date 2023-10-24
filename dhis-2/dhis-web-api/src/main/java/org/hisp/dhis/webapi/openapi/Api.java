@@ -271,6 +271,14 @@ public class Api {
 
     Schema type;
 
+    /**
+     * The default value in its string form.
+     *
+     * <p>Note that oddly enough the OpenAPI spec does not have a default value for parameters but
+     * instead uses a default value for the parameter {@link #type}.
+     */
+    Maybe<String> defaultValue = new Maybe<>();
+
     Maybe<String> description = new Maybe<>();
 
     /**

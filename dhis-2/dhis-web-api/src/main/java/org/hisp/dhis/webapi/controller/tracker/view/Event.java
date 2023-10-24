@@ -72,8 +72,6 @@ public class Event {
 
   @JsonProperty private String orgUnit;
 
-  @JsonProperty private String orgUnitName;
-
   @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
   @JsonProperty private Instant occurredAt;
@@ -82,7 +80,11 @@ public class Event {
 
   @JsonProperty private String storedBy;
 
-  @JsonProperty private boolean followup;
+  @JsonProperty private boolean followUp;
+
+  @Deprecated(since = "2.41", forRemoval = true)
+  @JsonProperty("followup")
+  private boolean legacyFollowUp;
 
   @JsonProperty private boolean deleted;
 

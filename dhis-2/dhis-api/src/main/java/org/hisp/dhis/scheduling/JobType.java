@@ -46,6 +46,7 @@ import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
 import org.hisp.dhis.scheduling.parameters.LockExceptionCleanupJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
@@ -87,9 +88,7 @@ public enum JobType {
   MATERIALIZED_SQL_VIEW_UPDATE(SqlViewUpdateParameters.class),
   DISABLE_INACTIVE_USERS(DisableInactiveUsersJobParameters.class),
   TEST(TestJobParameters.class),
-  LOCK_EXCEPTION_CLEANUP(
-      LockExceptionCleanupJobParameters.class,
-      daily2am("OQ9KeLgqy20", "Remove lock exceptions older than 6 months")),
+  LOCK_EXCEPTION_CLEANUP(LockExceptionCleanupJobParameters.class),
 
   /*
   Programmatically used Jobs
@@ -104,7 +103,7 @@ public enum JobType {
   DATAVALUE_IMPORT_INTERNAL(),
   METADATA_IMPORT(),
   DATAVALUE_IMPORT(ImportOptions.class),
-  GEOJSON_IMPORT(),
+  GEOJSON_IMPORT(GeoJsonImportJobParams.class),
   EVENT_IMPORT(),
   ENROLLMENT_IMPORT(),
   TEI_IMPORT(),
@@ -198,7 +197,11 @@ public enum JobType {
         || this == DATA_SYNC
         || this == SMS_SEND
         || this == PUSH_ANALYSIS
-        || this == PREDICTOR;
+        || this == PREDICTOR
+        || this == DATAVALUE_IMPORT
+        || this == COMPLETE_DATA_SET_REGISTRATION_IMPORT
+        || this == METADATA_IMPORT
+        || this == GEOJSON_IMPORT;
   }
 
   public boolean isUsingErrorNotification() {
@@ -208,7 +211,9 @@ public enum JobType {
         || this == SYSTEM_VERSION_UPDATE_CHECK
         || this == EVENT_PROGRAMS_DATA_SYNC
         || this == TRACKER_PROGRAMS_DATA_SYNC
-        || this == PROGRAM_NOTIFICATIONS;
+        || this == PROGRAM_NOTIFICATIONS
+        || this == DATAVALUE_IMPORT
+        || this == METADATA_IMPORT;
   }
 
   public boolean hasJobParameters() {

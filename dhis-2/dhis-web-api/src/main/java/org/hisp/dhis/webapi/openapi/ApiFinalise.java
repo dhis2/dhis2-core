@@ -47,6 +47,8 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.webapi.openapi.Api.Endpoint;
+import org.hisp.dhis.webapi.openapi.Api.Parameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -71,6 +73,14 @@ public class ApiFinalise {
     boolean failOnNameClash;
 
     /**
+     * When true, the generation fails if a declaration is declared in an inconsistent way. This
+     * usually indicates a programming error.
+     *
+     * <p>For example, a field/parameter with a default value is marked as required.
+     */
+    boolean failOnInconsistency;
+
+    /**
      * The character(s) used to join the prefix, like {@code Ref} or {@code UID} with the rest of
      * the type name.
      *
@@ -90,10 +100,6 @@ public class ApiFinalise {
     // request bodies
     // responses
     String missingDescription;
-    /*
-     * .missingDescription( "[no description yet]" ) .namePartDelimiter( "_"
-     * )
-     */
   }
 
   Api api;
@@ -109,6 +115,9 @@ public class ApiFinalise {
    * ready for document generation.
    */
   private void finaliseApi() {
+    // 0. validation of the analysis result
+    validateParameters();
+
     // 1. Set and check shared unique names and create the additional schemas for Refs and UIDs
     nameSharedSchemas();
     nameSharedAdditionalSchemas();
@@ -123,6 +132,38 @@ public class ApiFinalise {
 
     // 3. Group and merge endpoints by request path and method
     groupAndMergeEndpoints();
+  }
+
+  /*
+  0. validate the Api result of the analysis step
+   */
+
+  private void validateParameters() {
+    // shared parameters
+    api.getComponents()
+        .getParameters()
+        .values()
+        .forEach(params -> params.forEach(this::validateParameter));
+
+    // non shared parameters
+    api.getControllers()
+        .forEach(
+            c ->
+                c.getEndpoints()
+                    .forEach(e -> e.getParameters().values().forEach(this::validateParameter)));
+  }
+
+  private void validateParameter(Parameter p) {
+    if (p.getDefaultValue().isPresent() && p.isRequired()) {
+      String msg =
+          "Parameter %s of type %s is both required and has a default value of %s"
+              .formatted(
+                  p.getFullName(),
+                  p.getType().getRawType().getSimpleName(),
+                  p.getDefaultValue().getValue());
+      if (config.failOnInconsistency) throw new IllegalStateException(msg);
+      log.warn(msg);
+    }
   }
 
   /*
@@ -473,22 +514,87 @@ public class ApiFinalise {
   /*
    * 3. Group and merge endpoints by request path and method
    */
-
   private void groupAndMergeEndpoints() {
     groupEndpointsByAbsolutePath()
         .forEach(
-            (path, endpoints) -> {
-              EnumMap<RequestMethod, Api.Endpoint> endpointByMethod =
-                  new EnumMap<>(RequestMethod.class);
-              endpoints.forEach(
-                  e ->
-                      e.getMethods()
-                          .forEach(
-                              method ->
-                                  endpointByMethod.compute(
-                                      method, (k, v) -> mergeEndpoints(v, e, method))));
-              api.getEndpoints().put(path, endpointByMethod);
-            });
+            (path, pathEndpoints) ->
+                groupEndpointsByRequestMethod(pathEndpoints)
+                    .forEach(
+                        (method, methodEndpoints) ->
+                            groupEndpointsByFragment(method, methodEndpoints)
+                                .forEach(
+                                    (fragment, endpoint) ->
+                                        api.getEndpoints()
+                                            .computeIfAbsent(
+                                                path + fragment,
+                                                key -> new EnumMap<>(RequestMethod.class))
+                                            .put(method, endpoint))));
+  }
+
+  private static Map<RequestMethod, List<Endpoint>> groupEndpointsByRequestMethod(
+      List<Endpoint> endpoints) {
+    Map<RequestMethod, List<Endpoint>> endpointsByMethod = new EnumMap<>(RequestMethod.class);
+    endpoints.forEach(
+        e ->
+            e.getMethods()
+                .forEach(
+                    method ->
+                        endpointsByMethod
+                            .computeIfAbsent(method, key -> new ArrayList<>())
+                            .add(e)));
+    return endpointsByMethod;
+  }
+
+  private Map<String, Api.Endpoint> groupEndpointsByFragment(
+      RequestMethod requestMethod, List<Api.Endpoint> endpoints) {
+    if (endpoints.size() == 1) return Map.of("", endpoints.get(0));
+
+    Api.Endpoint defaultEndpoint = getDefaultEndpoint(endpoints);
+    Map<String, Api.Endpoint> endpointsByFragment = new HashMap<>();
+    for (Api.Endpoint endpoint : endpoints) {
+      if (!endpoint.equals(defaultEndpoint)) {
+        if (isMergeable(endpoint, defaultEndpoint)) {
+          defaultEndpoint = mergeEndpoints(defaultEndpoint, endpoint, requestMethod);
+        } else {
+          endpointsByFragment.put(getFragmentName(endpoint), endpoint);
+        }
+      }
+    }
+    endpointsByFragment.put("", defaultEndpoint);
+    return endpointsByFragment;
+  }
+
+  /**
+   * Just by convention the first endpoint handling JSON is considered the default endpoint for that
+   * same path and request method. It will have the privilege of not using a fragment in its path to
+   * be unique.
+   */
+  private Api.Endpoint getDefaultEndpoint(List<Api.Endpoint> endpoints) {
+    return endpoints.stream()
+        .filter(this::consumesOrProducesJson)
+        .findFirst()
+        .orElse(endpoints.get(0));
+  }
+
+  private String getFragmentName(Api.Endpoint endpoint) {
+    return "#" + endpoint.getName();
+  }
+
+  private boolean isMergeable(Api.Endpoint one, Api.Endpoint other) {
+    return one.getParameters().equals(other.getParameters());
+  }
+
+  private boolean consumesOrProducesJson(Api.Endpoint endpoint) {
+    if (endpoint.getRequestBody().isPresent()
+        && endpoint
+            .getRequestBody()
+            .getValue()
+            .getConsumes()
+            .containsKey(MediaType.APPLICATION_JSON)) {
+      return true;
+    }
+    return endpoint.getResponses().values().stream()
+        .anyMatch(response -> response.getContent().containsKey(MediaType.APPLICATION_JSON));
   }
 
   private Map<String, List<Api.Endpoint>> groupEndpointsByAbsolutePath() {
@@ -499,7 +605,9 @@ public class ApiFinalise {
       for (String cPath : c.getPaths()) {
         for (Api.Endpoint e : c.getEndpoints()) {
           for (String ePath : e.getPaths()) {
-            String absolutePath = cPath + ePath;
+            String absolutePath =
+                (cPath + (cPath.endsWith("/") || ePath.startsWith("/") ? "" : "/") + ePath)
+                    .replace("//", "/");
             if (absolutePath.isEmpty()) {
               absolutePath = "/";
             }

@@ -44,8 +44,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -65,6 +67,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class TrackedEntityRequestParamsMapperTest {
+  public static final String TEA_1_UID = "TvjwTPToKHO";
+
+  public static final String TEA_2_UID = "cy2oRh2sNr6";
+
+  public static final String TEA_3_UID = "cy2oRh2sNr7";
+
   private static final String PROGRAM_UID = "XhBYIraw7sv";
 
   private static final String PROGRAM_STAGE_UID = "RpCr2u2pFqw";
@@ -90,7 +98,6 @@ class TrackedEntityRequestParamsMapperTest {
 
   @Test
   void testMapping() throws BadRequestException {
-    requestParams.setQuery("query-test");
     requestParams.setOuMode(CAPTURE);
     requestParams.setProgramStatus(ProgramStatus.ACTIVE);
     requestParams.setProgram(UID.of(PROGRAM_UID));
@@ -105,18 +112,14 @@ class TrackedEntityRequestParamsMapperTest {
     requestParams.setEventStatus(EventStatus.COMPLETED);
     requestParams.setEventOccurredAfter(getDate(2019, 7, 7));
     requestParams.setEventOccurredBefore(getDate(2020, 7, 7));
-    requestParams.setSkipMeta(true);
     requestParams.setPage(1);
     requestParams.setPageSize(50);
     requestParams.setTotalPages(false);
     requestParams.setSkipPaging(false);
     requestParams.setIncludeDeleted(true);
-    requestParams.setIncludeAllAttributes(true);
 
     final TrackedEntityOperationParams params = mapper.map(requestParams, user);
 
-    assertThat(params.getQuery().getFilter(), is("query-test"));
-    assertThat(params.getQuery().getOperator(), is(QueryOperator.EQ));
     assertThat(params.getProgramUid(), is(PROGRAM_UID));
     assertThat(params.getProgramStageUid(), is(PROGRAM_STAGE_UID));
     assertThat(params.getTrackedEntityTypeUid(), is(TRACKED_ENTITY_TYPE_UID));
@@ -136,7 +139,6 @@ class TrackedEntityRequestParamsMapperTest {
     assertThat(
         params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
     assertThat(params.isIncludeDeleted(), is(true));
-    assertThat(params.isIncludeAllAttributes(), is(true));
   }
 
   @Test
@@ -188,18 +190,6 @@ class TrackedEntityRequestParamsMapperTest {
     TrackedEntityOperationParams params = mapper.map(requestParams, user);
 
     assertEquals(date, params.getProgramEnrollmentStartDate());
-  }
-
-  @Test
-  void shouldFailWithBadExceptionWhenBadFormattedQueryProvided() {
-    String queryWithBadFormat = "wrong-query:";
-
-    requestParams.setQuery(queryWithBadFormat);
-
-    BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
-
-    assertEquals("Query item or filter is invalid: " + queryWithBadFormat, e.getMessage());
   }
 
   @Test
@@ -273,6 +263,27 @@ class TrackedEntityRequestParamsMapperTest {
   }
 
   @Test
+  void shouldFailIfGivenRemovedQueryParameter() {
+    requestParams.setQuery("query");
+
+    assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
+  }
+
+  @Test
+  void shouldFailIfGivenRemovedAttributeParameter() {
+    requestParams.setAttribute("IsdLBTOBzMi");
+
+    assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
+  }
+
+  @Test
+  void shouldFailIfGivenRemovedIncludeAllAttributesParameter() {
+    requestParams.setIncludeAllAttributes("true");
+
+    assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
+  }
+
+  @Test
   void shouldMapOrderParameterInGivenOrderWhenFieldsAreOrderable() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
     requestParams.setOrder(
@@ -305,5 +316,22 @@ class TrackedEntityRequestParamsMapperTest {
     assertAll(
         () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
         () -> assertContains("unsupportedProperty1", exception.getMessage()));
+  }
+
+  @Test
+  void shouldMapFilterParameter() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnitMode(ACCESSIBLE);
+    requestParams.setFilter(TEA_1_UID + ":like:value1," + TEA_2_UID + ":like:value2");
+
+    Map<String, List<QueryFilter>> filters = mapper.map(requestParams, user).getFilters();
+
+    assertEquals(
+        Map.of(
+            TEA_1_UID,
+            List.of(new QueryFilter(QueryOperator.LIKE, "value1")),
+            TEA_2_UID,
+            List.of(new QueryFilter(QueryOperator.LIKE, "value2"))),
+        filters);
   }
 }

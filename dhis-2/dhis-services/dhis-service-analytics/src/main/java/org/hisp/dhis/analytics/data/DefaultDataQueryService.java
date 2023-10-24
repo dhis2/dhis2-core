@@ -31,7 +31,6 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.apache.commons.lang3.Validate.notNull;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_CATEGORYOPTIONCOMBO;
@@ -161,11 +160,13 @@ public class DefaultDataQueryService implements DataQueryService {
         .withIncludeMetadataDetails(request.isIncludeMetadataDetails())
         .withDisplayProperty(request.getDisplayProperty())
         .withOutputIdScheme(request.getOutputIdScheme())
+        .withOutputDataItemIdScheme(request.getOutputDataItemIdScheme())
         .withOutputDataElementIdScheme(request.getOutputDataElementIdScheme())
         .withOutputOrgUnitIdScheme(request.getOutputOrgUnitIdScheme())
         .withDuplicatesOnly(request.isDuplicatesOnly())
         .withApprovalLevel(request.getApprovalLevel())
         .withUserOrgUnitType(request.getUserOrgUnitType())
+        .withUserOrganisationUnitsCriteria(request.getUserOrganisationUnitCriteria())
         .withApiVersion(request.getApiVersion())
         .withLocale(locale)
         .withOutputFormat(ANALYTICS)
@@ -175,7 +176,7 @@ public class DefaultDataQueryService implements DataQueryService {
   @Override
   @Transactional(readOnly = true)
   public DataQueryParams getFromAnalyticalObject(AnalyticalObject object) {
-    notNull(object);
+    Objects.requireNonNull(object);
 
     DataQueryParams.Builder params = DataQueryParams.newBuilder();
 

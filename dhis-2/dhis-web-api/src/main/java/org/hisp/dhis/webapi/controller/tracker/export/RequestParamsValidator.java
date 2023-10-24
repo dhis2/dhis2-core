@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
@@ -36,22 +37,25 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.tracker.export.OperationParamUtils;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 /**
@@ -62,6 +66,32 @@ public class RequestParamsValidator {
   private RequestParamsValidator() {
     throw new IllegalStateException("Utility class");
   }
+
+  private static final String INVALID_FILTER = "Query item or filter is invalid: ";
+
+  private static final char COMMA_SEPARATOR = ',';
+
+  private static final char ESCAPE = '/';
+
+  /**
+   * Negative lookahead to avoid wrong split of comma-separated list of filters when one or more
+   * filter value contain comma. It skips comma escaped by slash
+   */
+  private static final Pattern FILTER_LIST_SPLIT =
+      Pattern.compile("(?<!" + ESCAPE + ")" + COMMA_SEPARATOR);
+
+  /**
+   * Negative lookahead to avoid wrong split when filter value contains colon. It skips colon
+   * escaped by slash
+   */
+  public static final Pattern FILTER_ITEM_SPLIT =
+      Pattern.compile("(?<!" + ESCAPE + ")" + DIMENSION_NAME_SEP);
+
+  private static final String COMMA_STRING = Character.toString(COMMA_SEPARATOR);
+
+  private static final String ESCAPE_COMMA = ESCAPE + COMMA_STRING;
+
+  private static final String ESCAPE_COLON = ESCAPE + DIMENSION_NAME_SEP;
 
   /**
    * Helps us transition request parameters that contained semicolon separated UIDs (deprecated) to
@@ -254,7 +284,7 @@ public class RequestParamsValidator {
       return result;
     }
 
-    for (String uidOperatorValue : OperationParamUtils.filterList(input)) {
+    for (String uidOperatorValue : filterList(input)) {
       parseSanitizedFilters(result, uidOperatorValue);
     }
     return result;
@@ -262,9 +292,8 @@ public class RequestParamsValidator {
 
   /**
    * Accumulate {@link QueryFilter}s per UID by parsing given input string of format
-   * {uid}:{operator}:{value}[:{operator}:{value}]. Only the UID is mandatory. Multiple
-   * operator:value pairs are allowed. A {@link QueryFilter} for each operator:value pair is added
-   * to the corresponding UID.
+   * {uid}[:{operator}:{value}]. Only the UID is mandatory. Multiple operator:value pairs are
+   * allowed. A {@link QueryFilter} for each operator:value pair is added to the corresponding UID.
    *
    * @throws BadRequestException filter is neither multiple nor single operator:value format
    */
@@ -281,24 +310,39 @@ public class RequestParamsValidator {
     String uid = input.substring(0, uidIndex - 1);
     result.putIfAbsent(uid, new ArrayList<>());
 
-    String[] filters = OperationParamUtils.FILTER_ITEM_SPLIT.split(input.substring(uidIndex));
+    String[] filters = FILTER_ITEM_SPLIT.split(input.substring(uidIndex));
 
     // single operator
     if (filters.length == 2) {
-      result
-          .get(uid)
-          .add(OperationParamUtils.operatorValueQueryFilter(filters[0], filters[1], input));
+      result.get(uid).add(operatorValueQueryFilter(filters[0], filters[1], input));
     }
     // multiple operator
     else if (filters.length == 4) {
       for (int i = 0; i < filters.length; i += 2) {
-        result
-            .get(uid)
-            .add(OperationParamUtils.operatorValueQueryFilter(filters[i], filters[i + 1], input));
+        result.get(uid).add(operatorValueQueryFilter(filters[i], filters[i + 1], input));
       }
     } else {
-      throw new BadRequestException("Query item or filter is invalid: " + input);
+      throw new BadRequestException(INVALID_FILTER + input);
     }
+  }
+
+  public static OrganisationUnitSelectionMode validateOrgUnitModeForTrackedEntities(
+      Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode, Set<UID> trackedEntities)
+      throws BadRequestException {
+
+    orgUnitMode = validateOrgUnitMode(orgUnitMode, orgUnits);
+    validateOrgUnitOrTrackedEntityIsPresent(orgUnitMode, orgUnits, trackedEntities);
+
+    return orgUnitMode;
+  }
+
+  public static OrganisationUnitSelectionMode validateOrgUnitModeForEnrollmentsAndEvents(
+      Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
+
+    orgUnitMode = validateOrgUnitMode(orgUnitMode, orgUnits);
+    validateOrgUnitIsPresent(orgUnitMode, orgUnits);
+
+    return orgUnitMode;
   }
 
   /**
@@ -310,62 +354,160 @@ public class RequestParamsValidator {
    * @return a valid org unit mode
    * @throws BadRequestException if a wrong combination of org unit and org unit mode supplied
    */
-  public static OrganisationUnitSelectionMode validateOrgUnitMode(
-      Set<UID> orgUnits, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
-
+  private static OrganisationUnitSelectionMode validateOrgUnitMode(
+      OrganisationUnitSelectionMode orgUnitMode, Set<UID> orgUnits) throws BadRequestException {
     if (orgUnitMode == null) {
       return orgUnits.isEmpty() ? ACCESSIBLE : SELECTED;
     }
 
-    if (!orgUnits.isEmpty() && (orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE)) {
+    if (orgUnitModeDoesNotRequireOrgUnit(orgUnitMode) && !orgUnits.isEmpty()) {
       throw new BadRequestException(
           String.format(
               "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
-              orgUnitMode));
-    }
-
-    if ((orgUnitMode == CHILDREN || orgUnitMode == SELECTED || orgUnitMode == DESCENDANTS)
-        && orgUnits.isEmpty()) {
-      throw new BadRequestException(
-          String.format(
-              "At least one org unit is required for orgUnitMode: %s. Please add an orgUnit or use a different orgUnitMode.",
               orgUnitMode));
     }
 
     return orgUnitMode;
   }
 
+  private static void validateOrgUnitOrTrackedEntityIsPresent(
+      OrganisationUnitSelectionMode orgUnitMode, Set<UID> orgUnits, Set<UID> trackedEntities)
+      throws BadRequestException {
+    if (orgUnitModeRequiresOrgUnit(orgUnitMode)
+        && orgUnits.isEmpty()
+        && trackedEntities.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "At least one org unit or tracked entity is required for orgUnitMode: %s. Please add one of the two or use a different orgUnitMode.",
+              orgUnitMode));
+    }
+  }
+
+  private static void validateOrgUnitIsPresent(
+      OrganisationUnitSelectionMode orgUnitMode, Set<UID> orgUnits) throws BadRequestException {
+    if (orgUnitModeRequiresOrgUnit(orgUnitMode) && orgUnits.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "At least one org unit is required for orgUnitMode: %s. Please add one org unit or use a different orgUnitMode.",
+              orgUnitMode));
+    }
+  }
+
+  private static boolean orgUnitModeRequiresOrgUnit(OrganisationUnitSelectionMode orgUnitMode) {
+    return orgUnitMode == CHILDREN || orgUnitMode == SELECTED || orgUnitMode == DESCENDANTS;
+  }
+
+  private static boolean orgUnitModeDoesNotRequireOrgUnit(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    return orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE || orgUnitMode == ALL;
+  }
+
+  public static void validatePaginationParameters(PageRequestParams params)
+      throws BadRequestException {
+    if (Boolean.TRUE.equals(params.getSkipPaging())
+        && (ObjectUtils.firstNonNull(params.getPage(), params.getPageSize()) != null
+            || Boolean.TRUE.equals(params.getTotalPages()))) {
+      throw new BadRequestException(
+          "Paging cannot be skipped with isSkipPaging=true while also requesting a paginated response with page, pageSize and/or totalPages=true");
+    }
+
+    if (lessThan(params.getPage(), 1)) {
+      throw new BadRequestException("page must be greater than or equal to 1 if specified");
+    }
+
+    if (lessThan(params.getPageSize(), 1)) {
+      throw new BadRequestException("pageSize must be greater than or equal to 1 if specified");
+    }
+  }
+
+  private static boolean lessThan(Integer a, int b) {
+    return a != null && a < b;
+  }
+
+  private static QueryFilter operatorValueQueryFilter(String operator, String value, String filter)
+      throws BadRequestException {
+    if (StringUtils.isEmpty(operator) || StringUtils.isEmpty(value)) {
+      throw new BadRequestException(INVALID_FILTER + filter);
+    }
+
+    try {
+      return new QueryFilter(QueryOperator.fromString(operator), escapedFilterValue(value));
+
+    } catch (IllegalArgumentException exception) {
+      throw new BadRequestException(INVALID_FILTER + filter);
+    }
+  }
+
   /**
-   * Validates that the org unit is not present if the ou mode is ACCESSIBLE or CAPTURE. If it is,
-   * an exception will be thrown. If the org unit mode is not defined, SELECTED will be used by
-   * default if an org unit is present. Otherwise, ACCESSIBLE will be the default.
+   * Replace escaped comma or colon
    *
-   * @param orgUnit the org unit to validate
-   * @return a valid org unit mode
-   * @throws BadRequestException if a wrong combination of org unit and org unit mode supplied
+   * @param value
+   * @return
    */
-  public static OrganisationUnitSelectionMode validateOrgUnitMode(
-      UID orgUnit, OrganisationUnitSelectionMode orgUnitMode) throws BadRequestException {
+  private static String escapedFilterValue(String value) {
+    return value.replace(ESCAPE_COMMA, COMMA_STRING).replace(ESCAPE_COLON, DIMENSION_NAME_SEP);
+  }
 
-    if (orgUnitMode == null) {
-      orgUnitMode = orgUnit != null ? SELECTED : ACCESSIBLE;
+  /**
+   * Given an attribute filter list, first, it removes the escape chars in order to be able to split
+   * by comma and collect the filter list. Then, it recreates the original filters by restoring the
+   * escapes chars if any.
+   *
+   * @param filterItem
+   * @return a filter list split by comma
+   */
+  private static List<String> filterList(String filterItem) {
+    Map<Integer, Boolean> escapesToRestore = new HashMap<>();
+
+    StringBuilder filterListToEscape = new StringBuilder(filterItem);
+
+    List<String> filters = new LinkedList<>();
+
+    for (int i = 0; i < filterListToEscape.length() - 1; i++) {
+      if (filterListToEscape.charAt(i) == ESCAPE && filterListToEscape.charAt(i + 1) == ESCAPE) {
+        filterListToEscape.delete(i, i + 2);
+        escapesToRestore.put(i, false);
+      }
     }
 
-    if ((orgUnitMode == ACCESSIBLE || orgUnitMode == CAPTURE) && orgUnit != null) {
-      throw new BadRequestException(
-          String.format(
-              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
-              orgUnitMode));
+    String[] escapedFilterList = FILTER_LIST_SPLIT.split(filterListToEscape);
+
+    int beginning = 0;
+
+    for (String escapedFilter : escapedFilterList) {
+      filters.add(
+          restoreEscape(
+              escapesToRestore,
+              new StringBuilder(escapedFilter),
+              beginning,
+              escapedFilter.length()));
+      beginning += escapedFilter.length() + 1;
     }
 
-    if ((orgUnitMode == CHILDREN || orgUnitMode == SELECTED || orgUnitMode == DESCENDANTS)
-        && orgUnit == null) {
-      throw new BadRequestException(
-          String.format(
-              "orgUnit is required for orgUnitMode: %s. Please add an orgUnit or use a different orgUnitMode.",
-              orgUnitMode));
+    return filters;
+  }
+
+  /**
+   * Restores the escape char in a filter based on the position in the original filter. It uses a
+   * pad as in a filter there can be more than one escape char removed.
+   *
+   * @param escapesToRestore
+   * @param filter
+   * @param beginning
+   * @param end
+   * @return a filter with restored escape chars
+   */
+  private static String restoreEscape(
+      Map<Integer, Boolean> escapesToRestore, StringBuilder filter, int beginning, int end) {
+    int pad = 0;
+    for (Map.Entry<Integer, Boolean> slashPositionInFilter : escapesToRestore.entrySet()) {
+      if (!slashPositionInFilter.getValue()
+          && slashPositionInFilter.getKey() <= (beginning + end)) {
+        filter.insert(slashPositionInFilter.getKey() - beginning + pad++, ESCAPE);
+        escapesToRestore.put(slashPositionInFilter.getKey(), true);
+      }
     }
 
-    return orgUnitMode;
+    return filter.toString();
   }
 }

@@ -28,18 +28,18 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryFilter;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -60,6 +60,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 class TrackedEntityRequestParamsMapper {
 
+  private static final int DEFAULT_PAGE = 1;
+  private static final int DEFAULT_PAGE_SIZE = 50;
+
   private static final Set<String> ORDERABLE_FIELD_NAMES =
       TrackedEntityMapper.ORDERABLE_FIELDS.keySet();
 
@@ -72,6 +75,8 @@ class TrackedEntityRequestParamsMapper {
 
   public TrackedEntityOperationParams map(
       RequestParams requestParams, User user, List<FieldPath> fields) throws BadRequestException {
+    validateRemovedParameters(requestParams);
+
     Set<UID> assignedUsers =
         validateDeprecatedUidsParameter(
             "assignedUser",
@@ -87,9 +92,9 @@ class TrackedEntityRequestParamsMapper {
         validateDeprecatedParameter(
             "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
 
-    orgUnitMode = validateOrgUnitMode(orgUnitUids, orgUnitMode);
-
-    QueryFilter queryFilter = parseQueryFilter(requestParams.getQuery());
+    orgUnitMode =
+        validateOrgUnitModeForTrackedEntities(
+            orgUnitUids, orgUnitMode, requestParams.getTrackedEntities());
 
     Set<UID> trackedEntities =
         validateDeprecatedUidsParameter(
@@ -99,9 +104,10 @@ class TrackedEntityRequestParamsMapper {
             requestParams.getTrackedEntities());
     validateOrderParams(requestParams.getOrder(), ORDERABLE_FIELD_NAMES, "attribute");
 
+    Map<String, List<QueryFilter>> filters = parseFilters(requestParams.getFilter());
+
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()
-            .query(queryFilter)
             .programUid(
                 requestParams.getProgram() == null ? null : requestParams.getProgram().getValue())
             .programStageUid(
@@ -131,21 +137,31 @@ class TrackedEntityRequestParamsMapper {
                     requestParams.getAssignedUserMode(), user, UID.toValueSet(assignedUsers)))
             .user(user)
             .trackedEntityUids(UID.toValueSet(trackedEntities))
-            .attributes(requestParams.getAttribute())
-            .filters(requestParams.getFilter())
-            .skipMeta(requestParams.isSkipMeta())
+            .filters(filters)
             .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
             .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
             .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
             .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
             .includeDeleted(requestParams.isIncludeDeleted())
-            .includeAllAttributes(requestParams.isIncludeAllAttributes())
             .potentialDuplicate(requestParams.getPotentialDuplicate())
             .trackedEntityParams(fieldsParamMapper.map(fields));
 
     mapOrderParam(builder, requestParams.getOrder());
 
     return builder.build();
+  }
+
+  private void validateRemovedParameters(RequestParams requestParams) throws BadRequestException {
+    if (StringUtils.isNotBlank(requestParams.getQuery())) {
+      throw new BadRequestException("`query` parameter was removed in v41. Use `filter` instead.");
+    }
+    if (StringUtils.isNotBlank(requestParams.getAttribute())) {
+      throw new BadRequestException(
+          "`attribute` parameter was removed in v41. Use `filter` instead.");
+    }
+    if (StringUtils.isNotBlank(requestParams.getIncludeAllAttributes())) {
+      throw new BadRequestException("`includeAllAttributes` parameter was removed in v41.");
+    }
   }
 
   private void mapOrderParam(

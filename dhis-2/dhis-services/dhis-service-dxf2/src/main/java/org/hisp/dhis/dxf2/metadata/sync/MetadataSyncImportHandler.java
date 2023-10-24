@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
@@ -86,12 +87,12 @@ public class MetadataSyncImportHandler {
     // Job configurations should not be imported from any source
     // (neither by normal metadata import nor by sync).
     classListMap.remove(JobConfiguration.class);
-    importParams.setObjects(classListMap);
 
     ImportReport importReport = null;
 
     try {
-      importReport = metadataImportService.importMetadata(importParams);
+      importReport =
+          metadataImportService.importMetadata(importParams, new MetadataObjects(classListMap));
 
     } catch (Exception e) {
       String message = "Exception occurred while trying to import the metadata. " + e.getMessage();

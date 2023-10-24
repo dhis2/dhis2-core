@@ -129,8 +129,7 @@ class ObjectBundleHooksTest {
   }
 
   private <T> void assertSubset(
-      List<ObjectBundleHook<? super T>> actual,
-      Class<? extends ObjectBundleHook<? super T>>[] expected) {
+      List<ObjectBundleHook<T>> actual, Class<? extends ObjectBundleHook<? super T>>[] expected) {
     Set<Class<?>> actualClasses = actual.stream().map(Object::getClass).collect(Collectors.toSet());
     List<Class<? extends ObjectBundleHook<? super T>>> expectedClasses = asList(expected);
     String message = actualClasses + " did not contain all " + expectedClasses;
@@ -138,7 +137,7 @@ class ObjectBundleHooksTest {
   }
 
   private <T> void assertNoMembers(
-      List<ObjectBundleHook<? super T>> actual, Class<? extends ObjectBundleHook<?>>[] expected) {
+      List<ObjectBundleHook<T>> actual, Class<? extends ObjectBundleHook<?>>[] expected) {
     Set<Class<?>> actualClasses = actual.stream().map(Object::getClass).collect(Collectors.toSet());
     List<Class<? extends ObjectBundleHook<?>>> expectedClasses = asList(expected);
     String message = actualClasses + " did contain at least one of " + expectedClasses;

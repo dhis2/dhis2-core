@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -46,6 +47,7 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.SecondaryMetadataObject;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
@@ -53,6 +55,7 @@ import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
 import org.hisp.dhis.scheduling.parameters.LockExceptionCleanupJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
@@ -210,7 +213,8 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   }
 
   public JobStatus getJobStatus() {
-    if (jobStatus != null) return jobStatus;
+    if (jobStatus != null)
+      return enabled && jobStatus == JobStatus.DISABLED ? JobStatus.SCHEDULED : jobStatus;
     if (getSchedulingType() == SchedulingType.ONCE_ASAP) return JobStatus.NOT_STARTED;
     return JobStatus.SCHEDULED;
   }
@@ -252,6 +256,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
       defaultImpl = java.lang.Void.class)
   @JsonSubTypes(
       value = {
+        @JsonSubTypes.Type(value = MetadataImportParams.class, name = "METADATA_IMPORT"),
         @JsonSubTypes.Type(value = ImportOptions.class, name = "DATAVALUE_IMPORT"),
         @JsonSubTypes.Type(value = AnalyticsJobParameters.class, name = "ANALYTICS_TABLE"),
         @JsonSubTypes.Type(
@@ -283,7 +288,11 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         @JsonSubTypes.Type(
             value = LockExceptionCleanupJobParameters.class,
             name = "LOCK_EXCEPTION_CLEANUP"),
-        @JsonSubTypes.Type(value = TestJobParameters.class, name = "TEST")
+        @JsonSubTypes.Type(value = TestJobParameters.class, name = "TEST"),
+        @JsonSubTypes.Type(
+            value = ImportOptions.class,
+            name = "COMPLETE_DATA_SET_REGISTRATION_IMPORT"),
+        @JsonSubTypes.Type(value = GeoJsonImportJobParams.class, name = "GEO_JSON_IMPORT")
       })
   public JobParameters getJobParameters() {
     return jobParameters;
@@ -292,7 +301,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   /** Kept for backwards compatibility of the REST API */
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public Date getNextExecutionTime() {
-    Instant next = nextExecutionTime(Instant.now());
+    Instant next = nextExecutionTime(Instant.now(), Duration.ofDays(1));
     return next == null ? null : Date.from(next);
   }
 
@@ -335,25 +344,43 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     return cronExpression == null && delay == null && queueName == null;
   }
 
+  public boolean isDueBetween(
+      @Nonnull Instant now, @Nonnull Instant then, @Nonnull Duration maxCronDelay) {
+    Instant dueTime = nextExecutionTime(now, maxCronDelay);
+    return dueTime != null && dueTime.isBefore(then);
+  }
+
   /**
+   * @param now current timestamp, ideally without milliseconds
+   * @param maxCronDelay the maximum duration a CRON based job will trigger on the same day after
+   *     its intended time during the day. If more time has passed already the execution for that
+   *     day is skipped and the next day will be the target
    * @return the next time this job should run based on the {@link #getLastExecuted()} time
    */
-  public Instant nextExecutionTime(Instant now) {
+  public Instant nextExecutionTime(@Nonnull Instant now, @Nonnull Duration maxCronDelay) {
     // for good measure we offset the last time by 1 second
     Instant since = lastExecuted == null ? now : lastExecuted.toInstant().plusSeconds(1);
     if (isUsedInQueue() && getQueuePosition() > 0) return null;
     return switch (getSchedulingType()) {
       case ONCE_ASAP -> nextOnceExecutionTime(since);
       case FIXED_DELAY -> nextDelayExecutionTime(since);
-      case CRON -> nextCronExecutionTime(since);
+      case CRON -> nextCronExecutionTime(since, now, maxCronDelay);
     };
   }
 
-  private Instant nextCronExecutionTime(@Nonnull Instant since) {
+  private Instant nextCronExecutionTime(
+      @Nonnull Instant since, Instant now, @Nonnull Duration maxDelay) {
     if (isUndefinedCronExpression(cronExpression)) return null;
     SimpleTriggerContext context =
         new SimpleTriggerContext(Clock.fixed(since, ZoneId.systemDefault()));
     Date next = new CronTrigger(cronExpression).nextExecutionTime(context);
+    if (next == null) return null;
+    if (now.isAfter(next.toInstant().plus(maxDelay))) {
+      context =
+          new SimpleTriggerContext(
+              Clock.fixed(next.toInstant().plusSeconds(1), ZoneId.systemDefault()));
+      next = new CronTrigger(cronExpression).nextExecutionTime(context);
+    }
     return next == null ? null : next.toInstant();
   }
 

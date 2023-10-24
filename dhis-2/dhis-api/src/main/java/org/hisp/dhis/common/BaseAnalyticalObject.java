@@ -41,6 +41,8 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.STATIC_DIMS;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asActualDimension;
+import static org.hisp.dhis.common.DimensionalObjectUtils.linkAssociations;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
@@ -79,7 +81,6 @@ import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.eventvisualization.Attribute;
-import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.eventvisualization.SimpleDimension.Type;
 import org.hisp.dhis.eventvisualization.SimpleDimensionHandler;
@@ -177,6 +178,9 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   /** Include completed events only. */
   protected boolean completedOnly;
+
+  /** Apply or not rounding. */
+  protected boolean skipRounding;
 
   /** Dimensions to use as filter. */
   protected List<String> filterDimensions = new ArrayList<>();
@@ -584,18 +588,20 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * (one that is not defined anywhere and only exists for very specific use cases. See {@link
    * SimpleDimension}).
    *
-   * @param eventAnalyticalObject the object of type EventAnalyticalObject
-   * @param dimension the dimension, ie: dx, pe, eventDate
+   * @param eventAnalyticalObject the object of type {@link EventAnalyticalObject}.
+   * @param dimension the dimension, ie: dx, pe, eventDate. It can be a qualified one like
+   *     program.eventDate, or program.stage.dimension.
    * @param parent the parent attribute
    * @return the dimensional object related to the given dimension and attribute.
    */
   protected DimensionalObject getDimensionalObject(
       EventAnalyticalObject eventAnalyticalObject, String dimension, Attribute parent) {
     Optional<DimensionalObject> optionalDimensionalObject = getDimensionalObject(dimension);
+    String actualDim = asActualDimension(dimension);
 
     if (optionalDimensionalObject.isPresent()) {
       return linkAssociations(eventAnalyticalObject, optionalDimensionalObject.get(), parent);
-    } else if (Type.contains(dimension)) {
+    } else if (Type.contains(actualDim)) {
       DimensionalObject dimensionalObject =
           new SimpleDimensionHandler(eventAnalyticalObject).getDimensionalObject(dimension, parent);
 
@@ -603,35 +609,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     } else {
       throw new IllegalArgumentException(format(NOT_A_VALID_DIMENSION, dimension));
     }
-  }
-
-  /**
-   * This method links existing associations between objects. This is mainly needed in cases where
-   * attributes need to be programmatically associated to fulfill client requirements.
-   *
-   * @param eventAnalyticalObject the source object
-   * @param dimensionalObject where the associations will happen
-   * @param parent the parent attribute, where the association object should be appended to
-   * @return the dimensional object containing the correct associations.
-   */
-  private DimensionalObject linkAssociations(
-      EventAnalyticalObject eventAnalyticalObject,
-      DimensionalObject dimensionalObject,
-      Attribute parent) {
-    // Associating event repetitions.
-    List<EventRepetition> repetitions = eventAnalyticalObject.getEventRepetitions();
-
-    if (isNotEmpty(repetitions)) {
-      for (EventRepetition eventRepetition : repetitions) {
-        if (eventRepetition.getDimension() != null
-            && eventRepetition.getDimension().equals(dimensionalObject.getDimension())
-            && parent == eventRepetition.getParent()) {
-          ((BaseDimensionalObject) dimensionalObject).setEventRepetition(eventRepetition);
-        }
-      }
-    }
-
-    return dimensionalObject;
   }
 
   /**
@@ -690,11 +667,13 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * @return a list of DimensionalObjects.
    */
   protected Optional<DimensionalObject> getDimensionalObject(String dimension) {
-    if (DATA_X_DIM_ID.equals(dimension)) {
+    String actualDim = asActualDimension(dimension);
+
+    if (DATA_X_DIM_ID.equals(actualDim)) {
       return Optional.of(
           new BaseDimensionalObject(
               dimension, DimensionType.DATA_X, getDataDimensionNameableObjects()));
-    } else if (PERIOD_DIM_ID.equals(dimension)) {
+    } else if (PERIOD_DIM_ID.equals(actualDim)) {
       List<Period> periodList = new ArrayList<>(periods);
 
       if (hasRelativePeriods()) {
@@ -706,7 +685,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
       }
 
       return Optional.of(new BaseDimensionalObject(dimension, DimensionType.PERIOD, periodList));
-    } else if (ORGUNIT_DIM_ID.equals(dimension)) {
+    } else if (ORGUNIT_DIM_ID.equals(actualDim)) {
       List<DimensionalItemObject> ouList = new ArrayList<>();
       ouList.addAll(organisationUnits);
       ouList.addAll(transientOrganisationUnits);
@@ -741,14 +720,14 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
       return Optional.of(
           new BaseDimensionalObject(dimension, DimensionType.ORGANISATION_UNIT, ouList));
-    } else if (CATEGORYOPTIONCOMBO_DIM_ID.equals(dimension)) {
+    } else if (CATEGORYOPTIONCOMBO_DIM_ID.equals(actualDim)) {
       return Optional.of(
           new BaseDimensionalObject(
               dimension, DimensionType.CATEGORY_OPTION_COMBO, new ArrayList<>()));
-    } else if (DATA_COLLAPSED_DIM_ID.equals(dimension)) {
+    } else if (DATA_COLLAPSED_DIM_ID.equals(actualDim)) {
       return Optional.of(
           new BaseDimensionalObject(dimension, DimensionType.DATA_COLLAPSED, new ArrayList<>()));
-    } else if (STATIC_DIMS.contains(dimension)) {
+    } else if (STATIC_DIMS.contains(actualDim)) {
       return Optional.of(
           new BaseDimensionalObject(dimension, DimensionType.STATIC, new ArrayList<>()));
     } else {
@@ -785,13 +764,15 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   }
 
   private Optional<DimensionalObject> getTrackedEntityDimension(String dimension) {
+    String actualDim = asActualDimension(dimension);
+
     // Tracked entity attribute.
     Map<String, TrackedEntityAttributeDimension> attributes =
         attributeDimensions.stream()
             .collect(toMap(TrackedEntityAttributeDimension::getUid, Function.identity()));
 
-    if (attributes.containsKey(dimension)) {
-      TrackedEntityAttributeDimension tead = attributes.get(dimension);
+    if (attributes.containsKey(actualDim)) {
+      TrackedEntityAttributeDimension tead = attributes.get(actualDim);
 
       if (tead != null) {
         ValueType valueType =
@@ -816,7 +797,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
     // Tracked entity data element.
     for (TrackedEntityDataElementDimension tedd : dataElementDimensions) {
-      if (tedd != null && dimension.equals(tedd.getUid())) {
+      if (tedd != null && actualDim.equals(tedd.getUid())) {
         ValueType valueType =
             tedd.getDataElement() != null ? tedd.getDataElement().getValueType() : null;
 
@@ -824,7 +805,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
             tedd.getDataElement() != null ? tedd.getDataElement().getOptionSet() : null;
 
         String elementProgramStage =
-            dimension + (tedd.getProgramStage() != null ? tedd.getProgramStage().getUid() : EMPTY);
+            actualDim + (tedd.getProgramStage() != null ? tedd.getProgramStage().getUid() : EMPTY);
 
         // Return dimensions with distinct program stages.
         if (!addedElementsProgramStages.contains(elementProgramStage)) {
@@ -851,8 +832,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
         programIndicatorDimensions.stream()
             .collect(toMap(TrackedEntityProgramIndicatorDimension::getUid, Function.identity()));
 
-    if (programIndicators.containsKey(dimension)) {
-      TrackedEntityProgramIndicatorDimension teid = programIndicators.get(dimension);
+    if (programIndicators.containsKey(actualDim)) {
+      TrackedEntityProgramIndicatorDimension teid = programIndicators.get(actualDim);
 
       return Optional.of(
           new BaseDimensionalObject(
@@ -880,11 +861,13 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   private <T extends DimensionalEmbeddedObject>
       Optional<DimensionalObject> getDimensionFromEmbeddedObjects(
           String dimension, DimensionType dimensionType, List<T> embeddedObjects) {
+    String actualDim = asActualDimension(dimension);
+
     Map<String, T> dimensions =
         Maps.uniqueIndex(embeddedObjects, d -> d.getDimension().getDimension());
 
-    if (dimensions.containsKey(dimension)) {
-      DimensionalEmbeddedObject object = dimensions.get(dimension);
+    if (dimensions.containsKey(actualDim)) {
+      DimensionalEmbeddedObject object = dimensions.get(actualDim);
 
       if (object != null) {
         return Optional.of(
@@ -1475,6 +1458,16 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   public void setCompletedOnly(boolean completedOnly) {
     this.completedOnly = completedOnly;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isSkipRounding() {
+    return skipRounding;
+  }
+
+  public void setSkipRounding(boolean skipRounding) {
+    this.skipRounding = skipRounding;
   }
 
   @Override
