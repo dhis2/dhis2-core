@@ -42,13 +42,12 @@ import org.hisp.dhis.common.AggregateAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 
-/**
- * Utilities for organisation unit criteria of incoming analytic request
- */
+/** Utilities for organisation unit criteria of incoming analytic request */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrganisationUnitCriteriaUtils {
   /**
    * Translate user organisation unit criteria in analytics keys (MetaData)
+   *
    * @param userOrganisationUnitsCriteria {@link String}.
    * @return user organisation unit criteria as a AnalyticsMetaDataKeys
    */
@@ -76,6 +75,7 @@ public class OrganisationUnitCriteriaUtils {
 
   /**
    * Transform criteria in the string
+   *
    * @param criteria {@link EnrollmentAnalyticsQueryCriteria}.
    * @return string of criteria
    */
@@ -89,6 +89,7 @@ public class OrganisationUnitCriteriaUtils {
 
   /**
    * Transform criteria in the string
+   *
    * @param criteria {@link EventsAnalyticsQueryCriteria}.
    * @return string of criteria
    */
@@ -102,6 +103,7 @@ public class OrganisationUnitCriteriaUtils {
 
   /**
    * Transform criteria in the string
+   *
    * @param criteria {@link AggregateAnalyticsQueryCriteria}.
    * @return string of criteria
    */
