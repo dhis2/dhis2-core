@@ -94,19 +94,19 @@
     <dhis-json-tree.version>0.10.1</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.8.7</spring-security.version>
+    <spring-security.version>5.8.8</spring-security.version>
 
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.36</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.37</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.2</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.2</com.google.zxing.javase.version>
 
     <!-- Spring -->
     <spring.version>5.3.30</spring.version>
     <spring-data-redis.version>2.7.17</spring-data-redis.version>
-    <spring-session-data-redis.version>2.7.3</spring-session-data-redis.version>
+    <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>1.3.4</spring-retry.version>
     <spring-restdocs.version>2.0.7.RELEASE</spring-restdocs.version>
@@ -174,7 +174,7 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.0</jsmpp.version>
     <json-path.version>2.8.0</json-path.version>
-    <jsoup.version>1.16.1</jsoup.version>
+    <jsoup.version>1.16.2</jsoup.version>
     <jetty.version>10.0.17</jetty.version>
 
     <!-- Div. utils -->
@@ -206,7 +206,7 @@
     <micrometer.version>1.11.5</micrometer.version>
 
     <!-- Logging -->
-    <log4j.version>2.20.0</log4j.version>
+    <log4j.version>2.21.0</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
@@ -218,14 +218,14 @@
     <testcontainers.version>1.19.1</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
-    <swagger.version>2.1.16</swagger.version>
+    <swagger.version>2.1.18</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.2.224</h2.version>
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.2.1</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.1.2</maven-failsafe-plugin.version>
@@ -235,10 +235,10 @@
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.4.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.1</versions-maven-plugin.version>
-    <dependency-check-maven.version>8.4.0</dependency-check-maven.version>
+    <dependency-check-maven.version>8.4.2</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.3.6</spotbugs-maven-plugin.version>
     <spotless.version>2.40.0</spotless.version>
-    <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.34</dhis-antlr-expression-parser.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>

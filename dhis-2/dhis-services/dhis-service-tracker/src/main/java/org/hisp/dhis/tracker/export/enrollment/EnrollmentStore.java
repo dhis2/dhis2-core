@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 
 interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   String ID = EnrollmentStore.class.getName();
@@ -43,13 +45,11 @@ interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    */
   int countEnrollments(EnrollmentQueryParams params);
 
-  /**
-   * Get all enrollments by enrollment query params.
-   *
-   * @param params EnrollmentQueryParams to use
-   * @return Enrollments matching params
-   */
+  /** Get all enrollments matching given params. */
   List<Enrollment> getEnrollments(EnrollmentQueryParams params);
+
+  /** Get a page of enrollments matching given params. */
+  Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams);
 
   /**
    * Fields the {@link #getEnrollments(EnrollmentQueryParams)} can order enrollments by. Ordering by

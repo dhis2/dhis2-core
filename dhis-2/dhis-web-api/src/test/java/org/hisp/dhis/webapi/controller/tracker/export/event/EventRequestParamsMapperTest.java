@@ -585,6 +585,8 @@ class EventRequestParamsMapperTest {
 
     Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
-    assertStartsWith("orgUnit is required for orgUnitMode: " + orgUnitMode, exception.getMessage());
+    assertStartsWith(
+        "At least one org unit is required for orgUnitMode: " + orgUnitMode,
+        exception.getMessage());
   }
 }
