@@ -50,7 +50,7 @@ public class AnalyticsOrganisationUnitUtils {
    * response grid.
    *
    * @param currentUser the {@link org.hisp.dhis.user.CurrentUser}.
-   * @return intersection of requested user organisation units and all units in response grid
+   * @return intersection of requested user organisation units and all units in response grid.
    */
   public static Collection<Map<String, Object>> getUserOrganisationUnitsUidList(
       User currentUser, List<AnalyticsMetaDataKey> userOrganisationUnitsCriteria) {
