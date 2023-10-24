@@ -42,8 +42,16 @@ import org.hisp.dhis.common.AggregateAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 
+/**
+ * Utilities for organisation unit criteria of incoming analytic request
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrganisationUnitCriteriaUtils {
+  /**
+   * Translate user organisation unit criteria in analytics keys (MetaData)
+   * @param userOrganisationUnitsCriteria {@link String}.
+   * @return user organisation unit criteria as a AnalyticsMetaDataKeys
+   */
   public static List<AnalyticsMetaDataKey> getAnalyticsMetaDataKeys(
       String userOrganisationUnitsCriteria) {
     List<AnalyticsMetaDataKey> keys = new ArrayList<>();
@@ -66,6 +74,11 @@ public class OrganisationUnitCriteriaUtils {
         .toList();
   }
 
+  /**
+   * Transform criteria in the string
+   * @param criteria {@link EnrollmentAnalyticsQueryCriteria}.
+   * @return string of criteria
+   */
   public static String getAnalyticsQueryCriteria(EnrollmentAnalyticsQueryCriteria criteria) {
     return hasDimensions(criteria.getDimension())
         ? criteria.getDimension().stream()
@@ -74,6 +87,11 @@ public class OrganisationUnitCriteriaUtils {
         : StringUtils.EMPTY;
   }
 
+  /**
+   * Transform criteria in the string
+   * @param criteria {@link EventsAnalyticsQueryCriteria}.
+   * @return string of criteria
+   */
   public static String getAnalyticsQueryCriteria(EventsAnalyticsQueryCriteria criteria) {
     return hasDimensions(criteria.getDimension())
         ? criteria.getDimension().stream()
@@ -82,6 +100,11 @@ public class OrganisationUnitCriteriaUtils {
         : StringUtils.EMPTY;
   }
 
+  /**
+   * Transform criteria in the string
+   * @param criteria {@link AggregateAnalyticsQueryCriteria}.
+   * @return string of criteria
+   */
   public static String getAnalyticsQueryCriteria(AggregateAnalyticsQueryCriteria criteria) {
     return hasDimensions(criteria.getDimension())
         ? criteria.getDimension().stream()
