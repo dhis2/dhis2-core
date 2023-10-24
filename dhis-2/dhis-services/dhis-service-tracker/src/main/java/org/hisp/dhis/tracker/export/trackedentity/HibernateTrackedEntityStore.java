@@ -33,8 +33,8 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.addDays;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -480,14 +480,14 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         trackedEntity
             .append(whereAnd.whereAnd())
             .append(" TE.lastupdated >= '")
-            .append(getMediumDateString(params.getLastUpdatedStartDate()))
+            .append(getLongDateString(params.getLastUpdatedStartDate()))
             .append(SINGLE_QUOTE);
       }
       if (params.hasLastUpdatedEndDate()) {
         trackedEntity
             .append(whereAnd.whereAnd())
             .append(" TE.lastupdated < '")
-            .append(getMediumDateString(addDays(params.getLastUpdatedEndDate(), 1)))
+            .append(getLongDateString(addDays(params.getLastUpdatedEndDate(), 1)))
             .append(SINGLE_QUOTE);
       }
     }
@@ -707,28 +707,28 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (params.hasProgramEnrollmentStartDate()) {
       program
           .append("AND EN.enrollmentdate >= '")
-          .append(getMediumDateString(params.getProgramEnrollmentStartDate()))
+          .append(getLongDateString(params.getProgramEnrollmentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramEnrollmentEndDate()) {
       program
           .append("AND EN.enrollmentdate <= '")
-          .append(getMediumDateString(params.getProgramEnrollmentEndDate()))
+          .append(getLongDateString(params.getProgramEnrollmentEndDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentStartDate()) {
       program
           .append("AND EN.incidentdate >= '")
-          .append(getMediumDateString(params.getProgramIncidentStartDate()))
+          .append(getLongDateString(params.getProgramIncidentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentEndDate()) {
       program
           .append("AND EN.incidentdate <= '")
-          .append(getMediumDateString(params.getProgramIncidentEndDate()))
+          .append(getLongDateString(params.getProgramIncidentEndDate()))
           .append("' ");
     }
 
@@ -765,8 +765,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (params.hasEventStatus()) {
-      String start = getMediumDateString(params.getEventStartDate());
-      String end = getMediumDateString(params.getEventEndDate());
+      String start = getLongDateString(params.getEventStartDate());
+      String end = getLongDateString(params.getEventEndDate());
 
       if (params.isEventStatus(EventStatus.COMPLETED)) {
         events
