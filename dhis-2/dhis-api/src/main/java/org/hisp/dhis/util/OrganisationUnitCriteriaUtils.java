@@ -47,7 +47,7 @@ public class OrganisationUnitCriteriaUtils {
    * Converts the given user organisation unit criteria into a list of {@link AnalyticsMetaDataKey}
    * (MetaData).
    *
-   * @param userOrganisationUnitsCriteria {@link String}.
+   * @param userOrganisationUnitsCriteria {@link String} ("ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN").
    * @return a list of {@link AnalyticsMetaDataKeys} or an empty list.
    */
   public static List<AnalyticsMetaDataKey> getAnalyticsMetaDataKeys(
