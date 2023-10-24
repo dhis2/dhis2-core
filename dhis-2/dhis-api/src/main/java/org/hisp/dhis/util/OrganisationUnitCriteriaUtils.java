@@ -42,7 +42,7 @@ import org.hisp.dhis.common.AggregateAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 
-/** Utilities for organisation unit criteria of incoming analytic request */
+/** Utilities for organisation unit criteria of incoming analytics request. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrganisationUnitCriteriaUtils {
   /**
