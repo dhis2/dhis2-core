@@ -56,11 +56,13 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
+import org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,6 +73,8 @@ public class MetadataHandler {
   private final DataQueryService dataQueryService;
 
   private final SchemeIdResponseMapper schemeIdResponseMapper;
+
+  private final CurrentUserService currentUserService;
 
   /**
    * Adds meta data values to the given grid based on the given data query parameters.
@@ -88,13 +92,18 @@ public class MetadataHandler {
       // Items / names element
       // -----------------------------------------------------------------
 
-      Map<String, String> cocNameMap = getCocNameMap(params);
+      Map<String, Object> items = new HashMap<>(getDimensionMetadataItemMap(params, grid));
 
-      metaData.put(ITEMS.getKey(), getDimensionMetadataItemMap(params, grid));
+      AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsUidList(
+              currentUserService.getCurrentUser(), params.getUserOrganisationUnitsCriteria())
+          .forEach(items::putAll);
+
+      metaData.put(ITEMS.getKey(), items);
 
       // -----------------------------------------------------------------
       // Item order elements
       // -----------------------------------------------------------------
+      Map<String, String> cocNameMap = getCocNameMap(params);
 
       Map<String, Object> dimensionItems = new HashMap<>();
 
