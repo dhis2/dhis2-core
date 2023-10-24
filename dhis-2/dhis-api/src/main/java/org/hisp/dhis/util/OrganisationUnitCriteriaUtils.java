@@ -49,12 +49,12 @@ public class OrganisationUnitCriteriaUtils {
     List<AnalyticsMetaDataKey> keys = new ArrayList<>();
 
     if (userOrganisationUnitsCriteria == null
-        || userOrganisationUnitsCriteria.isEmpty()
-        || !userOrganisationUnitsCriteria.contains("ou:")) {
+        || !userOrganisationUnitsCriteria.contains(ORGUNIT_DIM_ID + ":")) {
       return keys;
     }
 
-    userOrganisationUnitsCriteria = userOrganisationUnitsCriteria.replace("ou:", StringUtils.EMPTY);
+    userOrganisationUnitsCriteria =
+        userOrganisationUnitsCriteria.replace(ORGUNIT_DIM_ID + ":", StringUtils.EMPTY);
     List<String> criteria = Arrays.stream(userOrganisationUnitsCriteria.split(";")).toList();
     return criteria.stream()
         .filter(
