@@ -35,12 +35,16 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.hisp.dhis.analytics.orgunit.OrgUnitHelper.getActiveOrganisationUnits;
+import static org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsItems;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.common.MetadataInfo;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.CommonParams;
@@ -73,10 +77,37 @@ public class MetadataParamsHandler {
    */
   public void handle(Grid grid, CommonParams commonParams, User user, long rowsCount) {
     if (!commonParams.isSkipMeta()) {
-      MetadataInfo metadataInfo = new MetadataInfo();
-
       // Dimensions.
-      metadataInfo.put(ITEMS.getKey(), new MetadataItemsHandler().handle(grid, commonParams));
+      List<AnalyticsMetaDataKey> userOrgUnitMetaDataKeys =
+          commonParams.getDimensionIdentifiers().stream()
+              .filter(dimensionIdentifier -> dimensionIdentifier.toString().equals("ou"))
+              .flatMap(
+                  dimensionIdentifier -> dimensionIdentifier.getDimension().getItems().stream())
+              .flatMap(item -> item.getValues().stream())
+              .filter(
+                  item ->
+                      item.equals(AnalyticsMetaDataKey.USER_ORGUNIT.getKey())
+                          || item.equals(AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN.getKey())
+                          || item.equals(AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN.getKey()))
+              .map(
+                  item -> {
+                    if (item.equals(AnalyticsMetaDataKey.USER_ORGUNIT.getKey())) {
+                      return AnalyticsMetaDataKey.USER_ORGUNIT;
+                    }
+                    if (item.equals(AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN.getKey())) {
+                      return AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN;
+                    }
+                    return AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN;
+                  })
+              .toList();
+
+      Map<String, Object> items =
+          new HashMap<>(new MetadataItemsHandler().handle(grid, commonParams));
+
+      getUserOrganisationUnitsItems(user, userOrgUnitMetaDataKeys).forEach(items::putAll);
+
+      MetadataInfo metadataInfo = new MetadataInfo();
+      metadataInfo.put(ITEMS.getKey(), items);
       metadataInfo.put(
           DIMENSIONS.getKey(), new MetadataDimensionsHandler().handle(grid, commonParams));
 

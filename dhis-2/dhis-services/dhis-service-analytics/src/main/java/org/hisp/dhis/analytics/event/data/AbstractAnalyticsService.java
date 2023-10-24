@@ -393,7 +393,7 @@ public abstract class AbstractAnalyticsService {
       }
 
       Map<String, Object> items = new HashMap<>();
-      AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsUidList(
+      AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsItems(
               currentUserService.getCurrentUser(), params.getUserOrganisationUnitsCriteria())
           .forEach(items::putAll);
 

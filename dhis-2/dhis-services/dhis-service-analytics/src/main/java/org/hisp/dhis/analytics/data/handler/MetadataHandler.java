@@ -94,7 +94,7 @@ public class MetadataHandler {
 
       Map<String, Object> items = new HashMap<>(getDimensionMetadataItemMap(params, grid));
 
-      AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsUidList(
+      AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsItems(
               currentUserService.getCurrentUser(), params.getUserOrganisationUnitsCriteria())
           .forEach(items::putAll);
 
