@@ -77,33 +77,11 @@ public class MetadataParamsHandler {
    */
   public void handle(Grid grid, CommonParams commonParams, User user, long rowsCount) {
     if (!commonParams.isSkipMeta()) {
-      // Dimensions.
-      List<AnalyticsMetaDataKey> userOrgUnitMetaDataKeys =
-          commonParams.getDimensionIdentifiers().stream()
-              .filter(dimensionIdentifier -> dimensionIdentifier.toString().equals("ou"))
-              .flatMap(
-                  dimensionIdentifier -> dimensionIdentifier.getDimension().getItems().stream())
-              .flatMap(item -> item.getValues().stream())
-              .filter(
-                  item ->
-                      item.equals(AnalyticsMetaDataKey.USER_ORGUNIT.getKey())
-                          || item.equals(AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN.getKey())
-                          || item.equals(AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN.getKey()))
-              .map(
-                  item -> {
-                    if (item.equals(AnalyticsMetaDataKey.USER_ORGUNIT.getKey())) {
-                      return AnalyticsMetaDataKey.USER_ORGUNIT;
-                    }
-                    if (item.equals(AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN.getKey())) {
-                      return AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN;
-                    }
-                    return AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN;
-                  })
-              .toList();
 
+      // Dimensions.
+      List<AnalyticsMetaDataKey> userOrgUnitMetaDataKeys = getUserOrgUnitsMetadataKeys(commonParams);
       Map<String, Object> items =
           new HashMap<>(new MetadataItemsHandler().handle(grid, commonParams));
-
       getUserOrganisationUnitsItems(user, userOrgUnitMetaDataKeys).forEach(items::putAll);
 
       MetadataInfo metadataInfo = new MetadataInfo();
@@ -160,6 +138,35 @@ public class MetadataParamsHandler {
     return getActiveOrganisationUnits(grid, organisationUnits);
   }
 
+  /**
+   * Retrieve the analytics metadata keys belong to user organisation unit dimension group
+   *
+   * @param commonParams the {@link CommonParams}.
+   * @return list of the {@link AnalyticsMetaDataKey}
+   */
+  private static List<AnalyticsMetaDataKey> getUserOrgUnitsMetadataKeys(CommonParams commonParams){
+    return commonParams.getDimensionIdentifiers().stream()
+            .filter(dimensionIdentifier -> dimensionIdentifier.toString().equals("ou"))
+            .flatMap(
+                    dimensionIdentifier -> dimensionIdentifier.getDimension().getItems().stream())
+            .flatMap(item -> item.getValues().stream())
+            .filter(
+                    item ->
+                            item.equals(AnalyticsMetaDataKey.USER_ORGUNIT.getKey())
+                                    || item.equals(AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN.getKey())
+                                    || item.equals(AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN.getKey()))
+            .map(
+                    item -> {
+                      if (item.equals(AnalyticsMetaDataKey.USER_ORGUNIT.getKey())) {
+                        return AnalyticsMetaDataKey.USER_ORGUNIT;
+                      }
+                      if (item.equals(AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN.getKey())) {
+                        return AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN;
+                      }
+                      return AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN;
+                    })
+            .toList();
+  }
   /**
    * Returns the query {@link QueryItem} identifier. It may be prefixed with its program stage
    * identifier (if one exists).
