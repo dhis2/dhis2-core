@@ -77,7 +77,7 @@ public class OrganisationUnitCriteriaUtils {
    * Transform criteria in the string
    *
    * @param criteria {@link EnrollmentAnalyticsQueryCriteria}.
-   * @return string of criteria
+   * @return string of the criteria, or empty.
    */
   public static String getAnalyticsQueryCriteria(EnrollmentAnalyticsQueryCriteria criteria) {
     return hasDimensions(criteria.getDimension())
