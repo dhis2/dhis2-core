@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.metadata;
 
-import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,10 +47,12 @@ import org.junit.jupiter.api.Test;
 class DataSetMetadataTest extends ApiTest {
 
   private RestApiActions restApiActions;
+  private RestApiActions dataSetActions;
 
   @BeforeAll
   public void beforeAll() {
     restApiActions = new RestApiActions("dataEntry/metadata");
+    dataSetActions = new RestApiActions("dataSets");
     LoginActions loginActions = new LoginActions();
     loginActions.loginAsSuperUser();
   }
@@ -89,14 +90,7 @@ class DataSetMetadataTest extends ApiTest {
     assertEquals(eTagValue1, eTagValue2);
 
     // create new data set to trigger a change of data seen by the API
-    given()
-        .header("Content-type", "application/json")
-        .and()
-        .body(newDataSet())
-        .when()
-        .post("http://localhost:8080/api/dataSets")
-        .then()
-        .statusCode(201);
+    dataSetActions.post("", newDataSet()).validateStatus(201);
 
     // call again with 'If-None-Match' header and the previous ETag header value
     Response response3 =
