@@ -46,7 +46,7 @@ import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrganisationUnitCriteriaUtils {
   /**
-   * Translate user organisation unit criteria in analytics keys (MetaData)
+   * Converts the given user organisation unit criteria into a list of {@link AnalyticsMetaDataKey} (MetaData).
    *
    * @param userOrganisationUnitsCriteria {@link String}.
    * @return user organisation unit criteria as a AnalyticsMetaDataKeys
