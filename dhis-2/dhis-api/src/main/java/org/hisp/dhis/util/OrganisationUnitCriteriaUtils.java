@@ -74,7 +74,7 @@ public class OrganisationUnitCriteriaUtils {
   }
 
   /**
-   * Transform criteria in the string
+   * Transform criteria into a string.
    *
    * @param criteria {@link EnrollmentAnalyticsQueryCriteria}.
    * @return string of the criteria, or empty.
