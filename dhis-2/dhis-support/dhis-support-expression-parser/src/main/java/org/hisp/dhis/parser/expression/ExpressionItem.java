@@ -122,9 +122,9 @@ public interface ExpressionItem extends AntlrExprItem {
   }
 
   /**
-   * Finds the value of an expression function, evaluating all the arguments of logical functions
-   * that might not always evaluate all arguments based on the truth value of some arguments (e.g.
-   * if, and, or, firstNonNull).
+   * Finds the value of an expression item, evaluating all the arguments of logical functions that
+   * might not always evaluate all arguments based on the truth value of some arguments (e.g. if,
+   * and, or, firstNonNull).
    *
    * <p>For those few logical functions that may not normally evaluate all arguments, this method
    * must be overridden.
@@ -140,7 +140,7 @@ public interface ExpressionItem extends AntlrExprItem {
   }
 
   /**
-   * Generates the SQL for a program indicator expression item.
+   * Generates the SQL for an expression item.
    *
    * <p>This method must be overridden for all items used in program indicator expressions,
    * otherwise an exception will be thrown.
@@ -149,7 +149,7 @@ public interface ExpressionItem extends AntlrExprItem {
    *
    * @param ctx the expression context
    * @param visitor the tree visitor
-   * @return the generated SQL (as a String) for the function
+   * @return the generated SQL (as a String) for the item
    */
   default Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
     throw new ParserExceptionWithoutContext("Not valid in this context: " + ctx.getText());
