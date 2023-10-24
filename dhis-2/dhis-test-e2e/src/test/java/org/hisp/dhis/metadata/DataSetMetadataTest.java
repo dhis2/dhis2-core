@@ -33,10 +33,12 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.restassured.http.Header;
+import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.apache.http.HttpHeaders;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -45,8 +47,11 @@ import org.junit.jupiter.api.Test;
  */
 class DataSetMetadataTest extends ApiTest {
 
+  private RestApiActions restApiActions;
+
   @BeforeAll
   public void beforeAll() {
+    restApiActions = new RestApiActions("dataEntry/metadata");
     LoginActions loginActions = new LoginActions();
     loginActions.loginAsSuperUser();
   }
@@ -54,8 +59,7 @@ class DataSetMetadataTest extends ApiTest {
   @Test
   void dataSetMetadataEtagFunctionalityTest() {
     // call endpoint to get current state
-    Response response1 =
-        given().get("http://localhost:8080/api/dataEntry/metadata").then().extract().response();
+    Response response1 = restApiActions.get().validate().extract().response();
 
     int statusCode1 = response1.getStatusCode();
     assertEquals(200, statusCode1);
@@ -66,13 +70,9 @@ class DataSetMetadataTest extends ApiTest {
 
     // make the same call again, this time passing the 'If-None-Match' header and the ETag value
     // from response 1
+    Headers headers = new Headers(new Header(HttpHeaders.IF_NONE_MATCH, eTagValue1));
     Response response2 =
-        given()
-            .header(new Header(HttpHeaders.IF_NONE_MATCH, eTagValue1))
-            .get("http://localhost:8080/api/dataEntry/metadata")
-            .then()
-            .extract()
-            .response();
+        restApiActions.getWithHeaders("", null, headers).validate().extract().response();
 
     int statusCode2 = response2.getStatusCode();
 
@@ -100,12 +100,7 @@ class DataSetMetadataTest extends ApiTest {
 
     // call again with 'If-None-Match' header and the previous ETag header value
     Response response3 =
-        given()
-            .header(new Header(HttpHeaders.IF_NONE_MATCH, eTagValue1))
-            .get("http://localhost:8080/api/dataEntry/metadata")
-            .then()
-            .extract()
-            .response();
+        restApiActions.getWithHeaders("", null, headers).validate().extract().response();
 
     // new ETag should be received
     String eTagValue3 = response3.getHeader(HttpHeaders.ETAG);
