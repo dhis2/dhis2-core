@@ -63,6 +63,7 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.Date;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.dataitem.ItemConstant;
 import org.hisp.dhis.parser.expression.function.FunctionFirstNonNull;
@@ -99,7 +100,9 @@ import org.hisp.dhis.parser.expression.operator.OperatorMathPower;
  * @author Jim Grace
  */
 public class ParserUtils {
-  private ParserUtils() {}
+  private ParserUtils() {
+    throw new UnsupportedOperationException("util");
+  }
 
   public static final double DOUBLE_VALUE_IF_NULL = 0.0;
 
@@ -237,5 +240,51 @@ public class ParserUtils {
       throw new ParserExceptionWithoutContext(
           "Program attribute must have one UID: " + ctx.getText());
     }
+  }
+
+  /**
+   * Generate SQL to replace a null value with a dataType-appropriate default.
+   *
+   * @param column SQL column to default if null
+   * @param dataType data type for default value
+   * @return a coalesce statement to default the value
+   */
+  public static String replaceSqlNull(String column, DataType dataType) {
+    String COALESCE = "coalesce(";
+
+    switch (dataType) {
+      case NUMERIC:
+        return COALESCE + column + ",0)";
+
+      case BOOLEAN:
+        return COALESCE + column + ",false)";
+
+      case TEXT:
+        return COALESCE + column + ",'')";
+    }
+
+    throw new IllegalArgumentException("Unexpected dataType: " + dataType.name());
+  }
+
+  /**
+   * Generate SQL to cast an analytics value to a data type.
+   *
+   * @param column SQL column to cast
+   * @param dataType data type to cast to
+   * @return a coalesce statement casting the column
+   */
+  public static String castSql(String column, DataType dataType) {
+    switch (dataType) {
+      case NUMERIC:
+        return  column + "::numeric";
+
+      case BOOLEAN:
+        return column + "::numeric!=0";
+
+      case TEXT:
+        return column + "::text";
+    }
+
+    throw new IllegalArgumentException("Unexpected dataType: " + dataType.name());
   }
 }
