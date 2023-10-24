@@ -154,7 +154,7 @@ public class JobScheduler implements Runnable, JobRunner {
       String jobId = jobIds.poll();
       while (jobId != null) {
         JobConfiguration config = service.getJobConfiguration(jobId);
-        if (config != null) {
+        if (config != null && config.getJobStatus() == JobStatus.SCHEDULED) {
           Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
           Instant dueTime = dueTime(now, config);
           runDueJob(config, dueTime);
