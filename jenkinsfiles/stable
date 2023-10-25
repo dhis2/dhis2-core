@@ -23,14 +23,14 @@ pipeline {
     }
 
     stages {
-        stage ('Patch') {
+        stage('Patch') {
             steps {
                 echo 'Patching DHIS2 ...'
                 sh './run-cve-patcher.sh'
             }
         }
 
-        stage ('Build') {
+        stage('Build') {
             steps {
                 echo 'Building DHIS2 ...'
                 script {
@@ -114,16 +114,18 @@ pipeline {
             steps {
                 withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
+                        //TODO use script here with new version format
+                        sh './build-docker-image.sh -t "$DOCKER_IMAGE_NAME_PUBLISH_TARGET"'
                         sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
-                                            -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
-                                            -Djib.from.image=${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} -Djib.to.image=${DOCKER_IMAGE_NAME_PUBLISH_TARGET} \
-                                            -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
+                                -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
+                                -Djib.from.image=${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} -Djib.to.image=${DOCKER_IMAGE_NAME_PUBLISH_TARGET} \
+                                -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
                     }
                 }
             }
         }
 
-        stage ('Sync WAR') {
+        stage('Sync WAR') {
             steps {
                 echo 'Syncing WAR ...'
                 sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'

@@ -1,0 +1,39 @@
+#!/usr/bin/env groovy
+
+@Library('pipeline-library') _
+
+pipeline {
+    agent {
+        label 'ec2-jdk11-large-spot'
+    }
+
+    parameters {
+        string(name: 'VERSIONS', defaultValue: '', description: 'Space separated list of DHIS2 versions to rebuild (new format).')
+    }
+
+    options {
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Rebuild Docker images') {
+            steps {
+                script {
+                    withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+                        sh '''
+                            for version in "$VERSIONS"; do
+                                git checkout "2.$version"
+                                export DHIS2_VERSION="2.$version"
+                                export GIT_COMMIT="$(git rev-parse HEAD)"
+                                export GIT_BRANCH="$DHIS2_VERSION"
+                                env
+                                #./build-docker-image.sh -t "$version"
+                            done
+                        '''
+                        sh 'docker image ls -a'
+                    }
+                }
+            }
+        }
+    }
+}
