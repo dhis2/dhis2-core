@@ -36,12 +36,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -51,13 +54,13 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author david mackessy
  */
 class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
+  
+  @Autowired private DatastoreService datastoreService;
+  @Autowired private UserService _userService;
+  @Autowired private UserGroupService userGroupService;
+  @Autowired private ObjectMapper jsonMapper;
 
   private static final String NAMESPACE = "FOOTBALL";
-
-  @Autowired private DatastoreService service;
-  @Autowired private UserService _userService;
-
-  @Autowired private ObjectMapper jsonMapper;
 
   @BeforeAll
   public void init() {
@@ -86,7 +89,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     injectSecurityContext(superuser);
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertTrue(currentUserDetails.isSuper());
-    List<String> keysInNamespace = service.getKeysInNamespace(NAMESPACE, null);
+    List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
 
     // then
     // the super user should be able to retrieve all keys from the namespace
@@ -118,7 +121,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     injectSecurityContext(nonSuperUser2);
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
-    List<String> keysInNamespace = service.getKeysInNamespace(NAMESPACE, null);
+    List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
 
     // then
     // the user should be able to retrieve all keys from the namespace
@@ -146,11 +149,11 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     enableDataSharing(nonSuperUser1, entry2, "--r-----");
 
     // when
-    // a non super user with no explicit user access tries to get namespace keys
+    // a non-superuser with no explicit user access tries to get namespace keys
     injectSecurityContext(nonSuperUser2);
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
-    List<String> keysInNamespace = service.getKeysInNamespace(NAMESPACE, null);
+    List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
 
     // then
     // the user should not be able to retrieve all keys from the namespace
@@ -168,17 +171,119 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     injectSecurityContext(nonSuperUser1);
 
     String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
-    jsonMapper.writeValueAsString(club("spurs"));
+    String spurs = jsonMapper.writeValueAsString(club("spurs"));
 
     DatastoreEntry entry1 = addEntry("arsenal", arsenal);
+    addEntry("spurs", spurs);
     enableDataSharing(nonSuperUser2, entry1, "--r-----");
 
     // when
-    // a non super user with explicit user access for one entry tries to get namespace keys
+    // a non-superuser with explicit user access for one entry tries to get namespace keys
     injectSecurityContext(nonSuperUser2);
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
-    List<String> keysInNamespace = service.getKeysInNamespace(NAMESPACE, null);
+    List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
+
+    // then
+    // the user should be able to retrieve only one key from the namespace
+    assertNotNull(keysInNamespace);
+    assertEquals(1, keysInNamespace.size());
+  }
+
+  @Test
+  void testGetNamespaceKeysWithFullUserGroupAccess()
+      throws ConflictException, BadRequestException, JsonProcessingException {
+    // given
+    // 2 existing namespace entries with sharing set a specific user group only
+    User nonSuperUser1 = createAndAddUser(false, "nonSuperUser1", null);
+    User nonSuperUser2 = createAndAddUser(false, "nonSuperUser2", null);
+    UserGroup userGroup = createUserGroup('a', Set.of(nonSuperUser2));
+    injectAdminUser();
+    userGroupService.addUserGroup(userGroup);
+    injectSecurityContext(nonSuperUser1);
+
+    String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
+    String spurs = jsonMapper.writeValueAsString(club("spurs"));
+
+    DatastoreEntry entry1 = addEntry("arsenal", arsenal);
+    DatastoreEntry entry2 = addEntry("spurs", spurs);
+
+    enableDataSharingWithUserGroup(userGroup, entry1, "--r-----");
+    enableDataSharingWithUserGroup(userGroup, entry2, "--r-----");
+
+    // when
+    // a non-superuser with explicit user group access tries to get namespace keys
+    injectSecurityContext(nonSuperUser2);
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    assertFalse(currentUserDetails.isSuper());
+    List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
+
+    // then
+    // the user should be able to retrieve all keys from the namespace
+    assertNotNull(keysInNamespace);
+    assertEquals(2, keysInNamespace.size());
+    assertTrue(keysInNamespace.containsAll(List.of("arsenal", "spurs")));
+  }
+
+  @Test
+  void testGetNamespaceKeysWithNoUserGroupAccess()
+      throws ConflictException, BadRequestException, JsonProcessingException {
+    // given
+    // 2 existing namespace entries with sharing set to a specific user group only
+    User nonSuperUser1 = createAndAddUser(false, "nonSuperUser1", null);
+    User nonSuperUser2 = createAndAddUser(false, "nonSuperUser2", null);
+    UserGroup userGroup = createUserGroup('a', Set.of(nonSuperUser1));
+    injectAdminUser();
+    userGroupService.addUserGroup(userGroup);
+    injectSecurityContext(nonSuperUser1);
+
+    String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
+    String spurs = jsonMapper.writeValueAsString(club("spurs"));
+
+    DatastoreEntry entry1 = addEntry("arsenal", arsenal);
+    DatastoreEntry entry2 = addEntry("spurs", spurs);
+
+    enableDataSharingWithUserGroup(userGroup, entry1, "--r-----");
+    enableDataSharingWithUserGroup(userGroup, entry2, "--r-----");
+
+    // when
+    // a non-superuser with no explicit user access tries to get namespace keys
+    injectSecurityContext(nonSuperUser2);
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    assertFalse(currentUserDetails.isSuper());
+    List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
+
+    // then
+    // the user should not be able to retrieve all keys from the namespace
+    assertNotNull(keysInNamespace);
+    assertEquals(0, keysInNamespace.size());
+  }
+
+  @Test
+  void testGetNamespaceKeysWithUserGroupAccessOnOneEntryOnly()
+      throws ConflictException, BadRequestException, JsonProcessingException {
+    // given
+    // 2 existing namespace entries with sharing set to nonSuperUser2 on 1 entry only
+    User nonSuperUser1 = createAndAddUser(false, "nonSuperUser1", null);
+    User nonSuperUser2 = createAndAddUser(false, "nonSuperUser2", null);
+    UserGroup userGroup = createUserGroup('a', Set.of(nonSuperUser2));
+    injectAdminUser();
+    userGroupService.addUserGroup(userGroup);
+    injectSecurityContext(nonSuperUser1);
+
+    String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
+    String spurs = jsonMapper.writeValueAsString(club("spurs"));
+
+    DatastoreEntry entry1 = addEntry("arsenal", arsenal);
+    addEntry("spurs", spurs);
+    enableDataSharingWithUserGroup(userGroup, entry1, "--r-----");
+
+    // when
+    // a non-superuser with explicit user group access for one entry tries to get namespace keys
+    injectSecurityContext(nonSuperUser2);
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    assertFalse(currentUserDetails.isSuper());
+    List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
 
     // then
     // the user should be able to retrieve only one key from the namespace
@@ -189,7 +294,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
   private <T> DatastoreEntry addEntry(String key, T object)
       throws ConflictException, BadRequestException {
     DatastoreEntry entry = new DatastoreEntry(NAMESPACE, key, mapValueToJson(object), false);
-    service.addEntry(entry);
+    datastoreService.addEntry(entry);
     return entry;
   }
 
