@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
  * @author maikel arabori
  */
 @Component
-public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult> {
+public class SqlQueryExecutor implements QueryExecutor<SqlQueryCreator, SqlQueryResult> {
   @Nonnull private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   public SqlQueryExecutor(@Qualifier("analyticsReadOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
@@ -61,7 +61,7 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
    * @throws IllegalArgumentException if the query argument is null.
    */
   @Override
-  public SqlQueryResult find(SqlQueryCreator queryCreator) {
+  public SqlQueryResult find(@Nonnull SqlQueryCreator queryCreator) {
     notNull(queryCreator, "The 'query' must not be null");
 
     SqlQuery forSelect = queryCreator.createForSelect();

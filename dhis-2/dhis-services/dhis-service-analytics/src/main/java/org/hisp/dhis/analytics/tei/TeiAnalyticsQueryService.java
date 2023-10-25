@@ -40,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.GridAdaptor;
 import org.hisp.dhis.analytics.common.QueryExecutor;
-import org.hisp.dhis.analytics.common.SqlQuery;
 import org.hisp.dhis.analytics.common.SqlQueryResult;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.query.Field;
@@ -61,7 +60,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class TeiAnalyticsQueryService {
-  private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;
+  private final QueryExecutor<SqlQueryCreator, SqlQueryResult> queryExecutor;
 
   private final GridAdaptor gridAdaptor;
 

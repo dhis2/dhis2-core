@@ -25,31 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query.context.sql;
+package org.hisp.dhis.analytics.common;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.QueryCreator;
-import org.hisp.dhis.analytics.common.SqlQuery;
+public interface QueryCreator {
 
-/**
- * Class to create a {@link SqlQuery} from a {@link RenderableSqlQuery}. It uses the {@link
- * QueryContext} to get the parameter placeholders. Supports both select and count queries. A select
- * query can be converted to a count query by calling {@link #createForCount()}.
- */
-@Getter
-@RequiredArgsConstructor(staticName = "of")
-public class SqlQueryCreator implements QueryCreator {
+  Query createForSelect();
 
-  private final QueryContext queryContext;
-  private final RenderableSqlQuery renderableSqlQuery;
-
-  public SqlQuery createForSelect() {
-    return new SqlQuery(renderableSqlQuery.render(), queryContext.getParametersPlaceHolder());
-  }
-
-  public SqlQuery createForCount() {
-    return new SqlQuery(
-        renderableSqlQuery.forCount().render(), queryContext.getParametersPlaceHolder());
-  }
+  Query createForCount();
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.common;
 
 import javax.annotation.Nonnull;
-import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreator;
 
 /**
  * Responsible for providing methods able to execute read only queries on the respective data
@@ -38,7 +37,7 @@ import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreator;
  *
  * @author maikel arabori
  */
-public interface QueryExecutor<T extends Query, E extends QueryResult> {
+public interface QueryExecutor<T extends QueryCreator, E extends QueryResult> {
   /**
    * Executes a find operation based on the given SQL query object.
    *
@@ -46,7 +45,7 @@ public interface QueryExecutor<T extends Query, E extends QueryResult> {
    * @return the result of the execution represented by a {@link QueryResult} object.
    */
   @Nonnull
-  E find(@Nonnull SqlQueryCreator queryCreator);
+  E find(@Nonnull T queryCreator);
 
   /**
    * Executes a count operation based on the given SQL query object.
@@ -54,5 +53,5 @@ public interface QueryExecutor<T extends Query, E extends QueryResult> {
    * @param queryCreator the SQL statement to be executed.
    * @return the number of results found.
    */
-  long count(@Nonnull SqlQueryCreator queryCreator);
+  long count(@Nonnull T queryCreator);
 }
