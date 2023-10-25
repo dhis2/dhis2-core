@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.export.relationship;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.export.Order;
 
@@ -42,13 +43,13 @@ class RelationshipQueryParams {
 
   private final IdentifiableObject entity;
 
-  private Integer page;
+  @Setter private Integer page;
 
-  private Integer pageSize;
+  @Setter private Integer pageSize;
 
-  private boolean totalPages;
+  @Setter private boolean totalPages;
 
-  private boolean skipPaging;
+  @Setter private boolean skipPaging;
 
   private List<Order> order;
 
