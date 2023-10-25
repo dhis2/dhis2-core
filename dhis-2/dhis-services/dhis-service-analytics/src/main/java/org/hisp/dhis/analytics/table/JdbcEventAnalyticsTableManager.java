@@ -41,8 +41,8 @@ import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
-import static org.hisp.dhis.resourcetable.ResourceTable.NEWEST_YEAR_PERIOD_SUPPORTED;
-import static org.hisp.dhis.resourcetable.ResourceTable.OLDEST_YEAR_PERIOD_SUPPORTED;
+import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
+import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
@@ -210,7 +210,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             "Get tables using earliest: %s, spatial support: %b",
             params.getFromDate(), databaseInfo.isSpatialSupport()));
 
-    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+    List<Integer> availableDataYears =
+        periodDataProvider.getAvailableYears(
+            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
 
     return params.isLatestUpdate()
         ? getLatestAnalyticsTables(params)
@@ -400,6 +402,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+
+    List<Integer> availableDataYears =
+        periodDataProvider.getAvailableYears(
+            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+    Integer firstDataYear = availableDataYears.get(0);
+    Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
+
     Program program = partition.getMasterTable().getProgram();
     String start = DateUtils.getLongDateString(partition.getStartDate());
     String end = DateUtils.getLongDateString(partition.getEndDate());
@@ -433,10 +442,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + "and psi.executiondate is not null "
             + "and dps.yearly is not null "
             + "and dps.year >= "
-            + OLDEST_YEAR_PERIOD_SUPPORTED
+            + firstDataYear
             + " "
             + "and dps.year <= "
-            + NEWEST_YEAR_PERIOD_SUPPORTED
+            + latestDataYear
             + " "
             + "and psi.deleted is false ";
 
