@@ -35,12 +35,16 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.hisp.dhis.analytics.orgunit.OrgUnitHelper.getActiveOrganisationUnits;
+import static org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.common.MetadataInfo;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.CommonParams;
@@ -63,6 +67,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MetadataParamsHandler {
   private static final String DOT = ".";
+  private static final String ORG_UNIT_DIM = "ou";
 
   /**
    * Appends the metadata to the given {@link Grid} based on the given arguments.
@@ -73,10 +78,16 @@ public class MetadataParamsHandler {
    */
   public void handle(Grid grid, CommonParams commonParams, User user, long rowsCount) {
     if (!commonParams.isSkipMeta()) {
-      MetadataInfo metadataInfo = new MetadataInfo();
 
       // Dimensions.
-      metadataInfo.put(ITEMS.getKey(), new MetadataItemsHandler().handle(grid, commonParams));
+      List<AnalyticsMetaDataKey> userOrgUnitMetaDataKeys =
+          getUserOrgUnitsMetadataKeys(commonParams);
+      Map<String, Object> items =
+          new HashMap<>(new MetadataItemsHandler().handle(grid, commonParams));
+      getUserOrganisationUnitItems(user, userOrgUnitMetaDataKeys).forEach(items::putAll);
+      MetadataInfo metadataInfo = new MetadataInfo();
+      metadataInfo.put(ITEMS.getKey(), items);
+
       metadataInfo.put(
           DIMENSIONS.getKey(), new MetadataDimensionsHandler().handle(grid, commonParams));
 
@@ -127,6 +138,35 @@ public class MetadataParamsHandler {
     List<OrganisationUnit> organisationUnits = asTypedList(orgUnitDimensionOrFilterItems);
 
     return getActiveOrganisationUnits(grid, organisationUnits);
+  }
+
+  /**
+   * Retrieve the analytics metadata keys belong to user organisation unit dimension group
+   *
+   * @param commonParams the {@link CommonParams}.
+   * @return list of the {@link AnalyticsMetaDataKey}
+   */
+  private static List<AnalyticsMetaDataKey> getUserOrgUnitsMetadataKeys(CommonParams commonParams) {
+    return commonParams.getDimensionIdentifiers().stream()
+        .filter(dimensionIdentifier -> dimensionIdentifier.toString().equals(ORG_UNIT_DIM))
+        .flatMap(dimensionIdentifier -> dimensionIdentifier.getDimension().getItems().stream())
+        .flatMap(item -> item.getValues().stream())
+        .filter(
+            item ->
+                item.equals(AnalyticsMetaDataKey.USER_ORGUNIT.getKey())
+                    || item.equals(AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN.getKey())
+                    || item.equals(AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN.getKey()))
+        .map(
+            item -> {
+              if (item.equals(AnalyticsMetaDataKey.USER_ORGUNIT.getKey())) {
+                return AnalyticsMetaDataKey.USER_ORGUNIT;
+              }
+              if (item.equals(AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN.getKey())) {
+                return AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN;
+              }
+              return AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN;
+            })
+        .toList();
   }
 
   /**

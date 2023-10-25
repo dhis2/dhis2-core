@@ -96,6 +96,7 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
 
@@ -197,8 +198,9 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
       DatabaseInfo databaseInfo,
       AnalyticsCache analyticsCache,
       EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-      SchemeIdResponseMapper schemeIdResponseMapper) {
-    super(securityManager, queryValidator, schemeIdResponseMapper);
+      SchemeIdResponseMapper schemeIdResponseMapper,
+      CurrentUserService currentUserService) {
+    super(securityManager, queryValidator, schemeIdResponseMapper, currentUserService);
 
     checkNotNull(dataElementService);
     checkNotNull(trackedEntityAttributeService);

@@ -94,6 +94,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
 
 /**
  * Class representing query parameters for retrieving event data from the event analytics service.
@@ -303,6 +304,7 @@ public class EventQueryParams extends DataQueryParams {
     params.endpointAction = this.endpointAction;
     params.rowContext = this.rowContext;
     params.multipleQueries = this.multipleQueries;
+    params.userOrganisationUnitsCriteria = this.userOrganisationUnitsCriteria;
     return params;
   }
 
@@ -1253,6 +1255,13 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withOrgUnitField(OrgUnitField orgUnitField) {
       this.params.orgUnitField = orgUnitField;
+      return this;
+    }
+
+    public Builder withUserOrganisationUnitsCriteria(String userOrganisationUnitsCriteria) {
+
+      this.params.userOrganisationUnitsCriteria =
+          OrganisationUnitCriteriaUtils.getAnalyticsMetaDataKeys(userOrganisationUnitsCriteria);
       return this;
     }
 

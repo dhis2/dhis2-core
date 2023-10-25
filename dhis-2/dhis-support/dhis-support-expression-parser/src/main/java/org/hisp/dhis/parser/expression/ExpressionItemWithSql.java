@@ -25,44 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.parser.expression.function;
+package org.hisp.dhis.parser.expression;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
-import org.hisp.dhis.common.QueryModifiers;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItemWithSql;
-
 /**
- * Function aggregationType (for indicator expressions)
- *
- * <p>Overrides the default aggregation type of {@see DimensionalItemObject}.
+ * A parsed item from an ANTLR expression, using the evaluate method to generate SQL (or to pass
+ * through the call to generate SQL.)
  *
  * @author Jim Grace
  */
-public class FunctionAggregationType implements ExpressionItemWithSql {
+public interface ExpressionItemWithSql extends ExpressionItem {
+
+  /**
+   * Generates the SQL for an expression item using the evaluate method.
+   *
+   * @param ctx the expression context
+   * @param visitor the tree visitor
+   * @return the generated SQL (as a String) for the item
+   */
   @Override
-  public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
-    AggregationType aggregationType = parseAggregationType(ctx.aggregationType.getText());
-
-    QueryModifiers queryMods =
-        visitor.getState().getQueryModsBuilder().aggregationType(aggregationType).build();
-
-    return visitor.visitWithQueryMods(ctx.expr(0), queryMods);
-  }
-
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
-
-  /** Parses the aggregation type */
-  private AggregationType parseAggregationType(String text) {
-    try {
-      return AggregationType.valueOf(text);
-    } catch (IllegalArgumentException e) {
-      throw new ParserExceptionWithoutContext("Invalid aggregation type: " + text);
-    }
+  default Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return evaluate(ctx, visitor);
   }
 }

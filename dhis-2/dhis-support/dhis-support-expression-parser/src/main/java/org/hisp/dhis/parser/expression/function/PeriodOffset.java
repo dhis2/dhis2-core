@@ -33,7 +33,7 @@ import static org.hisp.dhis.system.util.MathUtils.parseInt;
 
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.ExpressionItemWithSql;
 import org.hisp.dhis.parser.expression.ExpressionState;
 
 /**
@@ -41,7 +41,7 @@ import org.hisp.dhis.parser.expression.ExpressionState;
  *
  * @author Enrico Colasante
  */
-public class PeriodOffset implements ExpressionItem {
+public class PeriodOffset implements ExpressionItemWithSql {
   @Override
   public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
     ExpressionState state = visitor.getState();

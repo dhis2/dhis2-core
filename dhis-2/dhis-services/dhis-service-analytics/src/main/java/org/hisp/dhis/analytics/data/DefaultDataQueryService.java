@@ -166,6 +166,7 @@ public class DefaultDataQueryService implements DataQueryService {
         .withDuplicatesOnly(request.isDuplicatesOnly())
         .withApprovalLevel(request.getApprovalLevel())
         .withUserOrgUnitType(request.getUserOrgUnitType())
+        .withUserOrganisationUnitsCriteria(request.getUserOrganisationUnitCriteria())
         .withApiVersion(request.getApiVersion())
         .withLocale(locale)
         .withOutputFormat(ANALYTICS)

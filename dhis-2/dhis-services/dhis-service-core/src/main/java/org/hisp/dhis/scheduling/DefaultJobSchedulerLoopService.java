@@ -111,7 +111,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   @Override
   @Transactional(readOnly = true)
   public List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds) {
-    return jobConfigurationService.getDueJobConfigurations(dueInNextSeconds, true, false);
+    return jobConfigurationService.getDueJobConfigurations(dueInNextSeconds, false);
   }
 
   @Override
@@ -119,6 +119,13 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   @Transactional(readOnly = true)
   public JobConfiguration getNextInQueue(String queue, int fromPosition) {
     return jobConfigurationStore.getNextInQueue(queue, fromPosition);
+  }
+
+  @CheckForNull
+  @Override
+  @Transactional(readOnly = true)
+  public JobConfiguration getJobConfiguration(String jobId) {
+    return jobConfigurationStore.getByUid(jobId);
   }
 
   @Override
