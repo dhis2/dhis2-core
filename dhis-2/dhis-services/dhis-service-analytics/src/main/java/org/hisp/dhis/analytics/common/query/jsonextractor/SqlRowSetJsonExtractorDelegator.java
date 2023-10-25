@@ -46,6 +46,7 @@ import lombok.SneakyThrows;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
+import org.hisp.dhis.analytics.common.query.jsonextractor.JsonEnrollment.JsonEvent;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -182,7 +183,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     if (dimension
         .getDimensionParamObjectType()
         .equals(DimensionParamObjectType.ORGANISATION_UNIT)) {
-      return jsonEvent -> jsonEvent.getOrgUnitUid();
+      return JsonEvent::getOrgUnitUid;
     }
     throw new IllegalStateException("Unknown dimension identifier " + dimension);
   }
@@ -200,7 +201,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     if (dimension
         .getDimensionParamObjectType()
         .equals(DimensionParamObjectType.ORGANISATION_UNIT)) {
-      return jsonEnrollment -> jsonEnrollment.getOrgUnitUid();
+      return JsonEnrollment::getOrgUnitUid;
     }
     throw new IllegalQueryException(E7250, dimension.toString());
   }
