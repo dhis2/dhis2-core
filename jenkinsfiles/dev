@@ -30,6 +30,7 @@ pipeline {
     }
 
     stages {
+/*
         stage('Build') {
             steps {
                 implementIoBuildStarted(buildJob: true, buildName: "${STAGE_NAME}")
@@ -187,6 +188,7 @@ pipeline {
                 }
             }
         }
+*/
 
         stage('Update IM Play dev instance') {
             environment {
@@ -216,8 +218,10 @@ pipeline {
                             if (env.GIT_BRANCH == 'master') {
                                 env.IMAGE_TAG = "latest"
                             } else {
-                                env.IMAGE_TAG = env.GIT_BRANCH
-                                branch = env.GIT_BRANCH.replaceAll(".", "-")
+//                                env.IMAGE_TAG = env.GIT_BRANCH
+                                env.IMAGE_TAG = "2.40"
+//                                branch = env.GIT_BRANCH.replaceAll(".", "-")
+                                branch = "2-40"
                             }
 
                             dir('scripts/instances') {
