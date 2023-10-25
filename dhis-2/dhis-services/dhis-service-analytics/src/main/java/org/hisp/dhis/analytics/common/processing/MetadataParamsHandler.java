@@ -35,7 +35,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.hisp.dhis.analytics.orgunit.OrgUnitHelper.getActiveOrganisationUnits;
-import static org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsItems;
+import static org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
@@ -67,6 +67,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MetadataParamsHandler {
   private static final String DOT = ".";
+  private static final String ORG_UNIT_DIM = "ou";
 
   /**
    * Appends the metadata to the given {@link Grid} based on the given arguments.
@@ -83,10 +84,10 @@ public class MetadataParamsHandler {
           getUserOrgUnitsMetadataKeys(commonParams);
       Map<String, Object> items =
           new HashMap<>(new MetadataItemsHandler().handle(grid, commonParams));
-      getUserOrganisationUnitsItems(user, userOrgUnitMetaDataKeys).forEach(items::putAll);
-
+      getUserOrganisationUnitItems(user, userOrgUnitMetaDataKeys).forEach(items::putAll);
       MetadataInfo metadataInfo = new MetadataInfo();
       metadataInfo.put(ITEMS.getKey(), items);
+
       metadataInfo.put(
           DIMENSIONS.getKey(), new MetadataDimensionsHandler().handle(grid, commonParams));
 
@@ -147,7 +148,7 @@ public class MetadataParamsHandler {
    */
   private static List<AnalyticsMetaDataKey> getUserOrgUnitsMetadataKeys(CommonParams commonParams) {
     return commonParams.getDimensionIdentifiers().stream()
-        .filter(dimensionIdentifier -> dimensionIdentifier.toString().equals("ou"))
+        .filter(dimensionIdentifier -> dimensionIdentifier.toString().equals(ORG_UNIT_DIM))
         .flatMap(dimensionIdentifier -> dimensionIdentifier.getDimension().getItems().stream())
         .flatMap(item -> item.getValues().stream())
         .filter(
