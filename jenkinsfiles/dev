@@ -195,7 +195,6 @@ pipeline {
                 IM_HOST = "https://api.im.dhis2.org"
                 INSTANCE_URL = "https://play.im.dhis2.org/dev"
                 IMAGE_REPOSITORY = "core-dev"
-                IMAGE_TAG = "latest"
                 IMAGE_PULL_POLICY = "Always"
                 FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
                 FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
@@ -203,6 +202,7 @@ pipeline {
                 STARTUP_PROBE_FAILURE_THRESHOLD = "50"
                 LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
                 READINESS_PROBE_TIMEOUT_SECONDS = "3"
+                DATABASE_ID = "sl-sierra-leone-dev-sql-gz"
             }
 
             steps {
@@ -213,13 +213,12 @@ pipeline {
 
                             echo 'Creating DHIS2 instance on IM...'
                             def branch = ""
-                            if (env.GIT_BRANCH != 'master') {
+                            if (env.GIT_BRANCH == 'master') {
+                                env.IMAGE_TAG = "latest"
+                            } else {
+                                env.IMAGE_TAG = env.GIT_BRANCH
                                 branch = env.GIT_BRANCH.replaceAll(".", "-")
                             }
-                            echo "Sanitized branch name: ${branch}"
-
-                            env.DATABASE_ID = "sl-sierra-leone-dev-sql-gz"
-                            echo "DATABASE_ID is ${env.DATABASE_ID}"
 
                             dir('scripts/instances') {
                                 sh "(./findByName.sh play ${branch}dev && ./restart.sh play ${branch}dev) || ./deploy-dhis2.sh play ${branch}dev"
