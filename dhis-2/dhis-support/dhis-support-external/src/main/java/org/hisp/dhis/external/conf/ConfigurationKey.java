@@ -168,7 +168,7 @@ public enum ConfigurationKey {
    * value is less than or equal to zero, the system will keep trying indefinitely. (default: 30).
    */
   ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS(
-      "analytics.connection.pool.acquire_incr", "5", false),
+      "analytics.connection.pool.acquire_retry_attempts", "30", false),
 
   /**
    * Seconds a Connection can remain pooled but unused before being discarded. Zero means idle
