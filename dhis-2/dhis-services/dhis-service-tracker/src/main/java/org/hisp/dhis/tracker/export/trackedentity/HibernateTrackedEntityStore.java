@@ -51,7 +51,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -271,7 +270,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return stringBuilder
         .append("FROM ")
         .append(getFromSubQuery(params, false))
-        .append(getQueryRelatedTables(params))
         .append(getQueryOrderBy(params, false))
         .toString();
   }
@@ -288,7 +286,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         + getQuerySelect(params)
         + "FROM "
         + getFromSubQuery(params, true)
-        + getQueryRelatedTables(params)
         + " ) tecount";
   }
 
@@ -304,7 +301,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         + getQuerySelect(params)
         + "FROM "
         + getFromSubQuery(params, true)
-        + getQueryRelatedTables(params)
         + (params.getProgram().getMaxTeiCountToReturn() > 0
             ? getLimitClause(params.getProgram().getMaxTeiCountToReturn() + 1)
             : "")
@@ -875,40 +871,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         + " <= '"
         + end
         + "' ";
-  }
-
-  /**
-   * Generates SQL for LEFT JOINing relevant tables with the tracked entities we have in our result.
-   * After the sub-query, we know which tracked entities we are returning, but these LEFT JOINs will
-   * add any extra information we need. For example attribute values, tet uid, tea uid, etc.
-   *
-   * @return a SQL with several LEFT JOINS, one for each relevant table to retrieve information
-   *     from.
-   */
-  private String getQueryRelatedTables(TrackedEntityQueryParams params) {
-    StringBuilder relatedTables = new StringBuilder();
-
-    relatedTables.append(
-        "LEFT JOIN trackedentitytype TET ON TET.trackedentitytypeid = TE.trackedentitytypeid ");
-
-    if (!params.getAttributes().isEmpty()) {
-      String attributeIds =
-          getCommaDelimitedString(
-              params.getAttributes().stream().map(IdentifiableObject::getId).toList());
-
-      relatedTables
-          .append("LEFT JOIN trackedentityattributevalue TEAV ")
-          .append("ON TEAV.trackedentityid = TE.trackedentityid ")
-          .append("AND TEAV.trackedentityattributeid IN (")
-          .append(attributeIds)
-          .append(") ");
-
-      relatedTables
-          .append("LEFT JOIN trackedentityattribute TEA ")
-          .append("ON TEA.trackedentityattributeid = TEAV.trackedentityattributeid ");
-    }
-
-    return relatedTables.toString();
   }
 
   private String getLimitClause(int limit) {

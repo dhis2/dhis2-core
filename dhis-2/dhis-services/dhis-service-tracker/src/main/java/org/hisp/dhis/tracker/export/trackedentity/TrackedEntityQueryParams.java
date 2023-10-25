@@ -66,11 +66,7 @@ public class TrackedEntityQueryParams {
 
   public static final int DEFAULT_PAGE_SIZE = 50;
 
-  /**
-   * Each attribute will affect the final SQL query. Some attributes are filtered on, while
-   * attributes added via {@link #orderBy(TrackedEntityAttribute, SortDirection)} will be ordered
-   * by.
-   */
+  /** Each attribute will affect the final SQL query. Some attributes are filtered on. by. */
   private final Map<TrackedEntityAttribute, List<QueryFilter>> filters = new HashMap<>();
 
   /**

@@ -592,14 +592,15 @@ class JdbcEventStore implements EventStore {
   }
 
   /**
-   * Generates a single INNER JOIN for each attribute we are filtering on. We can search by a range
-   * of operators. All searching is using lower() since attribute values are case-insensitive.
+   * Generates a single INNER JOIN for each attribute we are filtering or ordering on. We can search
+   * by a range of operators. All searching is using lower() since attribute values are
+   * case-insensitive.
    */
   private String joinAttributeValue(EventQueryParams params) {
     StringBuilder sql = new StringBuilder();
 
     for (Entry<TrackedEntityAttribute, List<QueryFilter>> queryItem :
-        params.filterableAttributes().entrySet()) {
+        params.getAttributes().entrySet()) {
 
       TrackedEntityAttribute tea = queryItem.getKey();
       String teaUid = tea.getUid();
@@ -632,6 +633,10 @@ class JdbcEventStore implements EventStore {
 
   private String getAttributeFilterQuery(
       List<QueryFilter> filters, String teaCol, String teaValueCol, boolean isNumericTea) {
+
+    if (filters.isEmpty()) {
+      return "";
+    }
 
     StringBuilder query = new StringBuilder(AND);
     // In SQL the order of expressions linked by AND is not
