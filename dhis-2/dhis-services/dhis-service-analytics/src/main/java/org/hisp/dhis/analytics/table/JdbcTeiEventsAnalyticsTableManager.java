@@ -49,6 +49,8 @@ import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
+import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.springframework.util.Assert.notNull;
@@ -234,7 +236,9 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
               + "'");
     }
 
-    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+    List<Integer> availableDataYears =
+        periodDataProvider.getAvailableYears(
+            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
