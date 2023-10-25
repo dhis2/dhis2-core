@@ -152,8 +152,8 @@ public enum ConfigurationKey {
   CONNECTION_POOL_ACQUIRE_INCR("connection.pool.acquire_incr", "5", false),
 
   /**
-   * Determines how many times the system will try to acquire a connection before giving up. If this value is less than or equal to zero, the system will keep trying indefinitely.
-   * (default: 30).
+   * Determines how many times the system will try to acquire a connection before giving up. If this
+   * value is less than or equal to zero, the system will keep trying indefinitely. (default: 30).
    */
   CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS("connection.pool.acquire_retry_attempts", "30", false),
 
@@ -164,10 +164,11 @@ public enum ConfigurationKey {
   ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR("analytics.connection.pool.acquire_incr", "5", false),
 
   /**
-   * Determines how many times the system will try to acquire a connection before giving up. If this value is less than or equal to zero, the system will keep trying indefinitely.
-   * (default: 30).
+   * Determines how many times the system will try to acquire a connection before giving up. If this
+   * value is less than or equal to zero, the system will keep trying indefinitely. (default: 30).
    */
-  ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS("analytics.connection.pool.acquire_incr", "5", false),
+  ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS(
+      "analytics.connection.pool.acquire_incr", "5", false),
 
   /**
    * Seconds a Connection can remain pooled but unused before being discarded. Zero means idle
