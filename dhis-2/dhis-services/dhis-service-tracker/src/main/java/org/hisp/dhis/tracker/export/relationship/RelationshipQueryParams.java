@@ -30,41 +30,13 @@ package org.hisp.dhis.tracker.export.relationship;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
 @Builder
 class RelationshipQueryParams {
-  public static final int DEFAULT_PAGE = 1;
-
-  public static final int DEFAULT_PAGE_SIZE = 50;
-
   private final IdentifiableObject entity;
 
-  @Setter private Integer page;
-
-  @Setter private Integer pageSize;
-
-  @Setter private boolean totalPages;
-
-  @Setter private boolean skipPaging;
-
   private List<Order> order;
-
-  /** Returns the page number, falls back to default value of 1 if not specified. */
-  public int getPageWithDefault() {
-    return page != null && page > 0 ? page : DEFAULT_PAGE;
-  }
-
-  /** Returns the page size, falls back to default value of 50 if not specified. */
-  public int getPageSizeWithDefault() {
-    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-  }
-
-  /** Returns the offset based on the page number and page size. */
-  public int getOffset() {
-    return (getPageWithDefault() - 1) * getPageSizeWithDefault();
-  }
 }
