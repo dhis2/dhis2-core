@@ -42,6 +42,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.AnalyticsDateFilter.SCHEDULED_DATE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -70,7 +71,6 @@ import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
-import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -91,7 +91,6 @@ import org.hisp.dhis.program.ProgramIndicatorService;
 import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
@@ -134,9 +133,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     String sql = getEventsOrEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {
-      executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql);
+      withExceptionHandling(
+          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
     } else {
-      withExceptionHandling(() -> getEvents(params, grid, sql, maxLimit == 0));
+      withExceptionHandling(
+          () -> getEvents(params, grid, sql, maxLimit == 0), params.isMultipleQueries());
     }
 
     return grid;
@@ -244,22 +245,17 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     long count = 0;
 
-    try {
-      log.debug("Analytics event count SQL: '{}'", sql);
+    log.debug("Analytics event count SQL: '{}'", sql);
+    final String finalSqlValue = sql;
 
-      if (params.analyzeOnly()) {
-        executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql);
-      } else {
-        count = jdbcTemplate.queryForObject(sql, Long.class);
-      }
-    } catch (BadSqlGrammarException ex) {
-      log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
-    } catch (DataAccessResourceFailureException ex) {
-      log.warn(E7131.getMessage(), ex);
-      throw new QueryRuntimeException(E7131, ex);
-    } catch (DataIntegrityViolationException ex) {
-      log.warn(E7132.getMessage(), ex);
-      throw new QueryRuntimeException(E7132, ex);
+    if (params.analyzeOnly()) {
+      withExceptionHandling(
+          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue),
+          params.isMultipleQueries());
+    } else {
+      count =
+          withExceptionHandling(() -> jdbcTemplate.queryForObject(finalSqlValue, Long.class))
+              .orElse(0l);
     }
 
     return count;

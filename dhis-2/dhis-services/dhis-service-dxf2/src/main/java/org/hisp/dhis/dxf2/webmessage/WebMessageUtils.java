@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.dxf2.webmessage;
 
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -236,6 +239,43 @@ public final class WebMessageUtils {
     if (!errors.isEmpty()) {
       throw new WebMessageException(errorReports(errors));
     }
+  }
+
+  public static WebMessage createWebMessage(SQLException ex) {
+    WebMessage message = new WebMessage();
+    String sqlState = ex.getSQLState();
+    message.setHttpStatus(HttpStatus.CONFLICT);
+    message.setStatus(Status.ERROR);
+    ErrorCode errorCode = getErrorCode(ex);
+    message.setErrorCode(errorCode);
+    message.setMessage(errorCode.getMessage());
+    if (StringUtils.isNotBlank(sqlState)) {
+      message.setDevMessage("SqlState: " + sqlState);
+      message.setMessage(message.getMessage() + " (SqlState: " + sqlState + ")");
+    }
+    return message;
+  }
+
+  public static ErrorCode getErrorCode(SQLException ex) {
+    if (relationDoesNotExist(ex)) {
+      return ErrorCode.E7144;
+    }
+    return ErrorCode.E7145;
+  }
+
+  /**
+   * Utility method to detect if the {@link SQLException} refers to a missing relation in the
+   * database.
+   *
+   * @param ex a {@link SQLException} to analyze
+   * @return true if the error is a missing relation error, false otherwise
+   */
+  public static boolean relationDoesNotExist(SQLException ex) {
+    if (ex != null) {
+      return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
+    }
+
+    return false;
   }
 
   private WebMessageUtils() {}

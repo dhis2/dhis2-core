@@ -34,6 +34,7 @@ import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonGrid;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -70,6 +71,8 @@ class EventAnalyticsControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  @Disabled(
+      "generated query will fail on H2 database and we are now propagating BadSqlGrammarException since DHIS2-15184")
   void testGetQueryJson() {
     JsonGrid grid =
         GET(
