@@ -30,6 +30,8 @@ package org.hisp.dhis.resourcetable;
 import static java.time.temporal.ChronoUnit.YEARS;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
+import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import com.google.common.collect.Lists;
@@ -184,7 +186,9 @@ public class DefaultResourceTableService implements ResourceTableService {
   @Override
   @Transactional
   public void generateDatePeriodTable() {
-    List<Integer> availableYears = periodDataProvider.getAvailableYears();
+    List<Integer> availableYears =
+        periodDataProvider.getAvailableYears(
+            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     checkYearsOffset(availableYears);
 
     resourceTableStore.generateResourceTable(
@@ -203,30 +207,33 @@ public class DefaultResourceTableService implements ResourceTableService {
    * @param yearsToCheck the list of years to be checked.
    */
   private void checkYearsOffset(List<Integer> yearsToCheck) {
-    int maxYearsOffset = analyticsExportSettings.getMaxPeriodYearsOffset();
-    int minRangeAllowed = Year.now().minus(maxYearsOffset, YEARS).getValue();
-    int maxRangeAllowed = Year.now().plus(maxYearsOffset, YEARS).getValue();
+    Integer maxYearsOffset = analyticsExportSettings.getMaxPeriodYearsOffset();
 
-    boolean yearsOutOfRange =
-        yearsToCheck.stream().anyMatch(year -> year < minRangeAllowed || year > maxRangeAllowed);
+    if (maxYearsOffset != null) {
+      int minRangeAllowed = Year.now().minus(maxYearsOffset, YEARS).getValue();
+      int maxRangeAllowed = Year.now().plus(maxYearsOffset, YEARS).getValue();
 
-    if (yearsOutOfRange) {
-      String errorMessage = "Your database contains years out of the allowed offset.";
-      errorMessage +=
-          "\n Range of years allowed (based on your system settings and existing data): "
-              + yearsToCheck.stream()
-                  .filter(year -> year >= minRangeAllowed && year <= maxRangeAllowed)
-                  .collect(toList())
-              + ".";
-      errorMessage +=
-          "\n Years out of range found: "
-              + yearsToCheck.stream()
-                  .filter(year -> year < minRangeAllowed || year > maxRangeAllowed)
-                  .collect(toList())
-              + ".";
+      boolean yearsOutOfRange =
+          yearsToCheck.stream().anyMatch(year -> year < minRangeAllowed || year > maxRangeAllowed);
 
-      log.warn(errorMessage);
-      throw new RuntimeException(errorMessage);
+      if (yearsOutOfRange) {
+        String errorMessage = "Your database contains years out of the allowed offset.";
+        errorMessage +=
+            "\n Range of years allowed (based on your system settings and existing data): "
+                + yearsToCheck.stream()
+                    .filter(year -> year >= minRangeAllowed && year <= maxRangeAllowed)
+                    .collect(toList())
+                + ".";
+        errorMessage +=
+            "\n Years out of range found: "
+                + yearsToCheck.stream()
+                    .filter(year -> year < minRangeAllowed || year > maxRangeAllowed)
+                    .collect(toList())
+                + ".";
+
+        log.warn(errorMessage);
+        throw new RuntimeException(errorMessage);
+      }
     }
   }
 
