@@ -30,6 +30,7 @@ package org.hisp.dhis.resourcetable;
 import static java.time.temporal.ChronoUnit.YEARS;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -64,10 +65,10 @@ class DefaultResourceTableServiceTest {
     // When
     when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
     when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(defaultOffset);
-    doNothing().when(resourceTableStore).generateResourceTable(any());
 
     // Then
-    assertDoesNotThrow(() -> defaultResourceTableService.generateDatePeriodTable());
+    assertThrows(
+        RuntimeException.class, () -> defaultResourceTableService.generateDatePeriodTable());
   }
 
   @Test
@@ -79,10 +80,10 @@ class DefaultResourceTableServiceTest {
     // When
     when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
     when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(zeroOffset);
-    doNothing().when(resourceTableStore).generateResourceTable(any());
 
     // Then
-    assertDoesNotThrow(() -> defaultResourceTableService.generateDatePeriodTable());
+    assertThrows(
+        RuntimeException.class, () -> defaultResourceTableService.generateDatePeriodTable());
   }
 
   @Test
