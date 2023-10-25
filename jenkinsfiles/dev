@@ -211,17 +211,17 @@ pipeline {
                             dir('im-manager') {
                                 gitHelper.sparseCheckout(IM_REPO_URL, "${gitHelper.getLatestTag(IM_REPO_URL)}", '/scripts')
 
-                                dir('scripts/databases') {
-                                    env.DATABASE_ID = "sl-sierra-leone-dev-sql-gz"
-                                    echo "DATABASE_ID is ${env.DATABASE_ID}"
+                                echo 'Creating DHIS2 instance on IM...'
+                                def branch = ""
+                                if (env.GIT_BRANCH != 'master') {
+                                    branch = env.GIT_BRANCH.replaceAll(".", "-")
                                 }
+                                echo "Sanitized branch name: ${branch}"
+
+                                env.DATABASE_ID = "sl-sierra-leone-dev-sql-gz"
+                                echo "DATABASE_ID is ${env.DATABASE_ID}"
 
                                 dir('scripts/instances') {
-                                    echo 'Creating DHIS2 instance on IM...'
-                                    def branch = ""
-                                    if (env.GIT_BRANCH != 'master') {
-                                        branch = env.GIT_BRANCH.replaceAll(".", "-")
-                                    }
                                     sh "(./findByName.sh play ${branch}dev && ./restart.sh play ${branch}dev) || ./deploy-dhis2.sh play ${branch}dev"
                                     timeout(5) {
                                         waitFor.statusOk("${env.INSTANCE_URL}")
