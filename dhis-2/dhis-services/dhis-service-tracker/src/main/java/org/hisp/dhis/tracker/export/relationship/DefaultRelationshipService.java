@@ -47,6 +47,8 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -66,26 +68,35 @@ public class DefaultRelationshipService implements RelationshipService {
   private final RelationshipOperationParamsMapper mapper;
 
   @Override
-  public Relationships getRelationships(RelationshipOperationParams params)
+  public List<Relationship> getRelationships(RelationshipOperationParams params)
       throws ForbiddenException, NotFoundException {
     RelationshipQueryParams queryParams = mapper.map(params);
+    queryParams.setSkipPaging(true);
+
+    return getRelationships(queryParams);
+  }
+
+  @Override
+  public Page<Relationship> getRelationships(
+      RelationshipOperationParams params, PageParams pageParams)
+      throws ForbiddenException, NotFoundException {
+    RelationshipQueryParams queryParams = mapper.map(params);
+    queryParams.setSkipPaging(false);
+    queryParams.setPage(pageParams.getPage());
+    queryParams.setPageSize(pageParams.getPageSize());
+    queryParams.setTotalPages(pageParams.isPageTotal());
 
     Pager pager;
     List<Relationship> relationships = getRelationships(queryParams);
 
-    if (queryParams.isSkipPaging()) {
-      return Relationships.withoutPagination(relationships);
-    }
-
-    if (queryParams.isTotalPages()) {
+    if (pageParams.isPageTotal()) {
       int count = countRelationships(queryParams);
-      pager =
-          new Pager(queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault());
+      pager = new Pager(pageParams.getPage(), count, pageParams.getPageSize());
     } else {
-      pager = handleLastPageFlag(params, relationships);
+      pager = handleLastPageFlag(relationships, pageParams);
     }
 
-    return Relationships.of(relationships, pager);
+    return Page.of(relationships, pager);
   }
 
   private int countRelationships(RelationshipQueryParams queryParams) {
@@ -222,14 +233,12 @@ public class DefaultRelationshipService implements RelationshipService {
    * allow us to evaluate if we are in the last page or not. And this is what his method does,
    * returning the respective Pager object.
    *
-   * @param params the request params
    * @param relationships the reference to the list of Relationships
    * @return the populated SlimPager instance
    */
-  private Pager handleLastPageFlag(
-      RelationshipOperationParams params, List<Relationship> relationships) {
-    Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
-    Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
+  private Pager handleLastPageFlag(List<Relationship> relationships, PageParams pageParams) {
+    Integer originalPage = defaultIfNull(pageParams.getPage(), FIRST_PAGE);
+    Integer originalPageSize = defaultIfNull(pageParams.getPageSize(), DEFAULT_PAGE_SIZE);
     boolean isLastPage = false;
 
     if (isNotEmpty(relationships)) {

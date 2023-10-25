@@ -76,14 +76,7 @@ class RelationshipOperationParamsMapper {
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
 
-    return RelationshipQueryParams.builder()
-        .entity(entity)
-        .page(params.getPage())
-        .pageSize(params.getPageSize())
-        .totalPages(params.isTotalPages())
-        .skipPaging(params.isSkipPaging())
-        .order(params.getOrder())
-        .build();
+    return RelationshipQueryParams.builder().entity(entity).order(params.getOrder()).build();
   }
 
   private TrackedEntity validateTrackedEntity(User user, String uid)
