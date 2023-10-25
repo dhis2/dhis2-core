@@ -155,11 +155,6 @@ public class CitusSettings {
     return true;
   }
 
-  /**
-   * Represents a citus extension installed in the database.
-   *
-   * @param name the name of the extension
-   * @param installedVersion the version of the extension
-   */
+  /** Represents a citus extension installed in the database. */
   public record PgExtension(String name, String installedVersion) {}
 }

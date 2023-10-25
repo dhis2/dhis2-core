@@ -183,9 +183,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       String distributionColumn = table.getTableType().getDistributionColumn();
 
       try {
-        jdbcTemplate.execute(
-            "SELECT create_distributed_table('" + tableName + "', '" + distributionColumn + "')");
-
+        jdbcTemplate.query(
+            "SELECT create_distributed_table( :1, :2 )",
+            ps -> {
+              ps.setString(1, tableName);
+              ps.setString(2, distributionColumn);
+            },
+            rs -> {});
         log.info(
             "Successfully distributed table " + tableName + " on column " + distributionColumn);
       } catch (Exception e) {
