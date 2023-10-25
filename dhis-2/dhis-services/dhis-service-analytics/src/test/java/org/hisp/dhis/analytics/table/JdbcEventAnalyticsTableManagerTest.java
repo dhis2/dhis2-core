@@ -137,8 +137,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
-  @Mock
-  private AnalyticsExportSettings analyticsExportSettings;
+  @Mock private AnalyticsExportSettings analyticsExportSettings;
 
   private JdbcEventAnalyticsTableManager subject;
 

@@ -90,11 +90,11 @@ public class PeriodDataProvider {
   }
 
   /**
-   * Adds some extra years (based on the buffer) to the given list of years.
-   * The extra years are added at the end of the list.
+   * Adds some extra years (based on the buffer) to the given list of years. The extra years are
+   * added at the end of the list.
    *
-   * Let's say that the given list contains [2021, 2024], and the buffer is 3.
-   * This will result in a list like [2021, 2024, 2020, 2025, 2019, 2026, 2018, 2027].
+   * <p>Let's say that the given list contains [2021, 2024], and the buffer is 3. This will result
+   * in a list like [2021, 2024, 2020, 2025, 2019, 2026, 2018, 2027].
    *
    * @param years the list of years to append new years as buffer.
    * @param buffer the buffer representing the amount of years to add.
