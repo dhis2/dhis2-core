@@ -52,7 +52,7 @@ public class AnalyticsOrganisationUnitUtils {
    * @param currentUser the {@link org.hisp.dhis.user.CurrentUser}.
    * @return intersection of requested user organisation units and all units in response grid.
    */
-  public static Collection<Map<String, Object>> getUserOrganisationUnitsUidList(
+  public static Collection<Map<String, Object>> getUserOrganisationUnitItems(
       User currentUser, List<AnalyticsMetaDataKey> userOrganisationUnitsCriteria) {
     List<Map<String, Object>> userOrganisations = new ArrayList<>();
 

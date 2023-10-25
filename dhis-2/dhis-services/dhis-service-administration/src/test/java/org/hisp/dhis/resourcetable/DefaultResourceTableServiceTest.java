@@ -28,6 +28,7 @@
 package org.hisp.dhis.resourcetable;
 
 import static java.time.temporal.ChronoUnit.YEARS;
+import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -63,7 +64,7 @@ class DefaultResourceTableServiceTest {
     int defaultOffset = 22;
 
     // When
-    when(periodDataProvider.getAvailableYears()).thenReturn(yearsToCheck);
+    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
     when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(defaultOffset);
 
     // Then
@@ -82,7 +83,7 @@ class DefaultResourceTableServiceTest {
     int zeroOffset = 0;
 
     // When
-    when(periodDataProvider.getAvailableYears()).thenReturn(yearsToCheck);
+    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
     when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(zeroOffset);
 
     // Then
@@ -101,7 +102,7 @@ class DefaultResourceTableServiceTest {
     int zeroOffset = 0;
 
     // When
-    when(periodDataProvider.getAvailableYears()).thenReturn(yearsToCheck);
+    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
     when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(zeroOffset);
     doNothing().when(resourceTableStore).generateResourceTable(any());
 
@@ -120,7 +121,7 @@ class DefaultResourceTableServiceTest {
     int defaultOffset = 2;
 
     // When
-    when(periodDataProvider.getAvailableYears()).thenReturn(yearsToCheck);
+    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
     when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(defaultOffset);
     doNothing().when(resourceTableStore).generateResourceTable(any());
 

@@ -31,7 +31,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNITS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.USER_ORGUNIT;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN;
-import static org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils.getUserOrganisationUnitsUidList;
+import static org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -77,7 +77,7 @@ class AnalyticsOrganisationUnitUtilsTest {
     // when
     when(user.getOrganisationUnits()).thenReturn(Set.of(orgA));
     List<Map<String, Object>> uidMapList =
-        getUserOrganisationUnitsUidList(user, userOrganisationUnitsCriteria).stream().toList();
+        getUserOrganisationUnitItems(user, userOrganisationUnitsCriteria).stream().toList();
 
     // then
     assertEquals(3, uidMapList.size());
@@ -100,7 +100,7 @@ class AnalyticsOrganisationUnitUtilsTest {
     // when
     when(user.getOrganisationUnits()).thenReturn(Set.of(orgA));
     List<Map<String, Object>> uidMapList =
-        getUserOrganisationUnitsUidList(user, userOrganisationUnitsCriteria).stream().toList();
+        getUserOrganisationUnitItems(user, userOrganisationUnitsCriteria).stream().toList();
 
     // then
     assertEquals(1, uidMapList.size());
@@ -117,7 +117,7 @@ class AnalyticsOrganisationUnitUtilsTest {
     // when
     when(user.getOrganisationUnits()).thenReturn(Set.of(orgA));
     List<Map<String, Object>> uidMapList =
-        getUserOrganisationUnitsUidList(user, userOrganisationUnitsCriteria).stream().toList();
+        getUserOrganisationUnitItems(user, userOrganisationUnitsCriteria).stream().toList();
 
     // then
     assertEquals(1, uidMapList.size());
@@ -134,7 +134,7 @@ class AnalyticsOrganisationUnitUtilsTest {
     // when
     when(user.getOrganisationUnits()).thenReturn(Set.of(orgA));
     List<Map<String, Object>> uidMapList =
-        getUserOrganisationUnitsUidList(user, userOrganisationUnitsCriteria).stream().toList();
+        getUserOrganisationUnitItems(user, userOrganisationUnitsCriteria).stream().toList();
 
     // then
     assertEquals(1, uidMapList.size());
@@ -152,7 +152,7 @@ class AnalyticsOrganisationUnitUtilsTest {
     // when
     when(user.getOrganisationUnits()).thenReturn(Set.of());
     List<Map<String, Object>> uidMapList =
-        getUserOrganisationUnitsUidList(user, userOrganisationUnitsCriteria).stream().toList();
+        getUserOrganisationUnitItems(user, userOrganisationUnitsCriteria).stream().toList();
 
     // then
     assertEquals(3, uidMapList.size());
@@ -174,7 +174,7 @@ class AnalyticsOrganisationUnitUtilsTest {
     // when
     when(user.getOrganisationUnits()).thenReturn(Set.of());
     List<Map<String, Object>> uidMapList =
-        getUserOrganisationUnitsUidList(user, userOrganisationUnitsCriteria).stream().toList();
+        getUserOrganisationUnitItems(user, userOrganisationUnitsCriteria).stream().toList();
 
     // then
     assertEquals(1, uidMapList.size());
@@ -190,7 +190,7 @@ class AnalyticsOrganisationUnitUtilsTest {
     // when
     when(user.getOrganisationUnits()).thenReturn(Set.of());
     List<Map<String, Object>> uidMapList =
-        getUserOrganisationUnitsUidList(user, userOrganisationUnitsCriteria).stream().toList();
+        getUserOrganisationUnitItems(user, userOrganisationUnitsCriteria).stream().toList();
 
     // then
     assertEquals(1, uidMapList.size());
@@ -207,7 +207,7 @@ class AnalyticsOrganisationUnitUtilsTest {
     // when
     when(user.getOrganisationUnits()).thenReturn(Set.of());
     List<Map<String, Object>> uidMapList =
-        getUserOrganisationUnitsUidList(user, userOrganisationUnitsCriteria).stream().toList();
+        getUserOrganisationUnitItems(user, userOrganisationUnitsCriteria).stream().toList();
 
     // then
     assertEquals(1, uidMapList.size());
