@@ -225,7 +225,7 @@ pipeline {
                             }
 
                             dir('scripts/instances') {
-                                sh "(./findByName.sh play ${branch}dev && ./restart.sh play ${branch}dev) || ./deploy-dhis2.sh play ${branch}dev"
+                                sh "(./findByName.sh play dev${branch} && ./restart.sh play dev${branch}) || ./deploy-dhis2.sh play dev${branch}"
                                 timeout(5) {
                                     waitFor.statusOk("${env.INSTANCE_URL}")
                                 }
