@@ -352,8 +352,8 @@ public class HibernateDbmsManager implements DbmsManager {
     cacheManager.clearCache();
 
     log.debug("Cleared Hibernate cache");
-    // flush session outside of transaction is not allowed
-    //    flushSession();
+
+    flushSession();
   }
 
   @Override

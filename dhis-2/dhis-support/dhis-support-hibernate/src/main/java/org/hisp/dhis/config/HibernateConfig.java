@@ -165,7 +165,7 @@ public class HibernateConfig {
         "org.springframework.orm.hibernate5.SpringSessionContext");
 
     // TODO: this is anti-pattern and should be turn off
-    //        additionalProperties.put( "hibernate.allow_update_outside_transaction", "true" );
+    additionalProperties.put( "hibernate.allow_update_outside_transaction", "true" );
 
     return additionalProperties;
   }
