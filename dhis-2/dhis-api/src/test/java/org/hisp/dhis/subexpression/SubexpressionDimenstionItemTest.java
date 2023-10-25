@@ -28,7 +28,9 @@
 package org.hisp.dhis.subexpression;
 
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
+import static org.hisp.dhis.analytics.AggregationType.COUNT;
 import static org.hisp.dhis.analytics.AggregationType.MAX;
+import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.common.DimensionItemType.SUBEXPRESSION_DIMENSION_ITEM;
 import static org.hisp.dhis.subexpression.SubexpressionDimensionItem.getItemColumnName;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -70,13 +72,49 @@ class SubexpressionDimenstionItemTest {
     assertEquals("\"de_co\"", getItemColumnName("de", "co", null, null));
     assertEquals("\"de_co_ao\"", getItemColumnName("de", "co", "ao", null));
     assertEquals("\"de__ao\"", getItemColumnName("de", null, "ao", null));
+  }
 
+  @Test
+  void testGetItemColumnNameWithAggregationType() {
     QueryModifiers mods = QueryModifiers.builder().aggregationType(MAX).build();
 
-    // Test for coc and aoc = empty string when missing
-    assertEquals("\"deMAX\"", getItemColumnName("de", "", "", mods));
-    assertEquals("\"de_coMAX\"", getItemColumnName("de", "co", "", mods));
-    assertEquals("\"de_co_aoMAX\"", getItemColumnName("de", "co", "ao", mods));
-    assertEquals("\"de__aoMAX\"", getItemColumnName("de", "", "ao", mods));
+    assertEquals("\"de_agg_MAX\"", getItemColumnName("de", "", "", mods));
+    assertEquals("\"de_co_agg_MAX\"", getItemColumnName("de", "co", "", mods));
+    assertEquals("\"de_co_ao_agg_MAX\"", getItemColumnName("de", "co", "ao", mods));
+    assertEquals("\"de__ao_agg_MAX\"", getItemColumnName("de", "", "ao", mods));
+  }
+
+  @Test
+  void testGetItemColumnNameWithPeriodOffset() {
+    QueryModifiers mods = QueryModifiers.builder().periodOffset(-2).build();
+
+    assertEquals("\"de_minus_2\"", getItemColumnName("de", "", "", mods));
+    assertEquals("\"de_co_minus_2\"", getItemColumnName("de", "co", "", mods));
+    assertEquals("\"de_co_ao_minus_2\"", getItemColumnName("de", "co", "ao", mods));
+    assertEquals("\"de__ao_minus_2\"", getItemColumnName("de", "", "ao", mods));
+
+    mods = QueryModifiers.builder().periodOffset(3).build();
+
+    assertEquals("\"de_plus_3\"", getItemColumnName("de", "", "", mods));
+    assertEquals("\"de_co_plus_3\"", getItemColumnName("de", "co", "", mods));
+    assertEquals("\"de_co_ao_plus_3\"", getItemColumnName("de", "co", "ao", mods));
+    assertEquals("\"de__ao_plus_3\"", getItemColumnName("de", "", "ao", mods));
+  }
+
+  @Test
+  void testGetItemColumnNameWithPeriodOffsetAndAggregationType() {
+    QueryModifiers mods = QueryModifiers.builder().periodOffset(-1).aggregationType(SUM).build();
+
+    assertEquals("\"de_minus_1_agg_SUM\"", getItemColumnName("de", "", "", mods));
+    assertEquals("\"de_co_minus_1_agg_SUM\"", getItemColumnName("de", "co", "", mods));
+    assertEquals("\"de_co_ao_minus_1_agg_SUM\"", getItemColumnName("de", "co", "ao", mods));
+    assertEquals("\"de__ao_minus_1_agg_SUM\"", getItemColumnName("de", "", "ao", mods));
+
+    mods = QueryModifiers.builder().periodOffset(1).aggregationType(COUNT).build();
+
+    assertEquals("\"de_plus_1_agg_COUNT\"", getItemColumnName("de", "", "", mods));
+    assertEquals("\"de_co_plus_1_agg_COUNT\"", getItemColumnName("de", "co", "", mods));
+    assertEquals("\"de_co_ao_plus_1_agg_COUNT\"", getItemColumnName("de", "co", "ao", mods));
+    assertEquals("\"de__ao_plus_1_agg_COUNT\"", getItemColumnName("de", "", "ao", mods));
   }
 }

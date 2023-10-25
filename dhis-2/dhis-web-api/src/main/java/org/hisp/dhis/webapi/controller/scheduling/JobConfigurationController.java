@@ -74,7 +74,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   public List<JobConfiguration> getDueJobConfigurations(
       @RequestParam int seconds,
       @RequestParam(required = false, defaultValue = "false") boolean includeWaiting) {
-    return jobConfigurationService.getDueJobConfigurations(seconds, false, includeWaiting);
+    return jobConfigurationService.getDueJobConfigurations(seconds, includeWaiting);
   }
 
   @GetMapping("/stale")
