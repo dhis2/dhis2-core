@@ -89,17 +89,14 @@ public class TeiAnalyticsQueryService {
 
     SqlQueryCreator queryCreator = sqlQueryCreatorService.getSqlQueryCreator(queryParams);
 
-    Optional<SqlQueryResult> result =
-        withExceptionHandling(() -> queryExecutor.find(queryCreator));
+    Optional<SqlQueryResult> result = withExceptionHandling(() -> queryExecutor.find(queryCreator));
 
     long rowsCount = 0;
 
     AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
 
     if (pagingParams.showTotalPages()) {
-      rowsCount =
-          withExceptionHandling(() -> queryExecutor.count(queryCreator))
-              .orElse(0l);
+      rowsCount = withExceptionHandling(() -> queryExecutor.count(queryCreator)).orElse(0l);
     }
 
     List<Field> fields = queryCreator.getRenderableSqlQuery().getSelectFields();

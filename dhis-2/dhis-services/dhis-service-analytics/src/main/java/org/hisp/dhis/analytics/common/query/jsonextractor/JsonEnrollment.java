@@ -44,6 +44,8 @@ class JsonEnrollment {
 
   private Date endDate;
 
+  private String orgUnitUid;
+
   private String orgUnitName;
 
   private String orgUnitCode;
@@ -54,13 +56,15 @@ class JsonEnrollment {
 
   @Data
   static class JsonEvent {
-    private String enrollmentUid;
+    private String programStageUid;
 
     private String eventUid;
 
     private Date executionDate;
 
     private Date dueDate;
+
+    private String orgUnitUid;
 
     private String orgUnitName;
 

@@ -58,10 +58,10 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-  public static final Comparator<JsonEnrollment> ENR_ENROLLMENT_DATE_COMPARATOR =
+  private static final Comparator<JsonEnrollment> ENR_ENROLLMENT_DATE_COMPARATOR =
       comparing(JsonEnrollment::getEnrollmentDate, nullsFirst(naturalOrder())).reversed();
 
-  public static final Comparator<JsonEnrollment.JsonEvent> EVT_EXECUTION_DATE_COMPARATOR =
+  private static final Comparator<JsonEnrollment.JsonEvent> EVT_EXECUTION_DATE_COMPARATOR =
       comparing(JsonEnrollment.JsonEvent::getExecutionDate, nullsFirst(naturalOrder())).reversed();
 
   private final transient Map<String, DimensionIdentifier<DimensionParam>> dimIdByKey;
@@ -126,7 +126,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
         .filter(
             jsonEvent ->
                 jsonEvent
-                    .getEnrollmentUid()
+                    .getProgramStageUid()
                     .equals(dimensionIdentifier.getProgramStage().getElement().getUid()))
         // sorts events by execution date, descending
         .sorted(EVT_EXECUTION_DATE_COMPARATOR)
@@ -179,6 +179,11 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
         return Objects.nonNull(dataValue) ? dataValue.get("value") : null;
       };
     }
+    if (dimension
+        .getDimensionParamObjectType()
+        .equals(DimensionParamObjectType.ORGANISATION_UNIT)) {
+      return jsonEvent -> jsonEvent.getOrgUnitUid();
+    }
     throw new IllegalStateException("Unknown dimension identifier " + dimension);
   }
 
@@ -191,6 +196,11 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
   private Function<JsonEnrollment, Object> getEnrollmentExtractor(DimensionParam dimension) {
     if (dimension.isStaticDimension()) {
       return EnrollmentExtractor.byDimension(dimension.getStaticDimension()).getExtractor();
+    }
+    if (dimension
+        .getDimensionParamObjectType()
+        .equals(DimensionParamObjectType.ORGANISATION_UNIT)) {
+      return jsonEnrollment -> jsonEnrollment.getOrgUnitUid();
     }
     throw new IllegalQueryException(E7250, dimension.toString());
   }
