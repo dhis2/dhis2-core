@@ -71,7 +71,6 @@ public class DefaultRelationshipService implements RelationshipService {
   public List<Relationship> getRelationships(RelationshipOperationParams params)
       throws ForbiddenException, NotFoundException {
     RelationshipQueryParams queryParams = mapper.map(params);
-    queryParams.setSkipPaging(true);
 
     return getRelationships(queryParams);
   }
@@ -81,38 +80,8 @@ public class DefaultRelationshipService implements RelationshipService {
       RelationshipOperationParams params, PageParams pageParams)
       throws ForbiddenException, NotFoundException {
     RelationshipQueryParams queryParams = mapper.map(params);
-    queryParams.setSkipPaging(false);
-    queryParams.setPage(pageParams.getPage());
-    queryParams.setPageSize(pageParams.getPageSize());
-    queryParams.setTotalPages(pageParams.isPageTotal());
 
-    Pager pager;
-    List<Relationship> relationships = getRelationships(queryParams);
-
-    if (pageParams.isPageTotal()) {
-      int count = countRelationships(queryParams);
-      pager = new Pager(pageParams.getPage(), count, pageParams.getPageSize());
-    } else {
-      pager = handleLastPageFlag(relationships, pageParams);
-    }
-
-    return Page.of(relationships, pager);
-  }
-
-  private int countRelationships(RelationshipQueryParams queryParams) {
-    if (queryParams.getEntity() instanceof TrackedEntity te) {
-      return getRelationshipsByTrackedEntity(te, null).size();
-    }
-
-    if (queryParams.getEntity() instanceof Enrollment en) {
-      return getRelationshipsByEnrollment(en, null).size();
-    }
-
-    if (queryParams.getEntity() instanceof Event ev) {
-      return getRelationshipsByEvent(ev, null).size();
-    }
-
-    throw new IllegalArgumentException("Unkown type");
+    return getRelationships(queryParams, pageParams);
   }
 
   @Override
@@ -142,6 +111,18 @@ public class DefaultRelationshipService implements RelationshipService {
     return map(relationships);
   }
 
+  public Page<Relationship> getRelationshipsByTrackedEntity(
+      TrackedEntity trackedEntity, RelationshipQueryParams queryParams, PageParams pageParams) {
+    Page<Relationship> relationshipPage =
+        relationshipStore.getByTrackedEntity(trackedEntity, queryParams, pageParams);
+    List<Relationship> relationships =
+        relationshipPage.getItems().stream()
+            .filter(
+                r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
+            .toList();
+    return Page.of(map(relationships), relationshipPage.getPager());
+  }
+
   public List<Relationship> getRelationshipsByEnrollment(
       Enrollment enrollment, RelationshipQueryParams queryParams) {
     List<Relationship> relationships =
@@ -152,6 +133,18 @@ public class DefaultRelationshipService implements RelationshipService {
     return map(relationships);
   }
 
+  public Page<Relationship> getRelationshipsByEnrollment(
+      Enrollment enrollment, RelationshipQueryParams queryParams, PageParams pageParams) {
+    Page<Relationship> relationshipPage =
+        relationshipStore.getByEnrollment(enrollment, queryParams, pageParams);
+    List<Relationship> relationships =
+        relationshipPage.getItems().stream()
+            .filter(
+                r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
+            .toList();
+    return Page.of(map(relationships), relationshipPage.getPager());
+  }
+
   public List<Relationship> getRelationshipsByEvent(
       Event event, RelationshipQueryParams queryParams) {
     List<Relationship> relationships =
@@ -160,6 +153,18 @@ public class DefaultRelationshipService implements RelationshipService {
                 r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
             .toList();
     return map(relationships);
+  }
+
+  public Page<Relationship> getRelationshipsByEvent(
+      Event event, RelationshipQueryParams queryParams, PageParams pageParams) {
+    Page<Relationship> relationshipPage =
+        relationshipStore.getByEvent(event, queryParams, pageParams);
+    List<Relationship> relationships =
+        relationshipPage.getItems().stream()
+            .filter(
+                r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
+            .toList();
+    return Page.of(map(relationships), relationshipPage.getPager());
   }
 
   private List<Relationship> getRelationships(RelationshipQueryParams queryParams) {
@@ -173,6 +178,23 @@ public class DefaultRelationshipService implements RelationshipService {
 
     if (queryParams.getEntity() instanceof Event ev) {
       return getRelationshipsByEvent(ev, queryParams);
+    }
+
+    throw new IllegalArgumentException("Unkown type");
+  }
+
+  private Page<Relationship> getRelationships(
+      RelationshipQueryParams queryParams, PageParams pageParams) {
+    if (queryParams.getEntity() instanceof TrackedEntity te) {
+      return getRelationshipsByTrackedEntity(te, queryParams, pageParams);
+    }
+
+    if (queryParams.getEntity() instanceof Enrollment en) {
+      return getRelationshipsByEnrollment(en, queryParams, pageParams);
+    }
+
+    if (queryParams.getEntity() instanceof Event ev) {
+      return getRelationshipsByEvent(ev, queryParams, pageParams);
     }
 
     throw new IllegalArgumentException("Unkown type");
