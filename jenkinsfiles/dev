@@ -30,7 +30,6 @@ pipeline {
     }
 
     stages {
-/*
         stage('Build') {
             steps {
                 implementIoBuildStarted(buildJob: true, buildName: "${STAGE_NAME}")
@@ -188,7 +187,6 @@ pipeline {
                 }
             }
         }
-*/
 
         stage('Update IM Play dev instance') {
             environment {
@@ -204,7 +202,7 @@ pipeline {
                 STARTUP_PROBE_FAILURE_THRESHOLD = "50"
                 LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
                 READINESS_PROBE_TIMEOUT_SECONDS = "3"
-                DATABASE_ID = "sl-sierra-leone-dev-sql-gz"
+                DATABASE_ID = "test-dbs-sierra-leone-dev-sql-gz"
             }
 
             steps {
@@ -218,14 +216,12 @@ pipeline {
                             if (env.GIT_BRANCH == 'master') {
                                 env.IMAGE_TAG = "latest"
                             } else {
-//                                env.IMAGE_TAG = env.GIT_BRANCH
-                                env.IMAGE_TAG = "2.40"
-//                                branch = env.GIT_BRANCH.replaceAll(".", "-")
-                                branch = "2-40"
+                                env.IMAGE_TAG = env.GIT_BRANCH
+                                branch = env.GIT_BRANCH.replaceAll(".", "-")
                             }
 
                             dir('scripts/instances') {
-                                sh "(./findByName.sh play dev${branch} && ./restart.sh play dev${branch}) || ./deploy-dhis2.sh play dev${branch}"
+                                sh "(./findByName.sh play dev-${branch} && ./restart.sh play dev-${branch}) || ./deploy-dhis2.sh play dev-${branch}"
                                 timeout(5) {
                                     waitFor.statusOk("${env.INSTANCE_URL}")
                                 }
