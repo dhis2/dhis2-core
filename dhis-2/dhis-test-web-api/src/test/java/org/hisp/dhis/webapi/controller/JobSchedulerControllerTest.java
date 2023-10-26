@@ -307,6 +307,9 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest {
 
     assertStatus(HttpStatus.NO_CONTENT, DELETE("/scheduler/queues/testQueue"));
     assertStatus(HttpStatus.NOT_FOUND, GET("/scheduler/queues/testQueue"));
+    // verify the ex-queue jobs show in the scheduler main list again
+    JsonArray list = GET("/scheduler").content();
+    assertEquals(3, list.size());
   }
 
   @Test
