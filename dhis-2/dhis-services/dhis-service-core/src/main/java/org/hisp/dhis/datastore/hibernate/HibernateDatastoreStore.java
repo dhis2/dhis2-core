@@ -30,6 +30,7 @@ package org.hisp.dhis.datastore.hibernate;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.copyOfRange;
 import static java.util.Collections.emptyList;
+import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
 import java.util.Date;
 import java.util.List;
@@ -45,6 +46,7 @@ import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.DatastoreStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -86,7 +88,12 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public List<String> getKeysInNamespace(String namespace, Date lastUpdated) {
-    String hql = "select key from DatastoreEntry where namespace = :namespace";
+    User currentUser = currentUserService.getCurrentUser();
+    String accessFilter =
+        generateHqlQueryForSharingCheck("ds", currentUser, "--r-----");
+
+    String hql =
+        "select key from DatastoreEntry ds where namespace = :namespace and " + accessFilter;
 
     if (lastUpdated != null) {
       hql += " and lastupdated >= :lastUpdated ";
@@ -113,8 +120,15 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform) {
+//    User currentUser = currentUserService.getCurrentUser();
+//    String accessFilter =
+//        generateHqlQueryForSharingCheck("ds", currentUser, "--r-----");
+//    DatastoreQueryBuilder builder =
+//        new DatastoreQueryBuilder("from DatastoreEntry ds where namespace = :namespace and " + accessFilter, query);
+
     DatastoreQueryBuilder builder =
         new DatastoreQueryBuilder("from DatastoreEntry where namespace = :namespace", query);
+
     String hql = builder.createFetchHQL();
 
     Query<?> hQuery =
