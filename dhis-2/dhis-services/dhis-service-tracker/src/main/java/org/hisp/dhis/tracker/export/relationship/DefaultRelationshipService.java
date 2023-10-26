@@ -47,6 +47,8 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -66,42 +68,20 @@ public class DefaultRelationshipService implements RelationshipService {
   private final RelationshipOperationParamsMapper mapper;
 
   @Override
-  public Relationships getRelationships(RelationshipOperationParams params)
+  public List<Relationship> getRelationships(RelationshipOperationParams params)
       throws ForbiddenException, NotFoundException {
     RelationshipQueryParams queryParams = mapper.map(params);
 
-    Pager pager;
-    List<Relationship> relationships = getRelationships(queryParams);
-
-    if (queryParams.isSkipPaging()) {
-      return Relationships.withoutPagination(relationships);
-    }
-
-    if (queryParams.isTotalPages()) {
-      int count = countRelationships(queryParams);
-      pager =
-          new Pager(queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault());
-    } else {
-      pager = handleLastPageFlag(params, relationships);
-    }
-
-    return Relationships.of(relationships, pager);
+    return getRelationships(queryParams);
   }
 
-  private int countRelationships(RelationshipQueryParams queryParams) {
-    if (queryParams.getEntity() instanceof TrackedEntity te) {
-      return getRelationshipsByTrackedEntity(te, null).size();
-    }
+  @Override
+  public Page<Relationship> getRelationships(
+      RelationshipOperationParams params, PageParams pageParams)
+      throws ForbiddenException, NotFoundException {
+    RelationshipQueryParams queryParams = mapper.map(params);
 
-    if (queryParams.getEntity() instanceof Enrollment en) {
-      return getRelationshipsByEnrollment(en, null).size();
-    }
-
-    if (queryParams.getEntity() instanceof Event ev) {
-      return getRelationshipsByEvent(ev, null).size();
-    }
-
-    throw new IllegalArgumentException("Unkown type");
+    return getRelationships(queryParams, pageParams);
   }
 
   @Override
@@ -131,6 +111,18 @@ public class DefaultRelationshipService implements RelationshipService {
     return map(relationships);
   }
 
+  public Page<Relationship> getRelationshipsByTrackedEntity(
+      TrackedEntity trackedEntity, RelationshipQueryParams queryParams, PageParams pageParams) {
+    Page<Relationship> relationshipPage =
+        relationshipStore.getByTrackedEntity(trackedEntity, queryParams, pageParams);
+    List<Relationship> relationships =
+        relationshipPage.getItems().stream()
+            .filter(
+                r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
+            .toList();
+    return Page.of(map(relationships), relationshipPage.getPager());
+  }
+
   public List<Relationship> getRelationshipsByEnrollment(
       Enrollment enrollment, RelationshipQueryParams queryParams) {
     List<Relationship> relationships =
@@ -141,6 +133,18 @@ public class DefaultRelationshipService implements RelationshipService {
     return map(relationships);
   }
 
+  public Page<Relationship> getRelationshipsByEnrollment(
+      Enrollment enrollment, RelationshipQueryParams queryParams, PageParams pageParams) {
+    Page<Relationship> relationshipPage =
+        relationshipStore.getByEnrollment(enrollment, queryParams, pageParams);
+    List<Relationship> relationships =
+        relationshipPage.getItems().stream()
+            .filter(
+                r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
+            .toList();
+    return Page.of(map(relationships), relationshipPage.getPager());
+  }
+
   public List<Relationship> getRelationshipsByEvent(
       Event event, RelationshipQueryParams queryParams) {
     List<Relationship> relationships =
@@ -149,6 +153,18 @@ public class DefaultRelationshipService implements RelationshipService {
                 r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
             .toList();
     return map(relationships);
+  }
+
+  public Page<Relationship> getRelationshipsByEvent(
+      Event event, RelationshipQueryParams queryParams, PageParams pageParams) {
+    Page<Relationship> relationshipPage =
+        relationshipStore.getByEvent(event, queryParams, pageParams);
+    List<Relationship> relationships =
+        relationshipPage.getItems().stream()
+            .filter(
+                r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
+            .toList();
+    return Page.of(map(relationships), relationshipPage.getPager());
   }
 
   private List<Relationship> getRelationships(RelationshipQueryParams queryParams) {
@@ -162,6 +178,23 @@ public class DefaultRelationshipService implements RelationshipService {
 
     if (queryParams.getEntity() instanceof Event ev) {
       return getRelationshipsByEvent(ev, queryParams);
+    }
+
+    throw new IllegalArgumentException("Unkown type");
+  }
+
+  private Page<Relationship> getRelationships(
+      RelationshipQueryParams queryParams, PageParams pageParams) {
+    if (queryParams.getEntity() instanceof TrackedEntity te) {
+      return getRelationshipsByTrackedEntity(te, queryParams, pageParams);
+    }
+
+    if (queryParams.getEntity() instanceof Enrollment en) {
+      return getRelationshipsByEnrollment(en, queryParams, pageParams);
+    }
+
+    if (queryParams.getEntity() instanceof Event ev) {
+      return getRelationshipsByEvent(ev, queryParams, pageParams);
     }
 
     throw new IllegalArgumentException("Unkown type");
@@ -222,14 +255,12 @@ public class DefaultRelationshipService implements RelationshipService {
    * allow us to evaluate if we are in the last page or not. And this is what his method does,
    * returning the respective Pager object.
    *
-   * @param params the request params
    * @param relationships the reference to the list of Relationships
    * @return the populated SlimPager instance
    */
-  private Pager handleLastPageFlag(
-      RelationshipOperationParams params, List<Relationship> relationships) {
-    Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
-    Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
+  private Pager handleLastPageFlag(List<Relationship> relationships, PageParams pageParams) {
+    Integer originalPage = defaultIfNull(pageParams.getPage(), FIRST_PAGE);
+    Integer originalPageSize = defaultIfNull(pageParams.getPageSize(), DEFAULT_PAGE_SIZE);
     boolean isLastPage = false;
 
     if (isNotEmpty(relationships)) {
