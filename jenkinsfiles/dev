@@ -217,7 +217,7 @@ pipeline {
                                 env.DATABASE_ID = "test-dbs-sierra-leone-dev-sql-gz"
                             } else {
                                 env.IMAGE_TAG = env.GIT_BRANCH
-                                branch = env.GIT_BRANCH.replaceAll(".", "-")
+                                branch = "-${env.GIT_BRANCH.replaceAll(".", "-")}"
 
                                 dir('scripts/databases') {
                                     env.DATABASE_ID = sh(
@@ -231,7 +231,7 @@ pipeline {
                             echo "Database: ${env.DATABASE_ID}"
 
                             dir('scripts/instances') {
-                                sh "(./findByName.sh play dev-${branch} && ./restart.sh play dev-${branch}) || ./deploy-dhis2.sh play dev-${branch}"
+                                sh "(./findByName.sh play dev${branch} && ./restart.sh play dev${branch}) || ./deploy-dhis2.sh play dev${branch}"
                                 timeout(5) {
                                     waitFor.statusOk("${env.INSTANCE_URL}")
                                 }
