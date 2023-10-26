@@ -72,9 +72,7 @@ import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
-import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams.RelationshipOperationParamsBuilder;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
-import org.hisp.dhis.tracker.export.relationship.Relationships;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -1121,30 +1119,32 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     String expectedOnPage1 = expected.get(0);
     String expectedOnPage2 = expected.get(1);
 
-    RelationshipOperationParamsBuilder builder =
-        RelationshipOperationParams.builder().type(TrackerType.EVENT).identifier("pTzf9KYMk72");
+    RelationshipOperationParams params =
+        RelationshipOperationParams.builder()
+            .type(TrackerType.EVENT)
+            .identifier("pTzf9KYMk72")
+            .build();
 
-    RelationshipOperationParams params = builder.page(1).pageSize(1).build();
-
-    Relationships firstPage = relationshipService.getRelationships(params);
+    Page<Relationship> firstPage =
+        relationshipService.getRelationships(params, new PageParams(1, 1, false));
 
     assertAll(
         "first page",
-        () -> assertSlimPager(1, 1, false, firstPage.getPager()),
-        () -> assertEquals(List.of(expectedOnPage1), uids(firstPage.getRelationships())));
+        () -> assertPager(1, 1, firstPage),
+        () -> assertEquals(List.of(expectedOnPage1), uids(firstPage)));
 
-    params = builder.page(2).pageSize(1).build();
-
-    Relationships secondPage = relationshipService.getRelationships(params);
+    Page<Relationship> secondPage =
+        relationshipService.getRelationships(params, new PageParams(2, 1, false));
 
     assertAll(
         "second (last) page",
-        () -> assertSlimPager(2, 1, true, secondPage.getPager()),
-        () -> assertEquals(List.of(expectedOnPage2), uids(secondPage.getRelationships())));
+        () -> assertPager(2, 1, secondPage),
+        () -> assertEquals(List.of(expectedOnPage2), uids(secondPage)));
 
-    params = builder.page(3).pageSize(1).build();
+    Page<Relationship> thirdPage =
+        relationshipService.getRelationships(params, new PageParams(3, 1, false));
 
-    assertIsEmpty(getRelationships(params));
+    assertIsEmpty(thirdPage.getItems());
   }
 
   @Test
@@ -1164,30 +1164,32 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     String expectedOnPage1 = expected.get(0);
     String expectedOnPage2 = expected.get(1);
 
-    RelationshipOperationParamsBuilder builder =
-        RelationshipOperationParams.builder().type(TrackerType.EVENT).identifier("pTzf9KYMk72");
+    RelationshipOperationParams params =
+        RelationshipOperationParams.builder()
+            .type(TrackerType.EVENT)
+            .identifier("pTzf9KYMk72")
+            .build();
 
-    RelationshipOperationParams params = builder.page(1).pageSize(1).totalPages(true).build();
-
-    Relationships firstPage = relationshipService.getRelationships(params);
+    Page<Relationship> firstPage =
+        relationshipService.getRelationships(params, new PageParams(1, 1, true));
 
     assertAll(
         "first page",
-        () -> assertPager(1, 1, 2, firstPage.getPager()),
-        () -> assertEquals(List.of(expectedOnPage1), uids(firstPage.getRelationships())));
+        () -> assertPager(1, 1, 2, firstPage),
+        () -> assertEquals(List.of(expectedOnPage1), uids(firstPage)));
 
-    params = builder.page(2).pageSize(1).totalPages(true).build();
-
-    Relationships secondPage = relationshipService.getRelationships(params);
+    Page<Relationship> secondPage =
+        relationshipService.getRelationships(params, new PageParams(2, 1, true));
 
     assertAll(
         "second (last) page",
-        () -> assertPager(2, 1, 2, secondPage.getPager()),
-        () -> assertEquals(List.of(expectedOnPage2), uids(secondPage.getRelationships())));
+        () -> assertPager(2, 1, 2, secondPage),
+        () -> assertEquals(List.of(expectedOnPage2), uids(secondPage)));
 
-    params = builder.page(3).pageSize(1).totalPages(true).build();
+    Page<Relationship> thirdPage =
+        relationshipService.getRelationships(params, new PageParams(3, 1, true));
 
-    assertIsEmpty(getRelationships(params));
+    assertIsEmpty(thirdPage.getItems());
   }
 
   @Test
@@ -1258,20 +1260,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     return t;
   }
 
-  private static void assertSlimPager(int pageNumber, int pageSize, boolean isLast, Pager pager) {
-    assertInstanceOf(SlimPager.class, pager, "SlimPager should be returned if totalPages=false");
-    SlimPager slimPager = (SlimPager) pager;
-    assertAll(
-        "pagination details",
-        () -> assertEquals(pageNumber, slimPager.getPage(), "number of current page"),
-        () -> assertEquals(pageSize, slimPager.getPageSize(), "page size"),
-        () ->
-            assertEquals(
-                isLast,
-                slimPager.isLastPage(),
-                isLast ? "should be the last page" : "should NOT be the last page"));
-  }
-
   private static <T> void assertPager(int pageNumber, int pageSize, Page<T> page) {
     Pager pager = page.getPager();
     assertNotNull(pager, "pagintated results should have a pager");
@@ -1317,7 +1305,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   private List<String> getRelationships(RelationshipOperationParams params)
       throws ForbiddenException, NotFoundException {
-    return uids(relationshipService.getRelationships(params).getRelationships());
+    return uids(relationshipService.getRelationships(params));
   }
 
   private static <T extends BaseIdentifiableObject> List<String> uids(Page<T> events) {
@@ -1326,5 +1314,19 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
     return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
+  }
+
+  private static void assertSlimPager(int pageNumber, int pageSize, boolean isLast, Pager pager) {
+    assertInstanceOf(SlimPager.class, pager, "SlimPager should be returned if totalPages=false");
+    SlimPager slimPager = (SlimPager) pager;
+    assertAll(
+        "pagination details",
+        () -> assertEquals(pageNumber, slimPager.getPage(), "number of current page"),
+        () -> assertEquals(pageSize, slimPager.getPageSize(), "page size"),
+        () ->
+            assertEquals(
+                isLast,
+                slimPager.isLastPage(),
+                isLast ? "should be the last page" : "should NOT be the last page"));
   }
 }
