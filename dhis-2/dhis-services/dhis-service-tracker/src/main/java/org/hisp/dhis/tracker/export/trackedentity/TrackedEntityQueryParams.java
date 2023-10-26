@@ -359,11 +359,6 @@ public class TrackedEntityQueryParams {
     return (getPageWithDefault() - 1) * getPageSizeWithDefault();
   }
 
-  /** Returns attributes that are either ordered by or present in any filter. */
-  public Set<TrackedEntityAttribute> getAttributes() {
-    return SetUtils.union(filters.keySet(), getOrderAttributes());
-  }
-
   /** Returns attributes that are only ordered by and not present in any filter. */
   public Set<TrackedEntityAttribute> getLeftJoinAttributes() {
     return SetUtils.difference(getOrderAttributes(), filters.keySet());
