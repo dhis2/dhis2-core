@@ -70,8 +70,6 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
     Map<String, Map<String, Object>> objectReferences =
         bundle.getObjectReferences(OrganisationUnit.class);
 
-    Session session = sessionFactory.getCurrentSession();
-
     for (OrganisationUnit identifiableObject : objects) {
       identifiableObject =
           bundle.getPreheat().get(bundle.getPreheatIdentifier(), identifiableObject);
@@ -89,7 +87,6 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
       OrganisationUnit parent = bundle.getPreheat().get(bundle.getPreheatIdentifier(), parentRef);
 
       organisationUnit.setParent(parent);
-      session.update(organisationUnit);
     }
   }
 

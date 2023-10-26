@@ -132,8 +132,6 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<Progr
                 pss.setProgramStage(programStage);
               }
             });
-
-    session.update(programStage);
   }
 
   private void validateProgramStageDataElementsAcl(
