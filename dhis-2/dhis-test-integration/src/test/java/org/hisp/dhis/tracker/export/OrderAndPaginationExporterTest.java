@@ -1313,4 +1313,18 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
     return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
   }
+
+  private static void assertSlimPager(int pageNumber, int pageSize, boolean isLast, Pager pager) {
+    assertInstanceOf(SlimPager.class, pager, "SlimPager should be returned if totalPages=false");
+    SlimPager slimPager = (SlimPager) pager;
+    assertAll(
+        "pagination details",
+        () -> assertEquals(pageNumber, slimPager.getPage(), "number of current page"),
+        () -> assertEquals(pageSize, slimPager.getPageSize(), "page size"),
+        () ->
+            assertEquals(
+                isLast,
+                slimPager.isLastPage(),
+                isLast ? "should be the last page" : "should NOT be the last page"));
+  }
 }
