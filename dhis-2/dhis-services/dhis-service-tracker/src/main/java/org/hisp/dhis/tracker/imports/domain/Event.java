@@ -39,7 +39,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.tracker.imports.TrackerType;
+import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
 
 /**
@@ -69,8 +69,6 @@ public class Event implements TrackerDto {
   @JsonProperty private Instant scheduledAt;
 
   @JsonProperty private String storedBy;
-
-  @JsonProperty private boolean followup;
 
   @JsonProperty private boolean deleted;
 

@@ -46,14 +46,13 @@ import org.hibernate.Session;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.hisp.dhis.tracker.imports.TrackerType;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.converter.TrackerSideEffectConverterService;
@@ -72,8 +71,6 @@ public class EventPersister
   private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event>
       eventConverter;
 
-  private final TrackedEntityCommentService trackedEntityCommentService;
-
   private final TrackerSideEffectConverterService sideEffectConverterService;
 
   private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
@@ -81,23 +78,21 @@ public class EventPersister
   public EventPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
-      TrackedEntityCommentService trackedEntityCommentService,
       TrackerSideEffectConverterService sideEffectConverterService,
       TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
       TrackedEntityDataValueAuditService trackedEntityDataValueAuditService) {
     super(reservedValueService, trackedEntityAttributeValueAuditService);
     this.eventConverter = eventConverter;
-    this.trackedEntityCommentService = trackedEntityCommentService;
     this.sideEffectConverterService = sideEffectConverterService;
     this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
   }
 
   @Override
-  protected void persistComments(TrackerPreheat preheat, Event event) {
-    if (!event.getComments().isEmpty()) {
-      for (TrackedEntityComment comment : event.getComments()) {
-        if (Objects.isNull(preheat.getNote(comment.getUid()))) {
-          this.trackedEntityCommentService.addTrackedEntityComment(comment);
+  protected void persistNotes(Session session, TrackerPreheat preheat, Event event) {
+    if (!event.getNotes().isEmpty()) {
+      for (Note note : event.getNotes()) {
+        if (Objects.isNull(preheat.getNote(note.getUid()))) {
+          session.save(note);
         }
       }
     }

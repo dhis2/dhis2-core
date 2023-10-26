@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -55,6 +56,8 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobQueueService;
 import org.hisp.dhis.scheduling.SchedulingType;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -69,7 +72,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * API for scheduler list and named queues (sequences).
+ * API for scheduler list and named queues (sequences). This is mostly a controller to directly
+ * support the needs of the scheduler app.
  *
  * @author Jan Bernitt
  */
@@ -79,21 +83,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class JobSchedulerController {
-  private final JobConfigurationService jobConfigurationService;
 
+  private final JobConfigurationService jobConfigurationService;
   private final JobQueueService jobQueueService;
+  private final SystemSettingManager systemSettings;
 
   @GetMapping
   public List<SchedulerEntry> getSchedulerEntries(@RequestParam(required = false) String order) {
     Map<String, List<JobConfiguration>> configsByQueueNameOrUid =
         jobConfigurationService.getAllJobConfigurations().stream()
+            .filter(not(JobConfiguration::isRunOnce))
             .collect(groupingBy(JobConfiguration::getQueueIdentifier));
     Comparator<SchedulerEntry> sortBy =
         "name".equals(order)
             ? comparing(SchedulerEntry::getName)
             : comparing(SchedulerEntry::getNextExecutionTime, nullsLast(naturalOrder()));
+    Duration maxCronDelay =
+        Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
     return configsByQueueNameOrUid.values().stream()
-        .map(SchedulerEntry::of)
+        .map(config -> SchedulerEntry.of(config, maxCronDelay))
         .sorted(sortBy)
         .collect(toList());
   }
@@ -104,13 +112,14 @@ public class JobSchedulerController {
         name == null || name.isEmpty()
             ? config -> true
             : config -> !name.equals(config.getQueueName());
+    Duration maxCronDelay =
+        Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
     return jobConfigurationService.getAllJobConfigurations().stream()
         .filter(JobConfiguration::isConfigurable)
-        .filter(not(JobConfiguration::isLeaderOnlyJob))
-        .filter(config -> config.getSchedulingType() != SchedulingType.FIXED_DELAY)
+        .filter(config -> config.getSchedulingType() == SchedulingType.CRON)
         .filter(config -> !config.isUsedInQueue())
         .filter(nameFilter)
-        .map(SchedulerEntry::of)
+        .map(config -> SchedulerEntry.of(config, maxCronDelay))
         .sorted(comparing(SchedulerEntry::getName))
         .collect(toList());
   }
@@ -156,7 +165,8 @@ public class JobSchedulerController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateQueue(@PathVariable String name, @RequestBody SchedulerQueue queue)
       throws NotFoundException, ConflictException {
-    jobQueueService.updateQueue(name, queue.getCronExpression(), queue.getSequence());
+    jobQueueService.updateQueue(
+        name, queue.getName(), queue.getCronExpression(), queue.getSequence());
   }
 
   @DeleteMapping("/queues/{name}")

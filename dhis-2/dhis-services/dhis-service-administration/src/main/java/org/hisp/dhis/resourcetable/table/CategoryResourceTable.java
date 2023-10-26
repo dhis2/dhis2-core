@@ -98,7 +98,7 @@ public class CategoryResourceTable extends ResourceTable<Category> {
       sql +=
           "("
               + "select co.name from categoryoptioncombos_categoryoptions cocco "
-              + "inner join dataelementcategoryoption co on cocco.categoryoptionid = co.categoryoptionid "
+              + "inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid "
               + "inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid "
               + "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid "
               + "and cco.categoryid = "
@@ -111,7 +111,7 @@ public class CategoryResourceTable extends ResourceTable<Category> {
       sql +=
           "("
               + "select co.uid from categoryoptioncombos_categoryoptions cocco "
-              + "inner join dataelementcategoryoption co on cocco.categoryoptionid = co.categoryoptionid "
+              + "inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid "
               + "inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid "
               + "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid "
               + "and cco.categoryid = "

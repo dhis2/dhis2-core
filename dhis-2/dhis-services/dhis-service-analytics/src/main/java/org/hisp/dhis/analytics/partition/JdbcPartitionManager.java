@@ -38,6 +38,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,7 @@ import org.springframework.stereotype.Service;
 public class JdbcPartitionManager implements PartitionManager {
   private Map<AnalyticsTableType, Set<String>> analyticsPartitions = new HashMap<>();
 
+  @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
 
   @Override

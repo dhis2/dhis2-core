@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.util.OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria;
+
 import java.util.Date;
 import java.util.Set;
 import lombok.Getter;
@@ -83,6 +85,8 @@ public class DataQueryRequest {
 
   protected IdScheme outputIdScheme;
 
+  protected IdScheme outputDataItemIdScheme;
+
   protected IdScheme outputDataElementIdScheme;
 
   protected IdScheme outputOrgUnitIdScheme;
@@ -98,6 +102,8 @@ public class DataQueryRequest {
   protected UserOrgUnitType userOrgUnitType;
 
   protected DhisApiVersion apiVersion;
+
+  protected String userOrganisationUnitCriteria;
 
   public boolean hasAggregationType() {
     return aggregationType != null;
@@ -232,6 +238,11 @@ public class DataQueryRequest {
       return this;
     }
 
+    public DataQueryRequestBuilder outputDataItemIdScheme(IdScheme outputDataItemIdScheme) {
+      this.request.outputDataItemIdScheme = outputDataItemIdScheme;
+      return this;
+    }
+
     public DataQueryRequestBuilder outputDataElementIdScheme(IdScheme outputDataElementIdScheme) {
       this.request.outputDataElementIdScheme = outputDataElementIdScheme;
       return this;
@@ -300,8 +311,9 @@ public class DataQueryRequest {
       this.request.order = criteria.getOrder();
       this.request.orgUnitField = criteria.getOrgUnitField();
       this.request.outputIdScheme = criteria.getOutputIdScheme();
-      this.request.outputOrgUnitIdScheme = criteria.getOutputOrgUnitIdScheme();
+      this.request.outputDataItemIdScheme = criteria.getOutputDataItemIdScheme();
       this.request.outputDataElementIdScheme = criteria.getOutputDataElementIdScheme();
+      this.request.outputOrgUnitIdScheme = criteria.getOutputOrgUnitIdScheme();
       this.request.preAggregationMeasureCriteria = criteria.getPreAggregationMeasureCriteria();
       this.request.relativePeriodDate = criteria.getRelativePeriodDate();
       this.request.showHierarchy = criteria.isShowHierarchy();
@@ -311,6 +323,8 @@ public class DataQueryRequest {
       this.request.startDate = criteria.getStartDate();
       this.request.timeField = criteria.getTimeField();
       this.request.userOrgUnit = criteria.getUserOrgUnit();
+      this.request.userOrganisationUnitCriteria =
+          getAnalyticsQueryCriteria(criteria.getDimension());
       this.request.userOrgUnitType = criteria.getUserOrgUnitType();
       return this;
     }

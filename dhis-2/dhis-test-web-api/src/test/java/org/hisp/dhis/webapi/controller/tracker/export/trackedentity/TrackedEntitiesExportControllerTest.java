@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
-import static org.hisp.dhis.utils.Assertions.assertContains;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -83,6 +84,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest {
+
   private static final String TEA_UID = "TvjwTPToKHO";
 
   private static final String EVENT_OCCURRED_AT = "2023-03-23T12:23:00.000";
@@ -110,6 +112,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   private TrackedEntityAttribute tea;
 
   private TrackedEntityAttribute tea2;
+
+  private TrackedEntity softDeletedTrackedEntity;
 
   @BeforeEach
   void setUp() {
@@ -163,10 +167,16 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
     trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
     manager.save(trackedEntityType, false);
+
+    softDeletedTrackedEntity = createTrackedEntity(orgUnit);
+    softDeletedTrackedEntity.setDeleted(true);
+    manager.save(softDeletedTrackedEntity, false);
   }
 
   @Test
   void getTrackedEntitiesNeedsProgramOrType() {
+    injectSecurityContext(user);
+
     assertEquals(
         "Either Program or Tracked entity type should be specified",
         GET("/tracker/trackedEntities").error(HttpStatus.CONFLICT).getMessage());
@@ -184,37 +194,36 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   }
 
   @Test
-  void getTrackedEntitiesNeedsAtLeastOneOrgUnit() {
-    assertEquals(
-        "At least one organisation unit must be specified",
-        GET("/tracker/trackedEntities?program={program}", program.getUid())
-            .error(HttpStatus.CONFLICT)
-            .getMessage());
-  }
+  void shouldReturnEmptyListWhenGettingTrackedEntitiesWithNoMatchingParams() {
 
-  @Test
-  void getTrackedEntitiesCannotHaveRepeatedAttributes() {
-    assertContains(
-        "Filter for attribute " + TEA_UID + " was specified more than once.",
-        GET("/tracker/trackedEntities?filter=" + TEA_UID + ":eq:test," + TEA_UID + ":gt:test2")
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
+    LocalDate futureDate = LocalDate.now().plusYears(1);
+    JsonList<JsonTrackedEntity> instances =
+        GET("/tracker/trackedEntities?trackedEntityType="
+                + trackedEntityType.getUid()
+                + "&ouMode=ALL"
+                + "&trackedEntities=AbjwFr5o9IT"
+                + "&updatedAfter="
+                + futureDate)
+            .content(HttpStatus.OK)
+            .getList("instances", JsonTrackedEntity.class);
+
+    assertEquals(0, instances.size());
   }
 
   @Test
   void getTrackedEntityById() {
-    TrackedEntity tei = trackedEntity();
+    TrackedEntity te = trackedEntity();
     this.switchContextToUser(user);
 
     JsonTrackedEntity json =
-        GET("/tracker/trackedEntities/{id}", tei.getUid())
+        GET("/tracker/trackedEntities/{id}", te.getUid())
             .content(HttpStatus.OK)
             .as(JsonTrackedEntity.class);
 
     assertFalse(json.isEmpty());
-    assertEquals(tei.getUid(), json.getTrackedEntity());
-    assertEquals(tei.getTrackedEntityType().getUid(), json.getTrackedEntityType());
-    assertEquals(tei.getOrganisationUnit().getUid(), json.getOrgUnit());
+    assertEquals(te.getUid(), json.getTrackedEntity());
+    assertEquals(te.getTrackedEntityType().getUid(), json.getTrackedEntityType());
+    assertEquals(te.getOrganisationUnit().getUid(), json.getOrgUnit());
     assertHasMember(json, "createdAt");
     assertHasMember(json, "createdAtClient");
     assertHasMember(json, "updatedAtClient");
@@ -226,17 +235,17 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntityByIdWithFields() {
-    TrackedEntity tei = trackedEntity();
+    TrackedEntity te = trackedEntity();
     this.switchContextToUser(user);
 
     JsonTrackedEntity json =
-        GET("/tracker/trackedEntities/{id}?fields=trackedEntityType,orgUnit", tei.getUid())
+        GET("/tracker/trackedEntities/{id}?fields=trackedEntityType,orgUnit", te.getUid())
             .content(HttpStatus.OK)
             .as(JsonTrackedEntity.class);
 
     assertHasOnlyMembers(json, "trackedEntityType", "orgUnit");
-    assertEquals(tei.getTrackedEntityType().getUid(), json.getTrackedEntityType());
-    assertEquals(tei.getOrganisationUnit().getUid(), json.getOrgUnit());
+    assertEquals(te.getTrackedEntityType().getUid(), json.getTrackedEntityType());
+    assertEquals(te.getOrganisationUnit().getUid(), json.getOrgUnit());
   }
 
   @Test
@@ -391,12 +400,21 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   }
 
   @Test
+  void shouldReturnNotFoundWhenGettingASoftDeletedTrackedEntityById() {
+    assertEquals(
+        HttpStatus.NOT_FOUND,
+        GET("/tracker/trackedEntities/" + softDeletedTrackedEntity.getUid()).status());
+  }
+
+  @Test
   void getTrackedEntityReturnsCsvFormat() {
+    injectSecurityContext(user);
+
     WebClient.HttpResponse response =
         GET(
-            "/tracker/trackedEntities.csv?program={programId}&orgUnit={orgUnitId}",
+            "/tracker/trackedEntities.csv?program={programId}&orgUnitMode={orgUnitMode}",
             program.getUid(),
-            orgUnit.getUid());
+            ACCESSIBLE);
 
     assertEquals(HttpStatus.OK, response.status());
 
@@ -413,11 +431,13 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntityReturnsCsvZipFormat() {
+    injectSecurityContext(user);
+
     WebClient.HttpResponse response =
         GET(
-            "/tracker/trackedEntities.csv.zip?program={programId}&orgUnit={orgUnitId}",
+            "/tracker/trackedEntities.csv.zip?program={programId}&orgUnitMode={orgUnitMode}",
             program.getUid(),
-            orgUnit.getUid());
+            ACCESSIBLE);
 
     assertEquals(HttpStatus.OK, response.status());
 
@@ -433,11 +453,13 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntityReturnsCsvGZipFormat() {
+    injectSecurityContext(user);
+
     WebClient.HttpResponse response =
         GET(
-            "/tracker/trackedEntities.csv.gz?program={programId}&orgUnit={orgUnitId}",
+            "/tracker/trackedEntities.csv.gz?program={programId}&orgUnitMode={orgUnitMode}",
             program.getUid(),
-            orgUnit.getUid());
+            ACCESSIBLE);
 
     assertEquals(HttpStatus.OK, response.status());
 
@@ -510,7 +532,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     enrollment.getEvents().add(event);
     manager.update(enrollment);
 
-    Relationship teiToEventRelationship = relationship(trackedEntity, event);
+    Relationship teToEventRelationship = relationship(trackedEntity, event);
 
     JsonList<JsonEnrollment> json =
         GET("/tracker/trackedEntities/{id}?fields=enrollments", trackedEntity.getUid())
@@ -525,7 +547,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
     JsonRelationship relationship = jsonEvent.getRelationships().get(0);
 
-    assertEquals(teiToEventRelationship.getUid(), relationship.getRelationship());
+    assertEquals(teToEventRelationship.getUid(), relationship.getRelationship());
     assertEquals(
         trackedEntity.getUid(), relationship.getFrom().getTrackedEntity().getTrackedEntity());
     assertEquals(event.getUid(), relationship.getTo().getEvent().getEvent());
@@ -595,7 +617,6 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertEquals(program.getUid(), jsonEnrollment.getProgram());
     assertEquals("ACTIVE", jsonEnrollment.getStatus());
     assertEquals(orgUnit.getUid(), jsonEnrollment.getOrgUnit());
-    assertEquals(orgUnit.getName(), jsonEnrollment.getOrgUnitName());
     assertFalse(jsonEnrollment.getBoolean("deleted").booleanValue());
     assertHasMember(jsonEnrollment, "enrolledAt");
     assertHasMember(jsonEnrollment, "occurredAt");
@@ -620,7 +641,6 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertEquals(program.getUid(), jsonEvent.getProgram());
     assertEquals("ACTIVE", jsonEvent.getStatus());
     assertEquals(orgUnit.getUid(), jsonEvent.getOrgUnit());
-    assertEquals(orgUnit.getName(), jsonEvent.getOrgUnitName());
     assertFalse(jsonEvent.getDeleted());
     assertHasMember(jsonEvent, "createdAt");
     assertHasMember(jsonEvent, "occurredAt");
@@ -628,6 +648,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertHasMember(jsonEvent, "createdAtClient");
     assertHasMember(jsonEvent, "updatedAt");
     assertHasMember(jsonEvent, "notes");
+    assertHasMember(jsonEvent, "followUp");
     assertHasMember(jsonEvent, "followup");
 
     JsonDataValue dataValue = jsonEvent.getDataValues().get(0);
@@ -663,21 +684,21 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   }
 
   private TrackedEntity trackedEntity() {
-    TrackedEntity tei = trackedEntity(orgUnit);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(orgUnit);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntityNotInSearchScope() {
-    TrackedEntity tei = trackedEntity(anotherOrgUnit);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(anotherOrgUnit);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntity(TrackedEntityType trackedEntityType) {
-    TrackedEntity tei = trackedEntity(orgUnit, trackedEntityType);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(orgUnit, trackedEntityType);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntity(OrganisationUnit orgUnit) {
@@ -686,11 +707,11 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity tei = createTrackedEntity(orgUnit);
-    tei.setTrackedEntityType(trackedEntityType);
-    tei.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    tei.getSharing().setOwner(owner);
-    return tei;
+    TrackedEntity te = createTrackedEntity(orgUnit);
+    te.setTrackedEntityType(trackedEntityType);
+    te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    te.getSharing().setOwner(owner);
+    return te;
   }
 
   private UserAccess userAccess() {
@@ -787,19 +808,19 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   private void assertTrackedEntityWithinRelationship(
       TrackedEntity expected, JsonRelationshipItem json) {
-    JsonRelationshipItem.JsonTrackedEntity jsonTEI = json.getTrackedEntity();
-    assertFalse(jsonTEI.isEmpty(), "trackedEntity should not be empty");
-    assertEquals(expected.getUid(), jsonTEI.getTrackedEntity());
+    JsonRelationshipItem.JsonTrackedEntity jsonTe = json.getTrackedEntity();
+    assertFalse(jsonTe.isEmpty(), "trackedEntity should not be empty");
+    assertEquals(expected.getUid(), jsonTe.getTrackedEntity());
     assertHasNoMember(json, "trackedEntityType");
     assertHasNoMember(json, "orgUnit");
     assertHasNoMember(json, "relationships"); // relationships are not
     // returned within
     // relationships
-    assertTrue(jsonTEI.getArray("attributes").isEmpty());
+    assertTrue(jsonTe.getArray("attributes").isEmpty());
   }
 
   private TrackedEntityAttributeValue attributeValue(
-      TrackedEntityAttribute tea, TrackedEntity tei, String value) {
-    return new TrackedEntityAttributeValue(tea, tei, value);
+      TrackedEntityAttribute tea, TrackedEntity te, String value) {
+    return new TrackedEntityAttributeValue(tea, te, value);
   }
 }

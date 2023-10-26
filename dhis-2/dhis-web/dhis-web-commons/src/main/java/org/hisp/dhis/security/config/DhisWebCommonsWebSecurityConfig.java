@@ -101,26 +101,6 @@ public class DhisWebCommonsWebSecurityConfig {
           "/dhis-web-commons-stream/ping.action", "/",
           "/api/files/style/external", "/");
 
-  /** This configuration class is responsible for setting up the session management. */
-  @Configuration
-  @Order(3300)
-  public static class SessionWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
-    @Autowired private DhisConfigurationProvider dhisConfig;
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-      http.sessionManagement()
-          .requireExplicitAuthenticationStrategy(true)
-          .sessionFixation()
-          .migrateSession()
-          .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
-          .enableSessionUrlRewriting(false)
-          .maximumSessions(
-              Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
-          .expiredUrl("/dhis-web-commons-security/logout.action");
-    }
-  }
-
   /**
    * This configuration class is responsible for setting up the form login and everything related to
    * the web pages.
@@ -169,8 +149,6 @@ public class DhisWebCommonsWebSecurityConfig {
           .permitAll()
           .antMatchers("/impersonate")
           .hasAnyAuthority("ALL", "F_IMPERSONATE_USER")
-          .antMatchers("/api/staticContent/**")
-          .permitAll()
           .antMatchers("/dhis-web-commons/oidc/**")
           .permitAll()
           .antMatchers("/dhis-web-commons/javascripts/**")
@@ -181,13 +159,9 @@ public class DhisWebCommonsWebSecurityConfig {
           .permitAll()
           .antMatchers("/dhis-web-commons/fonts/**")
           .permitAll()
-          .antMatchers("/api/files/style/external")
-          .permitAll()
           .antMatchers("/external-static/**")
           .permitAll()
           .antMatchers("/favicon.ico")
-          .permitAll()
-          .antMatchers("/api/publicKeys/**")
           .permitAll()
           // Dynamic content
           .antMatchers("/dhis-web-commons/i18nJavaScript.action")
@@ -299,7 +273,16 @@ public class DhisWebCommonsWebSecurityConfig {
               new CspFilter(dhisConfig, configurationService), HeaderWriterFilter.class)
           .addFilterBefore(CorsFilter.get(), BasicAuthenticationFilter.class)
           .addFilterBefore(
-              CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class);
+              CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class)
+          .sessionManagement()
+          .requireExplicitAuthenticationStrategy(true)
+          .sessionFixation()
+          .migrateSession()
+          .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+          .enableSessionUrlRewriting(false)
+          .maximumSessions(
+              Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
+          .expiredUrl("/dhis-web-commons-security/logout.action");
 
       setHttpHeaders(http);
     }

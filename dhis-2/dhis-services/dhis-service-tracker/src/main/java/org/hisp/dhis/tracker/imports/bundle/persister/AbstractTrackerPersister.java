@@ -52,10 +52,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -101,13 +101,9 @@ public abstract class AbstractTrackerPersister<
 
     Set<String> updatedTeiList = bundle.getUpdatedTeis();
 
-    for (int idx = 0; idx < dtos.size(); idx++) {
-      //
-      // Create the Report for the entity being persisted
-      //
-      final T trackerDto = dtos.get(idx);
+    for (T trackerDto : dtos) {
 
-      Entity objectReport = new Entity(getType(), trackerDto.getUid(), idx);
+      Entity objectReport = new Entity(getType(), trackerDto.getUid());
 
       try {
         //
@@ -116,9 +112,9 @@ public abstract class AbstractTrackerPersister<
         V convertedDto = convert(bundle, trackerDto);
 
         //
-        // Handle comments persistence, if required
+        // Handle notes persistence, if required
         //
-        persistComments(bundle.getPreheat(), convertedDto);
+        persistNotes(session, bundle.getPreheat(), convertedDto);
 
         //
         // Handle ownership records, if required
@@ -203,8 +199,8 @@ public abstract class AbstractTrackerPersister<
    */
   protected abstract V convert(TrackerBundle bundle, T trackerDto);
 
-  /** Persists the comments for the given entity, if the entity has comments */
-  protected abstract void persistComments(TrackerPreheat preheat, V entity);
+  /** Persists the notes for the given entity, if the entity has notes */
+  protected abstract void persistNotes(Session session, TrackerPreheat preheat, V entity);
 
   /** Persists ownership records for the given entity */
   protected abstract void persistOwnership(TrackerPreheat preheat, V entity);
@@ -385,7 +381,7 @@ public abstract class AbstractTrackerPersister<
 
     if (isNew) {
       session.persist(trackedEntityAttributeValue);
-      // In case it's a newly created attribute we'll add it back to TEI,
+      // In case it's a newly created attribute we'll add it back to TE,
       // so it can end up in preheat
       trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
       auditType = AuditType.CREATE;

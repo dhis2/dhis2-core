@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
@@ -39,9 +39,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageBatch;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
@@ -49,7 +52,6 @@ import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,11 +102,9 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
       @RequestParam(required = false) Integer pageSize)
       throws BadRequestException, ConflictException {
     UID enrollmentUid =
-        validateDeprecatedUidParameter(
-            "programInstance", programInstance, "enrollment", enrollment);
+        validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
     UID eventUid =
-        validateDeprecatedUidParameter(
-            "programStageInstance", programStageInstance, "event", event);
+        validateDeprecatedParameter("programStageInstance", programStageInstance, "event", event);
 
     if (enrollmentUid == null && eventUid == null) {
       throw new ConflictException("Enrollment or Event must be specified.");
@@ -128,20 +128,24 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   @GetMapping(value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<ProgramMessage> getScheduledSentMessage(
-      @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
-      @RequestParam(required = false) UID enrollment,
-      @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
-      @RequestParam(required = false) UID event,
+      @OpenApi.Param(value = Enrollment.class)
+          @Deprecated(since = "2.41")
+          @RequestParam(required = false)
+          UID programInstance,
+      @OpenApi.Param({UID.class, Enrollment.class}) @RequestParam(required = false) UID enrollment,
+      @OpenApi.Param(value = Event.class)
+          @Deprecated(since = "2.41")
+          @RequestParam(required = false)
+          UID programStageInstance,
+      @OpenApi.Param({UID.class, Event.class}) @RequestParam(required = false) UID event,
       @RequestParam(required = false) Date afterDate,
       @RequestParam(required = false) Integer page,
       @RequestParam(required = false) Integer pageSize)
       throws BadRequestException {
     UID enrollmentUid =
-        validateDeprecatedUidParameter(
-            "programInstance", programInstance, "enrollment", enrollment);
+        validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
     UID eventUid =
-        validateDeprecatedUidParameter(
-            "programStageInstance", programStageInstance, "event", event);
+        validateDeprecatedParameter("programStageInstance", programStageInstance, "event", event);
 
     ProgramMessageQueryParams params =
         programMessageService.getFromUrl(
@@ -164,7 +168,7 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS') or hasRole('F_SEND_EMAIL')")
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public BatchResponseStatus saveMessages(HttpServletRequest request, HttpServletResponse response)
+  public BatchResponseStatus sendMessages(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     ProgramMessageBatch batch =
         renderService.fromJson(request.getInputStream(), ProgramMessageBatch.class);

@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.common.Pager;
 
 /**
@@ -43,6 +45,7 @@ import org.hisp.dhis.common.Pager;
  * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
  *     "old" tracker. Make sure to plan migrating to new tracker.
  */
+@OpenApi.Shared(pattern = Pattern.DEPRECATED_TRACKER)
 @Deprecated(since = "2.41")
 @JacksonXmlRootElement(localName = "events", namespace = DxfNamespaces.DXF_2_0)
 public class Events {

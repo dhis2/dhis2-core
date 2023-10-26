@@ -210,6 +210,9 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest {
                 "{'cronExpression':'0 0 1 ? * *','sequence':['%s','%s','%s']}",
                 jobIdA, jobIdB, jobIdC)));
 
+    // we use SQL to find queue names so we have to make sure the creation is visible
+    dbmsManager.flushSession();
+
     assertEquals(List.of("testQueue"), GET("/scheduler/queues/").content().stringValues());
   }
 
@@ -237,6 +240,28 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest {
     JsonObject queue = GET("/scheduler/queues/testQueue").content();
     assertEquals("0 0 2 ? * *", queue.getString("cronExpression").string());
     assertEquals(List.of(jobIdB, jobIdA), queue.getArray("sequence").stringValues());
+  }
+
+  @Test
+  void testUpdateQueue_WithRename() {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/scheduler/queues/testQueue",
+            format("{'cronExpression':'0 0 1 ? * *','sequence':['%s','%s']}", jobIdA, jobIdC)));
+
+    assertStatus(
+        HttpStatus.NO_CONTENT,
+        PUT(
+            "/scheduler/queues/testQueue",
+            format(
+                "{'cronExpression':'0 0 2 ? * *','sequence':['%s','%s'],'name':'newName'}",
+                jobIdB, jobIdA)));
+
+    JsonObject queue = GET("/scheduler/queues/newName").content();
+    assertEquals("0 0 2 ? * *", queue.getString("cronExpression").string());
+    assertEquals(List.of(jobIdB, jobIdA), queue.getArray("sequence").stringValues());
+    assertStatus(HttpStatus.NOT_FOUND, GET("/scheduler/queues/testQueue"));
   }
 
   @Test
@@ -282,6 +307,9 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest {
 
     assertStatus(HttpStatus.NO_CONTENT, DELETE("/scheduler/queues/testQueue"));
     assertStatus(HttpStatus.NOT_FOUND, GET("/scheduler/queues/testQueue"));
+    // verify the ex-queue jobs show in the scheduler main list again
+    JsonArray list = GET("/scheduler").content();
+    assertEquals(3, list.size());
   }
 
   @Test

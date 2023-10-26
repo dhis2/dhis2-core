@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.actions;
 
+import static io.restassured.config.XmlConfig.xmlConfig;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.oneOf;
 
@@ -34,6 +35,7 @@ import com.google.gson.JsonArray;
 import io.restassured.RestAssured;
 import io.restassured.config.ObjectMapperConfig;
 import io.restassured.http.ContentType;
+import io.restassured.http.Headers;
 import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
@@ -163,6 +165,25 @@ public class RestApiActions {
     return new ApiResponse(response);
   }
 
+  /**
+   * Sends get request with provided path, headers & queryParams appended to URL.
+   *
+   * @param resourceId Id of resource
+   * @param queryParamsBuilder Query params to append to url
+   * @param headers headers to send as part of the request
+   */
+  public ApiResponse getWithHeaders(
+      String resourceId, QueryParamsBuilder queryParamsBuilder, Headers headers) {
+    String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
+    addCoverage("GET", resourceId + path);
+
+    Response response =
+        this.given().contentType(ContentType.TEXT).headers(headers).when().get(resourceId + path);
+
+    return new ApiResponse(response);
+  }
+
   public ApiResponse get(QueryParamsBuilder queryParamsBuilder) {
     return this.get("", queryParamsBuilder);
   }
@@ -183,7 +204,12 @@ public class RestApiActions {
     addCoverage("GET", resourceId + path);
 
     Response response =
-        this.given().contentType(contentType).accept(accept).when().get(resourceId + path);
+        this.given()
+            .config(RestAssured.config().xmlConfig(xmlConfig().namespaceAware(false)))
+            .contentType(contentType)
+            .accept(accept)
+            .when()
+            .get(resourceId + path);
 
     return new ApiResponse(response);
   }
@@ -232,14 +258,7 @@ public class RestApiActions {
     return new ApiResponse(response);
   }
 
-  /**
-   * Sends PATCH request to specified resource
-   *
-   * @param resourceId
-   * @param object
-   * @param paramsBuilder
-   * @return
-   */
+  /** Sends PATCH request to specified resource */
   public ApiResponse patch(String resourceId, Object object, QueryParamsBuilder paramsBuilder) {
     Response response =
         this.given()
@@ -252,13 +271,7 @@ public class RestApiActions {
     return new ApiResponse(response);
   }
 
-  /**
-   * Sends PATCH request to specified resource. Uses importReportMode=ERRORS
-   *
-   * @param resourceId
-   * @param object
-   * @return
-   */
+  /** Sends PATCH request to specified resource. Uses importReportMode=ERRORS */
   public ApiResponse patch(String resourceId, Object object) {
     return this.patch(
         resourceId, object, new QueryParamsBuilder().add("importReportMode", "ERRORS"));

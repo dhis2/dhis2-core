@@ -33,7 +33,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.tracker.imports.TrackerType;
+import org.hisp.dhis.tracker.TrackerType;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -50,6 +50,8 @@ public class Relationship implements TrackerDto {
   @JsonProperty private MetadataIdentifier relationshipType;
 
   @JsonProperty private Instant createdAt;
+
+  @JsonProperty private Instant createdAtClient;
 
   @JsonProperty private Instant updatedAt;
 

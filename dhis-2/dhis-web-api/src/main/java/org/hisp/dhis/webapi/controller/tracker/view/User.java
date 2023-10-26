@@ -35,7 +35,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webapi.common.UID;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Enrico Colasante

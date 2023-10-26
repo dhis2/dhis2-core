@@ -28,35 +28,40 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 
 public interface TrackedEntityService {
-  TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params)
+
+  TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
-  TrackedEntity getTrackedEntity(TrackedEntity trackedEntity, TrackedEntityParams params)
+  TrackedEntity getTrackedEntity(
+      TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
+      throws ForbiddenException;
+
+  TrackedEntity getTrackedEntity(
+      String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
-  TrackedEntity getTrackedEntity(String uid, String programIdentifier, TrackedEntityParams params)
-      throws NotFoundException, ForbiddenException;
+  /** Get all tracked entities matching given params. */
+  List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
+      throws BadRequestException, ForbiddenException, NotFoundException;
+
+  /** Get a page of tracked entities matching given params. */
+  Page<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams params, PageParams pageParams)
+      throws BadRequestException, ForbiddenException, NotFoundException;
 
   /**
-   * Fetches {@see TrackedEntity}s based on the specified parameters.
-   *
-   * @param queryParams a {@see TrackedEntityQueryParams} instance with the query parameters
-   * @param params a {@see TrackedEntityParams} instance containing the directives for how much data
-   *     should be fetched (e.g. Enrollments, Events, Relationships)
-   * @return {@see TrackedEntity}s
+   * Fields the {@link #getTrackedEntities(TrackedEntityOperationParams)} can order tracked entities
+   * by. Ordering by fields other than these is considered a programmer error. Validation of user
+   * provided field names should occur before calling {@link
+   * #getTrackedEntities(TrackedEntityOperationParams)}.
    */
-  List<TrackedEntity> getTrackedEntities(
-      TrackedEntityQueryParams queryParams, TrackedEntityParams params)
-      throws ForbiddenException, NotFoundException;
-
-  int getTrackedEntityCount(
-      TrackedEntityQueryParams params,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation);
+  Set<String> getOrderableFields();
 }

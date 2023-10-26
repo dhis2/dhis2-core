@@ -42,6 +42,8 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridResponse;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -54,6 +56,8 @@ import org.hisp.dhis.sqlview.SqlViewQuery;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -76,6 +80,8 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
   private final JobConfigurationService jobConfigurationService;
 
   private final ContextUtils contextUtils;
+
+  private final DhisConfigurationProvider dhisConfig;
 
   // -------------------------------------------------------------------------
   // Get
@@ -163,7 +169,8 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
       throws NotFoundException, IOException {
     Grid grid = querySQLView(uid, criteria, vars, response, ContextUtils.CONTENT_TYPE_PDF);
 
-    GridUtils.toPdf(grid, response.getOutputStream());
+    GridUtils.toPdf(
+        CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE), grid, response.getOutputStream());
   }
 
   private Grid querySQLView(
@@ -201,8 +208,11 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
-    return sqlViewService.getSqlViewGrid(
-        sqlView, getCriteria(criteria), getCriteria(vars), filters, fields);
+    return dhisConfig.isEnabled(ConfigurationKey.SYSTEM_SQL_VIEW_WRITE_ENABLED)
+        ? sqlViewService.getSqlViewGridWritesAllowed(
+            sqlView, getCriteria(criteria), getCriteria(vars), filters, fields)
+        : sqlViewService.getSqlViewGridReadOnly(
+            sqlView, getCriteria(criteria), getCriteria(vars), filters, fields);
   }
 
   // -------------------------------------------------------------------------

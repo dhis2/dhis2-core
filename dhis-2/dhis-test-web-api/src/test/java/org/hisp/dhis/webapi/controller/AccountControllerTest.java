@@ -138,7 +138,7 @@ class AccountControllerTest extends DhisControllerConvenienceTest {
     assertMessage(
         "response",
         "error",
-        "Password must have at least 8, and at most 256 characters",
+        "Password must have at least 8, and at most 72 characters",
         GET("/account/password?password=xyz").content(HttpStatus.OK));
   }
 
@@ -156,7 +156,7 @@ class AccountControllerTest extends DhisControllerConvenienceTest {
     assertMessage(
         "response",
         "error",
-        "Password must have at least 8, and at most 256 characters",
+        "Password must have at least 8, and at most 72 characters",
         POST("/account/validatePassword?password=xyz").content(HttpStatus.OK));
   }
 

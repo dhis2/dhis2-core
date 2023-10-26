@@ -50,6 +50,7 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.HttpStatus.Series;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonDatastoreValue;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -368,10 +369,13 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testUpdateKeyJsonValue_MustExist() {
+  void testPutKeyJsonValue() {
     assertEquals(
-        "Key 'cat' not found in namespace 'pets'",
-        PUT("/dataStore/pets/cat", "[]").error(HttpStatus.NOT_FOUND).getMessage());
+        "Key created: 'cat'",
+        PUT("/dataStore/pets/cat", "[]")
+            .content(HttpStatus.CREATED)
+            .as(JsonWebMessage.class)
+            .getMessage());
   }
 
   @Test
@@ -393,11 +397,11 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testUpdateKeyJsonValue_ProtectedNamespaceWhenHidden() {
+  void testPutKeyJsonValue_ProtectedNamespaceWhenHidden() {
     setUpNamespaceProtection("pets", ProtectionType.HIDDEN, "pets-admin");
     assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{}"));
     switchToNewUser("anonymous");
-    assertStatus(HttpStatus.NOT_FOUND, PUT("/dataStore/pets/cat", "[]"));
+    assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/cat", "[]"));
     switchToNewUser("someone", "pets-admin");
     assertStatus(HttpStatus.OK, PUT("/dataStore/pets/cat", "[]"));
   }
@@ -472,6 +476,78 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
     // but the owner still can
     switchToSuperuser();
     assertStatus(HttpStatus.OK, DELETE("/dataStore/pets/cat"));
+  }
+
+  @Test
+  void testPutEntry_EntryDoesNotExistAndIsCreated() {
+    assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/emu", "{\"name\":\"harry\"}"));
+    JsonDatastoreValue emu = GET("/dataStore/pets/emu").content().as(JsonDatastoreValue.class);
+    assertEquals("harry", emu.getString("name").string());
+  }
+
+  @Test
+  void testPutEntry_EntryAlreadyExistsAndIsUpdated() {
+    assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/emu", "{\"name\":\"harry\"}"));
+    assertStatus(HttpStatus.OK, PUT("/dataStore/pets/emu", "{\"name\":\"james\"}"));
+    JsonDatastoreValue emu = GET("/dataStore/pets/emu").content().as(JsonDatastoreValue.class);
+    assertEquals("james", emu.getString("name").string());
+  }
+
+  @Test
+  void testPutEntry_EntryExistsWithHiddenProtectionAndUserHasNoPermission() {
+    setUpNamespaceProtectionWithSharing("pets", ProtectionType.HIDDEN, "pets-admin");
+    assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/emu", "{\"name\":\"harry\"}"));
+
+    // switch to user with no keyspace permission and try to update key
+    switchToNewUser("someoneWithNoAccess", "cats-admin");
+    assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/emu", "{\"name\":\"james\"}"));
+
+    // switch back to user with permission and check that original value has not been changed
+    switchToSuperuser();
+    JsonDatastoreValue emu = GET("/dataStore/pets/emu").content().as(JsonDatastoreValue.class);
+    assertEquals("harry", emu.getString("name").string());
+  }
+
+  @Test
+  void testPutEntry_EntryDoesNotExistWithHiddenProtectionAndUserHasNoPermission() {
+    setUpNamespaceProtectionWithSharing("pets", ProtectionType.HIDDEN, "pets-admin");
+
+    // switch to user with no keyspace permission and try to update key
+    switchToNewUser("someoneWithNoAccess", "cats-admin");
+    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/emu", "{\"name\":\"james\"}"));
+
+    // switch back to user with permission and check that no entry exists in the namespace
+    switchToSuperuser();
+    assertEquals(
+        "Key 'emu' not found in namespace 'pets'",
+        GET("/dataStore/pets/emu").error(HttpStatus.NOT_FOUND).getMessage());
+  }
+
+  @Test
+  void testPutEntry_EntryExistsWithRestrictedProtectionAndUserHasNoPermission() {
+    setUpNamespaceProtectionWithSharing("pets", ProtectionType.RESTRICTED, "pets-admin");
+    assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/emu", "{\"name\":\"harry\"}"));
+
+    // switch to user with no keyspace permission and try to update key
+    switchToNewUser("someoneWithNoAccess", "cats-admin");
+    assertEquals(
+        "Namespace 'pets' is protected, access denied",
+        PUT("/dataStore/pets/emu", "{\"name\":\"james\"}")
+            .error(HttpStatus.FORBIDDEN)
+            .getMessage());
+  }
+
+  @Test
+  void testPutEntry_EntryDoesNotExistWithRestrictedProtectionAndUserHasNoPermission() {
+    setUpNamespaceProtectionWithSharing("pets", ProtectionType.RESTRICTED, "pets-admin");
+
+    // switch to user with no keyspace permission and try to update key
+    switchToNewUser("someoneWithNoAccess", "cats-admin");
+    assertEquals(
+        "Namespace 'pets' is protected, access denied",
+        PUT("/dataStore/pets/emu", "{\"name\":\"james\"}")
+            .error(HttpStatus.FORBIDDEN)
+            .getMessage());
   }
 
   private void setUpNamespaceProtection(

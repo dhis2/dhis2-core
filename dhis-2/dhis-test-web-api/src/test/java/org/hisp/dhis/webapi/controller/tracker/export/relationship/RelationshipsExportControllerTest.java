@@ -48,6 +48,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -65,7 +66,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
@@ -154,7 +154,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     manager.save(trackedEntityTypeAttribute);
 
     trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
-    manager.save(trackedEntityType);
+    manager.save(trackedEntityType, false);
 
     dataElement = createDataElement('A');
     manager.save(dataElement, false);
@@ -171,7 +171,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
             .content(HttpStatus.OK)
             .as(JsonRelationship.class);
 
-    assertHasOnlyMembers(relationship, "relationship", "relationshipType", "from", "to");
+    assertHasOnlyMembers(
+        relationship, "relationship", "relationshipType", "createdAtClient", "from", "to");
     assertRelationship(r, relationship);
     assertHasOnlyUid(from.getUid(), "event", relationship.getObject("from"));
     assertHasOnlyUid(to.getUid(), "trackedEntity", relationship.getObject("to"));
@@ -245,9 +246,26 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
             .getList("instances", JsonRelationship.class);
 
     JsonObject relationship = assertFirstRelationship(r, relationships);
-    assertHasOnlyMembers(relationship, "relationship", "relationshipType", "from", "to");
+    assertHasOnlyMembers(
+        relationship, "relationship", "relationshipType", "createdAtClient", "from", "to");
     assertHasOnlyUid(from.getUid(), "event", relationship.getObject("from"));
     assertHasOnlyUid(to.getUid(), "trackedEntity", relationship.getObject("to"));
+  }
+
+  @Test
+  void getRelationshipsByEventWithAllFields() {
+    TrackedEntity to = trackedEntity();
+    Event from = event(enrollment(to));
+    Relationship r = relationship(from, to);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/relationships?event={uid}&fields=*", from.getUid())
+            .content(HttpStatus.OK)
+            .getList("instances", JsonRelationship.class);
+
+    JsonRelationship relationship = assertFirstRelationship(r, relationships);
+    assertEventWithinRelationshipItem(from, relationship.getFrom());
+    assertTrackedEntityWithinRelationshipItem(to, relationship.getTo());
   }
 
   @Test
@@ -309,7 +327,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   void getRelationshipsByEventWithNotes() {
     TrackedEntity to = trackedEntity();
     Event from = event(enrollment(to));
-    from.setComments(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
+    from.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     relationship(from, to);
 
     JsonList<JsonRelationship> relationships =
@@ -326,7 +344,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void getRelationshipsByEventNotFound() {
     assertStartsWith(
-        "event with id Hq3Kc6HK4OZ",
+        "Event with id Hq3Kc6HK4OZ",
         GET("/tracker/relationships?event=Hq3Kc6HK4OZ").error(HttpStatus.NOT_FOUND).getMessage());
   }
 
@@ -407,7 +425,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   void getRelationshipsByEnrollmentWithNotes() {
     TrackedEntity to = trackedEntity();
     Enrollment from = enrollment(to);
-    from.setComments(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
+    from.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     relationship(from, to);
 
     JsonList<JsonRelationship> relationships =
@@ -424,7 +442,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void getRelationshipsByEnrollmentNotFound() {
     assertStartsWith(
-        "enrollment with id Hq3Kc6HK4OZ",
+        "Enrollment with id Hq3Kc6HK4OZ",
         GET("/tracker/relationships?enrollment=Hq3Kc6HK4OZ")
             .error(HttpStatus.NOT_FOUND)
             .getMessage());
@@ -448,7 +466,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void getRelationshipsByTei() {
+  void getRelationshipsByTe() {
     TrackedEntity to = trackedEntity();
     Enrollment from = enrollment(to);
     Relationship r = relationship(from, to);
@@ -503,11 +521,11 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
         relationships.get(0).getFrom().getEnrollment().getAttributes();
     assertContainsAll(List.of(tea2.getUid()), enrollmentAttr, JsonAttribute::getAttribute);
     assertContainsAll(List.of("24"), enrollmentAttr, JsonAttribute::getValue);
-    JsonList<JsonAttribute> teiAttributes =
+    JsonList<JsonAttribute> teAttributes =
         relationships.get(0).getTo().getTrackedEntity().getAttributes();
     assertContainsAll(
-        List.of(tea.getUid(), tea2.getUid()), teiAttributes, JsonAttribute::getAttribute);
-    assertContainsAll(List.of("12", "24"), teiAttributes, JsonAttribute::getValue);
+        List.of(tea.getUid(), tea2.getUid()), teAttributes, JsonAttribute::getAttribute);
+    assertContainsAll(List.of("12", "24"), teAttributes, JsonAttribute::getValue);
   }
 
   @Test
@@ -532,7 +550,24 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void getRelationshipsByTrackedEntityRelationshipTeiToTei() {
+  void getRelationshipsByTrackedEntityRelationshipTeToTe() {
+    TrackedEntity from = trackedEntity();
+    TrackedEntity to = trackedEntity();
+    Relationship r = relationship(from, to);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/relationships?trackedEntity={tei}", from.getUid())
+            .content(HttpStatus.OK)
+            .getList("instances", JsonRelationship.class);
+
+    JsonObject relationship = assertFirstRelationship(r, relationships);
+    assertHasOnlyMembers(relationship, "relationship", "relationshipType", "from", "to");
+    assertHasOnlyUid(from.getUid(), "trackedEntity", relationship.getObject("from"));
+    assertHasOnlyUid(to.getUid(), "trackedEntity", relationship.getObject("to"));
+  }
+
+  @Test
+  void shouldRetrieveRelationshipWhenUserHasAccessToRelationship() {
     TrackedEntity from = trackedEntity();
     TrackedEntity to = trackedEntity();
     Relationship r = relationship(from, to);
@@ -560,7 +595,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void getRelationshipsByTrackedEntityRelationshipsNoAccessToRelationshipItemTo() {
+  void shouldRetrieveNoRelationshipsWhenUserHasNoAccessToRelationshipItemTo() {
     TrackedEntity from = trackedEntity();
     TrackedEntity to = trackedEntityNotInSearchScope();
     relationship(from, to);
@@ -571,43 +606,35 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void getRelationshipsByTrackedEntityRelationshipsNoAccessToBothRelationshipItems() {
-    TrackedEntity from = trackedEntityNotInSearchScope();
-    TrackedEntity to = trackedEntityNotInSearchScope();
-    relationship(from, to);
-    this.switchContextToUser(user);
-
-    assertNoRelationships(
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).content(HttpStatus.OK));
-  }
-
-  @Test
-  void getRelationshipsByTrackedEntityRelationshipsNoAccessToRelationshipItemFrom() {
+  void shouldReturnForbiddenWhenUserHasNoAccessToRelationshipItemFrom() {
     TrackedEntity from = trackedEntityNotInSearchScope();
     TrackedEntity to = trackedEntity();
     relationship(from, to);
     this.switchContextToUser(user);
 
-    assertNoRelationships(
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).content(HttpStatus.OK));
+    assertEquals(
+        HttpStatus.FORBIDDEN,
+        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).status());
   }
 
   @Test
-  void getRelationshipsByTrackedEntityRelationshipsNoAccessToTrackedEntityType() {
+  void
+      shouldReturnForbiddenWhenGetRelationshipsByTrackedEntityWithNotAccessibleTrackedEntityType() {
     TrackedEntityType type = trackedEntityTypeNotAccessible();
     TrackedEntity from = trackedEntity(type);
     TrackedEntity to = trackedEntity(type);
     relationship(from, to);
     this.switchContextToUser(user);
 
-    assertNoRelationships(
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).content(HttpStatus.OK));
+    assertEquals(
+        HttpStatus.FORBIDDEN,
+        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).status());
   }
 
   @Test
   void getRelationshipsByTrackedEntityNotFound() {
     assertStartsWith(
-        "trackedEntity with id Hq3Kc6HK4OZ",
+        "TrackedEntity with id Hq3Kc6HK4OZ",
         GET("/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ")
             .error(HttpStatus.NOT_FOUND)
             .getMessage());
@@ -634,47 +661,47 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   private TrackedEntity trackedEntity() {
-    TrackedEntity tei = trackedEntity(orgUnit);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(orgUnit);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntityNotInSearchScope() {
-    TrackedEntity tei = trackedEntity(anotherOrgUnit);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(anotherOrgUnit);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntity(TrackedEntityType trackedEntityType) {
-    TrackedEntity tei = trackedEntity(orgUnit, trackedEntityType);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(orgUnit, trackedEntityType);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntity(OrganisationUnit orgUnit) {
-    TrackedEntity tei = trackedEntity(orgUnit, trackedEntityType);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(orgUnit, trackedEntityType);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity tei = createTrackedEntity(orgUnit);
-    tei.setTrackedEntityType(trackedEntityType);
-    tei.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    tei.getSharing().setOwner(owner);
-    return tei;
+    TrackedEntity te = createTrackedEntity(orgUnit);
+    te.setTrackedEntityType(trackedEntityType);
+    te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    te.getSharing().setOwner(owner);
+    return te;
   }
 
-  private Enrollment enrollment(TrackedEntity tei) {
-    Enrollment enrollment = new Enrollment(program, tei, orgUnit);
+  private Enrollment enrollment(TrackedEntity te) {
+    Enrollment enrollment = new Enrollment(program, te, orgUnit);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setIncidentDate(new Date());
     enrollment.setStatus(ProgramStatus.COMPLETED);
     manager.save(enrollment, false);
-    tei.setEnrollments(Set.of(enrollment));
-    manager.save(tei, false);
+    te.setEnrollments(Set.of(enrollment));
+    manager.save(te, false);
     return enrollment;
   }
 
@@ -773,6 +800,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     r.setAutoFields();
     r.getSharing().setOwner(owner);
+    r.setCreatedAtClient(new Date());
     manager.save(r, false);
     return r;
   }
@@ -837,14 +865,14 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   private TrackedEntityAttributeValue attributeValue(
-      TrackedEntityAttribute tea, TrackedEntity tei, String value) {
-    return new TrackedEntityAttributeValue(tea, tei, value);
+      TrackedEntityAttribute tea, TrackedEntity te, String value) {
+    return new TrackedEntityAttributeValue(tea, te, value);
   }
 
-  private TrackedEntityComment note(String note, String value, String storedBy) {
-    TrackedEntityComment comment = new TrackedEntityComment(value, storedBy);
-    comment.setUid(note);
-    manager.save(comment, false);
-    return comment;
+  private Note note(String uid, String value, String storedBy) {
+    Note note = new Note(value, storedBy);
+    note.setUid(uid);
+    manager.save(note, false);
+    return note;
   }
 }

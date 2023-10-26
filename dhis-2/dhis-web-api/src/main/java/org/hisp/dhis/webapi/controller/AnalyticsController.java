@@ -346,6 +346,7 @@ public class AnalyticsController {
       HttpServletResponse response,
       boolean analyzeOnly) {
     DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria, apiVersion));
+    params.setDownloadFlag(!ContextUtils.CONTENT_TYPE_JSON.equals(contentType));
 
     if (isNotBlank(configurationProvider.getServerBaseUrl())) {
       params =
@@ -377,6 +378,7 @@ public class AnalyticsController {
       String file,
       HttpServletResponse response) {
     DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria, apiVersion));
+    params.setDownloadFlag(!ContextUtils.CONTENT_TYPE_JSON.equals(contentType));
 
     contextUtils.configureAnalyticsResponse(
         response,

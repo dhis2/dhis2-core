@@ -81,7 +81,7 @@ public enum SettingKey {
   EMAIL_SENDER("keyEmailSender", "", String.class),
   EMAIL_PASSWORD("keyEmailPassword", "", String.class, true, false),
   MIN_PASSWORD_LENGTH("minPasswordLength", 8, Integer.class),
-  MAX_PASSWORD_LENGTH("maxPasswordLength", 256, Integer.class),
+  MAX_PASSWORD_LENGTH("maxPasswordLength", 72, Integer.class),
   SMS_CONFIG("keySmsSetting", new SmsConfiguration(), SmsConfiguration.class),
   SMS_MAX_LENGTH("keySmsMaxLength", 1071, Integer.class),
   CACHE_STRATEGY("keyCacheStrategy", CacheStrategy.CACHE_1_MINUTE, CacheStrategy.class),
@@ -121,6 +121,8 @@ public enum SettingKey {
       "keyRespectMetaDataStartEndDatesInAnalyticsTableExport", Boolean.FALSE, Boolean.class),
   SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT(
       "keySkipDataTypeValidationInAnalyticsTableExport", Boolean.FALSE, Boolean.class),
+  PARALLEL_JOBS_IN_ANALYTICS_TABLE_EXPORT(
+      "keyParallelJobsInAnalyticsTableExport", -1, Integer.class),
   CUSTOM_LOGIN_PAGE_LOGO("keyCustomLoginPageLogo", Boolean.FALSE, Boolean.class),
   CUSTOM_TOP_MENU_LOGO("keyCustomTopMenuLogo", Boolean.FALSE, Boolean.class),
   DATABASE_SERVER_CPUS("keyDatabaseServerCpus", 0, Integer.class),
@@ -234,6 +236,32 @@ public enum SettingKey {
   RULE_ENGINE_ASSIGN_OVERWRITE("ruleEngineAssignOverwrite", Boolean.FALSE, Boolean.class),
 
   /**
+   * A job that has not been updating its "alive" timestamp for this number of minutes is reset to
+   * initial state of being scheduled by the heartbeat job. The run that was in progress is
+   * considered a failed run.
+   */
+  JOBS_RESCHEDULE_STALE_FOR_MINUTES("jobsRescheduleAfterMinutes", 10, Integer.class),
+
+  /**
+   * A job that only runs once (typical an import or manual request) is deleted after this number of
+   * minutes after it is finished by the heartbeat job.
+   */
+  JOBS_CLEANUP_AFTER_MINUTES("jobsCleanupAfterMinutes", 24 * 60, Integer.class),
+
+  /**
+   * The maximum number of hours a CRON based job may trigger on the same day after it has missed
+   * its intended time of the day to trigger. If time has passed past this point the execution for
+   * that day is skipped, and it will trigger on the intended time the day after.
+   */
+  JOBS_MAX_CRON_DELAY_HOURS("jobsMaxCronDelayHours", 4, Integer.class),
+
+  /**
+   * A job running with a smaller delay than the given value is logged on debug level instead of
+   * info to not spam the logs.
+   */
+  JOBS_LOG_DEBUG_BELOW_SECONDS("jobsLogDebugBelowSeconds", 180, Integer.class),
+
+  /**
    * Progressive caching factor for the analytics API. To enable, the {@link
    * #ANALYTICS_CACHE_TTL_MODE} must be set to PROGRESSIVE.
    */
@@ -244,8 +272,17 @@ public enum SettingKey {
   ANALYTICS_CACHE_TTL_MODE(
       "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class),
 
-  /** Max trackedentityinstance records that can be retrieved from database. */
-  TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class);
+  /** The offset of years used during period generation during the analytics export process. */
+  ANALYTICS_MAX_PERIOD_YEARS_OFFSET("keyAnalyticsPeriodYearsOffset", -1, Integer.class),
+
+  /**
+   * @deprecated use {@link #TRACKED_ENTITY_MAX_LIMIT} instead
+   */
+  @Deprecated(forRemoval = true, since = "2.41")
+  DEPRECATED_TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class),
+
+  /** Max tracked entity records that can be retrieved from database. */
+  TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityMaxLimit", 50000, Integer.class);
 
   private final String name;
 

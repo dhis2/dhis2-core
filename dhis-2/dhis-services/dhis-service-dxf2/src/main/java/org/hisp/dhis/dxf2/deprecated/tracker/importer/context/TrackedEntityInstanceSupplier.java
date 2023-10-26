@@ -67,14 +67,12 @@ public class TrackedEntityInstanceSupplier
     if (events == null) {
       return new HashMap<>();
     }
-    // @formatter:off
     // Collect all the org unit uids to pass as SQL query argument
     Set<String> teiUids =
         events.stream()
             .filter(e -> e.getTrackedEntityInstance() != null)
             .map(Event::getTrackedEntityInstance)
             .collect(Collectors.toSet());
-    // @formatter:on
 
     if (isEmpty(teiUids)) {
       return new HashMap<>();
@@ -115,8 +113,8 @@ public class TrackedEntityInstanceSupplier
   private Map<String, TrackedEntity> getTrackedEntityInstances(
       Set<String> teiUids, Multimap<String, String> teiToEvent) {
     final String sql =
-        "select tei.trackedentityinstanceid, tei.uid, tei.code "
-            + "from trackedentityinstance tei where tei.uid in (:ids)";
+        "select tei.trackedentityid, tei.uid, tei.code "
+            + "from trackedentity tei where tei.uid in (:ids)";
 
     MapSqlParameterSource parameters = new MapSqlParameterSource();
     parameters.addValue("ids", teiUids);
@@ -129,7 +127,7 @@ public class TrackedEntityInstanceSupplier
 
           while (rs.next()) {
             TrackedEntity tei = new TrackedEntity();
-            tei.setId(rs.getLong("trackedentityinstanceid"));
+            tei.setId(rs.getLong("trackedentityid"));
             tei.setUid(rs.getString("uid"));
             tei.setCode(rs.getString("code"));
             for (String event : teiToEvent.get(tei.getUid())) {

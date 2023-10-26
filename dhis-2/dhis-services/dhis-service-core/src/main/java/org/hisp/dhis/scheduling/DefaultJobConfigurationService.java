@@ -27,16 +27,21 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.hisp.dhis.scheduling.JobType.values;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
 import com.google.common.primitives.Primitives;
 import java.beans.PropertyDescriptor;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,60 +53,157 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.scheduling.JobType.Defaults;
 import org.hisp.dhis.schema.Property;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MimeType;
 
 /**
  * @author Henning Håkonsen
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service("jobConfigurationService")
+@Service
 public class DefaultJobConfigurationService implements JobConfigurationService {
-  @Qualifier("org.hisp.dhis.scheduling.JobConfigurationStore")
-  private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
+
+  private final JobConfigurationStore jobConfigurationStore;
+  private final FileResourceService fileResourceService;
+  private final SystemSettingManager systemSettings;
+
+  @Override
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public String create(JobConfiguration config) throws ConflictException {
+    config.setAutoFields();
+    jobConfigurationStore.save(config);
+    return config.getUid();
+  }
+
+  @Override
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public String create(JobConfiguration config, MimeType contentType, InputStream content)
+      throws ConflictException {
+    if (config.getSchedulingType() != SchedulingType.ONCE_ASAP)
+      throw new ConflictException(
+          "Job must be of type %s to allow content data".formatted(SchedulingType.ONCE_ASAP));
+    config.setAutoFields(); // ensure UID is set
+    saveJobData(config.getUid(), contentType, content);
+    jobConfigurationStore.save(config);
+    return config.getUid();
+  }
+
+  @SuppressWarnings("java:S4790")
+  private void saveJobData(String uid, MimeType contentType, InputStream content)
+      throws ConflictException {
+    try {
+      byte[] data = IOUtils.toByteArray(content);
+      FileResource fr =
+          new FileResource(
+              "job_input_data_for_" + uid,
+              contentType.toString(),
+              data.length,
+              ByteSource.wrap(data).hash(Hashing.md5()).toString(),
+              FileResourceDomain.JOB_DATA);
+      fr.setUid(uid);
+      fr.setAssigned(true);
+      fileResourceService.saveFileResource(fr, data);
+    } catch (IOException ex) {
+      throw new ConflictException("Failed to create job data file resource: " + ex.getMessage());
+    }
+  }
+
+  @Override
+  @Transactional
+  public int createDefaultJobs() {
+    int created = 0;
+    Set<String> jobIds = jobConfigurationStore.getAllIds();
+    for (JobType t : JobType.values()) {
+      if (t.getDefaults() != null && !jobIds.contains(t.getDefaults().uid())) {
+        createDefaultJob(t);
+        created++;
+      }
+    }
+    return created;
+  }
+
+  @Override
+  @Transactional
+  public void createHeartbeatJob() {
+    JobConfiguration config = jobConfigurationStore.getByUid(JobType.HEARTBEAT.getDefaults().uid());
+    if (config == null) {
+      createDefaultJob(JobType.HEARTBEAT);
+    } else if (config.getJobStatus() != JobStatus.SCHEDULED) {
+      config.setJobStatus(JobStatus.SCHEDULED);
+      jobConfigurationStore.update(config);
+    }
+  }
+
+  private void createDefaultJob(JobType type) {
+    Defaults job = type.getDefaults();
+    JobConfiguration config = new JobConfiguration(job.name(), type);
+    config.setCronExpression(job.cronExpression());
+    config.setDelay(job.delay());
+    config.setUid(job.uid());
+    config.setSchedulingType(
+        job.delay() != null ? SchedulingType.FIXED_DELAY : SchedulingType.CRON);
+    jobConfigurationStore.save(config);
+  }
+
+  @Override
+  @Transactional
+  public int updateDisabledJobs() {
+    return jobConfigurationStore.updateDisabledJobs();
+  }
+
+  @Override
+  @Transactional
+  public int deleteFinishedJobs(int ttlMinutes) {
+    if (ttlMinutes <= 0) {
+      ttlMinutes = systemSettings.getIntSetting(SettingKey.JOBS_CLEANUP_AFTER_MINUTES);
+    }
+    return jobConfigurationStore.deleteFinishedJobs(ttlMinutes);
+  }
+
+  @Override
+  @Transactional
+  public int rescheduleStaleJobs(int timeoutMinutes) {
+    if (timeoutMinutes <= 0) {
+      timeoutMinutes = systemSettings.getIntSetting(SettingKey.JOBS_RESCHEDULE_STALE_FOR_MINUTES);
+    }
+    return jobConfigurationStore.rescheduleStaleJobs(timeoutMinutes);
+  }
 
   @Override
   @Transactional
   public long addJobConfiguration(JobConfiguration jobConfiguration) {
-    if (!jobConfiguration.isInMemoryJob()) {
-      jobConfigurationStore.save(jobConfiguration);
-    }
-
+    jobConfigurationStore.save(jobConfiguration);
     return jobConfiguration.getId();
   }
 
   @Override
   @Transactional
-  public void addJobConfigurations(List<JobConfiguration> jobConfigurations) {
-    jobConfigurations.forEach(this::addJobConfiguration);
-  }
-
-  @Override
-  @Transactional
   public long updateJobConfiguration(JobConfiguration jobConfiguration) {
-    if (!jobConfiguration.isInMemoryJob()) {
-      jobConfigurationStore.update(jobConfiguration);
-    }
-
+    jobConfigurationStore.update(jobConfiguration);
     return jobConfiguration.getId();
   }
 
   @Override
   @Transactional
   public void deleteJobConfiguration(JobConfiguration jobConfiguration) {
-    if (!jobConfiguration.isInMemoryJob()) {
-      JobConfiguration existing = jobConfigurationStore.loadByUid(jobConfiguration.getUid());
-      jobConfigurationStore.delete(existing);
-    }
+    jobConfigurationStore.delete(jobConfigurationStore.loadByUid(jobConfiguration.getUid()));
   }
 
   @Override
@@ -125,9 +227,32 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Override
   @Transactional(readOnly = true)
   public List<JobConfiguration> getJobConfigurations(JobType type) {
-    return jobConfigurationStore.getAll().stream()
-        .filter(config -> config.getJobType() == type)
-        .collect(toUnmodifiableList());
+    return jobConfigurationStore.getJobConfigurations(type);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<JobConfiguration> getDueJobConfigurations(
+      int dueInNextSeconds, boolean includeWaiting) {
+    Instant now = Instant.now();
+    Instant endOfWindow = now.plusSeconds(dueInNextSeconds);
+    Duration maxCronDelay =
+        Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
+    Stream<JobConfiguration> dueJobs =
+        jobConfigurationStore
+            .getDueJobConfigurations(includeWaiting)
+            .filter(c -> c.isDueBetween(now, endOfWindow, maxCronDelay));
+    return dueJobs.toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<JobConfiguration> getStaleConfigurations(int staleForSeconds) {
+    if (staleForSeconds <= 0) {
+      staleForSeconds =
+          60 * systemSettings.getIntSetting(SettingKey.JOBS_RESCHEDULE_STALE_FOR_MINUTES);
+    }
+    return jobConfigurationStore.getStaleConfigurations(staleForSeconds);
   }
 
   @Override
@@ -136,7 +261,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     Map<String, Map<String, Property>> propertyMap = Maps.newHashMap();
 
     for (JobType jobType : values()) {
-      if (!jobType.isConfigurable()) {
+      if (!jobType.isUserDefined()) {
         continue;
       }
 
@@ -154,7 +279,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     List<JobTypeInfo> jobTypes = new ArrayList<>();
 
     for (JobType jobType : values()) {
-      if (!jobType.isConfigurable()) {
+      if (!jobType.isUserDefined()) {
         continue;
       }
 
@@ -168,18 +293,6 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     }
 
     return jobTypes;
-  }
-
-  @Override
-  @Transactional
-  public void refreshScheduling(JobConfiguration jobConfiguration) {
-    if (jobConfiguration.isEnabled()) {
-      jobConfiguration.setJobStatus(JobStatus.SCHEDULED);
-    } else {
-      jobConfiguration.setJobStatus(JobStatus.DISABLED);
-    }
-
-    jobConfigurationStore.update(jobConfiguration);
   }
 
   // -------------------------------------------------------------------------

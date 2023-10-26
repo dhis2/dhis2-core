@@ -16,7 +16,7 @@
         <property name="name" column="name" not-null="true" unique="false" length="230"/>
 
         <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
-                     column="programinstanceid" foreign-key="fk_programstagenotification_pi" not-null="false"/>
+                     column="enrollmentid" foreign-key="fk_programstagenotification_pi" not-null="false"/>
 
         <many-to-one name="event" class="org.hisp.dhis.program.Event"
                      column="eventid" foreign-key="fk_programstagenotification_psi" not-null="false"/>

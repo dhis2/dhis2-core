@@ -32,14 +32,10 @@ import static org.hisp.dhis.analytics.TimeField.ENROLLMENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.LAST_UPDATED;
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
-import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.OPEN_IN;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 
@@ -66,28 +62,21 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
   @Override
   protected String getAggregatedConditionForPeriods(EventQueryParams params) {
-    List<DimensionalItemObject> periods = params.getDimensionOrFilterItems(PERIOD_DIM_ID);
+    List<DimensionalItemObject> periods = params.getAllDimensionOrFilterItems(PERIOD_DIM_ID);
 
     Optional<TimeField> timeField = getTimeField(params);
     StringBuilder sql = new StringBuilder();
 
     if (timeField.isPresent() && !timeField.get().supportsRawPeriod()) {
-      sql.append(
-          periods.stream()
-              .filter(dimensionalItemObject -> dimensionalItemObject instanceof Period)
-              .map(dimensionalItemObject -> (Period) dimensionalItemObject)
-              .map(period -> toSqlCondition(period, timeField.get()))
-              .collect(Collectors.joining(" or ", "(", ")")));
-    } else {
-      String alias = getPeriodAlias(params);
-
-      sql.append(quote(alias, params.getPeriodType().toLowerCase()))
-          .append(OPEN_IN)
-          .append(getQuotedCommaDelimitedString(getUids(periods)))
-          .append(") ");
+      return sql.append(
+              periods.stream()
+                  .filter(this::isPeriod)
+                  .map(dimensionalItemObject -> (Period) dimensionalItemObject)
+                  .map(period -> toSqlCondition(period, timeField.get()))
+                  .collect(Collectors.joining(" or ", "(", ")")))
+          .toString();
     }
-
-    return sql.toString();
+    return sql.append(getSqlForAllPeriods(getPeriodAlias(params), periods)).toString();
   }
 
   @Override

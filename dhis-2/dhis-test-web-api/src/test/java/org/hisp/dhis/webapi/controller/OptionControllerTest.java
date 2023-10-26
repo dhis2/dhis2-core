@@ -45,8 +45,11 @@ class OptionControllerTest extends DhisControllerConvenienceTest {
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
-                + "\"options\":\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\"}]}")
+        .content(HttpStatus.OK);
+    POST(
+            "/metadata",
+            "{ \"options\":"
                 + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"sortOrder\": 1,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
                 + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 2,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
@@ -69,9 +72,38 @@ class OptionControllerTest extends DhisControllerConvenienceTest {
     response = GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
     assertEquals(2, response.getObject("options").size());
     assertEquals(1, response.getNumber("options[0].sortOrder").intValue());
-    // sortOrder 20 should be saved as 2.
     assertEquals("Uh4HvjK6zg3", response.getString("options[1].id").string());
-    assertEquals(2, response.getNumber("options[1].sortOrder").intValue());
+    assertEquals(20, response.getNumber("options[1].sortOrder").intValue());
+  }
+
+  @Test
+  void testImportOptionWithoutSortOrder() {
+    String id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/optionSets/",
+                "{'name': 'test', 'version': 2, 'valueType': 'TEXT', 'description':'desc' }"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/options/",
+            "{'optionSet': { 'id':'"
+                + id
+                + "'}, 'id':'Uh4HvjK6zg3', 'code': 'A', 'name': 'Anna', 'description': 'this-is-a'}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/options/",
+            "{'optionSet': { 'id':'"
+                + id
+                + "'},'id':'BQMei56UBl6','code': 'B', 'name': 'Betta', 'description': 'this-is-b'}"));
+    JsonOptionSet set =
+        GET("/optionSets/{id}?fields=options[id,sortOrder]", id).content().as(JsonOptionSet.class);
+    assertEquals("Uh4HvjK6zg3", set.getOptions().get(0).getId());
+    assertEquals(0, set.getOptions().get(0).getSortOrder());
+    assertEquals("BQMei56UBl6", set.getOptions().get(1).getId());
+    assertEquals(0, set.getOptions().get(1).getSortOrder());
   }
 
   @Test

@@ -37,13 +37,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
-import org.hisp.dhis.webapi.common.UID;
+import org.hisp.dhis.common.UID;
 import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(pattern = Pattern.INFO)
+@OpenApi.Shared(pattern = Pattern.TRACKER)
 @Data
 @Builder
 @NoArgsConstructor
@@ -70,8 +70,6 @@ public class Enrollment {
   @JsonProperty private EnrollmentStatus status;
 
   @JsonProperty private String orgUnit;
-
-  @JsonProperty private String orgUnitName;
 
   @JsonProperty private Instant enrolledAt;
 

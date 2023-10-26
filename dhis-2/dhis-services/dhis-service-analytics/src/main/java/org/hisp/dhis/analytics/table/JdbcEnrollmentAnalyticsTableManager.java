@@ -63,6 +63,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,7 +84,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       StatementBuilder statementBuilder,
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
-      JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsExportSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
     super(
@@ -210,9 +211,9 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     Program program = partition.getMasterTable().getProgram();
 
     String fromClause =
-        "from programinstance pi "
+        "from enrollment pi "
             + "inner join program pr on pi.programid=pr.programid "
-            + "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid "
+            + "left join trackedentity tei on pi.trackedentityid=tei.trackedentityid "
             + "and tei.deleted is false "
             + "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid "
             + "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid "

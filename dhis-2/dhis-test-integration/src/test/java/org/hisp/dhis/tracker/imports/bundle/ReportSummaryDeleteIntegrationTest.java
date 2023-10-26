@@ -37,10 +37,10 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -150,7 +150,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
         persistenceReport.getTypeReportMap().get(trackedEntityType).getStats().getCreated());
     assertEquals(
         expected,
-        persistenceReport.getTypeReportMap().get(trackedEntityType).getEntityReportMap().size());
+        persistenceReport.getTypeReportMap().get(trackedEntityType).getEntityReport().size());
   }
 
   private void assertDeletedObjects(
@@ -161,6 +161,6 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
         persistenceReport.getTypeReportMap().get(trackedEntityType).getStats().getDeleted());
     assertEquals(
         expected,
-        persistenceReport.getTypeReportMap().get(trackedEntityType).getEntityReportMap().size());
+        persistenceReport.getTypeReportMap().get(trackedEntityType).getEntityReport().size());
   }
 }

@@ -117,8 +117,6 @@ class PredictionDataConsolidatorTest extends DhisConvenienceTest {
 
   private OrganisationUnit orgUnitG;
 
-  private Set<OrganisationUnit> currentUserOrgUnits;
-
   private List<OrganisationUnit> levelOneOrgUnits;
 
   private DataValue dataValueX;
@@ -264,8 +262,6 @@ class PredictionDataConsolidatorTest extends DhisConvenienceTest {
     orgUnitE.setPath("/orgUnitBBBB/orgUnitEEEE");
     orgUnitF.setPath("/orgUnitCCCC/orgUnitFFFF");
     orgUnitG.setPath("/orgUnitDDDD/orgUnitGGGG");
-
-    currentUserOrgUnits = Sets.newHashSet(orgUnitA, orgUnitB, orgUnitC, orgUnitD);
 
     levelOneOrgUnits = Lists.newArrayList(orgUnitA, orgUnitB, orgUnitC, orgUnitD);
 

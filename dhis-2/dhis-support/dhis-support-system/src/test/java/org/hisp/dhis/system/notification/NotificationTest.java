@@ -30,6 +30,8 @@ package org.hisp.dhis.system.notification;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
@@ -51,6 +53,25 @@ class NotificationTest {
     Notification c = createNotificationWithTime(new Date(now.getTime() + 1000L));
 
     assertEquals(List.of(c, a, b), Stream.of(a, b, c).sorted().collect(toList()));
+  }
+
+  @Test
+  void testCompletedNotificationsAreSortedAsLatestWhenSameTime() {
+    Date now = new Date();
+
+    Notification a = createNotificationWithTime(now);
+    a.setMessage("message should be sorted 2nd");
+    Notification b = createNotificationWithTime(now);
+    b.setMessage("message should be sorted 1st");
+    b.setCompleted(true);
+    Notification c = createNotificationWithTime(new Date(now.getTime() - 1000L));
+    c.setMessage("message should be sorted 3rd");
+
+    List<Notification> notifications = new ArrayList<>(List.of(c, a, b));
+    Collections.sort(notifications);
+
+    Notification firstNotification = notifications.get(0);
+    assertEquals("message should be sorted 1st", firstNotification.getMessage());
   }
 
   private Notification createNotificationWithTime(Date now) {

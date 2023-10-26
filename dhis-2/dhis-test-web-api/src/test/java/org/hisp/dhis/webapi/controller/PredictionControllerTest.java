@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -39,7 +41,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class PredictionControllerTest extends DhisControllerConvenienceTest {
+class PredictionControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testRunPredictors() {
@@ -61,12 +63,9 @@ class PredictionControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testRunPredictors_Async() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Initiated inMemoryPrediction",
-        POST("/predictions?startDate=2020-01-01&endDate=2021-01-01&async=true")
-            .content(HttpStatus.OK));
+    JsonWebMessage msg =
+        assertWebMessage(
+            HttpStatus.OK, POST("/predictions?startDate=2020-01-01&endDate=2021-01-01&async=true"));
+    assertStartsWith("Initiated PREDICTOR", msg.getMessage());
   }
 }

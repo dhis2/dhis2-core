@@ -36,6 +36,8 @@ import java.util.List;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.web.HttpMethod;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.web.HttpStatus.Series;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -49,6 +51,14 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
  */
 public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest implements WebClient {
 
+  public static JsonWebMessage assertWebMessage(HttpStatus expected, HttpResponse response) {
+    JsonWebMessage actual = response.content(expected).as(JsonWebMessage.class);
+    String expectedStatus = expected.series() == Series.SUCCESSFUL ? "OK" : "ERROR";
+    assertWebMessageRequiredFields(
+        expected.reasonPhrase(), expected.code(), expectedStatus, actual);
+    return actual;
+  }
+
   public static JsonWebMessage assertWebMessage(
       String httpStatus, int httpStatusCode, String status, String message, JsonMixed actual) {
     return assertWebMessage(
@@ -57,14 +67,19 @@ public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest impl
 
   public static JsonWebMessage assertWebMessage(
       String httpStatus, int httpStatusCode, String status, String message, JsonWebMessage actual) {
+    assertWebMessageRequiredFields(httpStatus, httpStatusCode, status, actual);
+    assertEquals(message, actual.getMessage(), "unexpected message");
+    return actual;
+  }
+
+  private static void assertWebMessageRequiredFields(
+      String httpStatus, int httpStatusCode, String status, JsonWebMessage actual) {
     assertTrue(
         actual.has("httpStatusCode", "httpStatus", "status"),
-        "response appears to be something other than a WebMessage: " + actual.toString());
+        "response appears to be something other than a WebMessage: " + actual);
     assertEquals(httpStatusCode, actual.getHttpStatusCode(), "unexpected HTTP status code");
     assertEquals(httpStatus, actual.getHttpStatus(), "unexpected HTTP status");
     assertEquals(status, actual.getStatus(), "unexpected status");
-    assertEquals(message, actual.getMessage(), "unexpected message");
-    return actual;
   }
 
   public static ResponseAdapter toResponse(MockHttpServletResponse response) {

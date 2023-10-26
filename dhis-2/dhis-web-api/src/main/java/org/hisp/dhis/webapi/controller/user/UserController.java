@@ -71,6 +71,7 @@ import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -484,6 +485,7 @@ public class UserController extends AbstractCrudController<User> {
     userReplica.setUid(CodeGenerator.generateUid());
     userReplica.setCode(null);
     userReplica.setCreated(new Date());
+    userReplica.setCreatedBy(currentUser);
     userReplica.setLdapId(null);
     userReplica.setOpenId(null);
     userReplica.setUsername(username);
@@ -631,9 +633,9 @@ public class UserController extends AbstractCrudController<User> {
         importService.getParamsFromMap(contextService.getParameterValuesMap());
     params.setImportReportMode(ImportReportMode.FULL);
     params.setImportStrategy(ImportStrategy.UPDATE);
-    params.addObject(inputUser);
 
-    ImportReport importReport = importService.importMetadata(params);
+    ImportReport importReport =
+        importService.importMetadata(params, new MetadataObjects().addObject(inputUser));
 
     if (importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1) {
       updateUserGroups(userUid, inputUser, currentUser);
@@ -740,10 +742,10 @@ public class UserController extends AbstractCrudController<User> {
     MetadataImportParams importParams =
         new MetadataImportParams()
             .setImportReportMode(ImportReportMode.FULL)
-            .setImportStrategy(ImportStrategy.CREATE)
-            .addObject(user);
+            .setImportStrategy(ImportStrategy.CREATE);
 
-    ImportReport importReport = importService.importMetadata(importParams);
+    ImportReport importReport =
+        importService.importMetadata(importParams, new MetadataObjects().addObject(user));
 
     if (importReport.getStatus() == Status.OK && importReport.getStats().getCreated() == 1) {
       userGroupService.addUserToGroups(user, getUids(user.getGroups()), currentUser);

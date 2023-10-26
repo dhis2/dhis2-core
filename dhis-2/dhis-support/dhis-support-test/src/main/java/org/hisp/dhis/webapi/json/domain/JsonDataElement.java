@@ -31,7 +31,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElementDomain;
 
 /**
- * Web API equivalent of a {@link org.hisp.dhis.dataelement}.
+ * Web API equivalent of a {@link org.hisp.dhis.dataelement.DataElement}.
  *
  * @author Jan Bernitt
  * @author Jason P. Pickering

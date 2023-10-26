@@ -70,6 +70,7 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,7 +90,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
       StatementBuilder statementBuilder,
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
-      JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
       AnalyticsExportSettings settings,
       PeriodDataProvider periodDataProvider) {
@@ -238,10 +239,8 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
     }
 
     removeLastComma(sql)
-        .append(" from programinstance pi")
-        .append(
-            " inner join trackedentityinstance tei "
-                + "on pi.trackedentityinstanceid = tei.trackedentityinstanceid")
+        .append(" from enrollment pi")
+        .append(" inner join trackedentity tei " + "on pi.trackedentityid = tei.trackedentityid")
         .append(" and tei.deleted is false ")
         .append(
             " and tei.trackedentitytypeid = "
@@ -253,7 +252,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
             " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
         .append(
             " where exists ( select 1 from event psi where psi.deleted is false"
-                + " and psi.programinstanceid = pi.programinstanceid"
+                + " and psi.enrollmentid = pi.enrollmentid"
                 + " and psi.status in ("
                 + join(",", EXPORTABLE_EVENT_STATUSES)
                 + "))")

@@ -137,6 +137,10 @@ abstract class EventAnalyticsTest {
     return _createRequestParams();
   }
 
+  protected EventQueryParams.Builder createRequestParamsBuilder() {
+    return new EventQueryParams.Builder(_createRequestParams());
+  }
+
   protected EventQueryParams createRequestParams(ValueType queryItemValueType) {
     return createRequestParams(null, queryItemValueType);
   }
@@ -155,7 +159,7 @@ abstract class EventAnalyticsTest {
     OrganisationUnit ouA = createOrganisationUnit('A');
     ouA.setPath("/" + ouA.getUid());
     EventQueryParams.Builder params = new EventQueryParams.Builder();
-    params.withPeriods(getList(createPeriod("2000Q1")), "monthly");
+    params.withPeriods(getList(createPeriod("2000Q1")), "quarterly");
     params.withOrganisationUnits(getList(ouA));
     params.withTableName(getTableName() + "_" + programA.getUid());
     params.withProgram(programA);
@@ -169,7 +173,7 @@ abstract class EventAnalyticsTest {
     OrganisationUnit ouA = createOrganisationUnit('A');
     ouA.setPath("/" + ouA.getUid());
     EventQueryParams.Builder params = new EventQueryParams.Builder();
-    params.withPeriods(getList(createPeriod("2000Q1")), "monthly");
+    params.withPeriods(getList(createPeriod("2000Q1")), "quarterly");
     params.withOrganisationUnits(getList(ouA));
     params.withTableName(getTableName() + "_" + programA.getUid());
     params.withProgram(programA);
@@ -179,11 +183,23 @@ abstract class EventAnalyticsTest {
     return params.build();
   }
 
+  protected EventQueryParams createRequestParamsWithMultipleQueries() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    ouA.setPath("/" + ouA.getUid());
+    EventQueryParams.Builder params = new EventQueryParams.Builder();
+    params.withPeriods(getList(createPeriod("2000Q1")), "quarterly");
+    params.withOrganisationUnits(getList(ouA));
+    params.withTableName(getTableName() + "_" + programA.getUid());
+    params.withProgram(programA);
+    params.withMultipleQueries(true);
+    return params.build();
+  }
+
   protected EventQueryParams createRequestParamsWithTimeField(String timeField) {
     OrganisationUnit ouA = createOrganisationUnit('A');
     ouA.setPath("/" + ouA.getUid());
     EventQueryParams.Builder params = new EventQueryParams.Builder();
-    params.withPeriods(getList(createPeriod("2000Q1")), "monthly");
+    params.withPeriods(getList(createPeriod("2000Q1")), "quarterly");
     params.withOrganisationUnits(getList(ouA));
     params.withTableName(getTableName() + "_" + programA.getUid());
     params.withProgram(programA);
@@ -225,9 +241,37 @@ abstract class EventAnalyticsTest {
     when(rowSet.next()).thenReturn(false);
   }
 
+  void mockGivenRowsRowSet(int rows) {
+    GivenRowsRowSet fiftyRowsRowSet = new GivenRowsRowSet(rows);
+    when(rowSet.next())
+        .thenAnswer(
+            invocationOnMock -> {
+              fiftyRowsRowSet.increaseRow();
+              return !fiftyRowsRowSet.isLastRow();
+            });
+  }
+
   String getTable(String uid) {
     return getTableName() + "_" + uid;
   }
 
   abstract String getTableName();
+
+  private static class GivenRowsRowSet {
+
+    private final int rows;
+    private int count = 0;
+
+    public GivenRowsRowSet(int rows) {
+      this.rows = rows;
+    }
+
+    void increaseRow() {
+      count++;
+    }
+
+    boolean isLastRow() {
+      return count > rows;
+    }
+  }
 }

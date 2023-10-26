@@ -47,8 +47,8 @@ public class ProgramAttributeQuery {
 
   public static final Map<COLUMNS, TableColumn> columnMap =
       ImmutableMap.<COLUMNS, TableColumn>builder()
-          .put(COLUMNS.PI_UID, new TableColumn("pi", "uid", "pi_uid"))
-          .put(COLUMNS.PI_ID, new TableColumn("pi", "programinstanceid", "id"))
+          .put(COLUMNS.PI_UID, new TableColumn("en", "uid", "pi_uid"))
+          .put(COLUMNS.PI_ID, new TableColumn("en", "enrollmentid", "id"))
           .put(COLUMNS.CREATED, new TableColumn("teav", "created"))
           .put(COLUMNS.UPDATED, new TableColumn("teav", "lastupdated"))
           .put(COLUMNS.STOREDBY, new TableColumn("teav", "storedby"))
@@ -65,9 +65,9 @@ public class ProgramAttributeQuery {
         + "from trackedentityattributevalue teav "
         + "join program_attributes pa on teav.trackedentityattributeid  = pa.trackedentityattributeid "
         + "join trackedentityattribute t on t.trackedentityattributeid = pa.trackedentityattributeid "
-        + "join trackedentityinstance tei on tei.trackedentityinstanceid = teav.trackedentityinstanceid "
-        + "join programinstance pi on pi.programid = pa.programid and pi.trackedentityinstanceid = tei.trackedentityinstanceid "
-        + "where pi.programinstanceid IN (:ids)";
+        + "join trackedentity te on te.trackedentityid = teav.trackedentityid "
+        + "join enrollment en on en.programid = pa.programid and en.trackedentityid = te.trackedentityid "
+        + "where en.enrollmentid IN (:ids)";
   }
 
   private static String getSelect() {

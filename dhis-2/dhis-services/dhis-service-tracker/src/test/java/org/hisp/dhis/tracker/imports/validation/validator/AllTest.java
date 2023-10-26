@@ -39,9 +39,9 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
@@ -66,7 +66,6 @@ class AllTest {
 
   @Test
   void testAllAreCalled() {
-    // @formatter:off
     Validator<String> validator =
         all(
             (r, b, s) -> addError(r, "V1"),
@@ -85,7 +84,6 @@ class AllTest {
   void testAllDoesNotCallValidatorIfItShouldNotRunOnGivenStrategy() {
     bundle = TrackerBundle.builder().importStrategy(UPDATE).build();
 
-    // @formatter:off
     Validator<String> validator =
         all(
             (r, b, s) -> addError(r, "V1"),
@@ -114,7 +112,6 @@ class AllTest {
             .resolvedStrategyMap(new EnumMap<>(Map.of(TrackerType.EVENT, Map.of("event1", UPDATE))))
             .build();
 
-    // @formatter:off
     Validator<Event> validator =
         all(
             new Validator<>() {

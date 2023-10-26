@@ -82,6 +82,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,7 +108,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
       StatementBuilder statementBuilder,
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
-      JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
       AnalyticsExportSettings settings,
@@ -137,7 +138,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> GROUP_BY_COLS =
       List.of(
           new AnalyticsTableColumn(
-              quote("trackedentityinstanceid"), INTEGER, NOT_NULL, "tei.trackedentityinstanceid"),
+              quote("trackedentityid"), INTEGER, NOT_NULL, "tei.trackedentityid"),
           new AnalyticsTableColumn(
               quote("trackedentityinstanceuid"), CHARACTER_11, NOT_NULL, "tei.uid"),
           new AnalyticsTableColumn(quote("created"), TIMESTAMP, "tei.created"),
@@ -265,8 +266,8 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                     new AnalyticsTableColumn(
                         quote(program.getUid()),
                         BOOLEAN,
-                        " exists(select 1 from programinstance pi_0"
-                            + " where pi_0.trackedentityinstanceid = tei.trackedentityinstanceid"
+                        " exists(select 1 from enrollment pi_0"
+                            + " where pi_0.trackedentityid = tei.trackedentityid"
                             + " and pi_0.programid = "
                             + program.getId()
                             + ")")));
@@ -374,7 +375,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     TrackedEntityType trackedEntityType = partition.getMasterTable().getTrackedEntityType();
 
     removeLastComma(sql)
-        .append(" from trackedentityinstance tei")
+        .append(" from trackedentity tei")
         .append(" left join organisationunit ou on tei.organisationunitid = ou.organisationunitid")
         .append(
             " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid");
@@ -389,7 +390,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                         + "\""
                         + " on \""
                         + tea.getUid()
-                        + "\".trackedentityinstanceid = tei.trackedentityinstanceid"
+                        + "\".trackedentityid = tei.trackedentityid"
                         + " and \""
                         + tea.getUid()
                         + "\".trackedentityattributeid = "
@@ -398,10 +399,10 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(" where tei.trackedentitytypeid = " + trackedEntityType.getId())
         .append(" and tei.lastupdated < '" + getLongDateString(params.getStartTime()) + "'")
         .append(
-            " and exists ( select 1 from programinstance pi"
-                + " where pi.trackedentityinstanceid = tei.trackedentityinstanceid"
+            " and exists ( select 1 from enrollment pi"
+                + " where pi.trackedentityid = tei.trackedentityid"
                 + " and exists ( select 1 from event psi"
-                + " where psi.programinstanceid = pi.programinstanceid"
+                + " where psi.enrollmentid = pi.enrollmentid"
                 + " and psi.status in ("
                 + join(",", EXPORTABLE_EVENT_STATUSES)
                 + ")"

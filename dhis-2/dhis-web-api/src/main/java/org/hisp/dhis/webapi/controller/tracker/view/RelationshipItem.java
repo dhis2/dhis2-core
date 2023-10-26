@@ -39,14 +39,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.webapi.common.UID;
 import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(pattern = Pattern.INFO)
+@OpenApi.Shared(pattern = Pattern.TRACKER)
 @Data
 @Builder
 @NoArgsConstructor
@@ -59,7 +59,7 @@ public class RelationshipItem {
   @OpenApi.Shared(value = false)
   public static class TrackedEntity {
     @JsonProperty
-    @OpenApi.Property({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class})
+    @OpenApi.Property({UID.class, TrackedEntity.class})
     private String trackedEntity;
 
     @JsonProperty private String trackedEntityType;
@@ -121,8 +121,6 @@ public class RelationshipItem {
 
     @JsonProperty private String orgUnit;
 
-    @JsonProperty private String orgUnitName;
-
     @JsonProperty private Instant enrolledAt;
 
     @JsonProperty private Instant occurredAt;
@@ -170,15 +168,17 @@ public class RelationshipItem {
 
     @JsonProperty private String orgUnit;
 
-    @JsonProperty private String orgUnitName;
-
     @JsonProperty private Instant occurredAt;
 
     @JsonProperty private Instant scheduledAt;
 
     @JsonProperty private String storedBy;
 
-    @JsonProperty private boolean followup;
+    @JsonProperty private boolean followUp;
+
+    @Deprecated(since = "2.41", forRemoval = true)
+    @JsonProperty("followup")
+    private boolean legacyFollowUp;
 
     @JsonProperty private boolean deleted;
 

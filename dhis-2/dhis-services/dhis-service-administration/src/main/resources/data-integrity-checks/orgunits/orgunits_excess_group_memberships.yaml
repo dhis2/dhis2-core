@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: zKs07PBTuXM
 name: orgunit_group_sets_excess_groups
 description: Organisation units which belong to multiple groups in a group set.
 section: Organisation units
@@ -53,7 +52,6 @@ summary_sql: >-
   NULLIF((SELECT COUNT(*) from ougs_multiple_groups),0)) as percent
   from ougs_multiple_groups
   WHERE array_length(ougs_groups, 1) > 1;
-details_uid: dmCuiWwo4KL
 details_sql: >-
   WITH ougs_multiple_groups as (
   SELECT ou_uid,ou_name,ougs_name,

@@ -59,4 +59,7 @@ public interface Config extends org.aeonbits.owner.Config {
 
   @Key("test.track_called_endpoints")
   Boolean shouldTrackEndpoints();
+
+  @Key("selenium.url")
+  String seleniumUrl();
 }

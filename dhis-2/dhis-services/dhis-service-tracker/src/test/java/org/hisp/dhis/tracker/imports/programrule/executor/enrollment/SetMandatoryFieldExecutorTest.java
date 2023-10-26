@@ -70,7 +70,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
 
   private static final String ATTRIBUTE_CODE = "AttributeCode";
 
-  private static final String TEI_ID = "TeiId";
+  private static final String TE_ID = "TeiId";
 
   private static final String ATTRIBUTE_VALUE = "23.0";
 
@@ -163,7 +163,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   private Enrollment getEnrollmentWithMandatoryAttributeSet(TrackerIdSchemeParams idSchemes) {
     return Enrollment.builder()
         .enrollment(ACTIVE_ENROLLMENT_ID)
-        .trackedEntity(TEI_ID)
+        .trackedEntity(TE_ID)
         .status(EnrollmentStatus.ACTIVE)
         .attributes(getAttributes(idSchemes))
         .build();
@@ -172,7 +172,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   private Enrollment getEnrollmentWithMandatoryAttributeSet() {
     return Enrollment.builder()
         .enrollment(ACTIVE_ENROLLMENT_ID)
-        .trackedEntity(TEI_ID)
+        .trackedEntity(TE_ID)
         .status(EnrollmentStatus.ACTIVE)
         .attributes(getAttributes())
         .build();
@@ -181,7 +181,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   private Enrollment getEnrollmentWithMandatoryAttributeNOTSet() {
     return Enrollment.builder()
         .enrollment(COMPLETED_ENROLLMENT_ID)
-        .trackedEntity(TEI_ID)
+        .trackedEntity(TE_ID)
         .status(EnrollmentStatus.COMPLETED)
         .build();
   }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -37,19 +38,19 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 @Getter
 @Builder(toBuilder = true)
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class EnrollmentOperationParams {
-  public static final int DEFAULT_PAGE = 1;
-
-  public static final int DEFAULT_PAGE_SIZE = 50;
-
   static final EnrollmentOperationParams EMPTY = EnrollmentOperationParams.builder().build();
 
   @Builder.Default private final EnrollmentParams enrollmentParams = EnrollmentParams.FALSE;
+
+  /** Set of te uids to explicitly select. */
+  @Builder.Default private final Set<String> enrollmentUids = new HashSet<>();
 
   /** Last updated for enrollment. */
   private final Date lastUpdated;
@@ -87,36 +88,26 @@ public class EnrollmentOperationParams {
   /** Tracked entity. */
   private final String trackedEntityUid;
 
-  /** Page number. */
-  private final Integer page;
-
-  /** Page size. */
-  private final Integer pageSize;
-
-  /** Indicates whether to include the total number of pages in the paging response. */
-  private final boolean totalPages;
-
-  /** Indicates whether paging should be skipped. */
-  private final boolean skipPaging;
-
   /** Indicates whether to include soft-deleted enrollments */
   private final boolean includeDeleted;
 
-  /** List of order params */
-  private final List<OrderParam> order;
+  private final List<Order> order;
 
-  /** Indicates whether paging is enabled. */
-  public boolean isPaging() {
-    return page != null || pageSize != null;
-  }
+  public static class EnrollmentOperationParamsBuilder {
 
-  /** Returns the page number, falls back to default value of 1 if not specified. */
-  public int getPageWithDefault() {
-    return page != null && page > 0 ? page : DEFAULT_PAGE;
-  }
+    private List<Order> order = new ArrayList<>();
 
-  /** Returns the page size, falls back to default value of 50 if not specified. */
-  public int getPageSizeWithDefault() {
-    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
+    // Do not remove this unused method. This hides the order field from the builder which Lombok
+    // does not support. The repeated order field and private order method prevent access to order
+    // via the builder.
+    // Order should be added via the orderBy builder methods.
+    private EnrollmentOperationParamsBuilder order(List<Order> order) {
+      return this;
+    }
+
+    public EnrollmentOperationParamsBuilder orderBy(String field, SortDirection direction) {
+      this.order.add(new Order(field, direction));
+      return this;
+    }
   }
 }

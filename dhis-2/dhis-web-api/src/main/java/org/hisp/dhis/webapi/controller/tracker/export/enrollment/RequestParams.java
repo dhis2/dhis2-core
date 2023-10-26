@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -35,14 +36,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.webapi.common.UID;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 
@@ -51,8 +53,15 @@ import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-class RequestParams extends PagingAndSortingCriteriaAdapter {
+class RequestParams implements PageRequestParams {
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
+
+  private Integer page;
+  private Integer pageSize;
+  private Boolean totalPages;
+  private Boolean skipPaging;
+
+  private List<OrderCriteria> order = new ArrayList<>();
 
   /**
    * Semicolon-delimited list of organisation unit UIDs.
@@ -66,7 +75,13 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
   @OpenApi.Property({UID[].class, OrganisationUnit.class})
   private Set<UID> orgUnits = new HashSet<>();
 
+  /**
+   * @deprecated use {@link #orgUnitMode} instead.
+   */
+  @Deprecated(since = "2.41")
   private OrganisationUnitSelectionMode ouMode;
+
+  private OrganisationUnitSelectionMode orgUnitMode;
 
   @OpenApi.Property({UID.class, Program.class})
   private UID program;

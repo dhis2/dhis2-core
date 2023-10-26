@@ -27,10 +27,45 @@
  */
 package org.hisp.dhis.webapi.controller.tracker;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class ControllerSupport {
   private ControllerSupport() {
     throw new IllegalStateException("Utility class");
   }
 
   public static final String RESOURCE_PATH = "/tracker";
+
+  /**
+   * Ensures that {@code fieldsAdvocatedByWeb} advocated by {@link
+   * org.hisp.dhis.webapi.controller.tracker.export} as orderable are in fact orderable by the
+   * service. Web is responsible for mapping from the language users use (our API) to our internal
+   * representation used in our services. This is to prevent web and service (store) from getting
+   * out of sync.
+   */
+  public static void assertUserOrderableFieldsAreSupported(
+      String entityName,
+      Map<String, String> fieldsAdvocatedByWeb,
+      Set<String> fieldsSupportedByService) {
+    Set<String> unsupportedFields = new HashSet<>(fieldsAdvocatedByWeb.values());
+    unsupportedFields.removeAll(fieldsSupportedByService);
+    if (!unsupportedFields.isEmpty()) {
+      Set<String> unsupportedFieldNames =
+          fieldsAdvocatedByWeb.entrySet().stream()
+              .filter(e -> unsupportedFields.contains(e.getValue()))
+              .map(Entry::getKey)
+              .collect(Collectors.toSet());
+      throw new IllegalStateException(
+          entityName
+              + " controller supports ordering by "
+              + String.join(", ", unsupportedFieldNames)
+              + " while "
+              + entityName
+              + " service does not.");
+    }
+  }
 }

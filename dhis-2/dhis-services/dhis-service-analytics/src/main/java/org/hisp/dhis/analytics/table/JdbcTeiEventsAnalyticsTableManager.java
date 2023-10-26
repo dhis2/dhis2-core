@@ -49,6 +49,8 @@ import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
+import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.springframework.util.Assert.notNull;
@@ -79,6 +81,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -100,7 +103,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
       StatementBuilder statementBuilder,
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
-      JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
       AnalyticsExportSettings settings,
       PeriodDataProvider periodDataProvider) {
@@ -207,12 +210,11 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                 " (select distinct extract(year from "
                     + getDateLinkedToStatus()
                     + ") as supportedyear ")
-            .append(" from trackedentityinstance tei ")
+            .append(" from trackedentity tei ")
             .append(
                 " inner join trackedentitytype tet on tet.trackedentitytypeid = tei.trackedentitytypeid ")
-            .append(
-                " inner join programinstance pi on pi.trackedentityinstanceid = tei.trackedentityinstanceid ")
-            .append(" inner join event psi on psi.programinstanceid = pi.programinstanceid")
+            .append(" inner join enrollment pi on pi.trackedentityid = tei.trackedentityid ")
+            .append(" inner join event psi on psi.enrollmentid = pi.enrollmentid")
             .append(" where psi.lastupdated <= '" + getLongDateString(params.getStartTime()) + "' ")
             .append(" and tet.trackedentitytypeid = " + tet.getId() + " ")
             .append(AND + getDateLinkedToStatus() + ") is not null ")
@@ -229,7 +231,9 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
               + "'");
     }
 
-    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+    List<Integer> availableDataYears =
+        periodDataProvider.getAvailableYears(
+            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
@@ -333,10 +337,10 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     removeLastComma(sql)
         .append(" from event psi")
         .append(
-            " inner join programinstance pi on pi.programinstanceid = psi.programinstanceid"
+            " inner join enrollment pi on pi.enrollmentid = psi.enrollmentid"
                 + " and pi.deleted is false")
         .append(
-            " inner join trackedentityinstance tei on tei.trackedentityinstanceid = pi.trackedentityinstanceid"
+            " inner join trackedentity tei on tei.trackedentityid = pi.trackedentityid"
                 + " and tei.deleted is false"
                 + " and tei.trackedentitytypeid = "
                 + partition.getMasterTable().getTrackedEntityType().getId()

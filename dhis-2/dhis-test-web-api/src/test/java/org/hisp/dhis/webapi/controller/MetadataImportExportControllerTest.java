@@ -44,11 +44,13 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.webapi.json.domain.JsonProgram;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,19 +81,6 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testPostJsonMetadata_Async() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Initiated metadataImport",
-        POST(
-                "/metadata?async=true",
-                "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}]}")
-            .content(HttpStatus.OK));
-  }
-
-  @Test
   void testPostJsonMetadata_Pre38() {
     JsonObject report =
         POST(
@@ -113,20 +102,6 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testPostCsvMetadata_Async() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Initiated metadataImport",
-        POST(
-                "/metadata?async=true&classKey=ORGANISATION_UNIT",
-                Body(","),
-                ContentType("application/csv"))
-            .content(HttpStatus.OK));
-  }
-
-  @Test
   void testPostCsvMetadata_Pre38() {
     JsonObject report =
         POST("/37/metadata?classKey=ORGANISATION_UNIT", Body(","), ContentType("application/csv"))
@@ -142,20 +117,6 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
         "OK",
         null,
         POST("/38/metadata/gml", Body("<metadata></metadata>"), ContentType("application/xml"))
-            .content(HttpStatus.OK));
-  }
-
-  @Test
-  void testPostGmlMetadata_Async() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Initiated metadataImport",
-        POST(
-                "/metadata/gml?async=true",
-                Body("<metadata></metadata>"),
-                ContentType("application/xml"))
             .content(HttpStatus.OK));
   }
 
@@ -201,6 +162,40 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     assertEquals(
         "VoZMWi7rBgf",
         GET("/programs/{id}", "VoZMWi7rBgj").content().getString("programStages[0].id").string());
+  }
+
+  @Test
+  void testGetWithIeqFilter() {
+    POST(
+            "/metadata/",
+            "{'programs':[{'name':'Test Program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION', 'version':'5'}]}")
+        .content(HttpStatus.OK);
+
+    assertEquals(
+        "Test Program",
+        GET("/metadata?programs=true&filter=name:ieq:test program")
+            .content()
+            .getList("programs", JsonProgram.class)
+            .get(0)
+            .getName());
+  }
+
+  @Test
+  void testGetWithIeqFilterNonString() {
+    POST(
+            "/metadata/",
+            "{'programs':[{'name':'Test Program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION', 'version':'5'}]}")
+        .content(HttpStatus.OK);
+
+    JsonWebMessage response =
+        GET("/metadata?programs=true&filter=version:ieq:5")
+            .content(HttpStatus.Series.CLIENT_ERROR)
+            .as(JsonWebMessage.class);
+
+    assertEquals(
+        "Value `5` of type `Integer` is not supported by this operator.", response.getMessage());
+    assertEquals(409, response.getHttpStatusCode());
+    assertEquals("Conflict", response.getHttpStatus());
   }
 
   @Test
@@ -251,16 +246,18 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
             "{\"optionSets\":\n"
                 + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
                 + "\"options\":\n"
-                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"sortOrder\": 2,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
-                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 3,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"sortOrder\": 5,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
     JsonObject response =
         GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
 
     assertEquals(2, response.getObject("options").size());
-    assertNotNull(response.get("options[0].sortOrder"));
-    assertNotNull(response.get("options[1].sortOrder"));
+    assertEquals(0, response.getNumber("options[0].sortOrder").intValue());
+    assertEquals(1, response.getNumber("options[1].sortOrder").intValue());
+    assertEquals("Uh4HvjK6zg3", response.getString("options[0].id").string());
+    assertEquals("BQMei56UBl6", response.getString("options[1].id").string());
   }
 
   /** Import OptionSet with two Options, one has sortOrder and the other doesn't */
@@ -289,7 +286,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"BQMei56UBl6\"},{\"id\": \"Uh4HvjK6zg3\"}]}],\n"
                 + "\"options\":\n"
                 + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
                 + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
@@ -299,8 +296,24 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
         GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
 
     assertEquals(2, response.getObject("options").size());
-    assertNotNull(response.get("options[0].sortOrder"));
+    assertEquals(0, response.getNumber("options[0].sortOrder").intValue());
+    assertEquals("BQMei56UBl6", response.getString("options[0].id").string());
     assertNotNull(response.get("options[1].sortOrder"));
+    assertEquals("Uh4HvjK6zg3", response.getString("options[1].id").string());
+    assertEquals(1, response.getNumber("options[1].sortOrder").intValue());
+
+    POST(
+            "/metadata",
+            "{\"optionSets\":\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+                + "\"options\":\n"
+                + "    [{\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+        .content(HttpStatus.OK);
+
+    response = GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
+    assertEquals("Uh4HvjK6zg3", response.getString("options[0].id").string());
+    assertEquals("BQMei56UBl6", response.getString("options[1].id").string());
   }
 
   /** Import OptionSet with two Options, both have same sortOrder */
@@ -356,5 +369,62 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonObject> categories = response.getList("categories", JsonObject.class);
     assertNotNull(categories);
     assertFalse(categories.stream().anyMatch(JsonValue::isNull));
+  }
+
+  @Test
+  void testImportDashboardWithInvalidLayout_UpdateFlow() {
+    JsonImportSummary createReport =
+        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_valid_layout.json"))
+            .content(HttpStatus.OK)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals("OK", createReport.getStatus());
+    assertEquals(1, createReport.getStats().getCreated());
+    assertEquals(0, createReport.getStats().getIgnored());
+    assertEquals(0, createReport.getStats().getUpdated());
+    assertEquals(1, createReport.getStats().getTotal());
+
+    JsonImportSummary updateReport =
+        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_invalid_layout.json"))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals("ERROR", updateReport.getStatus());
+    assertEquals(0, updateReport.getStats().getCreated());
+    assertEquals(2, updateReport.getStats().getIgnored());
+    assertEquals(0, updateReport.getStats().getUpdated());
+    assertEquals(2, updateReport.getStats().getTotal());
+  }
+
+  @Test
+  void testImportDashboardWithValidLayout_CreateFlow() {
+    JsonImportSummary report =
+        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_valid_layout.json"))
+            .content(HttpStatus.OK)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals("OK", report.getStatus());
+    assertEquals(1, report.getStats().getCreated());
+    assertEquals(0, report.getStats().getIgnored());
+    assertEquals(0, report.getStats().getUpdated());
+    assertEquals(1, report.getStats().getTotal());
+  }
+
+  @Test
+  void testImportDashboardWithInvalidLayout_CreateFlow() {
+    JsonImportSummary report =
+        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_invalid_layout.json"))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(0, report.getStats().getCreated());
+    assertEquals(2, report.getStats().getIgnored());
+    assertEquals(0, report.getStats().getUpdated());
+    assertEquals(2, report.getStats().getTotal());
   }
 }

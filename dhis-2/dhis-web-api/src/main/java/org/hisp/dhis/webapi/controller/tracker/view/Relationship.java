@@ -35,13 +35,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.webapi.common.UID;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(pattern = Pattern.INFO)
+@OpenApi.Shared(pattern = Pattern.TRACKER)
 @Data
 @Builder
 @NoArgsConstructor
@@ -58,6 +58,8 @@ public class Relationship {
   private String relationshipType;
 
   @JsonProperty private Instant createdAt;
+
+  @JsonProperty private Instant createdAtClient;
 
   @JsonProperty private Instant updatedAt;
 

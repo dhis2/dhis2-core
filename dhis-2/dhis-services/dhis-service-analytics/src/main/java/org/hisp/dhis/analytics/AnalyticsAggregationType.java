@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics;
 
 import com.google.common.base.MoreObjects;
 import java.util.Objects;
-import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.util.ObjectUtils;
 
 /**
@@ -82,8 +81,8 @@ public class AnalyticsAggregationType {
       AggregationType aggregationType, AggregationType periodAggregationType) {
     this.aggregationType = aggregationType;
     this.periodAggregationType = periodAggregationType;
-    Validate.notNull(this.aggregationType);
-    Validate.notNull(this.periodAggregationType);
+    Objects.requireNonNull(this.aggregationType);
+    Objects.requireNonNull(this.periodAggregationType);
   }
 
   /**

@@ -62,17 +62,12 @@ public class PeriodHelper {
   }
 
   public static String getRelativePeriodDate(Period relativePeriod) {
-    switch (relativePeriod) {
-      case LAST_YEAR:
-        return now().plusYears(1).format(BASIC_ISO_DATE);
-      case LAST_5_YEARS:
-        return now().plusYears(5).format(BASIC_ISO_DATE);
-      case LAST_12_MONTHS:
-        return now().plusMonths(12).format(BASIC_ISO_DATE);
-      case LAST_6_MONTHS:
-        return now().plusMonths(6).format(BASIC_ISO_DATE);
-      default:
-        return EMPTY;
-    }
+    return switch (relativePeriod) {
+      case LAST_YEAR -> now().plusYears(1).format(BASIC_ISO_DATE);
+      case LAST_5_YEARS -> now().plusYears(5).format(BASIC_ISO_DATE);
+      case LAST_12_MONTHS -> now().plusMonths(12).format(BASIC_ISO_DATE);
+      case LAST_6_MONTHS -> now().plusMonths(6).format(BASIC_ISO_DATE);
+      default -> EMPTY;
+    };
   }
 }

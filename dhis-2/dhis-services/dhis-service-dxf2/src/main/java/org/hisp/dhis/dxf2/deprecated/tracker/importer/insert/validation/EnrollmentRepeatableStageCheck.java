@@ -63,7 +63,6 @@ public class EnrollmentRepeatableStageCheck implements Checker {
      * Enrollment should never be null. If it's null, the EnrollmentCheck
      * should report this anomaly.
      */
-    // @formatter:off
     if (enrollment != null
         && tei != null
         && program.isRegistration()
@@ -78,31 +77,25 @@ public class EnrollmentRepeatableStageCheck implements Checker {
           .setReference(event.getEvent())
           .incrementIgnored();
     }
-    // @formatter:on
 
     return success();
   }
 
   private boolean hasProgramStageInstance(
-      JdbcTemplate jdbcTemplate,
-      long programInstanceId,
-      long programStageId,
-      long trackedEntityInstanceId) {
-    // @formatter:off
+      JdbcTemplate jdbcTemplate, long enrollmentid, long programStageId, long trackedentityId) {
     final String sql =
         "select exists( "
             + "select * "
             + "from event psi "
-            + "  join programinstance pi on psi.programinstanceid = pi.programinstanceid "
-            + "where pi.programinstanceid = ? "
+            + "  join enrollment pi on psi.enrollmentid = pi.enrollmentid "
+            + "where pi.enrollmentid = ? "
             + "  and psi.programstageid = ? "
             + "  and psi.deleted = false "
-            + "  and pi.trackedentityinstanceid = ? "
+            + "  and pi.trackedentityid = ? "
             + "  and psi.status != 'SKIPPED'"
             + ")";
-    // @formatter:on
 
     return jdbcTemplate.queryForObject(
-        sql, Boolean.class, programInstanceId, programStageId, trackedEntityInstanceId);
+        sql, Boolean.class, enrollmentid, programStageId, trackedentityId);
   }
 }

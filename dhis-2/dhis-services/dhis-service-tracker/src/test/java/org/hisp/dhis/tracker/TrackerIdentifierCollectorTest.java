@@ -53,7 +53,6 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerIdentifierCollector;
@@ -176,7 +175,7 @@ class TrackerIdentifierCollectorTest {
     assertContainsOnly(Set.of("VohJnvWfvyo", "qv9xOw8fBzy"), ids.get(DataElement.class));
     assertContainsOnly(Set.of("rgb"), ids.get(CategoryOptionCombo.class));
     assertContainsOnly(Set.of("red", "green", "blue"), ids.get(CategoryOption.class));
-    assertContainsOnly(Set.of("i1vviSlidJE"), ids.get(TrackedEntityComment.class));
+    assertContainsOnly(Set.of("i1vviSlidJE"), ids.get(org.hisp.dhis.note.Note.class));
   }
 
   @Test
@@ -189,7 +188,7 @@ class TrackerIdentifierCollectorTest {
     Map<Class<?>, Set<String>> ids = collector.collect(params);
 
     assertNotNull(ids);
-    assertNull(ids.get(TrackedEntityComment.class));
+    assertNull(ids.get(org.hisp.dhis.note.Note.class));
   }
 
   @Test
@@ -203,7 +202,7 @@ class TrackerIdentifierCollectorTest {
     Map<Class<?>, Set<String>> ids = collector.collect(params);
 
     assertNotNull(ids);
-    assertNull(ids.get(TrackedEntityComment.class));
+    assertNull(ids.get(org.hisp.dhis.note.Note.class));
   }
 
   @Test

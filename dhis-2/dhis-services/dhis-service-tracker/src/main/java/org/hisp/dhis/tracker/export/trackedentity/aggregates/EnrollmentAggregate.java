@@ -39,11 +39,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -62,7 +62,7 @@ public class EnrollmentAggregate implements Aggregate {
   private final EventAggregate eventAggregate;
 
   /**
-   * Key: tei uid , value Enrollment
+   * Key: te uid , value Enrollment
    *
    * @param ids a List of {@see TrackedEntity} Primary Keys
    * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a List of {@see
@@ -91,12 +91,12 @@ public class EnrollmentAggregate implements Aggregate {
             () -> enrollmentStore.getRelationships(enrollmentIds, ctx),
             getPool());
 
-    final CompletableFuture<Multimap<String, TrackedEntityComment>> notesAsync =
+    final CompletableFuture<Multimap<String, Note>> notesAsync =
         asyncFetch(() -> enrollmentStore.getNotes(enrollmentIds), getPool());
 
     final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync =
         conditionalAsyncFetch(
-            ctx.getParams().getTeiEnrollmentParams().isIncludeAttributes(),
+            ctx.getParams().getTeEnrollmentParams().isIncludeAttributes(),
             () -> enrollmentStore.getAttributes(enrollmentIds, ctx),
             getPool());
 
@@ -104,26 +104,26 @@ public class EnrollmentAggregate implements Aggregate {
         .thenApplyAsync(
             fn -> {
               Multimap<String, Event> events = eventAsync.join();
-              Multimap<String, TrackedEntityComment> notes = notesAsync.join();
+              Multimap<String, Note> notes = notesAsync.join();
               Multimap<String, RelationshipItem> relationships = relationshipAsync.join();
               Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
 
               for (Enrollment enrollment : enrollments.values()) {
-                if (ctx.getParams().getTeiEnrollmentParams().isIncludeEvents()) {
+                if (ctx.getParams().getTeEnrollmentParams().isIncludeEvents()) {
                   enrollment.setEvents(new HashSet<>(events.get(enrollment.getUid())));
                 }
-                if (ctx.getParams().getTeiEnrollmentParams().isIncludeRelationships()) {
+                if (ctx.getParams().getTeEnrollmentParams().isIncludeRelationships()) {
                   enrollment.setRelationshipItems(
                       new HashSet<>(relationships.get(enrollment.getUid())));
                 }
-                if (ctx.getParams().getTeiEnrollmentParams().isIncludeAttributes()) {
+                if (ctx.getParams().getTeEnrollmentParams().isIncludeAttributes()) {
                   enrollment
                       .getTrackedEntity()
                       .setTrackedEntityAttributeValues(
                           new LinkedHashSet<>(attributes.get(enrollment.getUid())));
                 }
 
-                enrollment.setComments(new ArrayList<>(notes.get(enrollment.getUid())));
+                enrollment.setNotes(new ArrayList<>(notes.get(enrollment.getUid())));
               }
 
               return enrollments;

@@ -29,7 +29,6 @@
   description: Non-numeric data elements which have an aggregation operator other than NONE.
   section: Data elements (aggregate)
   section_order: 8
-  summary_uid: kaVLxU71NCX
   summary_sql: >-
     with des_aggregation_op as (
     SELECT uid,name,valuetype,aggregationtype from dataelement
@@ -48,7 +47,6 @@
     SELECT COUNT(*) as value,
     100*COUNT(*) / NULLIF( ( SELECT COUNT(*) from dataelement), 0 ) as percent
     from des_aggregation_op;
-  details_uid: BYmPyQUj12q
   details_sql: >-
     SELECT uid,name,valuetype || ' (' || aggregationtype || ')' as comment
     FROM dataelement

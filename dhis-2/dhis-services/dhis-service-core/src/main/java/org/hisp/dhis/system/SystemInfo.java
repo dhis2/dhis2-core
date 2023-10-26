@@ -158,6 +158,11 @@ public class SystemInfo {
   // Logic
   // -------------------------------------------------------------------------
 
+  /**
+   * Clears sensitive system info properties.
+   *
+   * <p>Note that {@code systemId} must be present for {@link MonitoringService} to function.
+   */
   public void clearSensitiveInfo() {
     this.jasperReportsVersion = null;
     this.environmentVariable = null;
@@ -178,7 +183,6 @@ public class SystemInfo {
     this.encryption = false;
     this.redisEnabled = false;
     this.redisHostname = null;
-    this.systemId = null;
     this.clusterHostname = null;
 
     if (this.databaseInfo != null) {

@@ -42,6 +42,7 @@ import org.hisp.dhis.analytics.SortOrder;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 public class Sorting implements Serializable {
+  /** A dimension can have the format "uid", "uid.uid1", "uid.uid1.uid2" or "uid[-2].uid1". */
   @EqualsAndHashCode.Include
   @JsonProperty(required = true)
   @JacksonXmlProperty(namespace = DXF_2_0)

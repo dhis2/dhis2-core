@@ -42,7 +42,7 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonGenerator;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonSchema;
@@ -57,7 +57,8 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-class SchemaBasedControllerTest extends DhisControllerConvenienceTest {
+class SchemaBasedControllerTest extends DhisControllerIntegrationTest {
+
   private static final Set<String> IGNORED_SCHEMAS =
       Set.of(
           "externalFileResource", // can't POST files

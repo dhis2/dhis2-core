@@ -197,7 +197,7 @@ class CategoryOptionComboServiceTest extends TransactionalIntegrationTest {
     categoryComboA.setOptionCombos(
         Sets.newHashSet(categoryOptionComboA, categoryOptionComboB, categoryOptionComboC));
     categoryService.updateCategoryCombo(categoryComboA);
-    categoryA.setCategoryCombos(Lists.newArrayList(categoryComboA));
+    categoryA.setCategoryCombos(Sets.newHashSet(categoryComboA));
     categoryService.updateCategory(categoryA);
     assertNotNull(categoryService.getCategoryOptionCombo(idA));
     assertNotNull(categoryService.getCategoryOptionCombo(idB));
@@ -233,7 +233,7 @@ class CategoryOptionComboServiceTest extends TransactionalIntegrationTest {
     categoryComboA.setOptionCombos(
         Sets.newHashSet(categoryOptionComboA, categoryOptionComboB, categoryOptionComboC));
     categoryService.updateCategoryCombo(categoryComboA);
-    categoryA.setCategoryCombos(Lists.newArrayList(categoryComboA));
+    categoryA.setCategoryCombos(Sets.newHashSet(categoryComboA));
     categoryService.updateCategory(categoryA);
     assertNotNull(categoryService.getCategoryOptionCombo(idA));
     assertNotNull(categoryService.getCategoryOptionCombo(idB));
@@ -260,7 +260,7 @@ class CategoryOptionComboServiceTest extends TransactionalIntegrationTest {
     categoryComboA.setOptionCombos(
         Sets.newHashSet(categoryOptionComboA, categoryOptionComboB, categoryOptionComboC));
     categoryService.updateCategoryCombo(categoryComboA);
-    categoryA.setCategoryCombos(Lists.newArrayList(categoryComboA));
+    categoryA.setCategoryCombos(Sets.newHashSet(categoryComboA));
     categoryService.updateCategory(categoryA);
     assertNotNull(categoryService.getCategoryOptionCombo(idA));
     assertNotNull(categoryService.getCategoryOptionCombo(idB));

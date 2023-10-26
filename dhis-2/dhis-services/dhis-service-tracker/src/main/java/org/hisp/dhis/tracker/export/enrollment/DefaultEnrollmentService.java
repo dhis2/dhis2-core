@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -40,33 +38,39 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentQueryParams;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.hibernate.HibernateEnrollmentStore;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
-public class DefaultEnrollmentService
+class DefaultEnrollmentService
     implements org.hisp.dhis.tracker.export.enrollment.EnrollmentService {
-  private final EnrollmentService enrollmentService;
+  private final EnrollmentStore enrollmentStore;
+
+  private final AclService aclService;
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
@@ -81,7 +85,7 @@ public class DefaultEnrollmentService
   @Override
   public Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    Enrollment enrollment = enrollmentService.getEnrollment(uid);
+    Enrollment enrollment = enrollmentStore.getByUid(uid);
 
     if (enrollment == null) {
       throw new NotFoundException(Enrollment.class, uid);
@@ -101,6 +105,7 @@ public class DefaultEnrollmentService
     }
 
     Enrollment result = new Enrollment();
+    result.setId(enrollment.getId());
     result.setUid(enrollment.getUid());
 
     if (enrollment.getTrackedEntity() != null) {
@@ -125,7 +130,7 @@ public class DefaultEnrollmentService
     result.setCreatedByUserInfo(enrollment.getCreatedByUserInfo());
     result.setLastUpdatedByUserInfo(enrollment.getLastUpdatedByUserInfo());
     result.setDeleted(enrollment.isDeleted());
-    result.setComments(enrollment.getComments());
+    result.setNotes(enrollment.getNotes());
     if (params.isIncludeEvents()) {
       result.setEvents(getEvents(user, enrollment, includeDeleted));
     }
@@ -186,62 +191,141 @@ public class DefaultEnrollmentService
   }
 
   @Override
-  public Enrollments getEnrollments(EnrollmentOperationParams params)
-      throws ForbiddenException, BadRequestException {
-    Enrollments enrollments = new Enrollments();
-
+  public List<Enrollment> getEnrollments(EnrollmentOperationParams params)
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
-    List<Enrollment> enrollmentList =
-        new ArrayList<>(enrollmentService.getEnrollments(queryParams));
-    if (!params.isSkipPaging()) {
-      Pager pager;
+    decideAccess(queryParams);
+    validate(queryParams);
 
-      if (params.isTotalPages()) {
-        int count = enrollmentService.countEnrollments(queryParams);
-        pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
-      } else {
-        pager = handleLastPageFlag(queryParams, enrollmentList);
+    User user = currentUserService.getCurrentUser();
+
+    if (user != null
+        && queryParams.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
+      queryParams.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
+      queryParams.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    } else if (queryParams.isOrganisationUnitMode(CHILDREN)) {
+      Set<OrganisationUnit> organisationUnits = new HashSet<>(queryParams.getOrganisationUnits());
+
+      for (OrganisationUnit organisationUnit : queryParams.getOrganisationUnits()) {
+        organisationUnits.addAll(organisationUnit.getChildren());
       }
 
-      enrollments.setPager(pager);
+      queryParams.setOrganisationUnits(organisationUnits);
     }
 
-    enrollments.setEnrollments(
-        getEnrollments(enrollmentList, params.getEnrollmentParams(), params.isIncludeDeleted()));
-
-    return enrollments;
+    return getEnrollments(
+        new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
+        params.getEnrollmentParams(),
+        params.isIncludeDeleted());
   }
 
-  /**
-   * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link
-   * HibernateEnrollmentStore#getEnrollments(EnrollmentQueryParams)}
-   *
-   * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
-   * allow us to evaluate if we are in the last page or not. And this is what his method does,
-   * returning the respective Pager object.
-   *
-   * @param params the request params
-   * @param enrollments the reference to the list of Enrollment
-   * @return the populated SlimPager instance
-   */
-  private Pager handleLastPageFlag(EnrollmentQueryParams params, List<Enrollment> enrollments) {
-    Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
-    Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
-    boolean isLastPage = false;
+  @Override
+  public Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
-    if (isNotEmpty(enrollments)) {
-      isLastPage = enrollments.size() <= originalPageSize;
-      if (!isLastPage) {
-        // Get the same number of elements of the pageSize, forcing
-        // the removal of the last additional element added at querying
-        // time.
-        enrollments.retainAll(enrollments.subList(0, originalPageSize));
+    decideAccess(queryParams);
+    validate(queryParams);
+
+    User user = currentUserService.getCurrentUser();
+
+    if (user != null
+        && queryParams.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
+      queryParams.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
+      queryParams.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    } else if (queryParams.isOrganisationUnitMode(CHILDREN)) {
+      Set<OrganisationUnit> organisationUnits = new HashSet<>(queryParams.getOrganisationUnits());
+
+      for (OrganisationUnit organisationUnit : queryParams.getOrganisationUnits()) {
+        organisationUnits.addAll(organisationUnit.getChildren());
+      }
+
+      queryParams.setOrganisationUnits(organisationUnits);
+    }
+
+    Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
+    List<Enrollment> enrollments =
+        getEnrollments(
+            enrollmentsPage.getItems(), params.getEnrollmentParams(), params.isIncludeDeleted());
+
+    return Page.of(enrollments, enrollmentsPage.getPager());
+  }
+
+  public void decideAccess(EnrollmentQueryParams params) {
+    if (params.hasProgram()) {
+      if (!aclService.canDataRead(params.getUser(), params.getProgram())) {
+        throw new IllegalQueryException(
+            "Current user is not authorized to read data from selected program:  "
+                + params.getProgram().getUid());
+      }
+
+      if (params.getProgram().getTrackedEntityType() != null
+          && !aclService.canDataRead(
+              params.getUser(), params.getProgram().getTrackedEntityType())) {
+        throw new IllegalQueryException(
+            "Current user is not authorized to read data from selected program's tracked entity type:  "
+                + params.getProgram().getTrackedEntityType().getUid());
       }
     }
 
-    return new SlimPager(originalPage, originalPageSize, isLastPage);
+    if (params.hasTrackedEntityType()
+        && !aclService.canDataRead(params.getUser(), params.getTrackedEntityType())) {
+      throw new IllegalQueryException(
+          "Current user is not authorized to read data from selected tracked entity type:  "
+              + params.getTrackedEntityType().getUid());
+    }
+  }
+
+  public void validate(EnrollmentQueryParams params) throws IllegalQueryException {
+    String violation = null;
+
+    if (params == null) {
+      throw new IllegalQueryException("Params cannot be null");
+    }
+
+    User user = params.getUser();
+
+    if (params.isOrganisationUnitMode(ACCESSIBLE)
+        && (user == null || !user.hasDataViewOrganisationUnitWithFallback())) {
+      violation =
+          "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
+    }
+
+    if (params.hasProgram() && params.hasTrackedEntityType()) {
+      violation = "Program and tracked entity cannot be specified simultaneously";
+    }
+
+    if (params.hasProgramStatus() && !params.hasProgram()) {
+      violation = "Program must be defined when program status is defined";
+    }
+
+    if (params.hasFollowUp() && !params.hasProgram()) {
+      violation = "Program must be defined when follow up status is defined";
+    }
+
+    if (params.hasProgramStartDate() && !params.hasProgram()) {
+      violation = "Program must be defined when program start date is specified";
+    }
+
+    if (params.hasProgramEndDate() && !params.hasProgram()) {
+      violation = "Program must be defined when program end date is specified";
+    }
+
+    if (params.hasLastUpdated() && params.hasLastUpdatedDuration()) {
+      violation = "Last updated and last updated duration cannot be specified simultaneously";
+    }
+
+    if (params.hasLastUpdatedDuration()
+        && DateUtils.getDuration(params.getLastUpdatedDuration()) == null) {
+      violation = "Duration is not valid: " + params.getLastUpdatedDuration();
+    }
+
+    if (violation != null) {
+      log.warn("Validation failed: " + violation);
+
+      throw new IllegalQueryException(violation);
+    }
   }
 
   private List<Enrollment> getEnrollments(
@@ -259,5 +343,10 @@ public class DefaultEnrollmentService
     }
 
     return enrollmentList;
+  }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return enrollmentStore.getOrderableFields();
   }
 }

@@ -44,12 +44,7 @@ public class EventActions extends RestApiActions {
     super("/events");
   }
 
-  /**
-   * Hard deletes event.
-   *
-   * @param eventId
-   * @return
-   */
+  /** Hard deletes event. */
   @Override
   public ApiResponse delete(String eventId) {
     ApiResponse response = super.delete(eventId);

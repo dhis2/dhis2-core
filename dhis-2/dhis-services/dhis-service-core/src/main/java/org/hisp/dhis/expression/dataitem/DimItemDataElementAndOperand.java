@@ -28,13 +28,20 @@
 package org.hisp.dhis.expression.dataitem;
 
 import static org.apache.commons.lang3.ObjectUtils.anyNotNull;
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
+import static org.hisp.dhis.analytics.DataType.fromValueType;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
+import static org.hisp.dhis.parser.expression.ParserUtils.castSql;
+import static org.hisp.dhis.parser.expression.ParserUtils.replaceSqlNull;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 import static org.hisp.dhis.subexpression.SubexpressionDimensionItem.getItemColumnName;
 
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 /**
@@ -70,7 +77,13 @@ public class DimItemDataElementAndOperand extends DimensionalItem {
     String cocUid = (ctx.uid1 == null) ? null : ctx.uid1.getText();
     String aocUid = (ctx.uid2 == null) ? null : ctx.uid2.getText();
 
-    return getItemColumnName(deUid, cocUid, aocUid, visitor.getState().getQueryMods());
+    String column = getItemColumnName(deUid, cocUid, aocUid, visitor.getState().getQueryMods());
+
+    if (visitor.getState().isReplaceNulls()) {
+      column = replaceDataElementNulls(column, deUid, visitor);
+    }
+
+    return column;
   }
 
   // -------------------------------------------------------------------------
@@ -91,5 +104,35 @@ public class DimItemDataElementAndOperand extends DimensionalItem {
     }
 
     return anyNotNull(ctx.uid1, ctx.uid2);
+  }
+
+  /**
+   * Replaces null data element values with the appropriate replacement value within a subexpression
+   * evaluation. This is always done unless the value is within a function that tests for null, such
+   * as isNull() or isNotNull().
+   *
+   * <p>Note that boolean data elements are always aggregated as numeric in a subexpression, so if
+   * they are in a context where boolean is desired (such as the first argument of an if function),
+   * then cast them as boolean and use a boolean replacement value. Otherwise, boolean values are
+   * numeric.
+   */
+  private String replaceDataElementNulls(
+      String column, String deUid, CommonExpressionVisitor visitor) {
+    DataElement dataElement = visitor.getIdObjectManager().get(DataElement.class, deUid);
+    if (dataElement == null) {
+      throw new ParserExceptionWithoutContext(
+          "Data element " + deUid + " not found during SQL generation.");
+    }
+
+    DataType dataType = fromValueType(dataElement.getValueType());
+    if (dataType == BOOLEAN) {
+      if (visitor.getParams().getDataType() == BOOLEAN) {
+        column = castSql(column, BOOLEAN);
+      } else {
+        dataType = NUMERIC;
+      }
+    }
+
+    return replaceSqlNull(column, dataType);
   }
 }

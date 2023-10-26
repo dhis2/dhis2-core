@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
+
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
@@ -69,23 +73,29 @@ public class ProgramNotificationInstanceController {
     this.eventService = eventService;
   }
 
-  // -------------------------------------------------------------------------
-  // GET
-  // -------------------------------------------------------------------------
-
   @PreAuthorize("hasRole('ALL')")
   @GetMapping(produces = {"application/json"})
   public @ResponseBody PagingWrapper<ProgramNotificationInstance> getScheduledMessage(
-      @RequestParam(required = false) String programInstance,
-      @RequestParam(required = false) String programStageInstance,
+      @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
+      @RequestParam(required = false) UID enrollment,
+      @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
+      @RequestParam(required = false) UID event,
       @RequestParam(required = false) Date scheduledAt,
       @RequestParam(required = false) boolean skipPaging,
       @RequestParam(required = false, defaultValue = "0") int page,
-      @RequestParam(required = false, defaultValue = "50") int pageSize) {
+      @RequestParam(required = false, defaultValue = "50") int pageSize)
+      throws BadRequestException {
+    UID enrollmentUid =
+        validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
+    UID eventUid =
+        validateDeprecatedParameter("programStageInstance", programStageInstance, "event", event);
+
     ProgramNotificationInstanceParam params =
         ProgramNotificationInstanceParam.builder()
-            .enrollment(enrollmentService.getEnrollment(programInstance))
-            .event(eventService.getEvent(programStageInstance))
+            .enrollment(
+                enrollmentService.getEnrollment(
+                    enrollmentUid == null ? null : enrollmentUid.getValue()))
+            .event(eventService.getEvent(eventUid == null ? null : eventUid.getValue()))
             .skipPaging(skipPaging)
             .page(page)
             .pageSize(pageSize)

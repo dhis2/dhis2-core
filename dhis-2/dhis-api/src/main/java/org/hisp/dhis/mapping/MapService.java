@@ -34,5 +34,7 @@ public enum MapService {
   WMS,
   TMS,
   XYZ,
-  VECTOR_STYLE
+  VECTOR_STYLE,
+  GEOJSON_URL,
+  ARCGIS_FEATURE
 }

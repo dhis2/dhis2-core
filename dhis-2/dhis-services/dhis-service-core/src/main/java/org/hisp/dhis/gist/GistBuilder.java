@@ -53,6 +53,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
@@ -679,7 +680,9 @@ final class GistBuilder {
     addTransformer(
         row ->
             row[index] =
-                Stream.of((String[]) row[index]).map(JsonNode::of).toArray(JsonNode[]::new));
+                row[index] == null
+                    ? null
+                    : Stream.of((String[]) row[index]).map(JsonNode::of).toArray(JsonNode[]::new));
 
     return String.format(
         "(select array_agg(json_build_object(%2$s)) from %3$s %1$s where %1$s in elements(e.%4$s) and %5$s)",
@@ -813,13 +816,13 @@ final class GistBuilder {
     Map<Integer, List<Filter>> grouped =
         filters.stream().collect(groupingBy(Filter::getGroup, toList()));
     StringBuilder hql = new StringBuilder();
-    for (List<Filter> group : grouped.values()) {
-      if (!group.isEmpty()) {
+    for (Entry<Integer, List<Filter>> group : grouped.entrySet()) {
+      if (!group.getValue().isEmpty()) {
         hql.append('(');
-        for (Filter f : group) {
+        for (Filter f : group.getValue()) {
           int index = filters.indexOf(f);
           hql.append(createFilterHQL(index, f));
-          hql.append(groupJunction);
+          hql.append(group.getKey() >= 0 ? groupJunction : rootJunction);
         }
         hql.append("1=1");
         hql.append(')');

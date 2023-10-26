@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.report;
 
-import static org.hisp.dhis.tracker.imports.TrackerType.TRACKED_ENTITY;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.imports.report.TimingsStats.COMMIT_OPS;
 import static org.hisp.dhis.tracker.imports.report.TimingsStats.PREHEAT_OPS;
 import static org.hisp.dhis.tracker.imports.report.TimingsStats.PREPARE_REQUEST_OPS;
@@ -48,9 +48,9 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerUserService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
@@ -134,7 +134,6 @@ class TrackerBundleImportReportTest {
     TrackerTypeReport typeReport = new TrackerTypeReport(TRACKED_ENTITY);
     Entity entity = new Entity(TRACKED_ENTITY);
 
-    entity.setIndex(0);
     entity.setUid("BltTZV9HvEZ");
     typeReport.addEntity(entity);
     typeReport.getStats().setCreated(1);
@@ -214,8 +213,8 @@ class TrackerBundleImportReportTest {
         serializedReportTrackerTypeReport.getTrackerType(),
         deserializedReportTrackerTypeReport.getTrackerType());
     assertEquals(
-        serializedReportTrackerTypeReport.getEntityReportMap(),
-        deserializedReportTrackerTypeReport.getEntityReportMap());
+        serializedReportTrackerTypeReport.getEntityReport(),
+        deserializedReportTrackerTypeReport.getEntityReport());
     assertEquals(
         serializedReportTrackerTypeReport.getEntityReport(),
         deserializedReportTrackerTypeReport.getEntityReport());
@@ -314,7 +313,7 @@ class TrackerBundleImportReportTest {
   private PersistenceReport createBundleReport() {
     PersistenceReport persistenceReport = PersistenceReport.emptyReport();
     TrackerTypeReport typeReport = new TrackerTypeReport(TRACKED_ENTITY);
-    Entity objectReport = new Entity(TRACKED_ENTITY, "TEI_UID", 1);
+    Entity objectReport = new Entity(TRACKED_ENTITY, "TEI_UID");
     typeReport.addEntity(objectReport);
     typeReport.getStats().incCreated();
     persistenceReport.getTypeReportMap().put(TRACKED_ENTITY, typeReport);

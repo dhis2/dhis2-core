@@ -34,9 +34,7 @@
   "enrollments": [
     {
       "enrollment": "TvctPPhpD8u",
-      "createdAt": "2018-01-26T13:48:13.363",
       "createdAtClient": "2018-01-25T13:48:13.363",
-      "updatedAt": "2018-01-26T17:48:13.363",
       "updatedAtClient": "2018-01-25T17:48:13.363",
       "trackedEntity": "IOR1AXXl24H",
       "program": {
