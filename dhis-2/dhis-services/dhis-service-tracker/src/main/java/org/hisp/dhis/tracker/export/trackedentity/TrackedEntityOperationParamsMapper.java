@@ -106,10 +106,6 @@ class TrackedEntityOperationParamsMapper {
         .setAssignedUserQueryParam(operationParams.getAssignedUserQueryParam())
         .setUser(user)
         .setTrackedEntityUids(operationParams.getTrackedEntityUids())
-        .setPage(operationParams.getPage())
-        .setPageSize(operationParams.getPageSize())
-        .setTotalPages(operationParams.isTotalPages())
-        .setSkipPaging(operationParams.isSkipPaging())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 

@@ -56,7 +56,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntities;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -133,21 +134,40 @@ class TrackedEntitiesExportController {
       RequestParams requestParams, @CurrentUser User currentUser)
       throws BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
+    if (requestParams.isPaged()) {
+      PageParams pageParams =
+          new PageParams(
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
 
-    TrackedEntities trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+      Page<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntityPage =
+          trackedEntityService.getTrackedEntities(operationParams, pageParams);
 
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
+      PagingWrapper.Pager.PagerBuilder pagerBuilder =
+          PagingWrapper.Pager.builder()
+              .page(trackedEntityPage.getPager().getPage())
+              .pageSize(trackedEntityPage.getPager().getPageSize());
 
-    if (requestParams.isPagingRequest()) {
-      pagingWrapper =
-          pagingWrapper.withPager(
-              PagingWrapper.Pager.fromLegacy(requestParams, trackedEntities.getPager()));
+      if (requestParams.isPageTotal()) {
+        pagerBuilder
+            .pageCount(trackedEntityPage.getPager().getPageCount())
+            .total(trackedEntityPage.getPager().getTotal());
+      }
+
+      PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
+      pagingWrapper = pagingWrapper.withPager(pagerBuilder.build());
+      List<ObjectNode> objectNodes =
+          fieldFilterService.toObjectNodes(
+              TRACKED_ENTITY_MAPPER.fromCollection(trackedEntityPage.getItems()),
+              requestParams.getFields());
+      return pagingWrapper.withInstances(objectNodes);
     }
 
+    List<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
-            TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities.getTrackedEntities()),
-            requestParams.getFields());
+            TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities), requestParams.getFields());
+    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
     return pagingWrapper.withInstances(objectNodes);
   }
 
@@ -170,7 +190,7 @@ class TrackedEntitiesExportController {
 
     List<TrackedEntity> trackedEntities =
         TRACKED_ENTITY_MAPPER.fromCollection(
-            trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities());
+            trackedEntityService.getTrackedEntities(operationParams));
 
     OutputStream outputStream = response.getOutputStream();
 

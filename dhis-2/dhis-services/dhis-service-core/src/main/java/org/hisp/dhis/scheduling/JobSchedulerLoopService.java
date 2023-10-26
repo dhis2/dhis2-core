@@ -64,6 +64,9 @@ public interface JobSchedulerLoopService {
   List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds);
 
   @CheckForNull
+  JobConfiguration getJobConfiguration(String jobId);
+
+  @CheckForNull
   JobConfiguration getNextInQueue(String queue, int fromPosition);
 
   /**
