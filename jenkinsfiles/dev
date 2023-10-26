@@ -222,7 +222,7 @@ pipeline {
                                 dir('scripts/databases') {
                                     env.DATABASE_ID = sh(
                                             returnStdout: true,
-                                            script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/Sierra Leone - ${env.GIT_BRANCH}.sql.gz\") | .slug'"
+                                            script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${env.GIT_BRANCH}.sql.gz\") | .slug'"
                                     ).trim()
                                 }
                             }
