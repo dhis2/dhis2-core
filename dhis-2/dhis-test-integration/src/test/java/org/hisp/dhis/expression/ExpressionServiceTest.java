@@ -701,12 +701,15 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase {
                 + subex.getQueryMods().getValueType().name()
             : item.getName();
 
+    String periodOffset =
+        (item.getPeriodOffset() != 0) ? ".periodOffset(" + item.getPeriodOffset() + ")" : "";
+
     String typeOverride =
         (item.getQueryMods() != null && item.getQueryMods().getAggregationType() != null)
             ? ".aggregationType(" + item.getQueryMods().getAggregationType().name() + ")"
             : "";
 
-    return name + typeOverride;
+    return name + periodOffset + typeOverride;
   }
 
   /**
@@ -1156,51 +1159,57 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase {
     Map<DimensionalItemObject, Object> valueMap = emptyMap();
 
     assertEquals(
-        "0 DeX [ case when \"dataElemenX\" > 99 then 1 else 2 end]::NUMBER",
+        "0 DeX [ case when coalesce(\"dataElemenX\",0) > 99 then 1 else 2 end]::NUMBER",
         evalIndicator("subExpression(if(#{dataElemenX}>99,1,2))", valueMap));
 
     assertEquals(
-        "0 DeX [ case when \"dataElemenX\" > 0 and \"dataElemenX\" < 3 then \"dataElemenX\" else 3 end]::NUMBER",
+        "0 DeX [ case when coalesce(\"dataElemenX\",0) > 0 and coalesce(\"dataElemenX\",0) < 3 then coalesce(\"dataElemenX\",0) else 3 end]::NUMBER",
         evalIndicator(
             "subExpression(if(#{dataElemenX}>0 && #{dataElemenX}<3,#{dataElemenX},3))", valueMap));
 
     assertEquals(
-        "5 DeX [ case when \"dataElemenX\" > 99 then 'a' else 'b' end]::TEXT",
+        "5 DeX [ case when coalesce(\"dataElemenX\",0) > 99 then 'a' else 'b' end]::TEXT",
         evalIndicator("if( subExpression(if(#{dataElemenX}>99,'a','b')) == 'a', 4, 5)", valueMap));
 
     assertEquals(
-        "7 DeZ [ case when \"dataElemenZ\" != 'a' then 1 else 2 end]::NUMBER",
+        "7 DeZ [ case when coalesce(\"dataElemenZ\",'') != 'a' then 1 else 2 end]::NUMBER",
         evalIndicator("if( subExpression(if(#{dataElemenZ} != 'a', 1, 2)) == 2, 6, 7)", valueMap));
 
     assertEquals(
-        "9 DeZ [ case when \"dataElemenZ\" != 'a' and \"dataElemenZ\" != 'b' then 'c' else 'd' end]::TEXT",
+        "9 DeZ [ case when coalesce(\"dataElemenZ\",'') != 'a' and coalesce(\"dataElemenZ\",'') != 'b' then 'c' else 'd' end]::TEXT",
         evalIndicator(
             "if(subExpression(if(#{dataElemenZ}!='a'&&#{dataElemenZ}!='b','c','d')) == 'd',8,9)",
             valueMap));
 
     assertEquals(
-        "0 DeX CocA [ case when \"dataElemenX_catOptCombA\" > 99 then 10 else 11 end]::NUMBER",
+        "0 DeX CocA [ case when coalesce(\"dataElemenX_catOptCombA\",0) > 99 then 10 else 11 end]::NUMBER",
         evalIndicator("subExpression( if( #{dataElemenX.catOptCombA} > 99, 10, 11 ) )", valueMap));
 
     assertEquals(
-        "0 DeX DeY [\"dataElemenX\" / \"dataElemenY\"]::NUMBER",
+        "0 DeX DeY [coalesce(\"dataElemenX\",0) / coalesce(\"dataElemenY\",0)]::NUMBER",
         evalIndicator("subExpression( #{dataElemenX} / #{dataElemenY} )", valueMap));
 
     assertEquals(
-        "0 DeX DeY [\"dataElemenX\" / \"dataElemenY\"]::NUMBER.aggregationType(MAX)",
+        "0 DeX DeY [coalesce(\"dataElemenX\",0) / coalesce(\"dataElemenY\",0)]::NUMBER.aggregationType(MAX)",
         evalIndicator(
             "subExpression( #{dataElemenX} / #{dataElemenY} ).aggregationType(MAX)", valueMap));
 
     assertEquals(
-        "0 DeX.aggregationType(AVERAGE) DeY [\"dataElemenXAVERAGE\" / \"dataElemenY\"]::NUMBER.aggregationType(MAX)",
+        "0 DeX.aggregationType(AVERAGE) DeY [coalesce(\"dataElemenX_agg_AVERAGE\",0) / coalesce(\"dataElemenY\",0)]::NUMBER.aggregationType(MAX)",
         evalIndicator(
             "subExpression( #{dataElemenX}.aggregationType(AVERAGE) / #{dataElemenY} ).aggregationType(MAX)",
             valueMap));
 
     assertEquals(
-        "0 DeX DeX.aggregationType(AVERAGE) DeY [\"dataElemenX\" + \"dataElemenXAVERAGE\" / \"dataElemenY\"]::NUMBER.aggregationType(MAX)",
+        "0 DeX DeX.aggregationType(AVERAGE) DeY [coalesce(\"dataElemenX\",0) + coalesce(\"dataElemenX_agg_AVERAGE\",0) / coalesce(\"dataElemenY\",0)]::NUMBER.aggregationType(MAX)",
         evalIndicator(
             "subExpression( #{dataElemenX} + #{dataElemenX}.aggregationType(AVERAGE) / #{dataElemenY} ).aggregationType(MAX)",
+            valueMap));
+
+    assertEquals(
+        "0 DeX.periodOffset(-2).aggregationType(AVERAGE) DeX.periodOffset(1) [coalesce(\"dataElemenX_plus_1\",0) + coalesce(\"dataElemenX_minus_2_agg_AVERAGE\",0)]::NUMBER.aggregationType(MAX)",
+        evalIndicator(
+            "subExpression( #{dataElemenX}.periodOffset(1) + #{dataElemenX}.periodOffset(-2).aggregationType(AVERAGE)).aggregationType(MAX)",
             valueMap));
   }
 
