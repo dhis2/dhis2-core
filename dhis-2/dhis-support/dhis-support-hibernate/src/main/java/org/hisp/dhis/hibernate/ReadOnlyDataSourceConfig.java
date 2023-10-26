@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.geojson;
+package org.hisp.dhis.hibernate;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.user.User;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
-@Builder(toBuilder = true)
+/**
+ * Encapsulation of a read only data source configuration.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class GeoJsonImportParams {
-  /**
-   * If true the import is validated and processed without actually modifying any organisation unit
-   * or storing GeoJSON data.
-   */
-  private final boolean dryRun;
+@Setter
+@RequiredArgsConstructor
+public class ReadOnlyDataSourceConfig {
+  private final String url;
 
-  private final String orgUnitIdProperty;
+  private final String username;
 
-  private final IdentifiableProperty idType;
-
-  /**
-   * Optional UID that refers to an {@link org.hisp.dhis.attribute.Attribute} for which the geometry
-   * is stored.
-   */
-  private final String attributeId;
-
-  private final User user;
+  private final String password;
 }

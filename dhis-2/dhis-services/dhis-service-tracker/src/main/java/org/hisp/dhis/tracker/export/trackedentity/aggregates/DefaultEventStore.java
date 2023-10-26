@@ -108,7 +108,7 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
         // Get inaccessible category options
         "where cocco.categoryoptionid not in ( "
         + "select co.categoryoptionid "
-        + "from dataelementcategoryoption co  "
+        + "from categoryoption co  "
         + " where "
         + JpaQueryUtils.generateSQlQueryForSharingCheck(
             "co.sharing", ctx.getUserUid(), ctx.getUserGroups(), AclService.LIKE_READ_DATA)

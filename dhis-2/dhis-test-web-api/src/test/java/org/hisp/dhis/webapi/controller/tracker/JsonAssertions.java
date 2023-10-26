@@ -45,6 +45,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.util.DateUtils;
 
 public class JsonAssertions {
 
@@ -67,6 +68,10 @@ public class JsonAssertions {
   public static void assertRelationship(Relationship expected, JsonRelationship actual) {
     assertFalse(actual.isEmpty(), "relationship should not be empty");
     assertEquals(expected.getUid(), actual.getRelationship(), "relationship UID");
+    assertEquals(
+        DateUtils.getIso8601NoTz(expected.getCreatedAtClient()),
+        actual.getCreatedAtClient(),
+        "createdAtClient date");
     assertEquals(
         expected.getRelationshipType().getUid(),
         actual.getRelationshipType(),
@@ -92,6 +97,8 @@ public class JsonAssertions {
         expected.getEnrollment().getUid(), jsonEvent.getEnrollment(), "event enrollment UID");
     assertFalse(
         jsonEvent.has("relationships"), "relationships is not returned within relationship items");
+    assertEquals(expected.getEnrollment().getFollowup(), jsonEvent.getFollowUp(), "followUp");
+    assertEquals(expected.getEnrollment().getFollowup(), jsonEvent.getLegacyFollowUp(), "followup");
   }
 
   public static void assertTrackedEntityWithinRelationshipItem(
@@ -126,6 +133,7 @@ public class JsonAssertions {
         jsonEnrollment.getTrackedEntity(),
         "trackedEntity UID");
     assertEquals(expected.getProgram().getUid(), jsonEnrollment.getProgram(), "program UID");
+    assertEquals(expected.getFollowup(), jsonEnrollment.getFollowUp(), "followUp");
     assertEquals(
         expected.getOrganisationUnit().getUid(), jsonEnrollment.getOrgUnit(), "orgUnit UID");
     assertTrue(jsonEnrollment.getArray("events").isEmpty(), "events should be empty");

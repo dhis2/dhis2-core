@@ -46,7 +46,7 @@ import org.springframework.util.Assert;
   "geometry",
   "latitude",
   "longitude",
-  "followup",
+  "followUp",
   "deleted",
   "createdAt",
   "createdAtClient",
@@ -83,7 +83,7 @@ class CsvEventDataValue {
 
   private String scheduledAt;
 
-  private boolean followup;
+  private boolean followUp;
 
   private boolean deleted;
 
@@ -140,7 +140,7 @@ class CsvEventDataValue {
     orgUnit = dataValue.getOrgUnit();
     occurredAt = dataValue.getOccurredAt();
     scheduledAt = dataValue.getScheduledAt();
-    followup = dataValue.isFollowup();
+    followUp = dataValue.isFollowUp();
     deleted = dataValue.isDeleted();
     createdAt = dataValue.getCreatedAt();
     updatedAt = dataValue.getUpdatedAt();
@@ -232,12 +232,12 @@ class CsvEventDataValue {
   }
 
   @JsonProperty
-  public boolean isFollowup() {
-    return followup;
+  public boolean isFollowUp() {
+    return followUp;
   }
 
-  public void setFollowup(boolean followup) {
-    this.followup = followup;
+  public void setFollowUp(boolean followUp) {
+    this.followUp = followUp;
   }
 
   @JsonProperty

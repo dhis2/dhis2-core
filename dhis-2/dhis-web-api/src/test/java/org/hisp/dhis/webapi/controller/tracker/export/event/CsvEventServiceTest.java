@@ -84,7 +84,7 @@ class CsvEventServiceTest {
     Event event =
         Event.builder()
             .event("BuA2R2Gr4vt")
-            .followup(true)
+            .followUp(true)
             .deleted(false)
             .status(EventStatus.ACTIVE)
             .build();
@@ -106,7 +106,7 @@ class CsvEventServiceTest {
     Event event =
         Event.builder()
             .event("BuA2R2Gr4vt")
-            .followup(true)
+            .followUp(true)
             .deleted(false)
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(dataValue1, dataValue2))

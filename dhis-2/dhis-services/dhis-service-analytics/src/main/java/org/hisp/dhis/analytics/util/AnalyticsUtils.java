@@ -35,7 +35,10 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.relationDoesNotExist;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import static org.hisp.dhis.feedback.ErrorCode.E7131;
+import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.springframework.util.Assert.isTrue;
@@ -50,9 +53,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
@@ -77,6 +83,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.NameableObjectUtils;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.RegexUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -100,11 +107,15 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.util.Assert;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class AnalyticsUtils {
   private static final int DECIMALS_NO_ROUNDING = 10;
 
@@ -114,7 +125,13 @@ public class AnalyticsUtils {
       Pattern.compile(DataQueryParams.PREFIX_ORG_UNIT_LEVEL + "(\\d+)");
 
   public static final String ERR_MSG_TABLE_NOT_EXISTING =
-      "Query failed, likely because the requested analytics table does not exist";
+      "Query failed, likely because the requested analytics table does not exist: ";
+
+  public static final String ERR_MSG_SQL_SYNTAX_ERROR =
+      "An error occurred during the execution of an analytics query: ";
+
+  public static final String ERR_MSG_SILENT_FALLBACK =
+      "An exception occurred - silently fallback since it's multiple analytics query: ";
 
   /**
    * Returns an SQL statement for retrieving raw data values for an aggregate query.
@@ -1040,5 +1057,83 @@ public class AnalyticsUtils {
     return periodIndex < row.size()
         && row.get(periodIndex) instanceof String
         && PeriodType.getPeriodFromIsoString((String) row.get(periodIndex)) != null;
+  }
+
+  /**
+   * Wraps the provided interface around a common exception handling strategy.
+   *
+   * @param runnable the {@link Runnable} containing the code block to execute and wrap around the
+   *     exception handling.
+   */
+  public static void withExceptionHandling(Runnable runnable) {
+    withExceptionHandling(
+        () -> {
+          runnable.run();
+          return null;
+        },
+        false);
+  }
+
+  /**
+   * Wraps the provided interface around a common exception handling strategy.
+   *
+   * @param runnable the {@link Runnable} containing the code block to execute and wrap around the
+   *     exception handling.
+   * @param isMultipleQueries special treatment for multiple queries should be applied (or not).
+   */
+  public static void withExceptionHandling(Runnable runnable, boolean isMultipleQueries) {
+    withExceptionHandling(
+        () -> {
+          runnable.run();
+          return null;
+        },
+        isMultipleQueries);
+  }
+
+  /**
+   * Wraps the provided interface around a common exception handling strategy.
+   *
+   * @param supplier the {@link Supplier} containing the code block to execute and wrap around the
+   *     exception handling.
+   * @return the {@link Optional} wrapping th result of the supplier execution.
+   */
+  public static <T> Optional<T> withExceptionHandling(Supplier<T> supplier) {
+    return withExceptionHandling(supplier::get, false);
+  }
+
+  /**
+   * Wraps the provided interface around a common exception handling strategy.
+   *
+   * @param supplier the {@link Supplier} containing the code block to execute and wrap around the
+   *     exception handling.
+   * @param isMultipleQueries special treatment for multiple queries should be applied (or not).
+   * @return the {@link Optional} wrapping th result of the supplier execution.
+   */
+  public static <T> Optional<T> withExceptionHandling(
+      Supplier<T> supplier, boolean isMultipleQueries) {
+    try {
+      return Optional.ofNullable(supplier.get());
+    } catch (BadSqlGrammarException ex) {
+      if (relationDoesNotExist(ex.getSQLException())) {
+        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+        throw ex;
+      }
+      if (!isMultipleQueries) {
+        log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
+        throw ex;
+      }
+      log.info(ERR_MSG_SILENT_FALLBACK, ex);
+    } catch (QueryRuntimeException ex) {
+      log.error("Internal runtime exception", ex);
+      throw ex;
+    } catch (DataIntegrityViolationException ex) {
+      log.error(E7132.getMessage(), ex);
+      throw new QueryRuntimeException(E7132);
+    } catch (DataAccessResourceFailureException ex) {
+      log.error(E7131.getMessage(), ex);
+      throw new QueryRuntimeException(E7131);
+    }
+
+    return Optional.empty();
   }
 }

@@ -252,6 +252,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     assertEquals(program.getUid(), event.getProgram());
 
     assertHasMember(event, "status");
+    assertHasMember(event, "followUp");
     assertHasMember(event, "followup");
     assertEquals(program.getUid(), event.getProgram());
     assertEquals(orgUnit.getUid(), event.getOrgUnit());

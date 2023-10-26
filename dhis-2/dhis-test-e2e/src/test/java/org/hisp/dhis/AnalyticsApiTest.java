@@ -71,7 +71,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public abstract class AnalyticsApiTest {
   protected static final int DEFAULT_LIMIT_EXECUTION_TIME = 30;
 
-  protected static final String JSON = ContentType.JSON.toString();
+  public static final String JSON = ContentType.JSON.toString();
 
   @BeforeAll
   public void beforeAll() {

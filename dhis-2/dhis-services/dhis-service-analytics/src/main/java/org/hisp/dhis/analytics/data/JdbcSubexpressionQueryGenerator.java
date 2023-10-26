@@ -32,16 +32,26 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.AggregationType.MAX;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
+import static org.hisp.dhis.analytics.DataType.fromValueType;
 import static org.hisp.dhis.analytics.data.JdbcAnalyticsManager.AO;
 import static org.hisp.dhis.analytics.data.JdbcAnalyticsManager.CO;
 import static org.hisp.dhis.analytics.data.JdbcAnalyticsManager.DX;
 import static org.hisp.dhis.analytics.data.JdbcAnalyticsManager.OU;
 import static org.hisp.dhis.analytics.data.JdbcAnalyticsManager.VALUE;
+import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.DELTA;
+import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.REPORTPERIOD;
+import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.SHIFT;
+import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.getParamsWithOffsetPeriodsWithoutData;
+import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.joinPeriodOffsetValues;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.commons.collection.CollectionUtils.addUnique;
+import static org.hisp.dhis.parser.expression.ParserUtils.castSql;
 import static org.hisp.dhis.subexpression.SubexpressionDimensionItem.getItemColumnName;
 
 import java.util.List;
@@ -49,7 +59,11 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
@@ -84,6 +98,36 @@ import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
  * group by uidlevel2, monthly;
  * </pre>
  *
+ * If there are data elements (or data element operands) inside the subexpresion having a
+ * .periodOffset query modifier (with a non-zero value), then an inline table is joined which allows
+ * for mapping between data periods (the period in the database) and reporting periods (the period
+ * for which the data is reported, after applying the period offset). For example, consider the
+ * subexpression:
+ *
+ * <pre>
+ *       subExpression( #{A2VfEfPflHV} + #{A2VfEfPflHV}.periodOffset(-1) )
+ * </pre>
+ *
+ * <p>This would generate the following query logic (again, simplified here) when evaluated for the
+ * two months 202309 and 202310:
+ *
+ * <pre>
+ * select uidlevel2, monthly, 'subExpreUid' as dx, sum("A2VfEfPflHV" + "A2VfEfPflHV_minus_1") as value
+ * from (select uidlevel2,
+ *              shift.reportperiod as monthly,
+ *              sum(case when dx = 'A2VfEfPflHV' and shift.delta = 0 then value else null end) as "A2VfEfPflHV",
+ *              sum(case when dx = 'A2VfEfPflHV' and shift.delta = -1 then value else null end) as "A2VfEfPflHV_minus_1"
+ *       from analytics
+ *       join (values(-1,'202309','202308'),(-1,'202310','202309'),
+ *                   (0,'202309','202309'),(0,'202310','202310'))
+ *              as shift (delta, reportperiod, dataperiod) on dataperiod = monthly
+ *       where monthly in ('202308', '202309', '202310')
+ *       and dx in ('A2VfEfPflHV') // (greatly improves performance)
+ *       group by uidlevel2, monthly, ou) as ax
+ * where "A2VfEfPflHV" is not null
+ * group by uidlevel2, monthly;
+ * </pre>
+ *
  * @author Jim Grace
  */
 public class JdbcSubexpressionQueryGenerator {
@@ -102,6 +146,9 @@ public class JdbcSubexpressionQueryGenerator {
   /** The subexpression being processed, from the parameters. */
   private final SubexpressionDimensionItem subex;
 
+  /** Whether this subexpression has any period offsets. */
+  private final boolean hasPeriodOffsets;
+
   public JdbcSubexpressionQueryGenerator(
       JdbcAnalyticsManager jam, DataQueryParams params, AnalyticsTableType tableType) {
     this.jam = jam;
@@ -110,6 +157,7 @@ public class JdbcSubexpressionQueryGenerator {
     this.paramsWithoutData =
         DataQueryParams.newBuilder(params).removeDimension(DATA_X_DIM_ID).build();
     this.subex = params.getSubexpression();
+    this.hasPeriodOffsets = subex.hasPeriodOffsets();
   }
 
   /**
@@ -163,6 +211,8 @@ public class JdbcSubexpressionQueryGenerator {
 
     String fromSub = "from " + jam.getFromSourceClause(params) + " as " + ANALYTICS_TBL_ALIAS + " ";
 
+    String joinSub = (hasPeriodOffsets) ? joinPeriodOffsetValues(params) : "";
+
     String whereSub = getWhereSubquery();
 
     String groupBySub = getGroupBySubquery();
@@ -170,6 +220,7 @@ public class JdbcSubexpressionQueryGenerator {
     return "from ("
         + selectSub
         + fromSub
+        + joinSub
         + whereSub
         + groupBySub
         + ") as "
@@ -180,7 +231,9 @@ public class JdbcSubexpressionQueryGenerator {
   /** Gets the subquery select clause. */
   private String getSelectSubquery() {
     String dimensionColumns =
-        jam.getCommaDelimitedQuotedDimensionColumns(paramsWithoutData.getDimensions());
+        (hasPeriodOffsets)
+            ? getPeriodOffsetSelectDimensionColumns()
+            : jam.getCommaDelimitedQuotedDimensionColumns(paramsWithoutData.getDimensions());
 
     String subexItemColumns =
         subex.getItems().stream().map(this::getItemSql).distinct().collect(joining(","));
@@ -188,9 +241,25 @@ public class JdbcSubexpressionQueryGenerator {
     return "select " + dimensionColumns + ", " + subexItemColumns + " ";
   }
 
+  private String getPeriodOffsetSelectDimensionColumns() {
+    String nonPeriodDimensions =
+        jam.getCommaDelimitedQuotedDimensionColumns(paramsWithoutData.getNonPeriodDimensions());
+    return SHIFT
+        + "."
+        + REPORTPERIOD
+        + " as "
+        + paramsWithoutData.getPeriodType().toLowerCase()
+        + (nonPeriodDimensions.isEmpty() ? "" : "," + nonPeriodDimensions);
+  }
+
   /** Gets the subquery where clause. */
   private String getWhereSubquery() {
-    String sql = jam.getWhereClause(paramsWithoutData, tableType);
+    DataQueryParams whereSubQueryParams =
+        hasPeriodOffsets ? getParamsWithOffsetPeriodsWithoutData(params) : paramsWithoutData;
+
+    whereSubQueryParams = getParamsWithPeriodType(whereSubQueryParams);
+
+    String sql = jam.getWhereClause(whereSubQueryParams, tableType);
 
     if (!sql.isEmpty()) {
       sql += "and ";
@@ -203,11 +272,39 @@ public class JdbcSubexpressionQueryGenerator {
 
   /** Gets the subquery group by clause. */
   private String getGroupBySubquery() {
-    List<String> cols = jam.getQuotedDimensionColumns(paramsWithoutData.getDimensions());
+    DataQueryParams groupByParams =
+        hasPeriodOffsets
+            ? DataQueryParams.newBuilder(paramsWithoutData).removeDimension(PERIOD_DIM_ID).build()
+            : getParamsWithPeriodType(paramsWithoutData);
+
+    List<String> cols = jam.getQuotedDimensionColumns(groupByParams.getDimensions());
 
     addUnique(cols, quote(ANALYTICS_TBL_ALIAS, OU));
 
+    if (hasPeriodOffsets) {
+      cols.add(SHIFT + "." + REPORTPERIOD);
+    }
+
     return " group by " + join(",", cols);
+  }
+
+  /**
+   * Gets parameters where the period type will be the selected column for the period (so a query
+   * for this column will also data from enclosed, shorter periods).
+   */
+  private DataQueryParams getParamsWithPeriodType(DataQueryParams query) {
+    String periodType = query.getPeriodType();
+    if (periodType != null) {
+      BaseDimensionalObject periodDim =
+          new BaseDimensionalObject(
+              DimensionalObject.PERIOD_DIM_ID,
+              DimensionType.PERIOD,
+              periodType.toLowerCase(),
+              null,
+              query.getPeriods());
+      query = DataQueryParams.newBuilder(query).replaceDimension(periodDim).build();
+    }
+    return query;
   }
 
   /** Gets a comma-separated list of the quoted UIDs of the data elements in the subexpression. */
@@ -255,15 +352,18 @@ public class JdbcSubexpressionQueryGenerator {
                 : " and " + quote(ANALYTICS_TBL_ALIAS, CO) + "='" + cocUid + "'")
             + (isEmpty(aocUid)
                 ? ""
-                : " and " + quote(ANALYTICS_TBL_ALIAS, AO) + "='" + aocUid + "'");
+                : " and " + quote(ANALYTICS_TBL_ALIAS, AO) + "='" + aocUid + "'")
+            + (hasPeriodOffsets
+                ? " and " + SHIFT + "." + DELTA + " = " + item.getPeriodOffset()
+                : "");
 
     String value = quote(dataElement.getValueColumn());
 
-    String cast =
-        (dataElement.getValueType().isBoolean()
-                && dataElement.getAggregationType().allowsNonnumeric())
-            ? "::int::bool"
-            : "";
+    DataType dataType = fromValueType(dataElement.getValueType());
+    if (dataType == BOOLEAN) {
+      dataType = NUMERIC; // Booleans are always aggregated as numeric in subex.
+    }
+    String cast = castSql("", dataType);
 
     String column = getItemColumnName(deUid, cocUid, aocUid, dataElement.getQueryMods());
 
@@ -272,8 +372,8 @@ public class JdbcSubexpressionQueryGenerator {
         + conditional
         + " then "
         + value
-        + " else null end)"
         + cast
+        + " else null end)"
         + " as "
         + column;
   }

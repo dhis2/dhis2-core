@@ -117,6 +117,7 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -420,6 +421,8 @@ public class DataQueryParams {
   /** Used to set the type of OrgUnit from the current user to the {@see DataQueryParams} object */
   protected UserOrgUnitType userOrgUnitType;
 
+  protected List<AnalyticsMetaDataKey> userOrganisationUnitsCriteria;
+
   /** Mapping of organisation unit sub-hierarchy roots and lowest available data approval levels. */
   protected transient Map<OrganisationUnit, Integer> dataApprovalLevels = new HashMap<>();
 
@@ -538,8 +541,13 @@ public class DataQueryParams {
     params.explainOrderId = this.explainOrderId;
     params.serverBaseUrl = this.serverBaseUrl;
     params.download = this.download;
+    params.userOrganisationUnitsCriteria = this.userOrganisationUnitsCriteria;
 
     return params;
+  }
+
+  public List<AnalyticsMetaDataKey> getUserOrganisationUnitsCriteria() {
+    return userOrganisationUnitsCriteria;
   }
 
   public String getExplainOrderId() {
@@ -3016,6 +3024,13 @@ public class DataQueryParams {
 
     public Builder withUserOrgUnitType(UserOrgUnitType userOrgUnitType) {
       this.params.userOrgUnitType = userOrgUnitType;
+      return this;
+    }
+
+    public Builder withUserOrganisationUnitsCriteria(String userOrganisationUnitsCriteria) {
+
+      this.params.userOrganisationUnitsCriteria =
+          OrganisationUnitCriteriaUtils.getAnalyticsMetaDataKeys(userOrganisationUnitsCriteria);
       return this;
     }
 

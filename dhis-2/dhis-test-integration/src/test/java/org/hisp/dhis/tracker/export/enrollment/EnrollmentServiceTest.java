@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -365,7 +366,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldGetEnrollmentsWhenUserHasReadAccessToProgramAndSearchScopeAccessToOrgUnit()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
@@ -376,15 +377,50 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
             .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
             .build();
 
-    Enrollments enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
 
     assertNotNull(enrollments);
-    assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentB.getUid()), toUid(enrollments));
+    assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentB.getUid()), uids(enrollments));
+  }
+
+  @Test
+  void shouldGetEnrollmentsWhenUserHasReadAccessToProgramAndNoOrgUnitNorOrgUnitModeSpecified()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+
+    manager.updateNoAcl(programA);
+
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder().programUid(programA.getUid()).build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+
+    assertNotNull(enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentB.getUid()), uids(enrollments));
+  }
+
+  @Test
+  void shouldGetEnrollmentWhenEnrollmentsAndOtherParamsAreSpecified()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+
+    manager.updateNoAcl(programA);
+
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder()
+            .programUid(programA.getUid())
+            .enrollmentUids(Set.of(enrollmentA.getUid()))
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+
+    assertNotNull(enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
   void shouldGetEnrollmentsByTrackedEntityWhenUserHasAccessToTrackedEntityType()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);
 
@@ -394,10 +430,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
             .trackedEntityUid(trackedEntityA.getUid())
             .build();
 
-    Enrollments enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
 
     assertNotNull(enrollments);
-    assertContainsOnly(List.of(enrollmentA.getUid()), toUid(enrollments));
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
@@ -418,12 +454,6 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     ForbiddenException exception =
         assertThrows(ForbiddenException.class, () -> enrollmentService.getEnrollments(params));
     assertContains("access to tracked entity type", exception.getMessage());
-  }
-
-  private static List<String> toUid(Enrollments enrollments) {
-    return enrollments.getEnrollments().stream()
-        .map(Enrollment::getUid)
-        .collect(Collectors.toList());
   }
 
   private static List<String> attributeUids(Enrollment enrollment) {
