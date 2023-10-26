@@ -202,7 +202,6 @@ pipeline {
                 STARTUP_PROBE_FAILURE_THRESHOLD = "50"
                 LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
                 READINESS_PROBE_TIMEOUT_SECONDS = "3"
-                DATABASE_ID = "test-dbs-sierra-leone-dev-sql-gz"
             }
 
             steps {
@@ -215,10 +214,21 @@ pipeline {
                             def branch = ""
                             if (env.GIT_BRANCH == 'master') {
                                 env.IMAGE_TAG = "latest"
+                                env.DATABASE_ID = "test-dbs-sierra-leone-dev-sql-gz"
                             } else {
                                 env.IMAGE_TAG = env.GIT_BRANCH
                                 branch = env.GIT_BRANCH.replaceAll(".", "-")
+
+                                dir('scripts/databases') {
+                                    env.DATABASE_ID = sh(
+                                            returnStdout: true,
+                                            script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"Sierra Leone - ${env.GIT_BRANCH}.sql.gz\") | .slug'"
+                                    ).trim()
+                                }
                             }
+
+                            sh '[ -n "$DATABASE_ID" ]'
+                            echo "Database: ${env.DATABASE_ID}"
 
                             dir('scripts/instances') {
                                 sh "(./findByName.sh play dev-${branch} && ./restart.sh play dev-${branch}) || ./deploy-dhis2.sh play dev-${branch}"
