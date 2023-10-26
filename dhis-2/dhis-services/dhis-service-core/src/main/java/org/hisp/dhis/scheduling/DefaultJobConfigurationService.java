@@ -45,7 +45,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -234,7 +233,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Override
   @Transactional(readOnly = true)
   public List<JobConfiguration> getDueJobConfigurations(
-      int dueInNextSeconds, boolean limitToNext1, boolean includeWaiting) {
+      int dueInNextSeconds, boolean includeWaiting) {
     Instant now = Instant.now();
     Instant endOfWindow = now.plusSeconds(dueInNextSeconds);
     Duration maxCronDelay =
@@ -243,16 +242,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
         jobConfigurationStore
             .getDueJobConfigurations(includeWaiting)
             .filter(c -> c.isDueBetween(now, endOfWindow, maxCronDelay));
-    if (!limitToNext1) return dueJobs.toList();
-    Set<JobType> types = EnumSet.noneOf(JobType.class);
-    return dueJobs
-        .filter(
-            config -> {
-              if (types.contains(config.getJobType())) return false;
-              types.add(config.getJobType());
-              return true;
-            })
-        .toList();
+    return dueJobs.toList();
   }
 
   @Override
