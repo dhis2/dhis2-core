@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.tei.query.TeiFields.getTrackedEntityAttributes;
 import static org.hisp.dhis.feedback.ErrorCode.E7125;
 import static org.hisp.dhis.feedback.ErrorCode.E7142;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -77,22 +77,40 @@ public class TeiQueryRequestMapper {
     TrackedEntityType trackedEntityType =
         getTrackedEntityType(queryRequest.getRequest().getTrackedEntityType());
 
-    checkTetForPrograms(queryRequest, trackedEntityType);
+    boolean programsFromRequest = true;
+
+    if (!queryRequest.getCommonQueryRequest().hasPrograms()) {
+      queryRequest
+          .getCommonQueryRequest()
+          .setProgram(getProgramUidsFromTrackedEntityType(trackedEntityType));
+      programsFromRequest = false;
+
+    } else {
+      checkTetForPrograms(queryRequest, trackedEntityType);
+    }
 
     // Adding tracked entity type attributes to the list of dimensions.
     queryRequest
         .getCommonQueryRequest()
         .getDimension()
         .addAll(
-            getTrackedEntityAttributes(trackedEntityType)
-                .map(IdentifiableObject::getUid)
-                .collect(toList()));
+            getTrackedEntityAttributes(trackedEntityType).map(IdentifiableObject::getUid).toList());
 
     return teiQueryParamPostProcessor.process(
         TeiQueryParams.builder()
             .trackedEntityType(trackedEntityType)
-            .commonParams(commonQueryRequestMapper.map(queryRequest.getCommonQueryRequest()))
+            .commonParams(
+                commonQueryRequestMapper
+                    .map(queryRequest.getCommonQueryRequest())
+                    .withProgramsFromRequest(programsFromRequest))
             .build());
+  }
+
+  private Set<String> getProgramUidsFromTrackedEntityType(TrackedEntityType trackedEntityType) {
+    return programService.getAllPrograms().stream()
+        .filter(program -> matchesTet(program, trackedEntityType))
+        .map(Program::getUid)
+        .collect(Collectors.toSet());
   }
 
   /**
@@ -127,7 +145,8 @@ public class TeiQueryRequestMapper {
    * @return true if the program matches the tracked entity type.
    */
   private boolean matchesTet(Program program, TrackedEntityType trackedEntityType) {
-    return StringUtils.equals(program.getTrackedEntityType().getUid(), trackedEntityType.getUid());
+    return Objects.nonNull(program.getTrackedEntityType())
+        && StringUtils.equals(program.getTrackedEntityType().getUid(), trackedEntityType.getUid());
   }
 
   /**
