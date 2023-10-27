@@ -2,7 +2,7 @@ name: Destroy instance
 
 on:
   pull_request:
-    types: [closed]
+    types: [closed, unlabeled]
 
 # Cancel previous runs of the same workflow and PR number or branch/tag
 concurrency:
