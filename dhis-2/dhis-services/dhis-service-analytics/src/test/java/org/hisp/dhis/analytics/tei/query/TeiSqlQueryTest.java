@@ -129,7 +129,6 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
   @Test
   void testEnrolledInProgramWhenSpecifiedInRequest() {
     // given
-
     CommonParams commonParams =
         CommonParams.builder()
             .programs(List.of(mockProgram("program1"), mockProgram("program2")))
@@ -154,7 +153,6 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
   @Test
   void testEnrolledInProgramWhenNotSpecifiedInRequest() {
     // given
-
     CommonParams commonParams =
         CommonParams.builder()
             .programs(List.of(mockProgram("program1"), mockProgram("program2")))

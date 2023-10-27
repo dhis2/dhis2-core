@@ -84,7 +84,6 @@ public class TeiQueryRequestMapper {
           .getCommonQueryRequest()
           .setProgram(getProgramUidsFromTrackedEntityType(trackedEntityType));
       programsFromRequest = false;
-
     } else {
       checkTetForPrograms(queryRequest, trackedEntityType);
     }
