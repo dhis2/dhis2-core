@@ -14,15 +14,27 @@ jobs:
     if: contains(github.event.pull_request.labels.*.name, 'deploy')
     runs-on: ubuntu-latest
     env:
+      HTTP: https --check-status
+      USER_EMAIL: ${{ secrets.IM_BOT_EMAIL }}
+      PASSWORD: ${{ secrets.IM_BOT_PASSWORD }}
+      IM_HOST: 'https://api.im.dhis2.org'
       INSTANCE_HOST: 'https://dev.im.dhis2.org'
       INSTANCE_NAME: pr-${{ github.event.pull_request.number }}
     steps:
+      - name: Dump context
+        uses: crazy-max/ghaction-dump-context@v2
+
       - name: Wait for API tests
+        # Using this fork of the upstream https://github.com/lewagon/wait-on-check-action,
+        # as it will filter out and check only the latest run of a workflow when checking for the allowed conclusions,
+        # instead of checking all of the re-runs and possibly failing due to skipped or cancelled runs.
+        # See https://github.com/lewagon/wait-on-check-action/issues/85 for more info.
         uses: t3chguy/wait-on-check-action@master
         with:
           ref: ${{ github.head_ref }}
           check-name: 'api-test'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+          allowed-conclusions: success
 
       - uses: actions/checkout@v4
         with:
@@ -35,20 +47,19 @@ jobs:
       - name: Deploy DHIS2 instance
         working-directory: scripts/instances
         env:
-          HTTP: https --check-status
-          USER_EMAIL: ${{ secrets.IM_BOT_EMAIL }}
-          PASSWORD: ${{ secrets.IM_BOT_PASSWORD }}
-          IM_HOST: 'https://api.im.dhis2.org'
           IMAGE_REPOSITORY: core-pr
           IMAGE_TAG: ${{ github.event.pull_request.number }}
           IMAGE_PULL_POLICY: Always
-          DATABASE_ID: sl-sierra-leone-dev-sql-gz
+          DATABASE_ID: test-dbs-sierra-leone-dev-sql-gz
         run: ./findByName.sh dev $INSTANCE_NAME && ./restart.sh dev $INSTANCE_NAME || ./deploy-dhis2.sh dev $INSTANCE_NAME
 
       - name: Wait for instance
-        run: timeout 300 bash -c 'while [[ "$(curl -fsSL -o /dev/null -w %{http_code} $INSTANCE_HOST/$INSTANCE_NAME)" != "200" ]]; do sleep 5; done'
+        working-directory: scripts/instances
+        env:
+          EXPECTED_STATUS: Running
+        run: timeout 600 bash -ex -c 'while [[ "$(./status.sh dev $INSTANCE_NAME | jq -r)" != "$EXPECTED_STATUS" ]]; do echo "Instance is not $EXPECTED_STATUS yet ..."; sleep 5; done'
 
-      - name: Generate analytics
+      - name: Start analytics generation
         run: curl -X POST -u "${{ secrets.DHIS2_USERNAME }}:${{ secrets.DHIS2_PASSWORD }}" "$INSTANCE_HOST/$INSTANCE_NAME/api/resourceTables/analytics" -d 'executeTei=true'
 
       - name: Comment instance URL
