@@ -74,7 +74,7 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook<Id
 
     if (versionedObject != null) {
       versionedObject.increaseVersion();
-      sessionFactory.getCurrentSession().save(versionedObject);
+      entityManager.persist(versionedObject);
     }
   }
 
@@ -95,7 +95,7 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook<Id
       dataSets.forEach(
           ds -> {
             ds.increaseVersion();
-            sessionFactory.getCurrentSession().save(ds);
+            entityManager.persist(ds);
           });
     } else if (Option.class.isAssignableFrom(klass)) {
       Set<OptionSet> optionSets = new HashSet<>();
@@ -112,7 +112,7 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook<Id
       optionSets.forEach(
           os -> {
             os.increaseVersion();
-            sessionFactory.getCurrentSession().save(os);
+            entityManager.persist(os);
           });
     }
   }

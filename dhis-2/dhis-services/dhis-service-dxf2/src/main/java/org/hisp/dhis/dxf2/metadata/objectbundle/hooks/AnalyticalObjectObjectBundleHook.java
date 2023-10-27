@@ -52,9 +52,8 @@ public class AnalyticalObjectObjectBundleHook extends AbstractObjectBundleHook<A
     BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
     Schema schema =
         schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(analyticalObject));
-    Session session = sessionFactory.getCurrentSession();
 
-    analyticalObjectImportHandler.handleAnalyticalObject(session, schema, analyticalObject, bundle);
+    analyticalObjectImportHandler.handleAnalyticalObject(entityManager, schema, analyticalObject, bundle);
   }
 
   @Override
@@ -64,8 +63,7 @@ public class AnalyticalObjectObjectBundleHook extends AbstractObjectBundleHook<A
 
     Schema schema =
         schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(analyticalObject));
-    Session session = sessionFactory.getCurrentSession();
 
-    analyticalObjectImportHandler.handleAnalyticalObject(session, schema, analyticalObject, bundle);
+    analyticalObjectImportHandler.handleAnalyticalObject(entityManager, schema, analyticalObject, bundle);
   }
 }

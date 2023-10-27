@@ -94,8 +94,6 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
       DataSet persistedDataSet, DataSet importDataSet, ObjectBundle bundle) {
     if (!bundle.isMetadataSyncImport()) return;
 
-    Session session = sessionFactory.getCurrentSession();
-
     List<String> importIds =
         importDataSet.getSections().stream()
             .map(IdentifiableObject::getUid)
@@ -103,16 +101,15 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
 
     persistedDataSet.getSections().stream()
         .filter(section -> !importIds.contains(section.getUid()))
-        .forEach(session::delete);
+        .forEach(entityManager::remove);
   }
 
   private void deleteRemovedDataElementFromSection(
       DataSet persistedDataSet, DataSet importDataSet) {
-    Session session = sessionFactory.getCurrentSession();
 
     persistedDataSet.getSections().stream()
-        .peek(section -> section.setDataElements(getUpdatedDataElements(importDataSet, section)))
-        .forEach(session::update);
+        .peek(section -> section.setDataElements(getUpdatedDataElements(importDataSet, section)));
+
   }
 
   private List<DataElement> getUpdatedDataElements(DataSet importDataSet, Section section) {

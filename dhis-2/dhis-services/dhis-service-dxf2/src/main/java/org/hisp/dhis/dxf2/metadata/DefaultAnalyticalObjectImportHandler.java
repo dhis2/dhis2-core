@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hisp.dhis.category.CategoryDimension;
@@ -55,12 +56,12 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
 
   @Override
   public void handleAnalyticalObject(
-      Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
-    handleDataDimensionItems(session, schema, analyticalObject, bundle);
-    handleCategoryDimensions(session, schema, analyticalObject, bundle);
-    handleDataElementDimensions(session, schema, analyticalObject, bundle);
-    handleAttributeDimensions(session, schema, analyticalObject, bundle);
-    handleProgramIndicatorDimensions(session, schema, analyticalObject, bundle);
+      EntityManager entityManager, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
+    handleDataDimensionItems(entityManager, schema, analyticalObject, bundle);
+    handleCategoryDimensions(entityManager, schema, analyticalObject, bundle);
+    handleDataElementDimensions(entityManager, schema, analyticalObject, bundle);
+    handleAttributeDimensions(entityManager, schema, analyticalObject, bundle);
+    handleProgramIndicatorDimensions(entityManager, schema, analyticalObject, bundle);
     handleVisualizationLegendSet(schema, analyticalObject, bundle);
   }
 
@@ -115,7 +116,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
   }
 
   private void handleDataDimensionItems(
-      Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
+      EntityManager entityManager, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
     if (!schema.hasPersistedProperty("dataDimensionItems")) return;
 
     for (DataDimensionItem dataDimensionItem : analyticalObject.getDataDimensionItems()) {
@@ -192,12 +193,12 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
 
       preheatService.connectReferences(
           dataDimensionItem, bundle.getPreheat(), bundle.getPreheatIdentifier());
-      session.save(dataDimensionItem);
+      entityManager.persist(dataDimensionItem);
     }
   }
 
   private void handleCategoryDimensions(
-      Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
+      EntityManager entityManager, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
     if (!schema.hasPersistedProperty("categoryDimensions")) return;
 
     for (CategoryDimension categoryDimension : analyticalObject.getCategoryDimensions()) {
@@ -219,12 +220,12 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
 
       preheatService.connectReferences(
           categoryDimension, bundle.getPreheat(), bundle.getPreheatIdentifier());
-      session.save(categoryDimension);
+      entityManager.persist(categoryDimension);
     }
   }
 
   private void handleDataElementDimensions(
-      Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
+      EntityManager entityManager, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
     if (!schema.hasPersistedProperty("dataElementDimensions")) return;
 
     for (TrackedEntityDataElementDimension dataElementDimension :
@@ -248,12 +249,12 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
 
       preheatService.connectReferences(
           dataElementDimension, bundle.getPreheat(), bundle.getPreheatIdentifier());
-      session.save(dataElementDimension);
+      entityManager.persist(dataElementDimension);
     }
   }
 
   private void handleAttributeDimensions(
-      Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
+      EntityManager entityManager, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
     if (!schema.hasPersistedProperty("attributeDimensions")) return;
 
     for (TrackedEntityAttributeDimension attributeDimension :
@@ -274,12 +275,12 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
       preheatService.connectReferences(
           attributeDimension, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
-      session.save(attributeDimension);
+      entityManager.persist(attributeDimension);
     }
   }
 
   private void handleProgramIndicatorDimensions(
-      Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
+      EntityManager entityManager, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
     if (!schema.hasPersistedProperty("programIndicatorDimensions")) return;
 
     for (TrackedEntityProgramIndicatorDimension programIndicatorDimension :
@@ -299,7 +300,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
 
       preheatService.connectReferences(
           programIndicatorDimension, bundle.getPreheat(), bundle.getPreheatIdentifier());
-      session.save(programIndicatorDimension);
+      entityManager.persist(programIndicatorDimension);
     }
   }
 }

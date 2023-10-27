@@ -57,6 +57,5 @@ public class DataInputPeriodObjectBundleHook extends AbstractObjectBundleHook<Da
     Period period = periodService.getPeriod(dataInputPeriod.getPeriod().getIsoDate());
 
     dataInputPeriod.setPeriod(period);
-    sessionFactory.getCurrentSession().save(period);
   }
 }

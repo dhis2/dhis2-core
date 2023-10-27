@@ -142,9 +142,8 @@ public class ProgramRuleVariableObjectBundleHook
 
   private Query<ProgramRuleVariable> getProgramRuleVariableQuery(
       ProgramRuleVariable programRuleVariable) {
-    Session session = sessionFactory.getCurrentSession();
     Query<ProgramRuleVariable> query =
-        session.createQuery(FROM_PROGRAM_RULE_VARIABLE, ProgramRuleVariable.class);
+        entityManager.unwrap(Session.class).createQuery(FROM_PROGRAM_RULE_VARIABLE, ProgramRuleVariable.class);
 
     query.setParameter("name", programRuleVariable.getName());
     query.setParameter("programUid", programRuleVariable.getProgram().getUid());

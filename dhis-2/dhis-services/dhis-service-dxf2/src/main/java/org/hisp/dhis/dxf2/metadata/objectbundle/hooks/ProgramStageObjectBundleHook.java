@@ -91,9 +91,7 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<Progr
 
   @Override
   public void postCreate(ProgramStage programStage, ObjectBundle bundle) {
-    Session session = sessionFactory.getCurrentSession();
-
-    updateProgramStageSections(session, programStage);
+    updateProgramStageSections(programStage);
   }
 
   @Override
@@ -119,7 +117,7 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<Progr
     persistedProgramStage.getProgramStageSections().removeAll(programStageSectionsToDelete);
   }
 
-  private void updateProgramStageSections(Session session, ProgramStage programStage) {
+  private void updateProgramStageSections(ProgramStage programStage) {
     if (programStage.getProgramStageSections().isEmpty()) {
       return;
     }

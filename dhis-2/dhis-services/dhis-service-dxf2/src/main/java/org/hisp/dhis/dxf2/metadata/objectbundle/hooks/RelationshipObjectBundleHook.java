@@ -46,13 +46,13 @@ public class RelationshipObjectBundleHook extends AbstractObjectBundleHook<Relat
   @Override
   public void preCreate(Relationship relationship, ObjectBundle bundle) {
     handleRelationshipItem(relationship.getFrom());
-    sessionFactory.getCurrentSession().save(relationship.getFrom());
+    entityManager.persist(relationship.getFrom());
     handleRelationshipItem(relationship.getTo());
-    sessionFactory.getCurrentSession().save(relationship.getTo());
+    entityManager.persist(relationship.getTo());
 
     relationship.setRelationshipType(
         relationshipTypeService.getRelationshipType(relationship.getRelationshipType().getUid()));
-    sessionFactory.getCurrentSession().save(relationship.getRelationshipType());
+    entityManager.persist(relationship.getRelationshipType());
   }
 
   private void handleRelationshipItem(RelationshipItem relationshipItem) {

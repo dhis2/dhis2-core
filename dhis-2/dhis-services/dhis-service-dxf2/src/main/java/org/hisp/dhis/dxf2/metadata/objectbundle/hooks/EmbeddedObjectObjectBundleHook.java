@@ -191,11 +191,9 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
       return;
     }
 
-    Session session = sessionFactory.getCurrentSession();
-
     Schema propertySchema = schemaService.getDynamicSchema(property.getItemKlass());
 
     analyticalObjectImportHandler.handleAnalyticalObject(
-        session, propertySchema, (BaseAnalyticalObject) identifiableObject, bundle);
+        entityManager, propertySchema, (BaseAnalyticalObject) identifiableObject, bundle);
   }
 }

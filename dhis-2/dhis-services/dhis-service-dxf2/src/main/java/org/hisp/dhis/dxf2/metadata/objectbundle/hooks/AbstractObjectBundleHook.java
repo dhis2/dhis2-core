@@ -29,6 +29,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
 import java.util.function.Consumer;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -47,7 +49,7 @@ public class AbstractObjectBundleHook<T> implements ObjectBundleHook<T> {
 
   @Autowired protected PreheatService preheatService;
 
-  @Autowired protected SessionFactory sessionFactory;
+  @PersistenceContext protected EntityManager entityManager;
 
   @Autowired protected SchemaService schemaService;
 
