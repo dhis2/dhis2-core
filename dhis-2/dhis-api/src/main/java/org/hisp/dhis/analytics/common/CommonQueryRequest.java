@@ -187,6 +187,8 @@ public class CommonQueryRequest {
 
   private String lastUpdated;
 
+  private String created;
+
   /** whether the query should consider only items with lat/long coordinates */
   private boolean coordinatesOnly;
 
