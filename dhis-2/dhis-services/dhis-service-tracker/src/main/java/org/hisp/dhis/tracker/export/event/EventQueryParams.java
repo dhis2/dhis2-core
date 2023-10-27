@@ -35,7 +35,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Getter;
+import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.IdSchemes;
@@ -123,11 +125,7 @@ class EventQueryParams {
 
   private Set<String> events = new HashSet<>();
 
-  /**
-   * Each attribute will affect the final SQL query. Some attributes are filtered on, while
-   * attributes added via {@link #orderBy(TrackedEntityAttribute, SortDirection)} will be ordered
-   * by.
-   */
+  /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
   private final Map<TrackedEntityAttribute, List<QueryFilter>> attributes = new HashMap<>();
 
   /**
@@ -408,6 +406,13 @@ class EventQueryParams {
     return Collections.unmodifiableList(this.order);
   }
 
+  private Map<TrackedEntityAttribute, List<QueryFilter>> getOrderAttributes() {
+    return order.stream()
+        .filter(o -> o.getField() instanceof TrackedEntityAttribute)
+        .map(o -> (TrackedEntityAttribute) o.getField())
+        .collect(Collectors.toMap(tea -> tea, tea -> List.of()));
+  }
+
   /** Order by an event field of the given {@code field} name in given sort {@code direction}. */
   public EventQueryParams orderBy(String field, SortDirection direction) {
     this.order.add(new Order(field, direction));
@@ -424,7 +429,6 @@ class EventQueryParams {
   /** Order by the given tracked entity attribute {@code tea} in given sort {@code direction}. */
   public EventQueryParams orderBy(TrackedEntityAttribute tea, SortDirection direction) {
     this.order.add(new Order(tea, direction));
-    this.attributes.putIfAbsent(tea, new ArrayList<>());
     return this;
   }
 
@@ -444,6 +448,11 @@ class EventQueryParams {
   public EventQueryParams setEvents(Set<String> events) {
     this.events = events;
     return this;
+  }
+
+  /** Returns attributes that are only ordered by and not present in any filter. */
+  public Set<TrackedEntityAttribute> leftJoinAttributes() {
+    return SetUtils.difference(getOrderAttributes().keySet(), this.attributes.keySet());
   }
 
   public Map<TrackedEntityAttribute, List<QueryFilter>> getAttributes() {

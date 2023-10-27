@@ -72,7 +72,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -189,19 +188,12 @@ class TrackedEntityOperationParamsMapperTest {
             .eventStatus(EventStatus.COMPLETED)
             .eventStartDate(getDate(2019, 7, 7))
             .eventEndDate(getDate(2020, 7, 7))
-            .page(1)
-            .pageSize(50)
-            .totalPages(false)
-            .skipPaging(false)
             .includeDeleted(true)
             .build();
 
     final TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertThat(params.getTrackedEntityType(), is(trackedEntityType));
-    assertThat(params.getPageSize(), is(50));
-    assertThat(params.getPage(), is(1));
-    assertThat(params.isTotalPages(), is(false));
     assertThat(params.getProgramStatus(), is(ProgramStatus.ACTIVE));
     assertThat(params.getFollowUp(), is(true));
     assertThat(params.getLastUpdatedStartDate(), is(operationParams.getLastUpdatedStartDate()));
@@ -210,8 +202,7 @@ class TrackedEntityOperationParamsMapperTest {
         params.getProgramEnrollmentStartDate(),
         is(operationParams.getProgramEnrollmentStartDate()));
     assertThat(
-        params.getProgramEnrollmentEndDate(),
-        is(DateUtils.addDays(operationParams.getProgramEnrollmentEndDate(), 1)));
+        params.getProgramEnrollmentEndDate(), is(operationParams.getProgramEnrollmentEndDate()));
     assertThat(params.getEventStatus(), is(EventStatus.COMPLETED));
     assertThat(params.getEventStartDate(), is(operationParams.getEventStartDate()));
     assertThat(params.getEventEndDate(), is(operationParams.getEventEndDate()));
@@ -259,7 +250,7 @@ class TrackedEntityOperationParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    assertEquals(DateUtils.addDays(date, 1), params.getProgramEnrollmentEndDate());
+    assertEquals(date, params.getProgramEnrollmentEndDate());
   }
 
   @Test
