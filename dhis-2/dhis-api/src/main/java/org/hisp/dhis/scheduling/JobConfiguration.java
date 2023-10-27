@@ -341,7 +341,10 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   }
 
   public boolean isRunOnce() {
-    return cronExpression == null && delay == null && queueName == null;
+    return schedulingType == SchedulingType.ONCE_ASAP
+        && cronExpression == null
+        && delay == null
+        && queueName == null;
   }
 
   public boolean isDueBetween(
