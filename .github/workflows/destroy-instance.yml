@@ -31,3 +31,9 @@ jobs:
           IM_HOST: 'https://api.im.dhis2.org'
           INSTANCE_NAME: pr-${{ github.event.number }}
         run: ./findByName.sh dev $INSTANCE_NAME && ./destroy.sh dev $INSTANCE_NAME
+
+      - name: Delete instance URL comment
+        uses: actions-cool/maintain-one-comment@v3
+        with:
+          body: "Instance deployed to https://dev.im.dhis2.org/pr-${{ github.event.pull_request.number }}"
+          delete: true
