@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -61,11 +60,6 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 @ToString
 public class TrackedEntityQueryParams {
-
-  public static final int DEFAULT_PAGE = 1;
-
-  public static final int DEFAULT_PAGE_SIZE = 50;
-
   /**
    * Each attribute will affect the final SQL query. Some attributes are filtered on, while
    * attributes added via {@link #orderBy(TrackedEntityAttribute, SortDirection)} will be ordered
@@ -136,18 +130,6 @@ public class TrackedEntityQueryParams {
 
   /** End date for event for the given program. */
   private Date eventEndDate;
-
-  /** Page number. */
-  private Integer page;
-
-  /** Page size. */
-  private Integer pageSize;
-
-  /** Indicates whether to include the total number of pages in the paging response. */
-  private boolean totalPages;
-
-  /** Indicates whether paging should be skipped. */
-  private boolean skipPaging;
 
   /** Indicates if there is a maximum te retrieval limit. 0 no limit. */
   private int maxTeLimit;
@@ -343,26 +325,6 @@ public class TrackedEntityQueryParams {
     return false;
   }
 
-  /** Indicates whether paging is enabled. */
-  public boolean isPaging() {
-    return !isSkipPaging();
-  }
-
-  /** Returns the page number, falls back to default value of 1 if not specified. */
-  public int getPageWithDefault() {
-    return page != null && page > 0 ? page : DEFAULT_PAGE;
-  }
-
-  /** Returns the page size, falls back to default value of 50 if not specified. */
-  public int getPageSizeWithDefault() {
-    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-  }
-
-  /** Returns the offset based on the page number and page size. */
-  public int getOffset() {
-    return (getPageWithDefault() - 1) * getPageSizeWithDefault();
-  }
-
   /** Returns attributes that are either ordered by or present in any filter. */
   public Set<TrackedEntityAttribute> getAttributes() {
     return SetUtils.union(filters.keySet(), getOrderAttributes());
@@ -473,9 +435,7 @@ public class TrackedEntityQueryParams {
   }
 
   public Date getProgramEnrollmentEndDate() {
-    return programEnrollmentEndDate != null
-        ? DateUtils.addDays(programEnrollmentEndDate, 1)
-        : programEnrollmentEndDate;
+    return programEnrollmentEndDate;
   }
 
   public TrackedEntityQueryParams setProgramEnrollmentEndDate(Date programEnrollmentEndDate) {
@@ -493,9 +453,7 @@ public class TrackedEntityQueryParams {
   }
 
   public Date getProgramIncidentEndDate() {
-    return programIncidentEndDate != null
-        ? DateUtils.addDays(programIncidentEndDate, 1)
-        : programIncidentEndDate;
+    return programIncidentEndDate;
   }
 
   public TrackedEntityQueryParams setProgramIncidentEndDate(Date programIncidentEndDate) {
@@ -560,42 +518,6 @@ public class TrackedEntityQueryParams {
 
   public TrackedEntityQueryParams setEventEndDate(Date eventEndDate) {
     this.eventEndDate = eventEndDate;
-    return this;
-  }
-
-  public Integer getPage() {
-    return page;
-  }
-
-  public TrackedEntityQueryParams setPage(Integer page) {
-    this.page = page;
-    return this;
-  }
-
-  public Integer getPageSize() {
-    return pageSize;
-  }
-
-  public TrackedEntityQueryParams setPageSize(Integer pageSize) {
-    this.pageSize = pageSize;
-    return this;
-  }
-
-  public boolean isTotalPages() {
-    return totalPages;
-  }
-
-  public TrackedEntityQueryParams setTotalPages(boolean totalPages) {
-    this.totalPages = totalPages;
-    return this;
-  }
-
-  public boolean isSkipPaging() {
-    return skipPaging;
-  }
-
-  public TrackedEntityQueryParams setSkipPaging(boolean skipPaging) {
-    this.skipPaging = skipPaging;
     return this;
   }
 

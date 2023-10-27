@@ -32,7 +32,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
-import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -121,7 +121,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   @Override
   public Page<Relationship> getByTrackedEntity(
-      TrackedEntity trackedEntity, RelationshipQueryParams queryParams, PageParams pageParams) {
+      TrackedEntity trackedEntity,
+      RelationshipQueryParams queryParams,
+      @Nonnull PageParams pageParams) {
     TypedQuery<Relationship> relationshipTypedQuery =
         getRelationshipTypedQuery(trackedEntity, queryParams, pageParams);
 
@@ -131,7 +133,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   @Override
   public Page<Relationship> getByEnrollment(
-      Enrollment enrollment, RelationshipQueryParams queryParams, PageParams pageParams) {
+      Enrollment enrollment, RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
     TypedQuery<Relationship> relationshipTypedQuery =
         getRelationshipTypedQuery(enrollment, queryParams, pageParams);
 
@@ -141,7 +143,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   @Override
   public Page<Relationship> getByEvent(
-      Event event, RelationshipQueryParams queryParams, PageParams pageParams) {
+      Event event, RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
     TypedQuery<Relationship> relationshipTypedQuery =
         getRelationshipTypedQuery(event, queryParams, pageParams);
 
@@ -232,9 +234,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         newJpaParameters(queryParams, pageParams, builder);
 
     relationshipItemCriteriaQuery.orderBy(
-        jpaQueryParameters.getOrders().stream()
-            .map(o -> o.apply(root))
-            .collect(Collectors.toList()));
+        jpaQueryParameters.getOrders().stream().map(o -> o.apply(root)).toList());
 
     TypedQuery<Relationship> relationshipTypedQuery =
         getSession().createQuery(relationshipItemCriteriaQuery);

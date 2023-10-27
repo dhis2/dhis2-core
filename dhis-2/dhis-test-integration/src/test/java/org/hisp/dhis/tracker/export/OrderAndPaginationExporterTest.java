@@ -35,7 +35,6 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
@@ -51,7 +50,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -1314,19 +1312,5 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
     return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
-  }
-
-  private static void assertSlimPager(int pageNumber, int pageSize, boolean isLast, Pager pager) {
-    assertInstanceOf(SlimPager.class, pager, "SlimPager should be returned if totalPages=false");
-    SlimPager slimPager = (SlimPager) pager;
-    assertAll(
-        "pagination details",
-        () -> assertEquals(pageNumber, slimPager.getPage(), "number of current page"),
-        () -> assertEquals(pageSize, slimPager.getPageSize(), "page size"),
-        () ->
-            assertEquals(
-                isLast,
-                slimPager.isLastPage(),
-                isLast ? "should be the last page" : "should NOT be the last page"));
   }
 }

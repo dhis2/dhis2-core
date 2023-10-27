@@ -29,8 +29,8 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import java.util.List;
@@ -170,10 +170,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
               + "'";
     } else if (params.hasLastUpdated()) {
       hql +=
-          hlp.whereAnd()
-              + "en.lastUpdated >= '"
-              + getMediumDateString(params.getLastUpdated())
-              + "'";
+          hlp.whereAnd() + "en.lastUpdated >= '" + getLongDateString(params.getLastUpdated()) + "'";
     }
 
     if (params.hasTrackedEntity()) {
@@ -226,7 +223,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql +=
           hlp.whereAnd()
               + "en.enrollmentDate >= '"
-              + getMediumDateString(params.getProgramStartDate())
+              + getLongDateString(params.getProgramStartDate())
               + "'";
     }
 
@@ -234,7 +231,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql +=
           hlp.whereAnd()
               + "en.enrollmentDate <= '"
-              + getMediumDateString(params.getProgramEndDate())
+              + getLongDateString(params.getProgramEndDate())
               + "'";
     }
 
