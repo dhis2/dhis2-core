@@ -112,10 +112,6 @@ class TrackedEntityRequestParamsMapperTest {
     requestParams.setEventStatus(EventStatus.COMPLETED);
     requestParams.setEventOccurredAfter(getDate(2019, 7, 7));
     requestParams.setEventOccurredBefore(getDate(2020, 7, 7));
-    requestParams.setPage(1);
-    requestParams.setPageSize(50);
-    requestParams.setTotalPages(false);
-    requestParams.setSkipPaging(false);
     requestParams.setIncludeDeleted(true);
 
     final TrackedEntityOperationParams params = mapper.map(requestParams, user);
@@ -123,9 +119,6 @@ class TrackedEntityRequestParamsMapperTest {
     assertThat(params.getProgramUid(), is(PROGRAM_UID));
     assertThat(params.getProgramStageUid(), is(PROGRAM_STAGE_UID));
     assertThat(params.getTrackedEntityTypeUid(), is(TRACKED_ENTITY_TYPE_UID));
-    assertThat(params.getPageSize(), is(50));
-    assertThat(params.getPage(), is(1));
-    assertThat(params.isTotalPages(), is(false));
     assertThat(params.getProgramStatus(), is(ProgramStatus.ACTIVE));
     assertThat(params.getFollowUp(), is(true));
     assertThat(params.getLastUpdatedStartDate(), is(requestParams.getUpdatedAfter()));

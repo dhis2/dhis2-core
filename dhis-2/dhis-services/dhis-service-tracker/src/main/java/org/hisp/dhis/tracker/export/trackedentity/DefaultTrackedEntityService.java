@@ -78,6 +78,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventParams;
@@ -306,9 +308,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
-  public TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
+  public List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams);
+    queryParams.setSkipPaging(true);
     final List<Long> ids = getTrackedEntityIds(queryParams);
 
     List<TrackedEntity> trackedEntities =
@@ -322,21 +325,41 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     addSearchAudit(trackedEntities, queryParams.getUser());
 
-    if (operationParams.isSkipPaging()) {
-      return TrackedEntities.withoutPagination(trackedEntities);
-    }
+    return trackedEntities;
+  }
+
+  @Override
+  public Page<TrackedEntity> getTrackedEntities(
+      TrackedEntityOperationParams operationParams, PageParams pageParams)
+      throws BadRequestException, ForbiddenException, NotFoundException {
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams);
+    queryParams.setPage(pageParams.getPage());
+    queryParams.setPageSize(pageParams.getPageSize());
+    queryParams.setTotalPages(pageParams.isPageTotal());
+    queryParams.setSkipPaging(false);
+    final List<Long> ids = getTrackedEntityIds(queryParams);
+
+    List<TrackedEntity> trackedEntities =
+        this.trackedEntityAggregate.find(
+            ids, operationParams.getTrackedEntityParams(), queryParams);
+
+    mapRelationshipItems(
+        trackedEntities,
+        operationParams.getTrackedEntityParams(),
+        operationParams.isIncludeDeleted());
+
+    addSearchAudit(trackedEntities, queryParams.getUser());
 
     Pager pager;
 
-    if (operationParams.isTotalPages()) {
+    if (pageParams.isPageTotal()) {
       int count = getTrackedEntityCount(queryParams, true, true);
-      pager =
-          new Pager(queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault());
+      pager = new Pager(pageParams.getPage(), count, pageParams.getPageSize());
     } else {
-      pager = handleLastPageFlag(operationParams, trackedEntities);
+      pager = handleLastPageFlag(queryParams, trackedEntities);
     }
 
-    return TrackedEntities.of(trackedEntities, pager);
+    return Page.of(trackedEntities, pager);
   }
 
   public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
@@ -760,7 +783,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    * @return the populated SlimPager instance
    */
   private Pager handleLastPageFlag(
-      TrackedEntityOperationParams params, List<TrackedEntity> trackedEntityList) {
+      TrackedEntityQueryParams params, List<TrackedEntity> trackedEntityList) {
     Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
     Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
     boolean isLastPage = false;

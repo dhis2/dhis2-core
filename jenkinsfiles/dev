@@ -222,7 +222,7 @@ pipeline {
                                 dir('scripts/databases') {
                                     env.DATABASE_ID = sh(
                                             returnStdout: true,
-                                            script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/Sierra Leone - ${env.GIT_BRANCH}.sql.gz\") | .slug'"
+                                            script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${env.GIT_BRANCH}.sql.gz\") | .slug'"
                                     ).trim()
                                 }
                             }
@@ -231,7 +231,7 @@ pipeline {
                             echo "Database: ${env.DATABASE_ID}"
 
                             dir('scripts/instances') {
-                                sh "(./findByName.sh play dev-${branch} && ./restart.sh play dev-${branch}) || ./deploy-dhis2.sh play dev-${branch}"
+                                sh "(./findByName.sh play dev${branch} && ./restart.sh play dev${branch}) || ./deploy-dhis2.sh play dev${branch}"
                                 timeout(5) {
                                     waitFor.statusOk("${env.INSTANCE_URL}")
                                 }
