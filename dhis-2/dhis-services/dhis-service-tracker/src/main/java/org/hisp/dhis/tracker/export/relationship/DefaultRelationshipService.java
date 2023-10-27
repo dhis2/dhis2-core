@@ -27,17 +27,10 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -245,35 +238,6 @@ public class DefaultRelationshipService implements RelationshipService {
     }
 
     return result;
-  }
-
-  /**
-   * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with methods in : {@link RelationshipService}
-   *
-   * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
-   * allow us to evaluate if we are in the last page or not. And this is what his method does,
-   * returning the respective Pager object.
-   *
-   * @param relationships the reference to the list of Relationships
-   * @return the populated SlimPager instance
-   */
-  private Pager handleLastPageFlag(List<Relationship> relationships, PageParams pageParams) {
-    Integer originalPage = defaultIfNull(pageParams.getPage(), FIRST_PAGE);
-    Integer originalPageSize = defaultIfNull(pageParams.getPageSize(), DEFAULT_PAGE_SIZE);
-    boolean isLastPage = false;
-
-    if (isNotEmpty(relationships)) {
-      isLastPage = relationships.size() <= originalPageSize;
-      if (!isLastPage) {
-        // Get the same number of elements of the pageSize, forcing
-        // the removal of the last additional element added at querying
-        // time.
-        relationships.retainAll(relationships.subList(0, originalPageSize));
-      }
-    }
-
-    return new SlimPager(originalPage, originalPageSize, isLastPage);
   }
 
   @Override
