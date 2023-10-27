@@ -154,6 +154,7 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
   public boolean addDataElement(DataElement dataElement, Integer sortOrder) {
     ProgramStageDataElement element =
         new ProgramStageDataElement(this, dataElement, false, sortOrder);
+    dataElement.getProgramStageDataElements().add(element);
     element.setAutoFields();
 
     return this.programStageDataElements.add(element);

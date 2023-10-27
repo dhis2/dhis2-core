@@ -72,6 +72,7 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.program.ProgramStageDataElement;
 
 /**
  * @author Kristian Nordal
@@ -106,6 +107,9 @@ public class DataElement extends BaseDimensionalItemObject
 
   /** The data sets which this data element is a member of. */
   private Set<DataSetElement> dataSetElements = new HashSet<>();
+
+/** The program stages which this data element is a member of. */
+  private Set<ProgramStageDataElement> programStageDataElements = new HashSet<>();
 
   /** The lower organisation unit levels for aggregation. */
   private List<Integer> aggregationLevels = new ArrayList<>();
@@ -564,6 +568,17 @@ public class DataElement extends BaseDimensionalItemObject
 
   public void setDataSetElements(Set<DataSetElement> dataSetElements) {
     this.dataSetElements = dataSetElements;
+  }
+
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "programStageDataElements", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "programStageDataElements", namespace = DxfNamespaces.DXF_2_0)
+  public Set<ProgramStageDataElement> getProgramStageDataElements() {
+    return programStageDataElements;
+  }
+
+  public void setProgramStageDataElements(Set<ProgramStageDataElement> programStageDataElements) {
+    this.programStageDataElements = programStageDataElements;
   }
 
   @JsonProperty

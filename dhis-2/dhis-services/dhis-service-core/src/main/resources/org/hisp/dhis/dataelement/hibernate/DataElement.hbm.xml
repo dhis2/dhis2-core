@@ -65,6 +65,12 @@
       <one-to-many class="org.hisp.dhis.dataset.DataSetElement" />
     </set>
 
+    <set name="programStageDataElements" table="programstagedataelement" inverse="true">
+      <cache usage="read-write" />
+      <key column="dataelementid" foreign-key="fk_programstagedataelement_dataelementid" not-null="true" />
+      <one-to-many class="org.hisp.dhis.program.ProgramStageDataElement" />
+    </set>
+
     <list name="aggregationLevels" table="dataelementaggregationlevels">
       <cache usage="read-write" />
       <key column="dataelementid" foreign-key="fk_dataelementaggregationlevels_dataelementid" />
