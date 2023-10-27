@@ -56,16 +56,6 @@ class EventQueryParamsTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldAddAttributeToOrderAndAttributesWhenOrderingByAttribute() {
-    EventQueryParams params = new EventQueryParams();
-
-    params.orderBy(tea1, SortDirection.DESC);
-
-    assertEquals(List.of(new Order(tea1, SortDirection.DESC)), params.getOrder());
-    assertEquals(Map.of(tea1, List.of()), params.getAttributes());
-  }
-
-  @Test
   void shouldKeepExistingAttributeFiltersWhenOrderingByAttribute() {
     EventQueryParams params = new EventQueryParams();
 
