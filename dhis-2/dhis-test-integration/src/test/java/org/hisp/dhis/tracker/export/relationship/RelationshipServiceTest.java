@@ -233,13 +233,11 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(teA.getUid()).build();
 
-    Relationships relationships = relationshipService.getRelationships(operationParams);
+    List<Relationship> relationships = relationshipService.getRelationships(operationParams);
 
     assertContainsOnly(
         List.of(accessible.getUid()),
-        relationships.getRelationships().stream()
-            .map(Relationship::getUid)
-            .collect(Collectors.toList()));
+        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
   }
 
   @Test
@@ -254,13 +252,11 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
             .identifier(enrollmentA.getUid())
             .build();
 
-    Relationships relationships = relationshipService.getRelationships(operationParams);
+    List<Relationship> relationships = relationshipService.getRelationships(operationParams);
 
     assertContainsOnly(
         List.of(accessible.getUid()),
-        relationships.getRelationships().stream()
-            .map(Relationship::getUid)
-            .collect(Collectors.toList()));
+        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
   }
 
   @Test
@@ -272,13 +268,11 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder().type(EVENT).identifier(eventA.getUid()).build();
 
-    Relationships relationships = relationshipService.getRelationships(operationParams);
+    List<Relationship> relationships = relationshipService.getRelationships(operationParams);
 
     assertContainsOnly(
         List.of(accessible.getUid()),
-        relationships.getRelationships().stream()
-            .map(Relationship::getUid)
-            .collect(Collectors.toList()));
+        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
   }
 
   @Test
@@ -294,7 +288,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
             .orderBy("createdAtClient", SortDirection.DESC)
             .build();
     List<String> relationshipIds =
-        relationshipService.getRelationships(operationParams).getRelationships().stream()
+        relationshipService.getRelationships(operationParams).stream()
             .map(BaseIdentifiableObject::getUid)
             .collect(Collectors.toList());
 
@@ -314,7 +308,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
             .orderBy("createdAtClient", SortDirection.ASC)
             .build();
     List<String> relationshipIds =
-        relationshipService.getRelationships(operationParams).getRelationships().stream()
+        relationshipService.getRelationships(operationParams).stream()
             .map(BaseIdentifiableObject::getUid)
             .collect(Collectors.toList());
 

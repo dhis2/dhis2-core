@@ -43,9 +43,10 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
-import org.hisp.dhis.tracker.export.relationship.Relationships;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
@@ -96,22 +97,43 @@ class RelationshipsExportController {
   @GetMapping
   PagingWrapper<ObjectNode> getRelationships(RequestParams requestParams)
       throws NotFoundException, BadRequestException, ForbiddenException {
-
     RelationshipOperationParams operationParams = mapper.map(requestParams);
-    Relationships relationships = relationshipService.getRelationships(operationParams);
 
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
+    if (requestParams.isPaged()) {
+      PageParams pageParams =
+          new PageParams(
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
 
-    if (requestParams.isPagingRequest()) {
-      pagingWrapper =
-          pagingWrapper.withPager(
-              PagingWrapper.Pager.fromLegacy(requestParams, relationships.getPager()));
+      Page<org.hisp.dhis.relationship.Relationship> relationshipsPage =
+          relationshipService.getRelationships(operationParams, pageParams);
+
+      PagingWrapper.Pager.PagerBuilder pagerBuilder =
+          PagingWrapper.Pager.builder()
+              .page(relationshipsPage.getPager().getPage())
+              .pageSize(relationshipsPage.getPager().getPageSize());
+
+      if (requestParams.isPageTotal()) {
+        pagerBuilder
+            .pageCount(relationshipsPage.getPager().getPageCount())
+            .total(relationshipsPage.getPager().getTotal());
+      }
+
+      PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
+      pagingWrapper = pagingWrapper.withPager(pagerBuilder.build());
+      List<ObjectNode> objectNodes =
+          fieldFilterService.toObjectNodes(
+              RELATIONSHIP_MAPPER.fromCollection(relationshipsPage.getItems()),
+              requestParams.getFields());
+      return pagingWrapper.withInstances(objectNodes);
     }
 
+    List<org.hisp.dhis.relationship.Relationship> relationships =
+        relationshipService.getRelationships(operationParams);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
-            RELATIONSHIP_MAPPER.fromCollection(relationships.getRelationships()),
-            requestParams.getFields());
+            RELATIONSHIP_MAPPER.fromCollection(relationships), requestParams.getFields());
+
+    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
     return pagingWrapper.withInstances(objectNodes);
   }
 
