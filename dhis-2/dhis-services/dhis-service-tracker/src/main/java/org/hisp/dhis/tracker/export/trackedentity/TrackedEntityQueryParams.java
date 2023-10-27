@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -436,9 +435,7 @@ public class TrackedEntityQueryParams {
   }
 
   public Date getProgramEnrollmentEndDate() {
-    return programEnrollmentEndDate != null
-        ? DateUtils.addDays(programEnrollmentEndDate, 1)
-        : programEnrollmentEndDate;
+    return programEnrollmentEndDate;
   }
 
   public TrackedEntityQueryParams setProgramEnrollmentEndDate(Date programEnrollmentEndDate) {
@@ -456,9 +453,7 @@ public class TrackedEntityQueryParams {
   }
 
   public Date getProgramIncidentEndDate() {
-    return programIncidentEndDate != null
-        ? DateUtils.addDays(programIncidentEndDate, 1)
-        : programIncidentEndDate;
+    return programIncidentEndDate;
   }
 
   public TrackedEntityQueryParams setProgramIncidentEndDate(Date programIncidentEndDate) {

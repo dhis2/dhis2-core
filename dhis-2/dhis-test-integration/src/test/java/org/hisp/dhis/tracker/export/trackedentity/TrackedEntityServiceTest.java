@@ -29,6 +29,10 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
+import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
+import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursAfter;
+import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursBefore;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
@@ -270,6 +274,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     eventA.setProgramStage(programStageA1);
     eventA.setOrganisationUnit(orgUnitA);
     eventA.setAttributeOptionCombo(defaultCategoryOptionCombo);
+    eventA.setExecutionDate(parseDate("2021-05-27T12:05:00.000"));
     eventA.setDueDate(parseDate("2021-02-27T12:05:00.000"));
     eventA.setCompletedDate(parseDate("2021-02-27T11:05:00.000"));
     eventA.setCompletedBy("herb");
@@ -553,6 +558,300 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldReturnTrackedEntityIfTEWasUpdatedAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeLastUpdated = oneHourBefore(trackedEntityA.getLastUpdated());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .lastUpdatedStartDate(oneHourBeforeLastUpdated)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfTEWasUpdatedBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterLastUpdated = oneHourAfter(trackedEntityA.getLastUpdated());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .lastUpdatedStartDate(oneHourAfterLastUpdated)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfTEWasUpdatedBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterLastUpdated = oneHourAfter(trackedEntityA.getLastUpdated());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .lastUpdatedEndDate(oneHourAfterLastUpdated)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfTEWasUpdatedAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeLastUpdated = oneHourBefore(trackedEntityA.getLastUpdated());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .lastUpdatedEndDate(oneHourBeforeLastUpdated)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfTEWasEnrolledAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeEnrollmentDate = oneHourBefore(enrollmentA.getEnrollmentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programEnrollmentStartDate(oneHourBeforeEnrollmentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfTEWasEnrolledBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterEnrollmentDate = oneHourAfter(enrollmentA.getEnrollmentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programEnrollmentStartDate(oneHourAfterEnrollmentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfTEWasEnrolledBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterEnrollmentDate = oneHourAfter(enrollmentA.getEnrollmentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programEnrollmentEndDate(oneHourAfterEnrollmentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfTEWasEnrolledAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeEnrollmentDate = oneHourBefore(enrollmentA.getEnrollmentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programEnrollmentEndDate(oneHourBeforeEnrollmentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfEnrollmentOccurredAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeIncidentDate = oneHourBefore(enrollmentA.getIncidentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programIncidentStartDate(oneHourBeforeIncidentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfEnrollmentOccurredBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterIncidentDate = oneHourAfter(enrollmentA.getIncidentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programIncidentStartDate(oneHourAfterIncidentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfEnrollmentOccurredBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterIncidentDate = oneHourAfter(enrollmentA.getIncidentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programIncidentEndDate(oneHourAfterIncidentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfEnrollmentOccurredPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeIncidentDate = oneHourBefore(enrollmentA.getIncidentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programIncidentEndDate(oneHourBeforeIncidentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfEventOccurredBetweenPassedDateAndTimes()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeEventDate = oneHourBefore(eventA.getExecutionDate());
+    Date oneHourAfterEventDate = oneHourAfter(eventA.getExecutionDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .eventStatus(EventStatus.ACTIVE)
+            .eventStartDate(oneHourBeforeEventDate)
+            .eventEndDate(oneHourAfterEventDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfEventOccurredBeforePassedDateAndTimes()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterEventDate = oneHourAfter(eventA.getExecutionDate());
+    Date twoHoursAfterEventDate = twoHoursAfter(eventA.getExecutionDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .eventStatus(EventStatus.ACTIVE)
+            .eventStartDate(oneHourAfterEventDate)
+            .eventEndDate(twoHoursAfterEventDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfEventOccurredAfterPassedDateAndTimes()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeEventDate = oneHourBefore(eventA.getExecutionDate());
+    Date twoHoursBeforeEventDate = twoHoursBefore(eventA.getExecutionDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .eventStatus(EventStatus.ACTIVE)
+            .eventStartDate(twoHoursBeforeEventDate)
+            .eventEndDate(oneHourBeforeEventDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
   void shouldReturnEmptyCollectionIfGivenFilterDoesNotMatch()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityOperationParams operationParams =
@@ -595,7 +894,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .lastUpdatedStartDate(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)))
-            .lastUpdatedEndDate(new Date())
+            .lastUpdatedEndDate(Date.from(Instant.now().plus(1, ChronoUnit.MINUTES)))
             .user(user)
             .build();
 
@@ -610,7 +909,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .lastUpdatedStartDate(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))
-            .lastUpdatedEndDate(new Date())
+            .lastUpdatedEndDate(Date.from(Instant.now().plus(1, ChronoUnit.MINUTES)))
             .user(user)
             .build();
 
