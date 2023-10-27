@@ -783,7 +783,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByAttributeAndFilterOutEventsWithATrackedEntityWithoutThatAttribute()
+  void shouldOrderEventsByAttributeAndNotFilterOutEventsWithATrackedEntityWithoutThatAttribute()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         eventParamsBuilder
@@ -798,7 +798,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     List<String> events = getEvents(params);
 
-    assertEquals(List.of("D9PbzJY8bJM"), events);
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
   @Test
