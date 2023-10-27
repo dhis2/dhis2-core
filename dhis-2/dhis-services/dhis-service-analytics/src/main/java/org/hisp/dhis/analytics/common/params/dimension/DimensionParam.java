@@ -84,7 +84,7 @@ public class DimensionParam implements UidObject {
    * @param dimensionalObjectOrQueryItem either a {@link DimensionalObject} or {@link QueryItem}, or
    *     a static dimension.
    * @param dimensionParamType the {@link DimensionParamType} for the {@link DimensionParam}
-   *     returned (weather it's a filter or a dimension).
+   *     returned (whether it's a filter or a dimension).
    * @param items the list of items parameters for this DimensionParam.
    * @return a new instance of {@link DimensionParam}.
    */

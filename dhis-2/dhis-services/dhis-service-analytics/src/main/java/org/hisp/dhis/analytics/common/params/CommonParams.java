@@ -42,6 +42,7 @@ import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.With;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -148,11 +149,14 @@ public class CommonParams {
   /** Indicates if additional ou hierarchy data should be provided. */
   private final boolean showHierarchy;
 
-  /** weather the query should consider only items with lat/long coordinates */
+  /** whether the query should consider only items with lat/long coordinates */
   private boolean coordinatesOnly;
 
-  /** weather the query should consider only items with geometry */
+  /** whether the query should consider only items with geometry */
   private boolean geometryOnly;
+
+  /** whether the programs comes from the request or not */
+  @With private final boolean programsFromRequest;
 
   /**
    * Indicates whether this query defines a master identifier scheme different from the default
