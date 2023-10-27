@@ -203,7 +203,6 @@ pipeline {
                 LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
                 READINESS_PROBE_TIMEOUT_SECONDS = "3"
             }
-
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
@@ -217,7 +216,7 @@ pipeline {
                                 env.DATABASE_ID = "test-dbs-sierra-leone-dev-sql-gz"
                             } else {
                                 env.IMAGE_TAG = env.GIT_BRANCH
-                                branch = "-${env.GIT_BRANCH.replaceAll(".", "-")}"
+                                branch = "-${env.GIT_BRANCH.replace(".", "-")}"
 
                                 dir('scripts/databases') {
                                     env.DATABASE_ID = sh(
