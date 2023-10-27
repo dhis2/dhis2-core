@@ -32,7 +32,6 @@ import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 
@@ -486,8 +485,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       if (params.hasLastUpdatedEndDate()) {
         trackedEntity
             .append(whereAnd.whereAnd())
-            .append(" TE.lastupdated < '")
-            .append(getLongDateString(addDays(params.getLastUpdatedEndDate(), 1)))
+            .append(" TE.lastupdated <= '")
+            .append(getLongDateString(params.getLastUpdatedEndDate()))
             .append(SINGLE_QUOTE);
       }
     }
