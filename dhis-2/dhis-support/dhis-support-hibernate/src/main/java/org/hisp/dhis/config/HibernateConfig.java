@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.SharedCacheMode;
 import javax.persistence.ValidationMode;
@@ -118,10 +119,11 @@ public class HibernateConfig {
   public DbmsManager dbmsManager(
       JdbcTemplate jdbcTemplate,
       EntityManagerFactory entityManagerFactory,
-      DefaultHibernateCacheManager cacheManager) {
+      DefaultHibernateCacheManager cacheManager,
+      EntityManager entityManager) {
     HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
     hibernateDbmsManager.setCacheManager(cacheManager);
-    hibernateDbmsManager.setSessionFactory(entityManagerFactory.unwrap(SessionFactory.class));
+    hibernateDbmsManager.setEntityManager(entityManager);
     hibernateDbmsManager.setJdbcTemplate(jdbcTemplate);
     return hibernateDbmsManager;
   }

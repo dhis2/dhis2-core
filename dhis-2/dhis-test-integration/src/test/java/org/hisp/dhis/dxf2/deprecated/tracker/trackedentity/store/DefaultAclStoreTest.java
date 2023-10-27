@@ -50,7 +50,7 @@ class DefaultAclStoreTest extends IntegrationTestBase {
 
   @Autowired private UserService _userService;
 
-  @Autowired private DefaultAclStore aclStore;
+  @Autowired private AclStore aclStore;
 
   @Autowired IdentifiableObjectManager manager;
 

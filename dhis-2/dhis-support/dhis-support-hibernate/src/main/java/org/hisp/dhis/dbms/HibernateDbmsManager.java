@@ -30,7 +30,10 @@ package org.hisp.dhis.dbms;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -52,10 +55,10 @@ public class HibernateDbmsManager implements DbmsManager {
     this.jdbcTemplate = jdbcTemplate;
   }
 
-  private SessionFactory sessionFactory;
+  private EntityManager entityManager;
 
-  public void setSessionFactory(SessionFactory sessionFactory) {
-    this.sessionFactory = sessionFactory;
+  public void setEntityManager(EntityManager entityManager) {
+    this.entityManager = entityManager;
   }
 
   private HibernateCacheManager cacheManager;
@@ -358,13 +361,13 @@ public class HibernateDbmsManager implements DbmsManager {
 
   @Override
   public void clearSession() {
-    sessionFactory.getCurrentSession().flush();
-    sessionFactory.getCurrentSession().clear();
+    entityManager.flush();
+    entityManager.clear();
   }
 
   @Override
   public void flushSession() {
-    sessionFactory.getCurrentSession().flush();
+    entityManager.flush();
   }
 
   @Override
@@ -437,20 +440,5 @@ public class HibernateDbmsManager implements DbmsManager {
     } catch (BadSqlGrammarException ex) {
       log.debug("Could not empty relationship tables");
     }
-  }
-
-  @Override
-  public void evictObject(Object object) {
-    sessionFactory.getCurrentSession().evict(object);
-  }
-
-  @Override
-  public boolean contains(Object object) {
-    return sessionFactory.getCurrentSession().contains(object);
-  }
-
-  @Override
-  public Serializable getIdentifier(Object object) {
-    return sessionFactory.getCurrentSession().getIdentifier(object);
   }
 }
