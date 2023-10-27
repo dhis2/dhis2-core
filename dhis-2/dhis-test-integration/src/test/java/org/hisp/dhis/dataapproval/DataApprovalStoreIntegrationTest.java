@@ -502,6 +502,6 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
                 workflowA, periodFeb, null, 1, null, categoryComboA, null, userApprovalLevels, null)
             .size());
 
-    dbmsManager.clearSession();
+//    dbmsManager.clearSession();
   }
 }

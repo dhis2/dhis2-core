@@ -190,9 +190,8 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
    * @return executable TypedQuery
    */
   private TypedQuery<T> getExecutableTypedQuery(CriteriaQuery<T> criteriaQuery) {
-    return getSession()
+    return entityManager
         .createQuery(criteriaQuery)
-        .setCacheable(cacheable)
         .setHint(QueryHints.CACHEABLE, cacheable);
   }
 
