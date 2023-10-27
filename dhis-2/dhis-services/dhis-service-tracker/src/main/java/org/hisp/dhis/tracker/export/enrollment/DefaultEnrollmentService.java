@@ -239,6 +239,9 @@ class DefaultEnrollmentService
         && queryParams.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
       queryParams.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
       queryParams.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    } else if (user != null && queryParams.isOrganisationUnitMode(CAPTURE)) {
+      queryParams.setOrganisationUnits(user.getOrganisationUnits());
+      queryParams.setOrganisationUnitMode(DESCENDANTS);
     } else if (queryParams.isOrganisationUnitMode(CHILDREN)) {
       Set<OrganisationUnit> organisationUnits = new HashSet<>(queryParams.getOrganisationUnits());
 
