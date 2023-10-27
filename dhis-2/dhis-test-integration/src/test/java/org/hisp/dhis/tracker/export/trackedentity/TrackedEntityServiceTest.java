@@ -571,8 +571,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
   }
@@ -591,8 +590,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertIsEmpty(trackedEntities);
   }
@@ -611,8 +609,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
   }
@@ -631,8 +628,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertIsEmpty(trackedEntities);
   }
@@ -651,8 +647,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
   }
@@ -671,8 +666,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertIsEmpty(trackedEntities);
   }
@@ -691,8 +685,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
   }
@@ -711,8 +704,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertIsEmpty(trackedEntities);
   }
@@ -731,8 +723,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
   }
@@ -751,8 +742,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertIsEmpty(trackedEntities);
   }
@@ -771,8 +761,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
   }
@@ -791,8 +780,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertIsEmpty(trackedEntities);
   }
@@ -814,8 +802,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
   }
@@ -837,8 +824,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertIsEmpty(trackedEntities);
   }
@@ -860,8 +846,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertIsEmpty(trackedEntities);
   }
