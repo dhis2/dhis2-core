@@ -18,7 +18,7 @@ jobs:
       INSTANCE_NAME: pr-${{ github.event.pull_request.number }}
     steps:
       - name: Wait for API tests
-        uses: lewagon/wait-on-check-action@v1.3.1
+        uses: t3chguy/wait-on-check-action@master
         with:
           ref: ${{ github.head_ref }}
           check-name: 'api-test'
