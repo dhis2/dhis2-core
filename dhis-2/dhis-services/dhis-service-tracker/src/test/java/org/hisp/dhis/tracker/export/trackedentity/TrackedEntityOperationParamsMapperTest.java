@@ -189,19 +189,12 @@ class TrackedEntityOperationParamsMapperTest {
             .eventStatus(EventStatus.COMPLETED)
             .eventStartDate(getDate(2019, 7, 7))
             .eventEndDate(getDate(2020, 7, 7))
-            .page(1)
-            .pageSize(50)
-            .totalPages(false)
-            .skipPaging(false)
             .includeDeleted(true)
             .build();
 
     final TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertThat(params.getTrackedEntityType(), is(trackedEntityType));
-    assertThat(params.getPageSize(), is(50));
-    assertThat(params.getPage(), is(1));
-    assertThat(params.isTotalPages(), is(false));
     assertThat(params.getProgramStatus(), is(ProgramStatus.ACTIVE));
     assertThat(params.getFollowUp(), is(true));
     assertThat(params.getLastUpdatedStartDate(), is(operationParams.getLastUpdatedStartDate()));

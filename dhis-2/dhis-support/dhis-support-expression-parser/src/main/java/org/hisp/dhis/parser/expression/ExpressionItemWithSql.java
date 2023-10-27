@@ -25,24 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.parser.expression;
 
-import java.util.List;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
-@RequiredArgsConstructor(staticName = "of")
-@Getter
-@EqualsAndHashCode
-public class TrackedEntities {
+/**
+ * A parsed item from an ANTLR expression, using the evaluate method to generate SQL (or to pass
+ * through the call to generate SQL.)
+ *
+ * @author Jim Grace
+ */
+public interface ExpressionItemWithSql extends ExpressionItem {
 
-  private final List<TrackedEntity> trackedEntities;
-  private final Pager pager;
-
-  public static TrackedEntities withoutPagination(List<TrackedEntity> trackedEntities) {
-    return new TrackedEntities(trackedEntities, null);
+  /**
+   * Generates the SQL for an expression item using the evaluate method.
+   *
+   * @param ctx the expression context
+   * @param visitor the tree visitor
+   * @return the generated SQL (as a String) for the item
+   */
+  @Override
+  default Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return evaluate(ctx, visitor);
   }
 }

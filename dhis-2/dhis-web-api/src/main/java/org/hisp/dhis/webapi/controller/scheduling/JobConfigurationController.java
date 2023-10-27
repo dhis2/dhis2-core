@@ -74,7 +74,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   public List<JobConfiguration> getDueJobConfigurations(
       @RequestParam int seconds,
       @RequestParam(required = false, defaultValue = "false") boolean includeWaiting) {
-    return jobConfigurationService.getDueJobConfigurations(seconds, false, includeWaiting);
+    return jobConfigurationService.getDueJobConfigurations(seconds, includeWaiting);
   }
 
   @GetMapping("/stale")
@@ -122,6 +122,30 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteDoneJobs(@RequestParam int minutes) {
     jobConfigurationService.deleteFinishedJobs(minutes);
+  }
+
+  @PostMapping("{uid}/enable")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void enable(@PathVariable("uid") String uid) throws NotFoundException, ConflictException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
+    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid);
+    checkModifiable(obj, "Job %s is a system job that cannot be modified.");
+    if (!obj.isEnabled()) {
+      obj.setEnabled(true);
+      jobConfigurationService.updateJobConfiguration(obj);
+    }
+  }
+
+  @PostMapping("{uid}/disable")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void disable(@PathVariable("uid") String uid) throws NotFoundException, ConflictException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
+    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid);
+    checkModifiable(obj, "Job %s is a system job that cannot be modified.");
+    if (obj.isEnabled()) {
+      obj.setEnabled(false);
+      jobConfigurationService.updateJobConfiguration(obj);
+    }
   }
 
   @Override
