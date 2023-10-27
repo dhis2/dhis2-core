@@ -166,7 +166,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   @Override
   public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
     String sql = getQuery(params, null);
-    log.debug("Tracked entity query SQL: " + sql);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
     checkMaxTrackedEntityCountReached(params, rowSet);
@@ -183,7 +182,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   @Override
   public Page<Long> getTrackedEntityIds(TrackedEntityQueryParams params, PageParams pageParams) {
     String sql = getQuery(params, pageParams);
-    log.debug("Tracked entity query SQL: " + sql);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
     checkMaxTrackedEntityCountReached(params, rowSet);
@@ -235,14 +233,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   @Override
   public int getTrackedEntityCount(TrackedEntityQueryParams params) {
     String sql = getCountQuery(params);
-    log.debug("Tracked entity count SQL: " + sql);
     return jdbcTemplate.queryForObject(sql, Integer.class);
   }
 
   @Override
   public int getTrackedEntityCountWithMaxTrackedEntityLimit(TrackedEntityQueryParams params) {
     String sql = getCountQueryWithMaxTrackedEntityLimit(params);
-    log.debug("Tracked entity count SQL: " + sql);
     return jdbcTemplate.queryForObject(sql, Integer.class);
   }
 

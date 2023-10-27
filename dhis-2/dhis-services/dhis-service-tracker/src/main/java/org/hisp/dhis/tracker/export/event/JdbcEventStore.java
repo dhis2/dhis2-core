@@ -266,8 +266,6 @@ class JdbcEventStore implements EventStore {
         sql,
         mapSqlParameterSource,
         resultSet -> {
-          log.debug("Event query SQL: " + sql);
-
           Set<String> notes = new HashSet<>();
 
           while (resultSet.next()) {
@@ -542,8 +540,6 @@ class JdbcEventStore implements EventStore {
     sql = sql.replaceFirst("order .*? (desc|asc)", "");
 
     sql = sql.replaceFirst("limit \\d+ offset \\d+", "");
-
-    log.debug("Event query count SQL: " + sql);
 
     return jdbcTemplate.queryForObject(sql, mapSqlParameterSource, Integer.class);
   }
