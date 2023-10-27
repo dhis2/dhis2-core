@@ -60,11 +60,8 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 @ToString
 public class TrackedEntityQueryParams {
-  /**
-   * Each attribute will affect the final SQL query. Some attributes are filtered on, while
-   * attributes added via {@link #orderBy(TrackedEntityAttribute, SortDirection)} will be ordered
-   * by.
-   */
+
+  /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
   private final Map<TrackedEntityAttribute, List<QueryFilter>> filters = new HashMap<>();
 
   /**
@@ -323,11 +320,6 @@ public class TrackedEntityQueryParams {
     }
 
     return false;
-  }
-
-  /** Returns attributes that are either ordered by or present in any filter. */
-  public Set<TrackedEntityAttribute> getAttributes() {
-    return SetUtils.union(filters.keySet(), getOrderAttributes());
   }
 
   /** Returns attributes that are only ordered by and not present in any filter. */
