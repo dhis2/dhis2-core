@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -117,7 +118,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
           new AnalyticsTableColumn(quote("pe"), TEXT, NOT_NULL, "ps.iso"),
           new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"),
           new AnalyticsTableColumn(quote("oulevel"), INTEGER, "ous.level"));
-
   public JdbcAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -356,6 +356,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             + "from datavalue dv "
             + "inner join period pe on dv.periodid=pe.periodid "
             + "inner join _periodstructure ps on dv.periodid=ps.periodid "
+            + "left join periodtype pt on pe.periodtypeid = pt.periodtypeid "
             + "inner join dataelement de on dv.dataelementid=de.dataelementid "
             + "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid "
             + "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid "
@@ -369,6 +370,23 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             + "inner join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid "
             + "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid "
             + "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid "
+            + "left join (select dv.dataelementid as dataelementid,"
+            + "                  dv.sourceid as sourceid,"
+            + "                  dv.categoryoptioncomboid as categoryoptioncomboid,"
+            + "                  dv.attributeoptioncomboid as attributeoptioncomboid,"
+            + "                  avg(dv.value::double precision) as avg_middle_value,"
+            + "                  percentile_cont(0.5)"
+            + "                            within group (order by dv.value::double precision) as percentile_middle_value,"
+            + "                            stddev_pop(dv.value::double precision) as std_dev"
+            + "           from datavalue dv"
+            + "           inner join period pe on dv.periodid = pe.periodid"
+            + "           inner join organisationunit ou on dv.sourceid = ou.organisationunitid"
+            + "           where dv.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$'"
+            + "           group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid,"
+            + "                    dv.attributeoptioncomboid) as stats "
+            + "on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid"
+            + "   and dv.categoryoptioncomboid = stats.categoryoptioncomboid"
+            + "   and dv.attributeoptioncomboid = stats.attributeoptioncomboid "
             + approvalClause
             + "where de.valuetype in ("
             + valTypes
@@ -514,6 +532,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     columns.add(new AnalyticsTableColumn(quote("approvallevel"), INTEGER, approvalCol));
     columns.addAll(getFixedColumns());
+    columns.addAll(getOutlierStatsColumns());
 
     return filterDimensionColumns(columns);
   }
@@ -529,6 +548,29 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, "daysno"),
         new AnalyticsTableColumn(quote("value"), DOUBLE, "value"),
         new AnalyticsTableColumn(quote("textvalue"), TEXT, "textvalue"));
+  }
+
+  private List<AnalyticsTableColumn> getOutlierStatsColumns() {
+    return List.of(
+    new AnalyticsTableColumn(quote("de_uid"), CHARACTER_11, NOT_NULL, "de.uid"),
+            new AnalyticsTableColumn(quote("coc_uid"), CHARACTER_11, NOT_NULL, "co.uid"),
+            new AnalyticsTableColumn(quote("aoc_uid"), CHARACTER_11, NOT_NULL,"ao.uid"),
+            new AnalyticsTableColumn(quote("ou_uid"), CHARACTER_11, NOT_NULL, "ou.uid"),
+            new AnalyticsTableColumn(quote("dataelementid"), INTEGER, NOT_NULL, "dv.dataelementid")
+                    .withIndexColumns(List.of(quote("dataelementid"))),
+            new AnalyticsTableColumn(quote("sourceid"), INTEGER, NOT_NULL, "dv.sourceid"),
+            new AnalyticsTableColumn(quote("periodid"), INTEGER, NOT_NULL, "dv.periodid"),
+            new AnalyticsTableColumn(quote("categoryoptioncomboid"), INTEGER, NOT_NULL, "dv.categoryoptioncomboid"),
+            new AnalyticsTableColumn(quote("attributeoptioncomboid"), INTEGER, NOT_NULL, "dv.attributeoptioncomboid"),
+            new AnalyticsTableColumn(quote("de_name"), VARCHAR_255, "de.name"),
+            new AnalyticsTableColumn(quote("ou_name"), VARCHAR_255, "ou.name"),
+            new AnalyticsTableColumn(quote("coc_name"), VARCHAR_255, "co.name"),
+            new AnalyticsTableColumn(quote("aoc_name"), VARCHAR_255, "ao.name"),
+            new AnalyticsTableColumn(quote("follow_up"), VARCHAR_255, "dv.followup"),
+            new AnalyticsTableColumn(quote("path"), VARCHAR_255, "ou.path"),
+            new AnalyticsTableColumn(quote("avg_middle_value"), DOUBLE, "stats.avg_middle_value"),
+            new AnalyticsTableColumn(quote("percentile_middle_value"), DOUBLE, "stats.percentile_middle_value"),
+            new AnalyticsTableColumn(quote("std_dev"), DOUBLE, "stats.std_dev"));
   }
 
   /**

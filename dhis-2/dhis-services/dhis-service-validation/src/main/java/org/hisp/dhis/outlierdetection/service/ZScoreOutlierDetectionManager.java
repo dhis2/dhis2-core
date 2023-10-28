@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.outlierdetection.service;
 
+import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getDataEndDateClause;
+import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getDataStartDateClause;
 import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getOrgUnitPathClauseExt;
 import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
 
@@ -72,8 +74,8 @@ public class ZScoreOutlierDetectionManager {
    */
   public List<OutlierValue> getOutlierValues(OutlierDetectionRequest request) {
     final String ouPathClause = getOrgUnitPathClauseExt(request.getOrgUnits());
-//    final String dataStartDateClause = getDataStartDateClause(request.getDataStartDate());
-//    final String dataEndDateClause = getDataEndDateClause(request.getDataEndDate());
+    final String dataStartDateClause = getDataStartDateClause(request.getDataStartDate());
+    final String dataEndDateClause = getDataEndDateClause(request.getDataEndDate());
 
     final boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
 //    final String middle_stats_calc =
@@ -81,7 +83,7 @@ public class ZScoreOutlierDetectionManager {
 //            ? "percentile_cont(0.5) within group(order by dv.value::double precision)"
 //            : "avg(dv.value::double precision)";
 
-    String middle_value = modifiedZ ? "dvou.percentile_middle_value":" dvou.avg_middle_value";
+    String middle_value = modifiedZ ? "ax.percentile_middle_value":" ax.avg_middle_value";
 
     String order =
         request.getOrderBy() == Order.MEAN_ABS_DEV
@@ -92,33 +94,33 @@ public class ZScoreOutlierDetectionManager {
 
     final String sql =
             "select * from (select " +
-                    "dvou.dataelementid, " +
-                    "dvou.de_uid, " +
-                    "dvou.ou_uid, " +
-                    "dvou.coc_uid, " +
-                    "dvou.aoc_uid, " +
-                    "dvou.de_name, " +
-                    "dvou.ou_name, " +
-                    "dvou.coc_name, " +
-                    "dvou.aoc_name, " +
-                    "dvou.value, " +
-                    "dvou.follow_up, " +
-                    "dvou.pe_start_date, " +
-                    "dvou.pt_name, " +
+                    "ax.dataelementid, " +
+                    "ax.de_uid, " +
+                    "ax.ou_uid, " +
+                    "ax.coc_uid, " +
+                    "ax.aoc_uid, " +
+                    "ax.de_name, " +
+                    "ax.ou_name, " +
+                    "ax.coc_name, " +
+                    "ax.aoc_name, " +
+                    "ax.value, " +
+                    "ax.follow_up, " +
+                    "ax.startdate as pe_start_date, " +
+                    "ax.pt_name, " +
                     middle_value + " as middle_value, " +
-                    "dvou.std_dev as std_dev, " +
-                    "abs(dvou.value::double precision - " + middle_value + ") as middle_value_abs_dev, " +
-                    "(case when dvou.std_dev = 0 then 0 " +
-                    "      else abs(dvou.value::double precision - " +
-                    middle_value +" ) / dvou.std_dev " +
+                    "ax.std_dev as std_dev, " +
+                    "abs(ax.value::double precision - " + middle_value + ") as middle_value_abs_dev, " +
+                    "(case when ax.std_dev = 0 then 0 " +
+                    "      else abs(ax.value::double precision - " +
+                    middle_value +" ) / ax.std_dev " +
                     "       end) as z_score, " +
-                    middle_value + " - (dvou.std_dev * 3) as lower_bound, " +
-                    middle_value + " + (dvou.std_dev * 3) as upper_bound " +
-                    "from mv_datavalue_outliers dvou " +
+                    middle_value + " - (ax.std_dev * 3) as lower_bound, " +
+                    middle_value + " + (ax.std_dev * 3) as upper_bound " +
+                    "from analytics_2023_ext ax " +
                     "where dataelementid in  (:data_element_ids) " +
                     "and " + ouPathClause + " "+
-                    "and dvou.pe_start_date >= :start_date " +
-                    "and dvou.pe_end_date <= :end_date) t1 " +
+                    "and ax.startdate >= :start_date " +
+                    "and ax.enddate <= :end_date) t1 " +
                     "where t1.z_score > :threshold " +
                     "order by " + order + " desc " +
                     "limit :max_results ";

@@ -58,7 +58,7 @@ public class OutlierDetectionUtils {
     String sql = "(";
 
     for (OrganisationUnit ou : orgUnits) {
-      sql += "dvou.\"path\" like '" + ou.getPath() + "%' or ";
+      sql += "ax.\"path\" like '" + ou.getPath() + "%' or ";
     }
 
     return StringUtils.trim(TextUtils.removeLastOr(sql)) + ")";
@@ -71,6 +71,7 @@ public class OutlierDetectionUtils {
    * @return a period data start date clause.
    */
   public static String getDataStartDateClause(Date dataStartDate) {
+    //return dataStartDate != null ? "and pe.startdate >= :data_start_date " : StringUtils.EMPTY;
     return dataStartDate != null ? "and pe.startdate >= :data_start_date " : StringUtils.EMPTY;
   }
 
