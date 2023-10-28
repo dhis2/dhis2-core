@@ -147,7 +147,7 @@ pipeline {
 
                             echo 'Creating DHIS2 instance on IM...'
                             env.IMAGE_TAG = env.GIT_BRANCH
-                            def branch = "-${env.GIT_BRANCH.replaceAll(".", "-")}"
+                            def branch = "-${env.GIT_BRANCH.replace(".", "-")}"
 
                             dir('scripts/databases') {
                                 env.DATABASE_ID = sh(
