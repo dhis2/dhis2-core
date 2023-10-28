@@ -188,7 +188,7 @@ pipeline {
             }
         }
 
-        stage('Update IM Play dev instance') {
+        stage('Update IM Play instance') {
             environment {
                 HTTP = "http --check-status"
                 IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
