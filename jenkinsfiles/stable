@@ -141,28 +141,44 @@ pipeline {
 
             steps {
                 script {
+                    if(env.DOCKER_IMAGE_TAG.endsWith("rc")) {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'NOT_BUILT') {
+                            error "Skipping..." // Force an error that we will catch to set the stageResult
+                        }
+                        return
+                    }
+
+                    echo 'Creating DHIS2 instance on IM...'
                     withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
                         dir('im-manager') {
                             gitHelper.sparseCheckout(IM_REPO_URL, "${gitHelper.getLatestTag(IM_REPO_URL)}", '/scripts')
 
-                            echo 'Creating DHIS2 instance on IM...'
-                            env.IMAGE_TAG = env.GIT_BRANCH
-                            def branch = "-${env.GIT_BRANCH.replace(".", "-")}"
+                            def version = env.GIT_BRANCH
+                            if (version.startsWith("patch/")) {
+                                version = version.split("/")[1]
+                                // If version contains more than 2 dots... It's a hotfix
+                                def isHotfix = version.length() - version.replace(".", "").length() > 2
+                                if (isHotfix) {
+                                    int endIndex = version.lastIndexOf(".")
+                                    version = version.substring(0, endIndex)
+                                }
+                            }
 
                             dir('scripts/databases') {
                                 env.DATABASE_ID = sh(
                                         returnStdout: true,
-                                        script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${env.GIT_BRANCH}.sql.gz\") | .slug'"
+                                        script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${version}.sql.gz\") | .slug'"
                                 ).trim()
                             }
 
                             sh '[ -n "$DATABASE_ID" ]'
                             echo "Database: ${env.DATABASE_ID}"
 
+                            def name = "-${version.replace(".", "-")}"
                             dir('scripts/instances') {
-                                sh "(./findByName.sh play stable${branch} && ./restart.sh play stable${branch}) || ./deploy-dhis2.sh play stable${branch}"
+                                sh "(./findByName.sh play stable${name} && ./restart.sh play stable${name}) || ./deploy-dhis2.sh play stable${name}"
                                 timeout(5) {
-                                    waitFor.statusOk("${env.INSTANCE_URL}${branch}")
+                                    waitFor.statusOk("${env.INSTANCE_URL}${name}")
                                 }
                             }
                         }
