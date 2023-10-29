@@ -588,12 +588,16 @@ class JdbcEventStore implements EventStore {
   }
 
   /**
-   * Generates a single INNER JOIN for each attribute we are searching on. We can search by a range
-   * of operators. All searching is using lower() since attribute values are case-insensitive.
+   * Generates a single INNER JOIN for each attribute we are filtering or ordering on. We can search
+   * by a range of operators. All searching is using lower() since attribute values are
+   * case-insensitive.
    */
-  private void joinAttributeValueWithoutQueryParameter(
-      StringBuilder sql, Map<TrackedEntityAttribute, List<QueryFilter>> attributes) {
-    for (Entry<TrackedEntityAttribute, List<QueryFilter>> queryItem : attributes.entrySet()) {
+  private String joinAttributeValue(EventQueryParams params) {
+    StringBuilder sql = new StringBuilder();
+
+    for (Entry<TrackedEntityAttribute, List<QueryFilter>> queryItem :
+        params.getAttributes().entrySet()) {
+
       TrackedEntityAttribute tea = queryItem.getKey();
       String teaUid = tea.getUid();
       String teaValueCol = statementBuilder.columnQuote(teaUid);
@@ -619,6 +623,8 @@ class JdbcEventStore implements EventStore {
           getAttributeFilterQuery(
               queryItem.getValue(), teaCol, teaValueCol, tea.getValueType().isNumeric()));
     }
+
+    return sql.toString();
   }
 
   private String getAttributeFilterQuery(
@@ -672,6 +678,35 @@ class JdbcEventStore implements EventStore {
     }
 
     return query.toString();
+  }
+
+  /**
+   * Generates the LEFT JOINs used for attributes we are ordering by (If any). We use LEFT JOIN to
+   * avoid removing any rows if there is no value for a given attribute and te. The result of this
+   * LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and main query.
+   *
+   * @return a SQL LEFT JOIN for attributes used for ordering, or empty string if no attributes is
+   *     used in order.
+   */
+  private String getFromSubQueryJoinOrderByAttributes(EventQueryParams params) {
+    StringBuilder joinOrderAttributes = new StringBuilder();
+
+    for (TrackedEntityAttribute orderAttribute : params.leftJoinAttributes()) {
+
+      joinOrderAttributes
+          .append(" LEFT JOIN trackedentityattributevalue AS ")
+          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(" ON ")
+          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(".trackedentityid = TE.trackedentityid ")
+          .append("AND ")
+          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(".trackedentityattributeid = ")
+          .append(orderAttribute.getId())
+          .append(SPACE);
+    }
+
+    return joinOrderAttributes.toString();
   }
 
   private String getEventSelectQuery(
@@ -814,9 +849,11 @@ class JdbcEventStore implements EventStore {
             "left join organisationunit teou on (te.organisationunitid=teou.organisationunitid) ")
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
-    if (!params.getAttributes().isEmpty()) {
-      joinAttributeValueWithoutQueryParameter(fromBuilder, params.getAttributes());
-    }
+    // JOIN attributes we need to filter on.
+    fromBuilder.append(joinAttributeValue(params));
+
+    // LEFT JOIN not filterable attributes we need to sort on.
+    fromBuilder.append(getFromSubQueryJoinOrderByAttributes(params));
 
     fromBuilder.append(getCategoryOptionComboQuery(user));
 

@@ -414,7 +414,6 @@ public enum ErrorCode {
   E7133("Query cannot be executed, possibly because of invalid types or invalid operation"),
   E7134("Cannot retrieve total value for data elements with skip total category combination"),
   E7135("Date time is not parsable: `{0}`"),
-  E7136("Program is not specified"),
   E7137("Expression is not parsable: `{0}`"),
   E7138("Invalid offset: `{0}`"),
   E7139("Parameters programStatus and enrollmentStatus cannot be used together"),

@@ -48,7 +48,7 @@ import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests weather or not the {@link ObjectBundleHooks#getObjectHooks(Object)} and {@link
+ * Tests whether or not the {@link ObjectBundleHooks#getObjectHooks(Object)} and {@link
  * ObjectBundleHooks#getTypeImportHooks(Class)} methods assemble the expected lists of {@link
  * ObjectBundleHook}s.
  *
