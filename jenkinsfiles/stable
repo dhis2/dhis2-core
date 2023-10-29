@@ -156,12 +156,12 @@ pipeline {
                             def version = env.GIT_BRANCH
                             if (version.startsWith("patch/")) {
                                 version = version.split("/")[1]
-                                // If version contains more than 2 dots... It's a hotfix
-                                def isHotfix = version.length() - version.replace(".", "").length() > 2
-                                if (isHotfix) {
-                                    int endIndex = version.lastIndexOf(".")
-                                    version = version.substring(0, endIndex)
-                                }
+                            }
+                            // If version contains more than 2 dots... It's a hotfix
+                            def isHotfix = version.length() - version.replace(".", "").length() > 2
+                            if (isHotfix) {
+                                int endIndex = version.lastIndexOf(".")
+                                version = version.substring(0, endIndex)
                             }
 
                             dir('scripts/databases') {
