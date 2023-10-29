@@ -319,7 +319,7 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
       return getProgramIndicatorEventInEnrollmentSelectSql(
           columnName, programStageUid, reportingStartDate, reportingEndDate, programIndicator);
     } else {
-      return getProgramIndicatorDataElementInEventSelectSql(columnName, programStageUid);
+      return columnName;
     }
   }
 
