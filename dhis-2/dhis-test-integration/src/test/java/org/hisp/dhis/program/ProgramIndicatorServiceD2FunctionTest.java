@@ -357,7 +357,7 @@ class ProgramIndicatorServiceD2FunctionTest extends SingleSetupIntegrationTestBa
   void testD2Zpvc() {
     assertEquals(
         "nullif(cast((case when case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end >= 0 then 1 else 0 end "
-                + "+ case when case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentB\" else null end >= 0 then 1 else 0 end) as double precision),0)",
+            + "+ case when case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentB\" else null end >= 0 then 1 else 0 end) as double precision),0)",
         getSql("d2:zpvc(#{ProgrmStagA.DataElmentA},#{ProgrmStagA.DataElmentB})"));
     assertEquals(
         "nullif(cast((case when (select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) >= 0 then 1 else 0 end "
