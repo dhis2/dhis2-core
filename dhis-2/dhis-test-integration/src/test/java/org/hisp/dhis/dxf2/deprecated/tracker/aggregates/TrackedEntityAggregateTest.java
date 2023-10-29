@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
@@ -85,7 +86,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class TrackedEntityAggregateTest extends TrackerTest {
   @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
-  @Autowired private SessionFactory sessionFactory;
+  @Autowired private EntityManager entityManager;
 
   @Autowired private TrackedEntityProgramOwnerService programOwnerService;
 
@@ -706,8 +707,8 @@ class TrackedEntityAggregateTest extends TrackerTest {
         () -> {
           TrackedEntity t1 = this.persistTrackedEntity();
           TrackedEntity t2 = this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
-          sessionFactory.getCurrentSession().flush();
-          sessionFactory.getCurrentSession().clear();
+          entityManager.flush();
+          entityManager.clear();
           t2 = manager.getByUid(TrackedEntity.class, Collections.singletonList(t2.getUid())).get(0);
           Enrollment pi = t2.getEnrollments().iterator().next();
           final Event psi = pi.getEvents().iterator().next();

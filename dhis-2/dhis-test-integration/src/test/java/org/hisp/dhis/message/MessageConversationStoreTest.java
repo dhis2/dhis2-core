@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.persistence.EntityManager;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -52,7 +53,7 @@ class MessageConversationStoreTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private UserService _userService;
 
-  @Autowired private SessionFactory sessionFactory;
+  @Autowired private EntityManager entityManager;
 
   private User userB;
 
@@ -118,7 +119,7 @@ class MessageConversationStoreTest extends SingleSetupIntegrationTestBase {
   @Test
   void testGetMessageConversationsReturnCorrectNumberOfMessages() {
     MessageConversation conversation = messageConversationStore.get(conversationA);
-    sessionFactory.getCurrentSession().flush();
+    entityManager.flush();
     assertTrue((conversation.getMessageCount() == 4));
   }
 

@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -60,7 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackerBundleService implements TrackerBundleService {
   private final TrackerPreheatService trackerPreheatService;
 
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
 
   private final CommitService commitService;
 
@@ -100,7 +101,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
       return PersistenceReport.emptyReport();
     }
 
-    Session session = sessionFactory.getCurrentSession();
+    Session session = entityManager.unwrap(Session.class);
     Map<TrackerType, TrackerTypeReport> reportMap =
         Map.of(
             TrackerType.TRACKED_ENTITY,
