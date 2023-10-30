@@ -552,5 +552,5 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
         "java.time.LocalDate",
         false,
         true);
-    }
+  }
 }
