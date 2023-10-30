@@ -156,7 +156,7 @@ pipeline {
                             // If version contains more than 2 dots... It's a hotfix
                             def isHotfix = version.length() - version.replace(".", "").length() > 2
                             if (isHotfix) {
-                                int endIndex = version.lastIndexOf(".")
+                                def endIndex = version.lastIndexOf(".")
                                 version = version.substring(0, endIndex)
                             }
 
