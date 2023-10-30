@@ -140,15 +140,11 @@ pipeline {
             }
 
             steps {
+                when {
+                    expression { !env.DOCKER_IMAGE_TAG.endsWith("rc") }
+                }
+                echo 'Creating DHIS2 instance on IM...'
                 script {
-                    if(env.DOCKER_IMAGE_TAG.endsWith("rc")) {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'NOT_BUILT') {
-                            error "Skipping..." // Force an error that we will catch to set the stageResult
-                        }
-                        return
-                    }
-
-                    echo 'Creating DHIS2 instance on IM...'
                     withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
                         dir('im-manager') {
                             gitHelper.sparseCheckout(IM_REPO_URL, "${gitHelper.getLatestTag(IM_REPO_URL)}", '/scripts')
