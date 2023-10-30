@@ -78,7 +78,8 @@ class IconTest extends TrackerTest {
             "description",
             keywords,
             fileResource.getUid(),
-            currentUserService.getCurrentUser().getUid()));
+            currentUserService.getCurrentUser().getUid(),
+            true));
   }
 
   @Test
@@ -136,7 +137,8 @@ class IconTest extends TrackerTest {
             "description",
             new String[] {keyword},
             fileResourceD.getUid(),
-            currentUserService.getCurrentUser().getUid()));
+            currentUserService.getCurrentUser().getUid(),
+            true));
 
     assertGreaterOrEqual(2, iconService.getIcons(new String[] {keyword}).size());
   }
@@ -152,7 +154,8 @@ class IconTest extends TrackerTest {
             "description",
             new String[] {"k4", "k5", "k6"},
             fileResourceB.getUid(),
-            currentUserService.getCurrentUser().getUid());
+            currentUserService.getCurrentUser().getUid(),
+            true);
     iconService.addCustomIcon(iconB);
     FileResource fileResourceC = createAndPersistFileResource('C');
     CustomIcon iconC =
@@ -161,7 +164,8 @@ class IconTest extends TrackerTest {
             "description",
             new String[] {"k6", "k7", "k8"},
             fileResourceC.getUid(),
-            currentUserService.getCurrentUser().getUid());
+            currentUserService.getCurrentUser().getUid(),
+            true);
     iconService.addCustomIcon(iconC);
 
     assertContainsOnly(List.of(iconB), iconService.getIcons(new String[] {"k4", "k5", "k6"}));
@@ -202,7 +206,8 @@ class IconTest extends TrackerTest {
                         "description",
                         new String[] {"keyword1"},
                         "fileResourceUid",
-                        "userUid")));
+                        "userUid",
+                        true)));
 
     String expectedMessage = String.format("Icon with key %s already exists.", defaultIconKey);
     assertEquals(expectedMessage, exception.getMessage());
