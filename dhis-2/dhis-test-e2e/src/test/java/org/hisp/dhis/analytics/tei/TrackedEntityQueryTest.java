@@ -60,6 +60,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             .add("dimension=ou:ImspTQPwCqd")
             .add("program=IpHINAT79UW")
             .add("asc=IpHINAT79UW.w75KJ2mc4zz")
+            .add("lastUpdated=LAST_YEAR")
             .add("totalPages=false")
             .add("pageSize=100")
             .add("page=1")
@@ -2578,6 +2579,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         new QueryParamsBuilder()
             .add("program=IpHINAT79UW")
             .add("programStatus=IpHINAT79UW.COMPLETED")
+            .add("lastUpdated=LAST_YEAR")
             .add("desc=lastupdated")
             .add("relativePeriodDate=2018-01-01");
 
@@ -2631,6 +2633,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         new QueryParamsBuilder()
             .add("program=IpHINAT79UW")
             .add("enrollmentStatus=IpHINAT79UW.COMPLETED")
+            .add("lastUpdated=LAST_YEAR")
             .add("desc=lastupdated")
             .add("relativePeriodDate=2018-01-01");
 
@@ -2684,6 +2687,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         new QueryParamsBuilder()
             .add("program=IpHINAT79UW")
             .add("eventStatus=IpHINAT79UW.A03MvHHogjR.COMPLETED")
+            .add("lastUpdated=LAST_YEAR")
             .add("desc=lastupdated")
             .add("relativePeriodDate=2018-01-01");
 
