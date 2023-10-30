@@ -49,4 +49,6 @@ public class CustomIcon implements Icon {
   private String fileResourceUid;
 
   private String createdByUserUid;
+
+  private boolean custom;
 }

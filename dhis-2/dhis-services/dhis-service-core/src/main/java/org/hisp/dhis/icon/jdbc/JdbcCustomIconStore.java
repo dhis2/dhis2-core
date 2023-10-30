@@ -54,6 +54,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
         customIcon.setKeywords((String[]) rs.getArray("keywords").getArray());
         customIcon.setFileResourceUid(rs.getString("fileresourceuid"));
         customIcon.setCreatedByUserUid(rs.getString("useruid"));
+        customIcon.setCustom(rs.getBoolean("custom"));
 
         return customIcon;
       };
@@ -62,7 +63,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
   public CustomIcon getIconByKey(String key) {
     final String sql =
         """
-            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
+            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.custom as custom, f.uid as fileresourceuid, u.uid as useruid
             from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
             join userinfo u on u.userinfoid = c.createdby
             where key = ?
@@ -77,7 +78,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
   public List<CustomIcon> getIconsByKeywords(String[] keywords) {
     final String sql =
         """
-            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
+            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.custom as custom, f.uid as fileresourceuid, u.uid as useruid
             from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
             join userinfo u on u.userinfoid = c.createdby
             where keywords @> string_to_array(?,',')
@@ -90,9 +91,22 @@ public class JdbcCustomIconStore implements CustomIconStore {
   public List<CustomIcon> getAllIcons() {
     final String sql =
         """
-            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
+            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.custom as custom, f.uid as fileresourceuid, u.uid as useruid
             from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
             join userinfo u on u.userinfoid = c.createdby
+            """;
+
+    return jdbcTemplate.query(sql, customIconRowMapper);
+  }
+
+  @Override
+  public List<CustomIcon> getAllCustomIcons() {
+    final String sql =
+        """
+            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.custom as custom, f.uid as fileresourceuid, u.uid as useruid
+            from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
+            join userinfo u on u.userinfoid = c.createdby
+            where c.custom = true
             """;
 
     return jdbcTemplate.query(sql, customIconRowMapper);
@@ -108,12 +122,13 @@ public class JdbcCustomIconStore implements CustomIconStore {
   @Override
   public void save(CustomIcon customIcon, FileResource fileResource, User createdByUser) {
     jdbcTemplate.update(
-        "INSERT INTO customicon (key, description, keywords, fileresourceid, createdby) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO customicon (key, description, keywords, fileresourceid, createdby) VALUES (?, ?, ?, ?, ?,?)",
         customIcon.getKey(),
         customIcon.getDescription(),
         customIcon.getKeywords(),
         fileResource.getId(),
-        createdByUser.getId());
+        createdByUser.getId(),
+        customIcon.isCustom());
   }
 
   @Override
@@ -124,9 +139,10 @@ public class JdbcCustomIconStore implements CustomIconStore {
   @Override
   public void update(CustomIcon customIcon) {
     jdbcTemplate.update(
-        "update customicon set description = ?, keywords = ? where key = ?",
+        "update customicon set description = ?, keywords = ?, custom = ? where key = ?",
         customIcon.getDescription(),
         customIcon.getKeywords(),
+        customIcon.isCustom(),
         customIcon.getKey());
   }
 }

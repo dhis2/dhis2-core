@@ -111,6 +111,12 @@ public class DefaultIconService implements IconService {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public List<CustomIcon> getAllCustomIcons() {
+    return customIconStore.getAllCustomIcons();
+  }
+
+  @Override
   public Resource getDefaultIconResource(String key) throws NotFoundException {
     if (defaultIcons.containsKey(key)) {
       return new ClassPathResource(
@@ -145,7 +151,7 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void updateCustomIcon(String key, String description, String[] keywords)
+  public void updateCustomIcon(String key, String description, String[] keywords, boolean isCustom)
       throws BadRequestException, NotFoundException {
     CustomIcon icon = validateCustomIconExists(key);
 
@@ -164,6 +170,7 @@ public class DefaultIconService implements IconService {
       icon.setKeywords(keywords);
     }
 
+    icon.setCustom(isCustom);
     customIconStore.update(icon);
   }
 
