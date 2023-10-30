@@ -10,8 +10,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-deploy-label:
+    runs-on: ubuntu-latest
+    outputs:
+      removed: ${{ steps.check.outputs.removed }}
+    steps:
+      - name: Check if "deploy" was removed
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          last_removed_label=$(
+            gh api "repos/$GITHUB_REPOSITORY/issues/${{ github.event.pull_request.number }}/events" \
+            --jq 'map(select(.event == "unlabeled"))[-1].label.name'
+          )
+
+          if [[ "$last_removed_label" == 'deploy' ]]; then
+              echo "removed=true" >> "$GITHUB_OUTPUT"
+          fi
+
   destroy-instance:
-    if: contains(github.event.pull_request.labels.*.name, 'deploy')
+    needs: check-deploy-label
+    if: (github.event.action == 'closed' && contains(github.event.pull_request.labels.*.name, 'deploy')) || needs.check-deploy-label.outputs.removed
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

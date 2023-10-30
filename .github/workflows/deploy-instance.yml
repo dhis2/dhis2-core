@@ -57,7 +57,7 @@ jobs:
         working-directory: scripts/instances
         env:
           EXPECTED_STATUS: Running
-        run: timeout 600 bash -ex -c 'while [[ "$(./status.sh dev $INSTANCE_NAME | jq -r)" != "$EXPECTED_STATUS" ]]; do echo "Instance is not $EXPECTED_STATUS yet ..."; sleep 5; done'
+        run: timeout 600 bash -ex -c 'until [[ "$(./status.sh dev $INSTANCE_NAME | jq -r)" == "$EXPECTED_STATUS" ]]; do echo "Instance is not $EXPECTED_STATUS yet ..."; sleep 5; done'
 
       - name: Start analytics generation
         run: curl -X POST -u "${{ secrets.DHIS2_USERNAME }}:${{ secrets.DHIS2_PASSWORD }}" "$INSTANCE_HOST/$INSTANCE_NAME/api/resourceTables/analytics" -d 'executeTei=true'
