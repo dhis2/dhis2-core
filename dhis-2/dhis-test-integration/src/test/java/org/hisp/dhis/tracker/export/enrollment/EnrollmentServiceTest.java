@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
@@ -92,6 +93,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private Enrollment enrollmentB;
 
+  private Enrollment enrollmentChildA;
+
   private Event eventA;
 
   private TrackedEntity trackedEntityA;
@@ -117,6 +120,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     manager.save(orgUnitB, false);
     OrganisationUnit orgUnitC = createOrganisationUnit('C');
     manager.save(orgUnitC, false);
+    OrganisationUnit orgUnitChildA = createOrganisationUnit('D', orgUnitA);
+    manager.save(orgUnitChildA, false);
 
     User user =
         createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
@@ -138,6 +143,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC);
     trackedEntityC.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityC, false);
+
+    TrackedEntity trackedEntityChildA = createTrackedEntity(orgUnitChildA);
+    trackedEntityChildA.setTrackedEntityType(trackedEntityTypeA);
+    manager.save(trackedEntityChildA, false);
 
     programA = createProgram('A', new HashSet<>(), orgUnitA);
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
@@ -208,6 +217,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentB =
         programInstanceService.enrollTrackedEntity(
             trackedEntityB, programA, new Date(), new Date(), orgUnitB);
+
+    enrollmentChildA =
+        programInstanceService.enrollTrackedEntity(
+            trackedEntityChildA, programA, new Date(), new Date(), orgUnitChildA);
 
     injectSecurityContext(user);
   }
@@ -384,7 +397,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
 
     assertNotNull(enrollments);
-    assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentB.getUid()), uids(enrollments));
+    assertContainsOnly(
+        List.of(enrollmentA.getUid(), enrollmentB.getUid(), enrollmentChildA.getUid()),
+        uids(enrollments));
   }
 
   @Test
@@ -400,7 +415,25 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
 
     assertNotNull(enrollments);
-    assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentB.getUid()), uids(enrollments));
+    assertContainsOnly(
+        List.of(enrollmentA.getUid(), enrollmentB.getUid(), enrollmentChildA.getUid()),
+        uids(enrollments));
+  }
+
+  @Test
+  void shouldGetEnrollmentsInCaptureScopeIfOrgUnitModeCapture()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+
+    manager.updateNoAcl(programA);
+
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder().orgUnitMode(CAPTURE).build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+
+    assertNotNull(enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentChildA.getUid()), uids(enrollments));
   }
 
   @Test

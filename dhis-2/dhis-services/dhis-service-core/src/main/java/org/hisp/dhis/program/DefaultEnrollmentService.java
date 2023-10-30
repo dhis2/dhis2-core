@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 import java.util.Date;
@@ -174,6 +175,9 @@ public class DefaultEnrollmentService implements EnrollmentService {
     if (user != null && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
       params.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
       params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    } else if (user != null && params.isOrganisationUnitMode(CAPTURE)) {
+      params.setOrganisationUnits(user.getOrganisationUnits());
+      params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (params.isOrganisationUnitMode(CHILDREN)) {
       Set<OrganisationUnit> organisationUnits = new HashSet<>(params.getOrganisationUnits());
 
@@ -252,7 +256,9 @@ public class DefaultEnrollmentService implements EnrollmentService {
     User user = params.getUser();
 
     if (!params.hasOrganisationUnits()
-        && !(params.isOrganisationUnitMode(ALL) || params.isOrganisationUnitMode(ACCESSIBLE))) {
+        && !(params.isOrganisationUnitMode(ALL)
+            || params.isOrganisationUnitMode(ACCESSIBLE)
+            || params.isOrganisationUnitMode(CAPTURE))) {
       violation = "At least one organisation unit must be specified";
     }
 
@@ -260,6 +266,11 @@ public class DefaultEnrollmentService implements EnrollmentService {
         && (user == null || !user.hasDataViewOrganisationUnitWithFallback())) {
       violation =
           "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
+    }
+
+    if (params.isOrganisationUnitMode(CAPTURE) && (user == null || !user.hasOrganisationUnit())) {
+      violation =
+          "Current user must be associated with at least one organisation unit when selection mode is CAPTURE";
     }
 
     if (params.hasProgram() && params.hasTrackedEntityType()) {
