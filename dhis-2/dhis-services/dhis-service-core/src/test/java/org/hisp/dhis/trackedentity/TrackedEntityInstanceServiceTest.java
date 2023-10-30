@@ -890,7 +890,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     List<TrackedEntityInstance> trackedEntities =
         entityInstanceService.getTrackedEntityInstances(params, true, true);
 
-    assertContainsOnly(List.of(entityInstanceA1), trackedEntities);
+    assertContainsOnly(trackedEntities, entityInstanceA1);
   }
 
   @Test
