@@ -141,7 +141,7 @@ pipeline {
 
             steps {
                 when {
-                    expression { !env.DOCKER_IMAGE_TAG.endsWith("rc") }
+                    expression { !env.DOCKER_IMAGE_TAG.endsWith("-rc") }
                 }
                 echo 'Creating DHIS2 instance on IM...'
                 script {
