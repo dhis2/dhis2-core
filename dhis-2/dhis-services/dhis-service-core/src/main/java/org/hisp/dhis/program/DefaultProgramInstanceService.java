@@ -175,6 +175,9 @@ public class DefaultProgramInstanceService implements ProgramInstanceService {
     if (user != null && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
       params.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
       params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    } else if (user != null && params.isOrganisationUnitMode(CAPTURE)) {
+      params.setOrganisationUnits(user.getOrganisationUnits());
+      params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (params.isOrganisationUnitMode(CHILDREN)) {
       Set<OrganisationUnit> organisationUnits = new HashSet<>(params.getOrganisationUnits());
 
