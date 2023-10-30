@@ -1,0 +1,102 @@
+package org.hisp.dhis.metadata.metadata_import;
+
+import com.google.gson.JsonObject;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.SystemActions;
+import org.hisp.dhis.actions.metadata.MetadataActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/**
+ * Tests that the metadata import is running as a continuous import.
+ *
+ * <p>This means several small (fast) imports should run directly after another and not be executed
+ * with a gap of 20 seconds for the loop cycle time of the scheduler as each type otherwise can only
+ * run one job per cycle.
+ *
+ * @author Jan Bernitt
+ */
+class ContinuousMetadataImportTest extends ApiTest {
+
+  private MetadataActions metadataActions;
+  private SystemActions systemActions;
+  private RestApiActions jobConfigurationActions;
+
+  @BeforeAll
+  public void beforeAll() {
+    metadataActions = new MetadataActions();
+    systemActions = new SystemActions();
+    jobConfigurationActions = new RestApiActions("jobConfigurations");
+
+    new LoginActions().loginAsSuperUser();
+  }
+
+  @Test
+  void testRunContinuousImportJobs() throws Exception {
+    JsonObject object =
+        new FileReaderUtils()
+            .readJsonAndGenerateData(new File("src/test/resources/metadata/uniqueMetadata.json"));
+    // setup: import metadata so that we have references and can clean up
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.addAll(
+        "async=false",
+        "importReportMode=DEBUG",
+        "importStrategy=CREATE_AND_UPDATE",
+        "atomicMode=NONE");
+    ApiResponse response = metadataActions.post(object, queryParamsBuilder);
+
+    // send 5 async request to check later
+    queryParamsBuilder.add("async=true");
+    List<String> taskIds = new ArrayList<>();
+    for (int i = 0; i < 5; i++) {
+      response = metadataActions.post(object, queryParamsBuilder);
+      String taskId = response.extractString("response.id");
+      assertNotNull(taskId, "Task id was not returned");
+      taskIds.add(taskId);
+    }
+
+    for (String taskId : taskIds) {
+      systemActions.waitUntilTaskCompleted("METADATA_IMPORT", taskId);
+    }
+
+    DateTimeFormatter timestamp = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    String urlTemplate =
+        "/gist?headless=true&fields=id,lastFinished,lastExecuted&order=lastExecuted:asc&filter=id:in:[%s]";
+    JsonArray jobConfigs =
+        jobConfigurationActions
+            .get(urlTemplate.formatted(String.join(",", taskIds)))
+            .validateStatus(200)
+            .getBodyAsJsonValue();
+
+    Instant lastFinished = null;
+    for (org.hisp.dhis.jsontree.JsonObject jobConfig :
+        jobConfigs.asList(org.hisp.dhis.jsontree.JsonObject.class)) {
+      Instant lastExecuted =
+          Instant.from(timestamp.parse(jobConfig.getString("lastExecuted").string()));
+      if (lastFinished != null) {
+        long millisBetweenExecution = lastExecuted.toEpochMilli() - lastFinished.toEpochMilli();
+        assertTrue(
+            millisBetweenExecution < 20_000,
+            "Time between execution should not be longer than 20 seconds (scheduler cycle time) by was: %d ms"
+                .formatted(millisBetweenExecution));
+      }
+      lastFinished = Instant.from(timestamp.parse(jobConfig.getString("lastFinished").string()));
+      ;
+    }
+  }
+}
