@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -262,12 +264,8 @@ class ProgramInstanceServiceTest extends DhisSpringTest {
     assertTrue(programInstances.contains(programInstanceA));
   }
 
-  @ParameterizedTest
-  @EnumSource(
-      value = OrganisationUnitSelectionMode.class,
-      names = {"ACCESSIBLE", "CAPTURE"})
-  void shouldFindEnrollmentsWhenOrgUnitModeDoesNotRequireOrgUnit(
-      OrganisationUnitSelectionMode orgUnitMode) {
+  @Test
+  void shouldFindSearchScopeEnrollmentsWhenOrgUnitModeAccessible() {
     User user = new User();
     user.setOrganisationUnits(Set.of(organisationUnitA));
     programInstanceService.addProgramInstance(programInstanceA);
@@ -276,9 +274,29 @@ class ProgramInstanceServiceTest extends DhisSpringTest {
 
     List<ProgramInstance> programInstances =
         programInstanceService.getProgramInstances(
-            new ProgramInstanceQueryParams().setOrganisationUnitMode(orgUnitMode).setUser(user));
+            new ProgramInstanceQueryParams().setOrganisationUnitMode(ACCESSIBLE).setUser(user));
     assertEquals(3, programInstances.size());
     assertTrue(programInstances.contains(programInstanceA));
+  }
+
+  @Test
+  void shouldFindOnlyCaptureScopeEnrollmentsWhenOrgUnitModeCapture() {
+    programInstanceService.addProgramInstance(programInstanceA);
+    programInstanceService.addProgramInstance(programInstanceC);
+    programInstanceService.addProgramInstance(programInstanceD);
+
+    User user = new User();
+    user.setOrganisationUnits(Set.of(organisationUnitA));
+    user.setTeiSearchOrganisationUnits(Set.of(organisationUnitA, organisationUnitB));
+
+    ProgramInstanceQueryParams params =
+        new ProgramInstanceQueryParams().setOrganisationUnitMode(CAPTURE).setUser(user);
+
+    List<ProgramInstance> programInstances = programInstanceService.getProgramInstances(params);
+
+    assertNotNull(programInstances);
+    assertTrue(programInstances.contains(programInstanceA));
+    assertTrue(programInstances.contains(programInstanceC));
   }
 
   @ParameterizedTest
