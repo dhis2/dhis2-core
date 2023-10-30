@@ -149,7 +149,8 @@ public class IconController {
   @PutMapping
   public @ResponseBody WebMessage updateCustomIcon(@RequestBody IconDto iconDto)
       throws BadRequestException, NotFoundException {
-    iconService.updateCustomIcon(iconDto.getKey(), iconDto.getDescription(), iconDto.getKeywords());
+    iconService.updateCustomIcon(
+        iconDto.getKey(), iconDto.getDescription(), iconDto.getKeywords(), true);
 
     WebMessage webMessage = new WebMessage(Status.OK, HttpStatus.OK);
     webMessage.setMessage(String.format("Icon %s updated", iconDto.getKey()));

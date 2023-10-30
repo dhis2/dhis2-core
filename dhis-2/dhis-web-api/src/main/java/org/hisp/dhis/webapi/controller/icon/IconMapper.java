@@ -83,7 +83,8 @@ public class IconMapper {
         iconDto.getDescription(),
         iconDto.getKeywords(),
         fileResource.get().getUid(),
-        currentUserService.getCurrentUser().getUid());
+        currentUserService.getCurrentUser().getUid(),
+        true);
   }
 
   private String getCustomIconReference(String fileResourceUid) {
