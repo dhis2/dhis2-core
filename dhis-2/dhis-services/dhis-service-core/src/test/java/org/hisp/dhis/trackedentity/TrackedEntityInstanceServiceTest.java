@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentity;
 
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.ENROLLED_AT;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -869,6 +868,8 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldReturnTrackedEntityIfTEWasUpdatedAfterPassedDateAndTime() {
+    entityInstanceA1.setTrackedEntityType(trackedEntityType);
+    entityInstanceService.addTrackedEntityInstance(entityInstanceA1);
     Date oneHourBeforeLastUpdated =
         Date.from(
             entityInstanceA1
@@ -879,22 +880,22 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
                 .minusHours(1)
                 .atZone(ZoneId.systemDefault())
                 .toInstant());
-    entityInstanceA1.setTrackedEntityType(trackedEntityType);
-    entityInstanceService.addTrackedEntityInstance(entityInstanceA1);
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setOrganisationUnits(Set.of(organisationUnit));
     params.setTrackedEntityType(trackedEntityType);
     params.setLastUpdatedStartDate(oneHourBeforeLastUpdated);
 
-    List<TrackedEntityInstance> trackedEntities =
-        entityInstanceService.getTrackedEntityInstances(params, true, true);
+    List<Long> trackedEntities =
+        entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
-    assertContainsOnly(trackedEntities, entityInstanceA1);
+    assertEquals(List.of(entityInstanceA1.getId()), trackedEntities);
   }
 
   @Test
   void shouldReturnEmptyIfTEWasUpdatedBeforePassedDateAndTime() {
+    entityInstanceA1.setTrackedEntityType(trackedEntityType);
+    entityInstanceService.addTrackedEntityInstance(entityInstanceA1);
     Date oneHourAfterLastUpdated =
         Date.from(
             entityInstanceA1
@@ -905,16 +906,13 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
                 .plusHours(1)
                 .atZone(ZoneId.systemDefault())
                 .toInstant());
-    entityInstanceA1.setTrackedEntityType(trackedEntityType);
-    entityInstanceService.addTrackedEntityInstance(entityInstanceA1);
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setOrganisationUnits(Set.of(organisationUnit));
-    params.setTrackedEntityType(trackedEntityType);
     params.setLastUpdatedStartDate(oneHourAfterLastUpdated);
 
-    List<TrackedEntityInstance> trackedEntities =
-        entityInstanceService.getTrackedEntityInstances(params, true, true);
+    List<Long> trackedEntities =
+        entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
     assertIsEmpty(trackedEntities);
   }
