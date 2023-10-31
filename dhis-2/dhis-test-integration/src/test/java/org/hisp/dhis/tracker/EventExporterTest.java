@@ -109,6 +109,8 @@ class EventExporterTest extends TrackerTest {
 
   private ProgramStage programStage;
 
+  private ProgramStage programStage1;
+
   private Program program;
 
   final Function<EventQueryParams, List<String>> eventsFunction =
