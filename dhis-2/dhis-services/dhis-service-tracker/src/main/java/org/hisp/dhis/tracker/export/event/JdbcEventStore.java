@@ -1141,13 +1141,35 @@ class JdbcEventStore implements EventStore {
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
-    String orgUnitPathEqualsMatchQuery = " ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
+    String orgUnitPathEqualsMatchQuery =
+        " orgunit.path = :"
+            + COLUMN_ORG_UNIT_PATH
+            + " "
+            + AND
+            + " orgunit.organisationunitid = ou.organisationunitid ";
+
     if (isProgramRestricted(params.getProgram())) {
       String customSelectedClause = AND + orgUnitPathEqualsMatchQuery;
       return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
     }
 
-    return orgUnitPathEqualsMatchQuery;
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
+  }
+
+  private String createCaptureScopeQuery(
+      User user, MapSqlParameterSource mapSqlParameterSource, String customClause) {
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+
+    return " EXISTS(SELECT cs.organisationunitid "
+        + " FROM usermembership cs "
+        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = cs.organisationunitid "
+        + " JOIN userinfo u ON u.userinfoid = cs.userinfoid "
+        + " WHERE u.uid = :"
+        + COLUMN_USER_UID
+        + " AND ou.path like CONCAT(orgunit.path, '%') "
+        + customClause
+        + ") ";
   }
 
   private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
@@ -1177,21 +1199,6 @@ class JdbcEventStore implements EventStore {
 
   private boolean isUserSearchScopeNotSet(User user) {
     return user.getTeiSearchOrganisationUnits().isEmpty();
-  }
-
-  private String createCaptureScopeQuery(
-      User user, MapSqlParameterSource mapSqlParameterSource, String customClause) {
-    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-
-    return " EXISTS(SELECT cs.organisationunitid "
-        + " FROM usermembership cs "
-        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = cs.organisationunitid "
-        + " JOIN userinfo u ON u.userinfoid = cs.userinfoid "
-        + " WHERE u.uid = :"
-        + COLUMN_USER_UID
-        + " AND ou.path like CONCAT(orgunit.path, '%') "
-        + customClause
-        + ") ";
   }
 
   /**

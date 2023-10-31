@@ -2194,12 +2194,20 @@ public class JdbcEventStore implements EventStore {
       User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
+    String orgUnitPathEqualsMatchQuery =
+        " orgunit.path = :"
+            + COLUMN_ORG_UNIT_PATH
+            + " "
+            + AND
+            + " orgunit.organisationunitid = ou.organisationunitid ";
+
     if (isProgramRestricted(params.getProgram())) {
       String customSelectedClause = " AND ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
       return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
     }
 
-    return " ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
   }
 
   private boolean isProgramRestricted(Program program) {

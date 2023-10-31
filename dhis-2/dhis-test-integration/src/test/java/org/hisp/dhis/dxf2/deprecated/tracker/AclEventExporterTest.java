@@ -226,10 +226,10 @@ class AclEventExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeSelectedAndOrgUnitInSearchScope() {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContext(userService.getUser("nIidJVYpQQK"));
 
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, orgUnit.getUid()));
+    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
     params.setOrgUnitSelectionMode(SELECTED);
 
     List<Event> events = eventService.getEvents(params).getEvents();
@@ -238,14 +238,9 @@ class AclEventExporterTest extends TrackerTest {
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode descendants and org units in search scope");
 
-    events.forEach(
-        e ->
-            assertEquals(
-                "h4w96yEMlzO",
-                e.getOrgUnit(),
-                "Expected to find selected org unit h4w96yEMlzO, but found "
-                    + e.getOrgUnit()
-                    + " instead"));
+    assertContainsOnly(
+        List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"),
+        events.stream().map(Event::getUid).collect(Collectors.toList()));
   }
 
   @Test

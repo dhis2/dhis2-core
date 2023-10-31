@@ -261,9 +261,9 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeSelectedAndOrgUnitInSearchScope()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContext(userService.getUser("nIidJVYpQQK"));
     EventOperationParams params =
-        EventOperationParams.builder().orgUnitUid(orgUnit.getUid()).orgUnitMode(SELECTED).build();
+        EventOperationParams.builder().orgUnitUid("DiszpKrYNg8").orgUnitMode(SELECTED).build();
 
     List<Event> events = eventService.getEvents(params);
 
@@ -271,14 +271,9 @@ class AclEventExporterTest extends TrackerTest {
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode descendants and org units in search scope");
 
-    events.forEach(
-        e ->
-            assertEquals(
-                "h4w96yEMlzO",
-                e.getOrganisationUnit().getUid(),
-                "Expected to find selected org unit h4w96yEMlzO, but found "
-                    + e.getOrganisationUnit().getUid()
-                    + " instead"));
+    assertContainsOnly(
+        List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"),
+        events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 
   @Test
