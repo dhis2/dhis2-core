@@ -296,11 +296,13 @@ public class RestApiActions {
     return this.postFile(file, queryParamsBuilder, null);
   }
 
-  public ApiResponse postFile(File file, QueryParamsBuilder queryParamsBuilder, String contentType) {
+  public ApiResponse postFile(
+      File file, QueryParamsBuilder queryParamsBuilder, String contentType) {
     String url = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
     String content = contentType != null ? contentType : "application/json";
 
-    ApiResponse response = new ApiResponse(this.given().body(file).contentType(content).when().post(url));
+    ApiResponse response =
+        new ApiResponse(this.given().body(file).contentType(content).when().post(url));
 
     addCoverage("POST", url);
 
