@@ -40,8 +40,11 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
@@ -58,18 +61,18 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
 
   private final QueryPlanner queryPlanner;
 
-  private final List<InternalHibernateGenericStore<T>> hibernateGenericStores;
+  private final List<IdentifiableObjectStore<T>> hibernateGenericStores;
 
   private final EntityManager entityManager;
 
   private final QueryCacheManager queryCacheManager;
 
-  private Map<Class<?>, InternalHibernateGenericStore<T>> stores = new HashMap<>();
+  private Map<Class<?>, IdentifiableObjectStore<T>> stores = new HashMap<>();
 
   public JpaCriteriaQueryEngine(
       CurrentUserService currentUserService,
       QueryPlanner queryPlanner,
-      List<InternalHibernateGenericStore<T>> hibernateGenericStores,
+      List<IdentifiableObjectStore<T>> hibernateGenericStores,
       QueryCacheManager queryCacheManager,
       EntityManager entityManager) {
     checkNotNull(currentUserService);
@@ -112,14 +115,14 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
 
     if (query.isEmpty()) {
       Predicate predicate = builder.conjunction();
-
-      predicate
-          .getExpressions()
-          .addAll(
-              store.getSharingPredicates(builder, query.getUser()).stream()
-                  .map(t -> t.apply(root))
-                  .collect(Collectors.toList()));
-
+      if (!query.isSkipSharing()) {
+        predicate
+            .getExpressions()
+            .addAll(
+                store.getSharingPredicates(builder, query.getUser()).stream()
+                    .map(t -> t.apply(root))
+                    .collect(Collectors.toList()));
+      }
       criteriaQuery.where(predicate);
 
       TypedQuery<T> typedQuery = entityManager.createQuery(criteriaQuery);
@@ -131,14 +134,14 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
     }
 
     Predicate predicate = buildPredicates(builder, root, query);
-
-    predicate
-        .getExpressions()
-        .addAll(
-            store.getSharingPredicates(builder, query.getUser()).stream()
-                .map(t -> t.apply(root))
-                .collect(Collectors.toList()));
-
+    if (!query.isSkipSharing()) {
+      predicate
+          .getExpressions()
+          .addAll(
+              store.getSharingPredicates(builder, query.getUser()).stream()
+                  .map(t -> t.apply(root))
+                  .collect(Collectors.toList()));
+    }
     criteriaQuery.where(predicate);
 
     if (!query.getOrders().isEmpty()) {
@@ -158,9 +161,9 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
     typedQuery.setMaxResults(query.getMaxResults());
 
     if (query.isCacheable()) {
-      typedQuery.setHint("org.hibernate.cacheable", true);
+      typedQuery.setHint(QueryHints.HINT_CACHEABLE, true);
       typedQuery.setHint(
-          "org.hibernate.cacheRegion",
+          QueryHints.HINT_CACHE_REGION,
           queryCacheManager.getQueryCacheRegionName(klass, typedQuery));
     }
 
@@ -227,12 +230,12 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
       return;
     }
 
-    for (InternalHibernateGenericStore<T> store : hibernateGenericStores) {
+    for (IdentifiableObjectStore<T> store : hibernateGenericStores) {
       stores.put(store.getClazz(), store);
     }
   }
 
-  private InternalHibernateGenericStore<?> getStore(Class<? extends IdentifiableObject> klass) {
+  private IdentifiableObjectStore<?> getStore(Class<? extends IdentifiableObject> klass) {
     initStoreMap();
     return stores.get(klass);
   }

@@ -385,7 +385,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
 
   @Override
   public void update(@Nonnull T object) {
-    entityManager.merge(object);
+    getSession().update(object);
   }
 
   @Override

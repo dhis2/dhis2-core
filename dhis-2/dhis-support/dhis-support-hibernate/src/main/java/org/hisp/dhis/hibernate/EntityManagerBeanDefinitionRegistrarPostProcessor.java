@@ -45,7 +45,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
 
-/** This class allow injecting {@link javax.persistence.EntityManager} using Constructor. */
+/** This class allows injecting {@link javax.persistence.EntityManager} using Constructor. */
 public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFactoryPostProcessor {
   @Override
   public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
