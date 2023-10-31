@@ -1,5 +1,18 @@
 #!/usr/bin/env groovy
 
+/*
+# This pipeline can be tested by executing the following steps
+* Create a branch with a non-existing version name such as "patch/3.1.2"
+* Update the pom file (dhis-2/pom.xml) with version the same version
+* Commit the pom file
+* Tag the commit from above with "patch/3.1.2"
+* Schedule a build for your branch here... https://ci.dhis2.org/view/dhis2-core/job/dhis2-core-stable/
+
+# Clean up
+* Delete the war file from S3: aws s3 rm ...
+* Delete the docker image from the repository: ... delete-remote-docker-image.sh
+*/
+
 @Library('pipeline-library') _
 
 pipeline {
