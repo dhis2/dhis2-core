@@ -46,9 +46,8 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.POTEN
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.PROGRAM_INSTANCE_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
-import static org.hisp.dhis.util.DateUtils.addDays;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -633,14 +632,14 @@ public class HibernateTrackedEntityInstanceStore
         trackedEntity
             .append(whereAnd.whereAnd())
             .append(" TEI.lastupdated >= '")
-            .append(getMediumDateString(params.getLastUpdatedStartDate()))
+            .append(getLongDateString(params.getLastUpdatedStartDate()))
             .append(SINGLE_QUOTE);
       }
       if (params.hasLastUpdatedEndDate()) {
         trackedEntity
             .append(whereAnd.whereAnd())
-            .append(" TEI.lastupdated < '")
-            .append(getMediumDateString(addDays(params.getLastUpdatedEndDate(), 1)))
+            .append(" TEI.lastupdated <= '")
+            .append(getLongDateString(params.getLastUpdatedEndDate()))
             .append(SINGLE_QUOTE);
       }
     }
@@ -649,7 +648,7 @@ public class HibernateTrackedEntityInstanceStore
       if (params.getSkipChangedBefore() != null) {
         trackedEntity
             .append(" AND TEI.lastupdated >= '")
-            .append(getMediumDateString(params.getSkipChangedBefore()))
+            .append(getLongDateString(params.getSkipChangedBefore()))
             .append(SINGLE_QUOTE);
       }
     }
@@ -950,28 +949,28 @@ public class HibernateTrackedEntityInstanceStore
     if (params.hasProgramEnrollmentStartDate()) {
       program
           .append("AND PI.enrollmentdate >= '")
-          .append(getMediumDateString(params.getProgramEnrollmentStartDate()))
+          .append(getLongDateString(params.getProgramEnrollmentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramEnrollmentEndDate()) {
       program
           .append("AND PI.enrollmentdate <= '")
-          .append(getMediumDateString(params.getProgramEnrollmentEndDate()))
+          .append(getLongDateString(params.getProgramEnrollmentEndDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentStartDate()) {
       program
           .append("AND PI.incidentdate >= '")
-          .append(getMediumDateString(params.getProgramIncidentStartDate()))
+          .append(getLongDateString(params.getProgramIncidentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentEndDate()) {
       program
           .append("AND PI.incidentdate <= '")
-          .append(getMediumDateString(params.getProgramIncidentEndDate()))
+          .append(getLongDateString(params.getProgramIncidentEndDate()))
           .append("' ");
     }
 
@@ -1012,8 +1011,8 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     if (params.hasEventStatus()) {
-      String start = getMediumDateString(params.getEventStartDate());
-      String end = getMediumDateString(params.getEventEndDate());
+      String start = getLongDateString(params.getEventStartDate());
+      String end = getLongDateString(params.getEventEndDate());
 
       if (params.isEventStatus(EventStatus.COMPLETED)) {
         events
