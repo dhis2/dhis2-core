@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
 import java.io.File;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -115,7 +114,7 @@ class ContinuousMetadataImportTest extends ApiTest {
     for (org.hisp.dhis.jsontree.JsonObject jobConfig :
         jobConfigs.asList(org.hisp.dhis.jsontree.JsonObject.class)) {
       LocalDateTime lastExecuted =
-              LocalDateTime.parse(jobConfig.getString("lastExecuted").string(), timestamp);
+          LocalDateTime.parse(jobConfig.getString("lastExecuted").string(), timestamp);
       if (lastFinished != null) {
         long millisBetweenExecution =
             lastExecuted.toInstant(ZoneOffset.UTC).toEpochMilli()
