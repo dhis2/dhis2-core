@@ -179,7 +179,9 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_USER_UID = "u_uid";
   private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
   private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
-  private static final String ORG_UNIT_PATH_LIKE_MATCH_QUERY =
+  private static final String USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
+      " ou.path like CONCAT(orgunit.path, '%') ";
+  private static final String CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
       " ou.path like CONCAT(:" + COLUMN_ORG_UNIT_PATH + ", '%' ) ";
 
   /**
@@ -1096,14 +1098,7 @@ class JdbcEventStore implements EventStore {
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return " EXISTS(SELECT ss.organisationunitid "
-        + " FROM userteisearchorgunits ss "
-        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = ss.organisationunitid "
-        + " JOIN userinfo u ON u.userinfoid = ss.userinfoid "
-        + " WHERE u.uid = :"
-        + COLUMN_USER_UID
-        + " AND ou.path like CONCAT(orgunit.path, '%') "
-        + ") ";
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createDescendantsSql(
@@ -1112,35 +1107,34 @@ class JdbcEventStore implements EventStore {
 
     if (isProgramRestricted(params.getProgram())) {
       return createCaptureScopeQuery(
-          user, mapSqlParameterSource, AND + ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+          user, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
     }
 
-    return ORG_UNIT_PATH_LIKE_MATCH_QUERY;
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createChildrenSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
-    if (isProgramRestricted(params.getProgram())) {
-      String childrenSqlClause =
-          AND
-              + ORG_UNIT_PATH_LIKE_MATCH_QUERY
-              + " AND (ou.hierarchylevel = "
-              + params.getOrgUnit().getHierarchyLevel()
-              + " OR ou.hierarchylevel = "
-              + (params.getOrgUnit().getHierarchyLevel() + 1)
-              + " )";
+    String customChildrenQuery =
+        " AND (ou.hierarchylevel = "
+            + params.getOrgUnit().getHierarchyLevel()
+            + " OR ou.hierarchylevel = "
+            + (params.getOrgUnit().getHierarchyLevel() + 1)
+            + " ) ";
 
-      return createCaptureScopeQuery(user, mapSqlParameterSource, childrenSqlClause);
+    if (isProgramRestricted(params.getProgram())) {
+      return createCaptureScopeQuery(
+          user,
+          mapSqlParameterSource,
+          AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
     }
 
-    return ORG_UNIT_PATH_LIKE_MATCH_QUERY
-        + " AND (ou.hierarchylevel = "
-        + params.getOrgUnit().getHierarchyLevel()
-        + " OR ou.hierarchylevel = "
-        + (params.getOrgUnit().getHierarchyLevel() + 1)
-        + " ) ";
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+        CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
   }
 
   private String createSelectedSql(
@@ -1154,6 +1148,27 @@ class JdbcEventStore implements EventStore {
     }
 
     return orgUnitPathEqualsMatchQuery;
+  }
+
+  private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
+    return " (EXISTS(SELECT ss.organisationunitid "
+        + " FROM userteisearchorgunits ss "
+        + " JOIN userinfo u ON u.userinfoid = ss.userinfoid "
+        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = ss.organisationunitid "
+        + " WHERE u.uid = :"
+        + COLUMN_USER_UID
+        + AND
+        + orgUnitMatcher
+        + " AND p.accesslevel in ('OPEN', 'AUDITED')) "
+        + " OR EXISTS(SELECT cs.organisationunitid "
+        + " FROM usermembership cs "
+        + " JOIN userinfo u ON u.userinfoid = cs.userinfoid "
+        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = cs.organisationunitid "
+        + " WHERE u.uid = :"
+        + COLUMN_USER_UID
+        + AND
+        + orgUnitMatcher
+        + " )) ";
   }
 
   private boolean isProgramRestricted(Program program) {
