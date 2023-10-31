@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS customicon
     fileresourceid int8         NOT NULL,
     description    text         NULL,
     keywords       text[]       NULL,
+    custom         BOOLEAN      NOT NULL,
     created        TIMESTAMP    NULL DEFAULT CURRENT_TIMESTAMP,
     createdby      bigint       NOT NULL,
     CONSTRAINT customicon_pkey PRIMARY KEY (customiconid),
