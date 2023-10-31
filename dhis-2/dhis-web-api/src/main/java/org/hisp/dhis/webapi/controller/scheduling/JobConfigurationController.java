@@ -124,6 +124,30 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
     jobConfigurationService.deleteFinishedJobs(minutes);
   }
 
+  @PostMapping("{uid}/enable")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void enable(@PathVariable("uid") String uid) throws NotFoundException, ConflictException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
+    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid);
+    checkModifiable(obj, "Job %s is a system job that cannot be modified.");
+    if (!obj.isEnabled()) {
+      obj.setEnabled(true);
+      jobConfigurationService.updateJobConfiguration(obj);
+    }
+  }
+
+  @PostMapping("{uid}/disable")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void disable(@PathVariable("uid") String uid) throws NotFoundException, ConflictException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
+    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid);
+    checkModifiable(obj, "Job %s is a system job that cannot be modified.");
+    if (obj.isEnabled()) {
+      obj.setEnabled(false);
+      jobConfigurationService.updateJobConfiguration(obj);
+    }
+  }
+
   @Override
   protected void preCreateEntity(JobConfiguration jobConfiguration) throws ConflictException {
     checkModifiable(jobConfiguration, "Job %s must be configurable but was not.");

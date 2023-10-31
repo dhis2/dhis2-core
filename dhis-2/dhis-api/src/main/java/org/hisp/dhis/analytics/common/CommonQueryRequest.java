@@ -187,10 +187,12 @@ public class CommonQueryRequest {
 
   private String lastUpdated;
 
-  /** weather the query should consider only items with lat/long coordinates */
+  private String created;
+
+  /** whether the query should consider only items with lat/long coordinates */
   private boolean coordinatesOnly;
 
-  /** weather the query should consider only items with geometry */
+  /** whether the query should consider only items with geometry */
   private boolean geometryOnly;
 
   /**

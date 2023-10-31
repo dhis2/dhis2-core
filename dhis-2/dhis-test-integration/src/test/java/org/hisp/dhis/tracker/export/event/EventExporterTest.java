@@ -845,6 +845,24 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
+  void
+      shouldFilterOutEventsWithATrackedEntityWithoutThatAttributeWhenFilterAttributeHasNoQueryFilter()
+          throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .attributeFilters(Map.of("notUpdated0", List.of()))
+            .build();
+
+    List<String> trackedEntities =
+        eventService.getEvents(params).stream()
+            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
+            .collect(Collectors.toList());
+
+    assertContainsOnly(List.of("dUE514NMOlo"), trackedEntities);
+  }
+
+  @Test
   void testEnrollmentFilterNumericAttributes() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         operationParamsBuilder
