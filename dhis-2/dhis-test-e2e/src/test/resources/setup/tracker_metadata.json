@@ -1662,6 +1662,12 @@
             "id": "inc5BJvr4W5",
             "code": "TA_COMMENT_DE"
           }
+        },
+        {
+          "dataElement": {
+            "id": "vbZ5LGNfGET",
+            "code": "TA_DATE_AND_TIME_DE AGGREGATE"
+          }
         }
       ],
       "translations": [],
