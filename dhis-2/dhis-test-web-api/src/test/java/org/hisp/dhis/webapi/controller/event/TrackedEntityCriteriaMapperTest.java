@@ -38,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.HashSet;
-import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -202,13 +201,10 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     assertThat(
         queryParams.getProgramEnrollmentStartDate(), is(criteria.getProgramEnrollmentStartDate()));
     assertThat(
-        queryParams.getProgramEnrollmentEndDate(),
-        is(DateUtils.addDays(criteria.getProgramEnrollmentEndDate(), 1)));
+        queryParams.getProgramEnrollmentEndDate(), is(criteria.getProgramEnrollmentEndDate()));
     assertThat(
         queryParams.getProgramIncidentStartDate(), is(criteria.getProgramIncidentStartDate()));
-    assertThat(
-        queryParams.getProgramIncidentEndDate(),
-        is(DateUtils.addDays(criteria.getProgramIncidentEndDate(), 1)));
+    assertThat(queryParams.getProgramIncidentEndDate(), is(criteria.getProgramIncidentEndDate()));
     assertThat(queryParams.getEventStatus(), is(EventStatus.COMPLETED));
     assertThat(queryParams.getEventStartDate(), is(criteria.getEventStartDate()));
     assertThat(queryParams.getEventEndDate(), is(criteria.getEventEndDate()));
