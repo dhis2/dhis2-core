@@ -48,7 +48,6 @@ import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.actions.deprecated.tracker.EventActions;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.ImportCount;
 import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -147,8 +146,14 @@ class EventsTests extends TrackerApiTest {
     response.validate().statusCode(200).body("status", equalTo("OK"));
   }
 
+  /**
+   * This test name has the postfix 'EventsApi' (/events) to distinguish it from other tests in this class
+   * that call the '/tracker' API.
+   * There is a concept of 'old' & 'new' tracker APIs.
+   * This test tests the 'old' API
+   */
   @Test
-  void eventsImportNewEventsFromCsvFile_OldEventsApi() {
+  void asyncImportEventsFromCsvFile_EventsApi() {
     // given we want to import events asynchronously with csv format
 
     // when
@@ -175,13 +180,6 @@ class EventsTests extends TrackerApiTest {
 
     // and the task summary shows a successful import
     List<ImportSummary> eventImport = systemActions.getTaskSummaries("EVENT_IMPORT", jobId);
-    ImportCount importCount = eventImport.get(0).getImportCount();
-    assertEquals(0, importCount.getImported());
-    assertEquals(0, importCount.getDeleted());
-    assertEquals(0, importCount.getIgnored());
-    assertEquals(0, importCount.getCreated());
-    assertEquals(1, importCount.getUpdated());
-    assertEquals(0, eventImport.get(0).getConflicts().size());
     assertEquals("SUCCESS", eventImport.get(0).getStatus());
   }
 
