@@ -28,12 +28,14 @@
 package org.hisp.dhis.trackedentity;
 
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.ENROLLED_AT;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.collect.Sets;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -862,6 +864,57 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
             entityInstanceC1.getId(),
             entityInstanceB1.getId()),
         teiIdList);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfTEWasUpdatedAfterPassedDateAndTime() {
+    entityInstanceA1.setTrackedEntityType(trackedEntityType);
+    entityInstanceService.addTrackedEntityInstance(entityInstanceA1);
+    Date oneHourBeforeLastUpdated =
+        Date.from(
+            entityInstanceA1
+                .getLastUpdated()
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime()
+                .minusHours(1)
+                .atZone(ZoneId.systemDefault())
+                .toInstant());
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.setOrganisationUnits(Set.of(organisationUnit));
+    params.setTrackedEntityType(trackedEntityType);
+    params.setLastUpdatedStartDate(oneHourBeforeLastUpdated);
+
+    List<Long> trackedEntities =
+        entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
+
+    assertEquals(List.of(entityInstanceA1.getId()), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfTEWasUpdatedBeforePassedDateAndTime() {
+    entityInstanceA1.setTrackedEntityType(trackedEntityType);
+    entityInstanceService.addTrackedEntityInstance(entityInstanceA1);
+    Date oneHourAfterLastUpdated =
+        Date.from(
+            entityInstanceA1
+                .getLastUpdated()
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime()
+                .plusHours(1)
+                .atZone(ZoneId.systemDefault())
+                .toInstant());
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.setOrganisationUnits(Set.of(organisationUnit));
+    params.setLastUpdatedStartDate(oneHourAfterLastUpdated);
+
+    List<Long> trackedEntities =
+        entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
+
+    assertIsEmpty(trackedEntities);
   }
 
   private void initializeEntityInstance(TrackedEntityInstance entityInstance) {
