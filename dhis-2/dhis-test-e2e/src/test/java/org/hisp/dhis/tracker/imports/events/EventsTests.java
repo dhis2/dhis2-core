@@ -147,10 +147,9 @@ class EventsTests extends TrackerApiTest {
   }
 
   /**
-   * This test name has the postfix 'EventsApi' (/events) to distinguish it from other tests in this class
-   * that call the '/tracker' API.
-   * There is a concept of 'old' & 'new' tracker APIs.
-   * This test tests the 'old' API
+   * This test name has the postfix 'EventsApi' (/events) to distinguish it from other tests in this
+   * class that call the '/tracker' API. There is a concept of 'old' & 'new' tracker APIs. This test
+   * tests the 'old' API
    */
   @Test
   void asyncImportEventsFromCsvFile_EventsApi() {
