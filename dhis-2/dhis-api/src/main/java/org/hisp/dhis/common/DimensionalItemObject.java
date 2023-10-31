@@ -82,4 +82,9 @@ public interface DimensionalItemObject extends NameableObject {
 
   /** Sets the query modifiers for an indicator expression. */
   void setQueryMods(QueryModifiers queryMods);
+
+  /** Gets the absolute period offset regardless of whether there are query modifiers. */
+  default int getPeriodOffset() {
+    return (getQueryMods() != null) ? getQueryMods().getPeriodOffset() : 0;
+  }
 }

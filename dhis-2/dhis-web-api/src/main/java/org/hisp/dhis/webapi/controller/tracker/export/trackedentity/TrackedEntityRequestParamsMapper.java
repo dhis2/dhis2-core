@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
@@ -38,7 +35,6 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValida
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +57,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 class TrackedEntityRequestParamsMapper {
-
   private static final Set<String> ORDERABLE_FIELD_NAMES =
       TrackedEntityMapper.ORDERABLE_FIELDS.keySet();
 
@@ -137,10 +132,6 @@ class TrackedEntityRequestParamsMapper {
             .user(user)
             .trackedEntityUids(UID.toValueSet(trackedEntities))
             .filters(filters)
-            .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
-            .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
-            .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
-            .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
             .includeDeleted(requestParams.isIncludeDeleted())
             .potentialDuplicate(requestParams.getPotentialDuplicate())
             .trackedEntityParams(fieldsParamMapper.map(fields));

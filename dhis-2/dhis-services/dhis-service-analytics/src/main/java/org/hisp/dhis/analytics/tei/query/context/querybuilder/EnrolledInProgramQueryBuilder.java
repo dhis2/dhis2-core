@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -43,13 +44,31 @@ import org.springframework.stereotype.Service;
  * generated conditions are "ungrouped", since each one needs to be a separate "AND" condition.
  */
 @Service
-public class ProgramEnrolledQueryBuilder extends SqlQueryBuilderAdaptor {
+public class EnrolledInProgramQueryBuilder extends SqlQueryBuilderAdaptor {
+
+  private static final String PROGRAM_ENROLLED_GROUP = "PROGRAM_ENROLLED_GROUP";
+
   @Override
   protected Stream<GroupableCondition> getWhereClauses(
       QueryContext queryContext, List<DimensionIdentifier<DimensionParam>> unused) {
+
+    boolean programsFromRequest =
+        queryContext.getTeiQueryParams().getCommonParams().isProgramsFromRequest();
+
+    Function<String, GroupableCondition> conditionMapper =
+        EnrolledInProgramQueryBuilder::asGroupedEnrolledInProgramCondition;
+
+    if (programsFromRequest) {
+      conditionMapper = EnrolledInProgramQueryBuilder::asUngroupedEnrolledInProgramCondition;
+    }
+
     return queryContext.getTeiQueryParams().getCommonParams().getPrograms().stream()
         .map(IdentifiableObject::getUid)
-        .map(ProgramEnrolledQueryBuilder::asUngroupedEnrolledInProgramCondition);
+        .map(conditionMapper);
+  }
+
+  private static GroupableCondition asGroupedEnrolledInProgramCondition(String programUid) {
+    return GroupableCondition.of(PROGRAM_ENROLLED_GROUP, EnrolledInProgramCondition.of(programUid));
   }
 
   private static GroupableCondition asUngroupedEnrolledInProgramCondition(String programUid) {

@@ -66,7 +66,8 @@ public enum AnalyticsDateFilter {
       TimeField.LAST_UPDATED,
       EventsAnalyticsQueryCriteria::getLastUpdated,
       EnrollmentAnalyticsQueryCriteria::getLastUpdated,
-      CommonQueryRequest::getLastUpdated);
+      CommonQueryRequest::getLastUpdated),
+  CREATED(TimeField.CREATED, null, null, CommonQueryRequest::getCreated);
 
   private final TimeField timeField;
 
