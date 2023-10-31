@@ -2922,7 +2922,7 @@
       "code": "TA_YES_NO",
       "created": "2021-03-08T13:13:23.118",
       "lastUpdated": "2021-03-08T13:15:58.740",
-      "name": "TA Yes/No ",
+      "name": "TA Yes/No",
       "id": "ZGkmoWb77MW",
       "sharing": {
         "public": "rw------",
@@ -3016,16 +3016,14 @@
       "id": "vbZ5LGNfGyy",
       "created": "2019-02-28T12:49:47.868",
       "name": "TA Yes No",
-      "shortName": "TA Yes No TEXT",
+      "shortName": "TA Yes No",
       "aggregationType": "NONE",
       "domainType": "TRACKER",
-      "valueType": "BOOLEAN",
+      "valueType": "TEXT",
       "zeroIsSignificant": false,
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
       "optionSet": {
-        "id": "ZGkmoWb77MW"
+        "id": "ZGkmoWb77MW",
+        "code": "TA_YES_NO"
       },
       "sharing": {
         "owner": "M5zQapPyTZI",
