@@ -176,11 +176,11 @@ class EventsTests extends TrackerApiTest {
     // and the task summary shows a successful import
     List<ImportSummary> eventImport = systemActions.getTaskSummaries("EVENT_IMPORT", jobId);
     ImportCount importCount = eventImport.get(0).getImportCount();
-    assertEquals(1, importCount.getImported());
+    assertEquals(0, importCount.getImported());
     assertEquals(0, importCount.getDeleted());
     assertEquals(0, importCount.getIgnored());
     assertEquals(0, importCount.getCreated());
-    assertEquals(0, importCount.getUpdated());
+    assertEquals(1, importCount.getUpdated());
     assertEquals(0, eventImport.get(0).getConflicts().size());
     assertEquals("SUCCESS", eventImport.get(0).getStatus());
   }

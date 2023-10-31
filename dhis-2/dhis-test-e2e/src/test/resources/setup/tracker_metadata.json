@@ -1668,6 +1668,12 @@
             "id": "vbZ5LGNfGET",
             "code": "TA_DATE_AND_TIME_DE AGGREGATE"
           }
+        },
+        {
+          "dataElement": {
+            "id": "vbZ5LGNfGyy",
+            "code": "TA_YES_NO_DE TEXT"
+          }
         }
       ],
       "translations": [],
