@@ -73,7 +73,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -228,9 +227,7 @@ class TrackerTrackedEntityCriteriaMapperTest {
     assertThat(params.getLastUpdatedStartDate(), is(criteria.getUpdatedAfter()));
     assertThat(params.getLastUpdatedEndDate(), is(criteria.getUpdatedBefore()));
     assertThat(params.getProgramIncidentStartDate(), is(criteria.getEnrollmentOccurredAfter()));
-    assertThat(
-        params.getProgramIncidentEndDate(),
-        is(DateUtils.addDays(criteria.getEnrollmentOccurredBefore(), 1)));
+    assertThat(params.getProgramIncidentEndDate(), is(criteria.getEnrollmentOccurredBefore()));
     assertThat(params.getEventStatus(), is(EventStatus.COMPLETED));
     assertThat(params.getEventStartDate(), is(criteria.getEventOccurredAfter()));
     assertThat(params.getEventEndDate(), is(criteria.getEventOccurredBefore()));
@@ -270,7 +267,7 @@ class TrackerTrackedEntityCriteriaMapperTest {
 
     TrackedEntityInstanceQueryParams params = mapper.map(criteria);
 
-    assertEquals(DateUtils.addDays(date, 1), params.getProgramEnrollmentEndDate());
+    assertEquals(date, params.getProgramEnrollmentEndDate());
   }
 
   @Test
