@@ -2993,6 +2993,37 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "access": "rw------",
+            "id": "OPVIvvXzNTw"
+          }
+        },
+        "external": false,
+        "public": "rw------",
+        "users": {}
+      },
+      "translations": [],
+      "attributeValues": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "code": "TA_YES_NO_DE TEXT",
+      "lastUpdated": "2022-01-07T12:45:47.324",
+      "id": "vbZ5LGNfGyy",
+      "created": "2019-02-28T12:49:47.868",
+      "name": "TA Yes No",
+      "shortName": "TA Yes No TEXT",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "valueType": "BOOLEAN",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
       "optionSet": {
         "id": "ZGkmoWb77MW"
       },
