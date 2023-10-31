@@ -380,7 +380,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   @Override
   public void save(@Nonnull T object) {
     AuditLogUtil.infoWrapper(log, object, AuditLogUtil.ACTION_CREATE);
-    entityManager.persist(object);
+    getSession().save(object);
   }
 
   @Override
@@ -392,7 +392,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   public void delete(@Nonnull T object) {
     publisher.publishEvent(new ObjectDeletionRequestedEvent(object));
 
-    entityManager.remove(object);
+    getSession().delete(object);
   }
 
   @CheckForNull
