@@ -6,6 +6,7 @@
 * Update the pom file (dhis-2/pom.xml) with version the same version
 * Commit the pom file
 * Tag the commit from above with "patch/3.1.2"
+* Push
 * Schedule a build for your branch here... https://ci.dhis2.org/view/dhis2-core/job/dhis2-core-stable/
 
 # Clean up
