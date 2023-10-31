@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.gson.JsonObject;
 import java.io.File;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -109,19 +111,21 @@ class ContinuousMetadataImportTest extends ApiTest {
             .validateStatus(200)
             .getBodyAsJsonValue();
 
-    Instant lastFinished = null;
+    LocalDateTime lastFinished = null;
     for (org.hisp.dhis.jsontree.JsonObject jobConfig :
         jobConfigs.asList(org.hisp.dhis.jsontree.JsonObject.class)) {
-      Instant lastExecuted =
-          Instant.from(timestamp.parse(jobConfig.getString("lastExecuted").string()));
+      LocalDateTime lastExecuted =
+              LocalDateTime.parse(jobConfig.getString("lastExecuted").string(), timestamp);
       if (lastFinished != null) {
-        long millisBetweenExecution = lastExecuted.toEpochMilli() - lastFinished.toEpochMilli();
+        long millisBetweenExecution =
+            lastExecuted.toInstant(ZoneOffset.UTC).toEpochMilli()
+                - lastFinished.toInstant(ZoneOffset.UTC).toEpochMilli();
         assertTrue(
             millisBetweenExecution < 20_000,
             "Time between execution should not be longer than 20 seconds (scheduler cycle time) by was: %d ms"
                 .formatted(millisBetweenExecution));
       }
-      lastFinished = Instant.from(timestamp.parse(jobConfig.getString("lastFinished").string()));
+      lastFinished = LocalDateTime.parse(jobConfig.getString("lastFinished").string(), timestamp);
       ;
     }
   }
