@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.hisp.dhis</groupId>
   <artifactId>dhis</artifactId>
-  <version>2.41-SNAPSHOT</version>
+  <version>4.1.2.3</version>
   <packaging>pom</packaging>
   <name>DHIS 2</name>
 
