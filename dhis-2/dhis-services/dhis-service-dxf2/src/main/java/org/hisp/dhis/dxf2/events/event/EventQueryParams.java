@@ -33,6 +33,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
@@ -615,10 +617,6 @@ public class EventQueryParams {
     return this;
   }
 
-  public List<QueryItem> getFilterAttributes() {
-    return Collections.unmodifiableList(this.filterAttributes);
-  }
-
   public EventQueryParams addFilterAttributes(List<QueryItem> item) {
     this.filterAttributes.addAll(item);
     return this;
@@ -627,6 +625,29 @@ public class EventQueryParams {
   public EventQueryParams addFilterAttributes(QueryItem item) {
     this.filterAttributes.add(item);
     return this;
+  }
+
+  /** Returns attributes that are only used as filter. */
+  public List<QueryItem> getFilterAttributes() {
+    Set<String> attrOrderUids =
+        getAttributeOrders().stream().map(OrderParam::getField).collect(Collectors.toSet());
+    return filterAttributes.stream()
+        .filter(af -> !attrOrderUids.contains(af.getItem().getUid()))
+        .collect(Collectors.toList());
+  }
+
+  /** Returns attributes that are only ordered by and not present in any filter. */
+  public Set<QueryItem> leftJoinAttributes() {
+    Set<QueryItem> attributesWithEmptyFilter =
+        this.filterAttributes.stream()
+            .filter(fa -> fa.getFilters().isEmpty())
+            .collect(Collectors.toSet());
+    Set<String> attributeOrderUids =
+        getAttributeOrders().stream().map(OrderParam::getField).collect(Collectors.toSet());
+
+    return attributesWithEmptyFilter.stream()
+        .filter(a -> attributeOrderUids.contains(a.getItem().getUid()))
+        .collect(Collectors.toSet());
   }
 
   public EventQueryParams setIncludeDeleted(boolean includeDeleted) {
