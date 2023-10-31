@@ -80,7 +80,9 @@ class EventsTests extends TrackerApiTest {
   private SystemActions systemActions;
 
   private static Stream<Arguments> provideEventFilesTestArguments() {
-    return Stream.of(Arguments.arguments("event.json", ContentType.JSON.toString()));
+    return Stream.of(
+        Arguments.arguments("event.json", ContentType.JSON.toString()),
+        Arguments.arguments("event.csv", "text/csv"));
   }
 
   @BeforeAll
@@ -153,7 +155,7 @@ class EventsTests extends TrackerApiTest {
     // an async event import with csv file is posted
     ApiResponse postAsyncResponse =
         eventActions.postFile(
-            new File("src/test/resources/tracker/importer/events/event.csv"),
+            new File("src/test/resources/tracker/importer/events/event-with-de-optionset.csv"),
             new QueryParamsBuilder()
                 .addAll(
                     "skipFirst=true",
