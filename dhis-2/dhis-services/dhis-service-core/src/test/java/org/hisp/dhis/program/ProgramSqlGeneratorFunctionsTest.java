@@ -181,7 +181,10 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
 
     String sql = test("d2:condition('#{ProgrmStagA.DataElmentA} > 3',10 + 5,3 * 2)");
     assertThat(
-        sql, is("case when (coalesce(\"DataElmentA\"::numeric,0) > 3) then 10 + 5 else 3 * 2 end"));
+        sql,
+        is(
+            "case when (coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0) "
+                + "> 3) then 10 + 5 else 3 * 2 end"));
   }
 
   @Test
@@ -195,7 +198,10 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     String sql = test("d2:condition('#{ProgrmStagA.DataElmentE}',10 + 5,3 * 2)");
     assertThat(
         sql,
-        is("case when (coalesce(\"DataElmentE\"::numeric!=0,false)) then 10 + 5 else 3 * 2 end"));
+        is(
+            "case when (coalesce("
+                + "case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric!=0,false)) "
+                + "then 10 + 5 else 3 * 2 end"));
   }
 
   @Test
@@ -208,7 +214,10 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
 
     String sql = test("d2:condition('#{ProgrmStagA.DataElmentE} > 0',10 + 5,3 * 2)");
     assertThat(
-        sql, is("case when (coalesce(\"DataElmentE\"::numeric,0) > 0) then 10 + 5 else 3 * 2 end"));
+        sql,
+        is(
+            "case when (coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric,0) "
+                + "> 0) then 10 + 5 else 3 * 2 end"));
   }
 
   @Test
@@ -322,7 +331,8 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
                 + "where analytics_event_Program000A.pi = ax.pi "
-                + "and \"DataElmentA\" is not null and \"DataElmentA\" > coalesce(\"DataElmentE\"::numeric,0) "
+                + "and \"DataElmentA\" is not null and \"DataElmentA\" > "
+                + "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric,0) "
                 + "and ps = 'ProgrmStagA')"));
   }
 
@@ -365,10 +375,13 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     when(idObjectManager.get(DataElement.class, dataElementC.getUid())).thenReturn(dataElementC);
     when(idObjectManager.get(DataElement.class, dataElementD.getUid())).thenReturn(dataElementD);
     when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
-    when(programStageService.getProgramStage(programStageB.getUid())).thenReturn(programStageB);
 
-    String sql = test("d2:daysBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagB.DataElmentD})");
-    assertThat(sql, is("(cast(\"DataElmentD\" as date) - cast(\"DataElmentC\" as date))"));
+    String sql = test("d2:daysBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagA.DataElmentD})");
+    assertThat(
+        sql,
+        is(
+            "(cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentD\" else null end as date) - "
+                + "cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentC\" else null end as date))"));
   }
 
   @Test
@@ -377,7 +390,9 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
 
     String sql = test("d2:hasValue(#{ProgrmStagA.DataElmentA})");
-    assertThat(sql, is("(\"DataElmentA\" is not null)"));
+    assertThat(
+        sql,
+        is("(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end is not null)"));
   }
 
   @Test
@@ -394,13 +409,13 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     when(idObjectManager.get(DataElement.class, dataElementC.getUid())).thenReturn(dataElementC);
     when(idObjectManager.get(DataElement.class, dataElementD.getUid())).thenReturn(dataElementD);
     when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
-    when(programStageService.getProgramStage(programStageB.getUid())).thenReturn(programStageB);
 
-    String sql = test("d2:minutesBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagB.DataElmentD})");
+    String sql = test("d2:minutesBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagA.DataElmentD})");
     assertThat(
         sql,
         is(
-            "(extract(epoch from (cast(\"DataElmentD\" as timestamp) - cast(\"DataElmentC\" as timestamp))) / 60)"));
+            "(extract(epoch from (cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentD\" else null end as timestamp) "
+                + "- cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentC\" else null end as timestamp))) / 60)"));
   }
 
   @Test
@@ -408,15 +423,16 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     when(idObjectManager.get(DataElement.class, dataElementC.getUid())).thenReturn(dataElementC);
     when(idObjectManager.get(DataElement.class, dataElementD.getUid())).thenReturn(dataElementD);
     when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
-    when(programStageService.getProgramStage(programStageB.getUid())).thenReturn(programStageB);
 
-    String sql = test("d2:monthsBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagB.DataElmentD})");
+    String sql = test("d2:monthsBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagA.DataElmentD})");
 
     assertThat(
         sql,
         is(
-            "((date_part('year',age(cast(\"DataElmentD\" as date), cast(\"DataElmentC\" as date)))) * 12 + "
-                + "date_part('month',age(cast(\"DataElmentD\" as date), cast(\"DataElmentC\" as date))))"));
+            "((date_part('year',age(cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentD\" else null end as date), "
+                + "cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentC\" else null end as date)))) * 12 + "
+                + "date_part('month',age(cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentD\" else null end as date), "
+                + "cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentC\" else null end as date))))"));
   }
 
   @Test
@@ -425,7 +441,10 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
 
     String sql = test("66 + d2:oizp(#{ProgrmStagA.DataElmentA} + 4)");
-    assertThat(sql, is("66 + coalesce(case when \"DataElmentA\" + 4 >= 0 then 1 else 0 end, 0)"));
+    assertThat(
+        sql,
+        is(
+            "66 + coalesce(case when case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end + 4 >= 0 then 1 else 0 end, 0)"));
   }
 
   @Test
@@ -458,10 +477,13 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     when(idObjectManager.get(DataElement.class, dataElementC.getUid())).thenReturn(dataElementC);
     when(idObjectManager.get(DataElement.class, dataElementD.getUid())).thenReturn(dataElementD);
     when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
-    when(programStageService.getProgramStage(programStageB.getUid())).thenReturn(programStageB);
 
-    String sql = test("d2:weeksBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagB.DataElmentD})");
-    assertThat(sql, is("((cast(\"DataElmentD\" as date) - cast(\"DataElmentC\" as date))/7)"));
+    String sql = test("d2:weeksBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagA.DataElmentD})");
+    assertThat(
+        sql,
+        is(
+            "((cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentD\" else null end as date) - "
+                + "cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentC\" else null end as date))/7)"));
   }
 
   @Test
@@ -511,7 +533,10 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
 
     String sql = test("d2:zing(#{ProgrmStagA.DataElmentA})");
-    assertThat(sql, is("greatest(0,coalesce(\"DataElmentA\"::numeric,0))"));
+    assertThat(
+        sql,
+        is(
+            "greatest(0,coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0))"));
   }
 
   @Test
@@ -524,7 +549,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         sql,
         is(
             "nullif(cast(("
-                + "case when \"DataElmentA\" >= 0 then 1 else 0 end"
+                + "case when case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end >= 0 then 1 else 0 end"
                 + ") as double precision),0)"));
   }
 
@@ -539,8 +564,8 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         sql,
         is(
             "nullif(cast(("
-                + "case when \"DataElmentA\" >= 0 then 1 else 0 end + "
-                + "case when \"DataElmentB\" >= 0 then 1 else 0 end"
+                + "case when case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end >= 0 then 1 else 0 end + "
+                + "case when case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentB\" else null end >= 0 then 1 else 0 end"
                 + ") as double precision),0)"));
   }
 
@@ -570,7 +595,10 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
 
     String sql = test("avg(#{ProgrmStagA.DataElmentA})");
-    assertThat(sql, is("avg(coalesce(\"DataElmentA\"::numeric,0))"));
+    assertThat(
+        sql,
+        is(
+            "avg(coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0))"));
   }
 
   @Test
@@ -579,10 +607,16 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
 
     String sql = test("count(#{ProgrmStagA.DataElmentA})");
-    assertThat(sql, is("count(coalesce(\"DataElmentA\"::numeric,0))"));
+    assertThat(
+        sql,
+        is(
+            "count(coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0))"));
 
     String sql2 = test("count(distinct #{ProgrmStagA.DataElmentA})");
-    assertThat(sql2, is("count(distinct coalesce(\"DataElmentA\"::numeric,0))"));
+    assertThat(
+        sql2,
+        is(
+            "count(distinct coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0))"));
   }
 
   @Test
@@ -591,7 +625,10 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
 
     String sql = test("max(#{ProgrmStagA.DataElmentA})");
-    assertThat(sql, is("max(coalesce(\"DataElmentA\"::numeric,0))"));
+    assertThat(
+        sql,
+        is(
+            "max(coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0))"));
   }
 
   @Test
@@ -600,7 +637,10 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
 
     String sql = test("min(#{ProgrmStagA.DataElmentA})");
-    assertThat(sql, is("min(coalesce(\"DataElmentA\"::numeric,0))"));
+    assertThat(
+        sql,
+        is(
+            "min(coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0))"));
   }
 
   @Test
@@ -609,7 +649,10 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
 
     String sql = test("stddev(#{ProgrmStagA.DataElmentA})");
-    assertThat(sql, is("stddev_samp(coalesce(\"DataElmentA\"::numeric,0))"));
+    assertThat(
+        sql,
+        is(
+            "stddev_samp(coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0))"));
   }
 
   @Test
@@ -618,7 +661,10 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
 
     String sql = test("sum(#{ProgrmStagA.DataElmentA})");
-    assertThat(sql, is("sum(coalesce(\"DataElmentA\"::numeric,0))"));
+    assertThat(
+        sql,
+        is(
+            "sum(coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0))"));
   }
 
   @Test
@@ -627,7 +673,10 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
 
     String sql = test("variance(#{ProgrmStagA.DataElmentA})");
-    assertThat(sql, is("variance(coalesce(\"DataElmentA\"::numeric,0))"));
+    assertThat(
+        sql,
+        is(
+            "variance(coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0))"));
   }
 
   @Test

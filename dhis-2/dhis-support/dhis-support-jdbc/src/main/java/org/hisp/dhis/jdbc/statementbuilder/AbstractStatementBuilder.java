@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.jdbc.statementbuilder;
 
+import static java.lang.String.format;
+
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
@@ -167,9 +169,9 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
    *
    * <p>The generic implementation, which works in all supported database types, returns a subquery
    * in the following form: <code>
-   *     (select 's1' as column
-   *      union select 's2'
-   *      union select 's3') table
+   * (select 's1' as column
+   * union select 's2'
+   * union select 's3') table
    * </code>
    *
    * @param values (non-empty) String values for the derived table
@@ -199,9 +201,9 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
    *
    * <p>The generic implementation, which works in all supported database types, returns a subquery
    * in the following form: <code>
-   *     (select i1 as intColumn, 's1' as stringColumn
-   *      union select i2, 's2'
-   *      union select i3, 's3') table
+   * (select i1 as intColumn, 's1' as stringColumn
+   * union select i2, 's2'
+   * union select i3, 's3') table
    * </code>
    *
    * @param longValues (non-empty) Integer values for the derived table
@@ -249,9 +251,9 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
    * @return the derived literal table
    *     <p>The generic implementation, which works in all supported database types, returns a
    *     subquery in the following form: <code>
-   *     (select i1_1 as int1Column, i2_1 as int2Column
-   *      union select i1_2, i2_2
-   *      union select i1_3, i2_3) table
+   * (select i1_1 as int1Column, i2_1 as int2Column
+   * union select i1_2, i2_2
+   * union select i1_3, i2_3) table
    * </code>
    */
   @Override
@@ -298,7 +300,7 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
       return getProgramIndicatorEventColumnSql(
           programStageUid, columnName, reportingStartDate, reportingEndDate, programIndicator);
     } else {
-      return columnName;
+      return getProgramIndicatorDataElementInEventSelectSql(columnName, programStageUid);
     }
   }
 
@@ -334,8 +336,13 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
           reportingEndDate,
           programIndicator);
     } else {
-      return columnName;
+      return getProgramIndicatorDataElementInEventSelectSql(columnName, programStageUid);
     }
+  }
+
+  private String getProgramIndicatorDataElementInEventSelectSql(
+      String columnName, String programStageUid) {
+    return format("case when ax.\"ps\" = '%s' then %s else null end", programStageUid, columnName);
   }
 
   private String getProgramIndicatorEventInEnrollmentSelectSql(
