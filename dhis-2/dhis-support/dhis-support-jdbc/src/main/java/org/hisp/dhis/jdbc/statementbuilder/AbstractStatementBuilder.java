@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.jdbc.statementbuilder;
 
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_EVENT_DATE;
@@ -303,7 +304,7 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
       return getProgramIndicatorEventColumnSql(
           programStageUid, columnName, reportingStartDate, reportingEndDate, programIndicator);
     } else {
-      return columnName;
+      return getProgramIndicatorDataElementInEventSelectSql(columnName, programStageUid);
     }
   }
 
@@ -339,8 +340,13 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
           reportingEndDate,
           programIndicator);
     } else {
-      return columnName;
+      return getProgramIndicatorDataElementInEventSelectSql(columnName, programStageUid);
     }
+  }
+
+  private String getProgramIndicatorDataElementInEventSelectSql(
+      String columnName, String programStageUid) {
+    return format("case when ax.\"ps\" = '%s' then %s else null end", programStageUid, columnName);
   }
 
   private String getProgramIndicatorEventInEnrollmentSelectSql(
