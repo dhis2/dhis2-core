@@ -269,10 +269,28 @@ class AclEventExporterTest extends TrackerTest {
 
     assertFalse(
         events.isEmpty(),
-        "Expected to find events when no program specified, ou mode descendants and org units in search scope");
+        "Expected to find events when no program specified, ou mode selected and org units in search scope");
 
     assertContainsOnly(
         List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"),
+        events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
+  }
+
+  @Test
+  void shouldReturnEventsWhenNoProgramSpecifiedOuModeSelectedAndOrgUnitInCaptureScope()
+      throws ForbiddenException, BadRequestException {
+    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    EventOperationParams params =
+        EventOperationParams.builder().orgUnitUid("RojfDTBhoGC").orgUnitMode(SELECTED).build();
+
+    List<Event> events = eventService.getEvents(params);
+
+    assertFalse(
+        events.isEmpty(),
+        "Expected to find events when no program specified, ou mode selected and org units in capture scope");
+
+    assertContainsOnly(
+        List.of("SbUJzkxKYAG"),
         events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 

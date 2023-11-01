@@ -1142,11 +1142,11 @@ class JdbcEventStore implements EventStore {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
     String orgUnitPathEqualsMatchQuery =
-        " orgunit.path = :"
+        " ou.path = :"
             + COLUMN_ORG_UNIT_PATH
             + " "
             + AND
-            + " orgunit.organisationunitid = ou.organisationunitid ";
+            + USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY;
 
     if (isProgramRestricted(params.getProgram())) {
       String customSelectedClause = AND + orgUnitPathEqualsMatchQuery;
@@ -1157,8 +1157,14 @@ class JdbcEventStore implements EventStore {
     return getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
   }
 
+  /**
+   * Generates a sql to match the org unit event to the org unit(s) in the user's capture scope
+   *
+   * @param orgUnitMatcher specific condition to add depending on the ou mode
+   * @return a sql clause to add to the main query
+   */
   private String createCaptureScopeQuery(
-      User user, MapSqlParameterSource mapSqlParameterSource, String customClause) {
+      User user, MapSqlParameterSource mapSqlParameterSource, String orgUnitMatcher) {
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
 
     return " EXISTS(SELECT cs.organisationunitid "
@@ -1168,10 +1174,17 @@ class JdbcEventStore implements EventStore {
         + " WHERE u.uid = :"
         + COLUMN_USER_UID
         + " AND ou.path like CONCAT(orgunit.path, '%') "
-        + customClause
+        + orgUnitMatcher
         + ") ";
   }
 
+  /**
+   * Generates a sql to match the org unit event to the org unit(s) in the user's search and capture
+   * scope
+   *
+   * @param orgUnitMatcher specific condition to add depending on the ou mode
+   * @return a sql clause to add to the main query
+   */
   private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
     return " (EXISTS(SELECT ss.organisationunitid "
         + " FROM userteisearchorgunits ss "
