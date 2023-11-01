@@ -35,7 +35,6 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
@@ -51,7 +50,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -72,12 +70,8 @@ import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
-import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams.RelationshipOperationParamsBuilder;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
-import org.hisp.dhis.tracker.export.relationship.Relationships;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntities;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
@@ -138,87 +132,69 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Test
   void shouldReturnPaginatedTrackedEntitiesGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    TrackedEntityOperationParamsBuilder builder =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(Set.of(orgUnit.getUid()))
-            .orgUnitMode(DESCENDANTS)
-            .trackedEntityTypeUid(trackedEntityType.getUid())
-            .orderBy(UID.of("numericAttr"), SortDirection.ASC);
-
-    TrackedEntityOperationParams params = builder.page(1).pageSize(3).user(importUser).build();
-
-    TrackedEntities firstPage = trackedEntityService.getTrackedEntities(params);
-
-    assertAll(
-        "first page",
-        // TODO(tracker): fix in TECH-1601. I assume this was recently introduced (only on master)
-        // when
-        // handleLastPageFlag was copied from the event service which works in conjunction with the
-        // event store
-        // that fetches pageSize + 1 when totalCount=false. This split of logic between
-        // service/store is
-        // error prone and hard to follow. We will fix/refactor it for all entities so this is
-        // purely a concern
-        // of the store.
-        () -> assertSlimPager(1, 3, true, firstPage.getPager()),
-        () ->
-            assertEquals(
-                List.of("dUE514NMOlo", "mHWCacsGYYn", "QS6w44flWAf"),
-                uids(firstPage.getTrackedEntities())));
-
-    params = builder.page(2).pageSize(3).build();
-
-    TrackedEntities secondPage = trackedEntityService.getTrackedEntities(params);
-
-    assertAll(
-        "second (last) page",
-        () -> assertSlimPager(2, 3, true, secondPage.getPager()),
-        () ->
-            assertEquals(
-                List.of("QesgJkTyTCk", "guVNoAerxWo"), uids(secondPage.getTrackedEntities())));
-
-    params = builder.page(3).pageSize(3).build();
-
-    assertIsEmpty(getTrackedEntities(params));
-  }
-
-  @Test
-  void shouldReturnPaginatedTrackedEntitiesGivenNonDefaultPageSizeAndTotalPages()
-      throws ForbiddenException, BadRequestException, NotFoundException {
-    TrackedEntityOperationParamsBuilder builder =
+    TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnit.getUid()))
             .orgUnitMode(DESCENDANTS)
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .user(importUser)
-            .orderBy(UID.of("numericAttr"), SortDirection.ASC);
+            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .build();
 
-    TrackedEntityOperationParams params = builder.page(1).pageSize(3).totalPages(true).build();
+    Page<TrackedEntity> firstPage =
+        trackedEntityService.getTrackedEntities(params, new PageParams(1, 3, false));
 
-    TrackedEntities firstPage = trackedEntityService.getTrackedEntities(params);
+    assertAll(
+        "first page",
+        () -> assertPager(1, 3, firstPage),
+        () ->
+            assertEquals(
+                List.of("dUE514NMOlo", "mHWCacsGYYn", "QS6w44flWAf"), uids(firstPage.getItems())));
+
+    Page<TrackedEntity> secondPage =
+        trackedEntityService.getTrackedEntities(params, new PageParams(2, 3, false));
+
+    assertAll(
+        "second (last) page",
+        () -> assertPager(2, 3, secondPage),
+        () -> assertEquals(List.of("QesgJkTyTCk", "guVNoAerxWo"), uids(secondPage.getItems())));
+
+    assertIsEmpty(
+        trackedEntityService.getTrackedEntities(params, new PageParams(3, 3, false)).getItems());
+  }
+
+  @Test
+  void shouldReturnPaginatedTrackedEntitiesGivenNonDefaultPageSizeAndTotalPages()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(DESCENDANTS)
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
+            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .build();
+
+    Page<TrackedEntity> firstPage =
+        trackedEntityService.getTrackedEntities(params, new PageParams(1, 3, true));
 
     assertAll(
         "first page",
         () -> assertPager(1, 3, 5, firstPage.getPager()),
         () ->
             assertEquals(
-                List.of("dUE514NMOlo", "mHWCacsGYYn", "QS6w44flWAf"),
-                uids(firstPage.getTrackedEntities())));
+                List.of("dUE514NMOlo", "mHWCacsGYYn", "QS6w44flWAf"), uids(firstPage.getItems())));
 
-    params = builder.page(2).pageSize(3).totalPages(true).build();
-
-    TrackedEntities secondPage = trackedEntityService.getTrackedEntities(params);
+    Page<TrackedEntity> secondPage =
+        trackedEntityService.getTrackedEntities(params, new PageParams(2, 3, true));
 
     assertAll(
         "second (last) page",
         () -> assertPager(2, 3, 5, secondPage.getPager()),
-        () ->
-            assertEquals(
-                List.of("QesgJkTyTCk", "guVNoAerxWo"), uids(secondPage.getTrackedEntities())));
+        () -> assertEquals(List.of("QesgJkTyTCk", "guVNoAerxWo"), uids(secondPage.getItems())));
 
-    params = builder.page(3).pageSize(3).totalPages(true).build();
-
-    assertIsEmpty(getTrackedEntities(params));
+    assertIsEmpty(
+        trackedEntityService.getTrackedEntities(params, new PageParams(3, 3, true)).getItems());
   }
 
   @Test
@@ -807,7 +783,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByAttributeAndFilterOutEventsWithATrackedEntityWithoutThatAttribute()
+  void shouldOrderEventsByAttributeAndNotFilterOutEventsWithATrackedEntityWithoutThatAttribute()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         eventParamsBuilder
@@ -822,7 +798,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     List<String> events = getEvents(params);
 
-    assertEquals(List.of("D9PbzJY8bJM"), events);
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
   @Test
@@ -1141,30 +1117,32 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     String expectedOnPage1 = expected.get(0);
     String expectedOnPage2 = expected.get(1);
 
-    RelationshipOperationParamsBuilder builder =
-        RelationshipOperationParams.builder().type(TrackerType.EVENT).identifier("pTzf9KYMk72");
+    RelationshipOperationParams params =
+        RelationshipOperationParams.builder()
+            .type(TrackerType.EVENT)
+            .identifier("pTzf9KYMk72")
+            .build();
 
-    RelationshipOperationParams params = builder.page(1).pageSize(1).build();
-
-    Relationships firstPage = relationshipService.getRelationships(params);
+    Page<Relationship> firstPage =
+        relationshipService.getRelationships(params, new PageParams(1, 1, false));
 
     assertAll(
         "first page",
-        () -> assertSlimPager(1, 1, false, firstPage.getPager()),
-        () -> assertEquals(List.of(expectedOnPage1), uids(firstPage.getRelationships())));
+        () -> assertPager(1, 1, firstPage),
+        () -> assertEquals(List.of(expectedOnPage1), uids(firstPage)));
 
-    params = builder.page(2).pageSize(1).build();
-
-    Relationships secondPage = relationshipService.getRelationships(params);
+    Page<Relationship> secondPage =
+        relationshipService.getRelationships(params, new PageParams(2, 1, false));
 
     assertAll(
         "second (last) page",
-        () -> assertSlimPager(2, 1, true, secondPage.getPager()),
-        () -> assertEquals(List.of(expectedOnPage2), uids(secondPage.getRelationships())));
+        () -> assertPager(2, 1, secondPage),
+        () -> assertEquals(List.of(expectedOnPage2), uids(secondPage)));
 
-    params = builder.page(3).pageSize(1).build();
+    Page<Relationship> thirdPage =
+        relationshipService.getRelationships(params, new PageParams(3, 1, false));
 
-    assertIsEmpty(getRelationships(params));
+    assertIsEmpty(thirdPage.getItems());
   }
 
   @Test
@@ -1184,30 +1162,32 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     String expectedOnPage1 = expected.get(0);
     String expectedOnPage2 = expected.get(1);
 
-    RelationshipOperationParamsBuilder builder =
-        RelationshipOperationParams.builder().type(TrackerType.EVENT).identifier("pTzf9KYMk72");
+    RelationshipOperationParams params =
+        RelationshipOperationParams.builder()
+            .type(TrackerType.EVENT)
+            .identifier("pTzf9KYMk72")
+            .build();
 
-    RelationshipOperationParams params = builder.page(1).pageSize(1).totalPages(true).build();
-
-    Relationships firstPage = relationshipService.getRelationships(params);
+    Page<Relationship> firstPage =
+        relationshipService.getRelationships(params, new PageParams(1, 1, true));
 
     assertAll(
         "first page",
-        () -> assertPager(1, 1, 2, firstPage.getPager()),
-        () -> assertEquals(List.of(expectedOnPage1), uids(firstPage.getRelationships())));
+        () -> assertPager(1, 1, 2, firstPage),
+        () -> assertEquals(List.of(expectedOnPage1), uids(firstPage)));
 
-    params = builder.page(2).pageSize(1).totalPages(true).build();
-
-    Relationships secondPage = relationshipService.getRelationships(params);
+    Page<Relationship> secondPage =
+        relationshipService.getRelationships(params, new PageParams(2, 1, true));
 
     assertAll(
         "second (last) page",
-        () -> assertPager(2, 1, 2, secondPage.getPager()),
-        () -> assertEquals(List.of(expectedOnPage2), uids(secondPage.getRelationships())));
+        () -> assertPager(2, 1, 2, secondPage),
+        () -> assertEquals(List.of(expectedOnPage2), uids(secondPage)));
 
-    params = builder.page(3).pageSize(1).totalPages(true).build();
+    Page<Relationship> thirdPage =
+        relationshipService.getRelationships(params, new PageParams(3, 1, true));
 
-    assertIsEmpty(getRelationships(params));
+    assertIsEmpty(thirdPage.getItems());
   }
 
   @Test
@@ -1278,20 +1258,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     return t;
   }
 
-  private static void assertSlimPager(int pageNumber, int pageSize, boolean isLast, Pager pager) {
-    assertInstanceOf(SlimPager.class, pager, "SlimPager should be returned if totalPages=false");
-    SlimPager slimPager = (SlimPager) pager;
-    assertAll(
-        "pagination details",
-        () -> assertEquals(pageNumber, slimPager.getPage(), "number of current page"),
-        () -> assertEquals(pageSize, slimPager.getPageSize(), "page size"),
-        () ->
-            assertEquals(
-                isLast,
-                slimPager.isLastPage(),
-                isLast ? "should be the last page" : "should NOT be the last page"));
-  }
-
   private static <T> void assertPager(int pageNumber, int pageSize, Page<T> page) {
     Pager pager = page.getPager();
     assertNotNull(pager, "pagintated results should have a pager");
@@ -1317,7 +1283,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   private List<String> getTrackedEntities(TrackedEntityOperationParams params)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    return uids(trackedEntityService.getTrackedEntities(params).getTrackedEntities());
+    return uids(trackedEntityService.getTrackedEntities(params));
   }
 
   private List<String> getEnrollments(EnrollmentOperationParams params)
@@ -1337,7 +1303,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   private List<String> getRelationships(RelationshipOperationParams params)
       throws ForbiddenException, NotFoundException {
-    return uids(relationshipService.getRelationships(params).getRelationships());
+    return uids(relationshipService.getRelationships(params));
   }
 
   private static <T extends BaseIdentifiableObject> List<String> uids(Page<T> events) {

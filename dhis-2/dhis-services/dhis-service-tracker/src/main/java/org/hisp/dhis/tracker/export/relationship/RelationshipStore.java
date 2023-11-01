@@ -34,6 +34,8 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 
 public interface RelationshipStore extends IdentifiableObjectStore<Relationship> {
   String ID = RelationshipStore.class.getName();
@@ -44,6 +46,15 @@ public interface RelationshipStore extends IdentifiableObjectStore<Relationship>
   List<Relationship> getByEnrollment(Enrollment enrollment, RelationshipQueryParams queryParams);
 
   List<Relationship> getByEvent(Event event, RelationshipQueryParams queryParams);
+
+  Page<Relationship> getByTrackedEntity(
+      TrackedEntity trackedEntity, RelationshipQueryParams queryParams, PageParams pageParams);
+
+  Page<Relationship> getByEnrollment(
+      Enrollment enrollment, RelationshipQueryParams queryParams, PageParams pageParams);
+
+  Page<Relationship> getByEvent(
+      Event event, RelationshipQueryParams queryParams, PageParams pageParams);
 
   /**
    * Fields the store can order relationships by. Ordering by fields other than these is considered

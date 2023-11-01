@@ -32,9 +32,8 @@ import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.addDays;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -51,9 +51,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -68,6 +68,8 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -161,8 +163,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   @Override
   public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
-    String sql = getQuery(params);
-    log.debug("Tracked entity query SQL: " + sql);
+    String sql = getQuery(params, null);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
     checkMaxTrackedEntityCountReached(params, rowSet);
@@ -174,6 +175,35 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     return ids;
+  }
+
+  @Override
+  public Page<Long> getTrackedEntityIds(TrackedEntityQueryParams params, PageParams pageParams) {
+    String sql = getQuery(params, pageParams);
+    SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
+
+    checkMaxTrackedEntityCountReached(params, rowSet);
+
+    List<Long> ids = new ArrayList<>();
+
+    while (rowSet.next()) {
+      ids.add(rowSet.getLong("trackedentityid"));
+    }
+
+    IntSupplier teCount = () -> getTrackedEntityCount(params);
+    return getPage(pageParams, ids, teCount);
+  }
+
+  private Page<Long> getPage(PageParams pageParams, List<Long> teIds, IntSupplier enrollmentCount) {
+    if (pageParams.isPageTotal()) {
+      Pager pager =
+          new Pager(pageParams.getPage(), enrollmentCount.getAsInt(), pageParams.getPageSize());
+      return Page.of(teIds, pager);
+    }
+
+    Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
+    pager.force(pageParams.getPage(), pageParams.getPageSize());
+    return Page.of(teIds, pager);
   }
 
   @Override
@@ -201,14 +231,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   @Override
   public int getTrackedEntityCount(TrackedEntityQueryParams params) {
     String sql = getCountQuery(params);
-    log.debug("Tracked entity count SQL: " + sql);
     return jdbcTemplate.queryForObject(sql, Integer.class);
   }
 
   @Override
   public int getTrackedEntityCountWithMaxTrackedEntityLimit(TrackedEntityQueryParams params) {
     String sql = getCountQueryWithMaxTrackedEntityLimit(params);
-    log.debug("Tracked entity count SQL: " + sql);
     return jdbcTemplate.queryForObject(sql, Integer.class);
   }
 
@@ -266,12 +294,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * @param params params defining the query
    * @return SQL string
    */
-  private String getQuery(TrackedEntityQueryParams params) {
+  private String getQuery(TrackedEntityQueryParams params, PageParams pageParams) {
     StringBuilder stringBuilder = new StringBuilder(getQuerySelect(params));
     return stringBuilder
         .append("FROM ")
-        .append(getFromSubQuery(params, false))
-        .append(getQueryRelatedTables(params))
+        .append(getFromSubQuery(params, false, pageParams))
         .append(getQueryOrderBy(params, false))
         .toString();
   }
@@ -287,8 +314,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return SELECT_COUNT_INSTANCE_FROM
         + getQuerySelect(params)
         + "FROM "
-        + getFromSubQuery(params, true)
-        + getQueryRelatedTables(params)
+        + getFromSubQuery(params, true, null)
         + " ) tecount";
   }
 
@@ -303,8 +329,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return SELECT_COUNT_INSTANCE_FROM
         + getQuerySelect(params)
         + "FROM "
-        + getFromSubQuery(params, true)
-        + getQueryRelatedTables(params)
+        + getFromSubQuery(params, true, null)
         + (params.getProgram().getMaxTeiCountToReturn() > 0
             ? getLimitClause(params.getProgram().getMaxTeiCountToReturn() + 1)
             : "")
@@ -352,7 +377,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    *
    * @return an SQL sub-query
    */
-  private String getFromSubQuery(TrackedEntityQueryParams params, boolean isCountQuery) {
+  private String getFromSubQuery(
+      TrackedEntityQueryParams params, boolean isCountQuery, PageParams pageParams) {
     SqlHelper whereAnd = new SqlHelper(true);
     StringBuilder fromSubQuery =
         new StringBuilder()
@@ -378,7 +404,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       fromSubQuery
           .append(getQueryOrderBy(params, true))
           // LIMIT, OFFSET
-          .append(getFromSubQueryLimitAndOffset(params));
+          .append(getFromSubQueryLimitAndOffset(params, pageParams));
     }
 
     return fromSubQuery.append(") TE ").toString();
@@ -480,14 +506,14 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         trackedEntity
             .append(whereAnd.whereAnd())
             .append(" TE.lastupdated >= '")
-            .append(getMediumDateString(params.getLastUpdatedStartDate()))
+            .append(getLongDateString(params.getLastUpdatedStartDate()))
             .append(SINGLE_QUOTE);
       }
       if (params.hasLastUpdatedEndDate()) {
         trackedEntity
             .append(whereAnd.whereAnd())
-            .append(" TE.lastupdated < '")
-            .append(getMediumDateString(addDays(params.getLastUpdatedEndDate(), 1)))
+            .append(" TE.lastupdated <= '")
+            .append(getLongDateString(params.getLastUpdatedEndDate()))
             .append(SINGLE_QUOTE);
       }
     }
@@ -552,7 +578,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * avoid removing any rows if there is no value for a given attribute and te. The result of this
    * LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and main query.
    *
-   * @return a SQL LEFT JOIN for attributes used for ordering, or empty string if not attributes is
+   * @return a SQL LEFT JOIN for attributes used for ordering, or empty string if no attributes is
    *     used in order.
    */
   private String getFromSubQueryJoinOrderByAttributes(TrackedEntityQueryParams params) {
@@ -707,28 +733,28 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (params.hasProgramEnrollmentStartDate()) {
       program
           .append("AND EN.enrollmentdate >= '")
-          .append(getMediumDateString(params.getProgramEnrollmentStartDate()))
+          .append(getLongDateString(params.getProgramEnrollmentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramEnrollmentEndDate()) {
       program
           .append("AND EN.enrollmentdate <= '")
-          .append(getMediumDateString(params.getProgramEnrollmentEndDate()))
+          .append(getLongDateString(params.getProgramEnrollmentEndDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentStartDate()) {
       program
           .append("AND EN.incidentdate >= '")
-          .append(getMediumDateString(params.getProgramIncidentStartDate()))
+          .append(getLongDateString(params.getProgramIncidentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentEndDate()) {
       program
           .append("AND EN.incidentdate <= '")
-          .append(getMediumDateString(params.getProgramIncidentEndDate()))
+          .append(getLongDateString(params.getProgramIncidentEndDate()))
           .append("' ");
     }
 
@@ -765,8 +791,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (params.hasEventStatus()) {
-      String start = getMediumDateString(params.getEventStartDate());
-      String end = getMediumDateString(params.getEventEndDate());
+      String start = getLongDateString(params.getEventStartDate());
+      String end = getLongDateString(params.getEventEndDate());
 
       if (params.isEventStatus(EventStatus.COMPLETED)) {
         events
@@ -877,40 +903,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         + "' ";
   }
 
-  /**
-   * Generates SQL for LEFT JOINing relevant tables with the tracked entities we have in our result.
-   * After the sub-query, we know which tracked entities we are returning, but these LEFT JOINs will
-   * add any extra information we need. For example attribute values, tet uid, tea uid, etc.
-   *
-   * @return a SQL with several LEFT JOINS, one for each relevant table to retrieve information
-   *     from.
-   */
-  private String getQueryRelatedTables(TrackedEntityQueryParams params) {
-    StringBuilder relatedTables = new StringBuilder();
-
-    relatedTables.append(
-        "LEFT JOIN trackedentitytype TET ON TET.trackedentitytypeid = TE.trackedentitytypeid ");
-
-    if (!params.getAttributes().isEmpty()) {
-      String attributeIds =
-          getCommaDelimitedString(
-              params.getAttributes().stream().map(IdentifiableObject::getId).toList());
-
-      relatedTables
-          .append("LEFT JOIN trackedentityattributevalue TEAV ")
-          .append("ON TEAV.trackedentityid = TE.trackedentityid ")
-          .append("AND TEAV.trackedentityattributeid IN (")
-          .append(attributeIds)
-          .append(") ");
-
-      relatedTables
-          .append("LEFT JOIN trackedentityattribute TEA ")
-          .append("ON TEA.trackedentityattributeid = TEAV.trackedentityattributeid ");
-    }
-
-    return relatedTables.toString();
-  }
-
   private String getLimitClause(int limit) {
     return "LIMIT " + limit;
   }
@@ -980,12 +972,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    *
    * @return a SQL LIMIT and OFFSET clause, or empty string if no LIMIT can be deducted.
    */
-  private String getFromSubQueryLimitAndOffset(TrackedEntityQueryParams params) {
+  private String getFromSubQueryLimitAndOffset(
+      TrackedEntityQueryParams params, PageParams pageParams) {
     StringBuilder limitOffset = new StringBuilder();
     int limit = params.getMaxTeLimit();
     int teQueryLimit = systemSettingManager.getIntSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
 
-    if (limit == 0 && !params.isPaging()) {
+    if (limit == 0 && pageParams == null) {
       if (teQueryLimit > 0) {
         return limitOffset
             .append(LIMIT)
@@ -996,26 +989,26 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       }
 
       return limitOffset.toString();
-    } else if (limit == 0 && params.isPaging()) {
+    } else if (limit == 0 && pageParams != null) {
       return limitOffset
           .append(LIMIT)
           .append(SPACE)
-          .append(params.getPageSizeWithDefault())
+          .append(pageParams.getPageSize())
           .append(SPACE)
           .append(OFFSET)
           .append(SPACE)
-          .append(params.getOffset())
+          .append((pageParams.getPage() - 1) * pageParams.getPageSize())
           .append(SPACE)
           .toString();
-    } else if (params.isPaging()) {
+    } else if (pageParams != null) {
       return limitOffset
           .append(LIMIT)
           .append(SPACE)
-          .append(Math.min(limit + 1, params.getPageSizeWithDefault()))
+          .append(Math.min(limit + 1, pageParams.getPageSize()))
           .append(SPACE)
           .append(OFFSET)
           .append(SPACE)
-          .append(params.getOffset())
+          .append((pageParams.getPage() - 1) * pageParams.getPageSize())
           .append(SPACE)
           .toString();
     } else {
