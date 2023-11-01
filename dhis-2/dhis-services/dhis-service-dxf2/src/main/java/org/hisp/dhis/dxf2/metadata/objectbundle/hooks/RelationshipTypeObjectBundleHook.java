@@ -126,7 +126,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
       relationshipConstraint.setProgramStage(programStage);
     }
 
-    entityManager.persist(relationshipConstraint);
+    getSession().save(relationshipConstraint);
   }
 
   /**

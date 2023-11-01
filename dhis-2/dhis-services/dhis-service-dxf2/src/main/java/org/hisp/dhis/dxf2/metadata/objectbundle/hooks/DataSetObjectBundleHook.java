@@ -101,15 +101,15 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
 
     persistedDataSet.getSections().stream()
         .filter(section -> !importIds.contains(section.getUid()))
-        .forEach(entityManager::remove);
+        .forEach(getSession()::delete);
   }
 
   private void deleteRemovedDataElementFromSection(
       DataSet persistedDataSet, DataSet importDataSet) {
 
     persistedDataSet.getSections().stream()
-        .peek(section -> section.setDataElements(getUpdatedDataElements(importDataSet, section)));
-
+        .peek(section -> section.setDataElements(getUpdatedDataElements(importDataSet, section)))
+        .forEach(getSession()::update);
   }
 
   private List<DataElement> getUpdatedDataElements(DataSet importDataSet, Section section) {

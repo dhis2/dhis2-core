@@ -158,6 +158,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     }
 
     preheatService.connectReferences(user, bundle.getPreheat(), bundle.getPreheatIdentifier());
+    getSession().update(user);
     userSettingService.saveUserSettings(user.getSettings(), user);
   }
 
@@ -188,6 +189,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
 
     if (!StringUtils.isEmpty(preUpdateUser.getPassword())) {
       userService.encodeAndSetPassword(persistedUser, preUpdateUser.getPassword());
+      getSession().update(persistedUser);
     }
 
     bundle.removeExtras(persistedUser, "preUpdateUser");
@@ -241,6 +243,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
       preheatService.connectReferences(user, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
       handleNoAccessRoles(user, bundle, userRoles);
+      getSession().update(user);
     }
   }
 

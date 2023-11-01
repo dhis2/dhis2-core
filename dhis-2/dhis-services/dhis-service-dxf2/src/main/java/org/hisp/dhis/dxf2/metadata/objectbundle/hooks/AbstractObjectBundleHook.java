@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -103,5 +104,9 @@ public class AbstractObjectBundleHook<T> implements ObjectBundleHook<T> {
   @Override
   public void preDelete(T persistedObject, ObjectBundle bundle) {
     // by default nothing to do
+  }
+
+  protected Session getSession() {
+    return entityManager.unwrap(Session.class);
   }
 }

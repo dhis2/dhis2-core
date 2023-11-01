@@ -58,10 +58,10 @@ public class PredictorObjectBundleHook extends AbstractObjectBundleHook<Predicto
           skipTest, bundle.getPreheat(), bundle.getPreheatIdentifier());
     }
 
-   entityManager.persist(predictor.getGenerator());
+    getSession().save(predictor.getGenerator());
 
     if (skipTest != null) {
-      entityManager.persist(skipTest);
+      getSession().save(skipTest);
     }
   }
 }
