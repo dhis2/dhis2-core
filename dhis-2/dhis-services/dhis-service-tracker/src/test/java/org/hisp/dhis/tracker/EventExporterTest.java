@@ -445,8 +445,9 @@ class EventExporterTest extends TrackerTest {
                                 "category options and combo of event " + e.getUid(),
                                 () -> assertEquals("cr89ebDZrac", e.getAttributeOptionCombo()),
                                 () ->
-                                    assertEquals(
-                                        "xwZ2u3WyQR0;M58XdOfhiJ7", e.getAttributeCategoryOptions()),
+                                    assertContainsOnly(
+                                        Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"),
+                                        Arrays.asList(e.getAttributeCategoryOptions().split(";"))),
                                 () ->
                                     assertEquals(
                                         2,
@@ -552,9 +553,9 @@ class EventExporterTest extends TrackerTest {
                                     assertEquals(
                                         "COC_1153452-attribute", e.getAttributeOptionCombo()),
                                 () ->
-                                    assertContainsOnly(
-                                        Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"),
-                                        Arrays.asList(e.getAttributeCategoryOptions().split(";")))))
+                                    assertEquals(
+                                        "xwZ2u3WyQR0;M58XdOfhiJ7",
+                                        e.getAttributeCategoryOptions())))
             .collect(Collectors.toList());
     assertAll("all events should have the same category option combo and options", executables);
   }
