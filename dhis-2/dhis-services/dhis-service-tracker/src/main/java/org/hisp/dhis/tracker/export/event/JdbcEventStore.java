@@ -977,8 +977,8 @@ class JdbcEventStore implements EventStore {
       fromBuilder.append(hlp.whereAnd()).append(orgUnitSql);
     }
 
-    if (params.getStartDate() != null) {
-      mapSqlParameterSource.addValue("startDate", params.getStartDate(), Types.DATE);
+    if (params.getOccurredStartDate() != null) {
+      mapSqlParameterSource.addValue("startDate", params.getOccurredStartDate(), Types.DATE);
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -989,8 +989,9 @@ class JdbcEventStore implements EventStore {
           .append(" )) ");
     }
 
-    if (params.getEndDate() != null) {
-      mapSqlParameterSource.addValue("endDate", addDays(params.getEndDate(), 1), Types.DATE);
+    if (params.getOccurredEndDate() != null) {
+      mapSqlParameterSource.addValue(
+          "endDate", addDays(params.getOccurredEndDate(), 1), Types.DATE);
 
       fromBuilder
           .append(hlp.whereAnd())
