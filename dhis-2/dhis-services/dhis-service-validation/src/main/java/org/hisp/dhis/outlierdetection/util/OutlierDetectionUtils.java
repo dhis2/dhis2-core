@@ -32,6 +32,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 
 /**
  * @author Lars Helge Overland
@@ -52,36 +53,5 @@ public class OutlierDetectionUtils {
     }
 
     return StringUtils.trim(TextUtils.removeLastOr(sql)) + ")";
-  }
-
-  public static String getOrgUnitPathClauseExt(List<OrganisationUnit> orgUnits) {
-    String sql = "(";
-
-    for (OrganisationUnit ou : orgUnits) {
-      sql += "ax.\"path\" like '" + ou.getPath() + "%' or ";
-    }
-
-    return StringUtils.trim(TextUtils.removeLastOr(sql)) + ")";
-  }
-
-  /**
-   * Returns a period data start date clause.
-   *
-   * @param dataStartDate the data start date.
-   * @return a period data start date clause.
-   */
-  public static String getDataStartDateClause(Date dataStartDate) {
-    //return dataStartDate != null ? "and pe.startdate >= :data_start_date " : StringUtils.EMPTY;
-    return dataStartDate != null ? "and pe.startdate >= :data_start_date " : StringUtils.EMPTY;
-  }
-
-  /**
-   * Returns a period data end date clause.
-   *
-   * @param dataStartDate the data start date.
-   * @return a period data end date clause.
-   */
-  public static String getDataEndDateClause(Date dataStartDate) {
-    return dataStartDate != null ? "and pe.enddate <= :data_end_date " : StringUtils.EMPTY;
   }
 }

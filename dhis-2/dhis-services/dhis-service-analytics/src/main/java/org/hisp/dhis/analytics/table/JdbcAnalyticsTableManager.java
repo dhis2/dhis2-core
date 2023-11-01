@@ -387,6 +387,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             + "on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid"
             + "   and dv.categoryoptioncomboid = stats.categoryoptioncomboid"
             + "   and dv.attributeoptioncomboid = stats.attributeoptioncomboid "
+            + "left join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid "
+            + "            and dv.sourceid = mm.sourceid and dv.categoryoptioncomboid = mm.categoryoptioncomboid) "
             + approvalClause
             + "where de.valuetype in ("
             + valTypes
@@ -570,7 +572,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             new AnalyticsTableColumn(quote("path"), VARCHAR_255, "ou.path"),
             new AnalyticsTableColumn(quote("avg_middle_value"), DOUBLE, "stats.avg_middle_value"),
             new AnalyticsTableColumn(quote("percentile_middle_value"), DOUBLE, "stats.percentile_middle_value"),
-            new AnalyticsTableColumn(quote("std_dev"), DOUBLE, "stats.std_dev"));
+            new AnalyticsTableColumn(quote("std_dev"), DOUBLE, "stats.std_dev"),
+            new AnalyticsTableColumn(quote("min_value"), DOUBLE, "mm.minimumvalue"),
+            new AnalyticsTableColumn(quote("max_value"), DOUBLE, "mm.maximumvalue"));
   }
 
   /**
