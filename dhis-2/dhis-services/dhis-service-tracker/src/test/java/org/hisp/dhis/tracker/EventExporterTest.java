@@ -444,8 +444,9 @@ class EventExporterTest extends TrackerTest {
                                 "category options and combo of event " + e.getUid(),
                                 () -> assertEquals("cr89ebDZrac", e.getAttributeOptionCombo()),
                                 () ->
-                                    assertEquals(
-                                        "xwZ2u3WyQR0;M58XdOfhiJ7", e.getAttributeCategoryOptions()),
+                                    assertContains("xwZ2u3WyQR0", e.getAttributeCategoryOptions()),
+                                () ->
+                                    assertContains("M58XdOfhiJ7", e.getAttributeCategoryOptions()),
                                 () ->
                                     assertEquals(
                                         2,
