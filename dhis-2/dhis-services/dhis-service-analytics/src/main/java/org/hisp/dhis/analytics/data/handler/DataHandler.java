@@ -63,6 +63,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValueObject;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.hasPeriod;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isPeriodInPeriods;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.buildYearToDateRows;
 import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.getPeriodOffsetRow;
 import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.isYearToDate;
@@ -481,7 +482,8 @@ public class DataHandler {
 
       params = queryPlanner.withTableNameAndPartitions(params, plannerParams);
 
-      rawAnalyticsManager.getRawDataValues(params, grid);
+      final DataQueryParams immutableParams = DataQueryParams.newBuilder(params).build();
+      withExceptionHandling(() -> rawAnalyticsManager.getRawDataValues(immutableParams, grid));
     }
   }
 

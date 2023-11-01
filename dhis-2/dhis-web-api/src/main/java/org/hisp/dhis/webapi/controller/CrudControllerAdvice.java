@@ -42,6 +42,7 @@ import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.servlet.ServletException;
@@ -64,6 +65,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
@@ -163,6 +165,15 @@ public class CrudControllerAdvice {
     return (requiredType.isEnum())
         ? getEnumWebMessage(requiredType, ex.getValue(), ex.getPropertyName())
         : getWebMessage(ex.getValue(), requiredType.getSimpleName());
+  }
+
+  @ExceptionHandler
+  @ResponseBody
+  public WebMessage badSqlGrammarException(BadSqlGrammarException ex) {
+    return Optional.of(ex)
+        .map(BadSqlGrammarException::getSQLException)
+        .map(WebMessageUtils::createWebMessage)
+        .orElse(defaultExceptionHandler(ex));
   }
 
   private WebMessage getEnumWebMessage(Class<?> requiredType, Object value, String field) {

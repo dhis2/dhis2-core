@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 import java.util.Date;
@@ -177,6 +178,9 @@ public class DefaultProgramInstanceService implements ProgramInstanceService {
     if (user != null && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
       params.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
       params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    } else if (user != null && params.isOrganisationUnitMode(CAPTURE)) {
+      params.setOrganisationUnits(user.getOrganisationUnits());
+      params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (params.isOrganisationUnitMode(CHILDREN)) {
       Set<OrganisationUnit> organisationUnits = new HashSet<>(params.getOrganisationUnits());
 
@@ -259,7 +263,9 @@ public class DefaultProgramInstanceService implements ProgramInstanceService {
     User user = params.getUser();
 
     if (!params.hasOrganisationUnits()
-        && !(params.isOrganisationUnitMode(ALL) || params.isOrganisationUnitMode(ACCESSIBLE))) {
+        && !(params.isOrganisationUnitMode(ALL)
+            || params.isOrganisationUnitMode(ACCESSIBLE)
+            || params.isOrganisationUnitMode(CAPTURE))) {
       violation = "At least one organisation unit must be specified";
     }
 
