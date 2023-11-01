@@ -41,7 +41,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -445,9 +444,9 @@ class EventExporterTest extends TrackerTest {
                                 "category options and combo of event " + e.getUid(),
                                 () -> assertEquals("cr89ebDZrac", e.getAttributeOptionCombo()),
                                 () ->
-                                    assertContainsOnly(
-                                        Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"),
-                                        Arrays.asList(e.getAttributeCategoryOptions().split(";"))),
+                                    assertContains("xwZ2u3WyQR0", e.getAttributeCategoryOptions()),
+                                () ->
+                                    assertContains("M58XdOfhiJ7", e.getAttributeCategoryOptions()),
                                 () ->
                                     assertEquals(
                                         2,
