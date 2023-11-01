@@ -158,6 +158,11 @@ public enum ConfigurationKey {
   CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS("connection.pool.acquire_retry_attempts", "30", false),
 
   /**
+   * Determines the delay in milliseconds, c3p0 will wait between acquire attempts. (default: 1000)
+   */
+  CONNECTION_POOL_ACQUIRE_RETRY_DELAY("connection.pool.acquire_retry_delay", "1", false),
+
+  /**
    * Determines how many connections at a time will try to acquire when the pool is exhausted.
    * (default: 5).
    */
@@ -169,6 +174,12 @@ public enum ConfigurationKey {
    */
   ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS(
       "analytics.connection.pool.acquire_retry_attempts", "30", false),
+
+  /**
+   * Determines the delay in milliseconds, c3p0 will wait between acquire attempts. (default: 1000)
+   */
+  ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_DELAY(
+      "analytics.connection.pool.acquire_retry_delay", "1", false),
 
   /**
    * Seconds a Connection can remain pooled but unused before being discarded. Zero means idle
