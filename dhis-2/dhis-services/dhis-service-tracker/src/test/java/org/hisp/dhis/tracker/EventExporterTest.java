@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -551,9 +552,9 @@ class EventExporterTest extends TrackerTest {
                                     assertEquals(
                                         "COC_1153452-attribute", e.getAttributeOptionCombo()),
                                 () ->
-                                    assertEquals(
-                                        "xwZ2u3WyQR0;M58XdOfhiJ7",
-                                        e.getAttributeCategoryOptions())))
+                                    assertContainsOnly(
+                                        Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"),
+                                        Arrays.asList(e.getAttributeCategoryOptions().split(";")))))
             .collect(Collectors.toList());
     assertAll("all events should have the same category option combo and options", executables);
   }
