@@ -467,7 +467,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     // ---------------------------------------------------------------------
 
     for (Event event : enrollment.getEvents()) {
-      if (event.getExecutionDate() == null) {
+      if (event.getOccurredDate() == null) {
         // -------------------------------------------------------------
         // Set status as skipped for overdue events, or delete
         // -------------------------------------------------------------

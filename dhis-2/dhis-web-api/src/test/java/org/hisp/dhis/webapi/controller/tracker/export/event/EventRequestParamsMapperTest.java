@@ -231,8 +231,8 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(requestParams);
 
-    assertEquals(occurredAfter, params.getStartDate());
-    assertEquals(occurredBefore, params.getEndDate());
+    assertEquals(occurredAfter, params.getOccurredAfter());
+    assertEquals(occurredBefore, params.getOccurredBefore());
   }
 
   @Test

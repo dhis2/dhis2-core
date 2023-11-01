@@ -276,11 +276,11 @@ class EventExporterTest extends TrackerTest {
         () ->
             assertEquals(
                 "2019-01-25T12:10:38.100",
-                DateUtils.getIso8601NoTz(event.getExecutionDate()),
+                DateUtils.getIso8601NoTz(event.getOccurredDate()),
                 () ->
                     String.format(
                         "Expected %s to be in %s",
-                        event.getExecutionDate(), "2019-01-25T12:10:38.100")),
+                        event.getOccurredDate(), "2019-01-25T12:10:38.100")),
         () ->
             assertEquals(
                 "2019-01-28T12:32:38.100",
