@@ -120,9 +120,7 @@ public class DatabasePoolUtils {
             .put(
                 CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS,
                 ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS)
-            .put(
-                CONNECTION_POOL_ACQUIRE_RETRY_DELAY,
-                ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_DELAY)
+            .put(CONNECTION_POOL_ACQUIRE_RETRY_DELAY, ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_DELAY)
             .put(CONNECTION_POOL_MAX_IDLE_TIME, ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME)
             .put(CONNECTION_POOL_MIN_SIZE, ANALYTICS_CONNECTION_POOL_MIN_SIZE)
             .put(CONNECTION_POOL_INITIAL_SIZE, ANALYTICS_CONNECTION_POOL_INITIAL_SIZE)
@@ -294,8 +292,7 @@ public class DatabasePoolUtils {
         parseInt(
             firstNonNull(
                 config.getAcquireRetryDelay(),
-                dhisConfig.getProperty(
-                    mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_RETRY_DELAY))));
+                dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_RETRY_DELAY))));
     final int maxIdleTime =
         parseInt(
             firstNonNull(
