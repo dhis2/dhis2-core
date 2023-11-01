@@ -175,7 +175,7 @@ public class EventsTests extends TrackerNtiApiTest {
 
     // then
     // the task event completes
-    systemActions.waitUntilTaskCompleted("EVENT_IMPORT", jobId, 10);
+    systemActions.waitUntilTaskCompleted("EVENT_IMPORT", jobId);
 
     // and the task summary shows a successful import
     List<ImportSummary> eventImport = systemActions.getTaskSummaries("EVENT_IMPORT", jobId);
