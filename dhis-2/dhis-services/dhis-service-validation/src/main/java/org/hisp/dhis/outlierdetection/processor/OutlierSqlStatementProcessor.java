@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.outlierdetection.util;
+package org.hisp.dhis.outlierdetection.processor;
 
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-/**
- * @author Lars Helge Overland
- */
-public class OutlierDetectionUtils {
-  /**
-   * Returns an organisation unit 'path' "like" clause for the given list of {@link
-   * OrganisationUnit}.
-   *
-   * @param query the list of {@link OrganisationUnit}.
-   * @return an organisation unit 'path' "like" clause.
-   */
-  public static String getOrgUnitPathClause(List<OrganisationUnit> orgUnits) {
-    String sql = "(";
+public abstract class OutlierSqlStatementProcessor implements IOutlierSqlStatementProcessor {
+  protected String getOrgUnitPathClause(List<OrganisationUnit> orgUnits) {
+    StringBuilder sql = new StringBuilder("(");
 
     for (OrganisationUnit ou : orgUnits) {
-      sql += "ou.\"path\" like '" + ou.getPath() + "%' or ";
+      sql.append("ax.\"path\" like '").append(ou.getPath()).append("%' or ");
     }
 
-    return StringUtils.trim(TextUtils.removeLastOr(sql)) + ")";
+    return StringUtils.trim(TextUtils.removeLastOr(sql.toString())) + ")";
   }
 }

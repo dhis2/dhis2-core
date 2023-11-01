@@ -72,8 +72,10 @@ public class ZScoreOutlierDetectionManager {
    */
   public List<OutlierValue> getOutlierValues(OutlierDetectionRequest request) {
 
-    final IOutlierSqlStatementProcessor statementFactory =  request.hasDataStartEndDate() ?
-            new ZScoreSqlStatementProcessor(): new AnalyticsZScoreSqlStatementProcessor();
+    final IOutlierSqlStatementProcessor statementFactory =
+        request.hasDataStartEndDate()
+            ? new ZScoreSqlStatementProcessor()
+            : new AnalyticsZScoreSqlStatementProcessor();
 
     final String sql = statementFactory.getSqlStatement(request);
     final SqlParameterSource params = statementFactory.getSqlParameterSource(request);

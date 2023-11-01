@@ -64,7 +64,8 @@ public class MinMaxOutlierDetectionManager {
    * @return a list of {@link OutlierValue}.
    */
   public List<OutlierValue> getOutlierValues(OutlierDetectionRequest request) {
-    final IOutlierSqlStatementProcessor sqlStatementProcessor = new AnalyticsMinMaxSqlStatementProcessor();
+    final IOutlierSqlStatementProcessor sqlStatementProcessor =
+        new AnalyticsMinMaxSqlStatementProcessor();
     final String sql = sqlStatementProcessor.getSqlStatement(request);
     final SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);
 
