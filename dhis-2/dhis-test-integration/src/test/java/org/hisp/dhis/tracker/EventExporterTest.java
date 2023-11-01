@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -620,8 +621,9 @@ class EventExporterTest extends TrackerTest {
                                 "category options and combo of event " + e.getUid(),
                                 () -> assertEquals("cr89ebDZrac", e.getAttributeOptionCombo()),
                                 () ->
-                                    assertEquals(
-                                        "xwZ2u3WyQR0;M58XdOfhiJ7", e.getAttributeCategoryOptions()),
+                                    assertContainsOnly(
+                                        Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"),
+                                        Arrays.asList(e.getAttributeCategoryOptions().split(";"))),
                                 () ->
                                     assertEquals(
                                         2,
