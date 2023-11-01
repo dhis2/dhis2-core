@@ -207,7 +207,6 @@ public class HibernateJobConfigurationStore
         where enabled = true
         and jobstatus = 'SCHEDULED'
         and (queueposition is null or queueposition = 0 or schedulingtype = 'ONCE_ASAP')
-        and (schedulingtype != 'ONCE_ASAP' or lastfinished is null)
         and (:waiting = true or not exists (
           select 1 from jobconfiguration j2
           where j2.jobtype = j1.jobtype
