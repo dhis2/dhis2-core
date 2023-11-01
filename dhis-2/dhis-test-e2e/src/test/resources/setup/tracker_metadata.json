@@ -626,6 +626,54 @@
       ]
     },
     {
+      "lastUpdated": "2019-02-28T12:42:58.281",
+      "id": "Td2rkv8FsW9",
+      "created": "2019-02-28T11:41:32.093",
+      "name": "TA Event_program2",
+      "code": "TA EVENT_PROGRAM2",
+      "shortName": "TAEP2",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITHOUT_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 4,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "programTrackedEntityAttributes": [],
+      "notificationTemplates": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "DiszpKrYNg8",
+          "code": "OU_559"
+        }
+      ],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
+        }
+      },
+      "programStages": [
+        {
+          "id": "PKLB23QZS49",
+          "code": "TA_EVENT_PROGRAM_STAGE2"
+        }
+      ]
+    },
+    {
       "lastUpdated": "2019-02-28T12:42:58.283",
       "id": "f1AyMswryyX",
       "created": "2019-02-05T13:46:19.312",
@@ -1671,6 +1719,51 @@
         }
       ],
       "translations": [],
+      "attributeValues": [],
+      "programStageSections": []
+    },
+    {
+      "lastUpdated": "2019-02-28T11:41:32.082",
+      "id": "PKLB23QZS49",
+      "created": "2019-02-28T11:41:32.082",
+      "name": "TA Event_program2",
+      "code": "TA_EVENT_PROGRAM_STAGE2",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "openAfterEnrollment": false,
+      "repeatable": false,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "minDaysFromStart": 0,
+      "program": {
+        "id": "Td2rkv8FsW9",
+        "code": "TA EVENT_PROGRAM2"
+      },
+      "notificationTemplates": [],
+      "programStageDataElements": [
+        {
+          "dataElement": {
+            "id": "vbZ5LGNfGyy",
+            "code": "TA_YES_NO_DE TEXT"
+          }
+        }
+      ],
+      "translations": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
+        }
+      },
       "attributeValues": [],
       "programStageSections": []
     },
