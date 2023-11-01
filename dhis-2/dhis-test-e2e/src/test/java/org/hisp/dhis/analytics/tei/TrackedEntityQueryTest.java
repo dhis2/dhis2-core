@@ -54,26 +54,27 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
 
   private QueryParamsBuilder withDefaultHeaders(QueryParamsBuilder queryParamsBuilder) {
     return queryParamsBuilder.add(
-            "headers=trackedentityinstanceuid," +
-            "lastupdated," +
-            "createdbydisplayname," +
-            "lastupdatedbydisplayname," +
-            "geometry," +
-            "longitude," +
-            "latitude," +
-            "ouname," +
-            "oucode," +
-            "ounamehierarchy," +
-            "IpHINAT79UW.w75KJ2mc4zz," +
-            "IpHINAT79UW.zDhUuAYrxNC," +
-            "IpHINAT79UW.cejWyOfXge6," +
-            "IpHINAT79UW.lZGmxYbs97q");
+        "headers=trackedentityinstanceuid,"
+            + "lastupdated,"
+            + "createdbydisplayname,"
+            + "lastupdatedbydisplayname,"
+            + "geometry,"
+            + "longitude,"
+            + "latitude,"
+            + "ouname,"
+            + "oucode,"
+            + "ounamehierarchy,"
+            + "IpHINAT79UW.w75KJ2mc4zz,"
+            + "IpHINAT79UW.zDhUuAYrxNC,"
+            + "IpHINAT79UW.cejWyOfXge6,"
+            + "IpHINAT79UW.lZGmxYbs97q");
   }
 
   @Test
   void queryWithProgramAndProgramStageWhenTotalPagesIsFalse() {
     // Given
-    QueryParamsBuilder params = new QueryParamsBuilder()
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
             .add("dimension=ou:ImspTQPwCqd")
             .add("program=IpHINAT79UW")
             .add("asc=IpHINAT79UW.w75KJ2mc4zz")
