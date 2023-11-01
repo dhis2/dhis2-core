@@ -88,8 +88,11 @@ public class HibernateConfig {
   @Bean("jpaTransactionManager")
   @DependsOn("entityManagerFactory")
   public JpaTransactionManager jpaTransactionManager(
-      @Qualifier("entityManagerFactory") EntityManagerFactory emf) {
-    return new JpaTransactionManager(emf);
+      @Qualifier("entityManagerFactory") EntityManagerFactory emf, DataSource dataSource) {
+    JpaTransactionManager transactionManager = new JpaTransactionManager();
+    transactionManager.setDataSource(dataSource);
+    transactionManager.setEntityManagerFactory(emf);
+    return transactionManager;
   }
 
   @Bean("transactionTemplate")
@@ -118,7 +121,6 @@ public class HibernateConfig {
   @Bean
   public DbmsManager dbmsManager(
       JdbcTemplate jdbcTemplate,
-      EntityManagerFactory entityManagerFactory,
       DefaultHibernateCacheManager cacheManager,
       EntityManager entityManager) {
     HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
