@@ -2195,11 +2195,11 @@ public class JdbcEventStore implements EventStore {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
     String orgUnitPathEqualsMatchQuery =
-        " orgunit.path = :"
+        " ou.path = :"
             + COLUMN_ORG_UNIT_PATH
             + " "
             + AND
-            + " orgunit.organisationunitid = ou.organisationunitid ";
+            + USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY;
 
     if (isProgramRestricted(params.getProgram())) {
       String customSelectedClause = " AND ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
