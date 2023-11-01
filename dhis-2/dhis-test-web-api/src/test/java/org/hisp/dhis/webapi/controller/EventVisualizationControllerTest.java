@@ -51,8 +51,10 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonError;
+import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -570,7 +572,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testPostMultiPrograms() {
+  void testPostMultiPrograms() throws JSONException {
     // Given
     String body =
         """
@@ -671,19 +673,17 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         is(equalTo("""
 {"id":"nEenWmSyUEp"}""")));
 
-    assertThat(
+    JSONAssert.assertEquals(
+        """
+[{"parent":"COLUMN","dimension":"eventDate","program":"deabcdefghP","values":["2023-07-21_2023-08-01","2023-01-21_2023-02-01"]}]""",
         response.get("simpleDimensions").node().value().toString(),
-        is(
-            equalTo(
-                """
-[{"parent":"COLUMN","dimension":"eventDate","program":"deabcdefghP","values":["2023-07-21_2023-08-01","2023-01-21_2023-02-01"]}]""")));
+        false);
 
-    assertThat(
+    JSONAssert.assertEquals(
+        """
+[{"dimension":"deabcdefghP[-1].deabcdefghS[0].deabcdefghB","direction":"ASC"},{"dimension":"deabcdefghP.deabcdefghS.deabcdefghB","direction":"DESC"}]""",
         response.get("sorting").node().value().toString(),
-        is(
-            equalTo(
-                """
-[{"dimension":"deabcdefghP[-1].deabcdefghS[0].deabcdefghB","direction":"ASC"},{"dimension":"deabcdefghP.deabcdefghS.deabcdefghB","direction":"DESC"}]""")));
+        false);
 
     assertThat(response.get("rows").node().value().toString(), is(equalTo("[]")));
     assertThat(response.get("rowDimensions").node().value().toString(), is(equalTo("[]")));
@@ -700,12 +700,11 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         is(equalTo("""
 ["deabcdefghP.deabcdefghS.ou","deabcdefghE"]""")));
 
-    assertThat(
+    JSONAssert.assertEquals(
+        """
+[{"dataElement":{"id":"deabcdefghC"},"filter":"IN:Female"},{"dataElement":{"id":"deabcdefghE"}}]""",
         response.get("dataElementDimensions").node().value().toString(),
-        is(
-            equalTo(
-                """
-[{"dataElement":{"id":"deabcdefghC"},"filter":"IN:Female"},{"dataElement":{"id":"deabcdefghE"}}]""")));
+        false);
 
     assertThat(
         response.get("programIndicatorDimensions").node().value().toString(),
@@ -717,26 +716,23 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         is(equalTo("""
 [{"id":"ImspTQPwCqd"}]""")));
 
-    assertThat(
+    JSONAssert.assertEquals(
+        """
+[{"parent":"FILTER","dimension":"ou","program":"deabcdefghP","programStage":"deabcdefghS","indexes":[1,2,3,-2,-1,0]},{"parent":"FILTER","dimension":"deabcdefghE","indexes":[1,2,0]}]""",
         response.get("repetitions").node().value().toString(),
-        is(
-            equalTo(
-                """
-[{"parent":"FILTER","dimension":"ou","program":"deabcdefghP","programStage":"deabcdefghS","indexes":[1,2,3,-2,-1,0]},{"parent":"FILTER","dimension":"deabcdefghE","indexes":[1,2,0]}]""")));
+        false);
 
-    assertThat(
+    JSONAssert.assertEquals(
+        """
+[{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"PROGRAM_INDICATOR","dataDimension":true,"items":[],"allItems":false,"program":{"id":"deabcdefghP"},"dimension":"deabcdefghB","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"deabcdefghB","attributeValues":[]},{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"PROGRAM_DATA_ELEMENT","dataDimension":true,"items":[],"allItems":false,"filter":"IN:Female","dimension":"deabcdefghC","valueType":"INTEGER","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"deabcdefghC","attributeValues":[]},{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"PERIOD","dataDimension":true,"items":[{"code":"2023-07-21_2023-08-01","name":"2023-07-21_2023-08-01","translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"legendSets":[],"dimensionItem":"2023-07-21_2023-08-01","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"displayName":"2023-07-21_2023-08-01","favorite":false,"displayFormName":"2023-07-21_2023-08-01","id":"2023-07-21_2023-08-01","attributeValues":[]},{"code":"2023-01-21_2023-02-01","name":"2023-01-21_2023-02-01","translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"legendSets":[],"dimensionItem":"2023-01-21_2023-02-01","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"displayName":"2023-01-21_2023-02-01","favorite":false,"displayFormName":"2023-01-21_2023-02-01","id":"2023-01-21_2023-02-01","attributeValues":[]}],"allItems":false,"program":{"id":"deabcdefghP"},"dimension":"eventDate","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"eventDate","attributeValues":[]}]""",
         response.get("columns").node().value().toString(),
-        is(
-            equalTo(
-                """
-[{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"PROGRAM_INDICATOR","dataDimension":true,"items":[],"allItems":false,"program":{"id":"deabcdefghP"},"dimension":"deabcdefghB","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"deabcdefghB","attributeValues":[]},{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"PROGRAM_DATA_ELEMENT","dataDimension":true,"items":[],"allItems":false,"filter":"IN:Female","dimension":"deabcdefghC","valueType":"INTEGER","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"deabcdefghC","attributeValues":[]},{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"PERIOD","dataDimension":true,"items":[{"code":"2023-07-21_2023-08-01","name":"2023-07-21_2023-08-01","translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"legendSets":[],"dimensionItem":"2023-07-21_2023-08-01","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"displayName":"2023-07-21_2023-08-01","favorite":false,"displayFormName":"2023-07-21_2023-08-01","id":"2023-07-21_2023-08-01","attributeValues":[]},{"code":"2023-01-21_2023-02-01","name":"2023-01-21_2023-02-01","translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"legendSets":[],"dimensionItem":"2023-01-21_2023-02-01","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"displayName":"2023-01-21_2023-02-01","favorite":false,"displayFormName":"2023-01-21_2023-02-01","id":"2023-01-21_2023-02-01","attributeValues":[]}],"allItems":false,"program":{"id":"deabcdefghP"},"dimension":"eventDate","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"eventDate","attributeValues":[]}]""")));
+        false);
 
-    assertThat(
+    JSONAssert.assertEquals(
+        """
+[{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"ORGANISATION_UNIT","dataDimension":true,"items":[{"code":"OrganisationUnitCodeA","name":"OrganisationUnitA","sharing":{"external":false,"users":{},"userGroups":{}},"shortName":"OrganisationUnitShortA","dimensionItemType":"ORGANISATION_UNIT","dimensionItem":"ImspTQPwCqd","displayShortName":"OrganisationUnitShortA","displayName":"OrganisationUnitA","displayFormName":"OrganisationUnitA","id":"ImspTQPwCqd"}],"allItems":false,"programStage":{"id":"deabcdefghS"},"program":{"id":"deabcdefghP"},"dimension":"ou","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"ou","attributeValues":[],"repetition":{"parent":"FILTER","dimension":"ou","program":"deabcdefghP","programStage":"deabcdefghS","indexes":[1,2,3,-2,-1,0]}},{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"PROGRAM_DATA_ELEMENT","dataDimension":true,"items":[],"allItems":false,"dimension":"deabcdefghE","valueType":"INTEGER","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"deabcdefghE","attributeValues":[],"repetition":{"parent":"FILTER","dimension":"deabcdefghE","indexes":[1,2,0]}}]""",
         response.get("filters").node().value().toString(),
-        is(
-            equalTo(
-                """
-[{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"ORGANISATION_UNIT","dataDimension":true,"items":[{"code":"OrganisationUnitCodeA","name":"OrganisationUnitA","sharing":{"external":false,"users":{},"userGroups":{}},"shortName":"OrganisationUnitShortA","dimensionItemType":"ORGANISATION_UNIT","dimensionItem":"ImspTQPwCqd","displayShortName":"OrganisationUnitShortA","displayName":"OrganisationUnitA","displayFormName":"OrganisationUnitA","id":"ImspTQPwCqd"}],"allItems":false,"programStage":{"id":"deabcdefghS"},"program":{"id":"deabcdefghP"},"dimension":"ou","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"ou","attributeValues":[],"repetition":{"parent":"FILTER","dimension":"ou","program":"deabcdefghP","programStage":"deabcdefghS","indexes":[1,2,3,-2,-1,0]}},{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"PROGRAM_DATA_ELEMENT","dataDimension":true,"items":[],"allItems":false,"dimension":"deabcdefghE","valueType":"INTEGER","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"deabcdefghE","attributeValues":[],"repetition":{"parent":"FILTER","dimension":"deabcdefghE","indexes":[1,2,0]}}]""")));
+        false);
   }
 
   @Test
