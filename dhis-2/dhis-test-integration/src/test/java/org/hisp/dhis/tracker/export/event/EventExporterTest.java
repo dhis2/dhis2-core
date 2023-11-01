@@ -208,8 +208,8 @@ class EventExporterTest extends TrackerTest {
         operationParamsBuilder
             .enrollments(Set.of("TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
-            .startDate(getDate(2018, 1, 1))
-            .endDate(getDate(2020, 1, 29))
+            .occurredAfter(getDate(2018, 1, 1))
+            .occurredBefore(getDate(2020, 1, 29))
             .skipChangedBefore(getDate(2018, 1, 1))
             .build();
 
