@@ -60,13 +60,15 @@ public class IconMapper {
           icon.getKeywords(),
           ci.getFileResourceUid(),
           ci.getCreatedByUserUid(),
-          getCustomIconReference(ci.getKey()));
+          getCustomIconReference(ci.getKey()),
+          true);
     } else {
       return new IconResponse(
           icon.getKey(),
           icon.getDescription(),
           icon.getKeywords(),
-          getDefaultIconReference(icon.getKey()));
+          getDefaultIconReference(icon.getKey()),
+          false);
     }
   }
 
