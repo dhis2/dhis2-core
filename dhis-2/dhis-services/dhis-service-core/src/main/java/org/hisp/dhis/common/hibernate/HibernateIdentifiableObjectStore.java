@@ -186,8 +186,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE);
-    entityManager.merge(object);
-//    getSession().update(object);
+    getSession().update(object);
   }
 
   @Override
