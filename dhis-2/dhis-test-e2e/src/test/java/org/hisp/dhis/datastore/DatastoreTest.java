@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.datastore;
 
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonArray;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -46,50 +46,314 @@ import org.junit.jupiter.api.Test;
 class DatastoreTest extends ApiTest {
 
   private RestApiActions datastoreApiActions;
+  private RestApiActions userGroupActions;
   private RestApiActions sharingActions;
   private LoginActions loginActions;
+  private UserActions userActions;
 
-  private static String NAMESPACE = "football";
+  private static final String NAMESPACE = "football";
+  private static final String BASIC_USER = "User123";
+  private String basicUserId = "";
+  private String userGroupId = "";
 
   @BeforeAll
   public void beforeAll() {
     datastoreApiActions = new RestApiActions("dataStore");
     sharingActions = new RestApiActions("sharing");
     loginActions = new LoginActions();
-    //    loginActions.loginAsSuperUser();
+    userActions = new UserActions();
+    basicUserId = userActions.addUser(BASIC_USER, "Test1234!");
+
+    userGroupActions = new RestApiActions("userGroups");
+    userGroupId = userGroupActions.post("{\"name\":\"basic user group\"}").extractUid();
+  }
+
+  @AfterEach
+  public void deleteEntries() {
+    datastoreApiActions.delete(NAMESPACE).validateStatus(200);
   }
 
   @Test
-  void datastoreTest() {
+  //  @Disabled
+  void testDatastoreSharing_SuperUser() {
     // put 2 entries into namespace
     loginActions.loginAsAdmin();
 
-    // call as superuser to fields api
+    // add 2 entries as admin
     String key1 = "arsenal";
     String key2 = "spurs";
-    datastoreApiActions.post("/"+ NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-    datastoreApiActions.post("/"+ NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+    datastoreApiActions
+        .post("/" + NAMESPACE + "/" + key1, newEntry(key1))
+        .validate()
+        .statusCode(201);
+    datastoreApiActions
+        .post("/" + NAMESPACE + "/" + key2, newEntry(key2))
+        .validate()
+        .statusCode(201);
 
-    // call fields api with fields name
-//    ApiResponse response = dataStoreApiActions.get("/"+ NAMESPACE + "?fields=league");
-    QueryParamsBuilder paramsBuilder = new QueryParamsBuilder().add("fields", "league");
-    ApiResponse response = datastoreApiActions.get("/"+ NAMESPACE, paramsBuilder);
+    // make call with fields query as super user and check can see 2 entries
+    loginActions.loginAsSuperUser();
+    QueryParamsBuilder paramsBuilder2 = new QueryParamsBuilder().add("fields", "league");
+    ApiResponse response2 = datastoreApiActions.get("/" + NAMESPACE, paramsBuilder2);
 
-    JsonArray entries = response.getBody().getAsJsonArray("entries");
-    //    String entries = response.getAsString();
-    assertEquals("{\"key\":\"arsenal\",\"league\":\"prem\"}", entries.get(0).getAsJsonObject().getAsString());
-    assertEquals("{\"key\":\"spurs\",\"league\":\"prem\"}", entries.get(1).getAsJsonObject().getAsString());
-    assertTrue(entries.size() == 2);
+    JsonArray entries2 = response2.getBody().getAsJsonArray("entries");
+    assertEquals("{\"key\":\"arsenal\",\"league\":\"prem\"}", entries2.get(0).toString());
+    assertEquals("{\"key\":\"spurs\",\"league\":\"prem\"}", entries2.get(1).toString());
+    assertEquals(2, entries2.size());
+  }
 
-    // make the same call again, this time passing the 'If-None-Match' header and the ETag value
-    // from response 1
+  @Test
+  //  @Disabled
+  void testDatastoreUserSharing_UserNoAccess() {
+    // put 2 entries into namespace
+    loginActions.loginAsAdmin();
+
+    // add 2 entries as admin
+    String key1 = "arsenal";
+    String key2 = "spurs";
+    datastoreApiActions
+        .post("/" + NAMESPACE + "/" + key1, newEntry(key1))
+        .validate()
+        .statusCode(201);
+    datastoreApiActions
+        .post("/" + NAMESPACE + "/" + key2, newEntry(key2))
+        .validate()
+        .statusCode(201);
+
+    // make call with fields query as user with no access and check can see no entries
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+
+    QueryParamsBuilder paramsBuilder2 = new QueryParamsBuilder().add("fields", "league");
+    ApiResponse response2 = datastoreApiActions.get("/" + NAMESPACE, paramsBuilder2);
+
+    JsonArray entries2 = response2.getBody().getAsJsonArray("entries");
+    assertEquals(0, entries2.size());
+  }
+
+  @Test
+  //  @Disabled
+  void testDatastoreUserSharing_UserHasAccess() {
+    // put 2 entries into namespace
+    loginActions.loginAsAdmin();
+
+    // add 2 entries as admin
+    String key1 = "arsenal";
+    String key2 = "spurs";
+    datastoreApiActions
+        .post("/" + NAMESPACE + "/" + key1, newEntry(key1))
+        .validate()
+        .statusCode(201);
+    datastoreApiActions
+        .post("/" + NAMESPACE + "/" + key2, newEntry(key2))
+        .validate()
+        .statusCode(201);
+
+    // get ids of entries
+    /// api/dataStore/david/test1/metaData
+    ApiResponse mdResponse1 = datastoreApiActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+    ApiResponse mdResponse2 = datastoreApiActions.get("/" + NAMESPACE + "/" + key2 + "/metaData");
+    String uid2 = mdResponse2.extractUid();
+
+    // give access to user
+    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingUserAccess(basicUserId), params).validateStatus(200);
+    QueryParamsBuilder params2 = new QueryParamsBuilder().add("type", "dataStore").add("id", uid2);
+    sharingActions.post("", sharingUserAccess(basicUserId), params2).validateStatus(200);
+
+    // make call with fields query as user with no access and check can see no entries
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+
+    QueryParamsBuilder paramsBuilder2 = new QueryParamsBuilder().add("fields", "league");
+    ApiResponse response2 = datastoreApiActions.get("/" + NAMESPACE, paramsBuilder2);
+
+    JsonArray entries2 = response2.getBody().getAsJsonArray("entries");
+    assertEquals("{\"key\":\"arsenal\",\"league\":\"prem\"}", entries2.get(0).toString());
+    assertEquals("{\"key\":\"spurs\",\"league\":\"prem\"}", entries2.get(1).toString());
+    assertEquals(2, entries2.size());
+  }
+
+  @Test
+  //  @Disabled
+  void testDatastoreUserSharing_UserHasSomeAccess() {
+    // put 2 entries into namespace
+    loginActions.loginAsAdmin();
+
+    // add 2 entries as admin
+    String key1 = "arsenal";
+    String key2 = "spurs";
+    datastoreApiActions
+        .post("/" + NAMESPACE + "/" + key1, newEntry(key1))
+        .validate()
+        .statusCode(201);
+    datastoreApiActions
+        .post("/" + NAMESPACE + "/" + key2, newEntry(key2))
+        .validate()
+        .statusCode(201);
+
+    // get id of 1 entry
+    ApiResponse mdResponse1 = datastoreApiActions.get("/" + NAMESPACE + "/" + key2 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+
+    // give access to user
+    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingUserAccess(basicUserId), params).validateStatus(200);
+
+    // make call with fields query as user with no access and check can see no entries
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+
+    QueryParamsBuilder paramsBuilder2 = new QueryParamsBuilder().add("fields", "league");
+    ApiResponse response2 = datastoreApiActions.get("/" + NAMESPACE, paramsBuilder2);
+
+    JsonArray entries2 = response2.getBody().getAsJsonArray("entries");
+    assertEquals("{\"key\":\"spurs\",\"league\":\"prem\"}", entries2.get(0).toString());
+    assertEquals(1, entries2.size());
+  }
+
+  @Test
+  //  @Disabled
+  void testDatastoreUserGroupSharing_UserHasAccess() {
+    // put 2 entries into namespace
+    loginActions.loginAsAdmin();
+
+    // add 2 entries as admin
+    String key1 = "arsenal";
+    String key2 = "spurs";
+    datastoreApiActions
+        .post("/" + NAMESPACE + "/" + key1, newEntry(key1))
+        .validate()
+        .statusCode(201);
+    datastoreApiActions
+        .post("/" + NAMESPACE + "/" + key2, newEntry(key2))
+        .validate()
+        .statusCode(201);
+
+    // get ids of entries
+    ApiResponse mdResponse1 = datastoreApiActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+    ApiResponse mdResponse2 = datastoreApiActions.get("/" + NAMESPACE + "/" + key2 + "/metaData");
+    String uid2 = mdResponse2.extractUid();
+
+    // add user to user group
+    userActions.post(basicUserId + "/userGroups/" + userGroupId, "").validateStatus(200);
+
+    // give access to user for both entries
+    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingUserGroupAccess(userGroupId), params).validateStatus(200);
+    QueryParamsBuilder params2 = new QueryParamsBuilder().add("type", "dataStore").add("id", uid2);
+    sharingActions.post("", sharingUserGroupAccess(userGroupId), params2).validateStatus(200);
+
+    // check entry metadata
+    //    ApiResponse respTest = datastoreApiActions.get("/" + NAMESPACE + "/" + key1 +
+    // "/metaData");
+    //    assertEquals("test", respTest.getAsString());
+
+    // make call with fields query as user with no access and check can see no entries
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+
+    QueryParamsBuilder paramsBuilder2 = new QueryParamsBuilder().add("fields", "league");
+    ApiResponse response2 = datastoreApiActions.get("/" + NAMESPACE, paramsBuilder2);
+
+    JsonArray entries2 = response2.getBody().getAsJsonArray("entries");
+    assertEquals("{\"key\":\"arsenal\",\"league\":\"prem\"}", entries2.get(0).toString());
+    assertEquals("{\"key\":\"spurs\",\"league\":\"prem\"}", entries2.get(1).toString());
+    assertEquals(2, entries2.size());
+  }
+
+  @Test
+  void testDatastoreUserGroupSharing_UserHasSomeAccess() {
+    // put 2 entries into namespace
+    loginActions.loginAsAdmin();
+
+    // add 2 entries as admin
+    String key1 = "arsenal";
+    String key2 = "spurs";
+    datastoreApiActions
+        .post("/" + NAMESPACE + "/" + key1, newEntry(key1))
+        .validate()
+        .statusCode(201);
+    datastoreApiActions
+        .post("/" + NAMESPACE + "/" + key2, newEntry(key2))
+        .validate()
+        .statusCode(201);
+
+    // get ids of entries
+    ApiResponse mdResponse1 = datastoreApiActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+    //    ApiResponse mdResponse2 = datastoreApiActions.get("/" + NAMESPACE + "/" + key2 +
+    // "/metaData");
+    //    String uid2 = mdResponse2.extractUid();
+
+    // add user to user group
+    /// users/UserId10002/userGroups/GcwRFZ3eeKC
+    userActions.post(basicUserId + "/userGroups/" + userGroupId, "").validateStatus(200);
+
+    // give access to user for 1 entry only
+    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingUserGroupAccess(userGroupId), params).validateStatus(200);
+
+    // check entry metadata
+    //    ApiResponse respTest = datastoreApiActions.get("/" + NAMESPACE + "/" + key1 +
+    // "/metaData");
+    //    assertEquals("test", respTest.getAsString());
+    //    ApiResponse respTest2 = datastoreApiActions.get("/" + NAMESPACE + "/" + key2 +
+    // "/metaData");
+    //    assertEquals("test", respTest2.getAsString());
+
+    // make call with fields query as user with no access and check can see no entries
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+
+    QueryParamsBuilder paramsBuilder2 = new QueryParamsBuilder().add("fields", "league");
+    ApiResponse response2 = datastoreApiActions.get("/" + NAMESPACE, paramsBuilder2);
+
+    JsonArray entries2 = response2.getBody().getAsJsonArray("entries");
+    assertEquals("{\"key\":\"arsenal\",\"league\":\"prem\"}", entries2.get(0).toString());
+    assertEquals(1, entries2.size());
   }
 
   private String newEntry(String team) {
     return """
       {"name": "%s","league": "prem"}
+    """.strip().formatted(team);
+  }
+
+  private String sharingUserAccess(String userId) {
+    return """
+    {
+        "object": {
+            "publicAccess": "--r-----",
+            "externalAccess": false,
+            "user": {},
+            "userAccesses": [
+                {
+                    "id": "%s",
+                    "access": "--r-----"
+                }
+            ],
+            "userGroupAccesses": []
+        }
+    }
     """
-        .strip()
-        .formatted(team);
+        .formatted(userId);
+  }
+
+  private String sharingUserGroupAccess(String userGroupId) {
+    return """
+    {
+        "object": {
+            "publicAccess": "--------",
+            "externalAccess": false,
+            "user": {},
+            "userAccesses": [],
+            "userGroupAccesses": [
+                {
+                    "id": "%s",
+                    "access": "--r-----"
+                }
+            ]
+        }
+    }
+    """
+        .formatted(userGroupId);
   }
 }

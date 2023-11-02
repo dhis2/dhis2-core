@@ -89,8 +89,7 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
   @Override
   public List<String> getKeysInNamespace(String namespace, Date lastUpdated) {
     User currentUser = currentUserService.getCurrentUser();
-    String accessFilter =
-        generateHqlQueryForSharingCheck("ds", currentUser, "--r-----");
+    String accessFilter = generateHqlQueryForSharingCheck("ds", currentUser, "--r-----");
 
     String hql =
         "select key from DatastoreEntry ds where namespace = :namespace and " + accessFilter;
@@ -120,14 +119,11 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform) {
-//    User currentUser = currentUserService.getCurrentUser();
-//    String accessFilter =
-//        generateHqlQueryForSharingCheck("ds", currentUser, "--r-----");
-//    DatastoreQueryBuilder builder =
-//        new DatastoreQueryBuilder("from DatastoreEntry ds where namespace = :namespace and " + accessFilter, query);
-
+    User currentUser = currentUserService.getCurrentUser();
+    String accessFilter = generateHqlQueryForSharingCheck("ds", currentUser, "--r-----");
     DatastoreQueryBuilder builder =
-        new DatastoreQueryBuilder("from DatastoreEntry where namespace = :namespace", query);
+        new DatastoreQueryBuilder(
+            "from DatastoreEntry ds where namespace = :namespace and " + accessFilter, query);
 
     String hql = builder.createFetchHQL();
 

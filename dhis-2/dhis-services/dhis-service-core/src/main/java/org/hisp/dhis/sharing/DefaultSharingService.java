@@ -113,7 +113,7 @@ public class DefaultSharingService implements SharingService {
     Schema schema = schemaService.getDynamicSchema(entityClass);
 
     if (aclService.canMakePublic(user, object)) {
-      object.getSharing().setPublicAccess(sharing.getPublicAccess());
+      object.getSharing().setPublicAccess(sharing.getPublicAccess()); // todo check
     }
 
     if (!schema.isDataShareable()) {
