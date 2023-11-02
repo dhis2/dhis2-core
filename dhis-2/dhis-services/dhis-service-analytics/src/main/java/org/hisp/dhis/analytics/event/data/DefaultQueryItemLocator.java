@@ -32,10 +32,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -275,7 +272,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
 
       return repeatableStageParams;
     } catch (InvalidRepeatableStageParamsException e) {
-      ErrorMessage errorMessage = new ErrorMessage(dimension, ErrorCode.E1101);
+      ErrorMessage errorMessage = new ErrorMessage(dimension, ErrorCode.E1101, List.of(dimension));
 
       throw new IllegalQueryException(errorMessage);
     }

@@ -209,8 +209,10 @@ public class DefaultMessageService implements MessageService {
   }
 
   @Override
-  @Transactional
-  public long sendSystemErrorNotification(String subject, Throwable t) {
+  @Transactional // FIXME this should always require an existing TX (in the hopes that should then a
+  // exception occur in this method this will not cause a rollback if it is caught on
+  // the caller side inside the existing TX)
+  public long sendSystemErrorNotification(String subject, @Nonnull Throwable t) {
     String title = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
     String baseUrl = configurationProvider.getServerBaseUrl();
 

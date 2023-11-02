@@ -29,11 +29,12 @@ package org.hisp.dhis.scheduling;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Set;
+import java.util.*;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.springframework.stereotype.Service;
@@ -109,6 +110,22 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   public Progress getProgress(@Nonnull String jobId) {
     String json = jobConfigurationStore.getProgress(jobId);
     return json == null ? null : mapToProgress(json);
+  }
+
+  @Nonnull
+  @Override
+  @Transactional(readOnly = true)
+  public List<JobProgress.Error> getErrors(@Nonnull String jobId) {
+    String json = jobConfigurationStore.getErrors(jobId);
+    if (json == null) return List.of();
+    Progress progress = mapToProgress("{\"sequence\":[],\"errors\":" + json + "}");
+    if (progress == null) return List.of();
+    Map<String, Map<ErrorCode, Queue<JobProgress.Error>>> map = progress.getErrors();
+    return map.isEmpty()
+        ? List.of()
+        : map.values().stream()
+            .flatMap(errors -> errors.values().stream().flatMap(Collection::stream))
+            .toList();
   }
 
   @Override

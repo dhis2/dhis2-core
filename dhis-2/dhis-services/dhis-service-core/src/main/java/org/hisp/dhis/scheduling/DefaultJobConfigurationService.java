@@ -141,18 +141,9 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   @Override
   @Transactional
-  public void createHeartbeatJob() {
-    JobConfiguration config = jobConfigurationStore.getByUid(JobType.HEARTBEAT.getDefaults().uid());
-    if (config == null) {
-      createDefaultJob(JobType.HEARTBEAT);
-    } else if (config.getJobStatus() != JobStatus.SCHEDULED) {
-      config.setJobStatus(JobStatus.SCHEDULED);
-      jobConfigurationStore.update(config);
-    }
-  }
-
-  private void createDefaultJob(JobType type) {
+  public void createDefaultJob(JobType type) {
     Defaults job = type.getDefaults();
+    if (job == null) return;
     JobConfiguration config = new JobConfiguration(job.name(), type);
     config.setCronExpression(job.cronExpression());
     config.setDelay(job.delay());

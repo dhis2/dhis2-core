@@ -32,10 +32,14 @@ import static org.hisp.dhis.scheduling.JobProgress.getMessage;
 
 import java.time.Duration;
 import java.util.Deque;
+import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.CheckForNull;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -62,7 +66,7 @@ public class RecordingJobProgress implements JobProgress {
   private final AtomicBoolean cancellationRequested = new AtomicBoolean();
   private final AtomicBoolean abortAfterFailure = new AtomicBoolean();
   private final AtomicBoolean skipCurrentStage = new AtomicBoolean();
-  private final Progress progress = new Progress();
+  @Getter private final Progress progress = new Progress();
   private final AtomicReference<Process> incompleteProcess = new AtomicReference<>();
   private final AtomicReference<Stage> incompleteStage = new AtomicReference<>();
   private final ThreadLocal<Item> incompleteItem = new ThreadLocal<>();
@@ -89,6 +93,15 @@ public class RecordingJobProgress implements JobProgress {
         messageService != null && configuration.getJobType().isUsingErrorNotification();
   }
 
+  /**
+   * @return the exception that likely caused the job to abort
+   */
+  @CheckForNull
+  public Exception getCause() {
+    Process process = progress.sequence.peekLast();
+    return process == null ? null : process.getCause();
+  }
+
   public void requestCancellation() {
     if (cancellationRequested.compareAndSet(false, true)) {
       progress.sequence.forEach(
@@ -97,10 +110,6 @@ public class RecordingJobProgress implements JobProgress {
             logWarn(p, "cancelled", "cancellation requested by user");
           });
     }
-  }
-
-  public Progress getProgress() {
-    return progress;
   }
 
   @Override
@@ -132,6 +141,11 @@ public class RecordingJobProgress implements JobProgress {
   @Override
   public boolean isSkipCurrentStage() {
     return skipCurrentStage.get() || isCancelled();
+  }
+
+  @Override
+  public void addError(ErrorCode code, String uid, String type, Integer index, List<String> args) {
+    progress.addError(new Error(code, uid, type, index, args));
   }
 
   @Override

@@ -119,6 +119,13 @@ public class JobScheduler implements Runnable, JobRunner {
                 .collect(groupingBy(JobConfiguration::getJobType));
         // only attempt to start one per type per loop invocation
         readyByType.forEach((type, jobs) -> runIfDue(now, type, jobs));
+        if (!readyByType.containsKey(JobType.HOUSEKEEPING)) {
+          try {
+            service.createHousekeepingJob();
+          } catch (Exception ex) {
+            log.error("Unable to create house-keeping job: " + ex.getMessage());
+          }
+        }
       }
     } catch (Exception ex) {
       log.error("Exceptions thrown in scheduler loop", ex);

@@ -39,6 +39,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.schema.Property;
@@ -115,6 +116,11 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   @GetMapping("{uid}/progress")
   public Progress getProgress(@PathVariable("uid") String uid) {
     return jobSchedulerService.getProgress(uid);
+  }
+
+  @GetMapping("{uid}/errors")
+  public List<JobProgress.Error> getErrors(@PathVariable("uid") String uid) {
+    return jobSchedulerService.getErrors(uid);
   }
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
