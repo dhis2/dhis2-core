@@ -33,4 +33,6 @@ public interface Icon {
   String getDescription();
 
   String[] getKeywords();
+
+  boolean isCustom();
 }

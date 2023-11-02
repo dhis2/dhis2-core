@@ -53,13 +53,16 @@ public class IconResponse {
 
   @JsonProperty private String userUid;
 
+  @JsonProperty private boolean custom;
+
   @JsonProperty("href")
   private String reference;
 
-  public IconResponse(String key, String description, String[] keywords, String reference) {
+  public IconResponse(String key, String description, String[] keywords, String reference, boolean custom) {
     this.key = key;
     this.description = description;
     this.keywords = keywords;
     this.reference = reference;
+    this.custom = custom;
   }
 }
