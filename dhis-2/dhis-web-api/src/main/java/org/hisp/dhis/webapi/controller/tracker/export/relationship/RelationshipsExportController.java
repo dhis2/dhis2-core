@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -97,6 +98,7 @@ class RelationshipsExportController {
   @GetMapping
   PagingWrapper<ObjectNode> getRelationships(RequestParams requestParams)
       throws NotFoundException, BadRequestException, ForbiddenException {
+    validatePaginationParameters(requestParams);
     RelationshipOperationParams operationParams = mapper.map(requestParams);
 
     if (requestParams.isPaged()) {

@@ -188,7 +188,7 @@ pipeline {
             }
         }
 
-        stage('Update IM Play dev instance') {
+        stage('Update IM Play instance') {
             environment {
                 HTTP = "http --check-status"
                 IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
@@ -217,7 +217,7 @@ pipeline {
                                 env.DATABASE_ID = "test-dbs-sierra-leone-dev-sql-gz"
                             } else {
                                 env.IMAGE_TAG = env.GIT_BRANCH
-                                branch = "-${env.GIT_BRANCH.replaceAll(".", "-")}"
+                                branch = "-${env.GIT_BRANCH.replace(".", "-")}"
 
                                 dir('scripts/databases') {
                                     env.DATABASE_ID = sh(
@@ -233,7 +233,7 @@ pipeline {
                             dir('scripts/instances') {
                                 sh "(./findByName.sh play dev${branch} && ./restart.sh play dev${branch}) || ./deploy-dhis2.sh play dev${branch}"
                                 timeout(5) {
-                                    waitFor.statusOk("${env.INSTANCE_URL}")
+                                    waitFor.statusOk("${env.INSTANCE_URL}${branch}")
                                 }
                             }
                         }

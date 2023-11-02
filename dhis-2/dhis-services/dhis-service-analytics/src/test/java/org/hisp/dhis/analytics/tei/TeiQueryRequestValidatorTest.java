@@ -68,32 +68,6 @@ class TeiQueryRequestValidatorTest {
   }
 
   @Test
-  void testValidateWhenProgramIsNotDefined() {
-    // Given
-    TeiQueryRequest teiQueryRequest = new TeiQueryRequest("uidabcdef11");
-    CommonQueryRequest commonQueryRequest = new CommonQueryRequest();
-    commonQueryRequest.setDimension(Set.of("ou:jmIPBj66vD6"));
-
-    QueryRequest<TeiQueryRequest> queryRequest =
-        QueryRequest.<TeiQueryRequest>builder()
-            .commonQueryRequest(commonQueryRequest)
-            .request(teiQueryRequest)
-            .build();
-
-    CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
-    TeiQueryRequestValidator teiQueryRequestValidator =
-        new TeiQueryRequestValidator(commonQueryRequestValidator);
-
-    // When
-    IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class, () -> teiQueryRequestValidator.validate(queryRequest));
-
-    // Then
-    assertEquals("Program is not specified", exception.getMessage());
-  }
-
-  @Test
   void testValidateWhenPeIsDefined() {
     // Given
     TeiQueryRequest teiQueryRequest = new TeiQueryRequest("uidabcdef11");
