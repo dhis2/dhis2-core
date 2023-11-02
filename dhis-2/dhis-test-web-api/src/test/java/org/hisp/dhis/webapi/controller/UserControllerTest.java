@@ -41,6 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -234,10 +235,10 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     UserRole roleB = createUserRole("ROLE_B", "F_USER_ADD", "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS");
     userService.addUserRole(roleB);
 
-    UserGroup userGroupA = createUserGroup('A', emptySet());
+    UserGroup userGroupA = createUserGroup('A', Collections.emptySet());
     manager.save(userGroupA);
 
-    User user = createUserWithAuth("someone", "NONE");
+    User user = createUser("someone", "NONE");
     user.getUserRoles().add(roleB);
     userService.updateUser(user);
 
