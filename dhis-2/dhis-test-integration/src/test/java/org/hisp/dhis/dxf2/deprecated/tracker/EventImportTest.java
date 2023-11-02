@@ -642,7 +642,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertThat(psi.getOrganisationUnit().getUid(), is(psi2.getOrganisationUnit().getUid()));
     assertThat(psi.getAttributeOptionCombo().getUid(), is(psi2.getAttributeOptionCombo().getUid()));
     assertThat(psi.getStatus().getValue(), is(psi2.getStatus().getValue()));
-    assertThat(psi.getExecutionDate(), is(psi2.getExecutionDate()));
+    assertThat(psi.getOccurredDate(), is(psi2.getOccurredDate()));
     assertThat(psi.getCompletedDate(), is(psi2.getCompletedDate()));
     assertThat(psi.getCompletedBy(), is(psi2.getCompletedBy()));
     assertThat(psi.isDeleted(), is(psi2.isDeleted()));
@@ -689,7 +689,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertThat(psi.getOrganisationUnit().getUid(), is(psi2.getOrganisationUnit().getUid()));
     assertThat(psi.getAttributeOptionCombo().getUid(), is(psi2.getAttributeOptionCombo().getUid()));
     assertThat(psi2.getStatus(), is(EventStatus.ACTIVE));
-    assertThat(psi.getExecutionDate(), is(psi2.getExecutionDate()));
+    assertThat(psi.getOccurredDate(), is(psi2.getOccurredDate()));
     assertThat(psi2.getCompletedDate(), is(nullValue()));
     assertThat(psi.getCompletedBy(), is(psi2.getCompletedBy()));
     assertThat(psi.isDeleted(), is(psi2.isDeleted()));

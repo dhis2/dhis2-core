@@ -417,7 +417,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     // Program Stage Instances (Events)
     Event eventA1 = createEvent(psA, piA, ouI);
     eventA1.setDueDate(jan15);
-    eventA1.setExecutionDate(jan15);
+    eventA1.setOccurredDate(jan15);
     eventA1.setUid("event0000A1");
     eventA1.setEventDataValues(
         Set.of(
@@ -426,7 +426,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     Event eventA2 = createEvent(psA, piA, ouJ);
     eventA2.setDueDate(feb15);
-    eventA2.setExecutionDate(feb15);
+    eventA2.setOccurredDate(feb15);
     eventA2.setUid("event0000A2");
     eventA2.setEventDataValues(
         Set.of(
@@ -435,7 +435,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     Event eventA3 = createEvent(psA, piA, ouK);
     eventA3.setDueDate(mar15);
-    eventA3.setExecutionDate(mar15);
+    eventA3.setOccurredDate(mar15);
     eventA3.setUid("event0000A3");
     eventA3.setEventDataValues(
         Set.of(
@@ -444,7 +444,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     Event eventB1 = createEvent(psB, piB, ouI);
     eventB1.setDueDate(jan15);
-    eventB1.setExecutionDate(jan15);
+    eventB1.setOccurredDate(jan15);
     eventB1.setUid("event0000B1");
     eventB1.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "10"), new EventDataValue(deB.getUid(), "A")));
@@ -452,7 +452,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     Event eventB2 = createEvent(psB, piB, ouI);
     eventB2.setDueDate(jan20);
-    eventB2.setExecutionDate(jan20);
+    eventB2.setOccurredDate(jan20);
     eventB2.setUid("event0000B2");
     eventB2.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "20"), new EventDataValue(deB.getUid(), "B")));
@@ -460,7 +460,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     Event eventB3 = createEvent(psB, piB, ouJ);
     eventB3.setDueDate(jan15);
-    eventB3.setExecutionDate(jan15);
+    eventB3.setOccurredDate(jan15);
     eventB3.setUid("event0000B3");
     eventB3.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "30"), new EventDataValue(deB.getUid(), "C")));
@@ -468,7 +468,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     Event eventB4 = createEvent(psB, piB, ouJ);
     eventB4.setDueDate(jan20);
-    eventB4.setExecutionDate(jan20);
+    eventB4.setOccurredDate(jan20);
     eventB4.setUid("event0000B4");
     eventB4.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "40"), new EventDataValue(deB.getUid(), "D")));
@@ -476,7 +476,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     Event eventB5 = createEvent(psB, piB, ouI);
     eventB5.setDueDate(feb15);
-    eventB5.setExecutionDate(feb15);
+    eventB5.setOccurredDate(feb15);
     eventB5.setUid("event0000B5");
     eventB5.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "50"), new EventDataValue(deB.getUid(), "E")));
@@ -484,7 +484,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     Event eventB6 = createEvent(psB, piB, ouI);
     eventB6.setDueDate(feb15Noon);
-    eventB6.setExecutionDate(feb15Noon);
+    eventB6.setOccurredDate(feb15Noon);
     eventB6.setUid("event0000B6");
     eventB6.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "60"), new EventDataValue(deB.getUid(), "F")));
@@ -492,7 +492,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     Event eventB7 = createEvent(psB, piB, ouJ);
     eventB7.setDueDate(feb15);
-    eventB7.setExecutionDate(feb15);
+    eventB7.setOccurredDate(feb15);
     eventB7.setUid("event0000B7");
     eventB7.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "70"), new EventDataValue(deB.getUid(), "G")));
@@ -500,7 +500,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     Event eventB8 = createEvent(psB, piB, ouJ);
     eventB8.setDueDate(feb15Noon);
-    eventB8.setExecutionDate(feb15Noon);
+    eventB8.setOccurredDate(feb15Noon);
     eventB8.setUid("event0000B8");
     eventB8.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "80"), new EventDataValue(deB.getUid(), "H")));

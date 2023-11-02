@@ -587,7 +587,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   private Event eventWithDataValue(Enrollment enrollment) {
     Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit());
     event.setAutoFields();
-    event.setExecutionDate(DateUtils.parseDate(EVENT_OCCURRED_AT));
+    event.setOccurredDate(DateUtils.parseDate(EVENT_OCCURRED_AT));
 
     dataElement = createDataElement('A');
     dataElement.setValueType(ValueType.TEXT);

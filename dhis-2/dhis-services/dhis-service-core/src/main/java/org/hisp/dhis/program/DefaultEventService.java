@@ -185,7 +185,7 @@ public class DefaultEventService implements EventService {
       if (programStage.getOpenAfterEnrollment()
           || enrollment.getProgram().isWithoutRegistration()
           || programStage.getPeriodType() != null) {
-        event.setExecutionDate(dueDate);
+        event.setOccurredDate(dueDate);
         event.setStatus(EventStatus.ACTIVE);
       }
 

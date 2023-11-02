@@ -180,7 +180,7 @@ class ExpirationDaysCheckTest extends BaseValidationTest {
     Map<String, Event> psiMap = new HashMap<>();
     Event psi = new Event();
     // month length + 5
-    psi.setExecutionDate(getTodayMinusDays(35));
+    psi.setOccurredDate(getTodayMinusDays(35));
     // days
     psi.setUid(event.getUid());
     psiMap.put(event.getUid(), psi);

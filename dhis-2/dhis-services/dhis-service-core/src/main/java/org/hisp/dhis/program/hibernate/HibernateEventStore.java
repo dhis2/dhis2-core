@@ -204,7 +204,7 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
             + "inner join ev.programStage as ps "
             + "where :notificationTemplate in elements(ps.notificationTemplates) "
             + "and ev.dueDate is not null "
-            + "and ev.executionDate is null "
+            + "and ev.occurredDate is null "
             + "and ev.status != :skippedEventStatus "
             + "and cast(:targetDate as date) = ev.dueDate "
             + "and ev.deleted is false";
