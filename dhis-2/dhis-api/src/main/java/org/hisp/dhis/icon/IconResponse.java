@@ -58,7 +58,8 @@ public class IconResponse {
   @JsonProperty("href")
   private String reference;
 
-  public IconResponse(String key, String description, String[] keywords, String reference, boolean custom) {
+  public IconResponse(
+      String key, String description, String[] keywords, String reference, boolean custom) {
     this.key = key;
     this.description = description;
     this.keywords = keywords;
