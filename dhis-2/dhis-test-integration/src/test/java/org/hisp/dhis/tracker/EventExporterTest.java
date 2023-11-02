@@ -1211,14 +1211,14 @@ class EventExporterTest extends TrackerTest {
         () -> assertEquals(List.of("D9PbzJY8bJM"), eventUids(firstPage)));
 
     params.setPage(2);
-    params.setPageSize(1);
+    params.setPageSize(4);
 
     Events secondPage = eventService.getEvents(params);
 
     assertAll(
         "second (last) page",
-        () -> assertSlimPager(2, 1, true, secondPage),
-        () -> assertEquals(List.of("pTzf9KYMk72"), eventUids(secondPage)));
+        () -> assertSlimPager(2, 4, true, secondPage),
+        () -> assertEquals(List.of("SbUJzkxKYAG"), eventUids(secondPage)));
 
     params.setPage(3);
     params.setPageSize(3);
