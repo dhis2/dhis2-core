@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.annotations.QueryHints;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -45,6 +48,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
+import org.springframework.orm.jpa.EntityManagerFactoryUtils;
+import org.springframework.orm.jpa.EntityManagerHolder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -118,16 +123,16 @@ public abstract class BaseSpringTest extends DhisConvenienceTest
   }
 
   protected void bindSession() {
-    SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
-    Session session = sessionFactory.openSession();
-    session.setHibernateFlushMode(FlushMode.AUTO);
-    TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(session));
+    EntityManagerFactory entityManagerFactory = (EntityManagerFactory) applicationContext.getBean("entityManagerFactory");
+    EntityManager entityManager = entityManagerFactory.createEntityManager();
+    entityManager.setProperty(QueryHints.FLUSH_MODE, FlushMode.AUTO);
+    TransactionSynchronizationManager.bindResource(entityManagerFactory, new EntityManagerHolder(entityManager));
   }
 
   protected void unbindSession() {
-    SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
-    SessionHolder sessionHolder =
-        (SessionHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
-    SessionFactoryUtils.closeSession(sessionHolder.getSession());
+    EntityManagerFactory sessionFactory = (EntityManagerFactory) applicationContext.getBean("entityManagerFactory");
+    EntityManagerHolder entityManagerHolder =
+        (EntityManagerHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
+    EntityManagerFactoryUtils.closeEntityManager(entityManagerHolder.getEntityManager());
   }
 }
