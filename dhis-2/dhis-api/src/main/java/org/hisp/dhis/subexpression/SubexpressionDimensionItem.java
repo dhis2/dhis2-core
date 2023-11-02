@@ -34,10 +34,8 @@ import static org.hisp.dhis.common.DimensionItemType.SUBEXPRESSION_DIMENSION_ITE
 
 import java.util.Collection;
 import java.util.List;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryModifiers;

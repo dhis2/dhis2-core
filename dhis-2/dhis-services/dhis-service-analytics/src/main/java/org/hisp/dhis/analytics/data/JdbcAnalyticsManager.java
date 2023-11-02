@@ -475,34 +475,34 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   /** Add where clause filters. */
   private void getWhereClauseFilters(
       DataQueryParams params, SqlHelper sqlHelper, StringBuilder sql) {
-      ListMap<String, DimensionalObject> filterMap = params.getDimensionFilterMap();
+    ListMap<String, DimensionalObject> filterMap = params.getDimensionFilterMap();
 
-      for (String dimension : filterMap.keySet()) {
-        List<DimensionalObject> filters = filterMap.get(dimension);
+    for (String dimension : filterMap.keySet()) {
+      List<DimensionalObject> filters = filterMap.get(dimension);
 
-        if (DimensionalObjectUtils.anyDimensionHasItems(filters)) {
-          sql.append(sqlHelper.whereAnd() + " ( ");
+      if (DimensionalObjectUtils.anyDimensionHasItems(filters)) {
+        sql.append(sqlHelper.whereAnd() + " ( ");
 
-          for (DimensionalObject filter : filters) {
-            if (filter.hasItems()) {
-              sql.append(
-                  filters.stream()
-                      .filter(DimensionalObject::hasItems)
-                      .map(
-                          fil -> {
-                            String col = quoteAlias(fil.getDimensionName());
-                            return col
-                                + " in ("
-                                + getQuotedCommaDelimitedString(getUids(fil.getItems()))
-                                + ") ";
-                          })
-                      .collect(Collectors.joining("or ")));
-            }
-
-            sql.append(") ");
+        for (DimensionalObject filter : filters) {
+          if (filter.hasItems()) {
+            sql.append(
+                filters.stream()
+                    .filter(DimensionalObject::hasItems)
+                    .map(
+                        fil -> {
+                          String col = quoteAlias(fil.getDimensionName());
+                          return col
+                              + " in ("
+                              + getQuotedCommaDelimitedString(getUids(fil.getItems()))
+                              + ") ";
+                        })
+                    .collect(Collectors.joining("or ")));
           }
+
+          sql.append(") ");
         }
       }
+    }
   }
 
   /** Add where clause data approval constraints. */
@@ -967,7 +967,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @param dimensions the collection of {@link DimensionalObject}.
    * @return a comma-delimited string of quoted dimension names.
    */
-  protected String getCommaDelimitedQuotedDimensionColumns(Collection<DimensionalObject> dimensions) {
+  protected String getCommaDelimitedQuotedDimensionColumns(
+      Collection<DimensionalObject> dimensions) {
     return join(",", getQuotedDimensionColumns(dimensions));
   }
 

@@ -45,7 +45,6 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.addUnique;
 import static org.hisp.dhis.subexpression.SubexpressionDimensionItem.getItemColumnName;
 
 import java.util.List;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -234,11 +233,10 @@ public class JdbcSubexpressionQueryGenerator {
    */
   private String getItemSql(DimensionalItemObject item) {
 
-    DataElementOperand deo = (item instanceof DataElementOperand) ? (DataElementOperand) item : null;
+    DataElementOperand deo =
+        (item instanceof DataElementOperand) ? (DataElementOperand) item : null;
 
-    DataElement dataElement = (deo != null)
-            ? deo.getDataElement()
-            : (DataElement) item;
+    DataElement dataElement = (deo != null) ? deo.getDataElement() : (DataElement) item;
 
     String deUid = dataElement.getUid();
     String cocUid = null;

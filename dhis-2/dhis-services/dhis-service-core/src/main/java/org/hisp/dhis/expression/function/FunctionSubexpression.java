@@ -97,9 +97,9 @@ public class FunctionSubexpression extends DimensionalItem {
     CommonExpressionVisitor sqlVisitor =
         visitor.toBuilder().itemMethod(ITEM_GET_SQL).state(getSubexpressionState(visitor)).build();
 
-      sqlVisitor.setExpressionLiteral( new SqlLiteral() );
+    sqlVisitor.setExpressionLiteral(new SqlLiteral());
 
-      return sqlVisitor.castStringVisit(ctx.expr(0));
+    return sqlVisitor.castStringVisit(ctx.expr(0));
   }
 
   /**

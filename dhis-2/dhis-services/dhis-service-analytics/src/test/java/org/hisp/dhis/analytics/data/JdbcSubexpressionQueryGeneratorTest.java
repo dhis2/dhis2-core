@@ -42,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.regex.Pattern;
-
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
@@ -70,118 +69,112 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Jim Grace
  */
-@ExtendWith( MockitoExtension.class )
-@TestInstance( TestInstance.Lifecycle.PER_CLASS )
-class JdbcSubexpressionQueryGeneratorTest
-{
-    @Mock
-    private PartitionManager partitionManager;
+@ExtendWith(MockitoExtension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class JdbcSubexpressionQueryGeneratorTest {
+  @Mock private PartitionManager partitionManager;
 
-    @Mock
-    private JdbcTemplate jdbcTemplate;
+  @Mock private JdbcTemplate jdbcTemplate;
 
-    private JdbcAnalyticsManager jam;
+  private JdbcAnalyticsManager jam;
 
-    @Mock
-    private ExecutionPlanStore executionPlanStore;
+  @Mock private ExecutionPlanStore executionPlanStore;
 
-    /**
-     * Matches a UID with an initial single quote.
-     */
-    private final static Pattern QUOTED_UID = Pattern.compile( "'\\w{11}'" );
+  /** Matches a UID with an initial single quote. */
+  private static final Pattern QUOTED_UID = Pattern.compile("'\\w{11}'");
 
-    @BeforeAll
-    public void setUp()
-    {
-        QueryPlanner queryPlanner = new DefaultQueryPlanner( partitionManager );
+  @BeforeAll
+  public void setUp() {
+    QueryPlanner queryPlanner = new DefaultQueryPlanner(partitionManager);
 
-        jam = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanStore );
-    }
+    jam = new JdbcAnalyticsManager(queryPlanner, jdbcTemplate, executionPlanStore);
+  }
 
-    @Test
-    void testGetSql()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+  @Test
+  void testGetSql() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
 
-        Period peA = createPeriod( "202305" );
+    Period peA = createPeriod("202305");
 
-        QueryModifiers queryModsMin = QueryModifiers.builder().aggregationType( MIN ).build();
+    QueryModifiers queryModsMin = QueryModifiers.builder().aggregationType(MIN).build();
 
-        DataElement deA = createDataElement( 'A' );
-        DataElement deB = createDataElement( 'B' );
-        DataElement deC = createDataElement( 'C' );
-        DataElement deD = createDataElement( 'D' );
-        DataElement deE = createDataElement( 'E' );
+    DataElement deA = createDataElement('A');
+    DataElement deB = createDataElement('B');
+    DataElement deC = createDataElement('C');
+    DataElement deD = createDataElement('D');
+    DataElement deE = createDataElement('E');
 
-        deE.setQueryMods( queryModsMin );
+    deE.setQueryMods(queryModsMin);
 
-        CategoryOptionCombo cocA = createCategoryOptionCombo( 'A' );
-        CategoryOptionCombo cocB = createCategoryOptionCombo( 'B' );
-        CategoryOptionCombo cocC = createCategoryOptionCombo( 'C' );
-        CategoryOptionCombo cocD = createCategoryOptionCombo( 'D' );
+    CategoryOptionCombo cocA = createCategoryOptionCombo('A');
+    CategoryOptionCombo cocB = createCategoryOptionCombo('B');
+    CategoryOptionCombo cocC = createCategoryOptionCombo('C');
+    CategoryOptionCombo cocD = createCategoryOptionCombo('D');
 
-        DataElementOperand deoA = new DataElementOperand( deB, cocA );
-        DataElementOperand deoB = new DataElementOperand( deC, cocB, cocC );
-        DataElementOperand deoC = new DataElementOperand( deD, null, cocD );
+    DataElementOperand deoA = new DataElementOperand(deB, cocA);
+    DataElementOperand deoB = new DataElementOperand(deC, cocB, cocC);
+    DataElementOperand deoC = new DataElementOperand(deD, null, cocD);
 
-        List<DimensionalItemObject> items = List.of( deA, deoA, deoB, deoC, deE );
+    List<DimensionalItemObject> items = List.of(deA, deoA, deoB, deoC, deE);
 
-        String deACol = getItemColumnName( deA.getUid(), null, null, null );
-        String deoACol = getItemColumnName( deB.getUid(), cocA.getUid(), null, null );
-        String deoBCol = getItemColumnName( deC.getUid(), cocB.getUid(), cocC.getUid(), null );
-        String deoCCol = getItemColumnName( deD.getUid(), null, cocD.getUid(), null );
-        String deECol = getItemColumnName( deD.getUid(), null, null, queryModsMin );
+    String deACol = getItemColumnName(deA.getUid(), null, null, null);
+    String deoACol = getItemColumnName(deB.getUid(), cocA.getUid(), null, null);
+    String deoBCol = getItemColumnName(deC.getUid(), cocB.getUid(), cocC.getUid(), null);
+    String deoCCol = getItemColumnName(deD.getUid(), null, cocD.getUid(), null);
+    String deECol = getItemColumnName(deD.getUid(), null, null, queryModsMin);
 
-        String subexSql = deACol + "*(" + deoACol + "+" + deoBCol + ")+" + deoCCol + "-" + deECol;
+    String subexSql = deACol + "*(" + deoACol + "+" + deoBCol + ")+" + deoCCol + "-" + deECol;
 
-        SubexpressionDimensionItem subex = new SubexpressionDimensionItem( subexSql, items, null );
+    SubexpressionDimensionItem subex = new SubexpressionDimensionItem(subexSql, items, null);
 
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .withDataType( DataType.NUMERIC )
-            .withTableName( "analytics" )
-            .withAggregationType( AnalyticsAggregationType.SUM )
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( subex ) ) )
-            .addFilter( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withDataType(DataType.NUMERIC)
+            .withTableName("analytics")
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, getList(subex)))
+            .addFilter(
+                new BaseDimensionalObject(
+                    ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList(ouA)))
+            .addDimension(
+                new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, getList(peA)))
+            .build();
 
-        JdbcSubexpressionQueryGenerator target = new JdbcSubexpressionQueryGenerator( jam, params, DATA_VALUE );
+    JdbcSubexpressionQueryGenerator target =
+        new JdbcSubexpressionQueryGenerator(jam, params, DATA_VALUE);
 
-        String expected = "select ax.\"pe\",'subexprxUID' as \"dx\"," +
-            "sum(\"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghDMIN\") as \"value\" "
-            +
-            "from (select ax.\"pe\", " +
-            "sum(case when ax.\"dx\"='deabcdefghA' then \"value\" else null end) as \"deabcdefghA\"," +
-            "sum(case when ax.\"dx\"='deabcdefghB' and ax.\"co\"='cuabcdefghA' then \"value\" else null end) as \"deabcdefghB_cuabcdefghA\","
-            +
-            "sum(case when ax.\"dx\"='deabcdefghC' and ax.\"co\"='cuabcdefghB' and ax.\"ao\"='cuabcdefghC' then \"value\" else null end) as \"deabcdefghC_cuabcdefghB_cuabcdefghC\","
-            +
-            "sum(case when ax.\"dx\"='deabcdefghD' and ax.\"ao\"='cuabcdefghD' then \"value\" else null end) as \"deabcdefghD__cuabcdefghD\","
-            +
-            "min(case when ax.\"dx\"='deabcdefghE' then \"value\" else null end) as \"deabcdefghEMIN\" " +
-            "from analytics as ax " +
-            "where ax.\"pe\" in ('202305') " +
-            "and ( ax.\"ou\" in ('ouabcdefghA') ) " +
-            "and ax.\"dx\" in ('deabcdefghA','deabcdefghB','deabcdefghC','deabcdefghD','deabcdefghE')  " +
-            "group by ax.\"pe\",ax.\"ou\") as ax " +
-            "where \"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghDMIN\" is not null "
-            +
-            "group by ax.\"pe\" ";
+    String expected =
+        "select ax.\"pe\",'subexprxUID' as \"dx\","
+            + "sum(\"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghDMIN\") as \"value\" "
+            + "from (select ax.\"pe\", "
+            + "sum(case when ax.\"dx\"='deabcdefghA' then \"value\" else null end) as \"deabcdefghA\","
+            + "sum(case when ax.\"dx\"='deabcdefghB' and ax.\"co\"='cuabcdefghA' then \"value\" else null end) as \"deabcdefghB_cuabcdefghA\","
+            + "sum(case when ax.\"dx\"='deabcdefghC' and ax.\"co\"='cuabcdefghB' and ax.\"ao\"='cuabcdefghC' then \"value\" else null end) as \"deabcdefghC_cuabcdefghB_cuabcdefghC\","
+            + "sum(case when ax.\"dx\"='deabcdefghD' and ax.\"ao\"='cuabcdefghD' then \"value\" else null end) as \"deabcdefghD__cuabcdefghD\","
+            + "min(case when ax.\"dx\"='deabcdefghE' then \"value\" else null end) as \"deabcdefghEMIN\" "
+            + "from analytics as ax "
+            + "where ax.\"pe\" in ('202305') "
+            + "and ( ax.\"ou\" in ('ouabcdefghA') ) "
+            + "and ax.\"dx\" in ('deabcdefghA','deabcdefghB','deabcdefghC','deabcdefghD','deabcdefghE')  "
+            + "group by ax.\"pe\",ax.\"ou\") as ax "
+            + "where \"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghDMIN\" is not null "
+            + "group by ax.\"pe\" ";
 
-        String actual = anonymize( target.getSql() );
+    String actual = anonymize(target.getSql());
 
-        assertEquals( expected, actual );
-    }
+    assertEquals(expected, actual);
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-    /**
-     * The first UID in the generated query is randomly-generated for the
-     * subexpression. Replace this with a known label so se can compare.
-     */
-    private String anonymize( String sql )
-    {
-        return QUOTED_UID.matcher( sql ).replaceFirst( "'subexprxUID'" );
-    }
+  /**
+   * The first UID in the generated query is randomly-generated for the subexpression. Replace this
+   * with a known label so se can compare.
+   */
+  private String anonymize(String sql) {
+    return QUOTED_UID.matcher(sql).replaceFirst("'subexprxUID'");
+  }
 }
