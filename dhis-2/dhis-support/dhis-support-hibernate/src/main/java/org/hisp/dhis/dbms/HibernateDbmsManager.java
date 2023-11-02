@@ -39,10 +39,12 @@ import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
+@Component
 @Slf4j
 public class HibernateDbmsManager implements DbmsManager {
   // -------------------------------------------------------------------------
@@ -55,10 +57,10 @@ public class HibernateDbmsManager implements DbmsManager {
     this.jdbcTemplate = jdbcTemplate;
   }
 
-  private EntityManagerFactory entityManagerFactory;
+  private EntityManager entityManager;
 
-  public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
-    this.entityManagerFactory = entityManagerFactory;
+  public void setEntityManager(EntityManager entityManager){
+    this.entityManager = entityManager;
   }
 
   private HibernateCacheManager cacheManager;
@@ -361,15 +363,13 @@ public class HibernateDbmsManager implements DbmsManager {
 
   @Override
   public void clearSession() {
-    SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
-    sessionFactory.getCurrentSession().flush();
-    sessionFactory.getCurrentSession().clear();
+    entityManager.flush();
+    entityManager.clear();
   }
 
   @Override
   public void flushSession() {
-    SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
-    sessionFactory.getCurrentSession().flush();
+    entityManager.flush();
   }
 
   @Override
