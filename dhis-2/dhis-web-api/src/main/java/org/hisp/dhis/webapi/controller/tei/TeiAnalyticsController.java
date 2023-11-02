@@ -65,7 +65,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
-import org.hisp.dhis.webapi.dimension.TeiAnalyticsPrefixStrategy;
+import org.hisp.dhis.webapi.dimension.EnrollmentAnalyticsPrefixStrategy;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -257,7 +257,7 @@ class TeiAnalyticsController {
         dimensionMapperService.toDimensionResponse(
             teiAnalyticsDimensionsService.getQueryDimensionsByTrackedEntityTypeId(
                 trackedEntityType, program),
-            TeiAnalyticsPrefixStrategy.INSTANCE),
+            EnrollmentAnalyticsPrefixStrategy.INSTANCE),
         dimensionsCriteria,
         fields);
   }
