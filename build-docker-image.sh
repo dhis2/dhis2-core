@@ -2,16 +2,16 @@
 
 set -euo pipefail
 
-# TODO add labels when rebuilding
-# TODO rebuild also for arm64
-
 IMAGE_REPOSITORY=${IMAGE_REPOSITORY:-'dhis2/core'}
 IMAGE_APP_ROOT=${IMAGE_APP_ROOT:-'/usr/local/tomcat/webapps/ROOT'}
 IMAGE_USER=${IMAGE_USER:-'65534'}
+WAR_PATH=${WAR_PATH:-'dhis-2/dhis-web/dhis-web-portal/target/dhis.war'}
+UNARCHIVED_WAR_DIR=${UNARCHIVED_WAR_DIR:-'dhis2-war'}
+JIB_BUILD_FILE=${JIB_BUILD_FILE:-'jib.yaml'}
 
-#"https://releases.dhis2.org/v1/versions/stable.json"
-STABLE_VERSIONS_JSON=$(curl -fsSL "https://raw.githubusercontent.com/dhis2/dhis2-releases/master/downloads/v1/versions/stable.json")
-OLD_SCHEMA_PREFIX=2
+old_version_schema_prefix='2'
+# TODO change to https://releases.dhis2.org/v1/versions/stable.json
+stable_versions_json="$(curl -fsSL "https://raw.githubusercontent.com/dhis2/dhis2-releases/master/downloads/v1/versions/stable.json")"
 
 function help() {
    echo 'Available options:'
@@ -19,100 +19,127 @@ function help() {
    echo '-r          Rebuild image with an existing WAR for the given DHIS2 version. Without this option the image will be built with a new WAR.'
    echo '-h          Print this help message.'
    echo
-   echo 'Usage: build-docker-image.sh -t 40.1.1 -r'
-}
-
-function list_tags() {
-  echo 'Immutable tag:'
-  echo "$IMMUTABLE_IMAGE_TAG"
-
-  echo 'Rolling tags:'
-  echo "${ROLLING_TAGS[@]}"
-}
-
-function build_image() {
-  echo "Building image with new WAR for version $IMAGE_TAG, based on $BASE_IMAGE ..."
-  list_tags
-
-  mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
-      -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
-      -Djib.from.image="$BASE_IMAGE" -Djib.to.image="${IMAGE_REPOSITORY}:${IMAGE_TAG}" \
-      -Djib.container.labels=DHIS2_VERSION="$DHIS2_VERSION",DHIS2_BUILD_REVISION="$GIT_COMMIT",DHIS2_BUILD_BRANCH="$GIT_BRANCH"
-}
-
-function rebuild_image() {
-  echo "Rebuilding image with existing WAR for version $IMAGE_TAG, based on $BASE_IMAGE ..."
-  list_tags
-
-  WAR_URL=$(
-    echo "$STABLE_VERSIONS_JSON" |
-    jq -r --arg image_tag "$IMAGE_TAG" '.versions[] | select(.supported == true) .patchVersions[] | select(.displayName == $image_tag) .url'
-  )
-  curl -o dhis2.war "$WAR_URL"
-
-  jib war --from="$BASE_IMAGE" --target="docker://$IMAGE_REPOSITORY:$IMMUTABLE_IMAGE_TAG" --app-root="$IMAGE_APP_ROOT" --user="$IMAGE_USER" dhis2.war
+   echo 'Example: build-docker-image.sh -t 40.1.1 -r'
 }
 
 function create_immutable_tag() {
-  # Current date in ISO 8601 format
-  CURRENT_DATE=$(date -u +"%Y%m%dT%H%M%SZ")
+  current_date=$(date -u +"%Y%m%dT%H%M%SZ") # ISO 8601 format
 
-  IMMUTABLE_IMAGE_TAG="${IMAGE_TAG}-${CURRENT_DATE}"
+  immutable_image_tag="${image_tag}-${current_date}"
 }
 
 function create_rolling_tags() {
-  # Split image tag by .
-  IFS=. read -ra IMAGE_TAG_SEGMENTS <<< "$IMAGE_TAG"
+  IFS=. read -ra image_tag_segments <<< "$image_tag"
 
-  MAJOR="${IMAGE_TAG_SEGMENTS[0]}"
-  MINOR="${IMAGE_TAG_SEGMENTS[1]}"
-  PATCH="${IMAGE_TAG_SEGMENTS[2]}"
+  major="${image_tag_segments[0]}"
+  minor="${image_tag_segments[1]}"
+  patch="${image_tag_segments[2]}"
 
   # Always create M.m.p
-  ROLLING_TAGS=("$IMAGE_TAG")
+  rolling_tags=("$image_tag")
 
   # If non-zero patch(hotfix) create 2.M.m.p
   # TODO Do we want this or just go with consistency and create it like M.m.p?
-  if [[ "$PATCH" != "0" ]]; then
-    echo "This is a non-zero patch(hotfix)."
-    ROLLING_TAGS+=("$OLD_SCHEMA_PREFIX.$IMAGE_TAG")
+  if [[ "$patch" != "0" ]]; then
+    echo "Version $image_tag is a non-zero patch(hotfix)"
+    rolling_tags+=("$old_version_schema_prefix.$image_tag")
   fi
 
   # If patch(hotfix) is the latest for given minor(patch) create M.m + 2.M.m
-  LATEST_HOTFIX_VERSION=$(
-    echo "$STABLE_VERSIONS_JSON" |
-    jq -r --argjson major "$MAJOR" --argjson minor "$MINOR" \
+  latest_hotfix_version=$(
+    echo "$stable_versions_json" |
+    jq -r --argjson major "$major" --argjson minor "$minor" \
     '.versions[] | select(.version == $major) .patchVersions[] | select(.version == $minor) .hotfixVersion' |
     sort -n |
     tail -1
   )
-  if [[ "$PATCH" == "$LATEST_HOTFIX_VERSION" ]]; then
-    echo "The provided patch version is the latest for the minor version."
-    ROLLING_TAGS+=(
-      "$MAJOR.$MINOR"
-      "$OLD_SCHEMA_PREFIX.$MAJOR.$MINOR"
+  if [[ "$patch" == "$latest_hotfix_version" ]]; then
+    echo "The patch version $patch is the latest for the minor version $minor"
+    rolling_tags+=(
+      "$major.$minor"
+      "$old_version_schema_prefix.$major.$minor"
     )
   fi
 
-  # If version is latest create M + 2.M
-  LATEST_VERSION=$(
-    echo "$STABLE_VERSIONS_JSON" |
-    jq -r --argjson major "$MAJOR" \
+  # If version is the latest create M + 2.M
+  latest_version=$(
+    echo "$stable_versions_json" |
+    jq -r --argjson major "$major" \
     '.versions[] | select(.version == $major) | "\(.version).\(.latestPatchVersion).\(.latestHotfixVersion)"'
   )
-  if [[ "$IMAGE_TAG" == "$LATEST_VERSION" ]]; then
-      echo "The provided version is the latest version."
-      ROLLING_TAGS+=(
-        "$MAJOR"
-        "$OLD_SCHEMA_PREFIX.$MAJOR"
+  if [[ "$image_tag" == "$latest_version" ]]; then
+      echo "Version $image_tag is the latest version for the supported major version $major"
+      rolling_tags+=(
+        "$major"
+        "$old_version_schema_prefix.$major"
       )
   fi
 }
 
+function list_tags() {
+  echo 'Immutable tag:'
+  echo "$immutable_image_tag"
+
+  echo 'Rolling tags:'
+  echo "${rolling_tags[@]}"
+}
+
+function use_existing_war() {
+  echo 'Image will be rebuilt with existing WAR'
+
+  war_url=$(
+    echo "$stable_versions_json" |
+    jq -r --arg image_tag "$image_tag" '.versions[] | select(.supported == true) .patchVersions[] | select(.displayName == $image_tag) .url'
+  )
+  echo "Downloading from $war_url ..."
+  curl -o 'existing-dhis2.war' "$war_url"
+
+  known_war_sha256=$(
+    echo "$stable_versions_json" |
+    jq -r --arg image_tag "$image_tag" '.versions[] | select(.supported == true) .patchVersions[] | select(.displayName == $image_tag) .sha256'
+  )
+
+  sha256sum_output=$(sha256sum 'existing-dhis2.war')
+  downloaded_war_sha256="${sha256sum_output%% *}" # strip file name from sha256sum output with variable expansion
+
+  if [[ "$downloaded_war_sha256" != "$known_war_sha256" ]]; then
+    echo "Downloaded WAR sha256 sum ($downloaded_war_sha256) doesn't match known sha256 sum ($known_war_sha256)!"
+    exit 1
+  fi
+
+  echo "Unarchiving WAR to $UNARCHIVED_WAR_DIR ..."
+  unzip -q -o 'existing-dhis2.war' -d "./${UNARCHIVED_WAR_DIR}"
+}
+
+function use_new_war() {
+  echo "Image will be built with new WAR from $WAR_PATH"
+  unzip -q -o "$WAR_PATH" -d "./$UNARCHIVED_WAR_DIR"
+}
+
+function build_image() {
+  echo "Building image for version $image_tag, based on $BASE_IMAGE ..."
+
+  # TODO update target to "$IMAGE_REPOSITORY:$immutable_image_tag"
+  jib build \
+    --build-file "$JIB_BUILD_FILE" \
+    --target dhis2/core-dev:2.38.2.1-test \
+    --parameter unarchivedWarDir="$UNARCHIVED_WAR_DIR" \
+    --parameter imageAppRoot="$IMAGE_APP_ROOT" \
+    --parameter baseImage="$BASE_IMAGE" \
+    --parameter imageUser="$IMAGE_USER" \
+    --parameter gitCommit="$GIT_COMMIT" \
+    --parameter gitBranch="$GIT_BRANCH" \
+    --parameter dhis2Version="$DHIS2_VERSION" \
+    --parameter timestamp="$(date +%s000)" # Unix time with zeroed milliseconds; will be shown as "2023-11-02T14:40:32Z"
+}
+
 function tag_image() {
-  echo "Tagging image ..."
-  for TAG in "${ROLLING_TAGS[@]}"; do
-    docker image tag "${IMAGE_REPOSITORY}:${IMMUTABLE_IMAGE_TAG}" "${IMAGE_REPOSITORY}:${TAG}"
+  echo "Pulling $IMAGE_REPOSITORY:$immutable_image_tag for tagging ..."
+  docker image pull "$IMAGE_REPOSITORY:$immutable_image_tag"
+
+  echo 'Tagging image ...'
+  for tag in "${rolling_tags[@]}"; do
+    docker image tag "${IMAGE_REPOSITORY}:${immutable_image_tag}" "${IMAGE_REPOSITORY}:${tag}"
   done
 }
 
@@ -122,9 +149,9 @@ while getopts "ht:r" option; do
         help
         exit;;
       t)
-        IMAGE_TAG=$OPTARG;;
+        image_tag=$OPTARG;;
       r)
-        REBUILD_IMAGE=1;;
+        rebuild_image=1;;
       \?)
         echo "Error: Invalid option"
         exit;;
@@ -132,24 +159,28 @@ while getopts "ht:r" option; do
 done
 
 create_immutable_tag
+
 create_rolling_tags
 
-JDK_VERSION=$(
-  echo "$STABLE_VERSIONS_JSON" |
-  jq -r --argjson major "$MAJOR" '.versions[] | select(.version == $major) .jdk'
+list_tags
+
+if [[ "${rebuild_image:-}" -eq 1 ]]; then
+  use_existing_war
+else
+  use_new_war
+fi
+
+jdk_version=$(
+  echo "$stable_versions_json" |
+  jq -r --argjson major "$major" '.versions[] | select(.version == $major) .jdk'
 )
-BASE_IMAGE=${BASE_IMAGE:-"tomcat:9.0-jre${JDK_VERSION}"}
+BASE_IMAGE=${BASE_IMAGE:-"tomcat:9.0-jre${jdk_version}"}
 
-#if [[ "${REBUILD_IMAGE:-}" -eq 1 ]]; then
-#  rebuild_image
-#else
-  build_image
-#fi
+build_image
 
-tag_image
+#tag_image
 
-# Push the tagged images to the registry
-echo "Pushing tags to $IMAGE_REPOSITORY ..."
-docker image push --all-tags "${IMAGE_REPOSITORY}"
+#echo "Pushing tags to $IMAGE_REPOSITORY ..."
+#docker image push --all-tags "${IMAGE_REPOSITORY}"
 
 echo
