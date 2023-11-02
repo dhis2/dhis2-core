@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
@@ -50,7 +51,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -183,7 +183,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEvents() {
     EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
+    params.setOrgUnitSelectionMode(SELECTED);
     params.setOrgUnit(orgUnit);
 
     List<String> events = eventsFunction.apply(params);
@@ -195,7 +195,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByEnrollment() {
     EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
+    params.setOrgUnitSelectionMode(SELECTED);
     params.setOrgUnit(orgUnit);
     params.setProgramInstances(Set.of("nxP7UnKhomJ"));
 
