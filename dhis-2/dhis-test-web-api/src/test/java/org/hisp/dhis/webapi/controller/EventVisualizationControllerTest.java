@@ -613,6 +613,14 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
                       "id": "2023-01-21_2023-02-01"
                   }
               ]
+          },
+          {
+            "dimension": "created",
+            "items": [
+                {
+                    "id": "2021-01-21_2021-02-01"
+                }
+            ]
           }
        ],
       "filters": [
@@ -696,8 +704,10 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
 
     assertThat(
         response.get("columnDimensions").node().value().toString(),
-        is(equalTo("""
-["deabcdefghP.deabcdefghB","deabcdefghC","deabcdefghP.eventDate"]""")));
+        is(
+            equalTo(
+                """
+["deabcdefghP.deabcdefghB","deabcdefghC","deabcdefghP.eventDate","created"]""")));
 
     assertThat(
         response.get("filterDimensions").node().value().toString(),
@@ -764,6 +774,13 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         columnsNode2.get("program").value().toString(), is(equalTo("""
 {"id":"deabcdefghP"}""")));
     assertThat(columnsNode2.get("dimension").value().toString(), is(equalTo("eventDate")));
+
+    JsonNode columnsNode3 = response.get("columns").node().element(3);
+    assertThat(
+        columnsNode3.get("items").value().toString(),
+        is(equalTo("""
+[{"id":"2021-01-21_2021-02-01"}]""")));
+    assertThat(columnsNode3.get("dimension").value().toString(), is(equalTo("created")));
 
     JsonNode filtersNode0 = response.get("filters").node().element(0);
     assertThat(
