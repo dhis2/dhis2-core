@@ -595,7 +595,7 @@ public abstract class AbstractEventService
     event.setEnrollmentStatus(
         EnrollmentStatus.fromProgramStatus(programStageInstance.getEnrollment().getStatus()));
     event.setStatus(programStageInstance.getStatus());
-    event.setEventDate(DateUtils.getIso8601NoTz(programStageInstance.getExecutionDate()));
+    event.setEventDate(DateUtils.getIso8601NoTz(programStageInstance.getOccurredDate()));
     event.setDueDate(DateUtils.getIso8601NoTz(programStageInstance.getDueDate()));
     event.setStoredBy(programStageInstance.getStoredBy());
     event.setCompletedBy(programStageInstance.getCompletedBy());
@@ -826,7 +826,7 @@ public abstract class AbstractEventService
     }
 
     programStageInstance.setOrganisationUnit(organisationUnit);
-    programStageInstance.setExecutionDate(executionDate);
+    programStageInstance.setOccurredDate(executionDate);
     eventService.updateEvent(programStageInstance);
   }
 

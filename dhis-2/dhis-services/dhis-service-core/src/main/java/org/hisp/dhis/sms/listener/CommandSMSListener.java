@@ -248,7 +248,7 @@ public abstract class CommandSMSListener extends BaseSMSListener {
     event.setOrganisationUnit(ous.iterator().next());
     event.setProgramStage(smsCommand.getProgramStage());
     event.setEnrollment(enrollment);
-    event.setExecutionDate(sms.getSentDate());
+    event.setOccurredDate(sms.getSentDate());
     event.setDueDate(sms.getSentDate());
     event.setAttributeOptionCombo(dataElementCategoryService.getDefaultCategoryOptionCombo());
     event.setCompletedBy("DHIS 2");

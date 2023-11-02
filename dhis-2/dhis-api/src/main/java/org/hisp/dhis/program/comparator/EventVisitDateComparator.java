@@ -37,8 +37,8 @@ import org.hisp.dhis.program.Event;
 public class EventVisitDateComparator implements Comparator<Event> {
   @Override
   public int compare(Event event1, Event event2) {
-    Date d1 = (event1.getExecutionDate() != null) ? event1.getExecutionDate() : event1.getDueDate();
-    Date d2 = (event2.getExecutionDate() != null) ? event2.getExecutionDate() : event2.getDueDate();
+    Date d1 = (event1.getOccurredDate() != null) ? event1.getOccurredDate() : event1.getDueDate();
+    Date d2 = (event2.getOccurredDate() != null) ? event2.getOccurredDate() : event2.getDueDate();
     if (d1.before(d2)) {
       return -1;
     } else if (d1.after(d2)) {

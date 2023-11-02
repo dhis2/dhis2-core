@@ -75,9 +75,9 @@ class EventQueryParams {
 
   private TrackedEntity trackedEntity;
 
-  private Date startDate;
+  private Date occurredStartDate;
 
-  private Date endDate;
+  private Date occurredEndDate;
 
   private EventStatus eventStatus;
 
@@ -267,21 +267,21 @@ class EventQueryParams {
     return this;
   }
 
-  public Date getStartDate() {
-    return startDate;
+  public Date getOccurredStartDate() {
+    return occurredStartDate;
   }
 
-  public EventQueryParams setStartDate(Date startDate) {
-    this.startDate = startDate;
+  public EventQueryParams setOccurredStartDate(Date occurredStartDate) {
+    this.occurredStartDate = occurredStartDate;
     return this;
   }
 
-  public Date getEndDate() {
-    return endDate;
+  public Date getOccurredEndDate() {
+    return occurredEndDate;
   }
 
-  public EventQueryParams setEndDate(Date endDate) {
-    this.endDate = endDate;
+  public EventQueryParams setOccurredEndDate(Date occurredEndDate) {
+    this.occurredEndDate = occurredEndDate;
     return this;
   }
 
