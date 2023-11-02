@@ -47,6 +47,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -1114,11 +1115,13 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void testOrderEventsOnAttributeAsc() {
+    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toUpdate000");
+
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
     params.setOrgUnit(orgUnit);
-    params.addFilterAttributes(queryItem("toUpdate000"));
-    params.addAttributeOrders(List.of(new OrderParam("toUpdate000", SortDirection.ASC)));
+    params.addFilterAttributes(queryItem(tea));
+    params.addAttributeOrders(List.of(new OrderParam(tea.getUid(), SortDirection.ASC)));
     params.addOrders(params.getAttributeOrders());
 
     List<String> trackedEntities =
@@ -1131,11 +1134,13 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void testOrderEventsOnAttributeDesc() {
+    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toUpdate000");
+
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
     params.setOrgUnit(orgUnit);
-    params.addFilterAttributes(queryItem("toUpdate000"));
-    params.addAttributeOrders(List.of(new OrderParam("toUpdate000", SortDirection.DESC)));
+    params.addFilterAttributes(queryItem(tea));
+    params.addAttributeOrders(List.of(new OrderParam(tea.getUid(), SortDirection.DESC)));
     params.addOrders(params.getAttributeOrders());
 
     List<String> trackedEntities =
@@ -1148,14 +1153,17 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void testOrderEventsOnMultipleAttributesDesc() {
+    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toUpdate000");
+    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "toDelete000");
+
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
     params.setOrgUnit(orgUnit);
-    params.addFilterAttributes(List.of(queryItem("toUpdate000"), queryItem("toDelete000")));
+    params.addFilterAttributes(List.of(queryItem(tea), queryItem(tea1)));
     params.addAttributeOrders(
         List.of(
-            new OrderParam("toDelete000", SortDirection.DESC),
-            new OrderParam("toUpdate000", SortDirection.DESC)));
+            new OrderParam(tea1.getUid(), SortDirection.DESC),
+            new OrderParam(tea.getUid(), SortDirection.DESC)));
     params.addOrders(params.getAttributeOrders());
 
     List<String> trackedEntities =
@@ -1168,14 +1176,17 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void testOrderEventsOnMultipleAttributesAsc() {
+    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toUpdate000");
+    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "toDelete000");
+
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
     params.setOrgUnit(orgUnit);
-    params.addFilterAttributes(List.of(queryItem("toUpdate000"), queryItem("toDelete000")));
+    params.addFilterAttributes(List.of(queryItem(tea), queryItem(tea1)));
     params.addAttributeOrders(
         List.of(
-            new OrderParam("toDelete000", SortDirection.DESC),
-            new OrderParam("toUpdate000", SortDirection.ASC)));
+            new OrderParam(tea1.getUid(), SortDirection.DESC),
+            new OrderParam(tea.getUid(), SortDirection.ASC)));
     params.addOrders(params.getAttributeOrders());
 
     Events events = eventService.getEvents(params);
@@ -1191,14 +1202,18 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEventsByMultipleAttributesAndPaginateWhenGivenNonDefaultPageSize() {
+    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toUpdate000");
+    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "toDelete000");
+
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnit(orgUnit);
-    params.addFilterAttributes(List.of(queryItem("toUpdate000"), queryItem("toDelete000")));
+    params.addFilterAttributes(List.of(queryItem(tea), queryItem(tea1)));
     params.addAttributeOrders(
         List.of(
-            new OrderParam("toDelete000", SortDirection.DESC),
-            new OrderParam("toUpdate000", SortDirection.ASC)));
+            new OrderParam(tea1.getUid(), SortDirection.DESC),
+            new OrderParam(tea.getUid(), SortDirection.ASC)));
     params.addOrders(params.getAttributeOrders());
+    params.setEvents(Set.of("D9PbzJY8bJM", "pTzf9KYMk72"));
 
     params.setPage(1);
     params.setPageSize(1);
@@ -1345,14 +1360,16 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void shouldSortEntitiesRespectingOrderWhenAttributeOrderSuppliedBeforeOrderParam() {
+    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toUpdate000");
+
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
     params.setOrgUnit(orgUnit);
-    params.addFilterAttributes(List.of(queryItem("toUpdate000")));
+    params.addFilterAttributes(List.of(queryItem(tea)));
     params.addAttributeOrders(List.of(new OrderParam("toUpdate000", SortDirection.ASC)));
     params.addOrders(
         List.of(
-            new OrderParam("toUpdate000", SortDirection.ASC),
+            new OrderParam(tea.getUid(), SortDirection.ASC),
             new OrderParam("enrolledAt", SortDirection.ASC)));
 
     List<String> trackedEntities =
@@ -1365,15 +1382,17 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeAttributeOrder() {
+    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toUpdate000");
+
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.SELECTED);
     params.setOrgUnit(orgUnit);
-    params.addFilterAttributes(List.of(queryItem("toUpdate000")));
-    params.addAttributeOrders(List.of(new OrderParam("toUpdate000", SortDirection.DESC)));
+    params.addFilterAttributes(List.of(queryItem(tea)));
+    params.addAttributeOrders(List.of(new OrderParam(tea.getUid(), SortDirection.DESC)));
     params.addOrders(
         List.of(
             new OrderParam("enrolledAt", SortDirection.DESC),
-            new OrderParam("toUpdate000", SortDirection.DESC)));
+            new OrderParam(tea.getUid(), SortDirection.DESC)));
 
     List<String> trackedEntities =
         eventService.getEvents(params).getEvents().stream()
@@ -1474,6 +1493,38 @@ class EventExporterTest extends TrackerTest {
         "Program Stage are not in the correct order");
   }
 
+  @Test
+  void shouldNotFilterOutEventsWithoutATrackedEntityAttributeWhenAttributeIsOnlyOrdering() {
+    TrackedEntityAttribute tea =
+        get(
+            TrackedEntityAttribute.class,
+            "toUpdate000"); // "QS6w44flWAf", "dUE514NMOlo" will be at the end of the result set as
+    // they do not have "numericAttr" and Postgres put null first when
+    // ordering
+    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "numericAttr");
+
+    EventQueryParams params = new EventQueryParams();
+
+    params.setOrgUnit(orgUnit);
+    params.addFilterAttributes(List.of(queryItem(tea), queryItem(tea1)));
+
+    params.addAttributeOrders(
+        List.of(
+            new OrderParam(tea.getUid(), SortDirection.DESC),
+            new OrderParam(tea1.getUid(), SortDirection.DESC)));
+    params.addOrders(params.getAttributeOrders());
+
+    List<String> trackedEntities =
+        eventService.getEvents(params).getEvents().stream()
+            .map(Event::getTrackedEntityInstance)
+            .filter(Objects::nonNull) // exclude event with no teis
+            .collect(Collectors.toList());
+
+    assertEquals(
+        List.of("mHWCacsGYYn", "QesgJkTyTCk", "guVNoAerxWo", "QS6w44flWAf", "dUE514NMOlo"),
+        trackedEntities);
+  }
+
   private void assertNote(User expectedLastUpdatedBy, String expectedNote, Note actual) {
     assertEquals(expectedNote, actual.getValue());
     UserInfoSnapshot lastUpdatedBy = actual.getLastUpdatedBy();
@@ -1483,6 +1534,16 @@ class EventExporterTest extends TrackerTest {
 
   private DataElement dataElement(String uid) {
     return dataElementService.getDataElement(uid);
+  }
+
+  private static QueryItem queryItem(TrackedEntityAttribute tea) {
+    return new QueryItem(
+        tea,
+        null,
+        tea.getValueType(),
+        tea.getAggregationType(),
+        tea.getOptionSet(),
+        tea.isUnique());
   }
 
   private static QueryItem queryItem(String teaUid, QueryOperator operator, String filter) {

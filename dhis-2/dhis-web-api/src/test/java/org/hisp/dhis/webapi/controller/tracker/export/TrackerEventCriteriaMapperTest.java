@@ -389,8 +389,8 @@ class TrackerEventCriteriaMapperTest {
     assertAll(
         () ->
             assertContainsOnly(
-                params.getAttributeOrders(), List.of(new OrderParam(TEA_1_UID, SortDirection.ASC))),
-        () -> assertContainsOnly(params.getFilterAttributes(), List.of(new QueryItem(tea1))));
+                params.getAttributeOrders(),
+                List.of(new OrderParam(TEA_1_UID, SortDirection.ASC))));
   }
 
   @Test
