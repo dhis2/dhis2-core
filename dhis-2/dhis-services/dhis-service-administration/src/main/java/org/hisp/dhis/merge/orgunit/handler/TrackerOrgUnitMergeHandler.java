@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -42,7 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class TrackerOrgUnitMergeHandler {
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
 
   @Transactional
   public void mergeProgramMessages(OrgUnitMergeRequest request) {
@@ -90,11 +91,10 @@ public class TrackerOrgUnitMergeHandler {
   }
 
   private void migrate(String hql, OrgUnitMergeRequest request) {
-    sessionFactory
-        .getCurrentSession()
+    entityManager
         .createQuery(hql)
         .setParameter("target", request.getTarget())
-        .setParameterList("sources", IdentifiableObjectUtils.getIdentifiers(request.getSources()))
+        .setParameter("sources", IdentifiableObjectUtils.getIdentifiers(request.getSources()))
         .executeUpdate();
   }
 }

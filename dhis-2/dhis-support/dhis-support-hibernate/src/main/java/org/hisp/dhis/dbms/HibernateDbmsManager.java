@@ -55,10 +55,10 @@ public class HibernateDbmsManager implements DbmsManager {
     this.jdbcTemplate = jdbcTemplate;
   }
 
-  private EntityManager entityManager;
+  private EntityManagerFactory entityManagerFactory;
 
-  public void setEntityManager(EntityManager entityManager) {
-    this.entityManager = entityManager;
+  public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+    this.entityManagerFactory = entityManagerFactory;
   }
 
   private HibernateCacheManager cacheManager;
@@ -361,13 +361,15 @@ public class HibernateDbmsManager implements DbmsManager {
 
   @Override
   public void clearSession() {
-    entityManager.flush();
-    entityManager.clear();
+    SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
+    sessionFactory.getCurrentSession().flush();
+    sessionFactory.getCurrentSession().clear();
   }
 
   @Override
   public void flushSession() {
-    entityManager.flush();
+    SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
+    sessionFactory.getCurrentSession().flush();
   }
 
   @Override

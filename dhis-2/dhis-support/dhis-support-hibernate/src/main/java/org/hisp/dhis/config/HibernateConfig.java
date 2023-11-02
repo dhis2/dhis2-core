@@ -122,10 +122,10 @@ public class HibernateConfig {
   public DbmsManager dbmsManager(
       JdbcTemplate jdbcTemplate,
       DefaultHibernateCacheManager cacheManager,
-      EntityManager entityManager) {
+      EntityManagerFactory entityManagerFactory) {
     HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
     hibernateDbmsManager.setCacheManager(cacheManager);
-    hibernateDbmsManager.setEntityManager(entityManager);
+    hibernateDbmsManager.setEntityManagerFactory(entityManagerFactory);
     hibernateDbmsManager.setJdbcTemplate(jdbcTemplate);
     return hibernateDbmsManager;
   }

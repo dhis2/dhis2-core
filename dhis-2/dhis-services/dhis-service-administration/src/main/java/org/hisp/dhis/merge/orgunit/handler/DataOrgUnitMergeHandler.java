@@ -29,7 +29,9 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
@@ -55,7 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RequiredArgsConstructor
 public class DataOrgUnitMergeHandler {
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -201,11 +203,10 @@ public class DataOrgUnitMergeHandler {
   }
 
   private void migrate(String hql, OrgUnitMergeRequest request) {
-    sessionFactory
-        .getCurrentSession()
+    entityManager
         .createQuery(hql)
         .setParameter("target", request.getTarget())
-        .setParameterList("sources", IdentifiableObjectUtils.getIdentifiers(request.getSources()))
+        .setParameter("sources", IdentifiableObjectUtils.getIdentifiers(request.getSources()))
         .executeUpdate();
   }
 }

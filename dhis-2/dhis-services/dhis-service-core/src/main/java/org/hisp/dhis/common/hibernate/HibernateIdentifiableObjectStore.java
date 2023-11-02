@@ -157,7 +157,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_CREATE);
-    getSession().saveOrUpdate(object);
+    getSession().save(object);
   }
 
   @Override
@@ -186,7 +186,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE);
-    getSession().update(object);
+    entityManager.merge(object);
+//    getSession().update(object);
   }
 
   @Override

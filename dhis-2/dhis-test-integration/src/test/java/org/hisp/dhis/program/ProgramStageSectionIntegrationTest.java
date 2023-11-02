@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -42,6 +43,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
@@ -94,13 +96,16 @@ class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
               assertNotNull(programStageService.getProgramStage(idA));
               long sectionId = stageA.getProgramStageSections().stream().findFirst().get().getId();
               assertNotNull(programStageSectionService.getProgramStageSection(sectionId));
+              stageA = programStageService.getProgramStage(idA);
               stageA.getProgramStageSections().clear();
-              programStageService.saveProgramStage(stageA);
+              stageA.setDescription("updated");
+              programStageService.updateProgramStage(stageA);
               dbmsManager.clearSession();
               return Pair.of(idA, sectionId);
             });
-    assertTrue(
-        programStageService.getProgramStage(idPair.getLeft()).getProgramStageSections().isEmpty());
+    assertEquals("updated",programStageService.getProgramStage(idPair.getLeft()).getDescription());
+    assertTrue(programStageService.getProgramStage(idPair.getLeft()).getProgramStageSections()
+            .isEmpty());
     assertNull(programStageSectionService.getProgramStageSection(idPair.getRight()));
   }
 }
