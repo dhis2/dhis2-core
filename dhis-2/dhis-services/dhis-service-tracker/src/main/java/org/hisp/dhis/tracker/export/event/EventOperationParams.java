@@ -75,9 +75,9 @@ public class EventOperationParams {
 
   private String trackedEntityUid;
 
-  private Date startDate;
+  private Date occurredAfter;
 
-  private Date endDate;
+  private Date occurredBefore;
 
   private EventStatus eventStatus;
 
