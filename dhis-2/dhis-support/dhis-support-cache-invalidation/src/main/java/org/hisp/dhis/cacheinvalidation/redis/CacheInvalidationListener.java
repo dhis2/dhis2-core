@@ -29,6 +29,7 @@ package org.hisp.dhis.cacheinvalidation.redis;
 
 import io.lettuce.core.pubsub.RedisPubSubListener;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
@@ -40,7 +41,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -158,9 +158,18 @@ public class CacheInvalidationListener extends BaseCacheEvictionService
       return getTrackedEntityAttributeValueId(idPart);
     } else if (CompleteDataSetRegistration.class.isAssignableFrom(entityClass)) {
       return getCompleteDataSetRegistrationId(idPart);
-    } else if (DataStatisticsEvent.class.isAssignableFrom(entityClass)) {
-      return Integer.parseInt(idPart);
     } else {
+      try {
+        // Best effort to try to identify classes with int IDs.
+        Field idField = entityClass.getDeclaredField("id");
+        Class<?> idType = idField.getType();
+        if (idType == int.class) {
+          return Integer.parseInt(idPart);
+        }
+      } catch (NoSuchFieldException e) {
+        // Ignore this exception, as it's expected unless it's a class with an int ID.
+      }
+      // In most cases the ID will be a long.
       return Long.parseLong(idPart);
     }
   }
