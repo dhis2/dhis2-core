@@ -256,8 +256,24 @@ class DatastoreTest extends ApiTest {
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE + "/keys").validateStatus(200);
 
-    JsonArray entries = getResponse.getBody().getAsJsonArray("entries");
-    assertEquals(0, entries.size());
+    String entries = getResponse.getAsString();
+    assertEquals("[]", entries);
+  }
+
+  @Test
+  void testDatastoreUserSharing_UserHasAccess_KeysEndpoint() {
+    // add 2 entries as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    String key2 = "spurs";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+
+    // make call as owner and check can see entries
+    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE + "/keys").validateStatus(200);
+
+    String entries = getResponse.getAsString();
+    assertEquals("[\"arsenal\",\"spurs\"]", entries);
   }
 
   private String newEntry(String team) {
