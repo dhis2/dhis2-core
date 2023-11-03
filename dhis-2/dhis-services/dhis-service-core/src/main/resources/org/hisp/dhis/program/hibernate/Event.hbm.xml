@@ -46,7 +46,7 @@
 
     <property name="dueDate" column="duedate" />
 
-    <property name="executionDate" column="executiondate" type="timestamp" index="programstageinstance_executiondate" />
+    <property name="occurredDate" column="executiondate" type="timestamp" index="programstageinstance_executiondate" />
 
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
       foreign-key="fk_programstageinstance_organisationunitid" index="programstageinstance_organisationunitid" />

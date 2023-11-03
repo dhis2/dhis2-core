@@ -68,8 +68,7 @@ public class ProgramStageNotificationMessageRenderer
               event -> event.getOrganisationUnit().getCode())
           .put(ProgramStageTemplateVariable.DUE_DATE, event -> formatDate(event.getDueDate()))
           .put(
-              ProgramStageTemplateVariable.EVENT_DATE,
-              event -> formatDate(event.getExecutionDate()))
+              ProgramStageTemplateVariable.EVENT_DATE, event -> formatDate(event.getOccurredDate()))
           .put(
               ProgramStageTemplateVariable.DAYS_SINCE_DUE_DATE,
               event -> daysSince(event.getDueDate()))

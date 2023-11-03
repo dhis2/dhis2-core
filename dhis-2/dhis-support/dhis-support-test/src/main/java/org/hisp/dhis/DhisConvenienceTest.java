@@ -1654,7 +1654,7 @@ public abstract class DhisConvenienceTest {
       OrganisationUnit organisationUnit,
       Set<EventDataValue> dataValues) {
     Event event = createEvent(programStage, enrollment, organisationUnit);
-    event.setExecutionDate(new Date());
+    event.setOccurredDate(new Date());
     event.setStatus(EventStatus.ACTIVE);
     event.setEventDataValues(dataValues);
     return event;
