@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.appmanager.AndroidSettingsApp.AUTHORITY;
 import static org.hisp.dhis.appmanager.AndroidSettingsApp.NAMESPACE;
@@ -53,11 +54,25 @@ class DatastoreControllerAndroidSettingsAppTest extends DhisControllerConvenienc
     assertStatus(HttpStatus.CREATED, POST("/dataStore/" + NAMESPACE + "/key", "['yes']"));
   }
 
-  /** Everyone can read the keys */
+  /** Users with no access cannot read the keys */
   @Test
-  void testGetKeysInNamespace() {
+  void testGetKeysInNamespace_NoAccess() {
     switchToNewUser("not-an-android-manager");
+    assertEquals(emptyList(), GET("/dataStore/" + NAMESPACE).content().stringValues());
+  }
+
+  /** SuperUser can read the keys */
+  @Test
+  void testGetKeysInNamespace_SuperUser() {
     assertEquals(singletonList("key"), GET("/dataStore/" + NAMESPACE).content().stringValues());
+  }
+
+  /** Owners can read their keys */
+  @Test
+  void testGetKeysInNamespace_Owner() {
+    switchToNewUser("android-manager", AUTHORITY);
+    assertStatus(HttpStatus.CREATED, POST("/dataStore/" + NAMESPACE + "/key2", "['yes']"));
+    assertEquals(singletonList("key2"), GET("/dataStore/" + NAMESPACE).content().stringValues());
   }
 
   /** Everyone can read the value */
