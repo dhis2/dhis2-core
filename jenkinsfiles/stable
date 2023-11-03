@@ -123,6 +123,66 @@ pipeline {
             }
         }
 
+        stage('Update IM Play instance') {
+            environment {
+                HTTP = "http --check-status"
+                IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
+                IM_HOST = "https://api.im.dhis2.org"
+                INSTANCE_URL = "https://play.im.dhis2.org/stable"
+                IMAGE_REPOSITORY = "core"
+                IMAGE_PULL_POLICY = "Always"
+                FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
+                FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
+                INSTANCE_TTL = "315360000"
+                STARTUP_PROBE_FAILURE_THRESHOLD = "50"
+                LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
+                READINESS_PROBE_TIMEOUT_SECONDS = "3"
+            }
+
+            steps {
+                when {
+                    expression { !env.DOCKER_IMAGE_TAG.endsWith("rc") }
+                }
+                echo 'Creating DHIS2 instance on IM...'
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
+                        dir('im-manager') {
+                            gitHelper.sparseCheckout(IM_REPO_URL, "${gitHelper.getLatestTag(IM_REPO_URL)}", '/scripts')
+
+                            def version = env.GIT_BRANCH
+                            if (version.startsWith("patch/")) {
+                                version = version.split("/")[1]
+                            }
+                            // If version contains more than 2 dots... It's a hotfix
+                            def isHotfix = version.length() - version.replace(".", "").length() > 2
+                            if (isHotfix) {
+                                def endIndex = version.lastIndexOf(".")
+                                version = version.substring(0, endIndex)
+                            }
+
+                            dir('scripts/databases') {
+                                env.DATABASE_ID = sh(
+                                        returnStdout: true,
+                                        script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${version}.sql.gz\") | .slug'"
+                                ).trim()
+                            }
+
+                            sh '[ -n "$DATABASE_ID" ]'
+                            echo "Database: ${env.DATABASE_ID}"
+
+                            def name = "-${version.replace(".", "-")}"
+                            dir('scripts/instances') {
+                                sh "(./findByName.sh play stable${name} && ./restart.sh play stable${name}) || ./deploy-dhis2.sh play stable${name}"
+                                timeout(5) {
+                                    waitFor.statusOk("${env.INSTANCE_URL}${name}")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         stage ('Sync WAR') {
             steps {
                 echo 'Syncing WAR ...'
