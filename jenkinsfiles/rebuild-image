@@ -8,6 +8,7 @@ pipeline {
     }
 
     parameters {
+        booleanParam(name: 'ALL_SUPPORTED_VERSIONS', defaultValue: false, description: '[OPTIONAL] Rebuild for all supported versions.')
         string(name: 'VERSIONS', defaultValue: '', description: 'Space separated list of DHIS2 versions to rebuild (new format).')
     }
 
@@ -17,20 +18,28 @@ pipeline {
 
     stages {
         stage('Rebuild Docker images') {
+            environment {
+                OLD_VERSION_SCHEMA_PREFIX = '2'
+            }
+
             steps {
                 script {
                     withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+                        if (params.ALL_SUPPORTED_VERSIONS.toBoolean()) {
+                            env.VERSIONS = sh(returnStdout: true, script: 'curl -fsSL "https://raw.githubusercontent.com/dhis2/dhis2-releases/master/downloads/v1/versions/stable.json" | jq -r \'.versions[] | select(.supported == true) | .patchVersions[] | .displayName\'').trim()
+                        }
+
                         sh '''
                             for version in "$VERSIONS"; do
-                                git checkout "2.$version"
-                                export DHIS2_VERSION="2.$version"
+                                git checkout "$OLD_VERSION_SCHEMA_PREFIX.$version"
+                                export DHIS2_VERSION="$OLD_VERSION_SCHEMA_PREFIX.$version"
                                 export GIT_COMMIT="$(git rev-parse HEAD)"
                                 export GIT_BRANCH="$DHIS2_VERSION"
                                 env
                                 #./build-docker-image.sh -t "$version"
                             done
                         '''
-                        sh 'docker image ls -a'
+                        //sh 'docker image ls -a'
                     }
                 }
             }
