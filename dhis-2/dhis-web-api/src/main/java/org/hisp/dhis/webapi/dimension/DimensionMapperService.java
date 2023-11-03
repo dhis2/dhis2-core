@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.springframework.stereotype.Service;
@@ -47,7 +48,16 @@ public class DimensionMapperService {
 
   public List<DimensionResponse> toDimensionResponse(
       Collection<PrefixedDimension> dimensions, PrefixStrategy prefixStrategy) {
-    return distinctByUid(
+    return toDimensionResponse(dimensions, prefixStrategy, false);
+  }
+
+  public List<DimensionResponse> toDimensionResponse(
+      Collection<PrefixedDimension> dimensions, PrefixStrategy prefixStrategy, boolean distinct) {
+
+    UnaryOperator<List<DimensionResponse>> distinctFunction =
+        distinct ? this::distinctByUid : UnaryOperator.identity();
+
+    return distinctFunction.apply(
         mapToList(
             dimensions,
             pDimension -> toDimensionResponse(pDimension, prefixStrategy.apply(pDimension))));

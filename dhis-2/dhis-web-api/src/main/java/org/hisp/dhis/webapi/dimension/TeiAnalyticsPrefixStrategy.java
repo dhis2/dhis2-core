@@ -29,20 +29,15 @@ package org.hisp.dhis.webapi.dimension;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.PrefixedDimension;
-import org.hisp.dhis.program.ProgramStageDataElement;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class EnrollmentAnalyticsPrefixStrategy implements PrefixStrategy {
+public class TeiAnalyticsPrefixStrategy implements PrefixStrategy {
 
-  public static final PrefixStrategy INSTANCE = new EnrollmentAnalyticsPrefixStrategy();
+  public static final PrefixStrategy INSTANCE = EnrollmentAnalyticsPrefixStrategy.INSTANCE;
 
   @Override
   public String apply(PrefixedDimension pDimension) {
-    if (pDimension.getItem() instanceof ProgramStageDataElement) {
-      return pDimension.getProgramStage().getUid();
-    }
-    return StringUtils.EMPTY;
+    throw new UnsupportedOperationException("This method should not be called for TEI analytics");
   }
 }
