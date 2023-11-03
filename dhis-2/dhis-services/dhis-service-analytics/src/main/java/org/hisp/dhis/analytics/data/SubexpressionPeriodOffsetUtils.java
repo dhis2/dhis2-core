@@ -36,7 +36,6 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
