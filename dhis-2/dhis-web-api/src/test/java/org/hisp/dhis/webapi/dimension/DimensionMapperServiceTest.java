@@ -68,7 +68,7 @@ class DimensionMapperServiceTest {
 
     List<DimensionResponse> dimensionResponse =
         dimensionMapperService.toDimensionResponse(
-            mockDimensions(), EnrollmentAnalyticsPrefixStrategy.INSTANCE);
+            mockDimensions(), EnrollmentAnalyticsPrefixStrategy.INSTANCE, true);
 
     assertEquals(4, dimensionResponse.size());
 
