@@ -1537,6 +1537,9 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase {
         new DimensionalItemId(
             DATA_ELEMENT,
             "dataElemenA",
+            null,
+            null,
+            "#{dataElemenA}",
             QueryModifiers.builder().minDate(parseDate("2020-01-01")).build());
     assertEquals(id, parseItemId("#{dataElemenA}.minDate(2020-1-1)"));
 
