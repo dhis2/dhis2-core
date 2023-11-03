@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
@@ -83,12 +82,7 @@ class TrackerImportParamsSerdeTest extends TrackerTest {
             + "\"validationMode\":\"SKIP\","
             + "\"skipPatternValidation\":false,"
             + "\"skipSideEffects\":false,"
-            + "\"skipRuleEngine\":true,"
-            + "\"trackedEntities\":[],"
-            + "\"enrollments\":[],"
-            + "\"events\":[],"
-            + "\"relationships\":[],"
-            + "\"username\":\"system-process\"}",
+            + "\"skipRuleEngine\":true}",
         json,
         JSONCompareMode.LENIENT);
   }
@@ -111,12 +105,7 @@ class TrackerImportParamsSerdeTest extends TrackerTest {
             + "\"validationMode\":\"SKIP\","
             + "\"skipPatternValidation\":true,"
             + "\"skipSideEffects\":true,"
-            + "\"skipRuleEngine\":true,"
-            + "\"trackedEntities\":[],"
-            + "\"enrollments\":[],"
-            + "\"events\":[],"
-            + "\"relationships\":[],"
-            + "\"username\":\"system-process\"}";
+            + "\"skipRuleEngine\":true}";
 
     final TrackerImportParams trackerImportParams =
         renderService.fromJson(json, TrackerImportParams.class);
@@ -129,7 +118,6 @@ class TrackerImportParamsSerdeTest extends TrackerTest {
     assertThat(trackerImportParams.isSkipPatternValidation(), is(true));
     assertThat(trackerImportParams.isSkipSideEffects(), is(true));
     assertThat(trackerImportParams.isSkipRuleEngine(), is(true));
-    assertThat(trackerImportParams.getUser(), is(nullValue()));
     TrackerIdSchemeParams idSchemes = trackerImportParams.getIdSchemes();
     assertThat(idSchemes.getIdScheme(), is(TrackerIdSchemeParam.CODE));
     assertThat(idSchemes.getProgramIdScheme().getIdScheme(), is(TrackerIdScheme.ATTRIBUTE));

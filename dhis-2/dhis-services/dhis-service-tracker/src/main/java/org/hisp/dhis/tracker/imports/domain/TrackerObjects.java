@@ -25,40 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.tracker.imports.domain;
 
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.artemis.MessageManager;
-import org.hisp.dhis.artemis.Topics;
-import org.hisp.dhis.security.AuthenticationSerializer;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.job.TrackerMessage;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-/**
- * @author Luca Cambi <luca@dhis2.org>
- */
-@Component
-@RequiredArgsConstructor
-public class TrackerAsyncImporter {
-  @Nonnull private final MessageManager messageManager;
+@Getter
+@ToString
+@EqualsAndHashCode
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TrackerObjects implements Serializable {
+  @JsonProperty @Builder.Default
+  private final List<TrackedEntity> trackedEntities = new ArrayList<>();
 
-  public ImportReport importTracker(
-      TrackerImportParams params, Authentication authentication, String uid) {
-    TrackerMessage trackerMessage =
-        TrackerMessage.builder()
-            .trackerImportParams(params)
-            .authentication(AuthenticationSerializer.serialize(authentication))
-            .uid(uid)
-            .build();
-
-    messageManager.sendQueue(Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage);
-
-    return null; // empty report is not
-    // returned
-    // in async creation
-  }
+  @JsonProperty @Builder.Default private final List<Enrollment> enrollments = new ArrayList<>();
+  @JsonProperty @Builder.Default private final List<Event> events = new ArrayList<>();
+  @JsonProperty @Builder.Default private final List<Relationship> relationships = new ArrayList<>();
 }

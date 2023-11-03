@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.mapstruct.factory.Mappers;
 
 public class TrackerImportParamsMapper {
@@ -46,10 +45,19 @@ public class TrackerImportParamsMapper {
   private static final RelationshipMapper RELATIONSHIP_MAPPER =
       Mappers.getMapper(RelationshipMapper.class);
 
+  public static TrackerObjects trackerObjects(Body body, TrackerIdSchemeParams idSchemeParams) {
+    return TrackerObjects.builder()
+        .trackedEntities(
+            TRACKED_ENTITY_MAPPER.fromCollection(body.getTrackedEntities(), idSchemeParams))
+        .enrollments(ENROLLMENT_MAPPER.fromCollection(body.getEnrollments(), idSchemeParams))
+        .events(EVENT_MAPPER.fromCollection(body.getEvents(), idSchemeParams))
+        .relationships(RELATIONSHIP_MAPPER.fromCollection(body.getRelationships(), idSchemeParams))
+        .build();
+  }
+
   private TrackerImportParamsMapper() {}
 
-  public static TrackerImportParams trackerImportParams(
-      boolean isAsync, String jobId, String userId, RequestParams request, Body params) {
+  public static TrackerImportParams trackerImportParams(String userId, RequestParams request) {
     TrackerIdSchemeParam defaultIdSchemeParam = request.getIdScheme();
     TrackerIdSchemeParams idSchemeParams =
         TrackerIdSchemeParams.builder()
@@ -77,20 +85,16 @@ public class TrackerImportParamsMapper {
             .skipSideEffects(request.isSkipSideEffects())
             .skipRuleEngine(request.isSkipRuleEngine())
             .reportMode(request.getReportMode())
-            .userId(userId)
-            .trackedEntities(
-                TRACKED_ENTITY_MAPPER.fromCollection(params.getTrackedEntities(), idSchemeParams))
-            .enrollments(ENROLLMENT_MAPPER.fromCollection(params.getEnrollments(), idSchemeParams))
-            .events(EVENT_MAPPER.fromCollection(params.getEvents(), idSchemeParams))
-            .relationships(
-                RELATIONSHIP_MAPPER.fromCollection(params.getRelationships(), idSchemeParams));
-
-    if (!isAsync) {
-      JobConfiguration jobConfiguration =
-          new JobConfiguration("", JobType.TRACKER_IMPORT_JOB, userId);
-      jobConfiguration.setUid(jobId);
-      paramsBuilder.jobConfiguration(jobConfiguration);
-    }
+            .userId(userId);
+    //            .trackedEntities(
+    //                TRACKED_ENTITY_MAPPER.fromCollection(params.getTrackedEntities(),
+    // idSchemeParams))
+    //            .enrollments(ENROLLMENT_MAPPER.fromCollection(params.getEnrollments(),
+    // idSchemeParams))
+    //            .events(EVENT_MAPPER.fromCollection(params.getEvents(), idSchemeParams))
+    //            .relationships(
+    //                RELATIONSHIP_MAPPER.fromCollection(params.getRelationships(),
+    // idSchemeParams));
 
     return paramsBuilder.build();
   }

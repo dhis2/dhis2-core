@@ -41,8 +41,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
@@ -65,13 +67,14 @@ class TrackedEntityAttributeTest extends TrackerTest {
   @Override
   protected void initTest() throws IOException {
     setUpMetadata("tracker/te_with_tea_metadata.json");
-    injectAdminUser();
   }
 
   @Test
   void testTrackedAttributePreheater() throws IOException {
-    TrackerImportParams trackerImportParams = fromJson("tracker/te_with_tea_data.json");
-    TrackerPreheat preheat = trackerPreheatService.preheat(trackerImportParams);
+    TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
+    TrackerPreheat preheat =
+        trackerPreheatService.preheat(
+            trackerObjects, new TrackerIdSchemeParams(), userService.getUser("system-process"));
     assertNotNull(preheat.get(OrganisationUnit.class, "cNEZTkdAvmg"));
     assertNotNull(preheat.get(TrackedEntityType.class, "KrYIdvLxkMb"));
     assertNotNull(preheat.get(TrackedEntityAttribute.class, "sYn3tkL3XKa"));
@@ -81,8 +84,9 @@ class TrackedEntityAttributeTest extends TrackerTest {
 
   @Test
   void testTrackedAttributeValueBundleImporter() throws IOException {
-    ImportReport importReport =
-        trackerImportService.importTracker(fromJson("tracker/te_with_tea_data.json"));
+    TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
+    TrackerImportParams params = TrackerImportParams.builder().userId("system-process").build();
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);

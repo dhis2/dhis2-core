@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.Test;
  */
 class TrackerImportControllerTest extends DhisControllerConvenienceTest {
   @Test
+  @Disabled("Cancel column in jobconfiguration table is not mapped to Hibernate")
   void shouldSucceedWhenAllValidParametersArePassed() {
     assertWebMessage(
         "OK",

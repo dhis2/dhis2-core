@@ -58,6 +58,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,9 +82,9 @@ class AclEventExporterTest extends TrackerTest {
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
     User userA = userService.getUser("M5zQapPyTZI");
+    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
     assertNoErrors(
-        trackerImportService.importTracker(
-            fromJson("tracker/event_and_enrollment.json", userA.getUid())));
+        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     ProgramStage programStage = get(ProgramStage.class, "NpsdDv6kKSO");
     program = programStage.getProgram();

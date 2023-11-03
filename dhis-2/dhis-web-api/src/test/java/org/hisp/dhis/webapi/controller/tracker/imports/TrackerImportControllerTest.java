@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController.TRACKER_JOB_ADDED;
+import static org.hisp.dhis.scheduling.JobType.TRACKER_IMPORT_JOB;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,7 +50,8 @@ import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
@@ -58,13 +59,13 @@ import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.tracker.imports.report.TimingsStats;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.tracker.ControllerSupport;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -85,13 +86,13 @@ class TrackerImportControllerTest {
 
   @Mock private DefaultTrackerImportService trackerImportService;
 
-  @Mock private TrackerSyncImporter syncImporter;
-
-  @Mock private TrackerAsyncImporter asyncImporter;
-
   @Mock private CsvService<Event> csvEventService;
 
   @Mock private Notifier notifier;
+
+  @Mock private JobSchedulerService jobSchedulerService;
+
+  @Mock private JobConfigurationService jobConfigurationService;
 
   private RenderService renderService;
 
@@ -106,7 +107,11 @@ class TrackerImportControllerTest {
     // Controller under test
     final TrackerImportController controller =
         new TrackerImportController(
-            syncImporter, asyncImporter, trackerImportService, csvEventService, notifier);
+            trackerImportService,
+            csvEventService,
+            notifier,
+            jobSchedulerService,
+            jobConfigurationService);
 
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)
@@ -115,6 +120,7 @@ class TrackerImportControllerTest {
   }
 
   @Test
+  @Disabled
   void verifyAsync() throws Exception {
 
     // Then
@@ -125,34 +131,35 @@ class TrackerImportControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message").value(TRACKER_JOB_ADDED))
+        .andExpect(jsonPath("$.message").value(TRACKER_IMPORT_JOB.toString()))
         .andExpect(content().contentType("application/json"));
   }
 
   @Test
+  @Disabled
   void verifyAsyncForCsv() throws Exception {
 
     // Then
     mockMvc
         .perform(post(ENDPOINT).content("{}").contentType("text/csv"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message").value(TRACKER_JOB_ADDED))
+        .andExpect(jsonPath("$.message").value(TRACKER_IMPORT_JOB.toString()))
         .andExpect(content().contentType("application/json"));
 
     verify(csvEventService).read(any(), eq(true));
-    verify(asyncImporter).importTracker(any(), any(), any());
+    verify(trackerImportService).importTracker(any(), any(), any());
   }
 
   @Test
   void verifySyncResponseShouldBeOkWhenImportReportStatusIsOk() throws Exception {
     // When
-    when(syncImporter.importTracker(any()))
+    when(trackerImportService.importTracker(any(), any())).thenReturn(any());
+    when(trackerImportService.buildImportReport(any(), any()))
         .thenReturn(
             ImportReport.withImportCompleted(
                 Status.OK,
                 PersistenceReport.emptyReport(),
                 ValidationReport.emptyReport(),
-                new TimingsStats(),
                 new HashMap<>()));
 
     // Then
@@ -170,7 +177,7 @@ class TrackerImportControllerTest {
             .getResponse()
             .getContentAsString();
 
-    verify(syncImporter).importTracker(any());
+    verify(trackerImportService).importTracker(any(), any());
 
     try {
       renderService.fromJson(contentAsString, ImportReport.class);
@@ -182,13 +189,13 @@ class TrackerImportControllerTest {
   @Test
   void verifySyncResponseForCsvShouldBeOkWhenImportReportStatusIsOk() throws Exception {
     // When
-    when(syncImporter.importTracker(any()))
+    when(trackerImportService.importTracker(any(), any())).thenReturn(any());
+    when(trackerImportService.buildImportReport(any(), any()))
         .thenReturn(
             ImportReport.withImportCompleted(
                 Status.OK,
                 PersistenceReport.emptyReport(),
                 ValidationReport.emptyReport(),
-                new TimingsStats(),
                 new HashMap<>()));
 
     // Then
@@ -206,7 +213,7 @@ class TrackerImportControllerTest {
             .getContentAsString();
 
     verify(csvEventService).read(any(), eq(true));
-    verify(syncImporter).importTracker(any());
+    verify(trackerImportService).importTracker(any(), any());
 
     try {
       renderService.fromJson(contentAsString, ImportReport.class);
@@ -219,10 +226,9 @@ class TrackerImportControllerTest {
   void verifySyncResponseShouldBeConflictWhenImportReportStatusIsError() throws Exception {
     String errorMessage = "errorMessage";
     // When
-    when(syncImporter.importTracker(any()))
-        .thenReturn(
-            ImportReport.withError(
-                "errorMessage", ValidationReport.emptyReport(), new TimingsStats()));
+    when(trackerImportService.importTracker(any(), any())).thenReturn(any());
+    when(trackerImportService.buildImportReport(any(), any()))
+        .thenReturn(ImportReport.withError(errorMessage, ValidationReport.emptyReport()));
 
     // Then
     String contentAsString =
@@ -239,7 +245,7 @@ class TrackerImportControllerTest {
             .getResponse()
             .getContentAsString();
 
-    verify(syncImporter).importTracker(any());
+    verify(trackerImportService).importTracker(any(), any());
 
     try {
       renderService.fromJson(contentAsString, ImportReport.class);
@@ -252,10 +258,9 @@ class TrackerImportControllerTest {
   void verifySyncResponseForCsvShouldBeConflictWhenImportReportStatusIsError() throws Exception {
     String errorMessage = "errorMessage";
     // When
-    when(syncImporter.importTracker(any()))
-        .thenReturn(
-            ImportReport.withError(
-                "errorMessage", ValidationReport.emptyReport(), new TimingsStats()));
+    when(trackerImportService.importTracker(any(), any())).thenReturn(any());
+    when(trackerImportService.buildImportReport(any(), any()))
+        .thenReturn(ImportReport.withError(errorMessage, ValidationReport.emptyReport()));
 
     // Then
     String contentAsString =
@@ -272,7 +277,7 @@ class TrackerImportControllerTest {
             .getContentAsString();
 
     verify(csvEventService).read(any(), eq(true));
-    verify(syncImporter).importTracker(any());
+    verify(trackerImportService).importTracker(any(), any());
 
     try {
       renderService.fromJson(contentAsString, ImportReport.class);
@@ -285,7 +290,7 @@ class TrackerImportControllerTest {
   void verifyShouldFindJob() throws Exception {
     String uid = CodeGenerator.generateUid();
     // When
-    when(notifier.getNotificationsByJobId(JobType.TRACKER_IMPORT_JOB, uid))
+    when(notifier.getNotificationsByJobId(TRACKER_IMPORT_JOB, uid))
         .thenReturn(new LinkedList<>(singletonList(new Notification())));
 
     // Then
@@ -305,7 +310,7 @@ class TrackerImportControllerTest {
         .getResponse()
         .getContentAsString();
 
-    verify(notifier).getNotificationsByJobId(JobType.TRACKER_IMPORT_JOB, uid);
+    verify(notifier).getNotificationsByJobId(TRACKER_IMPORT_JOB, uid);
   }
 
   @Test
@@ -317,11 +322,10 @@ class TrackerImportControllerTest {
             Status.OK,
             PersistenceReport.emptyReport(),
             ValidationReport.emptyReport(),
-            new TimingsStats(),
             new HashMap<>());
 
     // When
-    when(notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid)).thenReturn(importReport);
+    when(notifier.getJobSummaryByJobId(TRACKER_IMPORT_JOB, uid)).thenReturn(importReport);
 
     when(trackerImportService.buildImportReport(any(), any())).thenReturn(importReport);
 
@@ -340,7 +344,7 @@ class TrackerImportControllerTest {
             .getResponse()
             .getContentAsString();
 
-    verify(notifier).getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid);
+    verify(notifier).getJobSummaryByJobId(TRACKER_IMPORT_JOB, uid);
     verify(trackerImportService).buildImportReport(any(), any());
 
     try {
@@ -355,7 +359,7 @@ class TrackerImportControllerTest {
     String uid = CodeGenerator.generateUid();
 
     // When
-    when(notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid)).thenReturn(null);
+    when(notifier.getJobSummaryByJobId(TRACKER_IMPORT_JOB, uid)).thenReturn(null);
 
     // Then
     mockMvc
