@@ -75,7 +75,7 @@ class IconMapperTest {
 
   @Test
   void shouldReturnCustomIconFromIconDto() throws BadRequestException {
-    IconDto iconDto = new IconDto(KEY, DESCRIPTION, KEYWORDS, fileResource.getUid());
+    IconDto iconDto = new IconDto(KEY, DESCRIPTION, KEYWORDS, fileResource.getUid(), true);
     when(fileResourceService.getFileResource(fileResource.getUid(), CUSTOM_ICON))
         .thenReturn(Optional.of(fileResource));
     User user = new User();
@@ -93,7 +93,7 @@ class IconMapperTest {
 
   @Test
   void shouldFailWhenMappingToCustomIconWithNonExistentFileResource() {
-    IconDto iconDto = new IconDto(KEY, DESCRIPTION, KEYWORDS, fileResource.getUid());
+    IconDto iconDto = new IconDto(KEY, DESCRIPTION, KEYWORDS, fileResource.getUid(), true);
 
     Exception exception = assertThrows(BadRequestException.class, () -> iconMapper.to(iconDto));
     assertEquals(
