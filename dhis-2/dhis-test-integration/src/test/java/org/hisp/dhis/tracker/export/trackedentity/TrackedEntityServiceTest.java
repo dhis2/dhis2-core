@@ -1416,8 +1416,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   void shouldReturnAllEntitiesWhenSuperuserAndModeAll()
       throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContext(admin);
-    TrackedEntityParams params =
-        new TrackedEntityParams(true, TrackedEntityEnrollmentParams.TRUE, false, false);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ALL)
