@@ -38,7 +38,6 @@ import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
@@ -384,16 +383,7 @@ class ExpressionService2Test extends DhisConvenienceTest {
     expressionK = "1.5*avg(" + expressionJ + ")";
     expressionL =
         expressionA + "+avg(" + expressionJ + ")+1.5*stddev(" + expressionJ + ")+" + expressionB;
-    expressionM =
-        "#{"
-            + deA.getUid()
-            + SEPARATOR
-            + SYMBOL_WILDCARD
-            + "}-#{"
-            + deB.getUid()
-            + SEPARATOR
-            + coc.getUid()
-            + "}";
+    expressionM = "#{" + deA.getUid() + "}-#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
     expressionN =
         "#{"
             + deA.getUid()
@@ -424,16 +414,32 @@ class ExpressionService2Test extends DhisConvenienceTest {
 
     switch (type) {
       case DATA_ELEMENT:
-        return new DimensionalItemId(type, o.getUid(), null, null, o.getDimensionItem());
+        String deItem = "#{" + o.getUid() + "}";
+        return new DimensionalItemId(type, o.getUid(), null, null, deItem);
 
       case DATA_ELEMENT_OPERAND:
         DataElementOperand deo = (DataElementOperand) o;
+
+        String deoItem =
+            "#{"
+                + deo.getDataElement().getUid()
+                + ((deo.getCategoryOptionCombo() != null)
+                    ? "." + deo.getCategoryOptionCombo().getUid()
+                    : "")
+                + ((deo.getCategoryOptionCombo() == null && deo.getAttributeOptionCombo() != null)
+                    ? ".*"
+                    : "")
+                + ((deo.getAttributeOptionCombo() != null)
+                    ? "." + deo.getAttributeOptionCombo().getUid()
+                    : "")
+                + "}";
 
         return new DimensionalItemId(
             type,
             deo.getDataElement().getUid(),
             deo.getCategoryOptionCombo() == null ? null : deo.getCategoryOptionCombo().getUid(),
-            deo.getAttributeOptionCombo() == null ? null : deo.getAttributeOptionCombo().getUid());
+            deo.getAttributeOptionCombo() == null ? null : deo.getAttributeOptionCombo().getUid(),
+            deoItem);
 
       case REPORTING_RATE:
         ReportingRate rr = (ReportingRate) o;

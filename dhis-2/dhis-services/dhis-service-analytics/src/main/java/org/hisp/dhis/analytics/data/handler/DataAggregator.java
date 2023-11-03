@@ -85,6 +85,8 @@ public class DataAggregator {
 
     dataHandler.addDataElementOperandValues(params, grid);
 
+    dataHandler.addSubexpressionDimensionItemValues(params, grid);
+
     dataHandler.addReportingRates(params, grid);
 
     dataHandler.addProgramDataElementAttributeIndicatorValues(params, grid);

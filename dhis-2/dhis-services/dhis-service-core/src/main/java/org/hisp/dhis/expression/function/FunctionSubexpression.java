@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.expression.function;
 
+import static org.hisp.dhis.common.DimensionItemType.SUBEXPRESSION_DIMENSION_ITEM;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import java.util.Set;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.ValueType;
@@ -43,19 +42,11 @@ import org.hisp.dhis.parser.expression.ExpressionState;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 
 /**
- * Function subExpression
+ * Function subexpression
  *
  * @author Jim Grace
  */
-public class FunctionSubExpression extends DimensionalItem {
-  /** Cache of the dimension item id that represents this subexpression. */
-  private Cache<DimensionalItemId> subExpressionCache;
-
-  /** Initializes the cache. */
-  public void init(CacheProvider cacheProvider) {
-    subExpressionCache = cacheProvider.createSubExpressionCache();
-  }
-
+public class FunctionSubexpression extends DimensionalItem {
   @Override
   public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
     return visitor.visit(ctx.expr(0));
@@ -63,71 +54,68 @@ public class FunctionSubExpression extends DimensionalItem {
 
   @Override
   public DimensionalItemId getDimensionalItemId(ExprContext ctx, CommonExpressionVisitor visitor) {
-    return subExpressionCache.get(ctx.getText(), key -> getDimItemId(ctx, visitor));
+    CommonExpressionVisitor infoVisitor =
+        visitor.toBuilder()
+            .itemMethod(ITEM_GET_EXPRESSION_INFO)
+            .info(new ExpressionInfo())
+            .state(getSubexpressionState(visitor))
+            .build();
+
+    Object returnObject = infoVisitor.visit(ctx.expr(0));
+
+    Set<DimensionalItemId> itemIds = infoVisitor.getInfo().getItemIds();
+
+    validateSubexpressionItemIds(itemIds);
+
+    String subexSql = getSubexpressionSql(ctx, visitor);
+
+    QueryModifiers mods =
+        visitor.getState().getQueryModsBuilder().valueType(getValueType(returnObject)).build();
+
+    return new DimensionalItemId(SUBEXPRESSION_DIMENSION_ITEM, subexSql, itemIds, mods);
   }
 
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
 
-  /** Gets the dimension item id that represents this subexpression. */
-  private DimensionalItemId getDimItemId(ExprContext ctx, CommonExpressionVisitor visitor) {
-    CommonExpressionVisitor infoVisitor =
-        visitor.toBuilder()
-            .itemMethod(ITEM_GET_EXPRESSION_INFO)
-            .info(new ExpressionInfo())
-            .state(getSubExpressionState(visitor))
-            .build();
-
-    Object returnObject = infoVisitor.visit(ctx.expr(0));
-
-    DimensionalItemId itemId = validateSubExpression(infoVisitor.getInfo());
-
-    String sql = getSubExpressionSql(ctx, visitor);
-
-    QueryModifiers mods =
-        visitor
-            .getState()
-            .getQueryModsBuilder()
-            .subExpression(sql)
-            .valueType(getValueType(returnObject))
-            .build();
-
-    return getDataElementOrOperandIdWithMods(itemId, mods);
-  }
-
-  /** Checks that the subexpression is valid. */
-  private DimensionalItemId validateSubExpression(ExpressionInfo info) {
-    Set<DimensionalItemId> itemIds = info.getItemIds();
-
-    if (itemIds.size() != 1) {
+  /** Checks that the subexpression item ids are valid. */
+  private void validateSubexpressionItemIds(Set<DimensionalItemId> itemIds) {
+    if (itemIds.isEmpty()) {
       throw new ParserExceptionWithoutContext(
-          "subExpression must include one data element or data element operand");
+          "subExpression must include at least one data element or data element operand");
     }
 
-    DimensionalItemId itemId = itemIds.iterator().next();
-
-    if (!itemId.isDataElementOrOperand()) {
+    if (itemIds.stream().anyMatch(i -> !i.isDataElementOrOperand())) {
       throw new ParserExceptionWithoutContext(
           "subExpression may not contain data items other than a data element or data element operand");
     }
-
-    return itemId;
   }
 
   /** Gets the SQL that will be executed for this subexpresison. */
-  private String getSubExpressionSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+  private String getSubexpressionSql(ExprContext ctx, CommonExpressionVisitor visitor) {
     CommonExpressionVisitor sqlVisitor =
-        visitor.toBuilder().itemMethod(ITEM_GET_SQL).state(getSubExpressionState(visitor)).build();
+        visitor.toBuilder().itemMethod(ITEM_GET_SQL).state(getSubexpressionState(visitor)).build();
 
     sqlVisitor.setExpressionLiteral(new SqlLiteral());
 
     return sqlVisitor.castStringVisit(ctx.expr(0));
   }
 
-  /** Gets the current state adding that we are in a subexpression. */
-  private ExpressionState getSubExpressionState(CommonExpressionVisitor visitor) {
-    return visitor.getState().builder().inSubexpression(true).build();
+  /**
+   * Gets the current state adding that we are in a subexpression.
+   *
+   * <p>Also, if there is an aggregation type override for the subexpression as a whole, it does not
+   * pass through to items inside the subexpression.
+   */
+  private ExpressionState getSubexpressionState(CommonExpressionVisitor visitor) {
+    QueryModifiers internalQueryMods =
+        visitor.getState().getQueryModsBuilder().aggregationType(null).build();
+
+    return visitor.getState().toBuilder()
+        .inSubexpression(true)
+        .queryMods(internalQueryMods)
+        .build();
   }
 
   /**
@@ -144,16 +132,5 @@ public class FunctionSubExpression extends DimensionalItem {
     }
 
     return ValueType.NUMBER;
-  }
-
-  /**
-   * Creates a dimensional item id from the one found in the subexpression but adds the necessary
-   * subexpression query modifiers.
-   */
-  private DimensionalItemId getDataElementOrOperandIdWithMods(
-      DimensionalItemId id, QueryModifiers mods) {
-    // TODO: add mods via DimensionalItemId @Builder( toBuilder = true )
-    return new DimensionalItemId(
-        id.getDimensionItemType(), id.getId0(), id.getId1(), id.getId2(), id.getItem(), mods);
   }
 }

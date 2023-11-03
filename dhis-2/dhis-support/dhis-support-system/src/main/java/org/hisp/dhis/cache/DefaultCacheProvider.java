@@ -128,8 +128,7 @@ public class DefaultCacheProvider implements CacheProvider {
     completedJobsInfo,
     jobCancelRequested,
     dataIntegritySummaryCache,
-    dataIntegrityDetailsCache,
-    subExpressionCache
+    dataIntegrityDetailsCache
   }
 
   private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -628,13 +627,5 @@ public class DefaultCacheProvider implements CacheProvider {
         this.<V>newBuilder()
             .forRegion(Region.dataIntegrityDetailsCache.name())
             .expireAfterWrite(1, HOURS));
-  }
-
-  @Override
-  public <V> Cache<V> createSubExpressionCache() {
-    return registerCache(
-        this.<V>newBuilder()
-            .forRegion(Region.subExpressionCache.name())
-            .expireAfterWrite(5, TimeUnit.MINUTES));
   }
 }
