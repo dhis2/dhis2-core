@@ -946,12 +946,12 @@ public class JdbcEventStore implements EventStore {
    * Generates a single INNER JOIN for each attribute we are searching on. We can search by a range
    * of operators. All searching is using lower() since attribute values are case-insensitive.
    *
-   * @param attributes
-   * @param filterItems
+   * @param params
    */
-  private void joinAttributeValueWithoutQueryParameter(
-      StringBuilder attributes, List<QueryItem> filterItems) {
-    for (QueryItem queryItem : filterItems) {
+  private String joinAttributeValue(EventQueryParams params) {
+    StringBuilder attributes = new StringBuilder();
+
+    for (QueryItem queryItem : params.getFilterAttributes()) {
       String teaValueCol = statementBuilder.columnQuote(queryItem.getItemId());
       String teaCol = statementBuilder.columnQuote(queryItem.getItemId() + "ATT");
 
@@ -974,6 +974,36 @@ public class JdbcEventStore implements EventStore {
 
       attributes.append(getAttributeFilterQuery(queryItem, teaCol, teaValueCol));
     }
+    return attributes.toString();
+  }
+
+  /**
+   * Generates the LEFT JOINs used for attributes we are ordering by (If any). We use LEFT JOIN to
+   * avoid removing any rows if there is no value for a given attribute and te. The result of this
+   * LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and main query.
+   *
+   * @return a SQL LEFT JOIN for attributes used for ordering, or empty string if no attributes is
+   *     used in order.
+   */
+  private String getFromSubQueryJoinOrderByAttributes(EventQueryParams params) {
+    StringBuilder joinOrderAttributes = new StringBuilder();
+
+    for (QueryItem orderAttribute : params.leftJoinAttributes()) {
+
+      joinOrderAttributes
+          .append(" LEFT JOIN trackedentityattributevalue AS ")
+          .append(statementBuilder.columnQuote(orderAttribute.getItem().getUid()))
+          .append(" ON ")
+          .append(statementBuilder.columnQuote(orderAttribute.getItem().getUid()))
+          .append(".trackedentityinstanceid = TEI.trackedentityinstanceid ")
+          .append("AND ")
+          .append(statementBuilder.columnQuote(orderAttribute.getItem().getUid()))
+          .append(".trackedentityattributeid = ")
+          .append(orderAttribute.getItem().getId())
+          .append(SPACE);
+    }
+
+    return joinOrderAttributes.toString();
   }
 
   private String getAttributeFilterQuery(QueryItem queryItem, String teaCol, String teaValueCol) {
@@ -1126,9 +1156,11 @@ public class JdbcEventStore implements EventStore {
             "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ")
         .append("left join userinfo au on (psi.assigneduserid=au.userinfoid) ");
 
-    if (!params.getFilterAttributes().isEmpty()) {
-      joinAttributeValueWithoutQueryParameter(fromBuilder, params.getFilterAttributes());
-    }
+    // JOIN attributes we need to filter on.
+    fromBuilder.append(joinAttributeValue(params));
+
+    // LEFT JOIN not filterable attributes we need to sort on.
+    fromBuilder.append(getFromSubQueryJoinOrderByAttributes(params));
 
     fromBuilder.append(getCategoryOptionComboQuery(user));
 
