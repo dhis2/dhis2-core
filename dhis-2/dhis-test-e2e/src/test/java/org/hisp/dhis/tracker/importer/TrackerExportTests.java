@@ -440,7 +440,9 @@ public class TrackerExportTests extends TrackerNtiApiTest {
 
   @Test
   public void shouldReturnDescOrderedEventByTEIAttribute() {
-    ApiResponse response = trackerActions.get("events?order=dIVt4l5vIOa:desc");
+    ApiResponse response =
+        trackerActions.get("events?order=dIVt4l5vIOa:desc&event=olfXZzSGacW;ZwwuwNp6gVd");
+
     response.validate().statusCode(200).body("instances", hasSize(equalTo(2)));
     List<String> events = response.extractList("instances.event.flatten()");
     assertEquals(
@@ -449,7 +451,9 @@ public class TrackerExportTests extends TrackerNtiApiTest {
 
   @Test
   public void shouldReturnAscOrderedEventByTEIAttribute() {
-    ApiResponse response = trackerActions.get("events?order=dIVt4l5vIOa:asc");
+    ApiResponse response =
+        trackerActions.get("events?order=dIVt4l5vIOa:asc&event=olfXZzSGacW;ZwwuwNp6gVd");
+
     response.validate().statusCode(200).body("instances", hasSize(equalTo(2)));
     List<String> events = response.extractList("instances.event.flatten()");
     assertEquals(
