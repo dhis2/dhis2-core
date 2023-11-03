@@ -46,7 +46,6 @@ import org.junit.jupiter.api.Test;
 class DatastoreTest extends ApiTest {
 
   private RestApiActions datastoreApiActions;
-  private RestApiActions userGroupActions;
   private RestApiActions sharingActions;
   private LoginActions loginActions;
   private UserActions userActions;
@@ -64,7 +63,7 @@ class DatastoreTest extends ApiTest {
     userActions = new UserActions();
     basicUserId = userActions.addUser(BASIC_USER, "Test1234!");
 
-    userGroupActions = new RestApiActions("userGroups");
+    RestApiActions userGroupActions = new RestApiActions("userGroups");
     userGroupId = userGroupActions.post("{\"name\":\"basic user group\"}").extractUid();
   }
 
@@ -74,7 +73,6 @@ class DatastoreTest extends ApiTest {
   }
 
   @Test
-  //  @Disabled
   void testDatastoreSharing_SuperUser() {
     // put 2 entries into namespace
     loginActions.loginAsAdmin();
@@ -103,7 +101,6 @@ class DatastoreTest extends ApiTest {
   }
 
   @Test
-  //  @Disabled
   void testDatastoreUserSharing_UserNoAccess() {
     // put 2 entries into namespace
     loginActions.loginAsAdmin();
@@ -131,7 +128,6 @@ class DatastoreTest extends ApiTest {
   }
 
   @Test
-  //  @Disabled
   void testDatastoreUserSharing_UserHasAccess() {
     // put 2 entries into namespace
     loginActions.loginAsAdmin();
@@ -149,7 +145,6 @@ class DatastoreTest extends ApiTest {
         .statusCode(201);
 
     // get ids of entries
-    /// api/dataStore/david/test1/metaData
     ApiResponse mdResponse1 = datastoreApiActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
     String uid1 = mdResponse1.extractUid();
     ApiResponse mdResponse2 = datastoreApiActions.get("/" + NAMESPACE + "/" + key2 + "/metaData");
@@ -174,7 +169,6 @@ class DatastoreTest extends ApiTest {
   }
 
   @Test
-  //  @Disabled
   void testDatastoreUserSharing_UserHasSomeAccess() {
     // put 2 entries into namespace
     loginActions.loginAsAdmin();
@@ -211,7 +205,6 @@ class DatastoreTest extends ApiTest {
   }
 
   @Test
-  //  @Disabled
   void testDatastoreUserGroupSharing_UserHasAccess() {
     // put 2 entries into namespace
     loginActions.loginAsAdmin();
@@ -242,11 +235,6 @@ class DatastoreTest extends ApiTest {
     sharingActions.post("", sharingUserGroupAccess(userGroupId), params).validateStatus(200);
     QueryParamsBuilder params2 = new QueryParamsBuilder().add("type", "dataStore").add("id", uid2);
     sharingActions.post("", sharingUserGroupAccess(userGroupId), params2).validateStatus(200);
-
-    // check entry metadata
-    //    ApiResponse respTest = datastoreApiActions.get("/" + NAMESPACE + "/" + key1 +
-    // "/metaData");
-    //    assertEquals("test", respTest.getAsString());
 
     // make call with fields query as user with no access and check can see no entries
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
@@ -280,25 +268,13 @@ class DatastoreTest extends ApiTest {
     // get ids of entries
     ApiResponse mdResponse1 = datastoreApiActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
     String uid1 = mdResponse1.extractUid();
-    //    ApiResponse mdResponse2 = datastoreApiActions.get("/" + NAMESPACE + "/" + key2 +
-    // "/metaData");
-    //    String uid2 = mdResponse2.extractUid();
 
     // add user to user group
-    /// users/UserId10002/userGroups/GcwRFZ3eeKC
     userActions.post(basicUserId + "/userGroups/" + userGroupId, "").validateStatus(200);
 
     // give access to user for 1 entry only
     QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
     sharingActions.post("", sharingUserGroupAccess(userGroupId), params).validateStatus(200);
-
-    // check entry metadata
-    //    ApiResponse respTest = datastoreApiActions.get("/" + NAMESPACE + "/" + key1 +
-    // "/metaData");
-    //    assertEquals("test", respTest.getAsString());
-    //    ApiResponse respTest2 = datastoreApiActions.get("/" + NAMESPACE + "/" + key2 +
-    // "/metaData");
-    //    assertEquals("test", respTest2.getAsString());
 
     // make call with fields query as user with no access and check can see no entries
     loginActions.loginAsUser(BASIC_USER, "Test1234!");

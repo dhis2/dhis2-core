@@ -115,24 +115,6 @@ public class RestApiActions {
     return response;
   }
 
-  public ApiResponse put(String resource, Object object) {
-    return put(resource, ContentType.JSON.toString(), object, null);
-  }
-
-  public ApiResponse put(
-      String resource, String contentType, Object object, QueryParamsBuilder queryParams) {
-    String path = queryParams == null ? "" : queryParams.build();
-    addCoverage("PUT", resource + path);
-
-    ApiResponse response =
-        new ApiResponse(
-            this.given().body(object).contentType(contentType).when().put(resource + path));
-
-    saveCreatedObjects(response);
-
-    return response;
-  }
-
   /**
    * Shortcut used in preconditions only. Sends post request to specified endpoint and verifies that
    * request was successful
