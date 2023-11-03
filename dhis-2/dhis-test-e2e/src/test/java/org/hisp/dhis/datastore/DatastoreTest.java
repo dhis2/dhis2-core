@@ -243,6 +243,23 @@ class DatastoreTest extends ApiTest {
     assertEquals(1, entries.size());
   }
 
+  @Test
+  void testDatastoreUserSharing_UserNoAccess_KeysEndpoint() {
+    // add 2 entries as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    String key2 = "spurs";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+
+    // make call as user with no access and check can see no entries
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE + "/keys").validateStatus(200);
+
+    JsonArray entries = getResponse.getBody().getAsJsonArray("entries");
+    assertEquals(0, entries.size());
+  }
+
   private String newEntry(String team) {
     return """
       {"name": "%s","league": "prem"}
