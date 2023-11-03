@@ -169,6 +169,8 @@ public class DataDimensionItem {
       dimension.setProgramAttribute((ProgramTrackedEntityAttributeDimensionItem) object);
     } else if (ExpressionDimensionItem.class.isAssignableFrom(object.getClass())) {
       dimension.setExpressionDimensionItem((ExpressionDimensionItem) object);
+    } else if (SubexpressionDimensionItem.class.isAssignableFrom(object.getClass())) {
+      dimension.setSubexpressionDimensionItem((SubexpressionDimensionItem) object);
     } else {
       throw new IllegalArgumentException(
           "Not a valid data dimension: " + object.getClass().getSimpleName() + ", " + object);

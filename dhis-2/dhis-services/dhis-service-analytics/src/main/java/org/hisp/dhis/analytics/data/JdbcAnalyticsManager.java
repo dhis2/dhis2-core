@@ -483,24 +483,20 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       if (DimensionalObjectUtils.anyDimensionHasItems(filters)) {
         sql.append(sqlHelper.whereAnd() + " ( ");
 
-        for (DimensionalObject filter : filters) {
-          if (filter.hasItems()) {
-            sql.append(
-                filters.stream()
-                    .filter(DimensionalObject::hasItems)
-                    .map(
-                        fil -> {
-                          String col = quoteAlias(fil.getDimensionName());
-                          return col
-                              + " in ("
-                              + getQuotedCommaDelimitedString(getUids(fil.getItems()))
-                              + ") ";
-                        })
-                    .collect(Collectors.joining("or ")));
-          }
+        sql.append(
+            filters.stream()
+                .filter(DimensionalObject::hasItems)
+                .map(
+                    fil -> {
+                      String col = quoteAlias(fil.getDimensionName());
+                      return col
+                          + " in ("
+                          + getQuotedCommaDelimitedString(getUids(fil.getItems()))
+                          + ") ";
+                    })
+                .collect(Collectors.joining("or ")));
 
-          sql.append(") ");
-        }
+        sql.append(") ");
       }
     }
   }
