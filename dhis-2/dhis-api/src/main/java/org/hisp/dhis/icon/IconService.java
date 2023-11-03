@@ -70,8 +70,6 @@ public interface IconService {
    */
   CustomIcon getCustomIcon(String key) throws NotFoundException;
 
-  List<CustomIcon> getAllCustomIcons() throws NotFoundException;
-
   /**
    * Gets the icon with the correct key if one exists
    *
