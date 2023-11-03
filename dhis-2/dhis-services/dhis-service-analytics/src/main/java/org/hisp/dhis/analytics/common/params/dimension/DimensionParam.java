@@ -243,7 +243,10 @@ public class DimensionParam implements UidObject {
     INCIDENTDATE(DATETIME, DimensionParamObjectType.PERIOD),
     EXECUTIONDATE(DATETIME, DimensionParamObjectType.PERIOD),
     LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD),
+    LASTUPDATEDBYDISPLAYNAME(TEXT, DimensionParamObjectType.STATIC),
     CREATED(DATETIME, DimensionParamObjectType.PERIOD),
+    CREATEDBYDISPLAYNAME(TEXT, DimensionParamObjectType.STATIC),
+    STOREDBY(TEXT, DimensionParamObjectType.STATIC),
     ENROLLMENT_STATUS(TEXT, DimensionParamObjectType.STATIC, null, "enrollmentstatus"),
     EVENT_STATUS(TEXT, DimensionParamObjectType.STATIC, null, "status");
 

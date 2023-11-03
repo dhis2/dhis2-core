@@ -29,11 +29,6 @@ package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.AbstractEventService.STATIC_EVENT_COLUMNS;
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
@@ -1953,7 +1948,7 @@ public class JdbcEventStore implements EventStore {
     ps.setLong(1, event.getEnrollment().getId());
     ps.setLong(2, event.getProgramStage().getId());
     ps.setTimestamp(3, JdbcEventSupport.toTimestamp(event.getDueDate()));
-    ps.setTimestamp(4, JdbcEventSupport.toTimestamp(event.getExecutionDate()));
+    ps.setTimestamp(4, JdbcEventSupport.toTimestamp(event.getOccurredDate()));
     ps.setLong(5, event.getOrganisationUnit().getId());
     ps.setString(6, event.getStatus().toString());
     ps.setTimestamp(7, JdbcEventSupport.toTimestamp(event.getCompletedDate()));
@@ -1988,7 +1983,7 @@ public class JdbcEventStore implements EventStore {
             JdbcEventSupport.toTimestamp(event.getDueDate()))
         .addValue(
             EventQuery.COLUMNS.EXECUTION_DATE.getColumnName(),
-            JdbcEventSupport.toTimestamp(event.getExecutionDate()))
+            JdbcEventSupport.toTimestamp(event.getOccurredDate()))
         .addValue("organisationunitid", event.getOrganisationUnit().getId())
         .addValue(EventQuery.COLUMNS.STATUS.getColumnName(), event.getStatus().toString())
         .addValue(

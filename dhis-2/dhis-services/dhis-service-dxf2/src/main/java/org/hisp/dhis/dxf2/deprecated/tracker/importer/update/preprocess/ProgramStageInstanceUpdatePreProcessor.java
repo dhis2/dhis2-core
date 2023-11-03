@@ -58,7 +58,7 @@ public class ProgramStageInstanceUpdatePreProcessor implements Processor {
 
     if (programStageInstance != null) {
       if (event.getEventDate() != null) {
-        programStageInstance.setExecutionDate(parseDate(event.getEventDate()));
+        programStageInstance.setOccurredDate(parseDate(event.getEventDate()));
       }
 
       if (categoryOptionCombo != null) {
