@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-support</artifactId>
-    <version>2.41-SNAPSHOT</version>
+    <version>4.1.2.3</version>
   </parent>
 
   <artifactId>dhis-support-db-migration</artifactId>
