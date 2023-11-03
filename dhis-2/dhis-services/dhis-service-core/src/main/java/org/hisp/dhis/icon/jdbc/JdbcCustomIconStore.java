@@ -100,19 +100,6 @@ public class JdbcCustomIconStore implements CustomIconStore {
   }
 
   @Override
-  public List<CustomIcon> getAllCustomIcons() {
-    final String sql =
-        """
-            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.custom as custom, f.uid as fileresourceuid, u.uid as useruid
-            from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
-            join userinfo u on u.userinfoid = c.createdby
-            where c.custom = true
-            """;
-
-    return jdbcTemplate.query(sql, customIconRowMapper);
-  }
-
-  @Override
   public Set<String> getKeywords() {
     return Set.copyOf(
         jdbcTemplate.queryForList(

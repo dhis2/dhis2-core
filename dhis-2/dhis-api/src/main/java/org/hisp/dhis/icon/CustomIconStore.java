@@ -56,8 +56,6 @@ public interface CustomIconStore {
    */
   List<CustomIcon> getAllIcons();
 
-  List<CustomIcon> getAllCustomIcons();
-
   /**
    * Returns a list with all the custom icon keywords
    *
