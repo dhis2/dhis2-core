@@ -29,12 +29,13 @@ package org.hisp.dhis.icon;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /** Default icons are pre-installed immutable icons. */
 @Getter
-@RequiredArgsConstructor
 public class DefaultIcon implements Icon {
   private final String key;
 
@@ -44,6 +45,27 @@ public class DefaultIcon implements Icon {
 
   private final boolean custom;
 
+  private Date createdAt;
+
+  private Date lastUpdatedAt;
+
+  public DefaultIcon(String key, String description, String[] keywords, boolean custom) {
+    this.key = key;
+    this.description = description;
+    this.keywords = keywords;
+    this.custom = custom;
+    this.setAutoFields();
+  }
+
+  public void setAutoFields() {
+    Date date = new Date();
+
+    if (createdAt == null) {
+      createdAt = date;
+    }
+
+    lastUpdatedAt = date;
+  }
   public enum Icons {
     _2G("2g", "", new String[] {}, false),
     _3G("3g", "", new String[] {}, false),

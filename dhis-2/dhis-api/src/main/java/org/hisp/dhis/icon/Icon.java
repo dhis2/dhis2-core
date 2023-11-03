@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.icon;
 
+import java.util.Date;
+
 public interface Icon {
   String getKey();
 
@@ -35,4 +37,8 @@ public interface Icon {
   String[] getKeywords();
 
   boolean isCustom();
+
+  Date getCreatedAt();
+
+  Date getLastUpdatedAt();
 }
