@@ -27,13 +27,11 @@
  */
 package org.hisp.dhis.icon;
 
-import lombok.AllArgsConstructor;
+import java.util.Date;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.Date;
 
 /** Custom icons are uploaded by users and can be modified and deleted. */
 @Getter
@@ -57,7 +55,13 @@ public class CustomIcon implements Icon {
 
   private Date lastUpdatedAt;
 
-  public CustomIcon(String key, String description, String[] keywords, String fileResourceUid, String createdByUserUid, boolean custom) {
+  public CustomIcon(
+      String key,
+      String description,
+      String[] keywords,
+      String fileResourceUid,
+      String createdByUserUid,
+      boolean custom) {
     this.key = key;
     this.description = description;
     this.keywords = keywords;

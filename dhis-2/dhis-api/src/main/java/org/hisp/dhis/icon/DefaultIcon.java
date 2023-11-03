@@ -30,9 +30,7 @@ package org.hisp.dhis.icon;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /** Default icons are pre-installed immutable icons. */
 @Getter
@@ -66,6 +64,7 @@ public class DefaultIcon implements Icon {
 
     lastUpdatedAt = date;
   }
+
   public enum Icons {
     _2G("2g", "", new String[] {}, false),
     _3G("3g", "", new String[] {}, false),
