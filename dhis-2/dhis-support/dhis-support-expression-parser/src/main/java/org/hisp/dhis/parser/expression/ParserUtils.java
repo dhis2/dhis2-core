@@ -276,7 +276,7 @@ public class ParserUtils {
   public static String castSql(String column, DataType dataType) {
     switch (dataType) {
       case NUMERIC:
-        return  column + "::numeric";
+        return column + "::numeric";
 
       case BOOLEAN:
         return column + "::numeric!=0";
