@@ -413,14 +413,10 @@ public class CommonQueryRequestMapper {
       }
     }
 
-    if (Objects.nonNull(queryItem)) {
-      return DimensionIdentifier.of(
-          dimensionIdentifier.getProgram(),
-          dimensionIdentifier.getProgramStage(),
-          DimensionParam.ofObject(queryItem, dimensionParamType, items));
-    }
-
-    throw new IllegalQueryException(E7250, dimensionId);
+    return DimensionIdentifier.of(
+        dimensionIdentifier.getProgram(),
+        dimensionIdentifier.getProgramStage(),
+        DimensionParam.ofObject(queryItem, dimensionParamType, items));
   }
 
   private static DimensionIdentifier<DimensionParam> parseAsStaticDimension(
