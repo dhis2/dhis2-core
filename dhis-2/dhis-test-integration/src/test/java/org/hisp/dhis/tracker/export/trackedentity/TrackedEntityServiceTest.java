@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
@@ -37,6 +38,7 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -65,6 +67,7 @@ import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
@@ -127,6 +130,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private User user;
 
+  private User userWithSearchInAllAuthority;
+
   private User admin;
 
   private OrganisationUnit orgUnitA;
@@ -140,6 +145,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   private Program programA;
 
   private Program programB;
+
+  private Program programC;
 
   private Enrollment enrollmentA;
 
@@ -173,7 +180,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
-    admin = preCreateInjectAdminUser();
 
     orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
@@ -182,8 +188,22 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     OrganisationUnit orgUnitC = createOrganisationUnit('C');
     manager.save(orgUnitC, false);
 
+    admin = preCreateInjectAdminUser();
+    admin.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
+    manager.save(admin);
+
     user = createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
     user.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
+
+    userWithSearchInAllAuthority =
+        createAndAddUser(
+            false,
+            "userSearchInAll",
+            Set.of(orgUnitA),
+            Set.of(orgUnitA),
+            "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
+    userWithSearchInAllAuthority.setTeiSearchOrganisationUnits(
+        Set.of(orgUnitA, orgUnitB, orgUnitC));
 
     teaA = createTrackedEntityAttribute('A', ValueType.TEXT);
     manager.save(teaA, false);
@@ -216,6 +236,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
     programA.setTrackedEntityType(trackedEntityTypeA);
     programA.setCategoryCombo(defaultCategoryCombo);
+    programA.setMinAttributesRequiredToSearch(0);
     manager.save(programA, false);
     ProgramStage programStageA1 = createProgramStage(programA);
     programStageA1.setPublicAccess(AccessStringHelper.FULL);
@@ -253,6 +274,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     programB.getSharing().setOwner(admin);
     programB.getSharing().setPublicAccess(AccessStringHelper.FULL);
     manager.update(programB);
+
+    programC = createProgram('C', new HashSet<>(), orgUnitC);
+    programC.setProgramType(ProgramType.WITH_REGISTRATION);
+    programC.setTrackedEntityType(trackedEntityTypeA);
+    programC.setCategoryCombo(defaultCategoryCombo);
+    programC.setAccessLevel(AccessLevel.PROTECTED);
+    programC.getSharing().setPublicAccess(AccessStringHelper.READ);
+    manager.save(programC, false);
 
     programB
         .getProgramAttributes()
@@ -1359,6 +1388,45 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertAll(
         () -> assertEquals(trackedEntityA.getUid(), actual.getFrom().getTrackedEntity().getUid()),
         () -> assertEquals(eventA.getUid(), actual.getTo().getEvent().getUid()));
+  }
+
+  @Test
+  void shouldFailWhenModeAllUserCanSearchEverywhereButNotSuperuserAndNoAccessToProgram() {
+    injectSecurityContext(userWithSearchInAllAuthority);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ALL)
+            .programUid(programC.getUid())
+            .user(userWithSearchInAllAuthority)
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> trackedEntityService.getTrackedEntities(operationParams));
+
+    assertContains(
+        String.format(
+            "Current user is not authorized to read data from selected program:  %s",
+            programC.getUid()),
+        ex.getMessage());
+  }
+
+  @Test
+  void shouldReturnAllEntitiesWhenSuperuserAndModeAll()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContext(admin);
+    TrackedEntityParams params =
+        new TrackedEntityParams(true, TrackedEntityEnrollmentParams.TRUE, false, false);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ALL)
+            .programUid(programA.getUid())
+            .user(admin)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    assertNotEmpty(trackedEntities);
   }
 
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {
