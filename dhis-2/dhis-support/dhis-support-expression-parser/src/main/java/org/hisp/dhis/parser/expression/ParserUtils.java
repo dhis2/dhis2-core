@@ -250,17 +250,17 @@ public class ParserUtils {
    * @return a coalesce statement to default the value
    */
   public static String replaceSqlNull(String column, DataType dataType) {
-    String COALESCE = "coalesce(";
+    String coalesce = "coalesce(";
 
     switch (dataType) {
       case NUMERIC:
-        return COALESCE + column + ",0)";
+        return coalesce + column + ",0)";
 
       case BOOLEAN:
-        return COALESCE + column + ",false)";
+        return coalesce + column + ",false)";
 
       case TEXT:
-        return COALESCE + column + ",'')";
+        return coalesce + column + ",'')";
     }
 
     throw new IllegalArgumentException("Unexpected dataType: " + dataType.name());
