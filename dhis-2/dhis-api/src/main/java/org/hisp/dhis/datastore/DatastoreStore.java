@@ -54,7 +54,8 @@ public interface DatastoreStore extends IdentifiableObjectStore<DatastoreEntry> 
 
   /**
    * Retrieves a list of keys associated with a given namespace which are updated after lastUpdated
-   * time.
+   * time. A sharing check for Data Read access is performed on the User to see what keys they have
+   * permission to read.
    *
    * @param namespace the namespace to retrieve keys from
    * @param lastUpdated the lastUpdated time to retrieve keys from
