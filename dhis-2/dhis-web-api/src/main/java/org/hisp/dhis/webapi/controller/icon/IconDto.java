@@ -44,4 +44,6 @@ class IconDto {
   @JsonProperty private String[] keywords;
 
   @JsonProperty private String fileResourceUid;
+
+  @JsonProperty private boolean custom;
 }
