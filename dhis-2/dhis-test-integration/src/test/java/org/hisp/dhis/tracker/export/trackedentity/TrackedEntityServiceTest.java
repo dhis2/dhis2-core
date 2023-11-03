@@ -38,7 +38,6 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
-import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -1424,7 +1423,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
-    assertNotEmpty(trackedEntities);
+    assertContainsOnly(Set.of(trackedEntityA.getUid()), uids(trackedEntities));
   }
 
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {
