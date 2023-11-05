@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
@@ -44,6 +43,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,6 +57,8 @@ class OperationsParamsValidatorTest {
 
   private final Program program = new Program("program");
 
+  @InjectMocks private OperationsParamsValidator operationsParamsValidator;
+
   @BeforeEach
   public void setUp() {
     OrganisationUnit organisationUnit = createOrgUnit("orgUnit", PARENT_ORG_UNIT_UID);
@@ -67,7 +69,8 @@ class OperationsParamsValidatorTest {
   void shouldFailWhenOuModeCaptureAndUserHasNoOrgUnitsAssigned() {
     Exception exception =
         Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(CAPTURE, new User(), program));
+            BadRequestException.class,
+            () -> operationsParamsValidator.validateOrgUnitMode(CAPTURE, new User(), program));
 
     assertEquals("User needs to be assigned data capture orgunits", exception.getMessage());
   }
@@ -80,7 +83,8 @@ class OperationsParamsValidatorTest {
       OrganisationUnitSelectionMode orgUnitMode) {
     Exception exception =
         Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(orgUnitMode, new User(), program));
+            BadRequestException.class,
+            () -> operationsParamsValidator.validateOrgUnitMode(orgUnitMode, new User(), program));
 
     assertEquals(
         "User needs to be assigned either search or data capture org units",
@@ -91,7 +95,8 @@ class OperationsParamsValidatorTest {
   void shouldFailWhenOuModeAllAndNotSuperuser() {
     Exception exception =
         Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(ALL, new User(), program));
+            BadRequestException.class,
+            () -> operationsParamsValidator.validateOrgUnitMode(ALL, new User(), program));
 
     assertEquals(
         "Current user is not authorized to query across all organisation units",

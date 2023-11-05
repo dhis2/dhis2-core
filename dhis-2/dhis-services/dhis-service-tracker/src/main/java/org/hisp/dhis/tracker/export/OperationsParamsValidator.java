@@ -30,15 +30,25 @@ package org.hisp.dhis.tracker.export;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Component;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Component
+@RequiredArgsConstructor
 public class OperationsParamsValidator {
+
+  private final AclService aclService;
 
   /**
    * Validates the user is authorized and/or has the necessary configuration set up in case the org
@@ -50,7 +60,7 @@ public class OperationsParamsValidator {
    * @throws BadRequestException if a validation error occurs for any of the three aforementioned
    *     modes
    */
-  public static void validateOrgUnitMode(
+  public void validateOrgUnitMode(
       OrganisationUnitSelectionMode orgUnitMode, User user, Program program)
       throws BadRequestException {
     switch (orgUnitMode) {
@@ -61,7 +71,7 @@ public class OperationsParamsValidator {
     }
   }
 
-  private static void validateUserCanSearchOrgUnitModeALL(User user) throws BadRequestException {
+  private void validateUserCanSearchOrgUnitModeALL(User user) throws BadRequestException {
     if (user != null
         && !(user.isSuper()
             || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))) {
@@ -70,7 +80,7 @@ public class OperationsParamsValidator {
     }
   }
 
-  private static void validateUserScope(
+  private void validateUserScope(
       User user, Program program, OrganisationUnitSelectionMode orgUnitMode)
       throws BadRequestException {
 
@@ -89,11 +99,41 @@ public class OperationsParamsValidator {
     }
   }
 
-  private static void validateCaptureScope(User user) throws BadRequestException {
+  private void validateCaptureScope(User user) throws BadRequestException {
     if (user == null) {
       throw new BadRequestException("User is required for orgUnitMode: " + CAPTURE);
     } else if (user.getOrganisationUnits().isEmpty()) {
       throw new BadRequestException("User needs to be assigned data capture orgunits");
+    }
+  }
+
+  public void validateOrderableAttributes(List<Order> order, User user) throws ForbiddenException {
+    Set<TrackedEntityAttribute> orderableTeas =
+        order.stream()
+            .filter(o -> o.getField() instanceof TrackedEntityAttribute)
+            .map(o -> (TrackedEntityAttribute) o.getField())
+            .collect(Collectors.toSet());
+
+    for (TrackedEntityAttribute tea : orderableTeas) {
+      if (!aclService.canDataRead(user, tea)) {
+        throw new ForbiddenException(
+            "User has no access to tracked entity attribute: " + tea.getUid());
+      }
+    }
+  }
+
+  public void validateOrderableDataElements(List<Order> order, User user)
+      throws ForbiddenException {
+    Set<DataElement> orderableDes =
+        order.stream()
+            .filter(o -> o.getField() instanceof DataElement)
+            .map(o -> (DataElement) o.getField())
+            .collect(Collectors.toSet());
+
+    for (DataElement de : orderableDes) {
+      if (!aclService.canDataRead(user, de)) {
+        throw new ForbiddenException("User has no access to data element: " + de.getUid());
+      }
     }
   }
 }

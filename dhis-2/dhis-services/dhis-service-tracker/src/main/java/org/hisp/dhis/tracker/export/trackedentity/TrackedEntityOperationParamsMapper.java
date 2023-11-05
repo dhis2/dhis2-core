@@ -47,6 +47,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -67,6 +68,8 @@ class TrackedEntityOperationParamsMapper {
 
   @Nonnull private final TrackedEntityAttributeService attributeService;
 
+  @Nonnull private final OperationsParamsValidator operationsParamsValidator;
+
   @Transactional(readOnly = true)
   public TrackedEntityQueryParams map(TrackedEntityOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
@@ -84,6 +87,7 @@ class TrackedEntityOperationParamsMapper {
     mapAttributeFilters(params, operationParams.getFilters());
 
     mapOrderParam(params, operationParams.getOrder());
+    operationsParamsValidator.validateOrderableAttributes(params.getOrder(), user);
 
     params
         .setProgram(program)

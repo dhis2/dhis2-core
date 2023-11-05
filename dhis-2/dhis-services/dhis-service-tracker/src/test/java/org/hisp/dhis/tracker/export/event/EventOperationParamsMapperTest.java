@@ -358,6 +358,8 @@ class EventOperationParamsMapperTest {
     de1.setUid(DE_1_UID);
     when(dataElementService.getDataElement(DE_1_UID)).thenReturn(de1);
     when(dataElementService.getDataElement(TEA_1_UID)).thenReturn(null);
+    when(aclService.canDataRead(user, de1)).thenReturn(true);
+    when(aclService.canDataRead(user, tea1)).thenReturn(true);
 
     EventOperationParams operationParams =
         eventBuilder
@@ -572,6 +574,65 @@ class EventOperationParamsMapperTest {
     EventQueryParams params = mapper.map(operationParams);
     assertNull(params.getOrgUnit());
     assertEquals(ALL, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldThrowWhenUserHasNoAccessToDataElementOrder() {
+    User user = new User();
+    UserRole userRole = new UserRole();
+    userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
+    user.setUserRoles(Set.of(userRole));
+
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(organisationUnitService.getOrganisationUnit(orgUnitId)).thenReturn(orgUnit);
+
+    String deUid = CodeGenerator.generateUid();
+    DataElement de = new DataElement();
+    de.setUid(deUid);
+    when(dataElementService.getDataElement(deUid)).thenReturn(de);
+    when(aclService.canDataRead(user, de)).thenReturn(false);
+
+    EventOperationParams operationParams =
+        eventBuilder
+            .orgUnitMode(ALL)
+            .orgUnitUid(orgUnit.getUid())
+            .orderBy(UID.of(deUid), SortDirection.DESC)
+            .build();
+
+    ForbiddenException exception =
+        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
+
+    assertEquals("User has no access to data element: " + deUid, exception.getMessage());
+  }
+
+  @Test
+  void shouldThrowWhenUserHasNoAccessToTrackedEntityAttributeOrder() {
+    User user = new User();
+    UserRole userRole = new UserRole();
+    userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
+    user.setUserRoles(Set.of(userRole));
+
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(organisationUnitService.getOrganisationUnit(orgUnitId)).thenReturn(orgUnit);
+
+    String teaUid = CodeGenerator.generateUid();
+    TrackedEntityAttribute tea = new TrackedEntityAttribute();
+    tea.setUid(teaUid);
+    when(trackedEntityAttributeService.getTrackedEntityAttribute(teaUid)).thenReturn(tea);
+    when(aclService.canDataRead(user, tea)).thenReturn(false);
+
+    EventOperationParams operationParams =
+        eventBuilder
+            .orgUnitMode(ALL)
+            .orgUnitUid(orgUnit.getUid())
+            .orderBy(UID.of(teaUid), SortDirection.DESC)
+            .build();
+
+    ForbiddenException exception =
+        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
+
+    assertEquals(
+        "User has no access to tracked entity attribute: " + teaUid, exception.getMessage());
   }
 
   private User createUserWithAuthority(Authorities authority) {

@@ -462,7 +462,7 @@
       "shortName": "test-dataelement1",
       "aggregationType": "SUM",
       "domainType": "TRACKER",
-      "publicAccess": "rw------",
+      "publicAccess": "--------",
       "valueType": "TEXT",
       "zeroIsSignificant": false,
       "categoryCombo": {
@@ -2443,7 +2443,7 @@
       "shortName": "to-delete-tei-attribute",
       "aggregationType": "NONE",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
+      "publicAccess": "--------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,

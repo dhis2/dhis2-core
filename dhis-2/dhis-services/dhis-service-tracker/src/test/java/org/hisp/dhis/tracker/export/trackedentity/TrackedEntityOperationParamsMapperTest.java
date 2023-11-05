@@ -65,6 +65,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -109,6 +110,8 @@ class TrackedEntityOperationParamsMapperTest {
   @Mock private TrackedEntityAttributeService attributeService;
 
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
+
+  @Mock private AclService aclService;
 
   @InjectMocks private TrackedEntityOperationParamsMapper mapper;
 
@@ -552,5 +555,27 @@ class TrackedEntityOperationParamsMapperTest {
     Exception exception =
         assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
     assertStartsWith("Cannot order by 'lastUpdated'", exception.getMessage());
+  }
+
+  @Test
+  void shouldThrowWhenUserHasNoAccessToTrackedEntityAttributeOrder() {
+    TrackedEntityAttribute tea = new TrackedEntityAttribute();
+    tea.setUid(TEA_1_UID);
+    when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea);
+
+    when(aclService.canDataRead(user, tea)).thenReturn(false);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ACCESSIBLE)
+            .user(user)
+            .orderBy(UID.of(TEA_1_UID), SortDirection.ASC)
+            .build();
+
+    ForbiddenException exception =
+        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
+
+    assertEquals(
+        "User has no access to tracked entity attribute: " + TEA_1_UID, exception.getMessage());
   }
 }

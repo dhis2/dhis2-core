@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
-import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
 import java.util.List;
 import java.util.Map;
@@ -53,6 +52,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -85,6 +85,8 @@ class EventOperationParamsMapper {
 
   private final DataElementService dataElementService;
 
+  private final OperationsParamsValidator operationsParamsValidator;
+
   @Transactional(readOnly = true)
   public EventQueryParams map(EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
@@ -96,7 +98,7 @@ class EventOperationParamsMapper {
     OrganisationUnit orgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
     validateUser(user, program, programStage, orgUnit);
 
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
+    operationsParamsValidator.validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
 
     TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
 
@@ -115,6 +117,8 @@ class EventOperationParamsMapper {
     mapDataElementFilters(queryParams, operationParams.getDataElementFilters());
     mapAttributeFilters(queryParams, operationParams.getAttributeFilters());
     mapOrderParam(queryParams, operationParams.getOrder());
+    operationsParamsValidator.validateOrderableAttributes(queryParams.getOrder(), user);
+    operationsParamsValidator.validateOrderableDataElements(queryParams.getOrder(), user);
 
     return queryParams
         .setProgram(program)
