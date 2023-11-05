@@ -31,8 +31,6 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataset.DataSetService;
