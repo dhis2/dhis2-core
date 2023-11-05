@@ -138,11 +138,10 @@ public class HibernateConfig {
   @Bean("entityManagerFactory")
   @DependsOn({"flyway"})
   public EntityManagerFactory entityManagerFactoryBean(
-      DhisConfigurationProvider config, DataSource dataSource) throws IOException {
+      DhisConfigurationProvider config, DataSource dataSource ) throws IOException {
     HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
     adapter.setDatabasePlatform(config.getProperty(ConfigurationKey.CONNECTION_DIALECT));
-    adapter.setGenerateDdl(false);
-    adapter.setShowSql(false);
+    adapter.setGenerateDdl(isGenerateDDL(config.getProperty(ConfigurationKey.CONNECTION_SCHEMA)));
     LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
     factory.setJpaVendorAdapter(adapter);
     factory.setPersistenceUnitName("dhis");
@@ -194,5 +193,9 @@ public class HibernateConfig {
       log.error(e.getMessage(), e);
     }
     return ArrayUtils.EMPTY_STRING_ARRAY;
+  }
+
+  private boolean isGenerateDDL(String value){
+    return !"none".equals(value);
   }
 }
