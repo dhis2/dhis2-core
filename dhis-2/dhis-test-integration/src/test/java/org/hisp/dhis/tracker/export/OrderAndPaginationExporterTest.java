@@ -28,14 +28,17 @@
 package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -107,6 +110,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Override
   protected void initTest() throws IOException {
+
+    userService = _userService;
     setUpMetadata("tracker/simple_metadata.json");
     importUser = userService.getUser("M5zQapPyTZI");
     assertNoErrors(
@@ -417,6 +422,24 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     List<String> trackedEntities = getTrackedEntities(params);
 
     assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+  }
+
+  @Test
+  void shouldThrowWhenGetTrackedEntityAndUserHasNoAccessToTrackedEntityOrder() {
+    User user = createUserWithAuth("user_no_access_tea");
+    user.setOrganisationUnits(Set.of(orgUnit));
+
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(user)
+            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .build();
+
+    assertThrows(ForbiddenException.class, () -> getTrackedEntities(params));
   }
 
   @Test
@@ -1250,6 +1273,40 @@ class OrderAndPaginationExporterTest extends TrackerTest {
               .toList();
       assertEquals(expected, relationships);
     }
+  }
+
+  @Test
+  void shouldThrowWhenGetEventsAndUserHasNoAccessToDataElementOrder() {
+    User user =
+        createUserWithAuth(
+            "de_user_search_all_ou", F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+    injectSecurityContext(user);
+
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .orgUnitMode(ALL)
+            .orderBy(UID.of("DATAEL00001"), SortDirection.DESC)
+            .build();
+
+    assertThrows(ForbiddenException.class, () -> getEvents(params));
+  }
+
+  @Test
+  void shouldThrowWhenGetEventsAndUserHasNoAccessToTrackedEntityOrder() {
+    User user =
+        createUserWithAuth(
+            "tea_user_search_all_ou", F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+    injectSecurityContext(user);
+
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .orgUnitMode(ALL)
+            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .build();
+
+    assertThrows(ForbiddenException.class, () -> getEvents(params));
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {

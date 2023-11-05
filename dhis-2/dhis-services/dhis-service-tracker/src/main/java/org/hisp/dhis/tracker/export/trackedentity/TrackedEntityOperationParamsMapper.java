@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -43,6 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -67,6 +69,8 @@ class TrackedEntityOperationParamsMapper {
 
   @Nonnull private final TrackedEntityAttributeService attributeService;
 
+  @Nonnull private final AclService aclService;
+
   @Transactional(readOnly = true)
   public TrackedEntityQueryParams map(TrackedEntityOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
@@ -84,6 +88,7 @@ class TrackedEntityOperationParamsMapper {
     mapAttributeFilters(params, operationParams.getFilters());
 
     mapOrderParam(params, operationParams.getOrder());
+    validateOrderableAttributes(params.getOrder(), user);
 
     params
         .setProgram(program)
@@ -239,6 +244,21 @@ class TrackedEntityOperationParamsMapper {
             "Cannot order by '"
                 + order.getField()
                 + "'. Tracked entities can be ordered by fields and tracked entity attributes.");
+      }
+    }
+  }
+
+  private void validateOrderableAttributes(List<Order> order, User user) throws ForbiddenException {
+    Set<TrackedEntityAttribute> orderableTeas =
+        order.stream()
+            .filter(o -> o.getField() instanceof TrackedEntityAttribute)
+            .map(o -> (TrackedEntityAttribute) o.getField())
+            .collect(Collectors.toSet());
+
+    for (TrackedEntityAttribute tea : orderableTeas) {
+      if (!aclService.canDataRead(user, tea)) {
+        throw new ForbiddenException(
+            "User has no access to tracked entity attribute: " + tea.getUid());
       }
     }
   }
