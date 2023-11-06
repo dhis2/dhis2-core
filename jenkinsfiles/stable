@@ -128,7 +128,7 @@ pipeline {
                 HTTP = "http --check-status"
                 IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
                 IM_HOST = "https://api.im.dhis2.org"
-                INSTANCE_URL = "https://play.im.dhis2.org/stable"
+                INSTANCE_URL = "https://play.im.dhis2.org"
                 IMAGE_REPOSITORY = "core"
                 IMAGE_PULL_POLICY = "Always"
                 FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
@@ -154,6 +154,7 @@ pipeline {
                                 version = version.split("/")[1]
                             }
                             env.IMAGE_TAG = version
+                            def instanceName = "stable-${version.replace(".", "-")}"
 
                             // If version contains more than 2 dots... It's a hotfix
                             def isHotfix = version.length() - version.replace(".", "").length() > 2
@@ -172,11 +173,10 @@ pipeline {
                             sh '[ -n "$DATABASE_ID" ]'
                             echo "Database: ${env.DATABASE_ID}"
 
-                            def name = "-${version.replace(".", "-")}"
                             dir('scripts/instances') {
-                                sh "(./findByName.sh play stable${name} && ./restart.sh play stable${name}) || ./deploy-dhis2.sh play stable${name}"
+                                sh "(./findByName.sh play ${instanceName} && ./restart.sh play ${instanceName}) || ./deploy-dhis2.sh play ${instanceName}"
                                 timeout(5) {
-                                    waitFor.statusOk("${env.INSTANCE_URL}${name}")
+                                    waitFor.statusOk("${env.INSTANCE_URL}/${instanceName}")
                                 }
                             }
                         }
