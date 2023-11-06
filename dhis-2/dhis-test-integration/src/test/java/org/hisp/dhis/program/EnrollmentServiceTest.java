@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -37,12 +38,17 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.note.Note;
+import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +69,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Autowired private ProgramStageService programStageService;
 
   @Autowired private EventService eventService;
+
+  @Autowired protected UserService _userService;
+
+  @Autowired NoteService noteService;
 
   private Date incidentDate;
 
@@ -90,12 +100,23 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private TrackedEntity entityInstanceA;
 
+  private User user;
+
   @Override
   public void setUpTest() {
+    userService = _userService;
+
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnitA);
     organisationUnitB = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(organisationUnitB);
+
+    user =
+        createAndAddUser(
+            false, "user", Set.of(organisationUnitA), Set.of(organisationUnitA), "F_EXPORT_DATA");
+    user.setTeiSearchOrganisationUnits(Set.of(organisationUnitA, organisationUnitB));
+    user.setOrganisationUnits(Set.of(organisationUnitA));
+
     programA = createProgram('A', new HashSet<>(), organisationUnitA);
     programService.addProgram(programA);
     ProgramStage stageA = createProgramStage('A', programA);
@@ -141,6 +162,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentD = new Enrollment(enrollmentDate, incidentDate, entityInstanceB, programA);
     enrollmentD.setUid("UID-D");
     enrollmentD.setOrganisationUnit(organisationUnitB);
+
+    injectSecurityContext(user);
   }
 
   @Test
@@ -256,6 +279,21 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
+  void shouldGetEnrollmentsInCaptureScopeIfOrgUnitModeCapture() {
+    enrollmentService.addEnrollment(enrollmentA);
+    enrollmentService.addEnrollment(enrollmentC);
+    enrollmentService.addEnrollment(enrollmentD);
+
+    List<Enrollment> enrollments =
+        enrollmentService.getEnrollments(
+            new EnrollmentQueryParams().setUser(user).setOrganisationUnitMode(CAPTURE));
+
+    assertEquals(2, enrollments.size());
+    assertTrue(enrollments.contains(enrollmentA));
+    assertTrue(enrollments.contains(enrollmentC));
+  }
+
+  @Test
   void testEnrollTrackedEntity() {
     Enrollment enrollment =
         enrollmentService.enrollTrackedEntity(
@@ -293,5 +331,25 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentService.cancelEnrollmentStatus(enrollmentD);
     assertEquals(ProgramStatus.CANCELLED, enrollmentService.getEnrollment(idA).getStatus());
     assertEquals(ProgramStatus.CANCELLED, enrollmentService.getEnrollment(idD).getStatus());
+  }
+
+  @Test
+  void shouldNoteDeleteNoteWhenDeletingEnrollment() {
+
+    Note note = new Note();
+    note.setCreator(CodeGenerator.generateUid());
+    note.setNoteText("text");
+    noteService.addNote(note);
+
+    enrollmentA.setNotes(List.of(note));
+
+    enrollmentService.addEnrollment(enrollmentA);
+
+    assertNotNull(enrollmentService.getEnrollment(enrollmentA.getUid()));
+
+    enrollmentService.deleteEnrollment(enrollmentA);
+
+    assertNull(enrollmentService.getEnrollment(enrollmentA.getUid()));
+    assertTrue(noteService.noteExists(note.getUid()));
   }
 }

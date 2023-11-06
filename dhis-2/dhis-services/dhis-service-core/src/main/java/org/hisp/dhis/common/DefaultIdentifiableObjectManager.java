@@ -33,6 +33,8 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import com.google.common.base.Defaults;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
 import com.google.gson.internal.Primitives;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -250,6 +252,17 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     }
 
     return findByUser(store, user);
+  }
+
+  @Override
+  public <T extends IdentifiableObject> boolean existsByUser(Class<T> type, @Nonnull User user) {
+    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
+
+    if (store == null) {
+      return false;
+    }
+
+    return existsByUser(store, user);
   }
 
   @CheckForNull
@@ -1248,5 +1261,26 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     }
 
     return List.of();
+  }
+
+  /**
+   * Look up objects by property createdBy or lastUpdatedBy. Among those properties, only persisted
+   * ones will be used for looking up.
+   *
+   * @param store the store to be used for looking up objects.
+   * @param user the {@link User} that is linked to createdBy or lastUpdateBy property.
+   * @return TRUE if {@link IdentifiableObject} found. FALSE otherwise.
+   */
+  private <T extends IdentifiableObject> boolean existsByUser(
+      IdentifiableObjectStore<T> store, User user) {
+    Schema schema = schemaService.getDynamicSchema(store.getClazz());
+    Builder<String> checkProperties = ImmutableSet.builder();
+    if (schema.getPersistedProperty(BaseIdentifiableObject_.CREATED_BY) != null) {
+      checkProperties.add(BaseIdentifiableObject_.CREATED_BY);
+    }
+    if (schema.getPersistedProperty(BaseIdentifiableObject_.LAST_UPDATED_BY) != null) {
+      checkProperties.add(BaseIdentifiableObject_.LAST_UPDATED_BY);
+    }
+    return store.existsByUser(user, checkProperties.build());
   }
 }

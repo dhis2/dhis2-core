@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.gml;
 import java.io.InputStream;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * Handles the transformation, sanitation and merging of geospatial data for OrganisationUnits
@@ -41,10 +42,8 @@ public interface GmlImportService {
   /**
    * Import the geospatial data from a GML document.
    *
-   * @param userUid the UID of the user performing the import.
-   * @param importOptions the ImportOptions. ImportStrategy is always overridden to UPDATE.
-   * @param taskId the TaskId of the import process.
    * @param inputStream the GML document.
    */
-  ImportReport importGml(InputStream inputStream, MetadataImportParams importParams);
+  ImportReport importGml(
+      InputStream inputStream, MetadataImportParams params, JobProgress progress);
 }

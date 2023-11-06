@@ -29,13 +29,13 @@ package org.hisp.dhis.webapi;
 
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
-import java.util.Date;
 import java.util.Map;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationStoreConfiguration;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.config.AnalyticsDataSourceConfig;
 import org.hisp.dhis.config.DataSourceConfig;
 import org.hisp.dhis.config.HibernateConfig;
 import org.hisp.dhis.config.HibernateEncryptionConfig;
@@ -51,15 +51,11 @@ import org.hisp.dhis.h2.H2SqlFunction;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
-import org.hisp.dhis.scheduling.AbstractSchedulingManager;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.SchedulingManager;
-import org.hisp.dhis.scheduling.SchedulingManagerSupport;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
-import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.webapi.mvc.ContentNegotiationConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -69,12 +65,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
@@ -102,6 +96,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Import({
   HibernateConfig.class,
   DataSourceConfig.class,
+  AnalyticsDataSourceConfig.class,
   JdbcConfig.class,
   FlywayConfig.class,
   HibernateEncryptionConfig.class,
@@ -134,7 +129,14 @@ public class WebTestConfiguration {
 
   @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
 
-  @Bean("dataSource")
+  @Bean(name = {"namedParameterJdbcTemplate", "analyticsNamedParameterJdbcTemplate"})
+  @Primary
+  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
+      @Qualifier("dataSource") DataSource dataSource) {
+    return new NamedParameterJdbcTemplate(dataSource);
+  }
+
+  @Bean(name = {"dataSource", "analyticsDataSource"})
   @Primary
   public DataSource actualDataSource(
       HibernateConfigurationProvider hibernateConfigurationProvider) {
@@ -206,69 +208,6 @@ public class WebTestConfiguration {
 
   @Bean
   public SystemAuthoritiesProvider systemAuthoritiesProvider() {
-    return () -> DefaultAdminUserPopulator.ALL_AUTHORITIES;
-  }
-
-  /** During tests we do not want asynchronous job scheduling. */
-  @Bean
-  @Primary
-  public SchedulingManager synchronousSchedulingManager(SchedulingManagerSupport support) {
-    return new TestSchedulingManager(support);
-  }
-
-  public static class TestSchedulingManager extends AbstractSchedulingManager {
-    private boolean enabled = true;
-
-    private boolean isRunning = false;
-
-    public TestSchedulingManager(SchedulingManagerSupport support) {
-      super(support);
-    }
-
-    @Override
-    public void schedule(JobConfiguration configuration) {
-      // we don't run it
-    }
-
-    @Override
-    public void scheduleWithStartTime(JobConfiguration configuration, Date startTime) {
-      // we don't run it
-    }
-
-    @Override
-    public void stop(JobConfiguration configuration) {
-      // its either never started or we don't support stop (silent)
-    }
-
-    @Override
-    public boolean executeNow(JobConfiguration configuration) {
-      if (enabled) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        try {
-          // executing will set and clear the SecurityContext
-          // so it is restored afterward to what it was before
-          return execute(configuration);
-        } finally {
-          SecurityContext context = SecurityContextHolder.createEmptyContext();
-          context.setAuthentication(auth);
-          SecurityContextHolder.setContext(context);
-        }
-      }
-      return !isRunning;
-    }
-
-    @Override
-    public boolean isRunning(JobType type) {
-      return isRunning;
-    }
-
-    public void setEnabled(boolean enabled) {
-
-      this.enabled = enabled;
-    }
-
-    public void setRunning(boolean running) {
-      isRunning = running;
-    }
+    return Authorities::getAllAuthorities;
   }
 }

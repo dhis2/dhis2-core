@@ -68,6 +68,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.webapi.openapi.Api.Parameter.In;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.http.HttpStatus;
@@ -343,9 +344,18 @@ final class ApiAnalyse {
         boolean required = param == null ? a.required() : param.required();
         Api.Schema type = analyseParamSchema(endpoint, p.getParameterizedType(), a.value());
         if (in != Api.Parameter.In.BODY) {
+          String fallbackDefaultValue = param != null ? param.defaultValue() : null;
+          String defaultValue =
+              !a.defaultValue().isEmpty() ? a.defaultValue() : fallbackDefaultValue;
           endpoint
               .getParameters()
-              .computeIfAbsent(name, key -> new Api.Parameter(p, key, in, required, type));
+              .computeIfAbsent(
+                  name,
+                  key -> {
+                    Api.Parameter parameter = new Api.Parameter(p, key, in, required, type);
+                    parameter.getDefaultValue().setValue(defaultValue);
+                    return parameter;
+                  });
         } else {
           Api.RequestBody requestBody =
               endpoint.getRequestBody().init(() -> new Api.RequestBody(p, required));
@@ -367,18 +377,23 @@ final class ApiAnalyse {
                         analyseInputSchema(endpoint, p.getParameterizedType())));
       } else if (p.isAnnotationPresent(RequestParam.class) && p.getType() != Map.class) {
         RequestParam a = p.getAnnotation(RequestParam.class);
+        EndpointParam param = getParam(p);
         String name = firstNonEmpty(a.name(), a.value(), p.getName());
         endpoint
             .getParameters()
             .computeIfAbsent(
                 name,
-                key ->
-                    new Api.Parameter(
-                        p,
-                        key,
-                        Api.Parameter.In.QUERY,
-                        a.required(),
-                        analyseInputSchema(endpoint, p.getParameterizedType())));
+                key -> {
+                  Api.Parameter parameter =
+                      new Api.Parameter(
+                          p,
+                          key,
+                          In.QUERY,
+                          param.required(),
+                          analyseInputSchema(endpoint, p.getParameterizedType()));
+                  parameter.getDefaultValue().setValue(param.defaultValue());
+                  return parameter;
+                });
       } else if (p.isAnnotationPresent(RequestBody.class)) {
         RequestBody a = p.getAnnotation(RequestBody.class);
         Api.RequestBody requestBody =
@@ -453,12 +468,17 @@ final class ApiAnalyse {
   private static Api.Parameter analyseParameter(Api.Endpoint endpoint, Property property) {
     AnnotatedElement member = (AnnotatedElement) property.getSource();
     Type type = property.getType();
+    OpenApi.Property annotated = member.getAnnotation(OpenApi.Property.class);
     Api.Schema schema =
-        type instanceof Class && isGeneratorType((Class<?>) type)
-            ? analyseGeneratorSchema(
-                endpoint, type, member.getAnnotation(OpenApi.Property.class).value())
+        type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null
+            ? analyseGeneratorSchema(endpoint, type, annotated.value())
             : analyseInputSchema(endpoint, getSubstitutedType(endpoint, property, member));
-    return new Api.Parameter(member, property.getName(), Api.Parameter.In.QUERY, false, schema);
+    Api.Parameter param = new Api.Parameter(member, property.getName(), In.QUERY, false, schema);
+    Object defaultValue = property.getDefaultValue();
+    if (defaultValue != null) {
+      param.getDefaultValue().setValue(defaultValue.toString());
+    }
+    return param;
   }
 
   private static Api.Schema analyseParamSchema(
@@ -589,9 +609,9 @@ final class ApiAnalyse {
       return analyseSubTypeSchema(endpoint, member, resolving);
     }
     Type type = getSubstitutedType(endpoint, property, member);
-    if (type instanceof Class && isGeneratorType((Class<?>) type)) {
-      return analyseGeneratorSchema(
-          endpoint, type, member.getAnnotation(OpenApi.Property.class).value());
+    OpenApi.Property annotated = member.getAnnotation(OpenApi.Property.class);
+    if (type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null) {
+      return analyseGeneratorSchema(endpoint, type, annotated.value());
     }
     return analyseTypeSchema(endpoint, type, type == property.getType(), resolving);
   }
@@ -841,18 +861,19 @@ final class ApiAnalyse {
     if (source.isAnnotationPresent(PathVariable.class)) {
       PathVariable a = source.getAnnotation(PathVariable.class);
       return new EndpointParam(
-          Api.Parameter.In.PATH, firstNonEmpty(a.name(), a.value()), a.required());
+          Api.Parameter.In.PATH, firstNonEmpty(a.name(), a.value()), a.required(), null);
     }
     if (source.isAnnotationPresent(RequestParam.class)) {
       RequestParam a = source.getAnnotation(RequestParam.class);
-      boolean required =
-          a.required() && a.defaultValue().equals("\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n");
+      boolean hasDefault = !a.defaultValue().equals("\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n");
+      boolean required = a.required() && !hasDefault;
+      String defaultValue = hasDefault ? a.defaultValue() : null;
       return new EndpointParam(
-          Api.Parameter.In.QUERY, firstNonEmpty(a.name(), a.value()), required);
+          Api.Parameter.In.QUERY, firstNonEmpty(a.name(), a.value()), required, defaultValue);
     }
     if (source.isAnnotationPresent(RequestBody.class)) {
       RequestBody a = source.getAnnotation(RequestBody.class);
-      return new EndpointParam(Api.Parameter.In.BODY, "", a.required());
+      return new EndpointParam(Api.Parameter.In.BODY, "", a.required(), null);
     }
     return null;
   }
@@ -921,7 +942,7 @@ final class ApiAnalyse {
     }
   }
 
-  record EndpointParam(Api.Parameter.In in, String name, boolean required) {}
+  record EndpointParam(Api.Parameter.In in, String name, boolean required, String defaultValue) {}
 
   /*
    * Helpers for working with annotations

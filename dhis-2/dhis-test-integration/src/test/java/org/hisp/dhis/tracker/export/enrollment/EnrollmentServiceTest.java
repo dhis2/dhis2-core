@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
+import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
+import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -89,6 +93,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private Enrollment enrollmentB;
 
+  private Enrollment enrollmentChildA;
+
   private Event eventA;
 
   private TrackedEntity trackedEntityA;
@@ -101,17 +107,21 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private Relationship relationshipA;
 
+  private OrganisationUnit orgUnitA;
+
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
     admin = preCreateInjectAdminUser();
 
-    OrganisationUnit orgUnitA = createOrganisationUnit('A');
+    orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
     OrganisationUnit orgUnitB = createOrganisationUnit('B');
     manager.save(orgUnitB, false);
     OrganisationUnit orgUnitC = createOrganisationUnit('C');
     manager.save(orgUnitC, false);
+    OrganisationUnit orgUnitChildA = createOrganisationUnit('D', orgUnitA);
+    manager.save(orgUnitChildA, false);
 
     User user =
         createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
@@ -133,6 +143,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC);
     trackedEntityC.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityC, false);
+
+    TrackedEntity trackedEntityChildA = createTrackedEntity(orgUnitChildA);
+    trackedEntityChildA.setTrackedEntityType(trackedEntityTypeA);
+    manager.save(trackedEntityChildA, false);
 
     programA = createProgram('A', new HashSet<>(), orgUnitA);
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
@@ -203,6 +217,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentB =
         programInstanceService.enrollTrackedEntity(
             trackedEntityB, programA, new Date(), new Date(), orgUnitB);
+
+    enrollmentChildA =
+        programInstanceService.enrollTrackedEntity(
+            trackedEntityChildA, programA, new Date(), new Date(), orgUnitChildA);
 
     injectSecurityContext(user);
   }
@@ -365,7 +383,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldGetEnrollmentsWhenUserHasReadAccessToProgramAndSearchScopeAccessToOrgUnit()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
@@ -376,15 +394,70 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
             .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
             .build();
 
-    Enrollments enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
 
     assertNotNull(enrollments);
-    assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentB.getUid()), toUid(enrollments));
+    assertContainsOnly(
+        List.of(enrollmentA.getUid(), enrollmentB.getUid(), enrollmentChildA.getUid()),
+        uids(enrollments));
+  }
+
+  @Test
+  void shouldGetEnrollmentsWhenUserHasReadAccessToProgramAndNoOrgUnitNorOrgUnitModeSpecified()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+
+    manager.updateNoAcl(programA);
+
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder().programUid(programA.getUid()).build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+
+    assertNotNull(enrollments);
+    assertContainsOnly(
+        List.of(enrollmentA.getUid(), enrollmentB.getUid(), enrollmentChildA.getUid()),
+        uids(enrollments));
+  }
+
+  @Test
+  void shouldGetEnrollmentsInCaptureScopeIfOrgUnitModeCapture()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+
+    manager.updateNoAcl(programA);
+
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder().orgUnitMode(CAPTURE).build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+
+    assertNotNull(enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentChildA.getUid()), uids(enrollments));
+  }
+
+  @Test
+  void shouldGetEnrollmentWhenEnrollmentsAndOtherParamsAreSpecified()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+
+    manager.updateNoAcl(programA);
+
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder()
+            .programUid(programA.getUid())
+            .enrollmentUids(Set.of(enrollmentA.getUid()))
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+
+    assertNotNull(enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
   void shouldGetEnrollmentsByTrackedEntityWhenUserHasAccessToTrackedEntityType()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);
 
@@ -394,10 +467,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
             .trackedEntityUid(trackedEntityA.getUid())
             .build();
 
-    Enrollments enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
 
     assertNotNull(enrollments);
-    assertContainsOnly(List.of(enrollmentA.getUid()), toUid(enrollments));
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
@@ -420,10 +493,108 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     assertContains("access to tracked entity type", exception.getMessage());
   }
 
-  private static List<String> toUid(Enrollments enrollments) {
-    return enrollments.getEnrollments().stream()
-        .map(Enrollment::getUid)
-        .collect(Collectors.toList());
+  @Test
+  void shouldReturnEnrollmentIfEnrollmentWasUpdatedBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeLastUpdated = oneHourBefore(enrollmentA.getLastUpdated());
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .lastUpdated(oneHourBeforeLastUpdated)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+
+    assertContainsOnly(List.of(enrollmentA), enrollments);
+  }
+
+  @Test
+  void shouldReturnEmptyIfEnrollmentWasUpdatedAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterLastUpdated = oneHourAfter(enrollmentA.getLastUpdated());
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .lastUpdated(oneHourAfterLastUpdated)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+
+    assertIsEmpty(enrollments);
+  }
+
+  @Test
+  void shouldReturnEnrollmentIfEnrollmentStartedBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+    Date oneHourBeforeEnrollmentDate = oneHourBefore(enrollmentA.getEnrollmentDate());
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .programUid(programA.getUid())
+            .programStartDate(oneHourBeforeEnrollmentDate)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+
+    assertContainsOnly(List.of(enrollmentA), enrollments);
+  }
+
+  @Test
+  void shouldReturnEmptyIfEnrollmentStartedAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+    Date oneHourAfterEnrollmentDate = oneHourAfter(enrollmentA.getEnrollmentDate());
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .programUid(programA.getUid())
+            .programStartDate(oneHourAfterEnrollmentDate)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+
+    assertIsEmpty(enrollments);
+  }
+
+  @Test
+  void shouldReturnEnrollmentIfEnrollmentEndedAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+    Date oneHourAfterEnrollmentDate = oneHourAfter(enrollmentA.getEnrollmentDate());
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .programUid(programA.getUid())
+            .programEndDate(oneHourAfterEnrollmentDate)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+
+    assertContainsOnly(List.of(enrollmentA), enrollments);
+  }
+
+  @Test
+  void shouldReturnEmptyIfEnrollmentEndedBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+    Date oneHourBeforeEnrollmentDate = oneHourBefore(enrollmentA.getEnrollmentDate());
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .programUid(programA.getUid())
+            .programEndDate(oneHourBeforeEnrollmentDate)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+
+    assertIsEmpty(enrollments);
   }
 
   private static List<String> attributeUids(Enrollment enrollment) {

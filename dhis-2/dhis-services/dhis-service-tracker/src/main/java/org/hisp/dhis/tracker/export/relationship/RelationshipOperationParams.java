@@ -41,22 +41,9 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 @Builder(toBuilder = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class RelationshipOperationParams {
-
-  public static final int DEFAULT_PAGE = 1;
-
-  public static final int DEFAULT_PAGE_SIZE = 50;
-
   private TrackerType type;
 
   private String identifier;
-
-  private Integer page;
-
-  private Integer pageSize;
-
-  private boolean totalPages;
-
-  private boolean skipPaging;
 
   private List<Order> order;
 

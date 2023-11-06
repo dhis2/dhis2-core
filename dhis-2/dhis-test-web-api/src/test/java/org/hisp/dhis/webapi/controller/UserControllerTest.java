@@ -53,13 +53,18 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonBoolean;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
@@ -86,6 +91,10 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   @Autowired private MessageSender messageSender;
 
   @Autowired private SecurityService securityService;
+
+  @Autowired private SystemSettingManager systemSettingManager;
+
+  @Autowired private OrganisationUnitService organisationUnitService;
 
   private User peter;
 
@@ -153,6 +162,208 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     User user = userService.getUser(peter.getUid());
     assertEquals("mapping value", user.getOpenId());
     assertEquals("mapping value", user.getUserCredentials().getOpenId());
+  }
+
+  /**
+   * Test that a user admin without the ALL authority can not update a user having the ALL
+   * authority.
+   */
+  @Test
+  void testUpdateRolesWithNoAllAndCanAssignRoles() {
+
+    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+
+    JsonImportSummary response = updateRolesNonAllAdmin();
+
+    JsonList<JsonErrorReport> errorReports =
+        response.getList("errorReports", JsonErrorReport.class);
+
+    assertEquals(1, errorReports.size());
+
+    assertEquals(
+        "User `someone` is not allowed to change a user having the ALL authority",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3041)
+            .getMessage());
+  }
+
+  @Test
+  void testUpdateRolesWithNoAllAndNoCanAssignRoles() {
+
+    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.FALSE);
+
+    JsonImportSummary response = updateRolesNonAllAdmin();
+
+    JsonList<JsonErrorReport> errorReports =
+        response.getList("errorReports", JsonErrorReport.class);
+
+    assertEquals(2, errorReports.size());
+
+    assertEquals(
+        "User `someone` is not allowed to change a user having the ALL authority",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3041)
+            .getMessage());
+
+    assertEquals(
+        "User `someone` is not allowed to change a user having the ALL authority",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3041)
+            .getMessage());
+  }
+
+  private JsonImportSummary updateRolesNonAllAdmin() {
+
+    UserRole roleB = createUserRole("ROLE_B", "NONE");
+    userService.addUserRole(roleB);
+
+    User user = createUserWithAuth("someone", "F_USER_ADD");
+    user.getUserRoles().add(roleB);
+    userService.updateUser(user);
+
+    switchContextToUser(user);
+
+    String roleBID = userService.getUserRoleByName("ROLE_B").getUid();
+
+    JsonImportSummary response =
+        PATCH(
+                "/users/" + superUser.getUid(),
+                "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleBID + "'}]}]")
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    return response;
+  }
+
+  @Test
+  void testRemoveALLNonAllAdmin() {
+    UserRole roleAll = createUserRole("ROLE_ALL", "ALL");
+    userService.addUserRole(roleAll);
+
+    User user = createUserWithAuth("someone", "F_USERROLE_PUBLIC_ADD");
+    userService.updateUser(user);
+    switchContextToUser(user);
+
+    checkRoleChangFailsWhenNonALLAdmin("'ANYTHING'");
+  }
+
+  @Test
+  void testAddALLNonAllAdmin() {
+    UserRole roleAll = createUserRole("ROLE_ALL", "NONE");
+    userService.addUserRole(roleAll);
+
+    User user = createUserWithAuth("someone", "F_USERROLE_PUBLIC_ADD");
+    userService.updateUser(user);
+    switchContextToUser(user);
+
+    checkRoleChangFailsWhenNonALLAdmin("'ALL'");
+  }
+
+  private void checkRoleChangFailsWhenNonALLAdmin(String roleName) {
+    String roleAllId = userService.getUserRoleByName("ROLE_ALL").getUid();
+
+    JsonImportSummary response =
+        PATCH(
+                "/userRoles/" + roleAllId,
+                "["
+                    + " {"
+                    + "   'op': 'add',"
+                    + "   'path': '/authorities',"
+                    + "   'value': ["
+                    + roleName
+                    + "   ]"
+                    + " }"
+                    + "]")
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals(
+        "User `someone` does not have access to user role",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3032)
+            .getMessage());
+  }
+
+  @Test
+  void testChangeOrgUnitLevelGivesAccessError() {
+    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+    OrganisationUnit orgC = createOrganisationUnit('C', orgB);
+    organisationUnitService.addOrganisationUnit(orgC);
+
+    User user = createUserWithAuth("someone", "F_USER_ADD");
+    user.addOrganisationUnit(orgC);
+    userService.updateUser(user);
+
+    switchContextToUser(user);
+
+    JsonImportSummary response =
+        PATCH(
+                "/users/" + user.getUid(),
+                """
+                [{'op':'add','path':'/organisationUnits','value':[{'id':'%s'}]},
+                 {'op':'add','path':'/dataViewOrganisationUnits','value':[{'id':'%s'}]},
+                 {'op':'add','path':'/teiSearchOrganisationUnits','value':[{'id':'%s'}]}]"""
+                    .formatted(orgA.getUid(), orgA.getUid(), orgA.getUid()))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    JsonList<JsonErrorReport> errorReports =
+        response.getList("errorReports", JsonErrorReport.class);
+
+    assertEquals(3, errorReports.size());
+
+    assertEquals(
+        "Organisation unit: `ouabcdefghA` not in hierarchy of current user: `someone`",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E7617)
+            .getMessage());
+  }
+
+  @Test
+  void updateUserHasAccessToUpdateGroups() {
+    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+
+    UserRole roleB = createUserRole("ROLE_B", "F_USER_ADD", "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS");
+    userService.addUserRole(roleB);
+
+    UserGroup userGroupA = createUserGroup('A', emptySet());
+    manager.save(userGroupA);
+
+    User user = createUserWithAuth("someone", "NONE");
+    user.getUserRoles().add(roleB);
+    userService.updateUser(user);
+
+    switchContextToUser(user);
+
+    assertStatus(
+        HttpStatus.OK,
+        PUT(
+            "/users/" + user.getUid(),
+            " {"
+                + "'name': 'test',"
+                + "'username':'someone',"
+                + "'userRoles': ["
+                + "{"
+                + "'id':'"
+                + roleB.getUid()
+                + "'"
+                + "}"
+                + "],"
+                + "'userGroups': ["
+                + "{"
+                + "'id':'"
+                + userGroupA.getUid()
+                + "'"
+                + "}]"
+                + "}"));
   }
 
   @Test
@@ -374,7 +585,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         "Conflict",
         409,
         "ERROR",
-        "Password must have at least 8, and at most 60 characters",
+        "Password must have at least 8, and at most 72 characters",
         POST("/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'lame'}")
             .content(HttpStatus.CONFLICT));
   }

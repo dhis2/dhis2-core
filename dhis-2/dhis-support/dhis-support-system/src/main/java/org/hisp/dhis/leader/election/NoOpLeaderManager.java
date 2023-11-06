@@ -31,8 +31,6 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
  * No operation leader election implementation which will be used when redis is not configured.
@@ -42,9 +40,8 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 @Slf4j
 public class NoOpLeaderManager implements LeaderManager {
 
-  private String nodeUuid;
-
-  private String nodeId;
+  private final String nodeUuid;
+  private final String nodeId;
 
   public NoOpLeaderManager(DhisConfigurationProvider dhisConfigurationProvider) {
     this.nodeId = dhisConfigurationProvider.getProperty(ConfigurationKey.NODE_ID);
@@ -54,23 +51,18 @@ public class NoOpLeaderManager implements LeaderManager {
   }
 
   @Override
-  public void renewLeader(JobProgress progress) {
+  public void renewLeader(int ttlSeconds) {
     // No operation
   }
 
   @Override
-  public void electLeader(JobProgress progress) {
+  public void electLeader(int ttlSeconds) {
     // No operation
   }
 
   @Override
   public boolean isLeader() {
     return true;
-  }
-
-  @Override
-  public void setSchedulingManager(SchedulingManager schedulingManager) {
-    // No operation
   }
 
   @Override

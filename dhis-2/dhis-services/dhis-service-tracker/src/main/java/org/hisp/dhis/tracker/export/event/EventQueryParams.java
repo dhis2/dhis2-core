@@ -35,7 +35,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Getter;
+import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.IdSchemes;
@@ -57,11 +59,6 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
  * @author Lars Helge Overland
  */
 class EventQueryParams {
-
-  public static final int DEFAULT_PAGE = 1;
-
-  public static final int DEFAULT_PAGE_SIZE = 50;
-
   private Program program;
 
   private ProgramStage programStage;
@@ -72,15 +69,15 @@ class EventQueryParams {
 
   private Boolean followUp;
 
-  private List<OrganisationUnit> accessibleOrgUnits = new ArrayList<>();
+  private OrganisationUnit orgUnit;
 
   private OrganisationUnitSelectionMode orgUnitMode;
 
   private TrackedEntity trackedEntity;
 
-  private Date startDate;
+  private Date occurredStartDate;
 
-  private Date endDate;
+  private Date occurredEndDate;
 
   private EventStatus eventStatus;
 
@@ -107,14 +104,6 @@ class EventQueryParams {
 
   private IdSchemes idSchemes = new IdSchemes();
 
-  private Integer page;
-
-  private Integer pageSize;
-
-  private boolean totalPages;
-
-  private boolean skipPaging;
-
   private boolean includeRelationships;
 
   /**
@@ -136,13 +125,7 @@ class EventQueryParams {
 
   private Set<String> events = new HashSet<>();
 
-  private Boolean skipEventId;
-
-  /**
-   * Each attribute will affect the final SQL query. Some attributes are filtered on, while
-   * attributes added via {@link #orderBy(TrackedEntityAttribute, SortDirection)} will be ordered
-   * by.
-   */
+  /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
   private final Map<TrackedEntityAttribute, List<QueryFilter>> attributes = new HashMap<>();
 
   /**
@@ -168,38 +151,7 @@ class EventQueryParams {
 
   @Getter private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
   public EventQueryParams() {}
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public boolean isPaging() {
-    return page != null || pageSize != null;
-  }
-
-  public int getPageWithDefault() {
-    return page != null && page > 0 ? page : DEFAULT_PAGE;
-  }
-
-  public int getPageSizeWithDefault() {
-    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-  }
-
-  public int getOffset() {
-    return (getPageWithDefault() - 1) * getPageSizeWithDefault();
-  }
-
-  /** Sets paging properties to default values. */
-  public void setDefaultPaging() {
-    this.page = DEFAULT_PAGE;
-    this.pageSize = DEFAULT_PAGE_SIZE;
-    this.skipPaging = false;
-  }
 
   public boolean hasProgram() {
     return program != null;
@@ -230,11 +182,6 @@ class EventQueryParams {
    */
   public boolean hasDataElementFilter() {
     return this.hasDataElementFilter;
-  }
-
-  /** Null-safe check for skip event ID parameter. */
-  public boolean isSkipEventId() {
-    return skipEventId != null && skipEventId;
   }
 
   public Program getProgram() {
@@ -282,12 +229,12 @@ class EventQueryParams {
     return this;
   }
 
-  public List<OrganisationUnit> getAccessibleOrgUnits() {
-    return accessibleOrgUnits;
+  public OrganisationUnit getOrgUnit() {
+    return orgUnit;
   }
 
-  public EventQueryParams setAccessibleOrgUnits(List<OrganisationUnit> accessibleOrgUnits) {
-    this.accessibleOrgUnits = accessibleOrgUnits;
+  public EventQueryParams setOrgUnit(OrganisationUnit orgUnit) {
+    this.orgUnit = orgUnit;
     return this;
   }
 
@@ -320,21 +267,21 @@ class EventQueryParams {
     return this;
   }
 
-  public Date getStartDate() {
-    return startDate;
+  public Date getOccurredStartDate() {
+    return occurredStartDate;
   }
 
-  public EventQueryParams setStartDate(Date startDate) {
-    this.startDate = startDate;
+  public EventQueryParams setOccurredStartDate(Date occurredStartDate) {
+    this.occurredStartDate = occurredStartDate;
     return this;
   }
 
-  public Date getEndDate() {
-    return endDate;
+  public Date getOccurredEndDate() {
+    return occurredEndDate;
   }
 
-  public EventQueryParams setEndDate(Date endDate) {
-    this.endDate = endDate;
+  public EventQueryParams setOccurredEndDate(Date occurredEndDate) {
+    this.occurredEndDate = occurredEndDate;
     return this;
   }
 
@@ -437,42 +384,6 @@ class EventQueryParams {
     return this;
   }
 
-  public Integer getPage() {
-    return page;
-  }
-
-  public EventQueryParams setPage(Integer page) {
-    this.page = page;
-    return this;
-  }
-
-  public Integer getPageSize() {
-    return pageSize;
-  }
-
-  public EventQueryParams setPageSize(Integer pageSize) {
-    this.pageSize = pageSize;
-    return this;
-  }
-
-  public boolean isTotalPages() {
-    return totalPages;
-  }
-
-  public EventQueryParams setTotalPages(boolean totalPages) {
-    this.totalPages = totalPages;
-    return this;
-  }
-
-  public boolean isSkipPaging() {
-    return skipPaging;
-  }
-
-  public EventQueryParams setSkipPaging(boolean skipPaging) {
-    this.skipPaging = skipPaging;
-    return this;
-  }
-
   public boolean isIncludeAttributes() {
     return includeAttributes;
   }
@@ -495,6 +406,13 @@ class EventQueryParams {
     return Collections.unmodifiableList(this.order);
   }
 
+  private Map<TrackedEntityAttribute, List<QueryFilter>> getOrderAttributes() {
+    return order.stream()
+        .filter(o -> o.getField() instanceof TrackedEntityAttribute)
+        .map(o -> (TrackedEntityAttribute) o.getField())
+        .collect(Collectors.toMap(tea -> tea, tea -> List.of()));
+  }
+
   /** Order by an event field of the given {@code field} name in given sort {@code direction}. */
   public EventQueryParams orderBy(String field, SortDirection direction) {
     this.order.add(new Order(field, direction));
@@ -511,7 +429,6 @@ class EventQueryParams {
   /** Order by the given tracked entity attribute {@code tea} in given sort {@code direction}. */
   public EventQueryParams orderBy(TrackedEntityAttribute tea, SortDirection direction) {
     this.order.add(new Order(tea, direction));
-    this.attributes.putIfAbsent(tea, new ArrayList<>());
     return this;
   }
 
@@ -533,13 +450,9 @@ class EventQueryParams {
     return this;
   }
 
-  public Boolean getSkipEventId() {
-    return skipEventId;
-  }
-
-  public EventQueryParams setSkipEventId(Boolean skipEventId) {
-    this.skipEventId = skipEventId;
-    return this;
+  /** Returns attributes that are only ordered by and not present in any filter. */
+  public Set<TrackedEntityAttribute> leftJoinAttributes() {
+    return SetUtils.difference(getOrderAttributes().keySet(), this.attributes.keySet());
   }
 
   public Map<TrackedEntityAttribute, List<QueryFilter>> getAttributes() {

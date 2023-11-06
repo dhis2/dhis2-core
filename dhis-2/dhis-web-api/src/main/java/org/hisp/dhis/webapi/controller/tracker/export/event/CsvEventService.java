@@ -99,11 +99,10 @@ class CsvEventService implements CsvService<Event> {
     result.setProgramStage(event.getProgramStage());
     result.setEnrollment(event.getEnrollment());
     result.setOrgUnit(event.getOrgUnit());
-    result.setOrgUnitName(event.getOrgUnitName());
     result.setOccurredAt(event.getOccurredAt() == null ? null : event.getOccurredAt().toString());
     result.setScheduledAt(
         event.getScheduledAt() == null ? null : event.getScheduledAt().toString());
-    result.setFollowup(event.isFollowup());
+    result.setFollowUp(event.isFollowUp());
     result.setDeleted(event.isDeleted());
     result.setCreatedAt(event.getCreatedAt() == null ? null : event.getCreatedAt().toString());
     result.setCreatedAtClient(

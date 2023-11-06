@@ -34,10 +34,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.EventDataValueRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.EventRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.NoteRowCallbackHandler;
@@ -59,13 +59,13 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
           + "where ev.eventid in (:ids)";
 
   private static final String GET_NOTES_SQL =
-      "select ev.uid as key, tec.uid, tec.commenttext, "
-          + "tec.creator, tec.created "
-          + "from trackedentitycomment tec "
-          + "join eventcomments evc "
-          + "on tec.trackedentitycommentid = evc.trackedentitycommentid "
-          + "join event ev on evc.eventid = ev.eventid "
-          + "where evc.eventid in (:ids)";
+      "select ev.uid as key, n.uid, n.notetext, "
+          + "n.creator, n.created "
+          + "from note n "
+          + "join event_notes evn "
+          + "on n.noteid = evn.noteid "
+          + "join event ev on evn.eventid = ev.eventid "
+          + "where evn.eventid in (:ids)";
 
   private static final String ACL_FILTER_SQL =
       "CASE WHEN p.type = 'WITH_REGISTRATION' THEN "
@@ -108,7 +108,7 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
         // Get inaccessible category options
         "where cocco.categoryoptionid not in ( "
         + "select co.categoryoptionid "
-        + "from dataelementcategoryoption co  "
+        + "from categoryoption co  "
         + " where "
         + JpaQueryUtils.generateSQlQueryForSharingCheck(
             "co.sharing", ctx.getUserUid(), ctx.getUserGroups(), AclService.LIKE_READ_DATA)
@@ -166,7 +166,7 @@ public class DefaultEventStore extends AbstractStore implements EventStore {
   }
 
   @Override
-  public Multimap<String, TrackedEntityComment> getNotes(List<Long> eventIds) {
+  public Multimap<String, Note> getNotes(List<Long> eventIds) {
     return fetch(GET_NOTES_SQL, new NoteRowCallbackHandler(), eventIds);
   }
 }

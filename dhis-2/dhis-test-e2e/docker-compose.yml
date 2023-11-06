@@ -26,6 +26,7 @@ services:
       POSTGRES_DB: dhis
       POSTGRES_PASSWORD: &postgres_password dhis
       PGPASSWORD: *postgres_password # needed by psql in healthcheck
+      LC_COLLATE : C
     healthcheck:
       test: [ "CMD-SHELL", "psql --no-password --quiet --username $$POSTGRES_USER postgres://127.0.0.1/$$POSTGRES_DB -p 5432 --command \"SELECT 'ok'\" > /dev/null" ]
       start_period: 120s

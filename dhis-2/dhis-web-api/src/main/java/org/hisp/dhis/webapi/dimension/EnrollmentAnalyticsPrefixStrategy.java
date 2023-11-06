@@ -36,8 +36,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EnrollmentAnalyticsPrefixStrategy implements PrefixStrategy {
 
-  public static final EnrollmentAnalyticsPrefixStrategy INSTANCE =
-      new EnrollmentAnalyticsPrefixStrategy();
+  public static final PrefixStrategy INSTANCE = new EnrollmentAnalyticsPrefixStrategy();
 
   @Override
   public String apply(PrefixedDimension pDimension) {

@@ -214,9 +214,10 @@ public final class WebMessageUtils {
         .setResponse(new ObjectReportWebMessageResponse(objectReport));
   }
 
-  public static WebMessage jobConfigurationReport(JobConfiguration jobConfiguration) {
-    return ok("Initiated " + jobConfiguration.getName())
-        .setResponse(new JobConfigurationWebMessageResponse(jobConfiguration));
+  public static WebMessage jobConfigurationReport(JobConfiguration config) {
+    return ok("Initiated " + config.getName())
+        .setResponse(new JobConfigurationWebMessageResponse(config))
+        .setLocation("/system/tasks/" + config.getJobType());
   }
 
   public static WebMessage errorReports(List<ErrorReport> errorReports) {
@@ -267,11 +268,24 @@ public final class WebMessageUtils {
   }
 
   public static ErrorCode getErrorCode(SQLException ex) {
-    String sqlState = Optional.of(ex).map(SQLException::getSQLState).orElse("");
-
-    if (StringUtils.isNotBlank(sqlState) && (sqlState.equals("42P01"))) {
+    if (relationDoesNotExist(ex)) {
       return ErrorCode.E7144;
     }
     return ErrorCode.E7145;
+  }
+
+  /**
+   * Utility method to detect if the {@link SQLException} refers to a missing relation in the
+   * database.
+   *
+   * @param ex a {@link SQLException} to analyze
+   * @return true if the error is a missing relation error, false otherwise
+   */
+  public static boolean relationDoesNotExist(SQLException ex) {
+    if (ex != null) {
+      return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
+    }
+
+    return false;
   }
 }

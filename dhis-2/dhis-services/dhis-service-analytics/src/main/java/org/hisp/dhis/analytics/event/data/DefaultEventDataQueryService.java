@@ -46,6 +46,7 @@ import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.C
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TEI_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.isSortable;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -226,6 +227,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
             .withEnhancedConditions(request.isEnhancedConditions())
             .withEndpointItem(request.getEndpointItem())
             .withEndpointAction(request.getEndpointAction())
+            .withUserOrganisationUnitsCriteria(request.getUserOrganisationUnitCriteria())
             .withRowContext(request.isRowContext());
 
     if (analyzeOnly) {
@@ -514,7 +516,16 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
     }
 
-    QueryItem queryItem = queryItemLocator.getQueryItemFromDimension(split[0], program, type);
+    QueryItem queryItem;
+    if (Objects.isNull(program)) {
+      // support for querying program attributes by uid without passing the program
+      queryItem =
+          queryItemLocator
+              .getQueryItemForTrackedEntityAttribute(split[0])
+              .orElseThrow(illegalQueryExSupplier(ErrorCode.E7224, dimensionString));
+    } else {
+      queryItem = queryItemLocator.getQueryItemFromDimension(split[0], program, type);
+    }
 
     if (split.length > 1) // Filters specified
     {

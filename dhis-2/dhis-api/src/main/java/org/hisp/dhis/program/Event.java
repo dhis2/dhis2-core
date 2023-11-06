@@ -47,9 +47,9 @@ import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Geometry;
 
@@ -74,7 +74,7 @@ public class Event extends SoftDeletableObject {
 
   private Date dueDate;
 
-  private Date executionDate;
+  private Date occurredDate;
 
   @AuditAttribute private OrganisationUnit organisationUnit;
 
@@ -82,7 +82,7 @@ public class Event extends SoftDeletableObject {
 
   private List<MessageConversation> messageConversations = new ArrayList<>();
 
-  private List<TrackedEntityComment> comments = new ArrayList<>();
+  private List<Note> notes = new ArrayList<>();
 
   @AuditAttribute private Set<EventDataValue> eventDataValues = new HashSet<>();
 
@@ -226,12 +226,12 @@ public class Event extends SoftDeletableObject {
 
   @JsonProperty("eventDate")
   @JacksonXmlProperty(localName = "eventDate", namespace = DxfNamespaces.DXF_2_0)
-  public Date getExecutionDate() {
-    return executionDate;
+  public Date getOccurredDate() {
+    return occurredDate;
   }
 
-  public void setExecutionDate(Date executionDate) {
-    this.executionDate = executionDate;
+  public void setOccurredDate(Date occurredDate) {
+    this.occurredDate = occurredDate;
   }
 
   @JsonProperty
@@ -287,12 +287,12 @@ public class Event extends SoftDeletableObject {
   @JsonProperty
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public List<TrackedEntityComment> getComments() {
-    return comments;
+  public List<Note> getNotes() {
+    return notes;
   }
 
-  public void setComments(List<TrackedEntityComment> comments) {
-    this.comments = comments;
+  public void setNotes(List<Note> notes) {
+    this.notes = notes;
   }
 
   @JsonProperty
@@ -362,7 +362,7 @@ public class Event extends SoftDeletableObject {
   public boolean isCreatableInSearchScope() {
     return this.getStatus() == EventStatus.SCHEDULE
         && this.getEventDataValues().isEmpty()
-        && this.getExecutionDate() == null;
+        && this.getOccurredDate() == null;
   }
 
   @Override

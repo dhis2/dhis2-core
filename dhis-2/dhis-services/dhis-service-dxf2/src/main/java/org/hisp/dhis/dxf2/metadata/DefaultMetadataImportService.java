@@ -32,13 +32,14 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityG
 import com.google.common.base.Enums;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -54,13 +55,13 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,89 +70,74 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.dxf2.metadata.MetadataImportService")
+@Service
 public class DefaultMetadataImportService implements MetadataImportService {
   private final CurrentUserService currentUserService;
 
   private final ObjectBundleService objectBundleService;
-
   private final ObjectBundleValidationService objectBundleValidationService;
-
-  private final IdentifiableObjectManager manager;
-
+  private final UserService userService;
   private final AclService aclService;
-
   private final Notifier notifier;
 
   @Override
   @Transactional
-  public ImportReport importMetadata(MetadataImportParams params) {
-    Timer timer = new SystemTimer().start();
+  public ImportReport importMetadata(
+      @Nonnull MetadataImportParams params, @Nonnull MetadataObjects objects) {
+    return importMetadata(params, objects, NoopJobProgress.INSTANCE);
+  }
 
-    ImportReport importReport = new ImportReport();
-    importReport.setImportParams(params);
-    importReport.setStatus(Status.OK);
+  @Override
+  @Transactional
+  public ImportReport importMetadata(
+      @Nonnull MetadataImportParams params,
+      @Nonnull MetadataObjects objects,
+      @Nonnull JobProgress progress) {
 
-    if (params.getUser() == null) {
-      params.setUser(currentUserService.getCurrentUser());
-    }
+    ObjectBundleParams bundleParams = toObjectBundleParams(params);
+    bundleParams.setObjects(objects.getObjects());
 
-    if (params.getUserOverrideMode() == UserOverrideMode.CURRENT) {
-      params.setOverrideUser(currentUserService.getCurrentUser());
-    }
-
-    String message = "(" + params.getUsername() + ") Import:Start";
-    log.info(message);
-
-    if (params.hasJobId()) {
-      notifier.notify(params.getId(), message);
-    }
-
-    preCreateBundle(params);
-
-    ObjectBundleParams bundleParams = params.toObjectBundleParams();
+    progress.startingStage("Running preCreateBundle");
+    progress.runStage(() -> preCreateBundle(bundleParams));
     handleDeprecationIfEventReport(bundleParams);
-    ObjectBundle bundle = objectBundleService.create(bundleParams);
 
-    postCreateBundle(bundle, bundleParams);
+    progress.startingStage("Creating bundle");
+    ObjectBundle bundle = progress.runStage(() -> objectBundleService.create(bundleParams));
 
-    ObjectBundleValidationReport validationReport = objectBundleValidationService.validate(bundle);
-    importReport.addTypeReports(validationReport);
+    progress.startingStage("Running postCreateBundle");
+    progress.runStage(() -> postCreateBundle(bundle, bundleParams));
+
+    progress.startingStage("Validating bundle");
+    ObjectBundleValidationReport validationReport =
+        progress.runStage(() -> objectBundleValidationService.validate(bundle));
+    ImportReport report = new ImportReport();
+    report.setImportParams(params);
+    report.setStatus(Status.OK);
+    report.addTypeReports(validationReport);
 
     if (!validationReport.hasErrorReports() || AtomicMode.NONE == bundle.getAtomicMode()) {
       Timer commitTimer = new SystemTimer().start();
 
-      ObjectBundleCommitReport commitReport = objectBundleService.commit(bundle);
-      importReport.addTypeReports(commitReport);
+      ObjectBundleCommitReport commitReport = objectBundleService.commit(bundle, progress);
+      report.addTypeReports(commitReport);
 
-      if (importReport.hasErrorReports()) {
-        importReport.setStatus(Status.WARNING);
+      if (report.hasErrorReports()) {
+        report.setStatus(Status.WARNING);
       }
 
       log.info("(" + bundle.getUsername() + ") Import:Commit took " + commitTimer.toString());
     } else {
-      importReport.getStats().ignored();
-      importReport.getTypeReports().forEach(tr -> tr.getStats().ignored());
-
-      importReport.setStatus(Status.ERROR);
+      report.getStats().ignored();
+      report.getTypeReports().forEach(tr -> tr.getStats().ignored());
+      report.setStatus(Status.ERROR);
     }
 
-    message = "(" + bundle.getUsername() + ") Import:Done took " + timer.toString();
-
-    log.info(message);
-
-    if (bundle.hasJobId()) {
-      notifier
-          .notify(bundle.getJobId(), NotificationLevel.INFO, message, true)
-          .addJobSummary(bundle.getJobId(), importReport, ImportReport.class);
+    if (ObjectBundleMode.VALIDATE == bundleParams.getObjectBundleMode()) {
+      return report;
     }
 
-    if (ObjectBundleMode.VALIDATE == params.getImportMode()) {
-      return importReport;
-    }
-
-    importReport.clean();
-    importReport.forEachTypeReport(
+    report.clean();
+    report.forEachTypeReport(
         typeReport -> {
           ImportReportMode mode = params.getImportReportMode();
           if (ImportReportMode.ERRORS == mode) {
@@ -164,18 +150,12 @@ public class DefaultMetadataImportService implements MetadataImportService {
           }
         });
 
-    return importReport;
+    return report;
   }
 
   @Override
-  @Transactional(readOnly = true)
   public MetadataImportParams getParamsFromMap(Map<String, List<String>> parameters) {
     MetadataImportParams params = new MetadataImportParams();
-
-    if (params.getUser() == null) {
-      params.setUser(currentUserService.getCurrentUser());
-    }
-
     params.setSkipSharing(getBooleanWithDefault(parameters, "skipSharing", false));
     params.setSkipTranslation(getBooleanWithDefault(parameters, "skipTranslation", false));
     params.setSkipValidation(getBooleanWithDefault(parameters, "skipValidation", false));
@@ -203,29 +183,21 @@ public class DefaultMetadataImportService implements MetadataImportService {
         getEnumWithDefault(
             ImportReportMode.class, parameters, "importReportMode", ImportReportMode.ERRORS));
     params.setFirstRowIsHeader(getBooleanWithDefault(parameters, "firstRowIsHeader", true));
-
-    if (getBooleanWithDefault(parameters, "async", false)) {
-      JobConfiguration jobId =
-          new JobConfiguration(
-              "metadataImport", JobType.METADATA_IMPORT, params.getUser().getUid(), true);
-      notifier.clear(jobId);
-      params.setId(jobId);
-    }
+    params.setAsync(getBooleanWithDefault(parameters, "async", false));
 
     if (params.getUserOverrideMode() == UserOverrideMode.SELECTED) {
-      User overrideUser = null;
+      UID overrideUser = null;
 
       if (parameters.containsKey("overrideUser")) {
         List<String> overrideUsers = parameters.get("overrideUser");
-        overrideUser = manager.get(User.class, overrideUsers.get(0));
+        overrideUser = UID.of(overrideUsers.get(0));
       }
 
       if (overrideUser == null) {
         throw new MetadataImportException(
             "UserOverrideMode.SELECTED is enabled, but overrideUser parameter does not point to a valid user.");
-      } else {
-        params.setOverrideUser(overrideUser);
       }
+      params.setOverrideUser(overrideUser);
     }
 
     return params;
@@ -234,6 +206,35 @@ public class DefaultMetadataImportService implements MetadataImportService {
   // -----------------------------------------------------------------------------------
   // Utility Methods
   // -----------------------------------------------------------------------------------
+
+  public ObjectBundleParams toObjectBundleParams(MetadataImportParams importParams) {
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setUserOverrideMode(importParams.getUserOverrideMode());
+    params.setSkipSharing(importParams.isSkipSharing());
+    params.setSkipTranslation(importParams.isSkipTranslation());
+    params.setSkipValidation(importParams.isSkipValidation());
+    params.setImportStrategy(importParams.getImportStrategy());
+    params.setAtomicMode(importParams.getAtomicMode());
+    params.setPreheatIdentifier(importParams.getIdentifier());
+    params.setPreheatMode(importParams.getPreheatMode());
+    params.setObjectBundleMode(importParams.getImportMode());
+    params.setMergeMode(importParams.getMergeMode());
+    params.setFlushMode(importParams.getFlushMode());
+    params.setImportReportMode(importParams.getImportReportMode());
+    params.setMetadataSyncImport(importParams.isMetadataSyncImport());
+    params.setUser(
+        importParams.getUser() == null
+            ? currentUserService.getCurrentUser()
+            : userService.getUser(importParams.getUser().getValue()));
+    params.setOverrideUser(
+        importParams.getOverrideUser() == null
+            ? null
+            : userService.getUser(importParams.getOverrideUser().getValue()));
+    if (params.getUserOverrideMode() == UserOverrideMode.CURRENT) {
+      params.setOverrideUser(currentUserService.getCurrentUser());
+    }
+    return params;
+  }
 
   private boolean getBooleanWithDefault(
       Map<String, List<String>> parameters, String key, boolean defaultValue) {
@@ -257,7 +258,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
     return Enums.getIfPresent(enumKlass, value).or(defaultValue);
   }
 
-  private void preCreateBundle(MetadataImportParams params) {
+  private void preCreateBundle(ObjectBundleParams params) {
     if (params.getUser() == null) {
       return;
     }
@@ -270,7 +271,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
     }
   }
 
-  private void preCreateBundleObject(BaseIdentifiableObject object, MetadataImportParams params) {
+  private void preCreateBundleObject(BaseIdentifiableObject object, ObjectBundleParams params) {
     if (StringUtils.isEmpty(object.getSharing().getPublicAccess())) {
       aclService.resetSharing(object, params.getUser());
     }

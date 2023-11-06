@@ -316,14 +316,12 @@ public class TrackerExportTests extends TrackerApiTest {
 
     TrackerApiResponse trackedEntity =
         trackerImportExportActions.getTrackedEntity(
-            "Kj6vYde4LHh",
-            new QueryParamsBuilder().add("fields", "*").add("includeAllAttributes", "true"));
+            "Kj6vYde4LHh", new QueryParamsBuilder().add("fields", "*"));
 
     TrackerApiResponse trackedEntities =
         trackerImportExportActions.getTrackedEntities(
             new QueryParamsBuilder()
                 .add("fields", "*")
-                .add("includeAllAttributes", "true")
                 .add("trackedEntity", "Kj6vYde4LHh")
                 .add("orgUnit", "O6uvpzGd5pu"));
 
@@ -389,7 +387,7 @@ public class TrackerExportTests extends TrackerApiTest {
         new QueryParamsBuilder()
             .add("orgUnit", "O6uvpzGd5pu")
             .add("program", Constants.TRACKER_PROGRAM_ID)
-            .add("attribute", String.format("kZeSYCgaHTk:%s:%s", operator, searchCriteria));
+            .add("filter", String.format("kZeSYCgaHTk:%s:%s", operator, searchCriteria));
 
     trackerImportExportActions
         .getTrackedEntities(queryParamsBuilder)
@@ -440,7 +438,9 @@ public class TrackerExportTests extends TrackerApiTest {
 
   @Test
   public void shouldReturnDescOrderedEventByTEIAttribute() {
-    ApiResponse response = trackerImportExportActions.get("events?order=dIVt4l5vIOa:desc");
+    ApiResponse response =
+        trackerImportExportActions.get(
+            "events?order=dIVt4l5vIOa:desc&event=olfXZzSGacW;ZwwuwNp6gVd");
     response.validate().statusCode(200).body("instances", hasSize(equalTo(2)));
     List<String> events = response.extractList("instances.event.flatten()");
     assertEquals(
@@ -449,7 +449,9 @@ public class TrackerExportTests extends TrackerApiTest {
 
   @Test
   public void shouldReturnAscOrderedEventByTEIAttribute() {
-    ApiResponse response = trackerImportExportActions.get("events?order=dIVt4l5vIOa:asc");
+    ApiResponse response =
+        trackerImportExportActions.get(
+            "events?order=dIVt4l5vIOa:asc&event=olfXZzSGacW;ZwwuwNp6gVd");
     response.validate().statusCode(200).body("instances", hasSize(equalTo(2)));
     List<String> events = response.extractList("instances.event.flatten()");
     assertEquals(

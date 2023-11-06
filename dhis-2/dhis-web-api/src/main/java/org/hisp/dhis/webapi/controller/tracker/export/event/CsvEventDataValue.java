@@ -41,13 +41,12 @@ import org.springframework.util.Assert;
   "programStage",
   "enrollment",
   "orgUnit",
-  "orgUnitName",
   "occurredAt",
   "scheduledAt",
   "geometry",
   "latitude",
   "longitude",
-  "followup",
+  "followUp",
   "deleted",
   "createdAt",
   "createdAtClient",
@@ -78,15 +77,13 @@ class CsvEventDataValue {
 
   private String orgUnit;
 
-  private String orgUnitName;
-
   private String enrollment;
 
   private String occurredAt;
 
   private String scheduledAt;
 
-  private boolean followup;
+  private boolean followUp;
 
   private boolean deleted;
 
@@ -141,10 +138,9 @@ class CsvEventDataValue {
     programStage = dataValue.getProgramStage();
     enrollment = dataValue.getEnrollment();
     orgUnit = dataValue.getOrgUnit();
-    orgUnitName = dataValue.getOrgUnitName();
     occurredAt = dataValue.getOccurredAt();
     scheduledAt = dataValue.getScheduledAt();
-    followup = dataValue.isFollowup();
+    followUp = dataValue.isFollowUp();
     deleted = dataValue.isDeleted();
     createdAt = dataValue.getCreatedAt();
     updatedAt = dataValue.getUpdatedAt();
@@ -218,15 +214,6 @@ class CsvEventDataValue {
   }
 
   @JsonProperty
-  public String getOrgUnitName() {
-    return orgUnitName;
-  }
-
-  public void setOrgUnitName(String orgUnitName) {
-    this.orgUnitName = orgUnitName;
-  }
-
-  @JsonProperty
   public String getOccurredAt() {
     return occurredAt;
   }
@@ -245,12 +232,12 @@ class CsvEventDataValue {
   }
 
   @JsonProperty
-  public boolean isFollowup() {
-    return followup;
+  public boolean isFollowUp() {
+    return followUp;
   }
 
-  public void setFollowup(boolean followup) {
-    this.followup = followup;
+  public void setFollowUp(boolean followUp) {
+    this.followUp = followUp;
   }
 
   @JsonProperty

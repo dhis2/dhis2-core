@@ -27,23 +27,26 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static java.lang.Boolean.TRUE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.time.DateUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -58,24 +61,14 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 @ToString
 public class TrackedEntityQueryParams {
 
-  public static final int DEFAULT_PAGE = 1;
-
-  public static final int DEFAULT_PAGE_SIZE = 50;
-
-  /** Query value, will apply to all relevant attributes. */
-  private QueryFilter query;
-
-  /** Attributes to be included in the response. Can be used to filter response. */
-  private List<QueryItem> attributes = new ArrayList<>();
-
-  /** Filters for the response. */
-  private List<QueryItem> filters = new ArrayList<>();
+  /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
+  private final Map<TrackedEntityAttribute, List<QueryFilter>> filters = new HashMap<>();
 
   /**
    * Organisation units for which instances in the response were registered at. Is related to the
    * specified OrganisationUnitMode.
    */
-  private Set<OrganisationUnit> accessibleOrgUnits = new HashSet<>();
+  private Set<OrganisationUnit> orgUnits = new HashSet<>();
 
   /** Program for which instances in the response must be enrolled in. */
   private Program program;
@@ -115,8 +108,8 @@ public class TrackedEntityQueryParams {
   /** Tracked entity types to fetch. */
   private List<TrackedEntityType> trackedEntityTypes = Lists.newArrayList();
 
-  /** Selection mode for the specified organisation units, default is DESCENDANTS. */
-  private OrganisationUnitSelectionMode orgUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
+  /** Selection mode for the specified organisation units */
+  private OrganisationUnitSelectionMode orgUnitMode;
 
   private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
@@ -135,29 +128,11 @@ public class TrackedEntityQueryParams {
   /** End date for event for the given program. */
   private Date eventEndDate;
 
-  /** Indicates whether not to include metadata in the response. */
-  private boolean skipMeta;
-
-  /** Page number. */
-  private Integer page;
-
-  /** Page size. */
-  private Integer pageSize;
-
-  /** Indicates whether to include the total number of pages in the paging response. */
-  private boolean totalPages;
-
-  /** Indicates whether paging should be skipped. */
-  private boolean skipPaging;
-
   /** Indicates if there is a maximum te retrieval limit. 0 no limit. */
   private int maxTeLimit;
 
   /** Indicates whether to include soft-deleted elements. Default to false */
   private boolean includeDeleted = false;
-
-  /** Indicates whether to include all TE attributes */
-  private boolean includeAllAttributes;
 
   /**
    * Potential Duplicate query parameter value. If null, we don't check whether a TE is a
@@ -190,19 +165,19 @@ public class TrackedEntityQueryParams {
    */
   public void handleOrganisationUnits() {
     if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      setAccessibleOrgUnits(user.getTeiSearchOrganisationUnitsWithFallback());
+      setOrgUnits(user.getTeiSearchOrganisationUnitsWithFallback());
       setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
-      setAccessibleOrgUnits(user.getOrganisationUnits());
+      setOrgUnits(user.getOrganisationUnits());
       setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> orgUnits = new HashSet<>(getAccessibleOrgUnits());
+      Set<OrganisationUnit> organisationUnits = new HashSet<>(getOrgUnits());
 
-      for (OrganisationUnit organisationUnit : getAccessibleOrgUnits()) {
-        orgUnits.addAll(organisationUnit.getChildren());
+      for (OrganisationUnit organisationUnit : getOrgUnits()) {
+        organisationUnits.addAll(organisationUnit.getChildren());
       }
 
-      setAccessibleOrgUnits(orgUnits);
+      setOrgUnits(organisationUnits);
       setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
     }
   }
@@ -211,112 +186,26 @@ public class TrackedEntityQueryParams {
     return CollectionUtils.isNotEmpty(this.trackedEntityUids);
   }
 
-  public TrackedEntityQueryParams addAttributes(List<QueryItem> attrs) {
-    attributes.addAll(attrs);
-    return this;
-  }
-
   public boolean hasFilterForEvents() {
     return this.getAssignedUserQueryParam().getMode() != AssignedUserSelectionMode.ALL
         || hasEventStatus();
   }
 
-  /** Add the given attributes to this params if they are not already present. */
-  public TrackedEntityQueryParams addAttributesIfNotExist(List<QueryItem> attrs) {
-    for (QueryItem attr : attrs) {
-      if (attributes != null && !attributes.contains(attr)) {
-        attributes.add(attr);
-      }
-    }
-
-    return this;
-  }
-
-  /** Adds the given filters to these parameters if they are not already present. */
-  public TrackedEntityQueryParams addFiltersIfNotExist(List<QueryItem> filtrs) {
-    for (QueryItem filter : filtrs) {
-      if (filters != null && !filters.contains(filter)) {
-        filters.add(filter);
-      }
-    }
-
-    return this;
-  }
-
-  /**
-   * Indicates whether this is a logical OR query, meaning that a query string is specified and
-   * instances which matches this query on one or more attributes should be included in the
-   * response. The opposite is an item-specific query, where the instances which matches the
-   * specific attributes should be included.
-   */
-  public boolean isOrQuery() {
-    return hasQuery();
-  }
-
-  /** Indicates whether these parameters specify a query. */
-  public boolean hasQuery() {
-    return query != null && query.isFilter();
-  }
-
   /** Returns a list of attributes and filters combined. */
-  public List<QueryItem> getAttributesAndFilters() {
-    List<QueryItem> items = new ArrayList<>();
-    items.addAll(attributes);
-    items.addAll(filters);
-    return items;
-  }
-
-  /** Returns a list of attributes and filters combined. */
-  public Set<String> getAttributeAndFilterIds() {
-    return getAttributesAndFilters().stream().map(QueryItem::getItemId).collect(Collectors.toSet());
-  }
-
-  /** Returns a list of attributes which appear more than once. */
-  public List<QueryItem> getDuplicateAttributes() {
-    Set<QueryItem> items = new HashSet<>();
-    List<QueryItem> duplicates = new ArrayList<>();
-
-    for (QueryItem item : getAttributes()) {
-      if (!items.add(item)) {
-        duplicates.add(item);
-      }
-    }
-
-    return duplicates;
-  }
-
-  /** Returns a list of attributes which appear more than once. */
-  public List<QueryItem> getDuplicateFilters() {
-    Set<QueryItem> items = new HashSet<>();
-    List<QueryItem> duplicates = new ArrayList<>();
-
-    for (QueryItem item : getFilters()) {
-      if (!items.add(item)) {
-        duplicates.add(item);
-      }
-    }
-
-    return duplicates;
-  }
-
-  /** Indicates whether these parameters specify any attributes and/or filters. */
-  public boolean hasAttributesOrFilters() {
-    return hasAttributes() || hasFilters();
-  }
-
-  /** Indicates whether these parameters specify any attributes. */
-  public boolean hasAttributes() {
-    return attributes != null && !attributes.isEmpty();
+  public Set<String> getFilterIds() {
+    return filters.keySet().stream()
+        .map(BaseIdentifiableObject::getUid)
+        .collect(Collectors.toSet());
   }
 
   /** Indicates whether these parameters specify any filters. */
   public boolean hasFilters() {
-    return filters != null && !filters.isEmpty();
+    return !filters.isEmpty();
   }
 
   /** Indicates whether these parameters specify any organisation units. */
-  public boolean hasAccessibleOrgUnits() {
-    return !accessibleOrgUnits.isEmpty();
+  public boolean hasOrganisationUnits() {
+    return orgUnits != null && !orgUnits.isEmpty();
   }
 
   /** Indicates whether these parameters specify a program. */
@@ -420,18 +309,12 @@ public class TrackedEntityQueryParams {
    * @return true if there is at least one unique filter in filters/attributes, false otherwise.
    */
   public boolean hasUniqueFilter() {
-    if (!hasFilters() && !hasAttributes()) {
+    if (!hasFilters()) {
       return false;
     }
 
-    for (QueryItem filter : filters) {
-      if (filter.isUnique()) {
-        return true;
-      }
-    }
-
-    for (QueryItem attribute : attributes) {
-      if (attribute.isUnique() && attribute.hasFilter()) {
+    for (TrackedEntityAttribute attribute : filters.keySet()) {
+      if (TRUE.equals(attribute.isUnique())) {
         return true;
       }
     }
@@ -439,59 +322,26 @@ public class TrackedEntityQueryParams {
     return false;
   }
 
-  /** Indicates whether paging is enabled. */
-  public boolean isPaging() {
-    return !isSkipPaging();
+  /** Returns attributes that are only ordered by and not present in any filter. */
+  public Set<TrackedEntityAttribute> getLeftJoinAttributes() {
+    return SetUtils.difference(getOrderAttributes(), filters.keySet());
   }
 
-  /** Returns the page number, falls back to default value of 1 if not specified. */
-  public int getPageWithDefault() {
-    return page != null && page > 0 ? page : DEFAULT_PAGE;
-  }
-
-  /** Returns the page size, falls back to default value of 50 if not specified. */
-  public int getPageSizeWithDefault() {
-    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-  }
-
-  /** Returns the offset based on the page number and page size. */
-  public int getOffset() {
-    return (getPageWithDefault() - 1) * getPageSizeWithDefault();
-  }
-
-  public QueryFilter getQuery() {
-    return query;
-  }
-
-  public TrackedEntityQueryParams setQuery(QueryFilter query) {
-    this.query = query;
-    return this;
-  }
-
-  public List<QueryItem> getAttributes() {
-    return attributes;
-  }
-
-  public TrackedEntityQueryParams setAttributes(List<QueryItem> attributes) {
-    this.attributes = attributes;
-    return this;
-  }
-
-  public List<QueryItem> getFilters() {
+  public Map<TrackedEntityAttribute, List<QueryFilter>> getFilters() {
     return filters;
   }
 
-  public TrackedEntityQueryParams setFilters(List<QueryItem> filters) {
-    this.filters = filters;
+  public Set<OrganisationUnit> getOrgUnits() {
+    return orgUnits;
+  }
+
+  public TrackedEntityQueryParams addOrgUnits(Set<OrganisationUnit> orgUnits) {
+    this.orgUnits.addAll(orgUnits);
     return this;
   }
 
-  public Set<OrganisationUnit> getAccessibleOrgUnits() {
-    return accessibleOrgUnits;
-  }
-
-  public TrackedEntityQueryParams setAccessibleOrgUnits(Set<OrganisationUnit> accessibleOrgUnits) {
-    this.accessibleOrgUnits = accessibleOrgUnits;
+  public TrackedEntityQueryParams setOrgUnits(Set<OrganisationUnit> accessibleOrgUnits) {
+    this.orgUnits = accessibleOrgUnits;
     return this;
   }
 
@@ -577,9 +427,7 @@ public class TrackedEntityQueryParams {
   }
 
   public Date getProgramEnrollmentEndDate() {
-    return programEnrollmentEndDate != null
-        ? DateUtils.addDays(programEnrollmentEndDate, 1)
-        : programEnrollmentEndDate;
+    return programEnrollmentEndDate;
   }
 
   public TrackedEntityQueryParams setProgramEnrollmentEndDate(Date programEnrollmentEndDate) {
@@ -597,9 +445,7 @@ public class TrackedEntityQueryParams {
   }
 
   public Date getProgramIncidentEndDate() {
-    return programIncidentEndDate != null
-        ? DateUtils.addDays(programIncidentEndDate, 1)
-        : programIncidentEndDate;
+    return programIncidentEndDate;
   }
 
   public TrackedEntityQueryParams setProgramIncidentEndDate(Date programIncidentEndDate) {
@@ -667,51 +513,6 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public boolean isSkipMeta() {
-    return skipMeta;
-  }
-
-  public TrackedEntityQueryParams setSkipMeta(boolean skipMeta) {
-    this.skipMeta = skipMeta;
-    return this;
-  }
-
-  public Integer getPage() {
-    return page;
-  }
-
-  public TrackedEntityQueryParams setPage(Integer page) {
-    this.page = page;
-    return this;
-  }
-
-  public Integer getPageSize() {
-    return pageSize;
-  }
-
-  public TrackedEntityQueryParams setPageSize(Integer pageSize) {
-    this.pageSize = pageSize;
-    return this;
-  }
-
-  public boolean isTotalPages() {
-    return totalPages;
-  }
-
-  public TrackedEntityQueryParams setTotalPages(boolean totalPages) {
-    this.totalPages = totalPages;
-    return this;
-  }
-
-  public boolean isSkipPaging() {
-    return skipPaging;
-  }
-
-  public TrackedEntityQueryParams setSkipPaging(boolean skipPaging) {
-    this.skipPaging = skipPaging;
-    return this;
-  }
-
   public int getMaxTeLimit() {
     return maxTeLimit;
   }
@@ -730,17 +531,27 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public boolean isIncludeAllAttributes() {
-    return includeAllAttributes;
+  public User getUser() {
+    return user;
   }
 
-  public TrackedEntityQueryParams setIncludeAllAttributes(boolean includeAllAttributes) {
-    this.includeAllAttributes = includeAllAttributes;
+  /**
+   * Filter the given tracked entity attribute {@code tea} using the specified {@link QueryFilter}
+   * that consist of an operator and a value.
+   */
+  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea, QueryFilter filter) {
+    this.filters.putIfAbsent(tea, new ArrayList<>());
+    this.filters.get(tea).add(filter);
     return this;
   }
 
-  public User getUser() {
-    return user;
+  /**
+   * Filter out any tracked entity that have no value for the given tracked entity attribute {@code
+   * tea}.
+   */
+  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea) {
+    this.filters.putIfAbsent(tea, new ArrayList<>());
+    return this;
   }
 
   /** Order by an event field of the given {@code field} name in given sort {@code direction}. */
@@ -756,15 +567,18 @@ public class TrackedEntityQueryParams {
    */
   public TrackedEntityQueryParams orderBy(TrackedEntityAttribute tea, SortDirection direction) {
     this.order.add(new Order(tea, direction));
-    this.addAttributesIfNotExist(
-        QueryItem.getQueryItems(List.of(tea)).stream()
-            .filter(sAtt -> !this.getFilters().contains(sAtt))
-            .toList());
     return this;
   }
 
   public List<Order> getOrder() {
     return order;
+  }
+
+  private Set<TrackedEntityAttribute> getOrderAttributes() {
+    return order.stream()
+        .filter(o -> o.getField() instanceof TrackedEntityAttribute)
+        .map(o -> (TrackedEntityAttribute) o.getField())
+        .collect(Collectors.toSet());
   }
 
   public Set<String> getTrackedEntityUids() {

@@ -43,10 +43,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
 /**
  * @author Luciano Fiandesio
@@ -112,7 +112,7 @@ public class ProgramStageInstanceMapper
 
     // Notes
     if (!event.getNotes().isEmpty()) {
-      psi.setComments(convertNotes(event, this.workContext));
+      psi.setNotes(convertNotes(event, this.workContext));
     }
 
     // Data Values
@@ -171,7 +171,7 @@ public class ProgramStageInstanceMapper
     psi.setGeometry(event.getGeometry());
 
     // Notes
-    psi.setComments(convertNotes(event, this.workContext));
+    psi.setNotes(convertNotes(event, this.workContext));
 
     // Data Values
     psi.setEventDataValues(workContext.getEventDataValueMap().get(event.getUid()));
@@ -204,7 +204,7 @@ public class ProgramStageInstanceMapper
     return psi;
   }
 
-  private List<TrackedEntityComment> convertNotes(
+  private List<Note> convertNotes(
       org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, WorkContext ctx) {
     if (isNotEmpty(event.getNotes())) {
       return event.getNotes().stream()
@@ -232,7 +232,7 @@ public class ProgramStageInstanceMapper
   private void setExecutionDate(
       org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, Event psi) {
     if (event.getEventDate() != null) {
-      psi.setExecutionDate(parseDate(event.getEventDate()));
+      psi.setOccurredDate(parseDate(event.getEventDate()));
     }
   }
 

@@ -64,6 +64,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.AsyncTaskExecutor;
@@ -194,6 +195,8 @@ public class EventController {
   private final ContextUtils contextUtils;
 
   private final DhisConfigurationProvider dhisConfig;
+
+  private final SessionFactory sessionFactory;
 
   private Schema schema;
 
@@ -1194,13 +1197,11 @@ public class EventController {
   private WebMessage startAsyncImport(ImportOptions importOptions, List<Event> events) {
     JobConfiguration jobId =
         new JobConfiguration(
-            "inMemoryEventImport",
-            EVENT_IMPORT,
-            currentUserService.getCurrentUser().getUid(),
-            true);
-    taskExecutor.executeTask(new ImportEventsTask(events, eventService, importOptions, jobId));
+            "inMemoryEventImport", EVENT_IMPORT, currentUserService.getCurrentUser().getUid());
+    taskExecutor.executeTask(
+        new ImportEventsTask(events, eventService, importOptions, jobId, sessionFactory));
 
-    return jobConfigurationReport(jobId).setLocation("/system/tasks/" + EVENT_IMPORT);
+    return jobConfigurationReport(jobId);
   }
 
   private boolean fieldsContains(String match, List<String> fields) {

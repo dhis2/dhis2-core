@@ -29,8 +29,8 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import java.util.List;
@@ -38,6 +38,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Function;
+import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -49,12 +50,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -118,25 +122,45 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
 
     Query<Enrollment> query = getQuery(hql);
 
-    if (!params.isSkipPaging()) {
-      query.setFirstResult(params.getOffset());
-      query.setMaxResults(params.getPageSizeWithDefault());
-    }
-
-    // When the clients choose to not show the total of pages.
-    if (!params.isTotalPages() && !params.isSkipPaging()) {
-      // Get pageSize + 1, so we are able to know if there is another
-      // page available. It adds one additional element into the list,
-      // as consequence. The caller needs to remove the last element.
-      query.setMaxResults(params.getPageSizeWithDefault() + 1);
-    }
-
     return query.list();
+  }
+
+  @Override
+  public Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams) {
+    String hql = buildEnrollmentHql(params).getFullQuery();
+
+    Query<Enrollment> query = getQuery(hql);
+    query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
+    query.setMaxResults(pageParams.getPageSize());
+
+    IntSupplier enrollmentCount = () -> countEnrollments(params);
+    return getPage(pageParams, query.list(), enrollmentCount);
+  }
+
+  private Page<Enrollment> getPage(
+      PageParams pageParams, List<Enrollment> enrollments, IntSupplier enrollmentCount) {
+    if (pageParams.isPageTotal()) {
+      Pager pager =
+          new Pager(pageParams.getPage(), enrollmentCount.getAsInt(), pageParams.getPageSize());
+      return Page.of(enrollments, pager);
+    }
+
+    Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
+    pager.force(pageParams.getPage(), pageParams.getPageSize());
+    return Page.of(enrollments, pager);
   }
 
   private QueryWithOrderBy buildEnrollmentHql(EnrollmentQueryParams params) {
     String hql = "from Enrollment en";
     SqlHelper hlp = new SqlHelper(true);
+
+    if (params.hasEnrollmentUids()) {
+      hql +=
+          hlp.whereAnd()
+              + "en.uid in ("
+              + getQuotedCommaDelimitedString(params.getEnrollmentUids())
+              + ")";
+    }
 
     if (params.hasLastUpdatedDuration()) {
       hql +=
@@ -146,10 +170,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
               + "'";
     } else if (params.hasLastUpdated()) {
       hql +=
-          hlp.whereAnd()
-              + "en.lastUpdated >= '"
-              + getMediumDateString(params.getLastUpdated())
-              + "'";
+          hlp.whereAnd() + "en.lastUpdated >= '" + getLongDateString(params.getLastUpdated()) + "'";
     }
 
     if (params.hasTrackedEntity()) {
@@ -202,7 +223,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql +=
           hlp.whereAnd()
               + "en.enrollmentDate >= '"
-              + getMediumDateString(params.getProgramStartDate())
+              + getLongDateString(params.getProgramStartDate())
               + "'";
     }
 
@@ -210,7 +231,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql +=
           hlp.whereAnd()
               + "en.enrollmentDate <= '"
-              + getMediumDateString(params.getProgramEndDate())
+              + getLongDateString(params.getProgramEndDate())
               + "'";
     }
 

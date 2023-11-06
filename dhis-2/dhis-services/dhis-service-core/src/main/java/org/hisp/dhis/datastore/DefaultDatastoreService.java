@@ -31,7 +31,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -41,9 +40,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
-import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -66,8 +66,6 @@ public class DefaultDatastoreService implements DatastoreService {
   private final CurrentUserService currentUserService;
 
   private final AclService aclService;
-
-  private final RenderService renderService;
 
   @Override
   public void addProtection(DatastoreNamespaceProtection protection) {
@@ -100,13 +98,14 @@ public class DefaultDatastoreService implements DatastoreService {
 
   @Override
   @Transactional(readOnly = true)
-  public <T> T getFields(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform) {
+  public <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
+      throws ConflictException {
     DatastoreQueryValidator.validate(query);
-    return readProtectedIn(query.getNamespace(), null, () -> store.getFields(query, transform));
+    return readProtectedIn(query.getNamespace(), null, () -> store.getEntries(query, transform));
   }
 
   @Override
-  public DatastoreQuery plan(DatastoreQuery query) throws IllegalQueryException {
+  public DatastoreQuery plan(DatastoreQuery query) throws ConflictException {
     DatastoreQueryValidator.validate(query);
     return query;
   }
@@ -119,9 +118,9 @@ public class DefaultDatastoreService implements DatastoreService {
 
   @Override
   @Transactional
-  public void addEntry(DatastoreEntry entry) {
+  public void addEntry(DatastoreEntry entry) throws ConflictException, BadRequestException {
     if (getEntry(entry.getNamespace(), entry.getKey()) != null) {
-      throw new IllegalStateException(
+      throw new ConflictException(
           String.format(
               "Key '%s' already exists in namespace '%s'", entry.getKey(), entry.getNamespace()));
     }
@@ -131,7 +130,7 @@ public class DefaultDatastoreService implements DatastoreService {
 
   @Override
   @Transactional
-  public void updateEntry(DatastoreEntry entry) {
+  public void updateEntry(DatastoreEntry entry) throws BadRequestException {
     validateEntry(entry);
     DatastoreNamespaceProtection protection = protectionByNamespace.get(entry.getNamespace());
     Runnable update =
@@ -143,7 +142,7 @@ public class DefaultDatastoreService implements DatastoreService {
 
   @Override
   @Transactional
-  public void saveOrUpdateEntry(DatastoreEntry entry) {
+  public void saveOrUpdateEntry(DatastoreEntry entry) throws BadRequestException {
     validateEntry(entry);
     DatastoreEntry existing = getEntry(entry.getNamespace(), entry.getKey());
     if (existing != null) {
@@ -160,7 +159,7 @@ public class DefaultDatastoreService implements DatastoreService {
   public void deleteNamespace(String namespace) {
     writeProtectedIn(
         namespace,
-        () -> store.getEntryByNamespace(namespace),
+        () -> store.getEntriesInNamespace(namespace),
         () -> store.deleteNamespace(namespace));
   }
 
@@ -238,16 +237,12 @@ public class DefaultDatastoreService implements DatastoreService {
         || !authorities.isEmpty() && currentUser.hasAnyAuthority(authorities);
   }
 
-  private void validateEntry(DatastoreEntry entry) {
-    String json = entry.getValue();
+  private void validateEntry(DatastoreEntry entry) throws BadRequestException {
     try {
-      if (json != null && !renderService.isValidJson(json)) {
-        throw new IllegalArgumentException(
-            String.format("Invalid JSON value for key '%s'", entry.getKey()));
-      }
-    } catch (IOException ex) {
-      throw new IllegalArgumentException(
-          String.format("Invalid JSON value for key '%s'", entry.getKey()), ex);
+      JsonNode.of(entry.getValue()).visit(JsonNode::value);
+    } catch (RuntimeException e) {
+      throw new BadRequestException(
+          String.format("Invalid JSON value for key '%s'", entry.getKey()));
     }
   }
 }

@@ -80,6 +80,7 @@ import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -128,7 +129,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       StatementBuilder statementBuilder,
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
-      JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsExportSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
     super(

@@ -28,9 +28,11 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
+import static org.hisp.dhis.feedback.ErrorCode.E7224;
 
 import java.util.Collections;
 import java.util.Date;
@@ -109,10 +111,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
                                     () ->
                                         getDynamicDimension(dimension)
                                             .orElseThrow(
-                                                () ->
-                                                    new IllegalQueryException(
-                                                        new ErrorMessage(
-                                                            ErrorCode.E7224, dimension))))));
+                                                illegalQueryExSupplier(E7224, dimension)))));
   }
 
   /**
@@ -215,6 +214,19 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
     }
 
     return Optional.ofNullable(qi);
+  }
+
+  /**
+   * Returns a QueryItem for a TrackedEntityAttribute
+   *
+   * @param dimension the uid of the TrackedEntityAttribute
+   * @return a QueryItem for a TrackedEntityAttribute
+   */
+  @Override
+  public Optional<QueryItem> getQueryItemForTrackedEntityAttribute(String dimension) {
+    return Optional.ofNullable(dimension)
+        .map(attributeService::getTrackedEntityAttribute)
+        .map(attribute -> new QueryItem(attribute, getLegendSet(dimension)));
   }
 
   private Optional<QueryItem> getProgramIndicator(

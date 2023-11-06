@@ -70,6 +70,7 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,7 +90,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
       StatementBuilder statementBuilder,
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
-      JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
       AnalyticsExportSettings settings,
       PeriodDataProvider periodDataProvider) {

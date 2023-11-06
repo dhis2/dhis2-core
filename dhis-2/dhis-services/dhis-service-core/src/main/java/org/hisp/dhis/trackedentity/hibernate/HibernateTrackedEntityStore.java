@@ -47,8 +47,8 @@ import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.PROGRAM_INSTA
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_TYPE_ID;
 import static org.hisp.dhis.util.DateUtils.addDays;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -625,14 +625,14 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         trackedEntity
             .append(whereAnd.whereAnd())
             .append(" TE.lastupdated >= '")
-            .append(getMediumDateString(params.getLastUpdatedStartDate()))
+            .append(getLongDateString(params.getLastUpdatedStartDate()))
             .append(SINGLE_QUOTE);
       }
       if (params.hasLastUpdatedEndDate()) {
         trackedEntity
             .append(whereAnd.whereAnd())
             .append(" TE.lastupdated < '")
-            .append(getMediumDateString(addDays(params.getLastUpdatedEndDate(), 1)))
+            .append(getLongDateString(addDays(params.getLastUpdatedEndDate(), 1)))
             .append(SINGLE_QUOTE);
       }
     }
@@ -641,7 +641,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       if (params.getSkipChangedBefore() != null) {
         trackedEntity
             .append(" AND TE.lastupdated >= '")
-            .append(getMediumDateString(params.getSkipChangedBefore()))
+            .append(getLongDateString(params.getSkipChangedBefore()))
             .append(SINGLE_QUOTE);
       }
     }
@@ -940,28 +940,28 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     if (params.hasProgramEnrollmentStartDate()) {
       program
           .append("AND EN.enrollmentdate >= '")
-          .append(getMediumDateString(params.getProgramEnrollmentStartDate()))
+          .append(getLongDateString(params.getProgramEnrollmentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramEnrollmentEndDate()) {
       program
           .append("AND EN.enrollmentdate <= '")
-          .append(getMediumDateString(params.getProgramEnrollmentEndDate()))
+          .append(getLongDateString(params.getProgramEnrollmentEndDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentStartDate()) {
       program
           .append("AND EN.incidentdate >= '")
-          .append(getMediumDateString(params.getProgramIncidentStartDate()))
+          .append(getLongDateString(params.getProgramIncidentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentEndDate()) {
       program
           .append("AND EN.incidentdate <= '")
-          .append(getMediumDateString(params.getProgramIncidentEndDate()))
+          .append(getLongDateString(params.getProgramIncidentEndDate()))
           .append("' ");
     }
 
@@ -999,8 +999,8 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     }
 
     if (params.hasEventStatus()) {
-      String start = getMediumDateString(params.getEventStartDate());
-      String end = getMediumDateString(params.getEventEndDate());
+      String start = getLongDateString(params.getEventStartDate());
+      String end = getLongDateString(params.getEventEndDate());
 
       if (params.isEventStatus(EventStatus.COMPLETED)) {
         events
@@ -1271,7 +1271,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   private String getFromSubQueryLimitAndOffset(TrackedEntityQueryParams params) {
     StringBuilder limitOffset = new StringBuilder();
     int limit = params.getMaxTeLimit();
-    int teQueryLimit = systemSettingManager.getIntSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
+    int teQueryLimit = resolveTrackedEntityMaxLimit();
 
     if (limit == 0 && !params.isPaging()) {
       if (teQueryLimit > 0) {
@@ -1444,5 +1444,36 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   private boolean skipOwnershipCheck(TrackedEntityQueryParams params) {
     return params.getUser() != null && params.getUser().isSuper();
+  }
+
+  // TODO(tracker): remove once SettingKey.TrackedEntityInstanceMaxLimit is removed
+  private int resolveTrackedEntityMaxLimit() {
+    int deprecatedTeiMaxLimit =
+        systemSettingManager.getIntegerSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT);
+    int newTeiMaxLimit =
+        systemSettingManager.getIntegerSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
+
+    if (isSet(deprecatedTeiMaxLimit)
+        && isSet(newTeiMaxLimit)
+        && deprecatedTeiMaxLimit != newTeiMaxLimit) {
+      throw new IllegalStateException(
+          String.format(
+              "Only one parameter of '%s' and '%s' must be specified. Prefer '%s' as '%s' will be removed.",
+              SettingKey.TRACKED_ENTITY_MAX_LIMIT.getName(),
+              SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT.getName(),
+              SettingKey.TRACKED_ENTITY_MAX_LIMIT.getName(),
+              SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT.getName()));
+    }
+
+    // both settings are disabled
+    if (!isSet(deprecatedTeiMaxLimit) && !isSet(newTeiMaxLimit)) {
+      return -1;
+    }
+
+    return isSet(newTeiMaxLimit) ? newTeiMaxLimit : deprecatedTeiMaxLimit;
+  }
+
+  private boolean isSet(Integer i) {
+    return i > 0;
   }
 }

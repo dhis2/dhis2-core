@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.converter;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import com.google.common.base.Objects;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -38,7 +37,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -90,9 +88,8 @@ public class EventTrackerConverterService
               new org.hisp.dhis.tracker.imports.domain.Event();
           e.setEvent(event.getUid());
 
-          e.setFollowup(BooleanUtils.toBoolean(event.getEnrollment().getFollowup()));
           e.setStatus(event.getStatus());
-          e.setOccurredAt(DateUtils.instantFromDate(event.getExecutionDate()));
+          e.setOccurredAt(DateUtils.instantFromDate(event.getOccurredDate()));
           e.setScheduledAt(DateUtils.instantFromDate(event.getDueDate()));
           e.setStoredBy(event.getStoredBy());
           e.setCompletedBy(event.getCompletedBy());
@@ -214,7 +211,7 @@ public class EventTrackerConverterService
     result.setEnrollment(getEnrollment(preheat, event.getEnrollment(), program));
     result.setProgramStage(programStage);
     result.setOrganisationUnit(organisationUnit);
-    result.setExecutionDate(DateUtils.fromInstant(event.getOccurredAt()));
+    result.setOccurredDate(DateUtils.fromInstant(event.getOccurredAt()));
     result.setDueDate(DateUtils.fromInstant(event.getScheduledAt()));
 
     if (event.getAttributeOptionCombo().isNotBlank()) {
@@ -230,8 +227,8 @@ public class EventTrackerConverterService
 
     result.setStatus(event.getStatus());
 
-    if (!Objects.equal(previousStatus, result.getStatus()) && result.isCompleted()) {
-      result.setCompletedDate(new Date());
+    if (previousStatus != result.getStatus() && result.isCompleted()) {
+      result.setCompletedDate(now);
       result.setCompletedBy(preheat.getUsername());
     }
 
@@ -245,15 +242,15 @@ public class EventTrackerConverterService
 
     if (program.isRegistration()
         && result.getDueDate() == null
-        && result.getExecutionDate() != null) {
-      result.setDueDate(result.getExecutionDate());
+        && result.getOccurredDate() != null) {
+      result.setDueDate(result.getOccurredDate());
     }
 
     for (DataValue dataValue : event.getDataValues()) {
       EventDataValue eventDataValue = new EventDataValue();
       eventDataValue.setValue(dataValue.getValue());
       eventDataValue.setCreated(DateUtils.fromInstant(dataValue.getCreatedAt()));
-      eventDataValue.setLastUpdated(new Date());
+      eventDataValue.setLastUpdated(now);
       eventDataValue.setProvidedElsewhere(dataValue.isProvidedElsewhere());
       // ensure dataElement is referred to by UID as multiple
       // dataElementIdSchemes are supported
@@ -266,7 +263,7 @@ public class EventTrackerConverterService
     }
 
     if (isNotEmpty(event.getNotes())) {
-      result.getComments().addAll(notesConverterService.from(preheat, event.getNotes()));
+      result.getNotes().addAll(notesConverterService.from(preheat, event.getNotes()));
     }
 
     return result;

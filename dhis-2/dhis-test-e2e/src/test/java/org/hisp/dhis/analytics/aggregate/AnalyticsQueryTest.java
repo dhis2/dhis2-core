@@ -55,6 +55,36 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
   }
 
   @Test
+  public void singleValueWithMultiplePeriodTypes() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=pe:LAST_12_MONTHS;TODAY")
+            .add("filter=ou:USER_ORGUNIT")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=SHORTNAME")
+            .add("skipMeta=true")
+            .add("dimension=dx:FTRrcoaog83")
+            .add("relativePeriodDate=2022-01-01");
+    // When
+    ApiResponse response = analyticsActions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(2)))
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
+        .body("width", equalTo(2))
+        .body("headerWidth", equalTo(2));
+
+    // Assert rows.
+    validateRow(response, List.of("FTRrcoaog83", "46"));
+  }
+
+  @Test
   public void query1And3CoverageYearly() {
     // Given
     QueryParamsBuilder params =
@@ -82,7 +112,7 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
     // Assert metaData.
     assertEquals(
         response.extract("metaData").toString().replaceAll(" ", ""),
-        "{items={sB79w2hiLp8={name=ANC 3 Coverage}, jUb8gELQApl={name=Kailahun}, TEQlaapDQoK={name=Port Loko}, eIQbndfxQMb={name=Tonkolili}, Vth0fbpFcsO={name=Kono}, PMa2VCrupOd={name=Kambia}, ou={name=Organisation unit}, THIS_YEAR={name=This year}, O6uvpzGd5pu={name=Bo}, bL4ooGhyHRQ={name=Pujehun}, 2022={name=2022}, kJq2mPyFEHo={name=Kenema}, fdc6uOvgoji={name=Bombali}, ImspTQPwCqd={name=Sierra Leone}, at6UHUQatSo={name=Western Area}, dx={name=Data}, pe={name=Period}, Uvn6LCg7dVU={name=ANC 1 Coverage}, lc3eMKXaEfw={name=Bonthe}, qhqAxPSTUXp={name=Koinadugu}, jmIPBj66vD6={name=Moyamba}}, dimensions={dx=[Uvn6LCg7dVU,sB79w2hiLp8], pe=[2022], ou=[ImspTQPwCqd,O6uvpzGd5pu,fdc6uOvgoji,lc3eMKXaEfw,jUb8gELQApl,PMa2VCrupOd,kJq2mPyFEHo,qhqAxPSTUXp,Vth0fbpFcsO,jmIPBj66vD6,TEQlaapDQoK,bL4ooGhyHRQ,eIQbndfxQMb,at6UHUQatSo], co=[]}}"
+        "{items={sB79w2hiLp8={name=ANC 3 Coverage}, jUb8gELQApl={name=Kailahun}, TEQlaapDQoK={name=Port Loko}, eIQbndfxQMb={name=Tonkolili}, Vth0fbpFcsO={name=Kono}, PMa2VCrupOd={name=Kambia}, ou={name=Organisation unit}, USER_ORGUNIT={organisationUnits=[ImspTQPwCqd]}, THIS_YEAR={name=This year}, O6uvpzGd5pu={name=Bo}, bL4ooGhyHRQ={name=Pujehun}, 2022={name=2022}, kJq2mPyFEHo={name=Kenema}, USER_ORGUNIT_CHILDREN={organisationUnits=[at6UHUQatSo,TEQlaapDQoK,PMa2VCrupOd,qhqAxPSTUXp,kJq2mPyFEHo,jmIPBj66vD6,Vth0fbpFcsO,jUb8gELQApl,fdc6uOvgoji,eIQbndfxQMb,O6uvpzGd5pu,lc3eMKXaEfw,bL4ooGhyHRQ]}, fdc6uOvgoji={name=Bombali}, ImspTQPwCqd={name=Sierra Leone}, at6UHUQatSo={name=Western Area}, dx={name=Data}, pe={name=Period}, Uvn6LCg7dVU={name=ANC 1 Coverage}, lc3eMKXaEfw={name=Bonthe}, qhqAxPSTUXp={name=Koinadugu}, jmIPBj66vD6={name=Moyamba}}, dimensions={dx=[Uvn6LCg7dVU,sB79w2hiLp8], pe=[2022], ou=[ImspTQPwCqd,O6uvpzGd5pu,fdc6uOvgoji,lc3eMKXaEfw,jUb8gELQApl,PMa2VCrupOd,kJq2mPyFEHo,qhqAxPSTUXp,Vth0fbpFcsO,jmIPBj66vD6,TEQlaapDQoK,bL4ooGhyHRQ,eIQbndfxQMb,at6UHUQatSo], co=[]}}"
             .replaceAll(" ", ""));
     // Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
@@ -168,5 +198,22 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
             "mxc1T932aWM",
             "202210",
             "Cholera is an infection of the small intestine caused by the bacterium Vibrio cholerae.\n\nThe main symptoms are watery diarrhea and vomiting. This may result in dehydration and in severe cases grayish-bluish skin.[1] Transmission occurs primarily by drinking water or eating food that has been contaminated by the feces (waste product) of an infected person, including one with no apparent symptoms.\n\nThe severity of the diarrhea and vomiting can lead to rapid dehydration and electrolyte imbalance, and death in some cases. The primary treatment is oral rehydration therapy, typically with oral rehydration solution, to replace water and electrolytes. If this is not tolerated or does not provide improvement fast enough, intravenous fluids can also be used. Antibacterial drugs are beneficial in those with severe disease to shorten its duration and severity."));
+  }
+
+  @Test
+  public void testQueryFailsGracefullyIfMultipleQueries() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add(
+                "dimension=cX5k9anHEHd:apsOixVZlf1;jRbMi0aBjYn,dx:luLGbE2WKGP;nq5ohBSWj6E,pe:LAST_12_MONTHS")
+            .add("filter=ou:USER_ORGUNIT")
+            .add("displayProperty=SHORTNAME");
+
+    // When
+    ApiResponse response = analyticsActions.get(params);
+
+    // Then
+    response.validate().statusCode(200);
   }
 }

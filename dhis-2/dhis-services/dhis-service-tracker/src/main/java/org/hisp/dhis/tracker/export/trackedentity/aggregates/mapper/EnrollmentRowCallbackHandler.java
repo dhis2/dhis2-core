@@ -91,8 +91,8 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment> {
     program.setUid(rs.getString(EnrollmentQuery.getColumnName(COLUMNS.PROGRAM_UID)));
     enrollment.setProgram(program);
 
-    final boolean followup = rs.getBoolean(EnrollmentQuery.getColumnName(COLUMNS.FOLLOWUP));
-    enrollment.setFollowup(rs.wasNull() ? null : followup);
+    final boolean followUp = rs.getBoolean(EnrollmentQuery.getColumnName(COLUMNS.FOLLOWUP));
+    enrollment.setFollowup(rs.wasNull() ? null : followUp);
     enrollment.setStatus(
         ProgramStatus.valueOf(rs.getString(EnrollmentQuery.getColumnName(COLUMNS.STATUS))));
     enrollment.setEnrollmentDate(

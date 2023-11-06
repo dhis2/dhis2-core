@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.geojson;
 
 import java.io.InputStream;
+import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
 
 /**
  * Service for handling import/export of GeoJSON.
@@ -42,7 +43,7 @@ public interface GeoJsonService {
    * @param geoJsonData expected to be a GeoJSON feature-collection root object
    * @return a report with statistics and conflicts
    */
-  GeoJsonImportReport importGeoData(GeoJsonImportParams params, InputStream geoJsonData);
+  GeoJsonImportReport importGeoData(GeoJsonImportJobParams params, InputStream geoJsonData);
 
   /**
    * Clears all GeoJSON data from all organisation units for the given attribute. If the attribute

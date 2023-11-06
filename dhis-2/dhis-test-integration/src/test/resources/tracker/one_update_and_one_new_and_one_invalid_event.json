@@ -53,16 +53,12 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID"
       },
       "attributeCategoryOptions": [],
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+
       "dataValues": [],
       "notes": []
     },
@@ -86,16 +82,12 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID"
       },
       "attributeCategoryOptions": [],
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+
       "dataValues": [],
       "notes": []
     },
@@ -119,16 +111,12 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID"
       },
       "attributeCategoryOptions": [],
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+
       "dataValues": [],
       "notes": []
     }

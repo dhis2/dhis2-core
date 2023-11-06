@@ -70,10 +70,10 @@ public interface EventMapper
           entry("enrollment", "enrollment.uid"),
           entry("enrollmentStatus", "enrollment.status"),
           entry("event", "uid"),
-          entry("followup", "enrollment.followup"),
-          entry("occurredAt", "executionDate"),
+          entry("followUp", "enrollment.followUp"),
+          entry("followup", "enrollment.followUp"), // Deprecated 2.41
+          entry("occurredAt", "occurredDate"),
           entry("orgUnit", "organisationUnit.uid"),
-          entry("orgUnitName", "organisationUnit.name"),
           entry("program", "enrollment.program.uid"),
           entry("programStage", "programStage.uid"),
           entry("scheduledAt", "dueDate"),
@@ -89,10 +89,10 @@ public interface EventMapper
   @Mapping(target = "enrollment", source = "enrollment.uid")
   @Mapping(target = "trackedEntity", source = "enrollment.trackedEntity.uid")
   @Mapping(target = "orgUnit", source = "organisationUnit.uid")
-  @Mapping(target = "orgUnitName", source = "organisationUnit.name")
-  @Mapping(target = "occurredAt", source = "executionDate")
+  @Mapping(target = "occurredAt", source = "occurredDate")
   @Mapping(target = "scheduledAt", source = "dueDate")
-  @Mapping(target = "followup", source = "enrollment.followup")
+  @Mapping(target = "legacyFollowUp", source = "enrollment.followup") // Deprecated 2.41
+  @Mapping(target = "followUp", source = "enrollment.followup")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")
@@ -104,6 +104,6 @@ public interface EventMapper
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "dataValues", source = "eventDataValues")
   @Mapping(target = "relationships", source = "relationshipItems")
-  @Mapping(target = "notes", source = "comments")
+  @Mapping(target = "notes", source = "notes")
   org.hisp.dhis.webapi.controller.tracker.view.Event from(Event event);
 }

@@ -35,6 +35,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
+import static org.hisp.dhis.util.ObjectUtils.notNull;
 
 import java.util.Date;
 import java.util.List;
@@ -250,6 +251,15 @@ public class AggregateDataExchangeService {
     if (isNotBlank(request.getIdScheme())) {
       options.setIdScheme(request.getIdScheme());
     }
+    if (notNull(request.getImportStrategy())) {
+      options.setImportStrategy(request.getImportStrategy());
+    }
+    if (notNull(request.getSkipAudit())) {
+      options.setSkipAudit(request.getSkipAudit());
+    }
+    if (notNull(request.getDryRun())) {
+      options.setDryRun(request.getDryRun());
+    }
 
     return options;
   }
@@ -265,10 +275,13 @@ public class AggregateDataExchangeService {
     String queryOutputIdScheme = params.getOutputIdScheme();
 
     IdScheme inputIdScheme = toIdSchemeOrDefault(request.getInputIdScheme());
+
     IdScheme outputDataElementIdScheme =
         toIdScheme(queryOutputIdScheme, request.getOutputDataElementIdScheme());
     IdScheme outputOrgUnitIdScheme =
         toIdScheme(queryOutputIdScheme, request.getOutputOrgUnitIdScheme());
+    IdScheme outputDataItemIdScheme =
+        toIdScheme(queryOutputIdScheme, request.getOutputDataItemIdScheme());
     IdScheme outputIdScheme = toIdScheme(queryOutputIdScheme, request.getOutputIdScheme());
 
     List<DimensionalObject> filters =
@@ -282,6 +295,7 @@ public class AggregateDataExchangeService {
         .withAggregationType(toAnalyticsAggregationType(request.getAggregationType()))
         .withOutputDataElementIdScheme(outputDataElementIdScheme)
         .withOutputOrgUnitIdScheme(outputOrgUnitIdScheme)
+        .withOutputDataItemIdScheme(outputDataItemIdScheme)
         .withOutputIdScheme(outputIdScheme)
         .build();
   }
@@ -333,7 +347,6 @@ public class AggregateDataExchangeService {
    */
   IdScheme toIdScheme(String... idSchemes) {
     String idScheme = ObjectUtils.firstNonNull(idSchemes);
-
     return idScheme != null ? IdScheme.from(idScheme) : null;
   }
 

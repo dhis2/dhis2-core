@@ -50,10 +50,10 @@ import java.util.Map;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -306,17 +306,17 @@ class EventImportValidationTest extends TrackerTest {
     // Then
     // Fetch the UID of the newly created event
     final Event event = getEventFromReport(importReport);
-    assertThat(event.getComments(), hasSize(3));
+    assertThat(event.getNotes(), hasSize(3));
     // Validate note content
     Stream.of("first note", "second note", "third note")
         .forEach(
             t -> {
-              TrackedEntityComment comment = getByComment(event.getComments(), t);
-              assertTrue(CodeGenerator.isValidUid(comment.getUid()));
-              assertTrue(comment.getCreated().getTime() > now.getTime());
-              assertTrue(comment.getLastUpdated().getTime() > now.getTime());
-              assertNull(comment.getCreator());
-              assertEquals(ADMIN_USER_UID, comment.getLastUpdatedBy().getUid());
+              Note note = getByNote(event.getNotes(), t);
+              assertTrue(CodeGenerator.isValidUid(note.getUid()));
+              assertTrue(note.getCreated().getTime() > now.getTime());
+              assertTrue(note.getLastUpdated().getTime() > now.getTime());
+              assertNull(note.getCreator());
+              assertEquals(ADMIN_USER_UID, note.getLastUpdatedBy().getUid());
             });
   }
 
@@ -330,17 +330,17 @@ class EventImportValidationTest extends TrackerTest {
         createEvent("tracker/validations/events-with-notes-update-data.json");
     // Then
     final Event event = getEventFromReport(importReport);
-    assertThat(event.getComments(), hasSize(6));
+    assertThat(event.getNotes(), hasSize(6));
     // validate note content
     Stream.of("first note", "second note", "third note", "4th note", "5th note", "6th note")
         .forEach(
             t -> {
-              TrackedEntityComment comment = getByComment(event.getComments(), t);
-              assertTrue(CodeGenerator.isValidUid(comment.getUid()));
-              assertTrue(comment.getCreated().getTime() > now.getTime());
-              assertTrue(comment.getLastUpdated().getTime() > now.getTime());
-              assertNull(comment.getCreator());
-              assertEquals(ADMIN_USER_UID, comment.getLastUpdatedBy().getUid());
+              Note note = getByNote(event.getNotes(), t);
+              assertTrue(CodeGenerator.isValidUid(note.getUid()));
+              assertTrue(note.getCreated().getTime() > now.getTime());
+              assertTrue(note.getLastUpdated().getTime() > now.getTime());
+              assertNull(note.getCreator());
+              assertEquals(ADMIN_USER_UID, note.getLastUpdatedBy().getUid());
             });
   }
 
@@ -402,15 +402,13 @@ class EventImportValidationTest extends TrackerTest {
     return importReport;
   }
 
-  private TrackedEntityComment getByComment(
-      List<TrackedEntityComment> comments, String commentText) {
-    for (TrackedEntityComment comment : comments) {
-      if (comment.getCommentText().startsWith(commentText)
-          || comment.getCommentText().endsWith(commentText)) {
-        return comment;
+  private Note getByNote(List<Note> notes, String noteText) {
+    for (Note note : notes) {
+      if (note.getNoteText().startsWith(noteText) || note.getNoteText().endsWith(noteText)) {
+        return note;
       }
     }
-    fail("Can't find a comment starting or ending with " + commentText);
+    fail("Can't find a note starting or ending with " + noteText);
     return null;
   }
 

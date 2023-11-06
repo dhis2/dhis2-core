@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -48,7 +49,8 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
@@ -62,8 +64,15 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-class RequestParams extends PagingAndSortingCriteriaAdapter {
+class RequestParams implements PageRequestParams {
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships";
+
+  private Integer page;
+  private Integer pageSize;
+  private Boolean totalPages;
+  private Boolean skipPaging;
+
+  private List<OrderCriteria> order = new ArrayList<>();
 
   @OpenApi.Property({UID.class, Program.class})
   private UID program;
@@ -150,8 +159,6 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
   @OpenApi.Property({UID[].class, CategoryOption.class})
   private Set<UID> attributeCategoryOptions = new HashSet<>();
 
-  private boolean skipMeta;
-
   private boolean includeDeleted;
 
   /**
@@ -165,8 +172,6 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
 
   @OpenApi.Property({UID[].class, Event.class})
   private Set<UID> events = new HashSet<>();
-
-  private Boolean skipEventId;
 
   /** Comma separated list of data element filters */
   private String filter;
