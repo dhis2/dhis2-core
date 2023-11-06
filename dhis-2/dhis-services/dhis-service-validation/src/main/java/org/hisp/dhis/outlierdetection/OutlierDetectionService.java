@@ -69,7 +69,8 @@ public interface OutlierDetectionService<TRs> {
    * @return a {@link OutlierDetectionResponse}.
    * @throws IllegalQueryException if request is invalid.
    */
-  TRs getOutlierValues(OutlierDetectionRequest request) throws IllegalQueryException;
+  TRs getOutlierValues(OutlierDetectionRequest request)
+      throws IllegalQueryException;
 
   /**
    * Writes outlier data values for the given request as CSV to the given output stream.

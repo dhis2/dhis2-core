@@ -29,13 +29,18 @@ package org.hisp.dhis.outlierdetection.service;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.hisp.dhis.outlierdetection.OutlierValue;
+import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.stereotype.Service;
 
@@ -52,24 +57,73 @@ public class AnalyticsOutlierDetectionService extends AbstractOutlierDetectionSe
   }
 
   @Override
-  public void validate(OutlierDetectionRequest request) throws IllegalQueryException {}
-
-  @Override
-  public ErrorMessage validateForErrorMessage(OutlierDetectionRequest request) {
-    return null;
-  }
-
-  @Override
-  public OutlierDetectionRequest getFromQuery(OutlierDetectionQuery query) {
-    return null;
-  }
-
-  @Override
   public Grid getOutlierValues(OutlierDetectionRequest request) throws IllegalQueryException {
-    return new ListGrid();
+    List<OutlierValue> outlierValues = zScoreOutlierDetection.getOutlierValues(request);
+
+    Grid grid = new ListGrid();
+    setHeaders(grid);
+    setMetaData(grid, request, outlierValues);
+    setRows(grid, outlierValues);
+
+    return grid;
   }
 
   @Override
   public void getOutlierValuesAsCsv(OutlierDetectionRequest request, OutputStream out)
-      throws IllegalQueryException, IOException {}
+      throws IllegalQueryException, IOException {
+      GridUtils.toCsv(getOutlierValues(request), new PrintWriter(out));
+  }
+
+  private void setHeaders(Grid grid) {
+    grid.addHeader(new GridHeader("data element", ValueType.TEXT));
+    grid.addHeader(new GridHeader("data element name", ValueType.TEXT));
+    grid.addHeader(new GridHeader("period", ValueType.TEXT));
+    grid.addHeader(new GridHeader("organisation unit", ValueType.TEXT));
+    grid.addHeader(new GridHeader("organisation unit name", ValueType.TEXT));
+    grid.addHeader(new GridHeader("category option", ValueType.TEXT));
+    grid.addHeader(new GridHeader("category option name", ValueType.TEXT));
+    grid.addHeader(new GridHeader("attribute option", ValueType.TEXT));
+    grid.addHeader(new GridHeader("attribute option name", ValueType.TEXT));
+    grid.addHeader(new GridHeader("follow up", ValueType.BOOLEAN));
+    grid.addHeader(new GridHeader("value", ValueType.NUMBER));
+    grid.addHeader(new GridHeader("mean", ValueType.NUMBER));
+    grid.addHeader(new GridHeader("stdDev", ValueType.NUMBER));
+    grid.addHeader(new GridHeader("absDev", ValueType.NUMBER));
+    grid.addHeader(new GridHeader("zScore", ValueType.NUMBER));
+    grid.addHeader(new GridHeader("lowerBound", ValueType.NUMBER));
+    grid.addHeader(new GridHeader("upperBound", ValueType.NUMBER));
+  }
+
+  private void setMetaData(
+      Grid grid, OutlierDetectionRequest request, List<OutlierValue> outlierValues) {
+    grid.addMetaData("algorithm", request.getAlgorithm());
+    grid.addMetaData("threshold", request.getThreshold());
+    grid.addMetaData("orderBy", request.getOrderBy().getKey());
+    grid.addMetaData("maxResults", request.getMaxResults());
+    grid.addMetaData("count", outlierValues.size());
+  }
+
+  private void setRows(Grid grid, List<OutlierValue> outlierValues) {
+    outlierValues.forEach(
+        v -> {
+          grid.addRow();
+          grid.addValue(v.getDe());
+          grid.addValue(v.getDeName());
+          grid.addValue(v.getPe());
+          grid.addValue(v.getOu());
+          grid.addValue(v.getOuName());
+          grid.addValue(v.getCoc());
+          grid.addValue(v.getCocName());
+          grid.addValue(v.getAoc());
+          grid.addValue(v.getAocName());
+          grid.addValue(v.getFollowup());
+          grid.addValue(v.getValue());
+          grid.addValue(v.getMean());
+          grid.addValue(v.getStdDev());
+          grid.addValue(v.getAbsDev());
+          grid.addValue(v.getZScore());
+          grid.addValue(v.getLowerBound());
+          grid.addValue(v.getUpperBound());
+        });
+  }
 }
