@@ -178,6 +178,7 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of("JW6BrFd0HLu", ORG_UNIT_2_UID))
+            .orgUnitMode(SELECTED)
             .programUid(PROGRAM_UID)
             .build();
 
