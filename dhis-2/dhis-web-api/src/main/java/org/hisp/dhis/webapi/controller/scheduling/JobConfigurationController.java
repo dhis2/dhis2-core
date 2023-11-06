@@ -110,14 +110,17 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   @PostMapping("{uid}/cancel")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void cancelExecution(@PathVariable("uid") String uid) {
+    // TODO check auth
     jobSchedulerService.requestCancel(uid);
   }
 
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @GetMapping("{uid}/progress")
   public Progress getProgress(@PathVariable("uid") String uid) {
     return jobSchedulerService.getProgress(uid);
   }
 
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @GetMapping("{uid}/errors")
   public List<JobProgress.Error> getErrors(@PathVariable("uid") String uid) {
     return jobSchedulerService.getErrors(uid);

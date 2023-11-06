@@ -29,6 +29,7 @@ package org.hisp.dhis.scheduling;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.text.MessageFormat;
 import java.util.*;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -121,11 +122,14 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
     Progress progress = mapToProgress("{\"sequence\":[],\"errors\":" + json + "}");
     if (progress == null) return List.of();
     Map<String, Map<ErrorCode, Queue<JobProgress.Error>>> map = progress.getErrors();
-    return map.isEmpty()
-        ? List.of()
-        : map.values().stream()
-            .flatMap(errors -> errors.values().stream().flatMap(Collection::stream))
+    if (map.isEmpty()) return List.of();
+    List<JobProgress.Error> errors =
+        map.values().stream()
+            .flatMap(e -> e.values().stream().flatMap(Collection::stream))
             .toList();
+    errors.forEach(
+        e -> e.setMessage(MessageFormat.format(e.getCode().getMessage(), e.getArgs().toArray())));
+    return errors;
   }
 
   @Override

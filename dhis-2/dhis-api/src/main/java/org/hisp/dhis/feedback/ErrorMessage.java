@@ -51,7 +51,7 @@ public class ErrorMessage {
   public ErrorMessage(ErrorCode errorCode, Object... args) {
     this.errorCode = errorCode;
     this.args = Stream.of(args).map(Object::toString).toList();
-    this.message = MessageFormat.format(errorCode.getMessage(), this.args);
+    this.message = MessageFormat.format(errorCode.getMessage(), args);
   }
 
   @JsonCreator

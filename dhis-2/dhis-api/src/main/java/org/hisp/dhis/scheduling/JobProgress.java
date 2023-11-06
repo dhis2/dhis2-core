@@ -45,6 +45,7 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.*;
+import lombok.experimental.Accessors;
 import org.hisp.dhis.feedback.ErrorCode;
 
 /**
@@ -607,6 +608,7 @@ public interface JobProgress {
   }
 
   @Getter
+  @Accessors(chain = true)
   final class Error {
 
     @Nonnull @JsonProperty private final ErrorCode code;
@@ -626,6 +628,14 @@ public interface JobProgress {
 
     /** The arguments used in the {@link #code}'s {@link ErrorCode#getMessage()} template */
     @Nonnull @JsonProperty private final List<String> args;
+
+    /**
+     * The message as created from {@link #code} and {@link #args}. This is only set in service
+     * layer for the web API using the setter, it is not persisted.
+     */
+    @Setter
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String message;
 
     @JsonCreator
     public Error(
