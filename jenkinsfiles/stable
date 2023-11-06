@@ -153,6 +153,8 @@ pipeline {
                             if (version.startsWith("patch/")) {
                                 version = version.split("/")[1]
                             }
+                            env.IMAGE_TAG = version
+
                             // If version contains more than 2 dots... It's a hotfix
                             def isHotfix = version.length() - version.replace(".", "").length() > 2
                             if (isHotfix) {
