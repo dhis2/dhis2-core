@@ -269,9 +269,16 @@ public class RestApiActions {
   }
 
   public ApiResponse postFile(File file, QueryParamsBuilder queryParamsBuilder) {
-    String url = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+    return this.postFile(file, queryParamsBuilder, null);
+  }
 
-    ApiResponse response = new ApiResponse(this.given().body(file).when().post(url));
+  public ApiResponse postFile(
+      File file, QueryParamsBuilder queryParamsBuilder, String contentType) {
+    String url = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+    String content = contentType != null ? contentType : "application/json";
+
+    ApiResponse response =
+        new ApiResponse(this.given().body(file).contentType(content).when().post(url));
 
     saveCreatedObjects(response);
 
