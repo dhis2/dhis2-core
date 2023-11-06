@@ -38,7 +38,7 @@ public interface Icon {
 
   boolean isCustom();
 
-  Date getCreatedAt();
+  Date getCreated();
 
-  Date getLastUpdatedAt();
+  Date getLastUpdated();
 }

@@ -165,6 +165,7 @@ public class DefaultIconService implements IconService {
     }
 
     icon.setCustom(isCustom);
+    icon.setAutoFields();
     customIconStore.update(icon);
   }
 

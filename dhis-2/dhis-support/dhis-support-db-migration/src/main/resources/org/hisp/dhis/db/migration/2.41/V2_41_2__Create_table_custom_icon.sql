@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS customicon
     keywords       text[]       NULL,
     custom         BOOLEAN      NOT NULL,
     created        TIMESTAMP    NULL DEFAULT CURRENT_TIMESTAMP,
+    lastupdated    TIMESTAMP    NULL,
     createdby      bigint       NOT NULL,
     CONSTRAINT customicon_pkey PRIMARY KEY (customiconid),
     CONSTRAINT customicon_ukey UNIQUE ("key"),

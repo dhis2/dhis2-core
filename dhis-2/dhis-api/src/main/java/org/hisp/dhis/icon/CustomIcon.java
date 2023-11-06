@@ -52,9 +52,9 @@ public class CustomIcon implements Icon {
 
   private boolean custom;
 
-  private Date createdAt;
+  private Date created;
 
-  private Date lastUpdatedAt;
+  private Date lastUpdated;
 
   public CustomIcon(
       String key,
@@ -75,10 +75,10 @@ public class CustomIcon implements Icon {
   public void setAutoFields() {
     Date date = new Date();
 
-    if (createdAt == null) {
-      createdAt = date;
+    if (created == null) {
+      created = date;
     }
 
-    lastUpdatedAt = date;
+    lastUpdated = date;
   }
 }
