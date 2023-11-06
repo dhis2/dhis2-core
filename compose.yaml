@@ -1,0 +1,52 @@
+# DHIS2 Docker compose file for the production setup
+
+services:
+  web:
+    image: "${DHIS2_IMAGE:-dhis2/core}"
+    restart: unless-stopped
+    ports:
+      - ${DHIS2_PORT:-8080}:8080
+    volumes:
+      - files:/opt/dhis2
+      - ./docker/dhis.conf:/opt/dhis2/dhis.conf:ro
+      - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
+    environment:
+      JAVA_OPTS: "-Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -S -O /dev/null http://127.0.0.1:${DHIS2_PORT:-8080}/dhis-web-commons/security/login.action 2>&1| grep -q 'HTTP.*200'"]
+      start_period: 120s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+
+  db:
+    image: postgis/postgis
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - postgresql:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: dhis
+      POSTGRES_DB: dhis
+      POSTGRES_PASSWORD: &postgres_password dhis
+      PGPASSWORD: *postgres_password # needed by psql in healthcheck
+    healthcheck:
+      test: ["CMD-SHELL", "psql --no-password --quiet --username $$POSTGRES_USER postgres://127.0.0.1/$$POSTGRES_DB -p 5432 --command \"SELECT 'ok'\" > /dev/null"]
+      start_period: 120s
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  files:
+    driver: local
+  postgresql:
+    driver: local

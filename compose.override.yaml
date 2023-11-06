@@ -1,0 +1,3 @@
+# DHIS2 Docker compose file overrides for the development setup
+
+version: "3.8"
