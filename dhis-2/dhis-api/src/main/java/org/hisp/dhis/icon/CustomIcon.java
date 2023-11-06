@@ -37,7 +37,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(
+    of = {"key", "description", "keywords", "fileResourceUid", "createdByUserUid", "custom"})
 public class CustomIcon implements Icon {
   private String key;
 
