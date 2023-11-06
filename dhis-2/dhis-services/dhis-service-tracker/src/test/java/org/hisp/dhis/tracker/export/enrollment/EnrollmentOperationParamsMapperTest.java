@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,6 +37,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -50,6 +52,7 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -188,6 +191,52 @@ class EnrollmentOperationParamsMapperTest {
     assertEquals(
         "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID,
         exception.getMessage());
+  }
+
+  @Test
+  void shouldMapParamsWhenOrgUnitNotInScopeButUserIsSuperuser()
+      throws ForbiddenException, BadRequestException {
+    User superuser = createUser("ALL");
+    when(currentUserService.getCurrentUser()).thenReturn(superuser);
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().orgUnitUids(Set.of(ORG_UNIT_1_UID)).build();
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(false);
+
+    EnrollmentQueryParams queryParams = mapper.map(operationParams);
+    assertContainsOnly(
+        operationParams.getOrgUnitUids(),
+        queryParams.getOrganisationUnits().stream().map(BaseIdentifiableObject::getUid).toList());
+    assertEquals(operationParams.getOrgUnitMode(), queryParams.getOrganisationUnitMode());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitNotInScopeAndUserHasSearchInAllAuthority() {
+
+    User user = createUser(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().orgUnitUids(Set.of(ORG_UNIT_1_UID)).build();
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnit1.getUid(), this.user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(false);
+
+    Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
+    assertEquals(
+        "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID,
+        exception.getMessage());
+  }
+
+  private User createUser(String authority) {
+    User user = new User();
+    UserRole userRole = new UserRole();
+    userRole.setAuthorities(Set.of(authority));
+    user.setUserRoles(Set.of(userRole));
+
+    return user;
   }
 
   @Test
