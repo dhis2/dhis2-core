@@ -29,6 +29,7 @@ package org.hisp.dhis.feedback;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Arrays;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -54,13 +55,13 @@ public class ErrorReport {
   @Nonnull @JsonProperty private List<?> errorProperties;
   @JsonProperty private Object value;
 
-  public ErrorReport(Class<?> mainKlass, ErrorCode errorCode, Object... args) {
+  public ErrorReport(@Nonnull Class<?> mainKlass, @Nonnull ErrorCode errorCode, Object... args) {
     this.mainKlass = mainKlass;
     this.message = new ErrorMessage(errorCode, args);
-    this.errorProperties = List.of(args);
+    this.errorProperties = Arrays.asList(args); // OBS! Must support null values!
   }
 
-  public ErrorReport(Class<?> mainKlass, ErrorMessage message) {
+  public ErrorReport(@Nonnull Class<?> mainKlass, @Nonnull ErrorMessage message) {
     this.mainKlass = mainKlass;
     this.message = message;
     this.errorProperties = message.getArgs();

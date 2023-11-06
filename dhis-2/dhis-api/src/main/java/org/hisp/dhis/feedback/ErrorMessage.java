@@ -50,7 +50,10 @@ public class ErrorMessage {
 
   public ErrorMessage(ErrorCode errorCode, Object... args) {
     this.errorCode = errorCode;
-    this.args = Stream.of(args).map(Object::toString).toList();
+    this.args =
+        Stream.of(args)
+            .map(obj -> obj == null ? null : obj.toString())
+            .toList(); // OBS! Must support null values!
     this.message = MessageFormat.format(errorCode.getMessage(), args);
   }
 
