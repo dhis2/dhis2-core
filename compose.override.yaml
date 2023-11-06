@@ -1,3 +1,41 @@
-# DHIS2 Docker compose file overrides for the development setup
+# This DHIS2 Docker compose file for the development setup overrides default settings for production
 
 version: "3.8"
+
+services:
+  web:
+    image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
+    ports:
+      - 127.0.0.1:8080:8080 # DHIS2
+      - 127.0.0.1:8081:8081 # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
+      - 127.0.0.1:9010:9010 # JMX port (for example for VisualVM)
+
+    environment:
+      JAVA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081 \
+              -Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml
+              -Dcom.sun.management.jmxremote \
+              -Dcom.sun.management.jmxremote.port=9010 \
+              -Dcom.sun.management.jmxremote.local.only=false \
+              -Dcom.sun.management.jmxremote.authenticate=false \
+              -Dcom.sun.management.jmxremote.ssl=false"
+
+  db:
+    image: ghcr.io/baosystems/postgis:12-3.3
+    volumes:
+      - db-dump:/docker-entrypoint-initdb.d/
+    depends_on:
+      db-dump:
+        condition: service_completed_successfully # make sure the DB dump has been downloaded
+
+  db-dump:
+    image: busybox # busybox wget version does not have --no-clobber, so we need to do the [ -f ] test
+    environment:
+      DHIS2_DB_DUMP_URL: "${DHIS2_DB_DUMP_URL:-https://databases.dhis2.org/sierra-leone/dev/dhis2-db-sierra-leone.sql.gz}"
+    command: sh -c '[ -f dump.sql.gz ] && echo "dump.sql.gz exists" || wget --output-document dump.sql.gz $$DHIS2_DB_DUMP_URL' # only download file if it does not exist
+    working_dir: /opt/dump
+    volumes:
+      - db-dump:/opt/dump
+
+volumes:
+  db-dump:
+    driver: local

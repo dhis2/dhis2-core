@@ -1,4 +1,8 @@
 # DHIS2 Docker compose file for the production setup
+#
+# Use: docker compose -f compose.yml
+#
+version: "3.8"
 
 services:
   web:
