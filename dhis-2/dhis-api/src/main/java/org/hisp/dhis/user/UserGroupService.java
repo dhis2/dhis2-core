@@ -45,7 +45,7 @@ public interface UserGroupService {
 
   /**
    * Indicates whether the current user can add or remove members for the user group with the given
-   * UID. To to so the current user must have write access to the group or have read access as well
+   * UID. To do so the current user must have write access to the group or have read access as well
    * as the F_USER_GROUPS_READ_ONLY_ADD_MEMBERS authority.
    *
    * @param uid the user group UID.
@@ -55,13 +55,9 @@ public interface UserGroupService {
 
   boolean canAddOrRemoveMember(String uid, User currentUser);
 
-  void addUserToGroups(User user, Collection<String> uids);
-
   void addUserToGroups(User user, Collection<String> uids, User currentUser);
 
   void removeUserFromGroups(User user, Collection<String> uids);
-
-  void updateUserGroups(User user, Collection<String> uids);
 
   void updateUserGroups(User user, Collection<String> uids, User currentUser);
 
@@ -72,10 +68,6 @@ public interface UserGroupService {
   List<UserGroup> getUserGroupsBetween(int first, int max);
 
   List<UserGroup> getUserGroupsBetweenByName(String name, int first, int max);
-
-  int getUserGroupCount();
-
-  int getUserGroupCountByName(String name);
 
   /** Get UserGroup's display name by given userGroup uid Return null if UserGroup does not exist */
   String getDisplayName(String uid);
