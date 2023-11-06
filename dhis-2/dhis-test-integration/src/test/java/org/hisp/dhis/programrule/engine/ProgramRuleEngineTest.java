@@ -649,7 +649,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     enrollmentService.updateEnrollment(enrollmentS);
     Event eventA = new Event(enrollmentA, programStageA);
     eventA.setDueDate(enrollmentDate);
-    eventA.setExecutionDate(new Date());
+    eventA.setOccurredDate(new Date());
     eventA.setUid("UID-PS1");
     eventService.addEvent(eventA);
     eventDataValueDate = new EventDataValue();
@@ -669,24 +669,24 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
 
     Event eventDate = new Event(enrollmentA, programStageAge);
     eventDate.setDueDate(enrollmentDate);
-    eventDate.setExecutionDate(psEventDate);
+    eventDate.setOccurredDate(psEventDate);
     eventDate.setUid("UID-PS12");
     eventDate.setEventDataValues(Sets.newHashSet(eventDataValueDate));
     eventService.addEvent(eventDate);
     Event eventAge = new Event(enrollmentA, programStageAge);
     eventAge.setDueDate(enrollmentDate);
-    eventAge.setExecutionDate(psEventDate);
+    eventAge.setOccurredDate(psEventDate);
     eventAge.setUid("UID-PS13");
     eventAge.setEventDataValues(Sets.newHashSet(eventDataValueAge, eventDataValueWithOptionSet));
     eventService.addEvent(eventAge);
     Event eventB = new Event(enrollmentA, programStageB);
     eventB.setDueDate(enrollmentDate);
-    eventB.setExecutionDate(new Date());
+    eventB.setOccurredDate(new Date());
     eventB.setUid("UID-PS2");
     eventService.addEvent(eventB);
     Event eventC = new Event(enrollmentA, programStageC);
     eventC.setDueDate(enrollmentDate);
-    eventC.setExecutionDate(new Date());
+    eventC.setOccurredDate(new Date());
     eventC.setUid("UID-PS3");
     eventService.addEvent(eventC);
     enrollmentA.getEvents().addAll(Sets.newHashSet(eventA, eventB, eventC, eventAge));

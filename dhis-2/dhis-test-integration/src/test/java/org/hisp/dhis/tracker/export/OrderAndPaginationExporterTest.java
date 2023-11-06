@@ -628,7 +628,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .events(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"))
-            .orderBy("executionDate", SortDirection.DESC)
+            .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
     Page<Event> firstPage = eventService.getEvents(operationParams, new PageParams(1, 1, false));
@@ -674,7 +674,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
-            .orderBy("executionDate", SortDirection.DESC)
+            .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
     Page<Event> firstPage = eventService.getEvents(operationParams, new PageParams(1, 3, false));
@@ -704,7 +704,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
-            .orderBy("executionDate", SortDirection.DESC)
+            .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
     Page<Event> events = eventService.getEvents(params, new PageParams(1, 2, true));
@@ -974,7 +974,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
-            .orderBy("executionDate", SortDirection.DESC)
+            .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
     List<String> events = getEvents(params);
@@ -987,7 +987,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
-            .orderBy("executionDate", SortDirection.ASC)
+            .orderBy("occurredDate", SortDirection.ASC)
             .build();
 
     List<String> events = getEvents(params);
