@@ -131,63 +131,63 @@ pipeline {
                 sh './copy-war-s3.sh stable ${GIT_BRANCH}'
             }
         }
-    }
 
-    stage('Update IM Play instance') {
-        when {
-            expression { !env.DOCKER_IMAGE_TAG.endsWith("rc") }
-        }
+        stage('Update IM Play instance') {
+            when {
+                expression { !env.DOCKER_IMAGE_TAG.endsWith("rc") }
+            }
 
-        environment {
-            HTTP = "http --check-status"
-            IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
-            IM_HOST = "https://api.im.dhis2.org"
-            INSTANCE_URL = "https://play.im.dhis2.org"
-            IMAGE_REPOSITORY = "core"
-            IMAGE_PULL_POLICY = "Always"
-            FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
-            FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
-            INSTANCE_TTL = "315360000"
-            STARTUP_PROBE_FAILURE_THRESHOLD = "50"
-            LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
-            READINESS_PROBE_TIMEOUT_SECONDS = "3"
-        }
+            environment {
+                HTTP = "http --check-status"
+                IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
+                IM_HOST = "https://api.im.dhis2.org"
+                INSTANCE_URL = "https://play.im.dhis2.org"
+                IMAGE_REPOSITORY = "core"
+                IMAGE_PULL_POLICY = "Always"
+                FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
+                FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
+                INSTANCE_TTL = "315360000"
+                STARTUP_PROBE_FAILURE_THRESHOLD = "50"
+                LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
+                READINESS_PROBE_TIMEOUT_SECONDS = "3"
+            }
 
-        steps {
-            echo 'Creating DHIS2 instance on IM...'
-            script {
-                withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
-                    dir('im-manager') {
-                        gitHelper.sparseCheckout(IM_REPO_URL, "${gitHelper.getLatestTag(IM_REPO_URL)}", '/scripts')
+            steps {
+                echo 'Creating DHIS2 instance on IM...'
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
+                        dir('im-manager') {
+                            gitHelper.sparseCheckout(IM_REPO_URL, "${gitHelper.getLatestTag(IM_REPO_URL)}", '/scripts')
 
-                        def version = env.GIT_BRANCH
-                        if (version.startsWith("patch/")) {
-                            version = version.split("/")[1]
-                        }
-                        env.IMAGE_TAG = version
-                        def instanceName = "stable-${version.replace(".", "-")}"
+                            def version = env.GIT_BRANCH
+                            if (version.startsWith("patch/")) {
+                                version = version.split("/")[1]
+                            }
+                            env.IMAGE_TAG = version
+                            def instanceName = "stable-${version.replace(".", "-")}"
 
-                        // If version contains more than 2 dots... It's a hotfix
-                        def isHotfix = version.length() - version.replace(".", "").length() > 2
-                        if (isHotfix) {
-                            def endIndex = version.lastIndexOf(".")
-                            version = version.substring(0, endIndex)
-                        }
+                            // If version contains more than 2 dots... It's a hotfix
+                            def isHotfix = version.length() - version.replace(".", "").length() > 2
+                            if (isHotfix) {
+                                def endIndex = version.lastIndexOf(".")
+                                version = version.substring(0, endIndex)
+                            }
 
-                        dir('scripts/databases') {
-                            env.DATABASE_ID = sh(
-                                    returnStdout: true,
-                                    script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${version}.sql.gz\") | .slug'"
-                            ).trim()
-                        }
+                            dir('scripts/databases') {
+                                env.DATABASE_ID = sh(
+                                        returnStdout: true,
+                                        script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${version}.sql.gz\") | .slug'"
+                                ).trim()
+                            }
 
-                        sh '[ -n "$DATABASE_ID" ]'
-                        echo "Database: ${env.DATABASE_ID}"
+                            sh '[ -n "$DATABASE_ID" ]'
+                            echo "Database: ${env.DATABASE_ID}"
 
-                        dir('scripts/instances') {
-                            sh "(./findByName.sh play ${instanceName} && ./restart.sh play ${instanceName}) || ./deploy-dhis2.sh play ${instanceName}"
-                            timeout(5) {
-                                waitFor.statusOk("${env.INSTANCE_URL}/${instanceName}")
+                            dir('scripts/instances') {
+                                sh "(./findByName.sh play ${instanceName} && ./restart.sh play ${instanceName}) || ./deploy-dhis2.sh play ${instanceName}"
+                                timeout(5) {
+                                    waitFor.statusOk("${env.INSTANCE_URL}/${instanceName}")
+                                }
                             }
                         }
                     }
