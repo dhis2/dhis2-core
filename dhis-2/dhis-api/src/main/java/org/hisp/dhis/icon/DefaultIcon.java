@@ -43,9 +43,9 @@ public class DefaultIcon implements Icon {
 
   private final boolean custom;
 
-  private Date createdAt;
+  private Date created;
 
-  private Date lastUpdatedAt;
+  private Date lastUpdated;
 
   public DefaultIcon(String key, String description, String[] keywords, boolean custom) {
     this.key = key;
@@ -58,11 +58,19 @@ public class DefaultIcon implements Icon {
   public void setAutoFields() {
     Date date = new Date();
 
-    if (createdAt == null) {
-      createdAt = date;
+    if (created == null) {
+      created = date;
     }
 
-    lastUpdatedAt = date;
+    lastUpdated = date;
+  }
+
+  public Date getCreated() {
+    return created;
+  }
+
+  public Date getLastUpdated() {
+    return lastUpdated;
   }
 
   public enum Icons {
