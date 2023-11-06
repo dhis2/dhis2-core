@@ -475,13 +475,13 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     eventA.setOrganisationUnit(organisationUnit);
     eventA.setAutoFields();
     eventA.setDueDate(new Date());
-    eventA.setExecutionDate(new Date());
+    eventA.setOccurredDate(new Date());
     eventA.setEventDataValues(Sets.newHashSet(eventDataValueA));
 
     eventB.setOrganisationUnit(organisationUnit);
     eventB.setAutoFields();
     eventB.setDueDate(new Date());
-    eventB.setExecutionDate(new Date());
+    eventB.setOccurredDate(new Date());
     eventB.setEventDataValues(Sets.newHashSet(eventDataValueB));
   }
 

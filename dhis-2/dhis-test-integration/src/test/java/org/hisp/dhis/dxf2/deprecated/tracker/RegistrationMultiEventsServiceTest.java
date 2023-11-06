@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import com.google.common.collect.Lists;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Set;
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -166,7 +167,7 @@ class RegistrationMultiEventsServiceTest extends TransactionalIntegrationTest {
     manager.update(programStageA);
     manager.update(programStageB);
     manager.update(programA);
-    createUserAndInjectSecurityContext(true);
+    createUserAndInjectSecurityContext(Set.of(organisationUnitA, organisationUnitB), true);
   }
 
   @Test

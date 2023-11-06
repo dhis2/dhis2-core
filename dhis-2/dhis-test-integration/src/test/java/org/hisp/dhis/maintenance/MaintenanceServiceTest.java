@@ -190,12 +190,12 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     event.setUid("PSUID-B");
     event.setOrganisationUnit(organisationUnit);
     event.setEnrollment(enrollment);
-    event.setExecutionDate(new Date());
+    event.setOccurredDate(new Date());
     eventWithTeiAssociation = new Event(enrollmentWithTeiAssociation, stageA);
     eventWithTeiAssociation.setUid("PSUID-C");
     eventWithTeiAssociation.setOrganisationUnit(organisationUnit);
     eventWithTeiAssociation.setEnrollment(enrollmentWithTeiAssociation);
-    eventWithTeiAssociation.setExecutionDate(new Date());
+    eventWithTeiAssociation.setOccurredDate(new Date());
     eventService.addEvent(eventWithTeiAssociation);
     relationshipType = createPersonToPersonRelationshipType('A', program, trackedEntityType, false);
     relationshipTypeService.addRelationshipType(relationshipType);
