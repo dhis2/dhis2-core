@@ -103,14 +103,13 @@ public class MetadataImportJob implements Job {
 
       if (report.hasErrorReports()) {
         report.forEachErrorReport(
-            r -> {
-              progress.addError(
-                  r.getErrorCode(),
-                  r.getMainId(),
-                  r.getMainKlass().getSimpleName(),
-                  null,
-                  r.getArgs());
-            });
+            r ->
+                progress.addError(
+                    r.getErrorCode(),
+                    r.getMainId(),
+                    r.getMainKlass().getSimpleName(),
+                    null,
+                    r.getArgs()));
       }
 
       notifier.addJobSummary(config, report, ImportReport.class);

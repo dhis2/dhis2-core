@@ -131,7 +131,8 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     int created = 0;
     Set<String> jobIds = jobConfigurationStore.getAllIds();
     for (JobType t : JobType.values()) {
-      if (t.getDefaults() != null && !jobIds.contains(t.getDefaults().uid())) {
+      Defaults defaults = t.getDefaults();
+      if (defaults != null && !jobIds.contains(defaults.uid())) {
         createDefaultJob(t);
         created++;
       }
