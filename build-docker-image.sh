@@ -23,9 +23,9 @@ function help() {
 }
 
 function create_immutable_tag() {
-  current_date=$(date -u +"%Y%m%dT%H%M%SZ") # ISO 8601 format
+  current_date="$(date -u +'%Y%m%dT%H%M%SZ')" # ISO 8601 format
 
-  immutable_image_tag="${image_tag}-${current_date}"
+  immutable_image_tag="$image_tag-$current_date"
 }
 
 function create_rolling_tags() {
@@ -35,24 +35,20 @@ function create_rolling_tags() {
   minor="${image_tag_segments[1]}"
   patch="${image_tag_segments[2]}"
 
-  # Always create M.m.p
-  rolling_tags=("$image_tag")
-
-  # If non-zero patch(hotfix) create 2.M.m.p
-  # TODO Do we want this or just go with consistency and create it like M.m.p?
-  if [[ "$patch" != "0" ]]; then
-    echo "Version $image_tag is a non-zero patch(hotfix)"
-    rolling_tags+=("$old_version_schema_prefix.$image_tag")
-  fi
+  # Always create M.m.p and 2.M.m.p
+  rolling_tags=(
+    "$image_tag"
+    "$old_version_schema_prefix.$image_tag"
+  )
 
   # If patch(hotfix) is the latest for given minor(patch) create M.m + 2.M.m
-  latest_hotfix_version=$(
+  latest_hotfix_version="$(
     echo "$stable_versions_json" |
     jq -r --argjson major "$major" --argjson minor "$minor" \
     '.versions[] | select(.version == $major) .patchVersions[] | select(.version == $minor) .hotfixVersion' |
     sort -n |
     tail -1
-  )
+  )"
   if [[ "$patch" == "$latest_hotfix_version" ]]; then
     echo "The patch version $patch is the latest for the minor version $minor"
     rolling_tags+=(
@@ -62,11 +58,11 @@ function create_rolling_tags() {
   fi
 
   # If version is the latest create M + 2.M
-  latest_version=$(
+  latest_version="$(
     echo "$stable_versions_json" |
     jq -r --argjson major "$major" \
     '.versions[] | select(.version == $major) | "\(.version).\(.latestPatchVersion).\(.latestHotfixVersion)"'
-  )
+  )"
   if [[ "$image_tag" == "$latest_version" ]]; then
       echo "Version $image_tag is the latest version for the supported major version $major"
       rolling_tags+=(
@@ -87,19 +83,19 @@ function list_tags() {
 function use_existing_war() {
   echo 'Image will be rebuilt with existing WAR'
 
-  war_url=$(
+  war_url="$(
     echo "$stable_versions_json" |
     jq -r --arg image_tag "$image_tag" '.versions[] | select(.supported == true) .patchVersions[] | select(.displayName == $image_tag) .url'
-  )
+  )"
   echo "Downloading from $war_url ..."
   curl -o 'existing-dhis2.war' "$war_url"
 
-  known_war_sha256=$(
+  known_war_sha256="$(
     echo "$stable_versions_json" |
     jq -r --arg image_tag "$image_tag" '.versions[] | select(.supported == true) .patchVersions[] | select(.displayName == $image_tag) .sha256'
-  )
+  )"
 
-  sha256sum_output=$(sha256sum 'existing-dhis2.war')
+  sha256sum_output="$(sha256sum 'existing-dhis2.war')"
   downloaded_war_sha256="${sha256sum_output%% *}" # strip file name from sha256sum output with variable expansion
 
   if [[ "$downloaded_war_sha256" != "$known_war_sha256" ]]; then
@@ -108,7 +104,7 @@ function use_existing_war() {
   fi
 
   echo "Unarchiving WAR to $UNARCHIVED_WAR_DIR ..."
-  unzip -q -o 'existing-dhis2.war' -d "./${UNARCHIVED_WAR_DIR}"
+  unzip -q -o 'existing-dhis2.war' -d "./$UNARCHIVED_WAR_DIR"
 }
 
 function use_new_war() {
@@ -116,13 +112,12 @@ function use_new_war() {
   unzip -q -o "$WAR_PATH" -d "./$UNARCHIVED_WAR_DIR"
 }
 
-function build_image() {
+function build_immutable_image() {
   echo "Building image for version $image_tag, based on $BASE_IMAGE ..."
 
-  # TODO update target to "$IMAGE_REPOSITORY:$immutable_image_tag"
   jib build \
     --build-file "$JIB_BUILD_FILE" \
-    --target dhis2/core-dev:2.38.2.1-test \
+    --target "$IMAGE_REPOSITORY:$immutable_image_tag" \
     --parameter unarchivedWarDir="$UNARCHIVED_WAR_DIR" \
     --parameter imageAppRoot="$IMAGE_APP_ROOT" \
     --parameter baseImage="$BASE_IMAGE" \
@@ -130,20 +125,33 @@ function build_image() {
     --parameter gitCommit="$GIT_COMMIT" \
     --parameter gitBranch="$GIT_BRANCH" \
     --parameter dhis2Version="$DHIS2_VERSION" \
-    --parameter timestamp="$(date +%s000)" # Unix time with zeroed milliseconds; will be shown as "2023-11-02T14:40:32Z"
+    --parameter timestamp="$(date +'%s000')" # Unix time with zeroed milliseconds; will be shown as "2023-11-02T14:40:32Z"
 }
 
-function tag_image() {
+# To create extra tags for a multi-architecture image (manifest list) we have to create a new manifest list,
+# based on the supported image architectures' sha256 digests.
+function create_rolling_manifests() {
   echo "Pulling $IMAGE_REPOSITORY:$immutable_image_tag for tagging ..."
   docker image pull "$IMAGE_REPOSITORY:$immutable_image_tag"
 
-  echo 'Tagging image ...'
   for tag in "${rolling_tags[@]}"; do
-    docker image tag "${IMAGE_REPOSITORY}:${immutable_image_tag}" "${IMAGE_REPOSITORY}:${tag}"
+    # shellcheck disable=SC2207
+    manifest_digests=($(docker manifest inspect "$IMAGE_REPOSITORY:$immutable_image_tag" | jq -r '.manifests[] .digest'))
+
+    # shellcheck disable=SC2145
+    echo "Creating new manifest with digests ${manifest_digests[@]} ..."
+
+    # No double quotes for the $manifest_digests, as we want them treated as separate elements and prefixed with the repository.
+    # shellcheck disable=SC2068
+    docker manifest create "$IMAGE_REPOSITORY:$tag" ${manifest_digests[@]/#/ $IMAGE_REPOSITORY@}
+
+    echo "Pushing new manifest $IMAGE_REPOSITORY:$tag ..."
+    docker manifest push "$IMAGE_REPOSITORY:$tag"
   done
+
 }
 
-while getopts "ht:r" option; do
+while getopts 'ht:r' option; do
    case $option in
       h)
         help
@@ -153,7 +161,7 @@ while getopts "ht:r" option; do
       r)
         rebuild_image=1;;
       \?)
-        echo "Error: Invalid option"
+        echo 'Error: Invalid option'
         exit;;
    esac
 done
@@ -170,17 +178,15 @@ else
   use_new_war
 fi
 
-jdk_version=$(
+jdk_version="$(
   echo "$stable_versions_json" |
   jq -r --argjson major "$major" '.versions[] | select(.version == $major) .jdk'
-)
-BASE_IMAGE=${BASE_IMAGE:-"tomcat:9.0-jre${jdk_version}"}
+)"
+BASE_IMAGE="${BASE_IMAGE:-"tomcat:9.0-jre$jdk_version"}"
 
-build_image
+build_immutable_image
 
-#tag_image
+create_rolling_manifests
 
-#echo "Pushing tags to $IMAGE_REPOSITORY ..."
-#docker image push --all-tags "${IMAGE_REPOSITORY}"
-
+echo "Done with building $image_tag."
 echo
