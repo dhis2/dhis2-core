@@ -28,14 +28,18 @@
 package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -51,6 +55,8 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -61,6 +67,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
@@ -75,6 +82,7 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -107,6 +115,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Override
   protected void initTest() throws IOException {
+
+    userService = _userService;
     setUpMetadata("tracker/simple_metadata.json");
     importUser = userService.getUser("M5zQapPyTZI");
     assertNoErrors(
@@ -417,6 +427,24 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     List<String> trackedEntities = getTrackedEntities(params);
 
     assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+  }
+
+  @Test
+  void shouldThrowWhenGetTrackedEntityAndUserHasNoAccessToTrackedEntityOrder() {
+    User user = createUserWithAuth("user_no_access_tea");
+    user.setOrganisationUnits(Set.of(orgUnit));
+
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(user)
+            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .build();
+
+    assertThrows(ForbiddenException.class, () -> getTrackedEntities(params));
   }
 
   @Test
@@ -1250,6 +1278,106 @@ class OrderAndPaginationExporterTest extends TrackerTest {
               .toList();
       assertEquals(expected, relationships);
     }
+  }
+
+  @Autowired private DataElementService dataElementService;
+
+  @Test
+  void shouldThrowWhenGetEventsAndUserHasNoAccessToDataElementOrder() {
+    User user =
+        createUserWithAuth(
+            "de_user_search_all_ou", F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+
+    DataElement de = get(DataElement.class, "DATAEL00001");
+    Sharing sharing = new Sharing();
+    sharing.setPublicAccess("rw----");
+    de.setSharing(sharing);
+    manager.update(de);
+
+    injectSecurityContext(user);
+
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .orgUnitMode(ALL)
+            .orderBy(UID.of("DATAEL00001"), SortDirection.DESC)
+            .build();
+
+    assertThrows(ForbiddenException.class, () -> getEvents(params));
+  }
+
+  @Test
+  void shouldNotThrowWhenGetEventsAndUserHasAccessToDataElementOrder() {
+    User user =
+        createUserWithAuth(
+            "de_user_search_all_ou", F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+
+    DataElement de = get(DataElement.class, "DATAEL00001");
+    Sharing sharing = new Sharing();
+    sharing.setPublicAccess("--------");
+    sharing.setOwner(user);
+    de.setSharing(sharing);
+    manager.update(de);
+
+    injectSecurityContext(user);
+
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .orgUnitMode(ALL)
+            .orderBy(UID.of("DATAEL00001"), SortDirection.DESC)
+            .build();
+
+    assertDoesNotThrow(() -> getEvents(params));
+  }
+
+  @Test
+  void shouldThrowWhenGetEventsAndUserHasNoAccessToTrackedEntityAttributeOrder() {
+    User user =
+        createUserWithAuth(
+            "tea_user_search_all_ou", F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+
+    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toDelete000");
+    Sharing sharing = new Sharing();
+    sharing.setPublicAccess("rw----");
+    tea.setSharing(sharing);
+    manager.update(tea);
+
+    injectSecurityContext(user);
+
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .orgUnitMode(ALL)
+            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .build();
+
+    assertThrows(ForbiddenException.class, () -> getEvents(params));
+  }
+
+  @Test
+  void shouldNotThrowWhenGetEventsAndUserHasAccessToTrackedEntityAttributeOrder() {
+    User user =
+        createUserWithAuth(
+            "tea_user_search_all_ou", F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+
+    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toDelete000");
+    Sharing sharing = new Sharing();
+    sharing.setPublicAccess("--------");
+    sharing.setOwner(user);
+    tea.setSharing(sharing);
+    manager.update(tea);
+
+    injectSecurityContext(user);
+
+    EventOperationParams params =
+        eventParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .orgUnitMode(ALL)
+            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
+            .build();
+
+    assertDoesNotThrow(() -> getEvents(params));
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {

@@ -33,6 +33,8 @@ import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrg
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
@@ -115,6 +117,8 @@ class EventOperationParamsMapper {
     mapDataElementFilters(queryParams, operationParams.getDataElementFilters());
     mapAttributeFilters(queryParams, operationParams.getAttributeFilters());
     mapOrderParam(queryParams, operationParams.getOrder());
+    validateOrderableAttributes(queryParams.getOrder(), user);
+    validateOrderableDataElements(queryParams.getOrder(), user);
 
     return queryParams
         .setProgram(program)
@@ -309,6 +313,36 @@ class EventOperationParamsMapper {
             "Cannot order by '"
                 + order.getField()
                 + "'. Events can be ordered by event fields, data elements and tracked entity attributes.");
+      }
+    }
+  }
+
+  private void validateOrderableAttributes(List<Order> order, User user) throws ForbiddenException {
+    Set<TrackedEntityAttribute> orderableTeas =
+        order.stream()
+            .filter(o -> o.getField() instanceof TrackedEntityAttribute)
+            .map(o -> (TrackedEntityAttribute) o.getField())
+            .collect(Collectors.toSet());
+
+    for (TrackedEntityAttribute tea : orderableTeas) {
+      if (!aclService.canRead(user, tea)) {
+        throw new ForbiddenException(
+            "User has no access to tracked entity attribute: " + tea.getUid());
+      }
+    }
+  }
+
+  private void validateOrderableDataElements(List<Order> order, User user)
+      throws ForbiddenException {
+    Set<DataElement> orderableDes =
+        order.stream()
+            .filter(o -> o.getField() instanceof DataElement)
+            .map(o -> (DataElement) o.getField())
+            .collect(Collectors.toSet());
+
+    for (DataElement de : orderableDes) {
+      if (!aclService.canRead(user, de)) {
+        throw new ForbiddenException("User has no access to data element: " + de.getUid());
       }
     }
   }
