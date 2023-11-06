@@ -123,12 +123,25 @@ pipeline {
             }
         }
 
+        stage ('Sync WAR') {
+            steps {
+                echo 'Syncing WAR ...'
+                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
+                sh 'chmod +x copy-war-s3.sh'
+                sh './copy-war-s3.sh stable ${GIT_BRANCH}'
+            }
+        }
+
         stage('Update IM Play instance') {
+            when {
+                expression { !env.DOCKER_IMAGE_TAG.endsWith("rc") }
+            }
+
             environment {
                 HTTP = "http --check-status"
                 IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
                 IM_HOST = "https://api.im.dhis2.org"
-                INSTANCE_URL = "https://play.im.dhis2.org/stable"
+                INSTANCE_URL = "https://play.im.dhis2.org"
                 IMAGE_REPOSITORY = "core"
                 IMAGE_PULL_POLICY = "Always"
                 FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
@@ -140,9 +153,6 @@ pipeline {
             }
 
             steps {
-                when {
-                    expression { !env.DOCKER_IMAGE_TAG.endsWith("rc") }
-                }
                 echo 'Creating DHIS2 instance on IM...'
                 script {
                     withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
@@ -153,6 +163,9 @@ pipeline {
                             if (version.startsWith("patch/")) {
                                 version = version.split("/")[1]
                             }
+                            env.IMAGE_TAG = version
+                            def instanceName = "stable-${version.replace(".", "-")}"
+
                             // If version contains more than 2 dots... It's a hotfix
                             def isHotfix = version.length() - version.replace(".", "").length() > 2
                             if (isHotfix) {
@@ -170,25 +183,15 @@ pipeline {
                             sh '[ -n "$DATABASE_ID" ]'
                             echo "Database: ${env.DATABASE_ID}"
 
-                            def name = "-${version.replace(".", "-")}"
                             dir('scripts/instances') {
-                                sh "(./findByName.sh play stable${name} && ./restart.sh play stable${name}) || ./deploy-dhis2.sh play stable${name}"
+                                sh "(./findByName.sh play ${instanceName} && ./restart.sh play ${instanceName}) || ./deploy-dhis2.sh play ${instanceName}"
                                 timeout(5) {
-                                    waitFor.statusOk("${env.INSTANCE_URL}${name}")
+                                    waitFor.statusOk("${env.INSTANCE_URL}/${instanceName}")
                                 }
                             }
                         }
                     }
                 }
-            }
-        }
-
-        stage ('Sync WAR') {
-            steps {
-                echo 'Syncing WAR ...'
-                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
-                sh 'chmod +x copy-war-s3.sh'
-                sh './copy-war-s3.sh stable ${GIT_BRANCH}'
             }
         }
     }
