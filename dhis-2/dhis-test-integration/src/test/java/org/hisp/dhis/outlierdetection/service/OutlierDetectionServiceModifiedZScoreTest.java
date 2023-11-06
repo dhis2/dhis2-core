@@ -73,7 +73,7 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
 
   @Autowired private DataValueService dataValueService;
 
-  @Autowired private OutlierDetectionService subject;
+  @Autowired private OutlierDetectionService<OutlierDetectionResponse> subject;
 
   private DataElement deA;
 

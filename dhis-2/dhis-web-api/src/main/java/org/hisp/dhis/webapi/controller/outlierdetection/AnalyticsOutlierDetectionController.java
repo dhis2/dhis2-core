@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.outlierdetection;
 
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.io.IOException;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.hisp.dhis.outlierdetection.OutlierDetectionService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -47,35 +43,23 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Outlier detection API controller.
+ * Analytics Outlier detection API controller.
  *
- * @author Lars Helge Overland
+ * @author Dusan Bernat
  */
-@OpenApi.Tags("data")
+@OpenApi.Tags("analytics")
 @RestController
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @PreAuthorize("hasRole('ALL') or hasRole('F_RUN_VALIDATION')")
-public class OutlierDetectionController {
-  private final OutlierDetectionService<OutlierDetectionResponse> outlierService;
-
+public class AnalyticsOutlierDetectionController {
+  private final OutlierDetectionService<Grid> outlierService;
   private final ContextUtils contextUtils;
 
-  @GetMapping(value = "/outlierDetection", produces = APPLICATION_JSON_VALUE)
-  public OutlierDetectionResponse getOutliersJson(OutlierDetectionQuery query) {
+  @GetMapping(value = "/analytics/outlierDetection", produces = APPLICATION_JSON_VALUE)
+  public Grid getOutliersJson(OutlierDetectionQuery query) {
     OutlierDetectionRequest request = outlierService.getFromQuery(query);
 
     return outlierService.getOutlierValues(request);
-  }
-
-  @GetMapping(value = "/outlierDetection", produces = CONTENT_TYPE_CSV)
-  public void getOutliersCsv(OutlierDetectionQuery query, HttpServletResponse response)
-      throws IOException {
-    OutlierDetectionRequest request = outlierService.getFromQuery(query);
-
-    contextUtils.configureResponse(
-        response, CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE, "outlierdata.csv", true);
-
-    outlierService.getOutlierValuesAsCsv(request, response.getOutputStream());
   }
 }

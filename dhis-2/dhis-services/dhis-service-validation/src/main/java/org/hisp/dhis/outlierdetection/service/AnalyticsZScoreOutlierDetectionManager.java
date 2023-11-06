@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,20 @@
 package org.hisp.dhis.outlierdetection.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
+import org.hisp.dhis.outlierdetection.processor.AnalyticsZScoreSqlStatementProcessor;
 import org.hisp.dhis.outlierdetection.processor.IOutlierSqlStatementProcessor;
-import org.hisp.dhis.outlierdetection.processor.ZScoreSqlStatementProcessor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-/**
- * Manager for database queries related to outlier data detection based on z-score.
- *
- * <p>This both implements the {@link OutlierDetectionAlgorithm#Z_SCORE} and {@link
- * OutlierDetectionAlgorithm#MOD_Z_SCORE}. Usual z-score uses the mean as middle value whereas the
- * modified z-score uses the median as middle value or more mathematically correct as the
- * <em>measure of central tendency</em>.
- *
- * @author Lars Helge Overland
- */
 @Slf4j
 @Repository
-public class ZScoreOutlierDetectionManager extends AbstractOutlierDetectionManager {
-
-  public ZScoreOutlierDetectionManager(NamedParameterJdbcTemplate jdbcTemplate) {
+public class AnalyticsZScoreOutlierDetectionManager extends AbstractOutlierDetectionManager {
+  protected AnalyticsZScoreOutlierDetectionManager(NamedParameterJdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
   }
 
   @Override
   protected IOutlierSqlStatementProcessor getSqlStatmentProcessor() {
-    return new ZScoreSqlStatementProcessor();
+    return new AnalyticsZScoreSqlStatementProcessor();
   }
 }

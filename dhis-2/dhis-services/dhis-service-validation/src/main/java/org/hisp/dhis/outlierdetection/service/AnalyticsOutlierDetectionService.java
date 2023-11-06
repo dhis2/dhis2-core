@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,49 @@
  */
 package org.hisp.dhis.outlierdetection.service;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
-import org.hisp.dhis.outlierdetection.processor.IOutlierSqlStatementProcessor;
-import org.hisp.dhis.outlierdetection.processor.ZScoreSqlStatementProcessor;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
+import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.hisp.dhis.system.grid.ListGrid;
+import org.springframework.stereotype.Service;
 
-/**
- * Manager for database queries related to outlier data detection based on z-score.
- *
- * <p>This both implements the {@link OutlierDetectionAlgorithm#Z_SCORE} and {@link
- * OutlierDetectionAlgorithm#MOD_Z_SCORE}. Usual z-score uses the mean as middle value whereas the
- * modified z-score uses the median as middle value or more mathematically correct as the
- * <em>measure of central tendency</em>.
- *
- * @author Lars Helge Overland
- */
 @Slf4j
-@Repository
-public class ZScoreOutlierDetectionManager extends AbstractOutlierDetectionManager {
+@Service
+public class AnalyticsOutlierDetectionService extends AbstractOutlierDetectionService<Grid> {
+  private final AnalyticsZScoreOutlierDetectionManager zScoreOutlierDetection;
 
-  public ZScoreOutlierDetectionManager(NamedParameterJdbcTemplate jdbcTemplate) {
-    super(jdbcTemplate);
+  public AnalyticsOutlierDetectionService(
+      IdentifiableObjectManager idObjectManager,
+      AnalyticsZScoreOutlierDetectionManager zScoreOutlierDetection) {
+    super(idObjectManager);
+    this.zScoreOutlierDetection = zScoreOutlierDetection;
   }
 
   @Override
-  protected IOutlierSqlStatementProcessor getSqlStatmentProcessor() {
-    return new ZScoreSqlStatementProcessor();
+  public void validate(OutlierDetectionRequest request) throws IllegalQueryException {}
+
+  @Override
+  public ErrorMessage validateForErrorMessage(OutlierDetectionRequest request) {
+    return null;
   }
+
+  @Override
+  public OutlierDetectionRequest getFromQuery(OutlierDetectionQuery query) {
+    return null;
+  }
+
+  @Override
+  public Grid getOutlierValues(OutlierDetectionRequest request) throws IllegalQueryException {
+    return new ListGrid();
+  }
+
+  @Override
+  public void getOutlierValuesAsCsv(OutlierDetectionRequest request, OutputStream out)
+      throws IllegalQueryException, IOException {}
 }

@@ -32,14 +32,13 @@ import static org.hisp.dhis.outlierdetection.OutliersSqlParam.END_DATE;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParam.MAX_RESULTS;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParam.START_DATE;
 
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-
-import java.util.List;
 
 public class MinMaxSqlStatementProcessor extends OutlierSqlStatementProcessor {
   @Override
