@@ -37,8 +37,8 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
-import org.hisp.dhis.outlierdetection.processor.AnalyticsMinMaxSqlStatementProcessor;
 import org.hisp.dhis.outlierdetection.processor.IOutlierSqlStatementProcessor;
+import org.hisp.dhis.outlierdetection.processor.MinMaxSqlStatementProcessor;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.RowMapper;
@@ -64,8 +64,7 @@ public class MinMaxOutlierDetectionManager {
    * @return a list of {@link OutlierValue}.
    */
   public List<OutlierValue> getOutlierValues(OutlierDetectionRequest request) {
-    final IOutlierSqlStatementProcessor sqlStatementProcessor =
-        new AnalyticsMinMaxSqlStatementProcessor();
+    final IOutlierSqlStatementProcessor sqlStatementProcessor = new MinMaxSqlStatementProcessor();
     final String sql = sqlStatementProcessor.getSqlStatement(request);
     final SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);
 

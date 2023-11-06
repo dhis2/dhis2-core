@@ -38,7 +38,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
-import org.hisp.dhis.outlierdetection.processor.AnalyticsZScoreSqlStatementProcessor;
 import org.hisp.dhis.outlierdetection.processor.IOutlierSqlStatementProcessor;
 import org.hisp.dhis.outlierdetection.processor.ZScoreSqlStatementProcessor;
 import org.hisp.dhis.period.PeriodType;
@@ -72,10 +71,7 @@ public class ZScoreOutlierDetectionManager {
    */
   public List<OutlierValue> getOutlierValues(OutlierDetectionRequest request) {
 
-    final IOutlierSqlStatementProcessor statementFactory =
-        request.hasDataStartEndDate()
-            ? new ZScoreSqlStatementProcessor()
-            : new AnalyticsZScoreSqlStatementProcessor();
+    final IOutlierSqlStatementProcessor statementFactory = new ZScoreSqlStatementProcessor();
 
     final String sql = statementFactory.getSqlStatement(request);
     final SqlParameterSource params = statementFactory.getSqlParameterSource(request);
