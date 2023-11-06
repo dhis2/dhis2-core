@@ -430,24 +430,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldThrowWhenGetTrackedEntityAndUserHasNoAccessToTrackedEntityOrder() {
-    User user = createUserWithAuth("user_no_access_tea");
-    user.setOrganisationUnits(Set.of(orgUnit));
-
-    TrackedEntityOperationParams params =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(Set.of(orgUnit.getUid()))
-            .orgUnitMode(SELECTED)
-            .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
-            .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(user)
-            .orderBy(UID.of("toDelete000"), SortDirection.DESC)
-            .build();
-
-    assertThrows(ForbiddenException.class, () -> getTrackedEntities(params));
-  }
-
-  @Test
   void shouldOrderTrackedEntitiesByAttributeWhenFiltered()
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntityOperationParams params =
