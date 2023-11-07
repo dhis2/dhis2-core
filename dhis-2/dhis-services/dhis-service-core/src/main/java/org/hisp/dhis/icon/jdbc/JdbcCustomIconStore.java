@@ -120,9 +120,9 @@ public class JdbcCustomIconStore implements CustomIconStore {
         customIcon.getKeywords(),
         fileResource.getId(),
         createdByUser.getId(),
-        customIcon.isCustom());
-    customIcon.getCreated();
-    customIcon.getLastUpdated();
+        customIcon.isCustom(),
+        customIcon.getCreated(),
+        customIcon.getLastUpdated());
   }
 
   @Override
