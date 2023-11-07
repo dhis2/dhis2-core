@@ -79,7 +79,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
 
   @Test
   void testTrackedEntityDeletion() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/tracker_basic_data_before_deletion.json");
+    TrackerObjects trackerObjects = fromJson("tracker/tracked_entity_basic_data_for_deletion.json");
     TrackerImportParams params = new TrackerImportParams();
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     assertEquals(9, trackerObjects.getTrackedEntities().size());

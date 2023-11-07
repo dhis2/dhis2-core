@@ -153,7 +153,6 @@ class TrackerImportControllerTest {
   @Test
   void verifySyncResponseShouldBeOkWhenImportReportStatusIsOk() throws Exception {
     // When
-    when(trackerImportService.importTracker(any(), any())).thenReturn(any());
     when(trackerImportService.buildImportReport(any(), any()))
         .thenReturn(
             ImportReport.withImportCompleted(
@@ -189,7 +188,6 @@ class TrackerImportControllerTest {
   @Test
   void verifySyncResponseForCsvShouldBeOkWhenImportReportStatusIsOk() throws Exception {
     // When
-    when(trackerImportService.importTracker(any(), any())).thenReturn(any());
     when(trackerImportService.buildImportReport(any(), any()))
         .thenReturn(
             ImportReport.withImportCompleted(
@@ -226,7 +224,6 @@ class TrackerImportControllerTest {
   void verifySyncResponseShouldBeConflictWhenImportReportStatusIsError() throws Exception {
     String errorMessage = "errorMessage";
     // When
-    when(trackerImportService.importTracker(any(), any())).thenReturn(any());
     when(trackerImportService.buildImportReport(any(), any()))
         .thenReturn(ImportReport.withError(errorMessage, ValidationReport.emptyReport()));
 
@@ -258,7 +255,6 @@ class TrackerImportControllerTest {
   void verifySyncResponseForCsvShouldBeConflictWhenImportReportStatusIsError() throws Exception {
     String errorMessage = "errorMessage";
     // When
-    when(trackerImportService.importTracker(any(), any())).thenReturn(any());
     when(trackerImportService.buildImportReport(any(), any()))
         .thenReturn(ImportReport.withError(errorMessage, ValidationReport.emptyReport()));
 

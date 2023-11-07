@@ -67,6 +67,7 @@ class TrackedEntityAttributeTest extends TrackerTest {
   @Override
   protected void initTest() throws IOException {
     setUpMetadata("tracker/te_with_tea_metadata.json");
+    injectAdminUser();
   }
 
   @Test
@@ -74,7 +75,7 @@ class TrackedEntityAttributeTest extends TrackerTest {
     TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
     TrackerPreheat preheat =
         trackerPreheatService.preheat(
-            trackerObjects, new TrackerIdSchemeParams(), userService.getUser("system-process"));
+            trackerObjects, new TrackerIdSchemeParams(), userService.getUser(ADMIN_USER_UID));
     assertNotNull(preheat.get(OrganisationUnit.class, "cNEZTkdAvmg"));
     assertNotNull(preheat.get(TrackedEntityType.class, "KrYIdvLxkMb"));
     assertNotNull(preheat.get(TrackedEntityAttribute.class, "sYn3tkL3XKa"));
@@ -85,7 +86,7 @@ class TrackedEntityAttributeTest extends TrackerTest {
   @Test
   void testTrackedAttributeValueBundleImporter() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
-    TrackerImportParams params = TrackerImportParams.builder().userId("system-process").build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
 
