@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErro
 
 import java.util.Collection;
 import java.util.List;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -73,6 +74,8 @@ public class DefaultCollectionService implements CollectionService {
 
   private final SchemaValidator schemaValidator;
 
+  private final EntityManager entityManager;
+
   @Override
   @Transactional
   public TypeReport addCollectionItems(
@@ -91,7 +94,6 @@ public class DefaultCollectionService implements CollectionService {
     }
 
     TypeReport report = new TypeReport(property.getItemKlass());
-    manager.refresh(object);
 
     if (property.isOwner()) {
       addOwnedCollectionItems(object, property, itemCodes, report);
@@ -99,7 +101,6 @@ public class DefaultCollectionService implements CollectionService {
       addNonOwnedCollectionItems(object, property, itemCodes, report);
     }
 
-    dbmsManager.clearSession();
     return report;
   }
 
@@ -122,7 +123,6 @@ public class DefaultCollectionService implements CollectionService {
           }
         });
     validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
-    manager.update(object);
   }
 
   private void addNonOwnedCollectionItems(
@@ -144,7 +144,6 @@ public class DefaultCollectionService implements CollectionService {
           if (!collection.contains(object)) {
             validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
             collection.add(object);
-            manager.update(item);
             report.getStats().incUpdated();
           } else {
             report.getStats().incIgnored();
@@ -170,7 +169,6 @@ public class DefaultCollectionService implements CollectionService {
     }
 
     TypeReport report = new TypeReport(property.getItemKlass());
-    manager.refresh(object);
 
     if (property.isOwner()) {
       delOwnedCollectionItems(object, property, itemCodes, report);
@@ -179,9 +177,6 @@ public class DefaultCollectionService implements CollectionService {
     }
 
     validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
-    manager.update(object);
-
-    dbmsManager.clearSession();
     return report;
   }
 
@@ -226,7 +221,6 @@ public class DefaultCollectionService implements CollectionService {
           if (collection.contains(object)) {
             validateAndThrowErrors(() -> schemaValidator.validateProperty(owningProperty, item));
             collection.remove(object);
-            manager.update(item);
             report.getStats().incDeleted();
           } else {
             report.getStats().incIgnored();
