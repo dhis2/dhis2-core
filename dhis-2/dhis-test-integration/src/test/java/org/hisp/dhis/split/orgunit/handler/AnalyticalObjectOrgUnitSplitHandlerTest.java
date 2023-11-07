@@ -29,6 +29,9 @@ package org.hisp.dhis.split.orgunit.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceContext;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -46,7 +49,7 @@ class AnalyticalObjectOrgUnitSplitHandlerTest extends SingleSetupIntegrationTest
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
-  @Autowired private SessionFactory sessionFactory;
+  @PersistenceContext private EntityManager entityManager;
 
   @Autowired private AnalyticalObjectOrgUnitSplitHandler handler;
 
@@ -106,11 +109,10 @@ class AnalyticalObjectOrgUnitSplitHandlerTest extends SingleSetupIntegrationTest
    */
   private long getVisualizationCount(OrganisationUnit target) {
     return (Long)
-        sessionFactory
-            .getCurrentSession()
+        entityManager
             .createQuery(
                 "select count(distinct v) from Visualization v where :target in elements(v.organisationUnits)")
             .setParameter("target", target)
-            .uniqueResult();
+            .getSingleResult();
   }
 }
