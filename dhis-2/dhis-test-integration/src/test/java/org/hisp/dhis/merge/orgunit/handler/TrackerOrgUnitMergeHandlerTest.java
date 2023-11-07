@@ -30,7 +30,8 @@ package org.hisp.dhis.merge.orgunit.handler;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -61,7 +62,8 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private TrackerOrgUnitMergeHandler mergeHandler;
 
-  @Autowired private SessionFactory sessionFactory;
+  @PersistenceContext
+  private EntityManager entityManager;
 
   private ProgramStage psA;
 
@@ -145,10 +147,9 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
    */
   private long getEnrollmentCount(OrganisationUnit target) {
     return (Long)
-        sessionFactory
-            .getCurrentSession()
+        entityManager
             .createQuery("select count(*) from Enrollment pi where pi.organisationUnit = :target")
             .setParameter("target", target)
-            .uniqueResult();
+            .getSingleResult();
   }
 }
