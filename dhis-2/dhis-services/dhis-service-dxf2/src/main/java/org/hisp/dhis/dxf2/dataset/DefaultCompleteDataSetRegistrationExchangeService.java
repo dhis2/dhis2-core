@@ -28,12 +28,14 @@
 package org.hisp.dhis.dxf2.dataset;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -230,15 +232,15 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsXml(
       InputStream in, ImportOptions importOptions, JobConfiguration jobId) {
-    try {
-      in = StreamUtils.wrapAndCheckCompressionFormat(in);
-      CompleteDataSetRegistrations completeDataSetRegistrations =
-          new StreamingXmlCompleteDataSetRegistrations(XMLFactory.getXMLReader(in));
+    return saveCompleteDataSetRegistrations(
+        importOptions, jobId, () -> readRegistrationsFromXml(in));
+  }
 
-      return saveCompleteDataSetRegistrations(importOptions, completeDataSetRegistrations);
-    } catch (Exception ex) {
-      return handleImportError(ex);
-    }
+  @Nonnull
+  private static CompleteDataSetRegistrations readRegistrationsFromXml(InputStream in)
+      throws IOException {
+    in = StreamUtils.wrapAndCheckCompressionFormat(in);
+    return new StreamingXmlCompleteDataSetRegistrations(XMLFactory.getXMLReader(in));
   }
 
   @Override
@@ -252,16 +254,36 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsJson(
       InputStream in, ImportOptions importOptions, JobConfiguration jobId) {
+    return saveCompleteDataSetRegistrations(
+        importOptions, jobId, () -> readRegistrationsFromJson(in));
+  }
+
+  private ImportSummary saveCompleteDataSetRegistrations(
+      ImportOptions importOptions,
+      JobConfiguration jobId,
+      Callable<CompleteDataSetRegistrations> deserializeRegistrations) {
+    BatchHandler<CompleteDataSetRegistration> batchHandler =
+        batchHandlerFactory.createBatchHandler(CompleteDataSetRegistrationBatchHandler.class);
     try {
-      in = StreamUtils.wrapAndCheckCompressionFormat(in);
+      CompleteDataSetRegistrations completeDataSetRegistrations = deserializeRegistrations.call();
+      ImportSummary summary =
+          saveCompleteDataSetRegistrations(
+              importOptions, completeDataSetRegistrations, batchHandler);
 
-      CompleteDataSetRegistrations completeDataSetRegistrations =
-          jsonMapper.readValue(in, CompleteDataSetRegistrations.class);
+      batchHandler.flush();
 
-      return saveCompleteDataSetRegistrations(importOptions, completeDataSetRegistrations);
+      return summary;
     } catch (Exception ex) {
+      batchHandler.flush();
       return handleImportError(ex);
     }
+  }
+
+  @Nonnull
+  private CompleteDataSetRegistrations readRegistrationsFromJson(InputStream in)
+      throws IOException {
+    in = StreamUtils.wrapAndCheckCompressionFormat(in);
+    return jsonMapper.readValue(in, CompleteDataSetRegistrations.class);
   }
 
   @Override
@@ -367,7 +389,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   private ImportSummary saveCompleteDataSetRegistrations(
-      ImportOptions importOptions, CompleteDataSetRegistrations completeRegistrations) {
+      ImportOptions importOptions,
+      CompleteDataSetRegistrations completeRegistrations,
+      BatchHandler<CompleteDataSetRegistration> batchHandler) {
     Clock clock =
         new Clock(log).startClock().logTime("Starting complete data set registration import");
 
@@ -406,7 +430,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     // ---------------------------------------------------------------------
 
     int totalCount =
-        batchImport(completeRegistrations, cfg, importSummary, metaDataCallables, caches);
+        batchImport(
+            completeRegistrations, cfg, importSummary, metaDataCallables, caches, batchHandler);
 
     ImportCount count = importSummary.getImportCount();
 
@@ -428,16 +453,14 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       ImportConfig config,
       ImportSummary summary,
       MetadataCallables mdCallables,
-      MetadataCaches mdCaches) {
+      MetadataCaches mdCaches,
+      BatchHandler<CompleteDataSetRegistration> batchHandler) {
     final User currentUser = currentUserService.getCurrentUser();
     final String currentUserName = currentUser.getUsername();
     final Set<OrganisationUnit> userOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
     final I18n i18n = i18nManager.getI18n();
 
-    BatchHandler<CompleteDataSetRegistration> batchHandler =
-        batchHandlerFactory
-            .createBatchHandler(CompleteDataSetRegistrationBatchHandler.class)
-            .init();
+    batchHandler.init();
 
     int importCount = 0, updateCount = 0, deleteCount = 0, totalCount = 0;
 
@@ -606,8 +629,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
       }
     }
-
-    batchHandler.flush();
 
     finalizeSummary(summary, totalCount, importCount, updateCount, deleteCount);
 
