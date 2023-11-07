@@ -54,8 +54,8 @@ public interface DatastoreStore extends IdentifiableObjectStore<DatastoreEntry> 
 
   /**
    * Retrieves a list of keys associated with a given namespace which are updated after lastUpdated
-   * time. A sharing check for Data Read access is performed on the User to see what entries they
-   * have permission to read.
+   * time. A sharing check for Metadata Read access is performed on the User to see what entries
+   * they have permission to read.
    *
    * @param namespace the namespace to retrieve keys from
    * @param lastUpdated the lastUpdated time to retrieve keys from
@@ -72,7 +72,7 @@ public interface DatastoreStore extends IdentifiableObjectStore<DatastoreEntry> 
   List<DatastoreEntry> getEntriesInNamespace(String namespace);
 
   /**
-   * Stream the matching entries to a transformer or consumer function. A sharing check for Data
+   * Stream the matching entries to a transformer or consumer function. A sharing check for Metadata
    * Read access is performed on the User to see what entries they have permission to read.
    *
    * <p>Note that this API cannot return the {@link Stream} since it has to be processed within the
