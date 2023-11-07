@@ -37,6 +37,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -144,8 +145,18 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void addError(ErrorCode code, String uid, String type, Integer index, List<String> args) {
-    progress.addError(new Error(code, uid, type, index, args));
+  public void addError(
+      @Nonnull ErrorCode code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      @CheckForNull Integer index,
+      @Nonnull List<String> args) {
+    try {
+      // Note: we use empty string in case the UID is not known/defined yet to allow use in maps
+      progress.addError(new Error(code, uid == null ? "" : uid, type, index, args));
+    } catch (Exception ex) {
+      log.error("Failed to add error: %s %s %s %d %s".formatted(code, uid, type, index, args), ex);
+    }
   }
 
   @Override
