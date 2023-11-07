@@ -33,6 +33,8 @@ import static java.lang.Long.parseLong;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_DRIVER_CLASS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_DELAY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_IDLE_CON_TEST_PERIOD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_INITIAL_SIZE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME;
@@ -50,6 +52,8 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_DRIVER_CLASS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_RETRY_DELAY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME;
@@ -112,6 +116,10 @@ public class DatabasePoolUtils {
             .put(CONNECTION_POOL_VALIDATION_TIMEOUT, ANALYTICS_CONNECTION_POOL_VALIDATION_TIMEOUT)
             /* C3P0-specific */
             .put(CONNECTION_POOL_ACQUIRE_INCR, ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR)
+            .put(
+                CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS,
+                ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS)
+            .put(CONNECTION_POOL_ACQUIRE_RETRY_DELAY, ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_DELAY)
             .put(CONNECTION_POOL_MAX_IDLE_TIME, ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME)
             .put(CONNECTION_POOL_MIN_SIZE, ANALYTICS_CONNECTION_POOL_MIN_SIZE)
             .put(CONNECTION_POOL_INITIAL_SIZE, ANALYTICS_CONNECTION_POOL_INITIAL_SIZE)
@@ -155,6 +163,9 @@ public class DatabasePoolUtils {
     private String maxPoolSize;
 
     private String acquireIncrement;
+
+    private String acquireRetryAttempts;
+    private String acquireRetryDelay;
 
     private String maxIdleTime;
 
@@ -268,6 +279,17 @@ public class DatabasePoolUtils {
             firstNonNull(
                 config.getAcquireIncrement(),
                 dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_INCR))));
+    final int acquireRetryAttempts =
+        parseInt(
+            firstNonNull(
+                config.getAcquireRetryAttempts(),
+                dhisConfig.getProperty(
+                    mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS))));
+    final int acquireRetryDelay =
+        parseInt(
+            firstNonNull(
+                config.getAcquireRetryDelay(),
+                dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_RETRY_DELAY))));
     final int maxIdleTime =
         parseInt(
             firstNonNull(
@@ -301,6 +323,8 @@ public class DatabasePoolUtils {
     dataSource.setMinPoolSize(minPoolSize);
     dataSource.setInitialPoolSize(initialSize);
     dataSource.setAcquireIncrement(acquireIncrement);
+    dataSource.setAcquireRetryAttempts(acquireRetryAttempts);
+    dataSource.setAcquireRetryDelay(acquireRetryDelay);
     dataSource.setMaxIdleTime(maxIdleTime);
     dataSource.setTestConnectionOnCheckin(testOnCheckIn);
     dataSource.setTestConnectionOnCheckout(testOnCheckOut);

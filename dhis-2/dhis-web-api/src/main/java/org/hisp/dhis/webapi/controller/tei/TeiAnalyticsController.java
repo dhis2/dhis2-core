@@ -257,7 +257,8 @@ class TeiAnalyticsController {
         dimensionMapperService.toDimensionResponse(
             teiAnalyticsDimensionsService.getQueryDimensionsByTrackedEntityTypeId(
                 trackedEntityType, program),
-            TeiAnalyticsPrefixStrategy.INSTANCE),
+            TeiAnalyticsPrefixStrategy.INSTANCE,
+            true),
         dimensionsCriteria,
         fields);
   }
