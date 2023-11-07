@@ -219,19 +219,19 @@ class EventServiceTest extends TransactionalIntegrationTest {
     enrollmentB = new Enrollment(enrollmentDate, incidenDate, entityInstanceB, programB);
     enrollmentService.addEnrollment(enrollmentB);
     eventA = new Event(enrollmentA, stageA);
-    eventA.setDueDate(enrollmentDate);
+    eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     eventB = new Event(enrollmentA, stageB);
-    eventB.setDueDate(enrollmentDate);
+    eventB.setScheduledDate(enrollmentDate);
     eventB.setUid("UID-B");
     eventC = new Event(enrollmentB, stageC);
-    eventC.setDueDate(enrollmentDate);
+    eventC.setScheduledDate(enrollmentDate);
     eventC.setUid("UID-C");
     eventD1 = new Event(enrollmentB, stageD);
-    eventD1.setDueDate(enrollmentDate);
+    eventD1.setScheduledDate(enrollmentDate);
     eventD1.setUid("UID-D1");
     eventD2 = new Event(enrollmentB, stageD);
-    eventD2.setDueDate(enrollmentDate);
+    eventD2.setScheduledDate(enrollmentDate);
     eventD2.setUid("UID-D2");
     /*
      * Prepare data for EventDataValues manipulation tests
@@ -300,7 +300,7 @@ class EventServiceTest extends TransactionalIntegrationTest {
   void shouldNoteDeleteNoteWhenDeletingEvent() {
 
     Event event = new Event(enrollmentA, stageA);
-    event.setDueDate(enrollmentDate);
+    event.setScheduledDate(enrollmentDate);
     event.setUid(CodeGenerator.generateUid());
 
     Note note = new Note();

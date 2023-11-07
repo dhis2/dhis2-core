@@ -1947,7 +1947,7 @@ public class JdbcEventStore implements EventStore {
       throws SQLException, JsonProcessingException {
     ps.setLong(1, event.getEnrollment().getId());
     ps.setLong(2, event.getProgramStage().getId());
-    ps.setTimestamp(3, JdbcEventSupport.toTimestamp(event.getDueDate()));
+    ps.setTimestamp(3, JdbcEventSupport.toTimestamp(event.getScheduledDate()));
     ps.setTimestamp(4, JdbcEventSupport.toTimestamp(event.getOccurredDate()));
     ps.setLong(5, event.getOrganisationUnit().getId());
     ps.setString(6, event.getStatus().toString());
@@ -1980,7 +1980,7 @@ public class JdbcEventStore implements EventStore {
         .addValue("programstageid", event.getProgramStage().getId())
         .addValue(
             EventQuery.COLUMNS.DUE_DATE.getColumnName(),
-            JdbcEventSupport.toTimestamp(event.getDueDate()))
+            JdbcEventSupport.toTimestamp(event.getScheduledDate()))
         .addValue(
             EventQuery.COLUMNS.EXECUTION_DATE.getColumnName(),
             JdbcEventSupport.toTimestamp(event.getOccurredDate()))
