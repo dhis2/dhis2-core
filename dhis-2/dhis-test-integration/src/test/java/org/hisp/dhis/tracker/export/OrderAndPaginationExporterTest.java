@@ -522,6 +522,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.ASC)
             .build();
 
@@ -553,6 +554,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.ASC)
             .build();
 
@@ -590,7 +592,10 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .toList();
 
     EnrollmentOperationParams params =
-        EnrollmentOperationParams.builder().orgUnitUids(Set.of(orgUnit.getUid())).build();
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
+            .build();
 
     List<String> enrollments = getEnrollments(params);
 
@@ -603,6 +608,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.ASC)
             .build();
 
@@ -617,6 +623,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.DESC)
             .build();
 
