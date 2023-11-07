@@ -207,10 +207,12 @@ public class TrackedEntityAggregate implements Aggregate {
      * Async fetch Owned Tei mapped to the provided program attributes by
      * TrackedEntity id
      */
+    boolean skipScopeValidation = user.isPresent() && user.get().isSuper();
     final CompletableFuture<Multimap<String, String>> ownedTeiAsync =
         conditionalAsyncFetch(
-            user.isPresent(), () -> trackedEntityStore.getOwnedTeis(ids, ctx), getPool());
-
+            user.isPresent(),
+            () -> trackedEntityStore.getOwnedTeis(ids, ctx, skipScopeValidation),
+            getPool());
     /*
      * Execute all queries and merge the results
      */

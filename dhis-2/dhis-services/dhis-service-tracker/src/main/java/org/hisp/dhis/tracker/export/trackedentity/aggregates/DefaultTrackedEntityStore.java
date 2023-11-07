@@ -67,31 +67,46 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
           + "join trackedentity te on teop.trackedentityid = te.trackedentityid "
           + "where teop.trackedentityid in (:ids)";
 
-  private static final String GET_OWNERSHIP_DATA_FOR_TE_FOR_ALL_PROGRAM =
-      "SELECT te.uid as te_uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
-          + "FROM trackedentityprogramowner TPO "
-          + "LEFT JOIN program P on P.programid = TPO.programid "
-          + "LEFT JOIN organisationunit OU on OU.organisationunitid = TPO.organisationunitid "
-          + "LEFT JOIN trackedentity TE on TE.trackedentityid = tpo.trackedentityid "
-          + "WHERE TPO.trackedentityid in (:ids) "
-          + "AND p.programid in (SELECT programid FROM program) "
-          + "GROUP BY te.uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
-          + "HAVING (P.accesslevel in ('OPEN', 'AUDITED') AND (EXISTS(SELECT SS.organisationunitid FROM userteisearchorgunits SS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = SS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')) OR EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')))) "
-          + "OR (P.accesslevel in ('CLOSED', 'PROTECTED') AND EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')));";
-
-  private static final String GET_OWNERSHIP_DATA_FOR_TE_FOR_SPECIFIC_PROGRAM =
-      "SELECT te.uid as te_uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
-          + "FROM trackedentityprogramowner TPO "
-          + "LEFT JOIN program P on P.programid = TPO.programid "
-          + "LEFT JOIN organisationunit OU on OU.organisationunitid = TPO.organisationunitid "
-          + "LEFT JOIN trackedentity TE on TE.trackedentityid = tpo.trackedentityid "
-          + "WHERE TPO.trackedentityid in (:ids) "
-          + "AND p.uid = :programUid "
-          + "GROUP BY te.uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
-          + "HAVING (P.accesslevel in ('OPEN', 'AUDITED') AND (EXISTS(SELECT SS.organisationunitid FROM userteisearchorgunits SS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = SS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')) OR EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')))) "
-          + "OR (P.accesslevel in ('CLOSED', 'PROTECTED') AND EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')));";
-
   private static final String FILTER_OUT_DELETED_TE = "te.deleted=false";
+
+  private String getTrackedEntitiesOwnershipSqlForAllPrograms(boolean skipUserScopeValidation) {
+    String sql =
+        "SELECT te.uid as te_uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
+            + "FROM trackedentityprogramowner TPO "
+            + "LEFT JOIN program P on P.programid = TPO.programid "
+            + "LEFT JOIN organisationunit OU on OU.organisationunitid = TPO.organisationunitid "
+            + "LEFT JOIN trackedentity TE on TE.trackedentityid = tpo.trackedentityid "
+            + "WHERE TPO.trackedentityid in (:ids) "
+            + "AND p.programid in (SELECT programid FROM program) ";
+
+    if (!skipUserScopeValidation)
+      sql +=
+          "GROUP BY te.uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
+              + "HAVING (P.accesslevel in ('OPEN', 'AUDITED') AND (EXISTS(SELECT SS.organisationunitid FROM userteisearchorgunits SS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = SS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')) OR EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')))) "
+              + "OR (P.accesslevel in ('CLOSED', 'PROTECTED') AND EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')));";
+
+    return sql;
+  }
+
+  private String getTrackedEntitiesOwnershipSqlForSpecificProgram(boolean skipUserScopeValidation) {
+    String sql =
+        "SELECT te.uid as te_uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
+            + "FROM trackedentityprogramowner TPO "
+            + "LEFT JOIN program P on P.programid = TPO.programid "
+            + "LEFT JOIN organisationunit OU on OU.organisationunitid = TPO.organisationunitid "
+            + "LEFT JOIN trackedentity TE on TE.trackedentityid = tpo.trackedentityid "
+            + "WHERE TPO.trackedentityid in (:ids) "
+            + "AND p.programid in (SELECT programid FROM program) ";
+
+    if (!skipUserScopeValidation) {
+      sql +=
+          "GROUP BY te.uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, ou.path, p.accesslevel,p.uid "
+              + "HAVING (P.accesslevel in ('OPEN', 'AUDITED') AND (EXISTS(SELECT SS.organisationunitid FROM userteisearchorgunits SS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = SS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')) OR EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')))) "
+              + "OR (P.accesslevel in ('CLOSED', 'PROTECTED') AND EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')));";
+    }
+
+    return sql;
+  }
 
   public DefaultTrackedEntityStore(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
@@ -143,17 +158,22 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
   }
 
   @Override
-  public Multimap<String, String> getOwnedTeis(List<Long> ids, Context ctx) {
+  public Multimap<String, String> getOwnedTeis(
+      List<Long> ids, Context ctx, boolean skipUserScopeValidation) {
     List<List<Long>> teds = Lists.partition(ids, PARITITION_SIZE);
 
     Multimap<String, String> ownedTeisMultiMap = ArrayListMultimap.create();
 
-    teds.forEach(partition -> ownedTeisMultiMap.putAll(getOwnedTeisPartitioned(partition, ctx)));
+    teds.forEach(
+        partition ->
+            ownedTeisMultiMap.putAll(
+                getOwnedTeisPartitioned(partition, ctx, skipUserScopeValidation)));
 
     return ownedTeisMultiMap;
   }
 
-  private Multimap<String, String> getOwnedTeisPartitioned(List<Long> ids, Context ctx) {
+  private Multimap<String, String> getOwnedTeisPartitioned(
+      List<Long> ids, Context ctx, boolean skipUserScopeValidation) {
     OwnedTeMapper handler = new OwnedTeMapper();
 
     MapSqlParameterSource paramSource = createIdsParam(ids).addValue("userInfoId", ctx.getUserId());
@@ -165,10 +185,10 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
     String sql;
 
     if (ctx.getQueryParams().hasProgram()) {
-      sql = GET_OWNERSHIP_DATA_FOR_TE_FOR_SPECIFIC_PROGRAM;
+      sql = getTrackedEntitiesOwnershipSqlForSpecificProgram(skipUserScopeValidation);
       paramSource.addValue("programUid", ctx.getQueryParams().getProgram().getUid());
     } else if (checkForOwnership) {
-      sql = GET_OWNERSHIP_DATA_FOR_TE_FOR_ALL_PROGRAM;
+      sql = getTrackedEntitiesOwnershipSqlForAllPrograms(skipUserScopeValidation);
     } else {
       return ArrayListMultimap.create();
     }
