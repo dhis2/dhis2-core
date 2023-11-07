@@ -144,11 +144,13 @@ public class DefaultCollectionService implements CollectionService {
           if (!collection.contains(object)) {
             validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
             collection.add(object);
+            manager.update(item);
             report.getStats().incUpdated();
           } else {
             report.getStats().incIgnored();
           }
         });
+    entityManager.refresh(object);
   }
 
   @Override
@@ -221,11 +223,13 @@ public class DefaultCollectionService implements CollectionService {
           if (collection.contains(object)) {
             validateAndThrowErrors(() -> schemaValidator.validateProperty(owningProperty, item));
             collection.remove(object);
+            manager.update(item);
             report.getStats().incDeleted();
           } else {
             report.getStats().incIgnored();
           }
         });
+    entityManager.refresh(object);
   }
 
   @Override

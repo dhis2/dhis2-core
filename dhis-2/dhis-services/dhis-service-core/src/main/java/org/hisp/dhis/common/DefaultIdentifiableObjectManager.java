@@ -102,8 +102,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
 
   private final EntityManager entityManager;
 
-  private final Session session;
-
   private final CurrentUserService currentUserService;
 
   protected final SchemaService schemaService;
@@ -138,7 +136,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     this.currentUserService = currentUserService;
     this.schemaService = schemaService;
     this.defaultObjectCache = cacheProvider.createDefaultObjectCache();
-    this.session = entityManager.unwrap(Session.class);
   }
 
   // --------------------------------------------------------------------------
@@ -215,7 +212,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     translatedObject.setLastUpdated(new Date());
     translatedObject.setLastUpdatedBy(currentUserService.getCurrentUser());
 
-    session.update(translatedObject);
+    entityManager.unwrap(Session.class).update(translatedObject);
   }
 
   @Override
@@ -989,19 +986,19 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional
   public void flush() {
-    session.flush();
+    entityManager.flush();
   }
 
   @Override
   @Transactional
   public void clear() {
-    session.clear();
+    entityManager.clear();
   }
 
   @Override
   @Transactional
   public void evict(@Nonnull Object object) {
-    session.evict(object);
+    entityManager.unwrap(Session.class).evict(object);
   }
 
   @Override
