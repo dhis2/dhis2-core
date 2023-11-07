@@ -91,9 +91,13 @@ public class RouteController extends AbstractCrudController<Route> {
 
   private Optional<String> getSubPath(String path, String id) {
     String prefix = String.format("%s/%s/run/", RouteSchemaDescriptor.API_ENDPOINT, id);
-    if (path.startsWith(prefix)) {
+
+    if (path.startsWith(prefix, 3)) {
+      return Optional.of(path.substring(prefix.length() + 3));
+    } else if (path.startsWith(prefix)) {
       return Optional.of(path.substring(prefix.length()));
     }
+
     return Optional.empty();
   }
 }
