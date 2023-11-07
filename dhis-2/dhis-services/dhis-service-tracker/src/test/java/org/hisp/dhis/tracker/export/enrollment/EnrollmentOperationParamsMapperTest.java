@@ -177,7 +177,7 @@ class EnrollmentOperationParamsMapperTest {
   void shouldThrowExceptionWhenOrgUnitNotFound() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of("JW6BrFd0HLu", ORG_UNIT_2_UID))
+            .orgUnitUids(Set.of("JW6BrFd0HLu"))
             .orgUnitMode(SELECTED)
             .programUid(PROGRAM_UID)
             .build();
