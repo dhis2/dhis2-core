@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -118,6 +120,8 @@ class EnrollmentOperationParamsMapperTest {
             orgUnit2.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(true);
 
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
+
     program = new Program();
     program.setUid(PROGRAM_UID);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
@@ -135,7 +139,8 @@ class EnrollmentOperationParamsMapperTest {
   @Test
   void shouldMapWithoutFetchingNullParamsWhenParamsAreNotSpecified()
       throws BadRequestException, ForbiddenException {
-    EnrollmentOperationParams operationParams = EnrollmentOperationParams.EMPTY;
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
     mapper.map(operationParams);
 
@@ -151,10 +156,17 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID))
+            .orgUnitMode(SELECTED)
             .programUid(program.getUid())
             .build();
     when(trackerAccessManager.canAccess(user, program, orgUnit1)).thenReturn(true);
     when(trackerAccessManager.canAccess(user, program, orgUnit2)).thenReturn(true);
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(true);
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnit2.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(true);
 
     EnrollmentQueryParams params = mapper.map(operationParams);
 
@@ -166,6 +178,7 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of("JW6BrFd0HLu", ORG_UNIT_2_UID))
+            .orgUnitMode(SELECTED)
             .programUid(PROGRAM_UID)
             .build();
 
@@ -193,7 +206,7 @@ class EnrollmentOperationParamsMapperTest {
   @Test
   void shouldMapProgramWhenProgramUidIsSpecified() throws BadRequestException, ForbiddenException {
     EnrollmentOperationParams requestParams =
-        EnrollmentOperationParams.builder().programUid(PROGRAM_UID).build();
+        EnrollmentOperationParams.builder().programUid(PROGRAM_UID).orgUnitMode(ACCESSIBLE).build();
 
     EnrollmentQueryParams params = mapper.map(requestParams);
 
@@ -214,7 +227,10 @@ class EnrollmentOperationParamsMapperTest {
   void shouldMapTrackedEntityTypeWhenTrackedEntityTypeUidIsSpecified()
       throws BadRequestException, ForbiddenException {
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().trackedEntityTypeUid(TRACKED_ENTITY_TYPE_UID).build();
+        EnrollmentOperationParams.builder()
+            .trackedEntityTypeUid(TRACKED_ENTITY_TYPE_UID)
+            .orgUnitMode(ACCESSIBLE)
+            .build();
 
     EnrollmentQueryParams params = mapper.map(operationParams);
 
@@ -235,7 +251,10 @@ class EnrollmentOperationParamsMapperTest {
   void shouldMapTrackedEntityWhenTrackedEntityUidIsSpecified()
       throws BadRequestException, ForbiddenException {
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().trackedEntityUid(TRACKED_ENTITY_UID).build();
+        EnrollmentOperationParams.builder()
+            .trackedEntityUid(TRACKED_ENTITY_UID)
+            .orgUnitMode(ACCESSIBLE)
+            .build();
 
     EnrollmentQueryParams params = mapper.map(operationParams);
 
@@ -259,6 +278,7 @@ class EnrollmentOperationParamsMapperTest {
         EnrollmentOperationParams.builder()
             .orderBy("enrollmentDate", SortDirection.ASC)
             .orderBy("created", SortDirection.DESC)
+            .orgUnitMode(ACCESSIBLE)
             .build();
 
     EnrollmentQueryParams params = mapper.map(operationParams);
@@ -273,9 +293,10 @@ class EnrollmentOperationParamsMapperTest {
   @Test
   void shouldMapNullOrderingParamsWhenNoOrderingParamsAreSpecified()
       throws BadRequestException, ForbiddenException {
-    EnrollmentOperationParams requestParams = EnrollmentOperationParams.EMPTY;
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
-    EnrollmentQueryParams params = mapper.map(requestParams);
+    EnrollmentQueryParams params = mapper.map(operationParams);
 
     assertIsEmpty(params.getOrder());
   }
