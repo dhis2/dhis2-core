@@ -2654,6 +2654,10 @@ public abstract class DhisConvenienceTest {
     object.getSharing().resetUserAccesses();
   }
 
+  protected void removePublicAccess(IdentifiableObject object) {
+    object.getSharing().setPublicAccess("--------");
+  }
+
   protected void enableDataSharing(User user, IdentifiableObject object, String access) {
     object.getSharing().resetUserAccesses();
 

@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -46,6 +47,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,11 +70,38 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetNamespaceKeys_SuperUser()
+  void testGetNamespaceKeys_DefaultPublicAccess()
       throws ConflictException, BadRequestException, JsonProcessingException {
     // given
-    // 2 existing namespace entries with sharing set to nonSuperUser only
+    // 2 existing namespace entries with default public sharing access 'rw------'
     User basicUser = createAndAddUser(false, "basicUser", null);
+
+    String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
+    String spurs = jsonMapper.writeValueAsString(club("spurs"));
+
+    addEntry("arsenal", arsenal);
+    addEntry("spurs", spurs);
+
+    // when
+    // a basic user without explicit access tries to get namespace keys
+    injectSecurityContext(basicUser);
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    assertFalse(currentUserDetails.isSuper());
+    assertEquals("basicUser", currentUserDetails.getUsername());
+    List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
+
+    // then
+    // the basic user should be able to retrieve all keys from the namespace
+    assertNotNull(keysInNamespace);
+    assertEquals(2, keysInNamespace.size());
+    assertTrue(keysInNamespace.containsAll(List.of("arsenal", "spurs")));
+  }
+
+  @Test
+  void testGetNamespaceKeys_NoPublicAccess_SuperUser()
+      throws ConflictException, BadRequestException, JsonProcessingException {
+    // given
+    // 2 existing namespace entries with no sharing public access
     User superuser = createAndAddUser(true, "superUser1", null);
 
     String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
@@ -81,8 +110,8 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     DatastoreEntry entry1 = addEntry("arsenal", arsenal);
     DatastoreEntry entry2 = addEntry("spurs", spurs);
 
-    enableDataSharing(basicUser, entry1, "--r-----");
-    enableDataSharing(basicUser, entry2, "--r-----");
+    removePublicAccess(entry1);
+    removePublicAccess(entry2);
 
     // when
     // a superuser without explicit access tries to get namespace keys
@@ -100,10 +129,10 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetNamespaceKeys_FullUserAccess()
+  void testGetNamespaceKeys_NoPublicAccess_FullUserAccess()
       throws ConflictException, BadRequestException, JsonProcessingException {
     // given
-    // 2 existing namespace entries with sharing set to nonSuperUser2 only
+    // 2 existing namespace entries with sharing set to userWithFullAccess & no public access
     User basicUser = createAndAddUser(false, "basicUser", null);
     User userWithFullAccess = createAndAddUser(false, "userWithFullAccess", null);
     injectSecurityContext(basicUser);
@@ -114,8 +143,11 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     DatastoreEntry entry1 = addEntry("arsenal", arsenal);
     DatastoreEntry entry2 = addEntry("spurs", spurs);
 
-    enableDataSharing(userWithFullAccess, entry1, "--r-----");
-    enableDataSharing(userWithFullAccess, entry2, "--r-----");
+    removePublicAccess(entry1);
+    removePublicAccess(entry2);
+
+    enableDataSharing(userWithFullAccess, entry1, "r-------");
+    enableDataSharing(userWithFullAccess, entry2, "r-------");
 
     // when
     // a user with full access tries to get namespace keys
@@ -133,10 +165,10 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetNamespaceKeys_NoUserAccess()
+  void testGetNamespaceKeys_NoPublicAccess_NoUserAccess()
       throws ConflictException, BadRequestException, JsonProcessingException {
     // given
-    // 2 existing namespace entries with sharing set to basicUser only
+    // 2 existing namespace entries with sharing set to basicUser only & no public access
     User basicUser = createAndAddUser(false, "basicUser", null);
     User userWithNoAccess = createAndAddUser(false, "userWithNoAccess", null);
     injectSecurityContext(basicUser);
@@ -147,8 +179,11 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     DatastoreEntry entry1 = addEntry("arsenal", arsenal);
     DatastoreEntry entry2 = addEntry("spurs", spurs);
 
-    enableDataSharing(basicUser, entry1, "--r-----");
-    enableDataSharing(basicUser, entry2, "--r-----");
+    removePublicAccess(entry1);
+    removePublicAccess(entry2);
+
+    enableDataSharing(basicUser, entry1, "r-------");
+    enableDataSharing(basicUser, entry2, "r-------");
 
     // when
     // a user with no explicit access tries to get namespace keys
@@ -165,7 +200,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetNamespaceKeys_UserAccessOnOneEntryOnly()
+  void testGetNamespaceKeys_NoPublicAccess_UserAccessOnOneEntryOnly()
       throws ConflictException, BadRequestException, JsonProcessingException {
     // given
     // 2 existing namespace entries with sharing set to nonSuperUser2 on 1 entry only
@@ -177,8 +212,12 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     String spurs = jsonMapper.writeValueAsString(club("spurs"));
 
     DatastoreEntry entry1 = addEntry("arsenal", arsenal);
-    addEntry("spurs", spurs);
-    enableDataSharing(userWithSomeAccess, entry1, "--r-----");
+    DatastoreEntry entry2 = addEntry("spurs", spurs);
+
+    removePublicAccess(entry1);
+    removePublicAccess(entry2);
+
+    enableDataSharing(userWithSomeAccess, entry1, "r-------");
 
     // when
     // a user with access to one entry tries to get namespace keys
@@ -195,10 +234,10 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetNamespaceKeys_FullUserGroupAccess()
+  void testGetNamespaceKeys_NoPublicAccess_FullUserGroupAccess()
       throws ConflictException, BadRequestException, JsonProcessingException {
     // given
-    // 2 existing namespace entries with sharing set a specific user group only
+    // 2 existing namespace entries with sharing set a specific user group only & no public access
     User basicUser = createAndAddUser(false, "basicUser", null);
     User userWithUserGroupAccess = createAndAddUser(false, "userWithUserGroupAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(userWithUserGroupAccess));
@@ -214,8 +253,11 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     DatastoreEntry entry1 = addEntry("arsenal", arsenal);
     DatastoreEntry entry2 = addEntry("spurs", spurs);
 
-    enableDataSharingWithUserGroup(userGroup, entry1, "--r-----");
-    enableDataSharingWithUserGroup(userGroup, entry2, "--r-----");
+    removePublicAccess(entry1);
+    removePublicAccess(entry2);
+
+    enableDataSharingWithUserGroup(userGroup, entry1, "r-------");
+    enableDataSharingWithUserGroup(userGroup, entry2, "r-------");
 
     // when
     // a user with user group access tries to get namespace keys
@@ -233,10 +275,11 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetNamespaceKeys_NoUserGroupAccess()
+  void testGetNamespaceKeys_NoPublicAccess_NoUserGroupAccess()
       throws ConflictException, BadRequestException, JsonProcessingException {
     // given
-    // 2 existing namespace entries with sharing set to a specific user group only
+    // 2 existing namespace entries with sharing set to a specific user group only & no public
+    // access
     User basicUser = createAndAddUser(false, "basicUser", null);
     User userWithNoAccess = createAndAddUser(false, "userWithNoAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(basicUser));
@@ -250,8 +293,11 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     DatastoreEntry entry1 = addEntry("arsenal", arsenal);
     DatastoreEntry entry2 = addEntry("spurs", spurs);
 
-    enableDataSharingWithUserGroup(userGroup, entry1, "--r-----");
-    enableDataSharingWithUserGroup(userGroup, entry2, "--r-----");
+    removePublicAccess(entry1);
+    removePublicAccess(entry2);
+
+    enableDataSharingWithUserGroup(userGroup, entry1, "r-------");
+    enableDataSharingWithUserGroup(userGroup, entry2, "r-------");
 
     // when
     // a user with no access tries to get namespace keys
@@ -268,10 +314,10 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetNamespaceKeys_UserGroupAccessOnOneEntryOnly()
+  void testGetNamespaceKeys_NoPublicAccess_UserGroupAccessOnOneEntryOnly()
       throws ConflictException, BadRequestException, JsonProcessingException {
     // given
-    // 2 existing namespace entries with sharing set to nonSuperUser2 on 1 entry only
+    // 2 existing namespace entries with sharing set to userWithSomeAccess on 1 entry only
     User basicUser = createAndAddUser(false, "basicUser", null);
     User userWithSomeAccess = createAndAddUser(false, "userWithSomeAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(userWithSomeAccess));
@@ -285,8 +331,12 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     String spurs = jsonMapper.writeValueAsString(club("spurs"));
 
     DatastoreEntry entry1 = addEntry("arsenal", arsenal);
-    addEntry("spurs", spurs);
-    enableDataSharingWithUserGroup(userGroup, entry1, "--r-----");
+    DatastoreEntry entry2 = addEntry("spurs", spurs);
+
+    removePublicAccess(entry1);
+    removePublicAccess(entry2);
+
+    enableDataSharingWithUserGroup(userGroup, entry1, "r-------");
 
     // when
     // a user with group access for one entry tries to get namespace keys
@@ -305,6 +355,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
   private <T> DatastoreEntry addEntry(String key, T object)
       throws ConflictException, BadRequestException {
     DatastoreEntry entry = new DatastoreEntry(NAMESPACE, key, mapValueToJson(object), false);
+    entry.setSharing(Sharing.builder().publicAccess(AccessStringHelper.READ_WRITE).build());
     datastoreService.addEntry(entry);
     return entry;
   }

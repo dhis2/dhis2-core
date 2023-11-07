@@ -46,7 +46,7 @@ public class KeyJsonValueSchemaDescriptor implements SchemaDescriptor {
     Schema schema = new Schema(DatastoreEntry.class, SINGULAR, PLURAL);
     schema.setRelativeApiEndpoint(API_ENDPOINT);
     schema.setOrder(9060);
-    schema.setDataShareable(true);
+    schema.setShareable(true);
 
     return schema;
   }

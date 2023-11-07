@@ -73,13 +73,42 @@ class DatastoreTest extends ApiTest {
   }
 
   @Test
-  void testDatastoreSharing_SuperUser() {
+  void testDatastoreSharing_DefaultPublicAccess_BasicUser() {
     // add 2 entries as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
     String key2 = "spurs";
     datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
     datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+
+    // make call with fields query param as basic user and check can see 2 entries
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+    QueryParamsBuilder params = new QueryParamsBuilder().add("fields", "league");
+    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE, params).validateStatus(200);
+
+    JsonArray entries = getResponse.getBody().getAsJsonArray("entries");
+    assertEquals("{\"key\":\"arsenal\",\"league\":\"prem\"}", entries.get(0).toString());
+    assertEquals("{\"key\":\"spurs\",\"league\":\"prem\"}", entries.get(1).toString());
+    assertEquals(2, entries.size());
+  }
+
+  @Test
+  void testDatastoreSharing_NoPublicAccess_SuperUser() {
+    // add 2 entries as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    String key2 = "spurs";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+
+    // get ids of entries
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+
+    // set sharing public access to '--------'
+    QueryParamsBuilder sharingParams =
+        new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingNoPublicAccess(), sharingParams).validateStatus(200);
 
     // make call with fields query param as super user and check can see 2 entries
     loginActions.loginAsSuperUser();
@@ -93,26 +122,7 @@ class DatastoreTest extends ApiTest {
   }
 
   @Test
-  void testDatastoreUserSharing_UserNoAccess() {
-    // add 2 entries as admin
-    loginActions.loginAsAdmin();
-    String key1 = "arsenal";
-    String key2 = "spurs";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
-
-    // make call with fields query param as user with no access and check can see no entries
-    loginActions.loginAsUser(BASIC_USER, "Test1234!");
-
-    QueryParamsBuilder params = new QueryParamsBuilder().add("fields", "league");
-    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE, params).validateStatus(200);
-
-    JsonArray entries = getResponse.getBody().getAsJsonArray("entries");
-    assertEquals(0, entries.size());
-  }
-
-  @Test
-  void testDatastoreUserSharing_UserHasAccess() {
+  void testDatastoreUserSharing_NoPublicAccess_UserNoAccess() {
     // add 2 entries as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
@@ -126,7 +136,40 @@ class DatastoreTest extends ApiTest {
     ApiResponse mdResponse2 = datastoreActions.get("/" + NAMESPACE + "/" + key2 + "/metaData");
     String uid2 = mdResponse2.extractUid();
 
-    // share entries with user
+    // set sharing public access to '--------'
+    QueryParamsBuilder sharingParams1 =
+        new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingNoPublicAccess(), sharingParams1).validateStatus(200);
+    QueryParamsBuilder sharingParams2 =
+        new QueryParamsBuilder().add("type", "dataStore").add("id", uid2);
+    sharingActions.post("", sharingNoPublicAccess(), sharingParams2).validateStatus(200);
+
+    // make call with fields query param as user with no access and check can see no entries
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+
+    QueryParamsBuilder params = new QueryParamsBuilder().add("fields", "league");
+    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE, params).validateStatus(200);
+
+    JsonArray entries = getResponse.getBody().getAsJsonArray("entries");
+    assertEquals(0, entries.size());
+  }
+
+  @Test
+  void testDatastoreUserSharing_NoPublicAccess_UserHasAccess() {
+    // add 2 entries as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    String key2 = "spurs";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+
+    // get ids of entries
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+    ApiResponse mdResponse2 = datastoreActions.get("/" + NAMESPACE + "/" + key2 + "/metaData");
+    String uid2 = mdResponse2.extractUid();
+
+    // share entries with user and set public access to '--------'
     QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
     sharingActions.post("", sharingUserAccess(basicUserId), params).validateStatus(200);
     QueryParamsBuilder params2 = new QueryParamsBuilder().add("type", "dataStore").add("id", uid2);
@@ -145,7 +188,7 @@ class DatastoreTest extends ApiTest {
   }
 
   @Test
-  void testDatastoreUserSharing_UserHasSomeAccess() {
+  void testDatastoreUserSharing_NoPublicAccess_UserHasSomeAccess() {
     // add 2 entries as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
@@ -154,12 +197,20 @@ class DatastoreTest extends ApiTest {
     datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
 
     // get id of 1 entry
-    ApiResponse mdResponse =
+    ApiResponse mdResponse1 =
+        datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
+    String uid1 = mdResponse1.extractUid();
+    ApiResponse mdResponse2 =
         datastoreActions.get("/" + NAMESPACE + "/" + key2 + "/metaData").validateStatus(200);
-    String uid = mdResponse.extractUid();
+    String uid2 = mdResponse2.extractUid();
 
-    // share entry with user
-    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid);
+    // set no public access sharing on 1 entry
+    QueryParamsBuilder sharingParams1 =
+        new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingNoPublicAccess(), sharingParams1).validateStatus(200);
+
+    // share other entry with user and set public access to '--------'
+    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid2);
     sharingActions.post("", sharingUserAccess(basicUserId), params).validateStatus(200);
 
     // make call with fields query as user with some access and check can see 1 entry
@@ -175,7 +226,7 @@ class DatastoreTest extends ApiTest {
   }
 
   @Test
-  void testDatastoreUserGroupSharing_UserHasAccess() {
+  void testDatastoreUserGroupSharing_NoPublicAccess_UserHasAccess() {
     // add 2 entries as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
@@ -192,7 +243,7 @@ class DatastoreTest extends ApiTest {
     // add user to user group
     userActions.post(basicUserId + "/userGroups/" + userGroupId, "").validateStatus(200);
 
-    // share entries with user group
+    // share entries with user group and set public access to '--------'
     QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
     sharingActions.post("", sharingUserGroupAccess(userGroupId), params).validateStatus(200);
     QueryParamsBuilder params2 = new QueryParamsBuilder().add("type", "dataStore").add("id", uid2);
@@ -212,7 +263,7 @@ class DatastoreTest extends ApiTest {
   }
 
   @Test
-  void testDatastoreUserGroupSharing_UserHasSomeAccess() {
+  void testDatastoreUserGroupSharing_NoPublicAccess_UserHasSomeAccess() {
     // add 2 entries as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
@@ -221,14 +272,21 @@ class DatastoreTest extends ApiTest {
     datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
 
     // get id of 1 entry
-    ApiResponse mdResponse = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
-    String uid = mdResponse.extractUid();
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+    ApiResponse mdResponse2 = datastoreActions.get("/" + NAMESPACE + "/" + key2 + "/metaData");
+    String uid2 = mdResponse2.extractUid();
 
     // add user to user group
     userActions.post(basicUserId + "/userGroups/" + userGroupId, "").validateStatus(200);
 
-    // give access to user for 1 entry only
-    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid);
+    // set no public access sharing on 1 entry
+    QueryParamsBuilder sharingParams =
+        new QueryParamsBuilder().add("type", "dataStore").add("id", uid2);
+    sharingActions.post("", sharingNoPublicAccess(), sharingParams).validateStatus(200);
+
+    // give access to user for the other entry only and set public access to '--------'
+    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
     sharingActions.post("", sharingUserGroupAccess(userGroupId), params).validateStatus(200);
 
     // make call with fields query as user with some access and check can see 1 entry
@@ -244,7 +302,7 @@ class DatastoreTest extends ApiTest {
   }
 
   @Test
-  void testDatastoreUserSharing_UserNoAccess_KeysEndpoint() {
+  void testDatastoreSharing_NoPublicAccess_UserNoAccess_KeysEndpoint() {
     // add 2 entries as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
@@ -252,7 +310,21 @@ class DatastoreTest extends ApiTest {
     datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
     datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
 
-    // make call as user with no access and check can see no entries
+    // get ids of entries
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+    ApiResponse mdResponse2 = datastoreActions.get("/" + NAMESPACE + "/" + key2 + "/metaData");
+    String uid2 = mdResponse2.extractUid();
+
+    // set sharing public access to '--------'
+    QueryParamsBuilder sharingParams1 =
+        new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingNoPublicAccess(), sharingParams1).validateStatus(200);
+    QueryParamsBuilder sharingParams2 =
+        new QueryParamsBuilder().add("type", "dataStore").add("id", uid2);
+    sharingActions.post("", sharingNoPublicAccess(), sharingParams2).validateStatus(200);
+
+    // make call as basic user with no access and check can see no entries
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE + "/keys").validateStatus(200);
 
@@ -261,7 +333,7 @@ class DatastoreTest extends ApiTest {
   }
 
   @Test
-  void testDatastoreUserSharing_UserHasAccess_KeysEndpoint() {
+  void testDatastoreOwnerSharing_NoPublicAccess_UserHasAccess_KeysEndpoint() {
     // add 2 entries as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
@@ -270,6 +342,23 @@ class DatastoreTest extends ApiTest {
     datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
 
     // make call as owner and check can see entries
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE + "/keys").validateStatus(200);
+
+    String entries = getResponse.getAsString();
+    assertEquals("[\"arsenal\",\"spurs\"]", entries);
+  }
+
+  @Test
+  void testDatastoreUserSharing_DefaultPublicAccess_KeysEndpoint() {
+    // add 2 entries as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    String key2 = "spurs";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+
+    // make call as basic user and check can see entries
     ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE + "/keys").validateStatus(200);
 
     String entries = getResponse.getAsString();
@@ -286,13 +375,13 @@ class DatastoreTest extends ApiTest {
     return """
     {
         "object": {
-            "publicAccess": "--r-----",
+            "publicAccess": "--------",
             "externalAccess": false,
             "user": {},
             "userAccesses": [
                 {
                     "id": "%s",
-                    "access": "--r-----"
+                    "access": "r-------"
                 }
             ],
             "userGroupAccesses": []
@@ -314,13 +403,28 @@ class DatastoreTest extends ApiTest {
             "userGroupAccesses": [
                 {
                     "id": "%s",
-                    "access": "--r-----"
+                    "access": "r-------"
                 }
             ]
         }
     }
     """
         .formatted(userGroupId)
+        .strip();
+  }
+
+  private String sharingNoPublicAccess() {
+    return """
+    {
+        "object": {
+            "publicAccess": "--------",
+            "externalAccess": false,
+            "user": {},
+            "userAccesses": [],
+            "userGroupAccesses": []
+        }
+    }
+    """
         .strip();
   }
 }

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -78,7 +77,7 @@ class DatastoreControllerAppTest extends DhisControllerConvenienceTest {
     assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-ns/key1", "[]"));
     assertEquals(singletonList("key1"), GET("/dataStore/test-app-ns").content().stringValues());
     switchToNewUser("just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test");
-    assertEquals(emptyList(), GET("/dataStore/test-app-ns").content().stringValues());
+    assertEquals(singletonList("key1"), GET("/dataStore/test-app-ns").content().stringValues());
     switchToNewUser("has-no-app-authority");
     assertEquals(
         "Namespace 'test-app-ns' is protected, access denied",
@@ -162,7 +161,7 @@ class DatastoreControllerAppTest extends DhisControllerConvenienceTest {
     assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-ns/key1", "[]"));
     appManager.deleteApp(appManager.getApp("test"), false);
     switchToNewUser("has-no-app-authority");
-    assertEquals(emptyList(), GET("/dataStore/test-app-ns").content().stringValues());
+    assertEquals(singletonList("key1"), GET("/dataStore/test-app-ns").content().stringValues());
   }
 
   @Test

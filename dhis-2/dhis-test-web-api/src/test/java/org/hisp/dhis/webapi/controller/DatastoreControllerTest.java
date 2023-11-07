@@ -127,9 +127,9 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
     assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{'answer': 42}"));
     // as superuser:
     assertEquals(singletonList("cat"), GET("/dataStore/pets").content().stringValues());
-    // as a user that is a pets admin and no sharing access
+    // as a user that is a pets admin and default sharing public access
     switchToNewUser("some-user", "pets-admin");
-    assertEquals(emptyList(), GET("/dataStore/pets").content().stringValues());
+    assertEquals(singletonList("cat"), GET("/dataStore/pets").content().stringValues());
     // as a user that lacks authority
     switchToNewUser("anonymous");
     assertEquals(
@@ -143,9 +143,9 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
     assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{'answer': 42}"));
     // as superuser:
     assertEquals(singletonList("cat"), GET("/dataStore/pets").content().stringValues());
-    // as a user that is a pets admin and no sharing access
+    // as a user that is a pets admin and default sharing public access
     switchToNewUser("some-user", "pets-admin");
-    assertEquals(emptyList(), GET("/dataStore/pets").content().stringValues());
+    assertEquals(singletonList("cat"), GET("/dataStore/pets").content().stringValues());
     // as a user that lacks authority
     switchToNewUser("anonymous");
     assertEquals(
