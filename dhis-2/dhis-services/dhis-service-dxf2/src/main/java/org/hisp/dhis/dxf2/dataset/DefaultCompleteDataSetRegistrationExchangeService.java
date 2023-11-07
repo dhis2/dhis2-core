@@ -78,7 +78,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -225,15 +224,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsXml(
       InputStream in, ImportOptions importOptions) {
-    return saveCompleteDataSetRegistrationsXml(in, importOptions, null);
-  }
-
-  @Override
-  @Transactional
-  public ImportSummary saveCompleteDataSetRegistrationsXml(
-      InputStream in, ImportOptions importOptions, JobConfiguration jobId) {
-    return saveCompleteDataSetRegistrations(
-        importOptions, jobId, () -> readRegistrationsFromXml(in));
+    return saveCompleteDataSetRegistrations(importOptions, () -> readRegistrationsFromXml(in));
   }
 
   @Nonnull
@@ -247,20 +238,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsJson(
       InputStream in, ImportOptions importOptions) {
-    return saveCompleteDataSetRegistrationsJson(in, importOptions, null);
-  }
-
-  @Override
-  @Transactional
-  public ImportSummary saveCompleteDataSetRegistrationsJson(
-      InputStream in, ImportOptions importOptions, JobConfiguration jobId) {
-    return saveCompleteDataSetRegistrations(
-        importOptions, jobId, () -> readRegistrationsFromJson(in));
+    return saveCompleteDataSetRegistrations(importOptions, () -> readRegistrationsFromJson(in));
   }
 
   private ImportSummary saveCompleteDataSetRegistrations(
       ImportOptions importOptions,
-      JobConfiguration jobId,
       Callable<CompleteDataSetRegistrations> deserializeRegistrations) {
     BatchHandler<CompleteDataSetRegistration> batchHandler =
         batchHandlerFactory.createBatchHandler(CompleteDataSetRegistrationBatchHandler.class);
