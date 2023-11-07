@@ -212,7 +212,7 @@ public class DefaultMessageService implements MessageService {
   @Override
   @Async
   @Transactional
-  public void sendSystemErrorNotification(@Nonnull String subject, @Nonnull Throwable t) {
+  public void asyncSendSystemErrorNotification(@Nonnull String subject, @Nonnull Throwable t) {
     String title = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
     String baseUrl = configurationProvider.getServerBaseUrl();
 

@@ -210,7 +210,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
         doSafely(
             "fail",
             "sendSystemErrorNotification",
-            () -> messages.sendSystemErrorNotification(message, causeF));
+            () -> messages.asyncSendSystemErrorNotification(message, causeF));
       }
       skipRestOfQueue(job);
     }

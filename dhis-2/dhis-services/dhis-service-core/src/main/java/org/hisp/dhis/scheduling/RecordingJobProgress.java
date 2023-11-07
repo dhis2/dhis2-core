@@ -398,7 +398,7 @@ public class RecordingJobProgress implements JobProgress {
     if (usingErrorNotification) {
       String subject = node.getClass().getSimpleName() + " failed: " + node.getDescription();
       try {
-        messageService.sendSystemErrorNotification(subject, cause);
+        messageService.asyncSendSystemErrorNotification(subject, cause);
       } catch (Exception ex) {
         log.debug("Failed to send error notification for failed job processing");
       }
