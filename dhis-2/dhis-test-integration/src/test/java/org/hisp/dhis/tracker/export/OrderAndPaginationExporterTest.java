@@ -158,7 +158,9 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     assertAll(
         "second (last) page",
         () -> assertPager(2, 3, secondPage),
-        () -> assertEquals(List.of("QesgJkTyTCk", "guVNoAerxWo"), uids(secondPage.getItems())));
+        () ->
+            assertEquals(
+                List.of("QesgJkTyTCk", "woitxQbWYNq", "guVNoAerxWo"), uids(secondPage.getItems())));
 
     assertIsEmpty(
         trackedEntityService.getTrackedEntities(params, new PageParams(3, 3, false)).getItems());
@@ -181,7 +183,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "first page",
-        () -> assertPager(1, 3, 5, firstPage.getPager()),
+        () -> assertPager(1, 3, 6, firstPage.getPager()),
         () ->
             assertEquals(
                 List.of("dUE514NMOlo", "mHWCacsGYYn", "QS6w44flWAf"), uids(firstPage.getItems())));
@@ -191,8 +193,10 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "second (last) page",
-        () -> assertPager(2, 3, 5, secondPage.getPager()),
-        () -> assertEquals(List.of("QesgJkTyTCk", "guVNoAerxWo"), uids(secondPage.getItems())));
+        () -> assertPager(2, 3, 6, secondPage.getPager()),
+        () ->
+            assertEquals(
+                List.of("QesgJkTyTCk", "woitxQbWYNq", "guVNoAerxWo"), uids(secondPage.getItems())));
 
     assertIsEmpty(
         trackedEntityService.getTrackedEntities(params, new PageParams(3, 3, true)).getItems());
@@ -629,7 +633,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .events(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"))
-            .orderBy("executionDate", SortDirection.DESC)
+            .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
     Page<Event> firstPage = eventService.getEvents(operationParams, new PageParams(1, 1, false));
@@ -675,7 +679,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
-            .orderBy("executionDate", SortDirection.DESC)
+            .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
     Page<Event> firstPage = eventService.getEvents(operationParams, new PageParams(1, 3, false));
@@ -705,7 +709,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
-            .orderBy("executionDate", SortDirection.DESC)
+            .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
     Page<Event> events = eventService.getEvents(params, new PageParams(1, 2, true));
@@ -975,7 +979,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
-            .orderBy("executionDate", SortDirection.DESC)
+            .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
     List<String> events = getEvents(params);
@@ -988,7 +992,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
-            .orderBy("executionDate", SortDirection.ASC)
+            .orderBy("occurredDate", SortDirection.ASC)
             .build();
 
     List<String> events = getEvents(params);

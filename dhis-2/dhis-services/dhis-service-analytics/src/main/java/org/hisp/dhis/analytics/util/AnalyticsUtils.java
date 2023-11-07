@@ -1011,7 +1011,21 @@ public class AnalyticsUtils {
    * @param args the arguments to provide to the error code message.
    */
   public static void throwIllegalQueryEx(ErrorCode errorCode, Object... args) {
-    throw new IllegalQueryException(new ErrorMessage(errorCode, args));
+    throw illegalQueryExSupplier(errorCode, args).get();
+  }
+
+  /**
+   * Returns a {@link Supplier} of {@link IllegalQueryException} using the given {@link ErrorCode}.
+   * The supplier can be used to throw an {@link IllegalQueryException} at a later point in time.
+   * This is useful when the exception should be thrown in a lambda expression.
+   *
+   * @param errorCode the {@link ErrorCode}.
+   * @param args the arguments to provide to the error code message.
+   * @return a {@link Supplier} of {@link IllegalQueryException}.
+   */
+  public static Supplier<RuntimeException> illegalQueryExSupplier(
+      ErrorCode errorCode, Object... args) {
+    return () -> new IllegalQueryException(new ErrorMessage(errorCode, args));
   }
 
   /**

@@ -122,7 +122,7 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnEventsWhenNoProgramSpecifiedOuModeDescendantsAndOrgUnitInSearchScope() {
+  void shouldReturnEventsWhenNoProgramSpecifiedOuModeDescendantsAndRootOrgUnitRequested() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventSearchParams params = new EventSearchParams();
     params.setOrgUnit(get(OrganisationUnit.class, orgUnit.getUid()));
@@ -134,12 +134,19 @@ class AclEventExporterTest extends TrackerTest {
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode descendants and org units in search scope");
     assertContainsOnly(
-        events.stream().map(Event::getOrgUnit).collect(Collectors.toSet()),
-        List.of("uoNW0E3xXUy", "h4w96yEMlzO", "tSsGrtfRzjY"));
+        events.stream().map(Event::getUid).collect(Collectors.toSet()),
+        List.of(
+            "YKmfzHdjUDL",
+            "jxgFyJEMUPf",
+            "D9PbzJY8bJM",
+            "pTzf9KYMk72",
+            "JaRDIvcEcEx",
+            "SbUJzkxKYAG",
+            "gvULMgNiAfM"));
   }
 
   @Test
-  void shouldReturnEventsWhenNoProgramSpecifiedOuModeDescenadantsAndOrgUnitInSearchScope() {
+  void shouldReturnEventsWhenNoProgramSpecifiedOuModeDescendantsAndOrgUnitInSearchScope() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventSearchParams params = new EventSearchParams();
     params.setOrgUnit(get(OrganisationUnit.class, "uoNW0E3xXUy"));
@@ -151,8 +158,8 @@ class AclEventExporterTest extends TrackerTest {
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode descendants and org units in search scope");
     assertContainsOnly(
-        events.stream().map(Event::getOrgUnit).collect(Collectors.toSet()),
-        List.of("uoNW0E3xXUy", "tSsGrtfRzjY"));
+        events.stream().map(Event::getUid).collect(Collectors.toSet()),
+        List.of("jxgFyJEMUPf", "JaRDIvcEcEx", "SbUJzkxKYAG", "gvULMgNiAfM"));
   }
 
   @Test
@@ -191,8 +198,8 @@ class AclEventExporterTest extends TrackerTest {
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode children and org units in search scope");
     assertContainsOnly(
-        events.stream().map(Event::getOrgUnit).collect(Collectors.toSet()),
-        List.of("uoNW0E3xXUy", "h4w96yEMlzO"));
+        List.of("YKmfzHdjUDL", "jxgFyJEMUPf", "JaRDIvcEcEx", "D9PbzJY8bJM", "pTzf9KYMk72"),
+        events.stream().map(Event::getUid).collect(Collectors.toSet()));
   }
 
   @Test
@@ -220,10 +227,10 @@ class AclEventExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeSelectedAndOrgUnitInSearchScope() {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContext(userService.getUser("nIidJVYpQQK"));
 
     EventSearchParams params = new EventSearchParams();
-    params.setOrgUnit(get(OrganisationUnit.class, orgUnit.getUid()));
+    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
     params.setOrgUnitSelectionMode(SELECTED);
 
     List<Event> events = eventService.getEvents(params).getEvents();
@@ -232,14 +239,9 @@ class AclEventExporterTest extends TrackerTest {
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode descendants and org units in search scope");
 
-    events.forEach(
-        e ->
-            assertEquals(
-                "h4w96yEMlzO",
-                e.getOrgUnit(),
-                "Expected to find selected org unit h4w96yEMlzO, but found "
-                    + e.getOrgUnit()
-                    + " instead"));
+    assertContainsOnly(
+        List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"),
+        events.stream().map(Event::getUid).collect(Collectors.toList()));
   }
 
   @Test
@@ -335,7 +337,13 @@ class AclEventExporterTest extends TrackerTest {
         events.isEmpty(),
         "Expected to find events when ou mode ALL no program specified and no org unit provided");
     assertContainsOnly(
-        List.of("h4w96yEMlzO", "uoNW0E3xXUy", "DiszpKrYNg8", "tSsGrtfRzjY"),
+        List.of(
+            "lbDXJBlvtZe",
+            "uoNW0E3xXUy",
+            "RojfDTBhoGC",
+            "tSsGrtfRzjY",
+            "h4w96yEMlzO",
+            "DiszpKrYNg8"),
         events.stream().map(Event::getOrgUnit).collect(Collectors.toSet()));
   }
 
@@ -353,7 +361,13 @@ class AclEventExporterTest extends TrackerTest {
         events.isEmpty(),
         "Expected to find events when ou mode ALL no program specified and org unit provided");
     assertContainsOnly(
-        List.of("h4w96yEMlzO", "uoNW0E3xXUy", "DiszpKrYNg8", "tSsGrtfRzjY"),
+        List.of(
+            "lbDXJBlvtZe",
+            "uoNW0E3xXUy",
+            "RojfDTBhoGC",
+            "tSsGrtfRzjY",
+            "h4w96yEMlzO",
+            "DiszpKrYNg8"),
         events.stream().map(Event::getOrgUnit).collect(Collectors.toSet()));
   }
 
@@ -370,7 +384,13 @@ class AclEventExporterTest extends TrackerTest {
         events.isEmpty(),
         "Expected to find events when ou mode ALL no program specified and no org unit provided");
     assertContainsOnly(
-        List.of("h4w96yEMlzO", "uoNW0E3xXUy", "DiszpKrYNg8", "tSsGrtfRzjY"),
+        List.of(
+            "lbDXJBlvtZe",
+            "uoNW0E3xXUy",
+            "RojfDTBhoGC",
+            "tSsGrtfRzjY",
+            "h4w96yEMlzO",
+            "DiszpKrYNg8"),
         events.stream().map(Event::getOrgUnit).collect(Collectors.toSet()));
   }
 

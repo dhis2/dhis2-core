@@ -274,7 +274,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     eventA.setProgramStage(programStageA1);
     eventA.setOrganisationUnit(orgUnitA);
     eventA.setAttributeOptionCombo(defaultCategoryOptionCombo);
-    eventA.setExecutionDate(parseDate("2021-05-27T12:05:00.000"));
+    eventA.setOccurredDate(parseDate("2021-05-27T12:05:00.000"));
     eventA.setDueDate(parseDate("2021-02-27T12:05:00.000"));
     eventA.setCompletedDate(parseDate("2021-02-27T11:05:00.000"));
     eventA.setCompletedBy("herb");
@@ -788,8 +788,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnTrackedEntityIfEventOccurredBetweenPassedDateAndTimes()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Date oneHourBeforeEventDate = oneHourBefore(eventA.getExecutionDate());
-    Date oneHourAfterEventDate = oneHourAfter(eventA.getExecutionDate());
+    Date oneHourBeforeOccurredDate = oneHourBefore(eventA.getOccurredDate());
+    Date oneHourAfterOccurredDate = oneHourAfter(eventA.getOccurredDate());
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -797,8 +797,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
             .eventStatus(EventStatus.ACTIVE)
-            .eventStartDate(oneHourBeforeEventDate)
-            .eventEndDate(oneHourAfterEventDate)
+            .eventStartDate(oneHourBeforeOccurredDate)
+            .eventEndDate(oneHourAfterOccurredDate)
             .user(user)
             .build();
 
@@ -810,8 +810,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnEmptyIfEventOccurredBeforePassedDateAndTimes()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Date oneHourAfterEventDate = oneHourAfter(eventA.getExecutionDate());
-    Date twoHoursAfterEventDate = twoHoursAfter(eventA.getExecutionDate());
+    Date oneHourAfterOccurredDate = oneHourAfter(eventA.getOccurredDate());
+    Date twoHoursAfterOccurredDate = twoHoursAfter(eventA.getOccurredDate());
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -819,8 +819,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
             .eventStatus(EventStatus.ACTIVE)
-            .eventStartDate(oneHourAfterEventDate)
-            .eventEndDate(twoHoursAfterEventDate)
+            .eventStartDate(oneHourAfterOccurredDate)
+            .eventEndDate(twoHoursAfterOccurredDate)
             .user(user)
             .build();
 
@@ -832,8 +832,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnEmptyIfEventOccurredAfterPassedDateAndTimes()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Date oneHourBeforeEventDate = oneHourBefore(eventA.getExecutionDate());
-    Date twoHoursBeforeEventDate = twoHoursBefore(eventA.getExecutionDate());
+    Date oneHourBeforeOccurredDate = oneHourBefore(eventA.getOccurredDate());
+    Date twoHoursBeforeOccurredDate = twoHoursBefore(eventA.getOccurredDate());
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -841,8 +841,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
             .eventStatus(EventStatus.ACTIVE)
-            .eventStartDate(twoHoursBeforeEventDate)
-            .eventEndDate(oneHourBeforeEventDate)
+            .eventStartDate(twoHoursBeforeOccurredDate)
+            .eventEndDate(oneHourBeforeOccurredDate)
             .user(user)
             .build();
 

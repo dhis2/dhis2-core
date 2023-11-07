@@ -44,8 +44,10 @@ import org.hisp.dhis.common.ValueType;
 public enum TeiStaticField implements TeiHeaderProvider {
   TRACKED_ENTITY_INSTANCE("trackedentityinstanceuid", "Tracked entity instance", TEXT),
   LAST_UPDATED("lastupdated", "Last updated", DATETIME),
-  CREATED_BY_DISPLAY_NAME("createdbydisplayname", "Created by", TEXT),
   LAST_UPDATED_BY_DISPLAY_NAME("lastupdatedbydisplayname", "Last updated by", TEXT),
+  CREATED("created", "Created", DATETIME),
+  CREATED_BY_DISPLAY_NAME("createdbydisplayname", "Created by", TEXT),
+  STORED_BY("storedby", "Stored by", TEXT),
   GEOMETRY("geometry", "Geometry", TEXT),
   LONGITUDE("longitude", "Longitude", NUMBER),
   LATITUDE("latitude", "Latitude", NUMBER),
