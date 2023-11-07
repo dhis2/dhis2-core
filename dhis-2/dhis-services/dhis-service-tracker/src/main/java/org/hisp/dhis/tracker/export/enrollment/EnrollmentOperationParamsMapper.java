@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
+
 import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -72,6 +74,7 @@ class EnrollmentOperationParamsMapper {
 
     User user = currentUserService.getCurrentUser();
     Set<OrganisationUnit> orgUnits = validateOrgUnits(operationParams.getOrgUnitUids(), user);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
     params.setProgram(program);

@@ -28,8 +28,10 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static java.util.Collections.emptySet;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
@@ -71,6 +73,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -421,7 +424,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     manager.updateNoAcl(programA);
 
     EnrollmentOperationParams params =
-        EnrollmentOperationParams.builder().programUid(programA.getUid()).build();
+        EnrollmentOperationParams.builder()
+            .programUid(programA.getUid())
+            .orgUnitMode(ACCESSIBLE)
+            .build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
 
@@ -458,6 +464,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
         EnrollmentOperationParams.builder()
             .programUid(programA.getUid())
             .enrollmentUids(Set.of(enrollmentA.getUid()))
+            .orgUnitMode(ACCESSIBLE)
             .build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
@@ -475,6 +482,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(trackedEntityA.getOrganisationUnit().getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUid(trackedEntityA.getUid())
             .build();
 
@@ -496,6 +504,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(trackedEntityA.getOrganisationUnit().getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUid(trackedEntityA.getUid())
             .build();
 
@@ -512,6 +521,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .lastUpdated(oneHourBeforeLastUpdated)
             .build();
 
@@ -528,6 +538,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .lastUpdated(oneHourAfterLastUpdated)
             .build();
 
@@ -545,6 +556,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .programUid(programA.getUid())
             .programStartDate(oneHourBeforeEnrollmentDate)
             .build();
@@ -563,6 +575,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .programUid(programA.getUid())
             .programStartDate(oneHourAfterEnrollmentDate)
             .build();
@@ -581,6 +594,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .programUid(programA.getUid())
             .programEndDate(oneHourAfterEnrollmentDate)
             .build();
@@ -599,6 +613,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
             .programUid(programA.getUid())
             .programEndDate(oneHourBeforeEnrollmentDate)
             .build();
@@ -624,18 +639,28 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void shouldReturnAllEnrollmentsWhenModeAllAndUserSuperuserEvenIfNotInSearchScope()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+  void shouldFailWhenOrgUnitModeAllAndUserNotAuthorized() {
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
 
+    BadRequestException exception =
+        Assertions.assertThrows(
+            BadRequestException.class, () -> enrollmentService.getEnrollments(operationParams));
+    Assertions.assertEquals(
+        "Current user is not authorized to query across all organisation units",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnAllEnrollmentsWhenOrgUnitModeAllAndUserAuthorized()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContext(admin);
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
-    assertContainsOnly(
-        List.of(enrollmentA.getUid(), enrollmentB.getUid(), enrollmentChildA.getUid()),
-        uids(enrollments));
+    assertContainsOnly(List.of(enrollmentA, enrollmentB, enrollmentChildA), enrollments);
   }
 
   private static List<String> attributeUids(Enrollment enrollment) {
