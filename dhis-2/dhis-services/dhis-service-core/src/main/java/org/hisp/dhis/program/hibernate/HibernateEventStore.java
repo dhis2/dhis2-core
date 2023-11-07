@@ -212,7 +212,7 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
             + "and ev.scheduledDate is not null "
             + "and ev.occurredDate is null "
             + "and ev.status != :skippedEventStatus "
-            + "and cast(:targetDate as date) = ev.dueDate "
+            + "and cast(:targetDate as date) = ev.scheduledDate "
             + "and ev.deleted is false";
 
     return getQuery(hql)
