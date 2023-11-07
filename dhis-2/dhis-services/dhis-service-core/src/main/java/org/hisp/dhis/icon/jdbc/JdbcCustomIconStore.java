@@ -81,7 +81,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
   public List<CustomIcon> getIconsByKeywords(String[] keywords) {
     final String sql =
         """
-            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.custom as custom, c.lastupdated as lastupdated,
+            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.custom as custom, c.created as created, c.lastupdated as lastupdated,
             f.uid as fileresourceuid, u.uid as useruid
             from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
             join userinfo u on u.userinfoid = c.createdby
@@ -95,7 +95,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
   public List<CustomIcon> getAllIcons() {
     final String sql =
         """
-            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.custom as custom, c.lastupdated as lastupdated,
+            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.custom as custom, c.created as created, c.lastupdated as lastupdated,
             f.uid as fileresourceuid, u.uid as useruid
             from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
             join userinfo u on u.userinfoid = c.createdby
@@ -137,7 +137,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
         customIcon.getDescription(),
         customIcon.getKeywords(),
         customIcon.isCustom(),
-        customIcon.getKey());
-    customIcon.getLastUpdated();
+        customIcon.getKey(),
+        customIcon.getLastUpdated());
   }
 }
