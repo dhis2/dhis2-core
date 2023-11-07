@@ -158,7 +158,10 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
         sortById(getCategoryOptions(dataElementCategories, dataSetCategories, user));
     List<OptionSet> optionSets = sortById(getOptionSets(dataElements));
 
+    dataElementCategoryCombos.remove(defaultCategoryCombo);
     dataSetCategoryCombos.remove(defaultCategoryCombo);
+    dataElementCategoryCombos.add(0, defaultCategoryCombo);
+
     expressionService.substituteIndicatorExpressions(indicators);
 
     ObjectNode rootNode = fieldFilterService.createObjectNode();
