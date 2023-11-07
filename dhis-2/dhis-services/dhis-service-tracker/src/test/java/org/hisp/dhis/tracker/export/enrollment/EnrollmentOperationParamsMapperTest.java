@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -180,7 +181,7 @@ class EnrollmentOperationParamsMapperTest {
   void shouldThrowExceptionWhenOrgUnitNotFound() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of("JW6BrFd0HLu", ORG_UNIT_2_UID))
+            .orgUnitUids(Set.of("JW6BrFd0HLu"))
             .orgUnitMode(SELECTED)
             .programUid(PROGRAM_UID)
             .build();
@@ -213,7 +214,10 @@ class EnrollmentOperationParamsMapperTest {
     when(currentUserService.getCurrentUser()).thenReturn(superuser);
 
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().orgUnitUids(Set.of(ORG_UNIT_1_UID)).build();
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(ORG_UNIT_1_UID))
+            .orgUnitMode(ALL)
+            .build();
     when(organisationUnitService.isInUserHierarchy(
             orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(false);
@@ -229,10 +233,14 @@ class EnrollmentOperationParamsMapperTest {
   void shouldFailWhenOrgUnitNotInScopeAndUserHasSearchInAllAuthority() {
 
     User user = createUser(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit2));
     when(currentUserService.getCurrentUser()).thenReturn(user);
 
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().orgUnitUids(Set.of(ORG_UNIT_1_UID)).build();
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(ORG_UNIT_1_UID))
+            .orgUnitMode(SELECTED)
+            .build();
     when(organisationUnitService.isInUserHierarchy(
             orgUnit1.getUid(), this.user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(false);
