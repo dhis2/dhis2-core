@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.legend;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Column;
@@ -44,13 +49,20 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Jan Henrik Overland
@@ -70,7 +82,7 @@ public class Legend extends BaseIdentifiableObject implements EmbeddedObject {
   private long id;
 
   @Column(length = 11, nullable = false, unique = true)
-  protected String uid;
+  private String uid;
 
   @Column(nullable = false)
   private Double startValue;
@@ -96,9 +108,24 @@ public class Legend extends BaseIdentifiableObject implements EmbeddedObject {
   @Type(type = "jblTranslations")
   protected Set<Translation> translations = new HashSet<>();
 
-  public Legend() {}
+  @Column(nullable = false)
+  private Date created;
+
+  @Column
+  private Date lastUpdated;
+
+  @ManyToOne
+  @JoinColumn(
+      referencedColumnName = "userinfoid",
+      foreignKey = @ForeignKey(name = "fk_lastupdateby_userid"))
+  private User lastUpdatedBy;
+
+  public Legend() {
+    setAutoFields();
+  }
 
   public Legend(String name, Double startValue, Double endValue, String color, String image) {
+    setAutoFields();
     this.name = name;
     this.startValue = startValue;
     this.endValue = endValue;
@@ -182,11 +209,84 @@ public class Legend extends BaseIdentifiableObject implements EmbeddedObject {
   }
 
   @Override
+  @JsonIgnore
   public long getId() {
     return this.id;
   }
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  @Gist(included = Include.FALSE)
+  @Override
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Translation> getTranslations() {
+    if (this.translations == null) {
+      this.translations = new HashSet<>();
+    }
+
+    return translations;
+  }
+
+  @Override
+  public void setTranslations(Set<Translation> translations) {
+    this.translations = translations;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The date this object was created.")
+  @Property(value = PropertyType.DATE, required = Value.FALSE)
+  public Date getCreated() {
+    return this.created;
+  }
+
+  public void setCreated(Date created) {
+    this.created = created;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The date this object was last updated.")
+  @Property(value = PropertyType.DATE, required = Value.FALSE)
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
+
+  public void setLastUpdated(Date lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
+
+  @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public User getLastUpdatedBy() {
+    return this.lastUpdatedBy;
+  }
+
+  public void setLastupdatedBy(User lastUpdatedBy) {
+    this.lastUpdatedBy = lastUpdatedBy;
+  }
+
+  @Override
+  public void setAutoFields() {
+    if (uid == null || uid.length() == 0) {
+      this.uid = CodeGenerator.generateUid();
+    }
+
+    Date date = new Date();
+
+    if (this.created == null) {
+      this.created = date;
+    }
+
+    this.lastUpdated = date;
   }
 }
