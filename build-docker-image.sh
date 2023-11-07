@@ -6,8 +6,10 @@ IMAGE_REPOSITORY=${IMAGE_REPOSITORY:-'dhis2/core'}
 IMAGE_APP_ROOT=${IMAGE_APP_ROOT:-'/usr/local/tomcat/webapps/ROOT'}
 IMAGE_USER=${IMAGE_USER:-'65534'}
 WAR_PATH=${WAR_PATH:-'dhis-2/dhis-web/dhis-web-portal/target/dhis.war'}
-UNARCHIVED_WAR_DIR=${UNARCHIVED_WAR_DIR:-'dhis2-war'}
 JIB_BUILD_FILE=${JIB_BUILD_FILE:-'jib.yaml'}
+
+unarchived_war_dir='dhis2-war'
+downloaded_war_name='downloaded-dhis2.war'
 
 old_version_schema_prefix='2'
 # TODO change to https://releases.dhis2.org/v1/versions/stable.json
@@ -88,14 +90,15 @@ function use_existing_war() {
     jq -r --arg image_tag "$image_tag" '.versions[] | select(.supported == true) .patchVersions[] | select(.displayName == $image_tag) .url'
   )"
   echo "Downloading from $war_url ..."
-  curl -o 'existing-dhis2.war' "$war_url"
+  rm -rf "$downloaded_war_name"
+  curl -o "$downloaded_war_name" "$war_url"
 
   known_war_sha256="$(
     echo "$stable_versions_json" |
     jq -r --arg image_tag "$image_tag" '.versions[] | select(.supported == true) .patchVersions[] | select(.displayName == $image_tag) .sha256'
   )"
 
-  sha256sum_output="$(sha256sum 'existing-dhis2.war')"
+  sha256sum_output="$(sha256sum "$downloaded_war_name")"
   downloaded_war_sha256="${sha256sum_output%% *}" # strip file name from sha256sum output with variable expansion
 
   if [[ "$downloaded_war_sha256" != "$known_war_sha256" ]]; then
@@ -103,13 +106,15 @@ function use_existing_war() {
     exit 1
   fi
 
-  echo "Unarchiving WAR to $UNARCHIVED_WAR_DIR ..."
-  unzip -q -o 'existing-dhis2.war' -d "./$UNARCHIVED_WAR_DIR"
+  echo "Unarchiving WAR to $unarchived_war_dir ..."
+  rm -rf "./$unarchived_war_dir"
+  unzip -q -o "$downloaded_war_name" -d "./$unarchived_war_dir"
 }
 
 function use_new_war() {
   echo "Image will be built with new WAR from $WAR_PATH"
-  unzip -q -o "$WAR_PATH" -d "./$UNARCHIVED_WAR_DIR"
+  rm -rf "./$unarchived_war_dir"
+  unzip -q -o "$WAR_PATH" -d "./$unarchived_war_dir"
 }
 
 function build_immutable_image() {
@@ -118,7 +123,7 @@ function build_immutable_image() {
   jib build \
     --build-file "$JIB_BUILD_FILE" \
     --target "$IMAGE_REPOSITORY:$immutable_image_tag" \
-    --parameter unarchivedWarDir="$UNARCHIVED_WAR_DIR" \
+    --parameter unarchivedWarDir="$unarchived_war_dir" \
     --parameter imageAppRoot="$IMAGE_APP_ROOT" \
     --parameter baseImage="$BASE_IMAGE" \
     --parameter imageUser="$IMAGE_USER" \
