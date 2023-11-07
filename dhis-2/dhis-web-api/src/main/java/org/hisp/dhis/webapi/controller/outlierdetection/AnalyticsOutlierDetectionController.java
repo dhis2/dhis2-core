@@ -28,8 +28,11 @@
 package org.hisp.dhis.webapi.controller.outlierdetection;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
@@ -42,11 +45,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
  * Analytics Outlier detection API controller.
@@ -59,24 +58,35 @@ import java.io.IOException;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @PreAuthorize("hasRole('ALL') or hasRole('F_RUN_VALIDATION')")
 public class AnalyticsOutlierDetectionController {
+  private static final String RESOURCE_PATH = "/analytics/outlierDetection";
   private final OutlierDetectionService<Grid> outlierService;
   private final ContextUtils contextUtils;
 
-  @GetMapping(value = "/analytics/outlierDetection", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody Grid getOutliersJson(OutlierDetectionQuery query) {
+  @GetMapping(value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE)
+  public Grid getOutliersJson(OutlierDetectionQuery query) {
     OutlierDetectionRequest request = outlierService.getFromQuery(query);
 
     return outlierService.getOutlierValues(request);
   }
-  @GetMapping(value = "/analytics/outlierDetection.csv")
+
+  @GetMapping(value = RESOURCE_PATH + ".csv")
   public void getOutliersCsv(OutlierDetectionQuery query, HttpServletResponse response)
-          throws IOException {
+      throws IOException {
     OutlierDetectionRequest request = outlierService.getFromQuery(query);
 
     contextUtils.configureResponse(
-            response, CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE, "outlierdata.csv", true);
+        response, CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE, "outlierdata.csv", true);
 
+    outlierService.getOutlierValuesAsCsv(request, response.getWriter());
+  }
 
-    outlierService.getOutlierValuesAsCsv(request, response.getOutputStream());
+  @GetMapping(value = RESOURCE_PATH + ".xml")
+  public void getOutliersXml(OutlierDetectionQuery query, HttpServletResponse response)
+      throws IOException {
+    OutlierDetectionRequest request = outlierService.getFromQuery(query);
+
+    contextUtils.configureResponse(response, CONTENT_TYPE_XML, CacheStrategy.NO_CACHE);
+
+    outlierService.getOutlierValuesAsXml(request, response.getOutputStream());
   }
 }

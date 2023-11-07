@@ -29,8 +29,7 @@ package org.hisp.dhis.outlierdetection.service;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.Grid;
@@ -38,6 +37,9 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -48,6 +50,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AnalyticsOutlierDetectionService extends AbstractOutlierDetectionService<Grid> {
   private final AnalyticsZScoreOutlierDetectionManager zScoreOutlierDetection;
+  private static final int MAX_LIMIT = 5000;
 
   public AnalyticsOutlierDetectionService(
       IdentifiableObjectManager idObjectManager,
@@ -58,7 +61,8 @@ public class AnalyticsOutlierDetectionService extends AbstractOutlierDetectionSe
 
   @Override
   public Grid getOutlierValues(OutlierDetectionRequest request) throws IllegalQueryException {
-    List<OutlierValue> outlierValues = zScoreOutlierDetection.getOutlierValues(request);
+    validate(request);
+    List<OutlierValue> outlierValues = zScoreOutlierDetection.getOutlierValues(request, false);
 
     Grid grid = new ListGrid();
     setHeaders(grid);
@@ -69,9 +73,62 @@ public class AnalyticsOutlierDetectionService extends AbstractOutlierDetectionSe
   }
 
   @Override
-  public void getOutlierValuesAsCsv(OutlierDetectionRequest request, OutputStream out)
+  public void getOutlierValuesAsCsv(OutlierDetectionRequest request, Writer writer)
       throws IllegalQueryException, IOException {
-      GridUtils.toCsv(getOutlierValues(request), new PrintWriter(out));
+    GridUtils.toCsv(getOutlierValues(request), writer);
+  }
+
+  @Override
+  public void getOutlierValuesAsXml(OutlierDetectionRequest request, OutputStream outputStream)
+      throws IllegalQueryException {
+    GridUtils.toXml(getOutlierValues(request), outputStream);
+  }
+
+  @Override
+  public void getOutlierValuesAsXls(OutlierDetectionRequest request, OutputStream outputStream)
+      throws IllegalQueryException, IOException {
+    GridUtils.toXls(getOutlierValues(request), outputStream);
+  }
+
+  @Override
+  public void getOutlierValuesAsHtml(OutlierDetectionRequest request, Writer writer)
+      throws IllegalQueryException {
+    GridUtils.toHtml(getOutlierValues(request), writer);
+  }
+
+  @Override
+  public void getOutlierValuesAsHtmlCss(OutlierDetectionRequest request, Writer writer)
+      throws IllegalQueryException {
+    GridUtils.toHtmlCss(getOutlierValues(request), writer);
+  }
+
+  @Override
+  protected ErrorMessage validateForErrorMessage(OutlierDetectionRequest request) {
+    ErrorMessage error = null;
+
+    if (request.getDataElements().isEmpty()) {
+      error = new ErrorMessage(ErrorCode.E2200);
+    } else if (request.getStartDate() == null || request.getEndDate() == null) {
+      error = new ErrorMessage(ErrorCode.E2201);
+    } else if (request.getStartDate().after(request.getEndDate())) {
+      error = new ErrorMessage(ErrorCode.E2202);
+    } else if (request.getOrgUnits().isEmpty()) {
+      error = new ErrorMessage(ErrorCode.E2203);
+    } else if (request.getThreshold() <= 0) {
+      error = new ErrorMessage(ErrorCode.E2204);
+    } else if (request.getMaxResults() <= 0) {
+      error = new ErrorMessage(ErrorCode.E2205);
+    } else if (request.getMaxResults() > MAX_LIMIT) {
+      error = new ErrorMessage(ErrorCode.E2206, MAX_LIMIT);
+    } else if (request.getDataStartDate() != null) {
+      error = new ErrorMessage(ErrorCode.E2209);
+    } else if (request.getDataEndDate() != null) {
+      error = new ErrorMessage(ErrorCode.E2210);
+    } else if (request.getAlgorithm() == OutlierDetectionAlgorithm.MIN_MAX) {
+      error = new ErrorMessage(ErrorCode.E2211);
+    }
+
+    return error;
   }
 
   private void setHeaders(Grid grid) {
@@ -84,7 +141,6 @@ public class AnalyticsOutlierDetectionService extends AbstractOutlierDetectionSe
     grid.addHeader(new GridHeader("category option name", ValueType.TEXT));
     grid.addHeader(new GridHeader("attribute option", ValueType.TEXT));
     grid.addHeader(new GridHeader("attribute option name", ValueType.TEXT));
-    grid.addHeader(new GridHeader("follow up", ValueType.BOOLEAN));
     grid.addHeader(new GridHeader("value", ValueType.NUMBER));
     grid.addHeader(new GridHeader("mean", ValueType.NUMBER));
     grid.addHeader(new GridHeader("stdDev", ValueType.NUMBER));
@@ -116,7 +172,6 @@ public class AnalyticsOutlierDetectionService extends AbstractOutlierDetectionSe
           grid.addValue(v.getCocName());
           grid.addValue(v.getAoc());
           grid.addValue(v.getAocName());
-          grid.addValue(v.getFollowup());
           grid.addValue(v.getValue());
           grid.addValue(v.getMean());
           grid.addValue(v.getStdDev());

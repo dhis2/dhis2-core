@@ -44,6 +44,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -62,13 +63,13 @@ public class OutlierDetectionController {
   private final ContextUtils contextUtils;
 
   @GetMapping(value = "/outlierDetection", produces = APPLICATION_JSON_VALUE)
-  public OutlierDetectionResponse getOutliersJson(OutlierDetectionQuery query) {
+  public @ResponseBody OutlierDetectionResponse getOutliersJson(OutlierDetectionQuery query) {
     OutlierDetectionRequest request = outlierService.getFromQuery(query);
 
     return outlierService.getOutlierValues(request);
   }
 
-  @GetMapping(value = "/outlierDetection", produces = CONTENT_TYPE_CSV)
+  @GetMapping(value = "/outlierDetection.csv")
   public void getOutliersCsv(OutlierDetectionQuery query, HttpServletResponse response)
       throws IOException {
     OutlierDetectionRequest request = outlierService.getFromQuery(query);
@@ -76,6 +77,6 @@ public class OutlierDetectionController {
     contextUtils.configureResponse(
         response, CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE, "outlierdata.csv", true);
 
-    outlierService.getOutlierValuesAsCsv(request, response.getOutputStream());
+    outlierService.getOutlierValuesAsCsv(request, response.getWriter());
   }
 }

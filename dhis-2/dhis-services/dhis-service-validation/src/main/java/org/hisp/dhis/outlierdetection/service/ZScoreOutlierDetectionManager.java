@@ -48,12 +48,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ZScoreOutlierDetectionManager extends AbstractOutlierDetectionManager {
 
-  public ZScoreOutlierDetectionManager(NamedParameterJdbcTemplate jdbcTemplate) {
+  protected ZScoreOutlierDetectionManager(NamedParameterJdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
   }
 
   @Override
-  protected IOutlierSqlStatementProcessor getSqlStatmentProcessor() {
+  protected IOutlierSqlStatementProcessor getSqlStatementProcessor() {
     return new ZScoreSqlStatementProcessor();
   }
 }

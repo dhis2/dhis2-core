@@ -27,23 +27,13 @@
  */
 package org.hisp.dhis.outlierdetection.service;
 
-import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
-
-import java.util.List;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.outlierdetection.processor.IOutlierSqlStatementProcessor;
 import org.hisp.dhis.outlierdetection.processor.MinMaxSqlStatementProcessor;
-import org.hisp.dhis.period.PeriodType;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -52,65 +42,28 @@ import org.springframework.stereotype.Repository;
  * @author Lars Helge Overland
  */
 @Slf4j
-@RequiredArgsConstructor
 @Repository
-public class MinMaxOutlierDetectionManager {
-  private final NamedParameterJdbcTemplate jdbcTemplate;
-
-  /**
-   * Returns a list of outlier data values based on min-max values for the given request.
-   *
-   * @param request the {@link OutlierDetectionRequest}.
-   * @return a list of {@link OutlierValue}.
-   */
-  public List<OutlierValue> getOutlierValues(OutlierDetectionRequest request) {
-    final IOutlierSqlStatementProcessor sqlStatementProcessor = new MinMaxSqlStatementProcessor();
-    final String sql = sqlStatementProcessor.getSqlStatement(request);
-    final SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);
-
-    final Calendar calendar = PeriodType.getCalendar();
-
-    try {
-      return jdbcTemplate.query(sql, params, getRowMapper(calendar));
-    } catch (DataIntegrityViolationException ex) {
-      // Casting non-numeric data to double, catching exception is faster
-      // than filtering
-
-      log.error(ErrorCode.E2208.getMessage(), ex);
-
-      throw new IllegalQueryException(ErrorCode.E2208);
-    }
+public class MinMaxOutlierDetectionManager extends AbstractOutlierDetectionManager {
+  protected MinMaxOutlierDetectionManager(NamedParameterJdbcTemplate jdbcTemplate) {
+    super(jdbcTemplate);
   }
 
-  /**
-   * Returns a {@link RowMapper} for {@link OutlierValue}.
-   *
-   * @param calendar the {@link Calendar}.
-   * @return a {@link RowMapper}.
-   */
-  private RowMapper<OutlierValue> getRowMapper(final Calendar calendar) {
+  @Override
+  protected RowMapper<OutlierValue> getRowMapper(
+      Calendar calendar, boolean modifiedZ, boolean withFollowUp) {
     return (rs, rowNum) -> {
-      final OutlierValue outlier = new OutlierValue();
+      OutlierValue outlierValue = getOutlierValue(calendar, rs);
+      outlierValue.setAbsDev(rs.getDouble("bound_abs_dev"));
+      outlierValue.setLowerBound(rs.getDouble("lower_bound"));
+      outlierValue.setUpperBound(rs.getDouble("upper_bound"));
+      outlierValue.setFollowup(rs.getBoolean("follow_up"));
 
-      final String isoPeriod =
-          getIsoPeriod(calendar, rs.getString("pt_name"), rs.getDate("pe_start_date"));
-
-      outlier.setDe(rs.getString("de_uid"));
-      outlier.setDeName(rs.getString("de_name"));
-      outlier.setPe(isoPeriod);
-      outlier.setOu(rs.getString("ou_uid"));
-      outlier.setOuName(rs.getString("ou_name"));
-      outlier.setCoc(rs.getString("coc_uid"));
-      outlier.setCocName(rs.getString("coc_name"));
-      outlier.setAoc(rs.getString("aoc_uid"));
-      outlier.setAocName(rs.getString("aoc_name"));
-      outlier.setValue(rs.getDouble("value"));
-      outlier.setAbsDev(rs.getDouble("bound_abs_dev"));
-      outlier.setLowerBound(rs.getDouble("lower_bound"));
-      outlier.setUpperBound(rs.getDouble("upper_bound"));
-      outlier.setFollowup(rs.getBoolean("follow_up"));
-
-      return outlier;
+      return outlierValue;
     };
+  }
+
+  @Override
+  protected IOutlierSqlStatementProcessor getSqlStatementProcessor() {
+    return new MinMaxSqlStatementProcessor();
   }
 }

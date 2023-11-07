@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.outlierdetection.service;
 
-import static org.hisp.dhis.organisationunit.OrganisationUnitService.MAX_LIMIT;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,6 +48,7 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionService;
 public abstract class AbstractOutlierDetectionService<TRs> implements OutlierDetectionService<TRs> {
 
   private final IdentifiableObjectManager idObjectManager;
+  private static final int MAX_LIMIT = 500;
 
   @Override
   public void validate(OutlierDetectionRequest request) throws IllegalQueryException {
@@ -65,8 +64,7 @@ public abstract class AbstractOutlierDetectionService<TRs> implements OutlierDet
     }
   }
 
-  @Override
-  public ErrorMessage validateForErrorMessage(OutlierDetectionRequest request) {
+  protected ErrorMessage validateForErrorMessage(OutlierDetectionRequest request) {
     ErrorMessage error = null;
 
     if (request.getDataElements().isEmpty()) {

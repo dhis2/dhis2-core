@@ -41,7 +41,7 @@ public class AnalyticsZScoreOutlierDetectionManager extends AbstractOutlierDetec
   }
 
   @Override
-  protected IOutlierSqlStatementProcessor getSqlStatmentProcessor() {
+  protected IOutlierSqlStatementProcessor getSqlStatementProcessor() {
     return new AnalyticsZScoreSqlStatementProcessor();
   }
 }

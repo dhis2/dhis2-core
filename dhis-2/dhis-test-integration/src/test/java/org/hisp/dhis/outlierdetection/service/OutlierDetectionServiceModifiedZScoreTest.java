@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.math.StatsAccumulator;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -247,7 +248,7 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
             .withThreshold(2.0)
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    subject.getOutlierValuesAsCsv(request, out);
+    subject.getOutlierValuesAsCsv(request, new PrintWriter(out));
     List<String> csvLines =
         TextUtils.toLines(new String(out.toByteArray(), StandardCharsets.UTF_8));
     final int endIndex = 61;

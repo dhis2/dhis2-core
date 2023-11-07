@@ -30,8 +30,8 @@ package org.hisp.dhis.outlierdetection.service;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.collect.Lists;
@@ -101,7 +101,7 @@ class OutlierDetectionServiceValidationTest {
             .withOrgUnits(Lists.newArrayList(ouA, ouB))
             .build();
 
-    assertNull(subject.validateForErrorMessage(request));
+    assertDoesNotThrow(() -> subject.validate(request));
   }
 
   @Test
@@ -124,8 +124,7 @@ class OutlierDetectionServiceValidationTest {
             .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 7, 1))
             .withOrgUnits(Lists.newArrayList(ouA, ouB))
             .build();
-
-    assertEquals(ErrorCode.E2200, subject.validateForErrorMessage(request).getErrorCode());
+    assertRequest(request, ErrorCode.E2200);
   }
 
   @Test
@@ -137,7 +136,7 @@ class OutlierDetectionServiceValidationTest {
             .withOrgUnits(Lists.newArrayList(ouA, ouB))
             .build();
 
-    assertEquals(ErrorCode.E2202, subject.validateForErrorMessage(request).getErrorCode());
+    assertRequest(request, ErrorCode.E2202);
   }
 
   @Test
@@ -149,8 +148,7 @@ class OutlierDetectionServiceValidationTest {
             .withOrgUnits(Lists.newArrayList(ouA, ouB))
             .withThreshold(-23.4)
             .build();
-
-    assertEquals(ErrorCode.E2204, subject.validateForErrorMessage(request).getErrorCode());
+    assertRequest(request, ErrorCode.E2204);
   }
 
   @Test
@@ -163,7 +161,7 @@ class OutlierDetectionServiceValidationTest {
             .withMaxResults(-100)
             .build();
 
-    assertEquals(ErrorCode.E2205, subject.validateForErrorMessage(request).getErrorCode());
+    assertRequest(request, ErrorCode.E2205);
   }
 
   @Test
@@ -177,6 +175,15 @@ class OutlierDetectionServiceValidationTest {
             .withDataEndDate(getDate(2020, 5, 1))
             .build();
 
-    assertEquals(ErrorCode.E2207, subject.validateForErrorMessage(request).getErrorCode());
+    assertRequest(request, ErrorCode.E2207);
+  }
+
+  private void assertRequest(OutlierDetectionRequest request, ErrorCode errorCode) {
+    assertThrows(IllegalQueryException.class, () -> subject.validate(request));
+    try {
+      subject.validate(request);
+    } catch (IllegalQueryException e) {
+      assertEquals(errorCode, e.getErrorCode());
+    }
   }
 }

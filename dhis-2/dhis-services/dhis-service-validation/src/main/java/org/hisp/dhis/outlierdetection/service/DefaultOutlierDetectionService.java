@@ -29,6 +29,7 @@ package org.hisp.dhis.outlierdetection.service;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Writer;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -48,7 +49,6 @@ import org.springframework.stereotype.Service;
 public class DefaultOutlierDetectionService
     extends AbstractOutlierDetectionService<OutlierDetectionResponse> {
   private final ZScoreOutlierDetectionManager zScoreOutlierDetection;
-
   private final MinMaxOutlierDetectionManager minMaxOutlierDetection;
 
   public DefaultOutlierDetectionService(
@@ -72,9 +72,33 @@ public class DefaultOutlierDetectionService
   }
 
   @Override
-  public void getOutlierValuesAsCsv(OutlierDetectionRequest request, OutputStream out)
+  public void getOutlierValuesAsCsv(OutlierDetectionRequest request, Writer writer)
       throws IllegalQueryException, IOException {
-    JacksonCsvUtils.toCsv(getOutlierValues(request).getOutlierValues(), OutlierValue.class, out);
+    JacksonCsvUtils.toCsv(getOutlierValues(request).getOutlierValues(), OutlierValue.class, writer);
+  }
+
+  @Override
+  public void getOutlierValuesAsXml(OutlierDetectionRequest request, OutputStream outputStream)
+      throws IllegalQueryException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void getOutlierValuesAsXls(OutlierDetectionRequest request, OutputStream outputStream)
+      throws IllegalQueryException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void getOutlierValuesAsHtml(OutlierDetectionRequest request, Writer writer)
+      throws IllegalQueryException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void getOutlierValuesAsHtmlCss(OutlierDetectionRequest request, Writer writer)
+      throws IllegalQueryException {
+    throw new UnsupportedOperationException();
   }
 
   /**
@@ -107,9 +131,9 @@ public class DefaultOutlierDetectionService
     switch (request.getAlgorithm()) {
       case Z_SCORE:
       case MOD_Z_SCORE:
-        return zScoreOutlierDetection.getOutlierValues(request);
+        return zScoreOutlierDetection.getOutlierValues(request, true);
       case MIN_MAX:
-        return minMaxOutlierDetection.getOutlierValues(request);
+        return minMaxOutlierDetection.getOutlierValues(request, true);
       default:
         throw new IllegalStateException(
             String.format("Outlier detection algorithm not supported: %s", request.getAlgorithm()));

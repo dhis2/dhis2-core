@@ -66,7 +66,6 @@ public class AnalyticsZScoreSqlStatementProcessor extends OutlierSqlStatementPro
         + "ax.coc_name, "
         + "ax.aoc_name, "
         + "ax.value, "
-        + "ax.follow_up, "
         + "ax.pestartdate as pe_start_date, "
         + "ax.pt_name, "
         + middle_value

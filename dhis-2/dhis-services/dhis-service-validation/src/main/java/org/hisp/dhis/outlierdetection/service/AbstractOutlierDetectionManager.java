@@ -29,6 +29,8 @@ package org.hisp.dhis.outlierdetection.service;
 
 import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
@@ -52,22 +54,17 @@ public abstract class AbstractOutlierDetectionManager {
     this.jdbcTemplate = jdbcTemplate;
   }
 
-  /**
-   * Returns a {@link RowMapper} for {@link OutlierValue}.
-   *
-   * @param calendar the {@link Calendar}.
-   * @return a {@link RowMapper}.
-   */
-  public List<OutlierValue> getOutlierValues(OutlierDetectionRequest request) {
+  public List<OutlierValue> getOutlierValues(
+      OutlierDetectionRequest request, boolean withFollowUp) {
 
-    final IOutlierSqlStatementProcessor sqlStatementProcessor = getSqlStatmentProcessor();
+    final IOutlierSqlStatementProcessor sqlStatementProcessor = getSqlStatementProcessor();
     final String sql = sqlStatementProcessor.getSqlStatement(request);
     final SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);
     final Calendar calendar = PeriodType.getCalendar();
     final boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
 
     try {
-      return jdbcTemplate.query(sql, params, getRowMapper(calendar, modifiedZ));
+      return jdbcTemplate.query(sql, params, getRowMapper(calendar, modifiedZ, withFollowUp));
     } catch (DataIntegrityViolationException ex) {
       // Casting non-numeric data to double, catching exception is faster
       // than filtering
@@ -78,38 +75,52 @@ public abstract class AbstractOutlierDetectionManager {
     }
   }
 
-  protected abstract IOutlierSqlStatementProcessor getSqlStatmentProcessor();
+  protected abstract IOutlierSqlStatementProcessor getSqlStatementProcessor();
 
-  private RowMapper<OutlierValue> getRowMapper(final Calendar calendar, boolean modifiedZ) {
+  /**
+   * Returns a {@link RowMapper} for {@link OutlierValue}.
+   *
+   * @param calendar the {@link Calendar}.
+   * @return a {@link RowMapper}.
+   */
+  protected RowMapper<OutlierValue> getRowMapper(
+      final Calendar calendar, boolean modifiedZ, boolean withFollowUp) {
     return (rs, rowNum) -> {
-      final OutlierValue outlier = new OutlierValue();
-
-      final String isoPeriod =
-          getIsoPeriod(calendar, rs.getString("pt_name"), rs.getDate("pe_start_date"));
-
-      outlier.setDe(rs.getString("de_uid"));
-      outlier.setDeName(rs.getString("de_name"));
-      outlier.setPe(isoPeriod);
-      outlier.setOu(rs.getString("ou_uid"));
-      outlier.setOuName(rs.getString("ou_name"));
-      outlier.setCoc(rs.getString("coc_uid"));
-      outlier.setCocName(rs.getString("coc_name"));
-      outlier.setAoc(rs.getString("aoc_uid"));
-      outlier.setAocName(rs.getString("aoc_name"));
-      outlier.setValue(rs.getDouble("value"));
+      OutlierValue outlierValue = getOutlierValue(calendar, rs);
       if (modifiedZ) {
-        outlier.setMedian(rs.getDouble("middle_value"));
+        outlierValue.setMedian(rs.getDouble("middle_value"));
       } else {
-        outlier.setMean(rs.getDouble("middle_value"));
+        outlierValue.setMean(rs.getDouble("middle_value"));
       }
-      outlier.setStdDev(rs.getDouble("std_dev"));
-      outlier.setAbsDev(rs.getDouble("middle_value_abs_dev"));
-      outlier.setZScore(rs.getDouble("z_score"));
-      outlier.setLowerBound(rs.getDouble("lower_bound"));
-      outlier.setUpperBound(rs.getDouble("upper_bound"));
-      outlier.setFollowup(rs.getBoolean("follow_up"));
-
-      return outlier;
+      outlierValue.setStdDev(rs.getDouble("std_dev"));
+      outlierValue.setAbsDev(rs.getDouble("middle_value_abs_dev"));
+      outlierValue.setZScore(rs.getDouble("z_score"));
+      outlierValue.setLowerBound(rs.getDouble("lower_bound"));
+      outlierValue.setUpperBound(rs.getDouble("upper_bound"));
+      if (withFollowUp) {
+        outlierValue.setFollowup(rs.getBoolean("follow_up"));
+      }
+      return outlierValue;
     };
+  }
+
+  protected OutlierValue getOutlierValue(Calendar calendar, ResultSet rs) throws SQLException {
+    final OutlierValue outlier = new OutlierValue();
+
+    final String isoPeriod =
+        getIsoPeriod(calendar, rs.getString("pt_name"), rs.getDate("pe_start_date"));
+
+    outlier.setDe(rs.getString("de_uid"));
+    outlier.setDeName(rs.getString("de_name"));
+    outlier.setPe(isoPeriod);
+    outlier.setOu(rs.getString("ou_uid"));
+    outlier.setOuName(rs.getString("ou_name"));
+    outlier.setCoc(rs.getString("coc_uid"));
+    outlier.setCocName(rs.getString("coc_name"));
+    outlier.setAoc(rs.getString("aoc_uid"));
+    outlier.setAocName(rs.getString("aoc_name"));
+    outlier.setValue(rs.getDouble("value"));
+
+    return outlier;
   }
 }

@@ -29,8 +29,8 @@ package org.hisp.dhis.outlierdetection;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Writer;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
  * Outlier detection service.
@@ -47,14 +47,6 @@ public interface OutlierDetectionService<TRs> {
   void validate(OutlierDetectionRequest request) throws IllegalQueryException;
 
   /**
-   * Validates the given request.
-   *
-   * @param request the {@link OutlierDetectionRequest}.
-   * @return an {@link ErrorMessage} if request is invalid, or null if valid.
-   */
-  ErrorMessage validateForErrorMessage(OutlierDetectionRequest request);
-
-  /**
    * Creates a {@link OutlierDetectionRequest} from the given query.
    *
    * @param query the {@link OutlierDetectionQuery}.
@@ -69,16 +61,25 @@ public interface OutlierDetectionService<TRs> {
    * @return a {@link OutlierDetectionResponse}.
    * @throws IllegalQueryException if request is invalid.
    */
-  TRs getOutlierValues(OutlierDetectionRequest request)
-      throws IllegalQueryException;
+  TRs getOutlierValues(OutlierDetectionRequest request) throws IllegalQueryException;
 
   /**
    * Writes outlier data values for the given request as CSV to the given output stream.
    *
    * @param request the {@link OutlierDetectionRequest}.
-   * @param out the {@link OutputStream} to write to.
+   * @param writer the {@link Writer} to write to.
    * @throws IllegalQueryException if request is invalid.
    */
-  void getOutlierValuesAsCsv(OutlierDetectionRequest request, OutputStream out)
+  void getOutlierValuesAsCsv(OutlierDetectionRequest request, Writer writer)
       throws IllegalQueryException, IOException;
+
+  void getOutlierValuesAsXml(OutlierDetectionRequest request, OutputStream outputStream);
+
+  void getOutlierValuesAsXls(OutlierDetectionRequest request, OutputStream outputStream)
+      throws IllegalQueryException, IOException;
+
+  void getOutlierValuesAsHtml(OutlierDetectionRequest request, Writer writer)
+      throws IllegalQueryException, IOException;
+
+  public void getOutlierValuesAsHtmlCss(OutlierDetectionRequest request, Writer writer);
 }

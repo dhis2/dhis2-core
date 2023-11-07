@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.ColumnDataType.BOOLEAN;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
@@ -571,7 +570,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         new AnalyticsTableColumn(quote("coc_name"), VARCHAR_255, "co.name"),
         new AnalyticsTableColumn(quote("aoc_name"), VARCHAR_255, "ao.name"),
         new AnalyticsTableColumn(quote("pt_name"), VARCHAR_255, "pt.name"),
-        new AnalyticsTableColumn(quote("follow_up"), BOOLEAN, "dv.followup"),
         new AnalyticsTableColumn(quote("path"), VARCHAR_255, "ou.path"),
         new AnalyticsTableColumn(quote("avg_middle_value"), DOUBLE, "stats.avg_middle_value"),
         new AnalyticsTableColumn(
