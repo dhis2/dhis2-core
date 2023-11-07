@@ -101,17 +101,16 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
       return PersistenceReport.emptyReport();
     }
 
-    Session session = entityManager.unwrap(Session.class);
     Map<TrackerType, TrackerTypeReport> reportMap =
         Map.of(
             TrackerType.TRACKED_ENTITY,
-            commitService.getTrackerPersister().persist(session, bundle),
+            commitService.getTrackerPersister().persist(entityManager, bundle),
             TrackerType.ENROLLMENT,
-            commitService.getEnrollmentPersister().persist(session, bundle),
+            commitService.getEnrollmentPersister().persist(entityManager, bundle),
             TrackerType.EVENT,
-            commitService.getEventPersister().persist(session, bundle),
+            commitService.getEventPersister().persist(entityManager, bundle),
             TrackerType.RELATIONSHIP,
-            commitService.getRelationshipPersister().persist(session, bundle));
+            commitService.getRelationshipPersister().persist(entityManager, bundle));
 
     return new PersistenceReport(reportMap);
   }

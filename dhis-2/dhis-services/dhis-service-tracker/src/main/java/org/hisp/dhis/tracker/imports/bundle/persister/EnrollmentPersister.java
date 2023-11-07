@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Objects;
+import javax.persistence.EntityManager;
 import org.hibernate.Session;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
@@ -73,12 +74,12 @@ public class EnrollmentPersister
 
   @Override
   protected void updateAttributes(
-      Session session,
+      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Enrollment enrollmentToPersist) {
     handleTrackedEntityAttributeValues(
-        session,
+        entityManager,
         preheat,
         enrollment.getAttributes(),
         preheat.getTrackedEntity(enrollmentToPersist.getTrackedEntity().getUid()));
@@ -86,7 +87,7 @@ public class EnrollmentPersister
 
   @Override
   protected void updateDataValues(
-      Session session,
+      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Enrollment enrollmentToPersist) {
@@ -94,11 +95,11 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected void persistNotes(Session session, TrackerPreheat preheat, Enrollment enrollment) {
+  protected void persistNotes(EntityManager entityManager, TrackerPreheat preheat, Enrollment enrollment) {
     if (!enrollment.getNotes().isEmpty()) {
       for (Note note : enrollment.getNotes()) {
         if (Objects.isNull(preheat.getNote(note.getUid()))) {
-          session.persist(note);
+          entityManager.persist(note);
         }
       }
     }

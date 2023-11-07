@@ -39,6 +39,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
@@ -88,11 +89,11 @@ public class EventPersister
   }
 
   @Override
-  protected void persistNotes(Session session, TrackerPreheat preheat, Event event) {
+  protected void persistNotes(EntityManager entityManager, TrackerPreheat preheat, Event event) {
     if (!event.getNotes().isEmpty()) {
       for (Note note : event.getNotes()) {
         if (Objects.isNull(preheat.getNote(note.getUid()))) {
-          session.save(note);
+          entityManager.persist(note);
         }
       }
     }
@@ -135,7 +136,7 @@ public class EventPersister
 
   @Override
   protected void updateAttributes(
-      Session session,
+      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
       Event hibernateEntity) {
@@ -144,15 +145,15 @@ public class EventPersister
 
   @Override
   protected void updateDataValues(
-      Session session,
+      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
       Event hibernateEntity) {
-    handleDataValues(session, preheat, event.getDataValues(), hibernateEntity);
+    handleDataValues(entityManager, preheat, event.getDataValues(), hibernateEntity);
   }
 
   private void handleDataValues(
-      Session session, TrackerPreheat preheat, Set<DataValue> payloadDataValues, Event event) {
+      EntityManager entityManager, TrackerPreheat preheat, Set<DataValue> payloadDataValues, Event event) {
     Map<String, EventDataValue> dataValueDBMap =
         Optional.ofNullable(preheat.getEvent(event.getUid()))
             .map(
@@ -181,7 +182,7 @@ public class EventPersister
 
           if (StringUtils.isEmpty(dv.getValue())) {
             if (dataElement.isFileType()) {
-              unassignFileResource(session, preheat, event.getUid(), eventDataValue.getValue());
+              unassignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
             }
 
             event.getEventDataValues().remove(eventDataValue);
@@ -189,7 +190,7 @@ public class EventPersister
             eventDataValue.setValue(dv.getValue());
 
             if (dataElement.isFileType()) {
-              assignFileResource(session, preheat, event.getUid(), eventDataValue.getValue());
+              assignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
             }
 
             event.getEventDataValues().remove(eventDataValue);

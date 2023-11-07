@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import javax.persistence.EntityManager;
 import org.hibernate.Session;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
@@ -43,9 +44,9 @@ public interface TrackerPersister<T extends TrackerDto, V> {
    * Persist one of the collections in the provided Tracker Bundle. Each class implementing this
    * method should be responsible to persist one collection of the TrackerBundle (e.g. Enrollments)
    *
-   * @param session a valid Hibernate Session
+   * @param entityManager a valid EntityManager
    * @param bundle the Bundle to persist
    * @return a {@link TrackerTypeReport}
    */
-  TrackerTypeReport persist(Session session, TrackerBundle bundle);
+  TrackerTypeReport persist(EntityManager entityManager, TrackerBundle bundle);
 }
