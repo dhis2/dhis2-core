@@ -171,6 +171,17 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
+  public void updateCustomIcon(CustomIcon customIcon)
+      throws BadRequestException, NotFoundException {
+    updateCustomIcon(
+        customIcon.getKey(),
+        customIcon.getDescription(),
+        customIcon.getKeywords(),
+        customIcon.isCustom());
+  }
+
+  @Override
+  @Transactional
   public void deleteCustomIcon(String key) throws BadRequestException, NotFoundException {
     CustomIcon icon = validateCustomIconExists(key);
     getFileResource(icon.getFileResourceUid()).setAssigned(false);

@@ -117,6 +117,8 @@ public interface IconService {
   void updateCustomIcon(String key, String description, String[] keywords, boolean isCustom)
       throws BadRequestException, NotFoundException;
 
+  void updateCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;
+
   /**
    * Deletes a custom icon given its key
    *
