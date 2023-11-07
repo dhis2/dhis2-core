@@ -35,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -44,6 +45,8 @@ import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.JobTypes;
 import org.springframework.http.HttpStatus;
@@ -109,8 +112,15 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
 
   @PostMapping("{uid}/cancel")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void cancelExecution(@PathVariable("uid") String uid) {
-    // TODO check auth
+  public void cancelExecution(@PathVariable("uid") String uid, @CurrentUser User currentUser)
+      throws NotFoundException, ForbiddenException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
+    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid);
+    boolean canCancel =
+        currentUser.isSuper()
+            || currentUser.isAuthorized("F_PERFORM_MAINTENANCE")
+            || currentUser.getUid().equals(obj.getExecutedBy());
+    if (!canCancel) throw new ForbiddenException(JobConfiguration.class, obj.getUid());
     jobSchedulerService.requestCancel(uid);
   }
 
