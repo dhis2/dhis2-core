@@ -39,10 +39,12 @@ import static org.hisp.dhis.web.HttpStatus.CREATED;
 import static org.hisp.dhis.web.HttpStatus.OK;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -583,16 +585,13 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
               "direction": "ASC"
           },
           {
-              "dimension": "deabcdefghP.deabcdefghS.deabcdefghB",
+              "dimension": "deabcdefghP.deabcdefghB",
               "direction": "DESC"
           }
       ],
       "columns": [
           {
               "dimension": "deabcdefghB",
-              "programStage": {
-                  "id": "deabcdefghS"
-              },
               "program": {
                   "id": "deabcdefghP"
               }
@@ -614,6 +613,14 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
                       "id": "2023-01-21_2023-02-01"
                   }
               ]
+          },
+          {
+            "dimension": "created",
+            "items": [
+                {
+                    "id": "2021-01-21_2021-02-01"
+                }
+            ]
           }
        ],
       "filters": [
@@ -659,7 +666,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     JsonObject response =
         GET("/eventVisualizations/"
                 + uid
-                + "?fields=*,sorting,filters[:all,items[code, name, sharing, shortName, dimensionItemType, dimensionItem, displayShortName, displayName, displayFormName, id],repetitions],columns[:all,items[:all],repetitions]")
+                + "?fields=*,sorting,filters[dimension,programStage,repetition[:all],items[code,name,dimensionItemType,dimensionItem,id],repetitions],columns[dimension,program,programStage,items[id],repetitions]")
             .content();
 
     assertThat(response.get("name").node().value(), is(equalTo("Test multi-programs post")));
@@ -671,19 +678,26 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         is(equalTo("""
 {"id":"nEenWmSyUEp"}""")));
 
+    JsonNode simpleDimensionNode0 = response.get("simpleDimensions").node().element(0);
+    assertThat(simpleDimensionNode0.get("parent").value().toString(), is(equalTo("COLUMN")));
+    assertThat(simpleDimensionNode0.get("dimension").value().toString(), is(equalTo("eventDate")));
+    assertThat(simpleDimensionNode0.get("program").value().toString(), is(equalTo("deabcdefghP")));
     assertThat(
-        response.get("simpleDimensions").node().value().toString(),
-        is(
-            equalTo(
-                """
-[{"parent":"COLUMN","dimension":"eventDate","program":"deabcdefghP","values":["2023-07-21_2023-08-01","2023-01-21_2023-02-01"]}]""")));
+        simpleDimensionNode0.get("values").value().toString(),
+        is(equalTo("""
+["2023-07-21_2023-08-01","2023-01-21_2023-02-01"]""")));
+    assertThat(simpleDimensionNode0.get("parent").value().toString(), is(equalTo("COLUMN")));
 
+    JsonNode sortingNode0 = response.get("sorting").node().element(0);
     assertThat(
-        response.get("sorting").node().value().toString(),
-        is(
-            equalTo(
-                """
-[{"dimension":"deabcdefghP[-1].deabcdefghS[0].deabcdefghB","direction":"ASC"},{"dimension":"deabcdefghP.deabcdefghS.deabcdefghB","direction":"DESC"}]""")));
+        sortingNode0.get("dimension").value().toString(),
+        is(equalTo("deabcdefghP[-1].deabcdefghS[0].deabcdefghB")));
+    assertThat(sortingNode0.get("direction").value().toString(), is(equalTo("ASC")));
+
+    JsonNode sortingNode1 = response.get("sorting").node().element(1);
+    assertThat(
+        sortingNode1.get("dimension").value().toString(), is(equalTo("deabcdefghP.deabcdefghB")));
+    assertThat(sortingNode1.get("direction").value().toString(), is(equalTo("DESC")));
 
     assertThat(response.get("rows").node().value().toString(), is(equalTo("[]")));
     assertThat(response.get("rowDimensions").node().value().toString(), is(equalTo("[]")));
@@ -693,19 +707,27 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         is(
             equalTo(
                 """
-["deabcdefghP.deabcdefghS.deabcdefghB","deabcdefghC","deabcdefghP.eventDate"]""")));
+["deabcdefghP.deabcdefghB","deabcdefghC","deabcdefghP.eventDate","created"]""")));
 
     assertThat(
         response.get("filterDimensions").node().value().toString(),
         is(equalTo("""
 ["deabcdefghP.deabcdefghS.ou","deabcdefghE"]""")));
 
+    JsonNode dataElementDimensionsNode0 = response.get("dataElementDimensions").node().element(0);
     assertThat(
-        response.get("dataElementDimensions").node().value().toString(),
-        is(
-            equalTo(
-                """
-[{"dataElement":{"id":"deabcdefghC"},"filter":"IN:Female"},{"dataElement":{"id":"deabcdefghE"}}]""")));
+        dataElementDimensionsNode0.get("dataElement").value().toString(),
+        is(equalTo("""
+{"id":"deabcdefghC"}""")));
+    assertThat(
+        dataElementDimensionsNode0.get("filter").value().toString(), is(equalTo("IN:Female")));
+
+    JsonNode dataElementDimensionsNode1 = response.get("dataElementDimensions").node().element(1);
+    assertThat(
+        dataElementDimensionsNode1.get("dataElement").value().toString(),
+        is(equalTo("""
+{"id":"deabcdefghE"}""")));
+    assertFalse(dataElementDimensionsNode1.isMember("filter"));
 
     assertThat(
         response.get("programIndicatorDimensions").node().value().toString(),
@@ -717,26 +739,96 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         is(equalTo("""
 [{"id":"ImspTQPwCqd"}]""")));
 
-    assertThat(
-        response.get("repetitions").node().value().toString(),
-        is(
-            equalTo(
-                """
-[{"parent":"FILTER","dimension":"ou","program":"deabcdefghP","programStage":"deabcdefghS","indexes":[1,2,3,-2,-1,0]},{"parent":"FILTER","dimension":"deabcdefghE","indexes":[1,2,0]}]""")));
+    JsonNode repetitionsNode0 = response.get("repetitions").node().element(0);
+    assertThat(repetitionsNode0.get("parent").value().toString(), is(equalTo("FILTER")));
+    assertThat(repetitionsNode0.get("dimension").value().toString(), is(equalTo("ou")));
+    assertThat(repetitionsNode0.get("program").value().toString(), is(equalTo("deabcdefghP")));
+    assertThat(repetitionsNode0.get("programStage").value().toString(), is(equalTo("deabcdefghS")));
+    assertThat(repetitionsNode0.get("indexes").value().toString(), is(equalTo("[1,2,3,-2,-1,0]")));
 
-    assertThat(
-        response.get("columns").node().value().toString(),
-        is(
-            equalTo(
-                """
-[{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"PROGRAM_INDICATOR","dataDimension":true,"items":[],"allItems":false,"program":{"id":"deabcdefghP"},"dimension":"deabcdefghB","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"deabcdefghB","attributeValues":[]},{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"PROGRAM_DATA_ELEMENT","dataDimension":true,"items":[],"allItems":false,"filter":"IN:Female","dimension":"deabcdefghC","valueType":"INTEGER","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"deabcdefghC","attributeValues":[]},{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"PERIOD","dataDimension":true,"items":[{"code":"2023-07-21_2023-08-01","name":"2023-07-21_2023-08-01","translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"legendSets":[],"dimensionItem":"2023-07-21_2023-08-01","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"displayName":"2023-07-21_2023-08-01","favorite":false,"displayFormName":"2023-07-21_2023-08-01","id":"2023-07-21_2023-08-01","attributeValues":[]},{"code":"2023-01-21_2023-02-01","name":"2023-01-21_2023-02-01","translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"legendSets":[],"dimensionItem":"2023-01-21_2023-02-01","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"displayName":"2023-01-21_2023-02-01","favorite":false,"displayFormName":"2023-01-21_2023-02-01","id":"2023-01-21_2023-02-01","attributeValues":[]}],"allItems":false,"program":{"id":"deabcdefghP"},"dimension":"eventDate","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"eventDate","attributeValues":[]}]""")));
+    JsonNode repetitionsNode1 = response.get("repetitions").node().element(1);
+    assertThat(repetitionsNode1.get("parent").value().toString(), is(equalTo("FILTER")));
+    assertThat(repetitionsNode1.get("dimension").value().toString(), is(equalTo("deabcdefghE")));
+    assertFalse(repetitionsNode1.isMember("program"));
+    assertFalse(repetitionsNode1.isMember("programStage"));
+    assertThat(repetitionsNode1.get("indexes").value().toString(), is(equalTo("[1,2,0]")));
 
+    JsonNode columnsNode0 = response.get("columns").node().element(0);
+    assertThat(columnsNode0.get("items").value().toString(), is(equalTo("[]")));
     assertThat(
-        response.get("filters").node().value().toString(),
-        is(
-            equalTo(
-                """
-[{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"ORGANISATION_UNIT","dataDimension":true,"items":[{"code":"OrganisationUnitCodeA","name":"OrganisationUnitA","sharing":{"external":false,"users":{},"userGroups":{}},"shortName":"OrganisationUnitShortA","dimensionItemType":"ORGANISATION_UNIT","dimensionItem":"ImspTQPwCqd","displayShortName":"OrganisationUnitShortA","displayName":"OrganisationUnitA","displayFormName":"OrganisationUnitA","id":"ImspTQPwCqd"}],"allItems":false,"programStage":{"id":"deabcdefghS"},"program":{"id":"deabcdefghP"},"dimension":"ou","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"ou","attributeValues":[],"repetition":{"parent":"FILTER","dimension":"ou","program":"deabcdefghP","programStage":"deabcdefghS","indexes":[1,2,3,-2,-1,0]}},{"translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"dimensionType":"PROGRAM_DATA_ELEMENT","dataDimension":true,"items":[],"allItems":false,"dimension":"deabcdefghE","valueType":"INTEGER","access":{"manage":true,"externalize":true,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"deabcdefghE","attributeValues":[],"repetition":{"parent":"FILTER","dimension":"deabcdefghE","indexes":[1,2,0]}}]""")));
+        columnsNode0.get("program").value().toString(), is(equalTo("""
+{"id":"deabcdefghP"}""")));
+    assertThat(columnsNode0.get("dimension").value().toString(), is(equalTo("deabcdefghB")));
+
+    JsonNode columnsNode1 = response.get("columns").node().element(1);
+    assertThat(columnsNode1.get("items").value().toString(), is(equalTo("[]")));
+    assertFalse(columnsNode1.isMember("program"));
+    assertThat(columnsNode1.get("dimension").value().toString(), is(equalTo("deabcdefghC")));
+
+    JsonNode columnsNode2 = response.get("columns").node().element(2);
+    assertThat(
+        columnsNode2.get("items").value().toString(),
+        is(equalTo("""
+[{"id":"2023-07-21_2023-08-01"},{"id":"2023-01-21_2023-02-01"}]""")));
+    assertThat(
+        columnsNode2.get("program").value().toString(), is(equalTo("""
+{"id":"deabcdefghP"}""")));
+    assertThat(columnsNode2.get("dimension").value().toString(), is(equalTo("eventDate")));
+
+    JsonNode columnsNode3 = response.get("columns").node().element(3);
+    assertThat(
+        columnsNode3.get("items").value().toString(),
+        is(equalTo("""
+[{"id":"2021-01-21_2021-02-01"}]""")));
+    assertThat(columnsNode3.get("dimension").value().toString(), is(equalTo("created")));
+
+    JsonNode filtersNode0 = response.get("filters").node().element(0);
+    assertThat(
+        filtersNode0.get("items").element(0).get("code").value().toString(),
+        is(equalTo("OrganisationUnitCodeA")));
+    assertThat(
+        filtersNode0.get("items").element(0).get("name").value().toString(),
+        is(equalTo("OrganisationUnitA")));
+    assertThat(
+        filtersNode0.get("items").element(0).get("dimensionItemType").value().toString(),
+        is(equalTo("ORGANISATION_UNIT")));
+    assertThat(
+        filtersNode0.get("items").element(0).get("dimensionItem").value().toString(),
+        is(equalTo("ImspTQPwCqd")));
+    assertThat(
+        filtersNode0.get("items").element(0).get("id").value().toString(),
+        is(equalTo("ImspTQPwCqd")));
+    assertThat(
+        filtersNode0.get("programStage").value().toString(),
+        is(equalTo("""
+{"id":"deabcdefghS"}""")));
+    assertThat(filtersNode0.get("dimension").value().toString(), is(equalTo("ou")));
+    assertThat(
+        filtersNode0.get("repetition").get("parent").value().toString(), is(equalTo("FILTER")));
+    assertThat(
+        filtersNode0.get("repetition").get("dimension").value().toString(), is(equalTo("ou")));
+    assertThat(
+        filtersNode0.get("repetition").get("program").value().toString(),
+        is(equalTo("deabcdefghP")));
+    assertThat(
+        filtersNode0.get("repetition").get("programStage").value().toString(),
+        is(equalTo("deabcdefghS")));
+    assertThat(
+        filtersNode0.get("repetition").get("indexes").value().toString(),
+        is(equalTo("[1,2,3,-2,-1,0]")));
+
+    JsonNode filtersNode1 = response.get("filters").node().element(1);
+    assertThat(filtersNode1.get("items").value().toString(), is(equalTo("[]")));
+    assertThat(filtersNode1.get("dimension").value().toString(), is(equalTo("deabcdefghE")));
+    assertThat(
+        filtersNode1.get("repetition").get("parent").value().toString(), is(equalTo("FILTER")));
+    assertThat(
+        filtersNode1.get("repetition").get("dimension").value().toString(),
+        is(equalTo("deabcdefghE")));
+    assertFalse(filtersNode1.get("repetition").isMember("program"));
+    assertFalse(filtersNode1.get("repetition").isMember("programStage"));
+    assertThat(
+        filtersNode1.get("repetition").get("indexes").value().toString(), is(equalTo("[1,2,0]")));
   }
 
   @Test

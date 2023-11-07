@@ -232,7 +232,7 @@ public class ProgramStageInstanceMapper
   private void setExecutionDate(
       org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, Event psi) {
     if (event.getEventDate() != null) {
-      psi.setExecutionDate(parseDate(event.getEventDate()));
+      psi.setOccurredDate(parseDate(event.getEventDate()));
     }
   }
 

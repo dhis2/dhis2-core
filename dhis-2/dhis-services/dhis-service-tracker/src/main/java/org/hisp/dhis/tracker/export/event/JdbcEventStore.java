@@ -179,7 +179,9 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_USER_UID = "u_uid";
   private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
   private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
-  private static final String ORG_UNIT_PATH_LIKE_MATCH_QUERY =
+  private static final String USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
+      " ou.path like CONCAT(orgunit.path, '%') ";
+  private static final String CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
       " ou.path like CONCAT(:" + COLUMN_ORG_UNIT_PATH + ", '%' ) ";
 
   /**
@@ -196,7 +198,7 @@ class JdbcEventStore implements EventStore {
           entry("enrollment.enrollmentDate", COLUMN_ENROLLMENT_DATE),
           entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
           entry("enrollment.trackedEntity.uid", COLUMN_TRACKEDENTITY_UID),
-          entry("executionDate", COLUMN_EVENT_EXECUTION_DATE),
+          entry("occurredDate", COLUMN_EVENT_EXECUTION_DATE),
           entry("enrollment.followUp", COLUMN_ENROLLMENT_FOLLOWUP),
           entry("status", COLUMN_EVENT_STATUS),
           entry("dueDate", COLUMN_EVENT_DUE_DATE),
@@ -266,8 +268,6 @@ class JdbcEventStore implements EventStore {
         sql,
         mapSqlParameterSource,
         resultSet -> {
-          log.debug("Event query SQL: " + sql);
-
           Set<String> notes = new HashSet<>();
 
           while (resultSet.next()) {
@@ -327,7 +327,7 @@ class JdbcEventStore implements EventStore {
 
               event.setStoredBy(resultSet.getString(COLUMN_EVENT_STORED_BY));
               event.setDueDate(resultSet.getTimestamp(COLUMN_EVENT_DUE_DATE));
-              event.setExecutionDate(resultSet.getTimestamp(COLUMN_EVENT_EXECUTION_DATE));
+              event.setOccurredDate(resultSet.getTimestamp(COLUMN_EVENT_EXECUTION_DATE));
               event.setCreated(resultSet.getTimestamp(COLUMN_EVENT_CREATED));
               event.setCreatedByUserInfo(
                   EventUtils.jsonToUserInfo(
@@ -543,8 +543,6 @@ class JdbcEventStore implements EventStore {
 
     sql = sql.replaceFirst("limit \\d+ offset \\d+", "");
 
-    log.debug("Event query count SQL: " + sql);
-
     return jdbcTemplate.queryForObject(sql, mapSqlParameterSource, Integer.class);
   }
 
@@ -592,12 +590,16 @@ class JdbcEventStore implements EventStore {
   }
 
   /**
-   * Generates a single INNER JOIN for each attribute we are searching on. We can search by a range
-   * of operators. All searching is using lower() since attribute values are case-insensitive.
+   * Generates a single INNER JOIN for each attribute we are filtering or ordering on. We can search
+   * by a range of operators. All searching is using lower() since attribute values are
+   * case-insensitive.
    */
-  private void joinAttributeValueWithoutQueryParameter(
-      StringBuilder sql, Map<TrackedEntityAttribute, List<QueryFilter>> attributes) {
-    for (Entry<TrackedEntityAttribute, List<QueryFilter>> queryItem : attributes.entrySet()) {
+  private String joinAttributeValue(EventQueryParams params) {
+    StringBuilder sql = new StringBuilder();
+
+    for (Entry<TrackedEntityAttribute, List<QueryFilter>> queryItem :
+        params.getAttributes().entrySet()) {
+
       TrackedEntityAttribute tea = queryItem.getKey();
       String teaUid = tea.getUid();
       String teaValueCol = statementBuilder.columnQuote(teaUid);
@@ -623,6 +625,8 @@ class JdbcEventStore implements EventStore {
           getAttributeFilterQuery(
               queryItem.getValue(), teaCol, teaValueCol, tea.getValueType().isNumeric()));
     }
+
+    return sql.toString();
   }
 
   private String getAttributeFilterQuery(
@@ -676,6 +680,35 @@ class JdbcEventStore implements EventStore {
     }
 
     return query.toString();
+  }
+
+  /**
+   * Generates the LEFT JOINs used for attributes we are ordering by (If any). We use LEFT JOIN to
+   * avoid removing any rows if there is no value for a given attribute and te. The result of this
+   * LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and main query.
+   *
+   * @return a SQL LEFT JOIN for attributes used for ordering, or empty string if no attributes is
+   *     used in order.
+   */
+  private String getFromSubQueryJoinOrderByAttributes(EventQueryParams params) {
+    StringBuilder joinOrderAttributes = new StringBuilder();
+
+    for (TrackedEntityAttribute orderAttribute : params.leftJoinAttributes()) {
+
+      joinOrderAttributes
+          .append(" LEFT JOIN trackedentityattributevalue AS ")
+          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(" ON ")
+          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(".trackedentityid = TE.trackedentityid ")
+          .append("AND ")
+          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(".trackedentityattributeid = ")
+          .append(orderAttribute.getId())
+          .append(SPACE);
+    }
+
+    return joinOrderAttributes.toString();
   }
 
   private String getEventSelectQuery(
@@ -818,9 +851,11 @@ class JdbcEventStore implements EventStore {
             "left join organisationunit teou on (te.organisationunitid=teou.organisationunitid) ")
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
-    if (!params.getAttributes().isEmpty()) {
-      joinAttributeValueWithoutQueryParameter(fromBuilder, params.getAttributes());
-    }
+    // JOIN attributes we need to filter on.
+    fromBuilder.append(joinAttributeValue(params));
+
+    // LEFT JOIN not filterable attributes we need to sort on.
+    fromBuilder.append(getFromSubQueryJoinOrderByAttributes(params));
 
     fromBuilder.append(getCategoryOptionComboQuery(user));
 
@@ -944,8 +979,8 @@ class JdbcEventStore implements EventStore {
       fromBuilder.append(hlp.whereAnd()).append(orgUnitSql);
     }
 
-    if (params.getStartDate() != null) {
-      mapSqlParameterSource.addValue("startDate", params.getStartDate(), Types.DATE);
+    if (params.getOccurredStartDate() != null) {
+      mapSqlParameterSource.addValue("startDate", params.getOccurredStartDate(), Types.DATE);
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -956,8 +991,9 @@ class JdbcEventStore implements EventStore {
           .append(" )) ");
     }
 
-    if (params.getEndDate() != null) {
-      mapSqlParameterSource.addValue("endDate", addDays(params.getEndDate(), 1), Types.DATE);
+    if (params.getOccurredEndDate() != null) {
+      mapSqlParameterSource.addValue(
+          "endDate", addDays(params.getOccurredEndDate(), 1), Types.DATE);
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -1063,14 +1099,7 @@ class JdbcEventStore implements EventStore {
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return " EXISTS(SELECT ss.organisationunitid "
-        + " FROM userteisearchorgunits ss "
-        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = ss.organisationunitid "
-        + " JOIN userinfo u ON u.userinfoid = ss.userinfoid "
-        + " WHERE u.uid = :"
-        + COLUMN_USER_UID
-        + " AND ou.path like CONCAT(orgunit.path, '%') "
-        + ") ";
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createDescendantsSql(
@@ -1079,60 +1108,64 @@ class JdbcEventStore implements EventStore {
 
     if (isProgramRestricted(params.getProgram())) {
       return createCaptureScopeQuery(
-          user, mapSqlParameterSource, AND + ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+          user, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
     }
 
-    return ORG_UNIT_PATH_LIKE_MATCH_QUERY;
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createChildrenSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
-    if (isProgramRestricted(params.getProgram())) {
-      String childrenSqlClause =
-          AND
-              + ORG_UNIT_PATH_LIKE_MATCH_QUERY
-              + " AND (ou.hierarchylevel = "
-              + params.getOrgUnit().getHierarchyLevel()
-              + " OR ou.hierarchylevel = "
-              + (params.getOrgUnit().getHierarchyLevel() + 1)
-              + " )";
+    String customChildrenQuery =
+        " AND (ou.hierarchylevel = "
+            + params.getOrgUnit().getHierarchyLevel()
+            + " OR ou.hierarchylevel = "
+            + (params.getOrgUnit().getHierarchyLevel() + 1)
+            + " ) ";
 
-      return createCaptureScopeQuery(user, mapSqlParameterSource, childrenSqlClause);
+    if (isProgramRestricted(params.getProgram())) {
+      return createCaptureScopeQuery(
+          user,
+          mapSqlParameterSource,
+          AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
     }
 
-    return ORG_UNIT_PATH_LIKE_MATCH_QUERY
-        + " AND (ou.hierarchylevel = "
-        + params.getOrgUnit().getHierarchyLevel()
-        + " OR ou.hierarchylevel = "
-        + (params.getOrgUnit().getHierarchyLevel() + 1)
-        + " ) ";
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+        CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
   }
 
   private String createSelectedSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
-    String orgUnitPathEqualsMatchQuery = " ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
+    String orgUnitPathEqualsMatchQuery =
+        " ou.path = :"
+            + COLUMN_ORG_UNIT_PATH
+            + " "
+            + AND
+            + USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY;
+
     if (isProgramRestricted(params.getProgram())) {
       String customSelectedClause = AND + orgUnitPathEqualsMatchQuery;
       return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
     }
 
-    return orgUnitPathEqualsMatchQuery;
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
   }
 
-  private boolean isProgramRestricted(Program program) {
-    return program != null && (program.isProtected() || program.isClosed());
-  }
-
-  private boolean isUserSearchScopeNotSet(User user) {
-    return user.getTeiSearchOrganisationUnits().isEmpty();
-  }
-
+  /**
+   * Generates a sql to match the org unit event to the org unit(s) in the user's capture scope
+   *
+   * @param orgUnitMatcher specific condition to add depending on the ou mode
+   * @return a sql clause to add to the main query
+   */
   private String createCaptureScopeQuery(
-      User user, MapSqlParameterSource mapSqlParameterSource, String customClause) {
+      User user, MapSqlParameterSource mapSqlParameterSource, String orgUnitMatcher) {
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
 
     return " EXISTS(SELECT cs.organisationunitid "
@@ -1142,8 +1175,44 @@ class JdbcEventStore implements EventStore {
         + " WHERE u.uid = :"
         + COLUMN_USER_UID
         + " AND ou.path like CONCAT(orgunit.path, '%') "
-        + customClause
+        + orgUnitMatcher
         + ") ";
+  }
+
+  /**
+   * Generates a sql to match the org unit event to the org unit(s) in the user's search and capture
+   * scope
+   *
+   * @param orgUnitMatcher specific condition to add depending on the ou mode
+   * @return a sql clause to add to the main query
+   */
+  private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
+    return " (EXISTS(SELECT ss.organisationunitid "
+        + " FROM userteisearchorgunits ss "
+        + " JOIN userinfo u ON u.userinfoid = ss.userinfoid "
+        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = ss.organisationunitid "
+        + " WHERE u.uid = :"
+        + COLUMN_USER_UID
+        + AND
+        + orgUnitMatcher
+        + " AND p.accesslevel in ('OPEN', 'AUDITED')) "
+        + " OR EXISTS(SELECT cs.organisationunitid "
+        + " FROM usermembership cs "
+        + " JOIN userinfo u ON u.userinfoid = cs.userinfoid "
+        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = cs.organisationunitid "
+        + " WHERE u.uid = :"
+        + COLUMN_USER_UID
+        + AND
+        + orgUnitMatcher
+        + " )) ";
+  }
+
+  private boolean isProgramRestricted(Program program) {
+    return program != null && (program.isProtected() || program.isClosed());
+  }
+
+  private boolean isUserSearchScopeNotSet(User user) {
+    return user.getTeiSearchOrganisationUnits().isEmpty();
   }
 
   /**

@@ -232,8 +232,8 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
         eventService.createEvent(enrollment, stageA, dateMar20, dateMar20, orgUnitA);
     Event stageInstanceB =
         eventService.createEvent(enrollment, stageA, dateApr10, dateApr10, orgUnitA);
-    stageInstanceA.setExecutionDate(dateMar20);
-    stageInstanceB.setExecutionDate(dateApr10);
+    stageInstanceA.setOccurredDate(dateMar20);
+    stageInstanceB.setOccurredDate(dateApr10);
     stageInstanceA.setAttributeOptionCombo(defaultCombo);
     stageInstanceB.setAttributeOptionCombo(defaultCombo);
     eventService.addEvent(stageInstanceA);

@@ -84,7 +84,7 @@ public class DimensionParam implements UidObject {
    * @param dimensionalObjectOrQueryItem either a {@link DimensionalObject} or {@link QueryItem}, or
    *     a static dimension.
    * @param dimensionParamType the {@link DimensionParamType} for the {@link DimensionParam}
-   *     returned (weather it's a filter or a dimension).
+   *     returned (whether it's a filter or a dimension).
    * @param items the list of items parameters for this DimensionParam.
    * @return a new instance of {@link DimensionParam}.
    */
@@ -243,7 +243,10 @@ public class DimensionParam implements UidObject {
     INCIDENTDATE(DATETIME, DimensionParamObjectType.PERIOD),
     EXECUTIONDATE(DATETIME, DimensionParamObjectType.PERIOD),
     LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD),
+    LASTUPDATEDBYDISPLAYNAME(TEXT, DimensionParamObjectType.STATIC),
     CREATED(DATETIME, DimensionParamObjectType.PERIOD),
+    CREATEDBYDISPLAYNAME(TEXT, DimensionParamObjectType.STATIC),
+    STOREDBY(TEXT, DimensionParamObjectType.STATIC),
     ENROLLMENT_STATUS(TEXT, DimensionParamObjectType.STATIC, null, "enrollmentstatus"),
     EVENT_STATUS(TEXT, DimensionParamObjectType.STATIC, null, "status");
 

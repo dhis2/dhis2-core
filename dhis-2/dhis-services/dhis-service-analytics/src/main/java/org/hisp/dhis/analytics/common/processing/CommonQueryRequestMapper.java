@@ -29,8 +29,6 @@ package org.hisp.dhis.analytics.common.processing;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableList;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.isStaticDimensionIdentifier;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DATE_FILTERS;
@@ -54,7 +52,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -62,7 +59,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
@@ -81,6 +77,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.springframework.stereotype.Component;
 
@@ -111,29 +108,13 @@ public class CommonQueryRequestMapper {
         dataQueryService.getUserOrgUnits(null, request.getUserOrgUnit());
     List<Program> programs = getPrograms(request);
 
-    Map<String, String> dimensionsByUid =
-        request.getDimension().stream().collect(Collectors.toMap(identity(), identity()));
-
-    programs.stream()
-        .flatMap(
-            program ->
-                getProgramAttributes(List.of(program))
-                    .map(IdentifiableObject::getUid)
-                    // We need fully qualified dimension identifiers.
-                    .map(attributeUid -> Pair.of(program, attributeUid)))
-        .forEach(
-            fullyQualifiedDimension ->
-                dimensionsByUid.put(
-                    fullyQualifiedDimension.getRight(),
-                    fullyQualifiedDimension.getLeft().getUid()
-                        + "."
-                        + fullyQualifiedDimension.getRight()));
-
-    // Removes all items already existing for which exists a fully qualified dimension name.
-    request.getDimension().removeIf(dimensionsByUid::containsKey);
-
-    // Adds all dimensions from all programs.
-    request.getDimension().addAll(dimensionsByUid.values());
+    // Adds all program attributes from all applicable programs as dimensions
+    request
+        .getDimension()
+        .addAll(
+            getProgramAttributes(programs)
+                .map(IdentifiableObject::getUid)
+                .collect(Collectors.toSet()));
 
     return CommonParams.builder()
         .programs(programs)
@@ -199,7 +180,7 @@ public class CommonQueryRequestMapper {
             SORTING.getUidsGetter().apply(request).stream(),
             (sortRequest, index) ->
                 toSortParam(index, sortRequest, request, programs, userOrgUnits))
-        .collect(toList());
+        .toList();
   }
 
   /**
@@ -240,12 +221,12 @@ public class CommonQueryRequestMapper {
     boolean programsCouldNotBeRetrieved = programs.size() != queryRequest.getProgram().size();
 
     if (programsCouldNotBeRetrieved) {
-      List<String> foundProgramUids = programs.stream().map(Program::getUid).collect(toList());
+      List<String> foundProgramUids = programs.stream().map(Program::getUid).toList();
 
       List<String> missingProgramUids =
           Optional.of(queryRequest).map(CommonQueryRequest::getProgram).orElse(emptySet()).stream()
               .filter(uidFromRequest -> !foundProgramUids.contains(uidFromRequest))
-              .collect(toList());
+              .toList();
 
       throw new IllegalQueryException(E7129, missingProgramUids);
     }
@@ -276,19 +257,14 @@ public class CommonQueryRequestMapper {
                   dimensionParamType.getUidsGetter().apply(queryRequest);
 
               dimensionParams.addAll(
-                  unmodifiableList(
-                      dimensionsOrFilter.stream()
-                          .map(CommonQueryRequestMapper::splitOnOrIfNecessary)
-                          .map(
-                              dof ->
-                                  toDimensionIdentifier(
-                                      dof,
-                                      dimensionParamType,
-                                      queryRequest,
-                                      programs,
-                                      userOrgUnits))
-                          .flatMap(Collection::stream)
-                          .collect(toList())));
+                  dimensionsOrFilter.stream()
+                      .map(CommonQueryRequestMapper::splitOnOrIfNecessary)
+                      .map(
+                          dof ->
+                              toDimensionIdentifier(
+                                  dof, dimensionParamType, queryRequest, programs, userOrgUnits))
+                      .flatMap(Collection::stream)
+                      .toList());
             });
 
     return unmodifiableList(dimensionParams);
@@ -320,7 +296,7 @@ public class CommonQueryRequestMapper {
                 toDimensionIdentifier(
                     dimensionAsString, dimensionParamType, queryRequest, programs, userOrgUnits))
         .map(dimensionIdentifier -> dimensionIdentifier.withGroupId(groupId))
-        .collect(toList());
+        .toList();
   }
 
   /**
@@ -330,7 +306,7 @@ public class CommonQueryRequestMapper {
    * @return the {@link List} of String.
    */
   private static List<String> splitOnOrIfNecessary(String dimensionAsString) {
-    return Arrays.stream(DIMENSION_OR_SEPARATOR.split(dimensionAsString)).collect(toList());
+    return Arrays.stream(DIMENSION_OR_SEPARATOR.split(dimensionAsString)).toList();
   }
 
   /**
@@ -409,24 +385,38 @@ public class CommonQueryRequestMapper {
           dimensionIdentifier.getProgram(), dimensionIdentifier.getProgramStage(), dimensionParam);
     }
 
-    // If we reach here, it should be a queryItem. Objects of type queryItem
-    // need to be prefixed by programUid (program attributes, program
-    // indicators) and optionally by a programStageUid (Data Element).
-    if (dimensionIdentifier.hasProgram()) {
-      QueryItem queryItem =
+    QueryItem queryItem;
+
+    if (!dimensionIdentifier.hasProgram() && !dimensionIdentifier.hasProgramStage()) {
+      // If we reach here, it should be a trackedEntityAttribute.
+      queryItem =
+          eventDataQueryService.getQueryItem(
+              dimensionIdentifier.getDimension().getUid(), null, TRACKED_ENTITY_INSTANCE);
+
+      if (Objects.isNull(queryItem)) {
+        throw new IllegalQueryException(E7250, dimensionId);
+      }
+
+    } else {
+      // If we reach here, it should be a queryItem. In this case it can be either
+      // a program indicator (with programUid prefix) or a Data Element
+      // (both program and program stage prefixes)
+      queryItem =
           eventDataQueryService.getQueryItem(
               dimensionIdentifier.getDimension().getUid(),
               dimensionIdentifier.getProgram().getElement(),
               TRACKED_ENTITY_INSTANCE);
 
-      // The fully qualified dimension identification is required here.
-      DimensionParam dimensionParam = DimensionParam.ofObject(queryItem, dimensionParamType, items);
-
-      return DimensionIdentifier.of(
-          dimensionIdentifier.getProgram(), dimensionIdentifier.getProgramStage(), dimensionParam);
+      // TEA should only be specified without program prefix
+      if (queryItem.getItem() instanceof TrackedEntityAttribute) {
+        throw new IllegalQueryException(E7250, dimensionId);
+      }
     }
 
-    throw new IllegalQueryException(E7250, dimensionId);
+    return DimensionIdentifier.of(
+        dimensionIdentifier.getProgram(),
+        dimensionIdentifier.getProgramStage(),
+        DimensionParam.ofObject(queryItem, dimensionParamType, items));
   }
 
   private static DimensionIdentifier<DimensionParam> parseAsStaticDimension(

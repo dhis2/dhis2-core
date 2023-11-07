@@ -27,14 +27,10 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -53,8 +49,6 @@ import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -311,7 +305,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   public List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams);
-    queryParams.setSkipPaging(true);
     final List<Long> ids = getTrackedEntityIds(queryParams);
 
     List<TrackedEntity> trackedEntities =
@@ -333,15 +326,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       TrackedEntityOperationParams operationParams, PageParams pageParams)
       throws BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams);
-    queryParams.setPage(pageParams.getPage());
-    queryParams.setPageSize(pageParams.getPageSize());
-    queryParams.setTotalPages(pageParams.isPageTotal());
-    queryParams.setSkipPaging(false);
-    final List<Long> ids = getTrackedEntityIds(queryParams);
+    final Page<Long> ids = getTrackedEntityIds(queryParams, pageParams);
 
     List<TrackedEntity> trackedEntities =
         this.trackedEntityAggregate.find(
-            ids, operationParams.getTrackedEntityParams(), queryParams);
+            ids.getItems(), operationParams.getTrackedEntityParams(), queryParams);
 
     mapRelationshipItems(
         trackedEntities,
@@ -350,16 +339,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     addSearchAudit(trackedEntities, queryParams.getUser());
 
-    Pager pager;
-
-    if (pageParams.isPageTotal()) {
-      int count = getTrackedEntityCount(queryParams, true, true);
-      pager = new Pager(pageParams.getPage(), count, pageParams.getPageSize());
-    } else {
-      pager = handleLastPageFlag(queryParams, trackedEntities);
-    }
-
-    return Page.of(trackedEntities, pager);
+    return Page.of(trackedEntities, ids.getPager());
   }
 
   public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
@@ -368,6 +348,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     validateSearchScope(params);
 
     return trackedEntityStore.getTrackedEntityIds(params);
+  }
+
+  public Page<Long> getTrackedEntityIds(TrackedEntityQueryParams params, PageParams pageParams) {
+    decideAccess(params);
+    validate(params);
+    validateSearchScope(params);
+
+    return trackedEntityStore.getTrackedEntityIds(params, pageParams);
   }
 
   public void decideAccess(TrackedEntityQueryParams params) {
@@ -767,38 +755,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
           new TrackedEntityAudit(trackedEntity.getUid(), user, AuditType.READ);
       trackedEntityAuditService.addTrackedEntityAudit(trackedEntityAudit);
     }
-  }
-
-  /**
-   * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link
-   * TrackedEntityStore#getTrackedEntityIds(TrackedEntityQueryParams)}
-   *
-   * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
-   * allow us to evaluate if we are in the last page or not. And this is what his method does,
-   * returning the respective Pager object.
-   *
-   * @param params the request params
-   * @param trackedEntityList the reference to the list of Tracked Entities
-   * @return the populated SlimPager instance
-   */
-  private Pager handleLastPageFlag(
-      TrackedEntityQueryParams params, List<TrackedEntity> trackedEntityList) {
-    Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
-    Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
-    boolean isLastPage = false;
-
-    if (isNotEmpty(trackedEntityList)) {
-      isLastPage = trackedEntityList.size() <= originalPageSize;
-      if (!isLastPage) {
-        // Get the same number of elements of the pageSize, forcing
-        // the removal of the last additional element added at querying
-        // time.
-        trackedEntityList.retainAll(trackedEntityList.subList(0, originalPageSize));
-      }
-    }
-
-    return new SlimPager(originalPage, originalPageSize, isLastPage);
   }
 
   @Override

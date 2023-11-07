@@ -28,7 +28,9 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -204,6 +206,9 @@ class DefaultEnrollmentService
         && queryParams.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
       queryParams.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
       queryParams.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    } else if (user != null && queryParams.isOrganisationUnitMode(CAPTURE)) {
+      queryParams.setOrganisationUnits(user.getOrganisationUnits());
+      queryParams.setOrganisationUnitMode(DESCENDANTS);
     } else if (queryParams.isOrganisationUnitMode(CHILDREN)) {
       Set<OrganisationUnit> organisationUnits = new HashSet<>(queryParams.getOrganisationUnits());
 
@@ -234,6 +239,9 @@ class DefaultEnrollmentService
         && queryParams.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
       queryParams.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
       queryParams.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    } else if (user != null && queryParams.isOrganisationUnitMode(CAPTURE)) {
+      queryParams.setOrganisationUnits(user.getOrganisationUnits());
+      queryParams.setOrganisationUnitMode(DESCENDANTS);
     } else if (queryParams.isOrganisationUnitMode(CHILDREN)) {
       Set<OrganisationUnit> organisationUnits = new HashSet<>(queryParams.getOrganisationUnits());
 

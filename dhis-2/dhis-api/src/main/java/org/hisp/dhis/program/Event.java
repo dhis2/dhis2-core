@@ -74,7 +74,7 @@ public class Event extends SoftDeletableObject {
 
   private Date dueDate;
 
-  private Date executionDate;
+  private Date occurredDate;
 
   @AuditAttribute private OrganisationUnit organisationUnit;
 
@@ -226,12 +226,12 @@ public class Event extends SoftDeletableObject {
 
   @JsonProperty("eventDate")
   @JacksonXmlProperty(localName = "eventDate", namespace = DxfNamespaces.DXF_2_0)
-  public Date getExecutionDate() {
-    return executionDate;
+  public Date getOccurredDate() {
+    return occurredDate;
   }
 
-  public void setExecutionDate(Date executionDate) {
-    this.executionDate = executionDate;
+  public void setOccurredDate(Date occurredDate) {
+    this.occurredDate = occurredDate;
   }
 
   @JsonProperty
@@ -362,7 +362,7 @@ public class Event extends SoftDeletableObject {
   public boolean isCreatableInSearchScope() {
     return this.getStatus() == EventStatus.SCHEDULE
         && this.getEventDataValues().isEmpty()
-        && this.getExecutionDate() == null;
+        && this.getOccurredDate() == null;
   }
 
   @Override

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker;
 
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -37,5 +39,21 @@ public class TrackerTestUtils {
 
   public static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
     return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
+  }
+
+  public static Date oneHourAfter(Date date) {
+    return Date.from(date.toInstant().plus(1, ChronoUnit.HOURS));
+  }
+
+  public static Date oneHourBefore(Date date) {
+    return Date.from(date.toInstant().minus(1, ChronoUnit.HOURS));
+  }
+
+  public static Date twoHoursAfter(Date date) {
+    return Date.from(date.toInstant().plus(2, ChronoUnit.HOURS));
+  }
+
+  public static Date twoHoursBefore(Date date) {
+    return Date.from(date.toInstant().minus(2, ChronoUnit.HOURS));
   }
 }

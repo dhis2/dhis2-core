@@ -208,8 +208,8 @@ class EventExporterTest extends TrackerTest {
         operationParamsBuilder
             .enrollments(Set.of("TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
-            .startDate(getDate(2018, 1, 1))
-            .endDate(getDate(2020, 1, 29))
+            .occurredAfter(getDate(2018, 1, 1))
+            .occurredBefore(getDate(2020, 1, 29))
             .skipChangedBefore(getDate(2018, 1, 1))
             .build();
 
@@ -276,11 +276,11 @@ class EventExporterTest extends TrackerTest {
         () ->
             assertEquals(
                 "2019-01-25T12:10:38.100",
-                DateUtils.getIso8601NoTz(event.getExecutionDate()),
+                DateUtils.getIso8601NoTz(event.getOccurredDate()),
                 () ->
                     String.format(
                         "Expected %s to be in %s",
-                        event.getExecutionDate(), "2019-01-25T12:10:38.100")),
+                        event.getOccurredDate(), "2019-01-25T12:10:38.100")),
         () ->
             assertEquals(
                 "2019-01-28T12:32:38.100",
@@ -842,6 +842,24 @@ class EventExporterTest extends TrackerTest {
             .collect(Collectors.toList());
 
     assertContainsOnly(List.of("TvctPPhpD8z"), enrollments);
+  }
+
+  @Test
+  void
+      shouldFilterOutEventsWithATrackedEntityWithoutThatAttributeWhenFilterAttributeHasNoQueryFilter()
+          throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .attributeFilters(Map.of("notUpdated0", List.of()))
+            .build();
+
+    List<String> trackedEntities =
+        eventService.getEvents(params).stream()
+            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
+            .collect(Collectors.toList());
+
+    assertContainsOnly(List.of("dUE514NMOlo"), trackedEntities);
   }
 
   @Test
