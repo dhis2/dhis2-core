@@ -137,7 +137,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
         customIcon.getDescription(),
         customIcon.getKeywords(),
         customIcon.isCustom(),
-        customIcon.getKey(),
-        customIcon.getLastUpdated());
+        customIcon.getLastUpdated(),
+        customIcon.getKey());
   }
 }
