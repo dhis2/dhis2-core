@@ -64,10 +64,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             + "ouname,"
             + "oucode,"
             + "ounamehierarchy,"
-            + "IpHINAT79UW.w75KJ2mc4zz,"
-            + "IpHINAT79UW.zDhUuAYrxNC,"
-            + "IpHINAT79UW.cejWyOfXge6,"
-            + "IpHINAT79UW.lZGmxYbs97q");
+            + "w75KJ2mc4zz,"
+            + "zDhUuAYrxNC,"
+            + "cejWyOfXge6,"
+            + "lZGmxYbs97q");
   }
 
   @Test
@@ -77,7 +77,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         new QueryParamsBuilder()
             .add("dimension=ou:ImspTQPwCqd")
             .add("program=IpHINAT79UW")
-            .add("asc=IpHINAT79UW.w75KJ2mc4zz")
+            .add("asc=w75KJ2mc4zz")
             .add("lastUpdated=LAST_YEAR")
             .add("totalPages=false")
             .add("pageSize=100")
@@ -168,34 +168,12 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         false,
         true);
     validateHeader(
-        response,
-        10,
-        "IpHINAT79UW.w75KJ2mc4zz",
-        "First name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 10, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response,
-        11,
-        "IpHINAT79UW.zDhUuAYrxNC",
-        "Last name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 11, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 12, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 12, "IpHINAT79UW.cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response,
-        13,
-        "IpHINAT79UW.lZGmxYbs97q",
-        "Unique ID",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 13, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
   }
 
   @Test
@@ -291,34 +269,12 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         false,
         true);
     validateHeader(
-        response,
-        10,
-        "IpHINAT79UW.w75KJ2mc4zz",
-        "First name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 10, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response,
-        11,
-        "IpHINAT79UW.zDhUuAYrxNC",
-        "Last name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 11, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 12, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 12, "IpHINAT79UW.cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response,
-        13,
-        "IpHINAT79UW.lZGmxYbs97q",
-        "Unique ID",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 13, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
 
     // Validate the first three rows, as samples.
     validateRow(
@@ -474,34 +430,12 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         false,
         true);
     validateHeader(
-        response,
-        10,
-        "IpHINAT79UW.w75KJ2mc4zz",
-        "First name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 10, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response,
-        11,
-        "IpHINAT79UW.zDhUuAYrxNC",
-        "Last name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 11, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 12, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 12, "IpHINAT79UW.cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response,
-        13,
-        "IpHINAT79UW.lZGmxYbs97q",
-        "Unique ID",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 13, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
 
     // Validate the first three rows, as samples.
     validateRow(
@@ -575,7 +509,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             .add("dimension=cejWyOfXge6")
             .add("lastUpdated=LAST_10_YEARS")
             .add(
-                "headers=ouname,IpHINAT79UW.cejWyOfXge6,IpHINAT79UW.w75KJ2mc4zz,trackedentityinstanceuid,lastupdated,oucode")
+                "headers=ouname,cejWyOfXge6,w75KJ2mc4zz,trackedentityinstanceuid,lastupdated,oucode")
             .add("desc=lastupdated")
             .add("relativePeriodDate=2022-09-27");
 
@@ -615,17 +549,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     // Validate headers
     validateHeader(
         response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 1, "IpHINAT79UW.cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response,
-        2,
-        "IpHINAT79UW.w75KJ2mc4zz",
-        "First name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 2, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
         3,
@@ -683,10 +609,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("program=IpHINAT79UW")
-            .add("dimension=ouname,IpHINAT79UW.w75KJ2mc4zz:eq:James")
+            .add("dimension=ouname,w75KJ2mc4zz:eq:James")
             .add("lastUpdated=LAST_10_YEARS")
             .add("includeMetadataDetails=false")
-            .add("headers=ouname,IpHINAT79UW.w75KJ2mc4zz,lastupdated")
+            .add("headers=ouname,w75KJ2mc4zz,lastupdated")
             .add("asc=lastupdated")
             .add("relativePeriodDate=2022-09-27");
 
@@ -727,14 +653,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     validateHeader(
         response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response,
-        1,
-        "IpHINAT79UW.w75KJ2mc4zz",
-        "First name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 1, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
         2,
@@ -805,8 +724,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         new QueryParamsBuilder()
             .add("program=IpHINAT79UW")
             .add("lastUpdated=LAST_10_YEARS")
-            .add("desc=IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC")
-            .add("headers=IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC")
+            .add("desc=w75KJ2mc4zz,zDhUuAYrxNC")
+            .add("headers=w75KJ2mc4zz,zDhUuAYrxNC")
             .add("relativePeriodDate=2022-09-27");
 
     // When
@@ -824,23 +743,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
 
     // Validate headers
     validateHeader(
-        response,
-        0,
-        "IpHINAT79UW.w75KJ2mc4zz",
-        "First name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 0, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response,
-        1,
-        "IpHINAT79UW.zDhUuAYrxNC",
-        "Last name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 1, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
 
     // Validate the first three rows, as samples.
     validateRow(response, 0, List.of("Willie", "Woods"));
@@ -858,7 +763,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             .add("program=IpHINAT79UW")
             .add("lastUpdated=LAST_10_YEARS")
             .add("desc=lastupdated,IpHINAT79UW.A03MvHHogjR.ouname")
-            .add("headers=ouname,IpHINAT79UW.lZGmxYbs97q")
+            .add("headers=ouname,lZGmxYbs97q")
             .add("relativePeriodDate=2022-09-27");
 
     // When
@@ -878,14 +783,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     validateHeader(
         response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response,
-        1,
-        "IpHINAT79UW.lZGmxYbs97q",
-        "Unique ID",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 1, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
 
     // Validate the first three rows, as samples.
     validateRow(response, 0, List.of("Ngelehun CHC", ""));
@@ -903,7 +801,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             .add("program=IpHINAT79UW")
             .add("desc=IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6")
             .add("lastUpdated=LAST_10_YEARS")
-            .add("headers=ouname,IpHINAT79UW.lZGmxYbs97q")
+            .add("headers=ouname,lZGmxYbs97q")
             .add("relativePeriodDate=2022-09-27");
 
     // When
@@ -923,14 +821,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     validateHeader(
         response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response,
-        1,
-        "IpHINAT79UW.lZGmxYbs97q",
-        "Unique ID",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 1, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
 
     // Validate the first three rows, as samples.
     validateRow(response, 0, List.of("Ngelehun CHC", ""));
@@ -948,9 +839,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             .add("program=IpHINAT79UW")
             .add("dimension=IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3")
             .add("lastUpdated=LAST_10_YEARS")
-            .add(
-                "asc=IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3,IpHINAT79UW.zDhUuAYrxNC,IpHINAT79UW.w75KJ2mc4zz")
-            .add("headers=ouname,IpHINAT79UW.lZGmxYbs97q,IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3")
+            .add("asc=IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3,zDhUuAYrxNC,w75KJ2mc4zz")
+            .add("headers=ouname,lZGmxYbs97q,IpHINAT79UW.A03MvHHogjR.p2Zxg0wcPQ3")
             .add("relativePeriodDate=2022-09-27");
 
     // When
@@ -970,14 +860,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     validateHeader(
         response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response,
-        1,
-        "IpHINAT79UW.lZGmxYbs97q",
-        "Unique ID",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 1, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
         2,
@@ -1895,7 +1778,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             .add("enrollmentDate=IpHINAT79UW[-1].LAST_YEAR")
             .add("desc=lastupdated")
             .add("relativePeriodDate=2023-04-03")
-            .add("headers=ouname,IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC");
+            .add("headers=ouname,w75KJ2mc4zz,zDhUuAYrxNC");
 
     // When
     ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
@@ -1914,23 +1797,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     validateHeader(
         response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response,
-        1,
-        "IpHINAT79UW.w75KJ2mc4zz",
-        "First name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 1, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response,
-        2,
-        "IpHINAT79UW.zDhUuAYrxNC",
-        "Last name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 2, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
 
     // Validate the first three rows, as samples.
     validateRow(response, 0, List.of("Ngelehun CHC", "John", "Kelly"));
@@ -2022,7 +1891,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         new QueryParamsBuilder()
             .add("program=IpHINAT79UW")
             .add("dimension=IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G:IN:Negative-Conf")
-            .add("desc=IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC")
+            .add("desc=w75KJ2mc4zz,zDhUuAYrxNC")
             .add("relativePeriodDate=2016-01-01")
             .add("outputIdScheme=CODE");
 
@@ -2122,7 +1991,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         new QueryParamsBuilder()
             .add("program=IpHINAT79UW")
             .add("dimension=IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G:IN:Negative-Conf")
-            .add("desc=IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC")
+            .add("desc=w75KJ2mc4zz,zDhUuAYrxNC")
             .add("relativePeriodDate=2016-01-01")
             .add("outputIdScheme=NAME");
 
@@ -2504,8 +2373,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ruiz",
             "Male",
             "",
-            "Positive",
-            "3681"));
+            "3681",
+            "Positive"));
 
     validateRow(
         response,
@@ -2527,8 +2396,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Gardner",
             "Female",
             "",
-            "Positive",
-            "3945"));
+            "3945",
+            "Positive"));
 
     validateRow(
         response,
@@ -2550,8 +2419,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Hart",
             "Female",
             "",
-            "Positive",
-            "3104"));
+            "3104",
+            "Positive"));
   }
 
   @Test
@@ -2609,8 +2478,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ruiz",
             "rBvjJYbMCVx",
             "",
-            "fWI0UiNZgMy",
-            "3681"));
+            "3681",
+            "fWI0UiNZgMy"));
 
     validateRow(
         response,
@@ -2632,8 +2501,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Gardner",
             "Mnp3oXrpAbK",
             "",
-            "fWI0UiNZgMy",
-            "3945"));
+            "3945",
+            "fWI0UiNZgMy"));
 
     validateRow(
         response,
@@ -2655,8 +2524,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Hart",
             "Mnp3oXrpAbK",
             "",
-            "fWI0UiNZgMy",
-            "3104"));
+            "3104",
+            "fWI0UiNZgMy"));
   }
 
   @Test

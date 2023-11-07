@@ -32,6 +32,11 @@ import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.springframework.stereotype.Service;
@@ -43,9 +48,28 @@ public class DimensionMapperService {
 
   public List<DimensionResponse> toDimensionResponse(
       Collection<PrefixedDimension> dimensions, PrefixStrategy prefixStrategy) {
-    return mapToList(
-        dimensions,
-        pDimension -> toDimensionResponse(pDimension, prefixStrategy.apply(pDimension)));
+    return toDimensionResponse(dimensions, prefixStrategy, false);
+  }
+
+  public List<DimensionResponse> toDimensionResponse(
+      Collection<PrefixedDimension> dimensions, PrefixStrategy prefixStrategy, boolean distinct) {
+
+    UnaryOperator<List<DimensionResponse>> distinctFunction =
+        distinct ? this::distinctByUid : UnaryOperator.identity();
+
+    return distinctFunction.apply(
+        mapToList(
+            dimensions,
+            pDimension -> toDimensionResponse(pDimension, prefixStrategy.apply(pDimension))));
+  }
+
+  private List<DimensionResponse> distinctByUid(List<DimensionResponse> dimensionResponses) {
+    return dimensionResponses.stream().filter(distinctBy(DimensionResponse::getUid)).toList();
+  }
+
+  private static <T> Predicate<T> distinctBy(Function<? super T, ?> keyExtractor) {
+    Set<Object> seen = ConcurrentHashMap.newKeySet();
+    return t -> seen.add(keyExtractor.apply(t));
   }
 
   private DimensionResponse toDimensionResponse(PrefixedDimension dimension, String prefix) {
@@ -56,6 +80,6 @@ public class DimensionMapperService {
         .orElseThrow(
             () ->
                 new IllegalArgumentException(
-                    "Unsupported dimension type: " + getRealClass(dimension)));
+                    "Unsupported dimension type: " + getRealClass(dimension.getItem())));
   }
 }

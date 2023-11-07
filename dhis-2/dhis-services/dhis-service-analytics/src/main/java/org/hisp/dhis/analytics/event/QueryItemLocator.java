@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import java.util.Optional;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.program.Program;
@@ -49,7 +50,7 @@ public interface QueryItemLocator {
    * uid}] - Relationship Type + Program Indicator [{rt uid}.{pi uid}]
    *
    * <p>If the provided dimension String is not matching any of the above elements, then a {@link
-   * IllegalQueryException} is thrown
+   * org.hisp.dhis.common.IllegalQueryException} is thrown
    *
    * @param dimension the dimension string.
    * @param program the {@link Program}.
@@ -57,4 +58,14 @@ public interface QueryItemLocator {
    * @return a {@link QueryItem}.
    */
   QueryItem getQueryItemFromDimension(String dimension, Program program, EventOutputType type);
+
+  /**
+   * Same as {@link #getQueryItemFromDimension(String, Program, EventOutputType)} but without
+   * program. Used by Cross program linelisting application to get the query item for the tracked
+   * entity attribute.
+   *
+   * @param dimension the dimension string representing a tracked entity attribute uid.
+   * @return an Optional {@link QueryItem}. Empty if not found.
+   */
+  Optional<QueryItem> getQueryItemForTrackedEntityAttribute(String dimension);
 }
