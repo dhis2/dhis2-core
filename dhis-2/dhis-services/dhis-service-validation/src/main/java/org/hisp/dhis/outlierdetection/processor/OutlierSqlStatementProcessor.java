@@ -27,19 +27,24 @@
  */
 package org.hisp.dhis.outlierdetection.processor;
 
-import java.util.List;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
-public abstract class OutlierSqlStatementProcessor implements IOutlierSqlStatementProcessor {
-  protected String getOrgUnitPathClause(List<OrganisationUnit> orgUnits) {
-    StringBuilder sql = new StringBuilder("(");
+public interface OutlierSqlStatementProcessor {
 
-    for (OrganisationUnit ou : orgUnits) {
-      sql.append("ax.\"path\" like '").append(ou.getPath()).append("%' or ");
-    }
+  /**
+   * retrieve parametrised sql statement for outliers
+   *
+   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @return sql statement as a string
+   */
+  String getSqlStatement(OutlierDetectionRequest request);
 
-    return StringUtils.trim(TextUtils.removeLastOr(sql.toString())) + ")";
-  }
+  /**
+   * retrieve psql parameters for outliers sql statement
+   *
+   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @return teh instance of {@link SqlParameterSource}.
+   */
+  SqlParameterSource getSqlParameterSource(OutlierDetectionRequest request);
 }

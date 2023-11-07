@@ -36,17 +36,18 @@ import static org.hisp.dhis.outlierdetection.OutliersSqlParam.START_DATE;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParam.THRESHOLD;
 
 import java.util.Date;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.Order;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.stereotype.Component;
 
-public class ZScoreSqlStatementProcessor extends OutlierSqlStatementProcessor {
+@Component
+@Qualifier("ZScoreSqlProcessor")
+public class ZScoreSqlStatementProcessor extends AbstractOutlierSqlStatementProcessor {
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
     final String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
@@ -167,14 +168,8 @@ public class ZScoreSqlStatementProcessor extends OutlierSqlStatementProcessor {
   }
 
   @Override
-  protected String getOrgUnitPathClause(List<OrganisationUnit> orgUnits) {
-    StringBuilder sql = new StringBuilder("(");
-
-    for (OrganisationUnit ou : orgUnits) {
-      sql.append("ou.\"path\" like '").append(ou.getPath()).append("%' or ");
-    }
-
-    return StringUtils.trim(TextUtils.removeLastOr(sql.toString())) + ")";
+  protected String getOrganisationUnitAlias() {
+    return "ou";
   }
 
   private String getDataStartDateClause(Date dataStartDate) {

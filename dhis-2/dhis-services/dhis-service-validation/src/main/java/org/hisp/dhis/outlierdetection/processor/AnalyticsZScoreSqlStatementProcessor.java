@@ -37,10 +37,14 @@ import org.hisp.dhis.outlierdetection.Order;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutliersSqlParam;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.stereotype.Component;
 
-public class AnalyticsZScoreSqlStatementProcessor extends OutlierSqlStatementProcessor {
+@Component
+@Qualifier("AnalyticsZScoreSqlProcessor")
+public class AnalyticsZScoreSqlStatementProcessor extends AbstractOutlierSqlStatementProcessor {
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
     final String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
@@ -119,5 +123,10 @@ public class AnalyticsZScoreSqlStatementProcessor extends OutlierSqlStatementPro
         .addValue(START_DATE.getKey(), request.getStartDate())
         .addValue(END_DATE.getKey(), request.getEndDate())
         .addValue(MAX_RESULTS.getKey(), request.getMaxResults());
+  }
+
+  @Override
+  protected String getOrganisationUnitAlias() {
+    return "ax";
   }
 }

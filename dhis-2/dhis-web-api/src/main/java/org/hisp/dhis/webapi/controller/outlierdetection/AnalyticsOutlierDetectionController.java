@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller.outlierdetection;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -40,7 +42,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.outlierdetection.OutlierDetectionService;
+import org.hisp.dhis.outlierdetection.service.OutlierDetectionService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -88,5 +90,36 @@ public class AnalyticsOutlierDetectionController {
     contextUtils.configureResponse(response, CONTENT_TYPE_XML, CacheStrategy.NO_CACHE);
 
     outlierService.getOutlierValuesAsXml(request, response.getOutputStream());
+  }
+
+  @GetMapping(value = RESOURCE_PATH + ".xls")
+  public void getOutliersXls(OutlierDetectionQuery query, HttpServletResponse response)
+      throws IOException {
+    OutlierDetectionRequest request = outlierService.getFromQuery(query);
+
+    contextUtils.configureResponse(
+        response, CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE, "outlierdata.xls", true);
+
+    outlierService.getOutlierValuesAsXls(request, response.getOutputStream());
+  }
+
+  @GetMapping(value = RESOURCE_PATH + ".html")
+  public void getOutliersHtml(OutlierDetectionQuery query, HttpServletResponse response)
+      throws IOException {
+    OutlierDetectionRequest request = outlierService.getFromQuery(query);
+
+    contextUtils.configureResponse(response, CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE);
+
+    outlierService.getOutlierValuesAsHtml(request, response.getWriter());
+  }
+
+  @GetMapping(value = RESOURCE_PATH + ".html+css")
+  public void getOutliersHtmlCss(OutlierDetectionQuery query, HttpServletResponse response)
+      throws IOException {
+    OutlierDetectionRequest request = outlierService.getFromQuery(query);
+
+    contextUtils.configureResponse(response, CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE);
+
+    outlierService.getOutlierValuesAsHtmlCss(request, response.getWriter());
   }
 }

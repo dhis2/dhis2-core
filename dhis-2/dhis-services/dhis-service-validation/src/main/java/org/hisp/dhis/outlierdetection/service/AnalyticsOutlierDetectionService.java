@@ -62,7 +62,7 @@ public class AnalyticsOutlierDetectionService extends AbstractOutlierDetectionSe
   @Override
   public Grid getOutlierValues(OutlierDetectionRequest request) throws IllegalQueryException {
     validate(request);
-    List<OutlierValue> outlierValues = zScoreOutlierDetection.getOutlierValues(request, false);
+    List<OutlierValue> outlierValues = zScoreOutlierDetection.getOutlierValues(request);
 
     Grid grid = new ListGrid();
     setHeaders(grid);

@@ -39,7 +39,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
-import org.hisp.dhis.outlierdetection.processor.IOutlierSqlStatementProcessor;
+import org.hisp.dhis.outlierdetection.processor.OutlierSqlStatementProcessor;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.RowMapper;
@@ -49,22 +49,23 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 @Slf4j
 public abstract class AbstractOutlierDetectionManager {
   private final NamedParameterJdbcTemplate jdbcTemplate;
+  private final OutlierSqlStatementProcessor sqlStatementProcessor;
 
-  protected AbstractOutlierDetectionManager(NamedParameterJdbcTemplate jdbcTemplate) {
+  protected AbstractOutlierDetectionManager(
+      NamedParameterJdbcTemplate jdbcTemplate, OutlierSqlStatementProcessor sqlStatementProcessor) {
     this.jdbcTemplate = jdbcTemplate;
+    this.sqlStatementProcessor = sqlStatementProcessor;
   }
 
-  public List<OutlierValue> getOutlierValues(
-      OutlierDetectionRequest request, boolean withFollowUp) {
+  public List<OutlierValue> getOutlierValues(OutlierDetectionRequest request) {
 
-    final IOutlierSqlStatementProcessor sqlStatementProcessor = getSqlStatementProcessor();
     final String sql = sqlStatementProcessor.getSqlStatement(request);
     final SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);
     final Calendar calendar = PeriodType.getCalendar();
     final boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
 
     try {
-      return jdbcTemplate.query(sql, params, getRowMapper(calendar, modifiedZ, withFollowUp));
+      return jdbcTemplate.query(sql, params, getRowMapper(calendar, modifiedZ));
     } catch (DataIntegrityViolationException ex) {
       // Casting non-numeric data to double, catching exception is faster
       // than filtering
@@ -75,34 +76,14 @@ public abstract class AbstractOutlierDetectionManager {
     }
   }
 
-  protected abstract IOutlierSqlStatementProcessor getSqlStatementProcessor();
-
   /**
    * Returns a {@link RowMapper} for {@link OutlierValue}.
    *
    * @param calendar the {@link Calendar}.
    * @return a {@link RowMapper}.
    */
-  protected RowMapper<OutlierValue> getRowMapper(
-      final Calendar calendar, boolean modifiedZ, boolean withFollowUp) {
-    return (rs, rowNum) -> {
-      OutlierValue outlierValue = getOutlierValue(calendar, rs);
-      if (modifiedZ) {
-        outlierValue.setMedian(rs.getDouble("middle_value"));
-      } else {
-        outlierValue.setMean(rs.getDouble("middle_value"));
-      }
-      outlierValue.setStdDev(rs.getDouble("std_dev"));
-      outlierValue.setAbsDev(rs.getDouble("middle_value_abs_dev"));
-      outlierValue.setZScore(rs.getDouble("z_score"));
-      outlierValue.setLowerBound(rs.getDouble("lower_bound"));
-      outlierValue.setUpperBound(rs.getDouble("upper_bound"));
-      if (withFollowUp) {
-        outlierValue.setFollowup(rs.getBoolean("follow_up"));
-      }
-      return outlierValue;
-    };
-  }
+  protected abstract RowMapper<OutlierValue> getRowMapper(
+      final Calendar calendar, boolean modifiedZ);
 
   protected OutlierValue getOutlierValue(Calendar calendar, ResultSet rs) throws SQLException {
     final OutlierValue outlier = new OutlierValue();
@@ -122,5 +103,19 @@ public abstract class AbstractOutlierDetectionManager {
     outlier.setValue(rs.getDouble("value"));
 
     return outlier;
+  }
+
+  protected void addZScoreBasedParamsToOutlierValue(
+      OutlierValue outlierValue, ResultSet rs, boolean modifiedZ) throws SQLException {
+    if (modifiedZ) {
+      outlierValue.setMedian(rs.getDouble("middle_value"));
+    } else {
+      outlierValue.setMean(rs.getDouble("middle_value"));
+    }
+    outlierValue.setStdDev(rs.getDouble("std_dev"));
+    outlierValue.setAbsDev(rs.getDouble("middle_value_abs_dev"));
+    outlierValue.setZScore(rs.getDouble("z_score"));
+    outlierValue.setLowerBound(rs.getDouble("lower_bound"));
+    outlierValue.setUpperBound(rs.getDouble("upper_bound"));
   }
 }

@@ -25,12 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.outlierdetection;
+package org.hisp.dhis.outlierdetection.service;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
+import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 
 /**
  * Outlier detection service.

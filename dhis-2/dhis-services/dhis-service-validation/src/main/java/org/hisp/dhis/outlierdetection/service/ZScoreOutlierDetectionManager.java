@@ -28,9 +28,12 @@
 package org.hisp.dhis.outlierdetection.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
-import org.hisp.dhis.outlierdetection.processor.IOutlierSqlStatementProcessor;
-import org.hisp.dhis.outlierdetection.processor.ZScoreSqlStatementProcessor;
+import org.hisp.dhis.outlierdetection.OutlierValue;
+import org.hisp.dhis.outlierdetection.processor.OutlierSqlStatementProcessor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -48,12 +51,20 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ZScoreOutlierDetectionManager extends AbstractOutlierDetectionManager {
 
-  protected ZScoreOutlierDetectionManager(NamedParameterJdbcTemplate jdbcTemplate) {
-    super(jdbcTemplate);
+  protected ZScoreOutlierDetectionManager(
+      NamedParameterJdbcTemplate jdbcTemplate,
+      @Qualifier("ZScoreSqlProcessor") OutlierSqlStatementProcessor sqlStatementProcessor) {
+    super(jdbcTemplate, sqlStatementProcessor);
   }
 
   @Override
-  protected IOutlierSqlStatementProcessor getSqlStatementProcessor() {
-    return new ZScoreSqlStatementProcessor();
+  protected RowMapper<OutlierValue> getRowMapper(Calendar calendar, boolean modifiedZ) {
+    return (rs, rowNum) -> {
+      OutlierValue outlierValue = getOutlierValue(calendar, rs);
+      addZScoreBasedParamsToOutlierValue(outlierValue, rs, modifiedZ);
+      outlierValue.setFollowup(rs.getBoolean("follow_up"));
+
+      return outlierValue;
+    };
   }
 }

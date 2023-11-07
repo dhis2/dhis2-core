@@ -28,20 +28,39 @@
 package org.hisp.dhis.outlierdetection.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.outlierdetection.processor.AnalyticsZScoreSqlStatementProcessor;
-import org.hisp.dhis.outlierdetection.processor.IOutlierSqlStatementProcessor;
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
+import org.hisp.dhis.outlierdetection.OutlierValue;
+import org.hisp.dhis.outlierdetection.processor.OutlierSqlStatementProcessor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Manager for database queries related to outlier data detection based on z-score.
+ *
+ * <p>This both implements the {@link OutlierDetectionAlgorithm#Z_SCORE} and {@link
+ * OutlierDetectionAlgorithm#MOD_Z_SCORE}. Usual z-score uses the mean as middle value whereas the
+ * modified z-score uses the median as middle value or more mathematically correct as the
+ * <em>measure of central tendency</em>.
+ */
 @Slf4j
 @Repository
 public class AnalyticsZScoreOutlierDetectionManager extends AbstractOutlierDetectionManager {
-  protected AnalyticsZScoreOutlierDetectionManager(NamedParameterJdbcTemplate jdbcTemplate) {
-    super(jdbcTemplate);
+  protected AnalyticsZScoreOutlierDetectionManager(
+      NamedParameterJdbcTemplate jdbcTemplate,
+      @Qualifier("AnalyticsZScoreSqlProcessor")
+          OutlierSqlStatementProcessor sqlStatementProcessor) {
+    super(jdbcTemplate, sqlStatementProcessor);
   }
 
-  @Override
-  protected IOutlierSqlStatementProcessor getSqlStatementProcessor() {
-    return new AnalyticsZScoreSqlStatementProcessor();
+  protected RowMapper<OutlierValue> getRowMapper(Calendar calendar, boolean modifiedZ) {
+    return (rs, rowNum) -> {
+      OutlierValue outlierValue = getOutlierValue(calendar, rs);
+      addZScoreBasedParamsToOutlierValue(outlierValue, rs, modifiedZ);
+
+      return outlierValue;
+    };
   }
 }

@@ -128,15 +128,9 @@ public class DefaultOutlierDetectionService
    * @return a list of {@link OutlierValue}.
    */
   private List<OutlierValue> getOutliers(OutlierDetectionRequest request) {
-    switch (request.getAlgorithm()) {
-      case Z_SCORE:
-      case MOD_Z_SCORE:
-        return zScoreOutlierDetection.getOutlierValues(request, true);
-      case MIN_MAX:
-        return minMaxOutlierDetection.getOutlierValues(request, true);
-      default:
-        throw new IllegalStateException(
-            String.format("Outlier detection algorithm not supported: %s", request.getAlgorithm()));
-    }
+    return switch (request.getAlgorithm()) {
+      case Z_SCORE, MOD_Z_SCORE -> zScoreOutlierDetection.getOutlierValues(request);
+      case MIN_MAX -> minMaxOutlierDetection.getOutlierValues(request);
+    };
   }
 }

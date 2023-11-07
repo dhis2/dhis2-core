@@ -30,8 +30,8 @@ package org.hisp.dhis.outlierdetection.service;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.outlierdetection.OutlierValue;
-import org.hisp.dhis.outlierdetection.processor.IOutlierSqlStatementProcessor;
-import org.hisp.dhis.outlierdetection.processor.MinMaxSqlStatementProcessor;
+import org.hisp.dhis.outlierdetection.processor.OutlierSqlStatementProcessor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -44,13 +44,14 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 @Repository
 public class MinMaxOutlierDetectionManager extends AbstractOutlierDetectionManager {
-  protected MinMaxOutlierDetectionManager(NamedParameterJdbcTemplate jdbcTemplate) {
-    super(jdbcTemplate);
+  protected MinMaxOutlierDetectionManager(
+      NamedParameterJdbcTemplate jdbcTemplate,
+      @Qualifier("MinMaxSqlProcessor") OutlierSqlStatementProcessor sqlStatementProcessor) {
+    super(jdbcTemplate, sqlStatementProcessor);
   }
 
   @Override
-  protected RowMapper<OutlierValue> getRowMapper(
-      Calendar calendar, boolean modifiedZ, boolean withFollowUp) {
+  protected RowMapper<OutlierValue> getRowMapper(Calendar calendar, boolean modifiedZ) {
     return (rs, rowNum) -> {
       OutlierValue outlierValue = getOutlierValue(calendar, rs);
       outlierValue.setAbsDev(rs.getDouble("bound_abs_dev"));
@@ -60,10 +61,5 @@ public class MinMaxOutlierDetectionManager extends AbstractOutlierDetectionManag
 
       return outlierValue;
     };
-  }
-
-  @Override
-  protected IOutlierSqlStatementProcessor getSqlStatementProcessor() {
-    return new MinMaxSqlStatementProcessor();
   }
 }
