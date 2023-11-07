@@ -60,6 +60,7 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -209,10 +210,9 @@ public class DefaultMessageService implements MessageService {
   }
 
   @Override
-  @Transactional // FIXME this should always require an existing TX (in the hopes that should then a
-  // exception occur in this method this will not cause a rollback if it is caught on
-  // the caller side inside the existing TX)
-  public long sendSystemErrorNotification(String subject, @Nonnull Throwable t) {
+  @Async
+  @Transactional
+  public void sendSystemErrorNotification(@Nonnull String subject, @Nonnull Throwable t) {
     String title = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
     String baseUrl = configurationProvider.getServerBaseUrl();
 
@@ -234,7 +234,7 @@ public class DefaultMessageService implements MessageService {
             .withMessageType(MessageType.SYSTEM)
             .build();
 
-    return sendMessage(params);
+    sendMessage(params);
   }
 
   @Override

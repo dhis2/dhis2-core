@@ -57,7 +57,7 @@ public interface MessageService {
 
   long sendMessage(MessageConversationParams params);
 
-  long sendSystemErrorNotification(String subject, @Nonnull Throwable t);
+  void sendSystemErrorNotification(@Nonnull String subject, @Nonnull Throwable t);
 
   void sendReply(
       MessageConversation conversation,
