@@ -49,8 +49,8 @@ import org.junit.jupiter.api.Test;
 class DimensionFiltersTest {
 
   /**
-   * A map of all the fields in {@link DimensionResponse} and a function that creates a {@link DimensionResponse}
-   * with that field set to the given value.
+   * A map of all the fields in {@link DimensionResponse} and a function that creates a {@link
+   * DimensionResponse} with that field set to the given value.
    */
   private static final Map<String, Function<String, DimensionResponse>> BUILDER_MAP =
       Map.of(
@@ -66,9 +66,10 @@ class DimensionFiltersTest {
   public static final String STRING_TO_TEST_FILTER_ON = "TeSt";
 
   /**
-   * A map of all the operators and the expected result of applying them to the {@link DimensionResponse} created
-   * by the corresponding {@link Function} in {@link #BUILDER_MAP} with the given {@link #STRING_TO_TEST_FILTER_ON}.
-   * The left value is the value to test for positive assertion, the right value is the value to test for negative.
+   * A map of all the operators and the expected result of applying them to the {@link
+   * DimensionResponse} created by the corresponding {@link Function} in {@link #BUILDER_MAP} with
+   * the given {@link #STRING_TO_TEST_FILTER_ON}. The left value is the value to test for positive
+   * assertion, the right value is the value to test for negative.
    */
   private static final Map<String, Pair<String, String>> OPERATORS =
       Stream.concat(
@@ -91,7 +92,6 @@ class DimensionFiltersTest {
                   .entrySet()
                   .stream())
           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
 
   @Test
   void testDimensionFilterConstructor() {
@@ -140,8 +140,8 @@ class DimensionFiltersTest {
   @Test
   void testFieldsAndOperators() {
 
-    BUILDER_MAP.forEach((s, builder) -> assertAllOpsOnField(s, builder.apply(
-        STRING_TO_TEST_FILTER_ON)));
+    BUILDER_MAP.forEach(
+        (s, builder) -> assertAllOpsOnField(s, builder.apply(STRING_TO_TEST_FILTER_ON)));
   }
 
   private void assertAllOpsOnField(String fieldName, DimensionResponse response) {
