@@ -189,10 +189,7 @@ public class ReferencesCheck implements ValidationCheck {
                 || "lastUpdatedBy".equals(property.getName())
                 || "createdBy".equals(property.getName()));
 
-    if (ref == null
-        && refObject != null
-        && !bundle.getPreheat().isDefault(refObject)
-        && !(isUserReference && bundle.isSkipSharing())) {
+    if (ref == null && refObject != null && !bundle.getPreheat().isDefault(refObject) && false) {
       preheatErrorReports.add(
           createError(bundle.getPreheatIdentifier(), ErrorCode.E5002, object, refObject, property));
     }

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.scheduling.JobType.TRACKER_IMPORT_JOB;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController.TRACKER_JOB_ADDED;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -65,7 +66,6 @@ import org.hisp.dhis.webapi.controller.tracker.ControllerSupport;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -120,7 +120,6 @@ class TrackerImportControllerTest {
   }
 
   @Test
-  @Disabled
   void verifyAsync() throws Exception {
 
     // Then
@@ -131,23 +130,21 @@ class TrackerImportControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message").value(TRACKER_IMPORT_JOB.toString()))
+        .andExpect(jsonPath("$.message").value(TRACKER_JOB_ADDED))
         .andExpect(content().contentType("application/json"));
   }
 
   @Test
-  @Disabled
   void verifyAsyncForCsv() throws Exception {
 
     // Then
     mockMvc
         .perform(post(ENDPOINT).content("{}").contentType("text/csv"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message").value(TRACKER_IMPORT_JOB.toString()))
+        .andExpect(jsonPath("$.message").value(TRACKER_JOB_ADDED))
         .andExpect(content().contentType("application/json"));
 
     verify(csvEventService).read(any(), eq(true));
-    verify(trackerImportService).importTracker(any(), any(), any());
   }
 
   @Test

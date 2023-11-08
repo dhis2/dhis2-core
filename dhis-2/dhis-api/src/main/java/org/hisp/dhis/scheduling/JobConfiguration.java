@@ -170,6 +170,12 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private String errorCodes;
 
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  private boolean cancel;
+
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  private String progress;
+
   public JobConfiguration() {}
 
   /**
