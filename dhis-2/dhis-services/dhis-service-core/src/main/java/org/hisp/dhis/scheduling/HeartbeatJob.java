@@ -54,7 +54,7 @@ public class HeartbeatJob implements Job {
 
   @Override
   public JobType getJobType() {
-    return JobType.HEARTBEAT;
+    return JobType.HOUSEKEEPING;
   }
 
   @Override

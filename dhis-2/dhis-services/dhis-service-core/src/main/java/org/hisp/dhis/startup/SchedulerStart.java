@@ -28,7 +28,6 @@
 package org.hisp.dhis.startup;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobScheduler;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 
@@ -42,11 +41,9 @@ import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 public class SchedulerStart extends AbstractStartupRoutine {
 
   private final JobScheduler scheduler;
-  private final JobConfigurationService jobConfigurationService;
 
   @Override
   public void execute() throws Exception {
-    jobConfigurationService.createHeartbeatJob();
     scheduler.start();
   }
 }

@@ -106,7 +106,7 @@ public class MonitoringJob implements Job {
       progress.completedProcess("Data validation done");
     } catch (RuntimeException ex) {
       progress.failedProcess(ex);
-      messageService.sendSystemErrorNotification("Data validation failed", ex);
+      messageService.asyncSendSystemErrorNotification("Data validation failed", ex);
       throw ex;
     }
   }
