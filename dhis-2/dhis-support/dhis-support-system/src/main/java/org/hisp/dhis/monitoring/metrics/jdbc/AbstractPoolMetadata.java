@@ -36,8 +36,7 @@ import javax.sql.DataSource;
  * @author Stephane Nicoll
  * @since 2.0.0
  */
-public abstract class AbstractPoolMetadata<T extends DataSource>
-    implements PoolMetadata {
+public abstract class AbstractPoolMetadata<T extends DataSource> implements PoolMetadata {
 
   private final T dataSource;
 

@@ -40,9 +40,9 @@ import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.jdbc.C3p0MetadataProvider;
+import org.hisp.dhis.monitoring.metrics.jdbc.HikariMetadataProvider;
 import org.hisp.dhis.monitoring.metrics.jdbc.PoolMetadataProvider;
 import org.hisp.dhis.monitoring.metrics.jdbc.PoolMetrics;
-import org.hisp.dhis.monitoring.metrics.jdbc.HikariMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -76,8 +76,7 @@ public class DataSourcePoolMetricsConfig {
 
     private void bindDataSourceToRegistry(String beanName, DataSource dataSource) {
       String dataSourceName = getDataSourceName(beanName);
-      new PoolMetrics(
-              dataSource, this.metadataProviders, dataSourceName, Collections.emptyList())
+      new PoolMetrics(dataSource, this.metadataProviders, dataSourceName, Collections.emptyList())
           .bindTo(this.registry);
     }
 

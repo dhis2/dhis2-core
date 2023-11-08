@@ -34,8 +34,8 @@ import java.util.List;
 import javax.sql.DataSource;
 
 /**
- * A {@link PoolMetadataProvider} implementation that returns the first {@link
- * PoolMetadata} that is found by one of its delegate.
+ * A {@link PoolMetadataProvider} implementation that returns the first {@link PoolMetadata} that is
+ * found by one of its delegate.
  *
  * @author Stephane Nicoll
  * @since 1.2.0
@@ -45,13 +45,11 @@ public class PoolMetadataProviders implements PoolMetadataProvider {
   private final List<PoolMetadataProvider> providers;
 
   /**
-   * Create a {@link PoolMetadataProviders} instance with an initial collection of
-   * delegates to use.
+   * Create a {@link PoolMetadataProviders} instance with an initial collection of delegates to use.
    *
    * @param providers the data source pool metadata providers
    */
-  public PoolMetadataProviders(
-      Collection<? extends PoolMetadataProvider> providers) {
+  public PoolMetadataProviders(Collection<? extends PoolMetadataProvider> providers) {
     this.providers = (providers == null ? Collections.emptyList() : new ArrayList<>(providers));
   }
 

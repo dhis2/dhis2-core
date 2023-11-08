@@ -53,11 +53,7 @@ public class PoolMetrics implements MeterBinder {
       Collection<PoolMetadataProvider> metadataProviders,
       String dataSourceName,
       Iterable<Tag> tags) {
-    this(
-        dataSource,
-        new CompositePoolMetadataProvider(metadataProviders),
-        dataSourceName,
-        tags);
+    this(dataSource, new CompositePoolMetadataProvider(metadataProviders), dataSourceName, tags);
   }
 
   public PoolMetrics(
@@ -98,11 +94,9 @@ public class PoolMetrics implements MeterBinder {
     }
   }
 
-  private static class CachingDataSourcePoolMetadataProvider
-      implements PoolMetadataProvider {
+  private static class CachingDataSourcePoolMetadataProvider implements PoolMetadataProvider {
 
-    private static final Map<DataSource, PoolMetadata> cache =
-        new ConcurrentReferenceHashMap<>();
+    private static final Map<DataSource, PoolMetadata> cache = new ConcurrentReferenceHashMap<>();
 
     private final PoolMetadataProvider metadataProvider;
 
