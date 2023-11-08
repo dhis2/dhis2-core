@@ -33,13 +33,13 @@ import javax.sql.DataSource;
  * @author Luciano Fiandesio
  */
 @FunctionalInterface
-public interface DataSourcePoolMetadataProvider {
+public interface PoolMetadataProvider {
   /**
-   * Return the {@link DataSourcePoolMetadata} instance able to manage the specified {@link
-   * DataSource} or {@code null} if the given data source could not be handled.
+   * Return the {@link PoolMetadata} instance able to manage the specified {@link DataSource} or
+   * {@code null} if the given data source could not be handled.
    *
    * @param dataSource the data source.
    * @return the data source pool metadata.
    */
-  DataSourcePoolMetadata getDataSourcePoolMetadata(DataSource dataSource);
+  PoolMetadata getDataSourcePoolMetadata(DataSource dataSource);
 }

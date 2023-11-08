@@ -179,7 +179,7 @@ public class DefaultEventService implements EventService {
       event.setEnrollment(enrollment);
       event.setProgramStage(programStage);
       event.setOrganisationUnit(organisationUnit);
-      event.setDueDate(dueDate);
+      event.setScheduledDate(dueDate);
       event.setStatus(EventStatus.SCHEDULE);
 
       if (programStage.getOpenAfterEnrollment()

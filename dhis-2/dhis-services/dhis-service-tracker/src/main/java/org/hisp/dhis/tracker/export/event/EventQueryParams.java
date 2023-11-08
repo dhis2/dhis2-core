@@ -325,7 +325,7 @@ class EventQueryParams {
     return scheduleAtStartDate;
   }
 
-  public EventQueryParams setScheduleAtStartDate(Date scheduleAtStartDate) {
+  public EventQueryParams setScheduledStartDate(Date scheduleAtStartDate) {
     this.scheduleAtStartDate = scheduleAtStartDate;
     return this;
   }
@@ -334,7 +334,7 @@ class EventQueryParams {
     return scheduleAtEndDate;
   }
 
-  public EventQueryParams setScheduleAtEndDate(Date scheduleAtEndDate) {
+  public EventQueryParams setScheduledEndDate(Date scheduleAtEndDate) {
     this.scheduleAtEndDate = scheduleAtEndDate;
     return this;
   }
