@@ -25,25 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.startup;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.scheduling.JobScheduler;
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.sql.DataSource;
 
 /**
- * Adapter to start the {@link JobScheduler} as a {@link
- * org.hisp.dhis.system.startup.StartupRoutine}.
+ * A {@link PoolMetadataProvider} implementation that returns the first {@link PoolMetadata} that is
+ * found by one of its delegate.
  *
- * @author Jan Bernitt
+ * @author Stephane Nicoll
+ * @since 2.0.0
  */
-@RequiredArgsConstructor
-public class SchedulerStart extends AbstractStartupRoutine {
+public class CompositePoolMetadataProvider implements PoolMetadataProvider {
+  private final List<PoolMetadataProvider> providers;
 
-  private final JobScheduler scheduler;
+  /**
+   * Create a {@link CompositePoolMetadataProvider} instance with an initial collection of delegates
+   * to use.
+   *
+   * @param providers the data source pool metadata providers
+   */
+  public CompositePoolMetadataProvider(Collection<? extends PoolMetadataProvider> providers) {
+    this.providers =
+        (providers != null)
+            ? Collections.unmodifiableList(new ArrayList<>(providers))
+            : Collections.emptyList();
+  }
 
   @Override
-  public void execute() throws Exception {
-    scheduler.start();
+  public PoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
+    for (PoolMetadataProvider provider : this.providers) {
+      PoolMetadata metadata = provider.getDataSourcePoolMetadata(dataSource);
+      if (metadata != null) {
+        return metadata;
+      }
+    }
+    return null;
   }
 }

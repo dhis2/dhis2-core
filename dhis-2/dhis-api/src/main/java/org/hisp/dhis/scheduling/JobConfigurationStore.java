@@ -69,6 +69,9 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
   @CheckForNull
   String getProgress(@Nonnull String jobId);
 
+  @CheckForNull
+  String getErrors(@Nonnull String jobId);
+
   /**
    * @return UIDs of all existing job configurations.
    */
@@ -201,7 +204,8 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    */
   boolean trySkip(@Nonnull String queue);
 
-  void updateProgress(@Nonnull String jobId, @CheckForNull String progressJson);
+  void updateProgress(
+      @Nonnull String jobId, @CheckForNull String progressJson, @CheckForNull String errorCodes);
 
   /**
    * Switches {@link JobConfiguration#getJobStatus()} to {@link JobStatus#DISABLED} for any job that

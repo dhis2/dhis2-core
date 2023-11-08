@@ -29,18 +29,20 @@ package org.hisp.dhis.monitoring.metrics;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_DBPOOL_ENABLED;
 
-import com.google.common.collect.Lists;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.zaxxer.hikari.HikariDataSource;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.jdbc.C3p0MetadataProvider;
-import org.hisp.dhis.monitoring.metrics.jdbc.DataSourcePoolMetadataProvider;
-import org.hisp.dhis.monitoring.metrics.jdbc.DataSourcePoolMetrics;
+import org.hisp.dhis.monitoring.metrics.jdbc.HikariMetadataProvider;
+import org.hisp.dhis.monitoring.metrics.jdbc.PoolMetadataProvider;
+import org.hisp.dhis.monitoring.metrics.jdbc.PoolMetrics;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -59,10 +61,10 @@ public class DataSourcePoolMetricsConfig {
 
     private final MeterRegistry registry;
 
-    private final Collection<DataSourcePoolMetadataProvider> metadataProviders;
+    private final Collection<PoolMetadataProvider> metadataProviders;
 
     DataSourcePoolMetadataMetricsConfiguration(
-        MeterRegistry registry, Collection<DataSourcePoolMetadataProvider> metadataProviders) {
+        MeterRegistry registry, Collection<PoolMetadataProvider> metadataProviders) {
       this.registry = registry;
       this.metadataProviders = metadataProviders;
     }
@@ -74,8 +76,7 @@ public class DataSourcePoolMetricsConfig {
 
     private void bindDataSourceToRegistry(String beanName, DataSource dataSource) {
       String dataSourceName = getDataSourceName(beanName);
-      new DataSourcePoolMetrics(
-              dataSource, this.metadataProviders, dataSourceName, Collections.emptyList())
+      new PoolMetrics(dataSource, this.metadataProviders, dataSourceName, Collections.emptyList())
           .bindTo(this.registry);
     }
 
@@ -95,11 +96,18 @@ public class DataSourcePoolMetricsConfig {
   }
 
   @Bean
-  public Collection<DataSourcePoolMetadataProvider> dataSourceMetadataProvider() {
-    DataSourcePoolMetadataProvider provider =
-        dataSource -> new C3p0MetadataProvider((ComboPooledDataSource) dataSource);
-
-    return Lists.newArrayList(provider);
+  public Collection<PoolMetadataProvider> dataSourceMetadataProvider() {
+    return List.of(
+        dataSource -> {
+          if (dataSource instanceof ComboPooledDataSource comboPooledDataSource) {
+            return new C3p0MetadataProvider(comboPooledDataSource);
+          } else if (dataSource instanceof HikariDataSource hikariDataSource) {
+            return new HikariMetadataProvider(hikariDataSource);
+          } else {
+            throw new IllegalArgumentException(
+                "Unsupported DataSource type: " + dataSource.getClass().getName());
+          }
+        });
   }
 
   static class DataSourcePoolMetricsEnabledCondition extends MetricsEnabler {

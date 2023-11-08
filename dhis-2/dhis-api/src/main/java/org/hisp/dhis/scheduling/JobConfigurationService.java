@@ -55,11 +55,7 @@ public interface JobConfigurationService {
    */
   int createDefaultJobs();
 
-  /**
-   * Make sure the {@link JobType#HEARTBEAT} entry exists as it is responsible for spawning the
-   * other system jobs when needed using {@link #createDefaultJobs()}.
-   */
-  void createHeartbeatJob();
+  void createDefaultJob(JobType type);
 
   /**
    * Updates all {@link JobConfiguration}s that are not {@link JobConfiguration#isEnabled()} to

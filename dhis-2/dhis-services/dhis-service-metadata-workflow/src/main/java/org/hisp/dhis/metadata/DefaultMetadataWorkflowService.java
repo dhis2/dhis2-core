@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.metadata;
 
-import static java.util.Collections.singletonList;
 import static org.hisp.dhis.util.JsonUtils.jsonToObject;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Date;
+import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
@@ -264,7 +264,7 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService {
     ObjectReport objectReport = new ObjectReport(objType, null);
     ErrorReport errorReport = new ErrorReport(MetadataProposal.class, errorCode, args);
     errorReport.setErrorProperty(property);
-    errorReport.setErrorProperties(singletonList(property));
+    errorReport.setErrorProperties(List.of(property));
     objectReport.addErrorReport(errorReport);
     TypeReport typeReport = new TypeReport(objType);
     typeReport.addObjectReport(objectReport);

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.scheduling;
 
+import java.util.List;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -90,6 +91,9 @@ public interface JobSchedulerService {
 
   @CheckForNull
   Progress getProgress(@Nonnull String jobId);
+
+  @Nonnull
+  List<JobProgress.Error> getErrors(@Nonnull String jobId);
 
   @CheckForNull
   Progress getRunningProgress(@Nonnull JobType type);
