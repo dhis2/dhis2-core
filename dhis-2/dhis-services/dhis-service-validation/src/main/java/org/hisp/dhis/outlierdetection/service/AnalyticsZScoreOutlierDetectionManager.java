@@ -55,6 +55,7 @@ public class AnalyticsZScoreOutlierDetectionManager extends AbstractOutlierDetec
     super(jdbcTemplate, sqlStatementProcessor);
   }
 
+  @Override
   protected RowMapper<OutlierValue> getRowMapper(Calendar calendar, boolean modifiedZ) {
     return (rs, rowNum) -> {
       OutlierValue outlierValue = getOutlierValue(calendar, rs);
