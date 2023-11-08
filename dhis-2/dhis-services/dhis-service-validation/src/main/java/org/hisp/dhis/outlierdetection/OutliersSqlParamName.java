@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.outlierdetection;
 
-public enum OutliersSqlParam {
+public enum OutliersSqlParamName {
   THRESHOLD("threshold"),
   DATA_ELEMENT_IDS("data_element_ids"),
   START_DATE("start_date"),
@@ -37,7 +37,7 @@ public enum OutliersSqlParam {
   MAX_RESULTS("max_results");
   private final String key;
 
-  OutliersSqlParam(String key) {
+  OutliersSqlParamName(String key) {
     this.key = key;
   }
 

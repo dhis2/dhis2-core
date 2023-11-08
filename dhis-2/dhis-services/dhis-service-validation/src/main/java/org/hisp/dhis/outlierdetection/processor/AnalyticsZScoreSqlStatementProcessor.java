@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.outlierdetection.processor;
 
-import static org.hisp.dhis.outlierdetection.OutliersSqlParam.DATA_ELEMENT_IDS;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParam.END_DATE;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParam.MAX_RESULTS;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParam.START_DATE;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParam.THRESHOLD;
+import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.DATA_ELEMENT_IDS;
+import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.END_DATE;
+import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.MAX_RESULTS;
+import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.START_DATE;
+import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.THRESHOLD;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.outlierdetection.Order;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.outlierdetection.OutliersSqlParam;
+import org.hisp.dhis.outlierdetection.OutliersSqlParamName;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -62,7 +62,7 @@ public class AnalyticsZScoreSqlStatementProcessor extends AbstractOutlierSqlStat
         request.getOrderBy() == Order.MEAN_ABS_DEV
             ? "middle_value_abs_dev"
             : request.getOrderBy().getKey();
-    String thresholdParam = OutliersSqlParam.THRESHOLD.getKey();
+    String thresholdParam = OutliersSqlParamName.THRESHOLD.getKey();
 
     return "select * from (select "
         + "ax.dataelementid, "

@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.outlierdetection.processor;
 
-import static org.hisp.dhis.outlierdetection.OutliersSqlParam.DATA_ELEMENT_IDS;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParam.DATA_END_DATE;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParam.DATA_START_DATE;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParam.END_DATE;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParam.MAX_RESULTS;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParam.START_DATE;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParam.THRESHOLD;
+import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.DATA_ELEMENT_IDS;
+import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.DATA_END_DATE;
+import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.DATA_START_DATE;
+import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.END_DATE;
+import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.MAX_RESULTS;
+import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.START_DATE;
+import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.THRESHOLD;
 
 import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
