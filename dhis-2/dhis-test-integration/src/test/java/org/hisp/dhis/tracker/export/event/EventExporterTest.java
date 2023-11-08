@@ -284,10 +284,11 @@ class EventExporterTest extends TrackerTest {
         () ->
             assertEquals(
                 "2019-01-28T12:32:38.100",
-                DateUtils.getIso8601NoTz(event.getDueDate()),
+                DateUtils.getIso8601NoTz(event.getScheduledDate()),
                 () ->
                     String.format(
-                        "Expected %s to be in %s", event.getDueDate(), "2019-01-28T12:32:38.100")),
+                        "Expected %s to be in %s",
+                        event.getScheduledDate(), "2019-01-28T12:32:38.100")),
         () -> assertHasTimeStamp(event.getCompletedDate()));
   }
 
