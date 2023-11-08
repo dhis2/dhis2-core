@@ -29,11 +29,12 @@ package org.hisp.dhis.monitoring.metrics;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_DBPOOL_ENABLED;
 
-import com.google.common.collect.Lists;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.zaxxer.hikari.HikariDataSource;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +42,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.jdbc.C3p0MetadataProvider;
 import org.hisp.dhis.monitoring.metrics.jdbc.DataSourcePoolMetadataProvider;
 import org.hisp.dhis.monitoring.metrics.jdbc.DataSourcePoolMetrics;
+import org.hisp.dhis.monitoring.metrics.jdbc.HikariMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -96,10 +98,17 @@ public class DataSourcePoolMetricsConfig {
 
   @Bean
   public Collection<DataSourcePoolMetadataProvider> dataSourceMetadataProvider() {
-    DataSourcePoolMetadataProvider provider =
-        dataSource -> new C3p0MetadataProvider((ComboPooledDataSource) dataSource);
-
-    return Lists.newArrayList(provider);
+    return List.of(
+        dataSource -> {
+          if (dataSource instanceof ComboPooledDataSource comboPooledDataSource) {
+            return new C3p0MetadataProvider(comboPooledDataSource);
+          } else if (dataSource instanceof HikariDataSource hikariDataSource) {
+            return new HikariMetadataProvider(hikariDataSource);
+          } else {
+            throw new IllegalArgumentException(
+                "Unsupported DataSource type: " + dataSource.getClass().getName());
+          }
+        });
   }
 
   static class DataSourcePoolMetricsEnabledCondition extends MetricsEnabler {
