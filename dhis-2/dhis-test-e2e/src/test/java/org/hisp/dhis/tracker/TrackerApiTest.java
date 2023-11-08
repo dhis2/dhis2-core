@@ -179,10 +179,10 @@ public class TrackerApiTest extends ApiTest {
     return trackerImportExportActions.postAndGetJobReport(payload).validateSuccessfulImport();
   }
 
-  protected TrackerApiResponse importRelationshipEventToTei(String enrollment, String tei) {
+  protected TrackerApiResponse importRelationshipEventToTei(String event, String tei) {
     JsonObject payload =
         new RelationshipDataBuilder()
-            .setFromEntity("event", enrollment)
+            .setFromEntity("event", event)
             .setToTrackedEntity(tei)
             .setRelationshipType("gdc6uOvgoji")
             .array();
