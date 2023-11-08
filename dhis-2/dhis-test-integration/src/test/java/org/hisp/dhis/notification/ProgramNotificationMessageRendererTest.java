@@ -220,7 +220,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     // Event to be provided in message renderer
     eventA = new Event(enrollmentA, programStageA);
     eventA.setOrganisationUnit(organisationUnitA);
-    eventA.setDueDate(enrollmentDate);
+    eventA.setScheduledDate(enrollmentDate);
     eventA.setOccurredDate(new Date());
     eventA.setUid("PSI-UID");
     eventDataValueA = new EventDataValue();

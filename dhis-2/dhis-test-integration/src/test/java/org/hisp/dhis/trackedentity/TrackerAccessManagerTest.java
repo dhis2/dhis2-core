@@ -172,7 +172,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
     eventB.setProgramStage(programStageB);
     eventB.setOrganisationUnit(orgUnitB);
     eventB.setStatus(EventStatus.SCHEDULE);
-    eventB.setDueDate(DateUtils.addDays(new Date(), 10));
+    eventB.setScheduledDate(DateUtils.addDays(new Date(), 10));
     manager.save(eventB, false);
   }
 
