@@ -60,6 +60,7 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -209,8 +210,9 @@ public class DefaultMessageService implements MessageService {
   }
 
   @Override
+  @Async
   @Transactional
-  public long sendSystemErrorNotification(String subject, Throwable t) {
+  public void asyncSendSystemErrorNotification(@Nonnull String subject, @Nonnull Throwable t) {
     String title = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
     String baseUrl = configurationProvider.getServerBaseUrl();
 
@@ -232,7 +234,7 @@ public class DefaultMessageService implements MessageService {
             .withMessageType(MessageType.SYSTEM)
             .build();
 
-    return sendMessage(params);
+    sendMessage(params);
   }
 
   @Override
