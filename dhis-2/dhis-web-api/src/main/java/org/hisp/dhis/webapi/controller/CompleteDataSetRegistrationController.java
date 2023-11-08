@@ -64,7 +64,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeService;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
 import org.hisp.dhis.dxf2.dataset.tasks.ImportCompleteDataSetRegistrationsTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -76,6 +76,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -113,11 +114,13 @@ public class CompleteDataSetRegistrationController {
 
   @Autowired private InputUtils inputUtils;
 
-  @Autowired private DefaultCompleteDataSetRegistrationExchangeService registrationExchangeService;
+  @Autowired private CompleteDataSetRegistrationExchangeService registrationExchangeService;
 
   @Autowired private AsyncTaskExecutor taskExecutor;
 
   @Autowired private SessionFactory sessionFactory;
+
+  @Autowired private Notifier notifier;
 
   // -------------------------------------------------------------------------
   // GET
@@ -326,7 +329,8 @@ public class CompleteDataSetRegistrationController {
             tmpFile.getRight(),
             importOptions,
             format,
-            jobId));
+            jobId,
+            notifier));
 
     return jobConfigurationReport(jobId)
         .setLocation("/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT);
