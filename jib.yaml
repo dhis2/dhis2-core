@@ -13,6 +13,9 @@ creationTime: ${timestamp}
 
 format: Docker
 
+environment:
+  "CATALINA_OPTS": "-Dcontext.path=''"
+
 labels:
   "DHIS2_VERSION": ${dhis2Version}
   "DHIS2_BUILD_REVISION": ${gitCommit}

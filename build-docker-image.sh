@@ -18,6 +18,7 @@ stable_versions_json="$(curl -fsSL "https://raw.githubusercontent.com/dhis2/dhis
 function help() {
    echo 'Available options:'
    echo '-t <tag>    DHIS2 version tag to build.'
+   echo '-d          Create image from a "dev" version.'
    echo '-r          Rebuild image with an existing WAR for the given DHIS2 version. Without this option the image will be built with a new WAR.'
    echo '-h          Print this help message.'
    echo
@@ -27,7 +28,7 @@ function help() {
 function create_immutable_tag() {
   current_date="$(date -u +'%Y%m%dT%H%M%SZ')" # ISO 8601 format
 
-  immutable_image_tag="$image_tag-$current_date"
+  main_image_tag="$image_tag-$current_date"
 }
 
 function create_rolling_tags() {
@@ -76,7 +77,7 @@ function create_rolling_tags() {
 
 function list_tags() {
   echo 'Immutable tag:'
-  echo "$immutable_image_tag"
+  echo "$main_image_tag"
 
   echo 'Rolling tags:'
   echo "${rolling_tags[@]}"
@@ -117,12 +118,12 @@ function use_new_war() {
   unzip -q -o "$WAR_PATH" -d "./$unarchived_war_dir"
 }
 
-function build_immutable_image() {
+function build_main_image() {
   echo "Building image for version $image_tag, based on $BASE_IMAGE ..."
 
   jib build \
     --build-file "$JIB_BUILD_FILE" \
-    --target "$IMAGE_REPOSITORY:$immutable_image_tag" \
+    --target "$IMAGE_REPOSITORY:$main_image_tag" \
     --parameter unarchivedWarDir="$unarchived_war_dir" \
     --parameter imageAppRoot="$IMAGE_APP_ROOT" \
     --parameter baseImage="$BASE_IMAGE" \
@@ -136,12 +137,12 @@ function build_immutable_image() {
 # To create extra tags for a multi-architecture image (manifest list) we have to create a new manifest list,
 # based on the supported image architectures' sha256 digests.
 function create_rolling_manifests() {
-  echo "Pulling $IMAGE_REPOSITORY:$immutable_image_tag for tagging ..."
-  docker image pull "$IMAGE_REPOSITORY:$immutable_image_tag"
+  echo "Pulling $IMAGE_REPOSITORY:$main_image_tag for tagging ..."
+  docker image pull "$IMAGE_REPOSITORY:$main_image_tag"
 
   for tag in "${rolling_tags[@]}"; do
     # shellcheck disable=SC2207
-    manifest_digests=($(docker manifest inspect "$IMAGE_REPOSITORY:$immutable_image_tag" | jq -r '.manifests[] .digest'))
+    manifest_digests=($(docker manifest inspect "$IMAGE_REPOSITORY:$main_image_tag" | jq -r '.manifests[] .digest'))
 
     # shellcheck disable=SC2145
     echo "Creating new manifest with digests ${manifest_digests[@]} ..."
@@ -153,16 +154,17 @@ function create_rolling_manifests() {
     echo "Pushing new manifest $IMAGE_REPOSITORY:$tag ..."
     docker manifest push "$IMAGE_REPOSITORY:$tag"
   done
-
 }
 
-while getopts 'ht:r' option; do
+while getopts 'ht:dr' option; do
    case $option in
       h)
         help
         exit;;
       t)
         image_tag=$OPTARG;;
+      d)
+        dev_image=1;;
       r)
         rebuild_image=1;;
       \?)
@@ -171,13 +173,26 @@ while getopts 'ht:r' option; do
    esac
 done
 
+if [[ ${dev_image:-} -eq 1 ]]; then
+  # We're not creating an immutable tag with a timestamp for dev images.
+  main_image_tag="$image_tag"
+
+  use_new_war
+
+  build_main_image
+
+  echo "Done with building dev image. Exiting."
+  echo
+  exit 0
+fi
+
 create_immutable_tag
 
 create_rolling_tags
 
 list_tags
 
-if [[ "${rebuild_image:-}" -eq 1 ]]; then
+if [[ ${rebuild_image:-} -eq 1 ]]; then
   use_existing_war
 else
   use_new_war
@@ -189,7 +204,7 @@ jdk_version="$(
 )"
 BASE_IMAGE="${BASE_IMAGE:-"tomcat:9.0-jre$jdk_version"}"
 
-build_immutable_image
+build_main_image
 
 create_rolling_manifests
 
