@@ -90,7 +90,7 @@ public class PoolMetrics implements MeterBinder {
           "jdbc.connections." + metricName,
           this.tags,
           this.dataSource,
-          (m) -> function.apply(m).doubleValue());
+          m -> function.apply(m).doubleValue());
     }
   }
 
@@ -106,17 +106,12 @@ public class PoolMetrics implements MeterBinder {
 
     <N extends Number> Function<DataSource, N> getValueFunction(
         Function<PoolMetadata, N> function) {
-      return (dataSource) -> function.apply(getDataSourcePoolMetadata(dataSource));
+      return dS -> function.apply(getDataSourcePoolMetadata(dS));
     }
 
     @Override
     public PoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
-      PoolMetadata metadata = cache.get(dataSource);
-      if (metadata == null) {
-        metadata = this.metadataProvider.getDataSourcePoolMetadata(dataSource);
-        cache.put(dataSource, metadata);
-      }
-      return metadata;
+      return cache.computeIfAbsent(dataSource, this.metadataProvider::getDataSourcePoolMetadata);
     }
   }
 }
