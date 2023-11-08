@@ -75,6 +75,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -116,6 +117,8 @@ public class CompleteDataSetRegistrationController {
   @Autowired private AsyncTaskExecutor taskExecutor;
 
   @Autowired private SessionFactory sessionFactory;
+
+  @Autowired private Notifier notifier;
 
   // -------------------------------------------------------------------------
   // GET
@@ -324,7 +327,8 @@ public class CompleteDataSetRegistrationController {
             tmpFile.getRight(),
             importOptions,
             format,
-            jobId));
+            jobId,
+            notifier));
 
     return jobConfigurationReport(jobId)
         .setLocation("/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT);
