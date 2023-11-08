@@ -50,6 +50,10 @@ import org.springframework.stereotype.Component;
 public class ZScoreSqlStatementProcessor extends AbstractOutlierSqlStatementProcessor {
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
+    if (request == null) {
+      return StringUtils.EMPTY;
+    }
+
     final String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
     final String dataStartDateClause = getDataStartDateClause(request.getDataStartDate());
     final String dataEndDateClause = getDataEndDateClause(request.getDataEndDate());

@@ -32,6 +32,7 @@ import static org.hisp.dhis.outlierdetection.OutliersSqlParam.END_DATE;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParam.MAX_RESULTS;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParam.START_DATE;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -43,6 +44,10 @@ import org.springframework.stereotype.Component;
 public class MinMaxSqlStatementProcessor extends AbstractOutlierSqlStatementProcessor {
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
+    if (request == null) {
+      return StringUtils.EMPTY;
+    }
+
     final String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
 
     return "select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, "

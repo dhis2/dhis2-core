@@ -33,6 +33,7 @@ import static org.hisp.dhis.outlierdetection.OutliersSqlParam.MAX_RESULTS;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParam.START_DATE;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParam.THRESHOLD;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.outlierdetection.Order;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
@@ -47,6 +48,10 @@ import org.springframework.stereotype.Component;
 public class AnalyticsZScoreSqlStatementProcessor extends AbstractOutlierSqlStatementProcessor {
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
+    if (request == null) {
+      return StringUtils.EMPTY;
+    }
+
     final String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
 
     final boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;

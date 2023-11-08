@@ -40,16 +40,13 @@ public class OutlierDetectionUtils {
    * Returns an organisation unit 'path' "like" clause for the given list of {@link
    * OrganisationUnit}.
    *
-   * @param query the list of {@link OrganisationUnit}.
+   * @param orgUnits the list of {@link OrganisationUnit}.
    * @return an organisation unit 'path' "like" clause.
    */
   public static String getOrgUnitPathClause(List<OrganisationUnit> orgUnits) {
-    String sql = "(";
+    StringBuilder sql = new StringBuilder("(");
+    orgUnits.forEach(ou -> sql.append("ou.\"path\" like '").append(ou.getPath()).append("%' or "));
 
-    for (OrganisationUnit ou : orgUnits) {
-      sql += "ou.\"path\" like '" + ou.getPath() + "%' or ";
-    }
-
-    return StringUtils.trim(TextUtils.removeLastOr(sql)) + ")";
+    return StringUtils.trim(TextUtils.removeLastOr(sql.toString())) + ")";
   }
 }

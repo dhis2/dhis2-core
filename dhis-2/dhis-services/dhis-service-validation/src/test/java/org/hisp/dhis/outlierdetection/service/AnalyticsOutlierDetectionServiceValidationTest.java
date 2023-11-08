@@ -36,33 +36,29 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * @author Lars Helge Overland
- */
 @ExtendWith(MockitoExtension.class)
-class OutlierDetectionServiceValidationTest {
+class AnalyticsOutlierDetectionServiceValidationTest {
 
   @Mock private IdentifiableObjectManager idObjectManager;
 
-  @Mock private ZScoreOutlierDetectionManager zScoreOutlierManager;
+  @Mock private AnalyticsZScoreOutlierDetectionManager zScoreOutlierManager;
 
-  @Mock private MinMaxOutlierDetectionManager minMaxOutlierManager;
-
-  private OutlierDetectionService<OutlierDetectionResponse> subject;
+  private OutlierDetectionService<Grid> subject;
 
   // -------------------------------------------------------------------------
   // Fixture
@@ -80,9 +76,7 @@ class OutlierDetectionServiceValidationTest {
 
   @BeforeEach
   public void setUp() {
-    subject =
-        new DefaultOutlierDetectionService(
-            idObjectManager, zScoreOutlierManager, minMaxOutlierManager);
+    subject = new AnalyticsOutlierDetectionService(idObjectManager, zScoreOutlierManager);
 
     deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM);
@@ -165,7 +159,7 @@ class OutlierDetectionServiceValidationTest {
   }
 
   @Test
-  void testErrorDataStartDateAfterDataEndDate() {
+  void testErrorDataStartDateIsNotAllowed() {
     OutlierDetectionRequest request =
         new OutlierDetectionRequest.Builder()
             .withDataElements(Lists.newArrayList(deA, deB, deC))
@@ -175,7 +169,33 @@ class OutlierDetectionServiceValidationTest {
             .withDataEndDate(getDate(2020, 5, 1))
             .build();
 
-    assertRequest(request, ErrorCode.E2207);
+    assertRequest(request, ErrorCode.E2209);
+  }
+
+  @Test
+  void testErrorDataEndDateIsNotAllowed() {
+    OutlierDetectionRequest request =
+        new OutlierDetectionRequest.Builder()
+            .withDataElements(Lists.newArrayList(deA, deB, deC))
+            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 6, 1))
+            .withOrgUnits(Lists.newArrayList(ouA, ouB))
+            .withDataEndDate(getDate(2020, 5, 1))
+            .build();
+
+    assertRequest(request, ErrorCode.E2210);
+  }
+
+  @Test
+  void testMinMaxAlgorithmIsNotAllowed() {
+    OutlierDetectionRequest request =
+        new OutlierDetectionRequest.Builder()
+            .withDataElements(Lists.newArrayList(deA, deB, deC))
+            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 6, 1))
+            .withOrgUnits(Lists.newArrayList(ouA, ouB))
+            .withAlgorithm(OutlierDetectionAlgorithm.MIN_MAX)
+            .build();
+
+    assertRequest(request, ErrorCode.E2211);
   }
 
   private void assertRequest(OutlierDetectionRequest request, ErrorCode errorCode) {
