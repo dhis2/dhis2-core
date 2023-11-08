@@ -6,11 +6,10 @@ IMAGE_REPOSITORY=${IMAGE_REPOSITORY:-'dhis2/core'}
 IMAGE_APP_ROOT=${IMAGE_APP_ROOT:-'/usr/local/tomcat/webapps/ROOT'}
 IMAGE_USER=${IMAGE_USER:-'65534'}
 WAR_PATH=${WAR_PATH:-'dhis-2/dhis-web/dhis-web-portal/target/dhis.war'}
+UNARCHIVED_WAR_DIR=${UNARCHIVED_WAR_DIR:-'dhis2-war'}
 JIB_BUILD_FILE=${JIB_BUILD_FILE:-'jib.yaml'}
 
-unarchived_war_dir='dhis2-war'
 downloaded_war_name='downloaded-dhis2.war'
-
 old_version_schema_prefix='2'
 # TODO change to https://releases.dhis2.org/v1/versions/stable.json
 stable_versions_json="$(curl -fsSL "https://raw.githubusercontent.com/dhis2/dhis2-releases/master/downloads/v1/versions/stable.json")"
@@ -107,15 +106,15 @@ function use_existing_war() {
     exit 1
   fi
 
-  echo "Unarchiving WAR to $unarchived_war_dir ..."
-  rm -rf "./$unarchived_war_dir"
-  unzip -q -o "$downloaded_war_name" -d "./$unarchived_war_dir"
+  echo "Unarchiving WAR to $UNARCHIVED_WAR_DIR ..."
+  rm -rf "./$UNARCHIVED_WAR_DIR"
+  unzip -q -o "$downloaded_war_name" -d "./$UNARCHIVED_WAR_DIR"
 }
 
 function use_new_war() {
   echo "Image will be built with new WAR from $WAR_PATH"
-  rm -rf "./$unarchived_war_dir"
-  unzip -q -o "$WAR_PATH" -d "./$unarchived_war_dir"
+  rm -rf "./$UNARCHIVED_WAR_DIR"
+  unzip -q -o "$WAR_PATH" -d "./$UNARCHIVED_WAR_DIR"
 }
 
 function build_main_image() {
@@ -124,7 +123,7 @@ function build_main_image() {
   jib build \
     --build-file "$JIB_BUILD_FILE" \
     --target "$IMAGE_REPOSITORY:$main_image_tag" \
-    --parameter unarchivedWarDir="$unarchived_war_dir" \
+    --parameter unarchivedWarDir="$UNARCHIVED_WAR_DIR" \
     --parameter imageAppRoot="$IMAGE_APP_ROOT" \
     --parameter baseImage="$BASE_IMAGE" \
     --parameter imageUser="$IMAGE_USER" \
@@ -134,9 +133,9 @@ function build_main_image() {
     --parameter timestamp="$(date +'%s000')" # Unix time with zeroed milliseconds; will be shown as "2023-11-02T14:40:32Z"
 }
 
-# To create extra tags for a multi-architecture image (manifest list) we have to create a new manifest list,
+# To create additional rolling tags for a multi-architecture image (manifest list) we have to create a new manifest list,
 # based on the supported image architectures' sha256 digests.
-function create_rolling_manifests() {
+function create_additional_manifests() {
   echo "Pulling $IMAGE_REPOSITORY:$main_image_tag for tagging ..."
   docker image pull "$IMAGE_REPOSITORY:$main_image_tag"
 
@@ -174,6 +173,8 @@ while getopts 'ht:dr' option; do
 done
 
 if [[ ${dev_image:-} -eq 1 ]]; then
+  echo 'Creating image from a dev version ...'
+
   # We're not creating an immutable tag with a timestamp for dev images.
   main_image_tag="$image_tag"
 
@@ -181,7 +182,13 @@ if [[ ${dev_image:-} -eq 1 ]]; then
 
   build_main_image
 
-  echo "Done with building dev image. Exiting."
+  if [[ "$image_tag" =~ -rc$ ]]; then
+    echo 'Version is Release Candidate, creating extra old version format tag.'
+    rolling_tags=("$old_version_schema_prefix.$main_image_tag")
+    create_additional_manifests
+  fi
+
+  echo 'Done with building dev image. Exiting.'
   echo
   exit 0
 fi
@@ -206,7 +213,7 @@ BASE_IMAGE="${BASE_IMAGE:-"tomcat:9.0-jre$jdk_version"}"
 
 build_main_image
 
-create_rolling_manifests
+create_additional_manifests
 
 echo "Done with building $image_tag."
 echo

@@ -46,7 +46,7 @@ pipeline {
                                 echo "DHIS2 version is \$DHIS2_VERSION"
                                 echo "Git commit is \$GIT_COMMIT"
 
-                                ./build-docker-image.sh -t \"$version\" -r
+                                ./dhis-2/build-docker-image.sh -t \"$version\" -r
                             """
                         }
                     }
