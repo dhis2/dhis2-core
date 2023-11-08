@@ -30,43 +30,16 @@ package org.hisp.dhis.monitoring.metrics.jdbc;
 import javax.sql.DataSource;
 
 /**
- * A base {@link DataSourcePoolMetadata} implementation.
- *
- * @param <T> the data source type
- * @author Stephane Nicoll
- * @since 2.0.0
+ * @author Luciano Fiandesio
  */
-public abstract class AbstractDataSourcePoolMetadata<T extends DataSource>
-    implements DataSourcePoolMetadata {
-
-  private final T dataSource;
-
+@FunctionalInterface
+public interface PoolMetadataProvider {
   /**
-   * Create an instance with the data source to use.
+   * Return the {@link PoolMetadata} instance able to manage the specified {@link
+   * DataSource} or {@code null} if the given data source could not be handled.
    *
-   * @param dataSource the data source
+   * @param dataSource the data source.
+   * @return the data source pool metadata.
    */
-  protected AbstractDataSourcePoolMetadata(T dataSource) {
-    this.dataSource = dataSource;
-  }
-
-  @Override
-  public Float getUsage() {
-    Integer maxSize = getMax();
-    Integer currentSize = getActive();
-    if (maxSize == null || currentSize == null) {
-      return null;
-    }
-    if (maxSize < 0) {
-      return -1F;
-    }
-    if (currentSize == 0) {
-      return 0F;
-    }
-    return (float) currentSize / (float) maxSize;
-  }
-
-  protected final T getDataSource() {
-    return this.dataSource;
-  }
+  PoolMetadata getDataSourcePoolMetadata(DataSource dataSource);
 }

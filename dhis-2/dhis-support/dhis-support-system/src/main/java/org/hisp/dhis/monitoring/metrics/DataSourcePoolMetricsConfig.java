@@ -40,8 +40,8 @@ import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.jdbc.C3p0MetadataProvider;
-import org.hisp.dhis.monitoring.metrics.jdbc.DataSourcePoolMetadataProvider;
-import org.hisp.dhis.monitoring.metrics.jdbc.DataSourcePoolMetrics;
+import org.hisp.dhis.monitoring.metrics.jdbc.PoolMetadataProvider;
+import org.hisp.dhis.monitoring.metrics.jdbc.PoolMetrics;
 import org.hisp.dhis.monitoring.metrics.jdbc.HikariMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -61,10 +61,10 @@ public class DataSourcePoolMetricsConfig {
 
     private final MeterRegistry registry;
 
-    private final Collection<DataSourcePoolMetadataProvider> metadataProviders;
+    private final Collection<PoolMetadataProvider> metadataProviders;
 
     DataSourcePoolMetadataMetricsConfiguration(
-        MeterRegistry registry, Collection<DataSourcePoolMetadataProvider> metadataProviders) {
+        MeterRegistry registry, Collection<PoolMetadataProvider> metadataProviders) {
       this.registry = registry;
       this.metadataProviders = metadataProviders;
     }
@@ -76,7 +76,7 @@ public class DataSourcePoolMetricsConfig {
 
     private void bindDataSourceToRegistry(String beanName, DataSource dataSource) {
       String dataSourceName = getDataSourceName(beanName);
-      new DataSourcePoolMetrics(
+      new PoolMetrics(
               dataSource, this.metadataProviders, dataSourceName, Collections.emptyList())
           .bindTo(this.registry);
     }
@@ -97,7 +97,7 @@ public class DataSourcePoolMetricsConfig {
   }
 
   @Bean
-  public Collection<DataSourcePoolMetadataProvider> dataSourceMetadataProvider() {
+  public Collection<PoolMetadataProvider> dataSourceMetadataProvider() {
     return List.of(
         dataSource -> {
           if (dataSource instanceof ComboPooledDataSource comboPooledDataSource) {

@@ -27,19 +27,42 @@
  */
 package org.hisp.dhis.monitoring.metrics.jdbc;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import javax.sql.DataSource;
 
 /**
- * @author Luciano Fiandesio
+ * A {@link PoolMetadataProvider} implementation that returns the first {@link
+ * PoolMetadata} that is found by one of its delegate.
+ *
+ * @author Stephane Nicoll
+ * @since 1.2.0
  */
-@FunctionalInterface
-public interface DataSourcePoolMetadataProvider {
+public class PoolMetadataProviders implements PoolMetadataProvider {
+
+  private final List<PoolMetadataProvider> providers;
+
   /**
-   * Return the {@link DataSourcePoolMetadata} instance able to manage the specified {@link
-   * DataSource} or {@code null} if the given data source could not be handled.
+   * Create a {@link PoolMetadataProviders} instance with an initial collection of
+   * delegates to use.
    *
-   * @param dataSource the data source.
-   * @return the data source pool metadata.
+   * @param providers the data source pool metadata providers
    */
-  DataSourcePoolMetadata getDataSourcePoolMetadata(DataSource dataSource);
+  public PoolMetadataProviders(
+      Collection<? extends PoolMetadataProvider> providers) {
+    this.providers = (providers == null ? Collections.emptyList() : new ArrayList<>(providers));
+  }
+
+  @Override
+  public PoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
+    for (PoolMetadataProvider provider : this.providers) {
+      PoolMetadata metadata = provider.getDataSourcePoolMetadata(dataSource);
+      if (metadata != null) {
+        return metadata;
+      }
+    }
+    return null;
+  }
 }

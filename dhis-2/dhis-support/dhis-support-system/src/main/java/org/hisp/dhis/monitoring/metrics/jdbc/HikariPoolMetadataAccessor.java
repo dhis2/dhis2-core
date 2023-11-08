@@ -27,44 +27,58 @@
  */
 package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import javax.sql.DataSource;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.HikariPool;
+import org.springframework.beans.DirectFieldAccessor;
 
 /**
- * A {@link DataSourcePoolMetadataProvider} implementation that returns the first {@link
- * DataSourcePoolMetadata} that is found by one of its delegate.
- *
- * @author Stephane Nicoll
- * @since 2.0.0
+ * @author Morten Svanæs
  */
-public class CompositeDataSourcePoolMetadataProvider implements DataSourcePoolMetadataProvider {
-  private final List<DataSourcePoolMetadataProvider> providers;
+public class HikariPoolMetadataAccessor extends AbstractPoolMetadata<HikariDataSource> {
 
-  /**
-   * Create a {@link CompositeDataSourcePoolMetadataProvider} instance with an initial collection of
-   * delegates to use.
-   *
-   * @param providers the data source pool metadata providers
-   */
-  public CompositeDataSourcePoolMetadataProvider(
-      Collection<? extends DataSourcePoolMetadataProvider> providers) {
-    this.providers =
-        (providers != null)
-            ? Collections.unmodifiableList(new ArrayList<>(providers))
-            : Collections.emptyList();
+  public HikariPoolMetadataAccessor(HikariDataSource dataSource) {
+    super(dataSource);
   }
 
   @Override
-  public DataSourcePoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
-    for (DataSourcePoolMetadataProvider provider : this.providers) {
-      DataSourcePoolMetadata metadata = provider.getDataSourcePoolMetadata(dataSource);
-      if (metadata != null) {
-        return metadata;
-      }
+  public Integer getActive() {
+    try {
+      return getHikariPool().getActiveConnections();
+    } catch (Exception ex) {
+      return null;
     }
-    return null;
+  }
+
+  @Override
+  public Integer getIdle() {
+    try {
+      return getHikariPool().getIdleConnections();
+    } catch (Exception ex) {
+      return null;
+    }
+  }
+
+  private HikariPool getHikariPool() {
+    return (HikariPool) new DirectFieldAccessor(getDataSource()).getPropertyValue("pool");
+  }
+
+  @Override
+  public Integer getMax() {
+    return getDataSource().getMaximumPoolSize();
+  }
+
+  @Override
+  public Integer getMin() {
+    return getDataSource().getMinimumIdle();
+  }
+
+  @Override
+  public String getValidationQuery() {
+    return getDataSource().getConnectionTestQuery();
+  }
+
+  @Override
+  public Boolean getDefaultAutoCommit() {
+    return getDataSource().isAutoCommit();
   }
 }

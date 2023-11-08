@@ -27,58 +27,46 @@
  */
 package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import com.zaxxer.hikari.HikariDataSource;
-import com.zaxxer.hikari.pool.HikariPool;
-import org.springframework.beans.DirectFieldAccessor;
+import javax.sql.DataSource;
 
 /**
- * @author Morten Svanæs
+ * A base {@link PoolMetadata} implementation.
+ *
+ * @param <T> the data source type
+ * @author Stephane Nicoll
+ * @since 2.0.0
  */
-public class HikariDataSourcePoolMetadata extends AbstractDataSourcePoolMetadata<HikariDataSource> {
+public abstract class AbstractPoolMetadata<T extends DataSource>
+    implements PoolMetadata {
 
-  public HikariDataSourcePoolMetadata(HikariDataSource dataSource) {
-    super(dataSource);
+  private final T dataSource;
+
+  /**
+   * Create an instance with the data source to use.
+   *
+   * @param dataSource the data source
+   */
+  protected AbstractPoolMetadata(T dataSource) {
+    this.dataSource = dataSource;
   }
 
   @Override
-  public Integer getActive() {
-    try {
-      return getHikariPool().getActiveConnections();
-    } catch (Exception ex) {
+  public Float getUsage() {
+    Integer maxSize = getMax();
+    Integer currentSize = getActive();
+    if (maxSize == null || currentSize == null) {
       return null;
     }
-  }
-
-  @Override
-  public Integer getIdle() {
-    try {
-      return getHikariPool().getIdleConnections();
-    } catch (Exception ex) {
-      return null;
+    if (maxSize < 0) {
+      return -1F;
     }
+    if (currentSize == 0) {
+      return 0F;
+    }
+    return (float) currentSize / (float) maxSize;
   }
 
-  private HikariPool getHikariPool() {
-    return (HikariPool) new DirectFieldAccessor(getDataSource()).getPropertyValue("pool");
-  }
-
-  @Override
-  public Integer getMax() {
-    return getDataSource().getMaximumPoolSize();
-  }
-
-  @Override
-  public Integer getMin() {
-    return getDataSource().getMinimumIdle();
-  }
-
-  @Override
-  public String getValidationQuery() {
-    return getDataSource().getConnectionTestQuery();
-  }
-
-  @Override
-  public Boolean getDefaultAutoCommit() {
-    return getDataSource().isAutoCommit();
+  protected final T getDataSource() {
+    return this.dataSource;
   }
 }

@@ -32,9 +32,9 @@ import com.zaxxer.hikari.HikariDataSource;
 /**
  * @author Morten Svanæs
  */
-public class HikariMetadataProvider extends AbstractDataSourcePoolMetadata<HikariDataSource> {
+public class HikariMetadataProvider extends AbstractPoolMetadata<HikariDataSource> {
 
-  private HikariDataSourcePoolMetadata hikariDataSourcePoolMetadata;
+  private HikariPoolMetadataAccessor hikariDataSourcePoolMetadata;
 
   /**
    * Create an instance with the data source to use.
@@ -43,7 +43,7 @@ public class HikariMetadataProvider extends AbstractDataSourcePoolMetadata<Hikar
    */
   public HikariMetadataProvider(HikariDataSource dataSource) {
     super(dataSource);
-    this.hikariDataSourcePoolMetadata = new HikariDataSourcePoolMetadata(getDataSource());
+    this.hikariDataSourcePoolMetadata = new HikariPoolMetadataAccessor(getDataSource());
   }
 
   @Override

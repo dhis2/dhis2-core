@@ -34,31 +34,33 @@ import java.util.List;
 import javax.sql.DataSource;
 
 /**
- * A {@link DataSourcePoolMetadataProvider} implementation that returns the first {@link
- * DataSourcePoolMetadata} that is found by one of its delegate.
+ * A {@link PoolMetadataProvider} implementation that returns the first {@link
+ * PoolMetadata} that is found by one of its delegate.
  *
  * @author Stephane Nicoll
- * @since 1.2.0
+ * @since 2.0.0
  */
-public class DataSourcePoolMetadataProviders implements DataSourcePoolMetadataProvider {
-
-  private final List<DataSourcePoolMetadataProvider> providers;
+public class CompositePoolMetadataProvider implements PoolMetadataProvider {
+  private final List<PoolMetadataProvider> providers;
 
   /**
-   * Create a {@link DataSourcePoolMetadataProviders} instance with an initial collection of
+   * Create a {@link CompositePoolMetadataProvider} instance with an initial collection of
    * delegates to use.
    *
    * @param providers the data source pool metadata providers
    */
-  public DataSourcePoolMetadataProviders(
-      Collection<? extends DataSourcePoolMetadataProvider> providers) {
-    this.providers = (providers == null ? Collections.emptyList() : new ArrayList<>(providers));
+  public CompositePoolMetadataProvider(
+      Collection<? extends PoolMetadataProvider> providers) {
+    this.providers =
+        (providers != null)
+            ? Collections.unmodifiableList(new ArrayList<>(providers))
+            : Collections.emptyList();
   }
 
   @Override
-  public DataSourcePoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
-    for (DataSourcePoolMetadataProvider provider : this.providers) {
-      DataSourcePoolMetadata metadata = provider.getDataSourcePoolMetadata(dataSource);
+  public PoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
+    for (PoolMetadataProvider provider : this.providers) {
+      PoolMetadata metadata = provider.getDataSourcePoolMetadata(dataSource);
       if (metadata != null) {
         return metadata;
       }
