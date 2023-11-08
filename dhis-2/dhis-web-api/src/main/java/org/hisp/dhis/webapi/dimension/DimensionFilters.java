@@ -34,10 +34,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringTokenizer;
-import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -67,7 +66,7 @@ public class DimensionFilters implements Predicate<DimensionResponse> {
             .map(String::trim)
             .map(SingleFilter::of)
             .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+            .toList();
 
     if (filters.isEmpty()) {
       return EMPTY_DATA_DIMENSION_FILTER;
@@ -94,28 +93,27 @@ public class DimensionFilters implements Predicate<DimensionResponse> {
             "displayName", DimensionResponse::getDisplayName,
             "displayShortName", DimensionResponse::getDisplayShortName);
 
-    private static final Map<String, BiFunction<String, String, Boolean>> OPERATOR_MAP =
-        new HashMap<>();
+    private static final Map<String, BiPredicate<String, String>> OPERATOR_MAP = new HashMap<>();
 
     static {
       putOperator("startsWith", String::startsWith, true);
       putOperator("endsWith", String::endsWith, true);
-      putOperator("eq", String::equals);
+      putOperator("eq", String::equals, true);
       putOperator("ieq", String::equalsIgnoreCase);
       putOperator("ne", (fv, v) -> !fv.equals(v));
       putOperator("like", String::contains, true);
       putOperator("ilike", (fv, v) -> fv.toLowerCase().contains(v.toLowerCase()), true);
     }
 
-    private static void putOperator(String operator, BiFunction<String, String, Boolean> function) {
+    private static void putOperator(String operator, BiPredicate<String, String> function) {
       putOperator(operator, function, false);
     }
 
     private static void putOperator(
-        String operator, BiFunction<String, String, Boolean> function, boolean negateAlso) {
+        String operator, BiPredicate<String, String> function, boolean negateAlso) {
       OPERATOR_MAP.put(operator, function);
       if (negateAlso) {
-        OPERATOR_MAP.put("!" + operator, (s, s2) -> !function.apply(s, s2));
+        OPERATOR_MAP.put("!" + operator, (s, s2) -> !function.test(s, s2));
       }
     }
 
@@ -153,7 +151,7 @@ public class DimensionFilters implements Predicate<DimensionResponse> {
 
     private boolean applyOperator(String fieldValue) {
       return Optional.ofNullable(OPERATOR_MAP.get(operator))
-          .map(operation -> operation.apply(fieldValue, value))
+          .map(operation -> operation.test(fieldValue, value))
           .orElse(false);
     }
   }

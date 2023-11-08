@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.dimension;
 
+import static org.apache.commons.lang3.tuple.Pair.of;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -47,6 +48,10 @@ import org.junit.jupiter.api.Test;
 
 class DimensionFiltersTest {
 
+  /**
+   * A map of all the fields in {@link DimensionResponse} and a function that creates a {@link DimensionResponse}
+   * with that field set to the given value.
+   */
   private static final Map<String, Function<String, DimensionResponse>> BUILDER_MAP =
       Map.of(
           "id", s -> DimensionResponse.builder().id(s).build(),
@@ -58,33 +63,35 @@ class DimensionFiltersTest {
           "displayName", s -> DimensionResponse.builder().displayName(s).build(),
           "displayShortName", s -> DimensionResponse.builder().displayShortName(s).build());
 
+  public static final String STRING_TO_TEST_FILTER_ON = "TeSt";
+
+  /**
+   * A map of all the operators and the expected result of applying them to the {@link DimensionResponse} created
+   * by the corresponding {@link Function} in {@link #BUILDER_MAP} with the given {@link #STRING_TO_TEST_FILTER_ON}.
+   * The left value is the value to test for positive assertion, the right value is the value to test for negative.
+   */
   private static final Map<String, Pair<String, String>> OPERATORS =
       Stream.concat(
               Map.of(
-                  "startsWith", Pair.of("Te", "eS"),
-                  "!startsWith", Pair.of("eS", "Te"),
-                  "endsWith", Pair.of("St", "eS"),
-                  "!endsWith", Pair.of("eS", "St"),
-                  "eq", Pair.of("TeSt", "tEsT"),
-                  "ieq", Pair.of("test", "random"))
+                  "startsWith", of("Te", "eS"),
+                  "!startsWith", of("eS", "Te"),
+                  "endsWith", of("St", "eS"),
+                  "!endsWith", of("eS", "St"),
+                  "eq", of("TeSt", "tEsT"),
+                  "!eq", of("whatever", "TeSt"),
+                  "ieq", of("test", "random"))
                   .entrySet()
                   .stream(),
               Map.of(
-                  "ne",
-                  Pair.of("random", "TeSt"),
-                  "like",
-                  Pair.of("eS", "es"),
-                  "!like",
-                  Pair.of("es", "eS"),
-                  "ilike",
-                  Pair.of("es", "et"),
-                  "!ilike",
-                  Pair.of("et", "es"))
+                  "ne", of("random", "TeSt"),
+                  "like", of("eS", "es"),
+                  "!like", of("es", "eS"),
+                  "ilike", of("es", "et"),
+                  "!ilike", of("et", "es"))
                   .entrySet()
                   .stream())
           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-  public static final String TEST_STRING = "TeSt";
 
   @Test
   void testDimensionFilterConstructor() {
@@ -133,7 +140,8 @@ class DimensionFiltersTest {
   @Test
   void testFieldsAndOperators() {
 
-    BUILDER_MAP.forEach((s, builder) -> assertAllOpsOnField(s, builder.apply(TEST_STRING)));
+    BUILDER_MAP.forEach((s, builder) -> assertAllOpsOnField(s, builder.apply(
+        STRING_TO_TEST_FILTER_ON)));
   }
 
   private void assertAllOpsOnField(String fieldName, DimensionResponse response) {
