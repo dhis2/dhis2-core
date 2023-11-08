@@ -40,7 +40,7 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
  *
  * @author Lars Helge Overland
  */
-public interface OutlierDetectionService<TRs> {
+public interface OutlierDetectionService<T> {
   /**
    * Validates the given request.
    *
@@ -64,7 +64,7 @@ public interface OutlierDetectionService<TRs> {
    * @return a {@link OutlierDetectionResponse}.
    * @throws IllegalQueryException if request is invalid.
    */
-  TRs getOutlierValues(OutlierDetectionRequest request) throws IllegalQueryException;
+  T getOutlierValues(OutlierDetectionRequest request) throws IllegalQueryException;
 
   /**
    * Writes outlier data values for the given request as CSV to the given output stream.

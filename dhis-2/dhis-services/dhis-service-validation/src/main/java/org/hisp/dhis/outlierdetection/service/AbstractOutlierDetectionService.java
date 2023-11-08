@@ -44,7 +44,7 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 
 @Slf4j
 @RequiredArgsConstructor
-public abstract class AbstractOutlierDetectionService<TRs> implements OutlierDetectionService<TRs> {
+public abstract class AbstractOutlierDetectionService<T> implements OutlierDetectionService<T> {
 
   private final IdentifiableObjectManager idObjectManager;
   private static final int MAX_LIMIT = 500;

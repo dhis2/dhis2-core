@@ -56,7 +56,7 @@ public class AnalyticsZScoreSqlStatementProcessor extends AbstractOutlierSqlStat
 
     final boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
 
-    String middle_value = modifiedZ ? " ax.percentile_middle_value" : " ax.avg_middle_value";
+    String middleValue = modifiedZ ? " ax.percentile_middle_value" : " ax.avg_middle_value";
 
     String order =
         request.getOrderBy() == Order.MEAN_ABS_DEV
@@ -77,22 +77,22 @@ public class AnalyticsZScoreSqlStatementProcessor extends AbstractOutlierSqlStat
         + "ax.value, "
         + "ax.pestartdate as pe_start_date, "
         + "ax.pt_name, "
-        + middle_value
+        + middleValue
         + " as middle_value, "
         + "ax.std_dev as std_dev, "
         + "abs(ax.value::double precision - "
-        + middle_value
+        + middleValue
         + ") as middle_value_abs_dev, "
         + "(case when ax.std_dev = 0 then 0 "
         + "      else abs(ax.value::double precision - "
-        + middle_value
+        + middleValue
         + " ) / ax.std_dev "
         + "       end) as z_score, "
-        + middle_value
+        + middleValue
         + " - (ax.std_dev * :"
         + thresholdParam
         + ") as lower_bound, "
-        + middle_value
+        + middleValue
         + " + (ax.std_dev * :"
         + thresholdParam
         + ") as upper_bound "

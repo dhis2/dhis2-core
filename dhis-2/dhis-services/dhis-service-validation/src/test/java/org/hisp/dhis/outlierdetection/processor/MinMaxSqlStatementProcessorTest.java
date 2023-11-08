@@ -42,7 +42,7 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class MinMaxSqlStatementProcessorTest {
+class MinMaxSqlStatementProcessorTest {
   private OutlierSqlStatementProcessor subject;
 
   // -------------------------------------------------------------------------
