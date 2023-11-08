@@ -195,6 +195,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.utils.Dxf2NamespaceResolver;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
@@ -2653,6 +2654,10 @@ public abstract class DhisConvenienceTest {
     object.getSharing().resetUserAccesses();
   }
 
+  protected void removePublicAccess(IdentifiableObject object) {
+    object.getSharing().setPublicAccess("--------");
+  }
+
   protected void enableDataSharing(User user, IdentifiableObject object, String access) {
     object.getSharing().resetUserAccesses();
 
@@ -2661,6 +2666,17 @@ public abstract class DhisConvenienceTest {
     userAccess.setAccess(access);
 
     object.getSharing().addUserAccess(userAccess);
+  }
+
+  protected void enableDataSharingWithUserGroup(
+      UserGroup userGroup, IdentifiableObject object, String access) {
+    object.getSharing().resetUserGroupAccesses();
+
+    UserGroupAccess userGroupAccess = new UserGroupAccess();
+    userGroupAccess.setUserGroup(userGroup);
+    userGroupAccess.setAccess(access);
+
+    object.getSharing().addUserGroupAccess(userGroupAccess);
   }
 
   private static User createUser(String username, String uid) {
