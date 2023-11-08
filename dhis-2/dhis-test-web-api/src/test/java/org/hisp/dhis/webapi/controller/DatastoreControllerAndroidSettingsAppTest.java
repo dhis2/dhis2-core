@@ -55,7 +55,7 @@ class DatastoreControllerAndroidSettingsAppTest extends DhisControllerConvenienc
 
   /** Everyone can read the keys */
   @Test
-  void testGetKeysInNamespace() {
+  void testGetKeysInNamespace_DefaultPublicAccess() {
     switchToNewUser("not-an-android-manager");
     assertEquals(singletonList("key"), GET("/dataStore/" + NAMESPACE).content().stringValues());
   }
