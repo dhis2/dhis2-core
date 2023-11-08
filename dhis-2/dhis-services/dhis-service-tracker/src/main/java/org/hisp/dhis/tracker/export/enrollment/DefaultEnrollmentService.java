@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
@@ -290,14 +289,6 @@ class DefaultEnrollmentService
 
     if (params == null) {
       throw new IllegalQueryException("Params cannot be null");
-    }
-
-    User user = params.getUser();
-
-    if (params.isOrganisationUnitMode(ACCESSIBLE)
-        && (user == null || !user.hasDataViewOrganisationUnitWithFallback())) {
-      violation =
-          "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
     }
 
     if (params.hasProgram() && params.hasTrackedEntityType()) {

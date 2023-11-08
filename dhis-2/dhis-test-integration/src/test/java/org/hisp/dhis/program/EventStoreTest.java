@@ -194,19 +194,19 @@ class EventStoreTest extends TransactionalIntegrationTest {
     enrollmentB = new Enrollment(enrollmentDate, incidenDate, entityInstanceB, programB);
     enrollmentService.addEnrollment(enrollmentB);
     eventA = new Event(enrollmentA, stageA);
-    eventA.setDueDate(enrollmentDate);
+    eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     eventB = new Event(enrollmentA, stageB);
-    eventB.setDueDate(enrollmentDate);
+    eventB.setScheduledDate(enrollmentDate);
     eventB.setUid("UID-B");
     eventC = new Event(enrollmentB, stageC);
-    eventC.setDueDate(enrollmentDate);
+    eventC.setScheduledDate(enrollmentDate);
     eventC.setUid("UID-C");
     eventD1 = new Event(enrollmentB, stageD);
-    eventD1.setDueDate(enrollmentDate);
+    eventD1.setScheduledDate(enrollmentDate);
     eventD1.setUid("UID-D1");
     eventD2 = new Event(enrollmentB, stageD);
-    eventD2.setDueDate(enrollmentDate);
+    eventD2.setScheduledDate(enrollmentDate);
     eventD2.setUid("UID-D2");
   }
 
@@ -330,13 +330,13 @@ class EventStoreTest extends TransactionalIntegrationTest {
     Date yesterday = cal.getTime();
     // Events
     Event eventA = new Event(enrollmentA, stageA);
-    eventA.setDueDate(tomorrow);
+    eventA.setScheduledDate(tomorrow);
     eventStore.save(eventA);
     Event eventB = new Event(enrollmentB, stageB);
-    eventB.setDueDate(today);
+    eventB.setScheduledDate(today);
     eventStore.save(eventB);
     Event eventC = new Event(enrollmentB, stageC);
-    eventC.setDueDate(yesterday);
+    eventC.setScheduledDate(yesterday);
     eventStore.save(eventC);
     // Queries
     List<Event> results;

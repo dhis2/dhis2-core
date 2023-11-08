@@ -27,63 +27,40 @@
  */
 package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
-import java.sql.SQLException;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.sql.DataSource;
 
 /**
- * @author Luciano Fiandesio
+ * A {@link PoolMetadataProvider} implementation that returns the first {@link PoolMetadata} that is
+ * found by one of its delegate.
+ *
+ * @author Stephane Nicoll
+ * @since 1.2.0
  */
-@Slf4j
-public class C3p0MetadataProvider extends AbstractPoolMetadata<ComboPooledDataSource> {
+public class PoolMetadataProviders implements PoolMetadataProvider {
+
+  private final List<PoolMetadataProvider> providers;
+
   /**
-   * Create an instance with the data source to use.
+   * Create a {@link PoolMetadataProviders} instance with an initial collection of delegates to use.
    *
-   * @param dataSource the data source
+   * @param providers the data source pool metadata providers
    */
-  public C3p0MetadataProvider(ComboPooledDataSource dataSource) {
-    super(dataSource);
+  public PoolMetadataProviders(Collection<? extends PoolMetadataProvider> providers) {
+    this.providers = (providers == null ? Collections.emptyList() : new ArrayList<>(providers));
   }
 
   @Override
-  public Integer getActive() {
-    try {
-      return getDataSource().getNumBusyConnections();
-    } catch (SQLException e) {
-      log.error(
-          "An error occurred while fetching number of busy connection from the DataSource", e);
-      return 0;
+  public PoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
+    for (PoolMetadataProvider provider : this.providers) {
+      PoolMetadata metadata = provider.getDataSourcePoolMetadata(dataSource);
+      if (metadata != null) {
+        return metadata;
+      }
     }
-  }
-
-  @Override
-  public Integer getMax() {
-    return getDataSource().getMaxPoolSize();
-  }
-
-  @Override
-  public Integer getMin() {
-    return getDataSource().getMinPoolSize();
-  }
-
-  @Override
-  public String getValidationQuery() {
-    return "";
-  }
-
-  @Override
-  public Boolean getDefaultAutoCommit() {
-    return getDataSource().isAutoCommitOnClose();
-  }
-
-  @Override
-  public Integer getIdle() {
-    try {
-      return getDataSource().getNumIdleConnections();
-    } catch (SQLException e) {
-      log.error(
-          "An error occurred while fetching number of idle connection from the DataSource", e);
-      return 0;
-    }
+    return null;
   }
 }

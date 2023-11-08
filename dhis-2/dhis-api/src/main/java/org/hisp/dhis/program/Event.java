@@ -72,7 +72,7 @@ public class Event extends SoftDeletableObject {
 
   private UserInfoSnapshot lastUpdatedByUserInfo;
 
-  private Date dueDate;
+  private Date scheduledDate;
 
   private Date occurredDate;
 
@@ -216,12 +216,12 @@ public class Event extends SoftDeletableObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getDueDate() {
-    return dueDate;
+  public Date getScheduledDate() {
+    return scheduledDate;
   }
 
-  public void setDueDate(Date dueDate) {
-    this.dueDate = dueDate;
+  public void setScheduledDate(Date scheduledDate) {
+    this.scheduledDate = scheduledDate;
   }
 
   @JsonProperty("eventDate")

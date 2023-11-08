@@ -119,7 +119,7 @@ public class ProgramStageInstanceMapper
     psi.setEventDataValues(workContext.getEventDataValueMap().get(event.getUid()));
 
     if (event.getDueDate() != null) {
-      psi.setDueDate(parseDate(event.getDueDate()));
+      psi.setScheduledDate(parseDate(event.getDueDate()));
     }
 
     setExecutionDate(event, psi);
@@ -182,7 +182,7 @@ public class ProgramStageInstanceMapper
       dueDate = parseDate(event.getDueDate());
     }
 
-    psi.setDueDate(dueDate);
+    psi.setScheduledDate(dueDate);
     setCompletedDate(event, psi);
     // Note that execution date can be null
     setExecutionDate(event, psi);
