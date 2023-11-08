@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static java.util.Collections.emptySet;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldsParamMapper.FIELD_RELATIONSHIPS;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
@@ -44,10 +45,12 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.springframework.stereotype.Component;
 
 /**
@@ -58,6 +61,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 class EventRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
+
+  private final FieldFilterService fieldFilterService;
 
   public EventOperationParams map(RequestParams requestParams) throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
@@ -144,7 +149,10 @@ class EventRequestParamsMapper {
             .attributeFilters(attributeFilters)
             .events(UID.toValueSet(eventUids))
             .enrollments(UID.toValueSet(requestParams.getEnrollments()))
-            .includeDeleted(requestParams.isIncludeDeleted());
+            .includeDeleted(requestParams.isIncludeDeleted())
+            .includeRelationships(
+                fieldFilterService.filterIncludes(
+                    Event.class, requestParams.getFields(), FIELD_RELATIONSHIPS));
 
     mapOrderParam(builder, requestParams.getOrder());
 

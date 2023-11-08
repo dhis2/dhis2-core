@@ -34,8 +34,10 @@ import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldsParamMapper.FIELD_RELATIONSHIPS;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -55,6 +57,9 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -72,6 +77,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -112,6 +118,8 @@ class EventRequestParamsMapperTest {
   @Mock private TrackedEntityAttributeService attributeService;
 
   @Mock private DataElementService dataElementService;
+
+  @Mock FieldFilterService fieldFilterService;
 
   @InjectMocks private EventRequestParamsMapper mapper;
 
@@ -588,5 +596,32 @@ class EventRequestParamsMapperTest {
     assertStartsWith(
         "At least one org unit is required for orgUnitMode: " + orgUnitMode,
         exception.getMessage());
+  }
+
+  @Test
+  void shouldIncludeRelationshipsWhenFieldPathIncludeRelationships() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    List<FieldPath> fieldPaths = FieldFilterParser.parse(FIELD_RELATIONSHIPS);
+
+    requestParams.setFields(fieldPaths);
+    when(fieldFilterService.filterIncludes(Event.class, fieldPaths, FIELD_RELATIONSHIPS))
+        .thenReturn(true);
+
+    EventOperationParams eventOperationParams = mapper.map(requestParams);
+    assertTrue(eventOperationParams.isIncludeRelationships());
+  }
+
+  @Test
+  void shouldNotIncludeRelationshipsWhenFieldPathDoNotIncludeRelationships()
+      throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    List<FieldPath> fieldPaths = FieldFilterParser.parse(FIELD_RELATIONSHIPS);
+
+    requestParams.setFields(fieldPaths);
+    when(fieldFilterService.filterIncludes(Event.class, fieldPaths, FIELD_RELATIONSHIPS))
+        .thenReturn(false);
+
+    EventOperationParams eventOperationParams = mapper.map(requestParams);
+    assertFalse(eventOperationParams.isIncludeRelationships());
   }
 }
