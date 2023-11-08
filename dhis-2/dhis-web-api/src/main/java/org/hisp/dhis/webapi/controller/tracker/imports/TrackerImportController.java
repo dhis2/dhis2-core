@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -66,6 +66,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -115,11 +116,19 @@ public class TrackerImportController {
         TrackerImportParamsMapper.trackerObjects(body, trackerImportParams.getIdSchemes());
 
     return startAsyncTracker(
-        trackerImportParams, MimeType.valueOf("application/json"), trackerObjects, currentUser);
+        trackerImportParams,
+        MimeType.valueOf("application/json"),
+        trackerObjects,
+        currentUser,
+        request);
   }
 
   private WebMessage startAsyncTracker(
-      TrackerImportParams params, MimeType contentType, TrackerObjects trackerObjects, User user)
+      TrackerImportParams params,
+      MimeType contentType,
+      TrackerObjects trackerObjects,
+      User user,
+      HttpServletRequest request)
       throws IOException, ConflictException, NotFoundException {
     JobConfiguration config = new JobConfiguration(JobType.TRACKER_IMPORT_JOB);
     config.setExecutedBy(user.getUid());
@@ -135,7 +144,11 @@ public class TrackerImportController {
     InputStream is = new ByteArrayInputStream(baos.toByteArray());
 
     jobSchedulerService.executeNow(jobConfigurationService.create(config, contentType, is));
-    return jobConfigurationReport(config);
+    String jobId = config.getUid();
+    String location = ContextUtils.getRootPath(request) + "/tracker/jobs/" + jobId;
+    return ok(TRACKER_JOB_ADDED)
+        .setLocation("/tracker/jobs/" + jobId)
+        .setResponse(TrackerJobWebMessageResponse.builder().id(jobId).location(location).build());
   }
 
   @PostMapping(
@@ -184,7 +197,11 @@ public class TrackerImportController {
         TrackerImportParamsMapper.trackerObjects(body, trackerImportParams.getIdSchemes());
 
     return startAsyncTracker(
-        trackerImportParams, MimeType.valueOf("application/csv"), trackerObjects, currentUser);
+        trackerImportParams,
+        MimeType.valueOf("application/csv"),
+        trackerObjects,
+        currentUser,
+        request);
   }
 
   @PostMapping(
