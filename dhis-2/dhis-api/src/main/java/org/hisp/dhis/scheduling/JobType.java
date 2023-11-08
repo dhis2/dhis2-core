@@ -112,7 +112,7 @@ public enum JobType {
   /*
   System Jobs
   */
-  HEARTBEAT(every(20, "DHIS2rocks1", "Heartbeat")),
+  HOUSEKEEPING(every(20, "DHIS2rocks1", "Housekeeping")),
   DATA_SET_NOTIFICATION(daily2am("YvAwAmrqAtN", "Dataset notification")),
   CREDENTIALS_EXPIRY_ALERT(daily2am("sHMedQF7VYa", "Credentials expiry alert")),
   DATA_STATISTICS(daily2am("BFa3jDsbtdO", "Data statistics")),
@@ -163,8 +163,8 @@ public enum JobType {
     }
   }
 
-  private final Class<? extends JobParameters> jobParameters;
-  private final Defaults defaults;
+  @CheckForNull private final Class<? extends JobParameters> jobParameters;
+  @CheckForNull private final Defaults defaults;
 
   JobType() {
     this(null, null);
@@ -178,7 +178,8 @@ public enum JobType {
     this(null, defaults);
   }
 
-  JobType(Class<? extends JobParameters> jobParameters, Defaults defaults) {
+  JobType(
+      @CheckForNull Class<? extends JobParameters> jobParameters, @CheckForNull Defaults defaults) {
     this.jobParameters = jobParameters;
     this.defaults = defaults;
   }
