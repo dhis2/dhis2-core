@@ -50,7 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class PeriodServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired private PeriodService periodService;
 
-  private EntityManagerFactory entityManagerFactory;
+  @Autowired private EntityManagerFactory entityManagerFactory;
 
   // -------------------------------------------------------------------------
   // Period

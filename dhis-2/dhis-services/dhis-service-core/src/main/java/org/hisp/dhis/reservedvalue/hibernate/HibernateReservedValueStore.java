@@ -95,7 +95,7 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
         .ifPresent(
             v ->
                 values.removeAll(
-                    getSession()
+                    entityManager
                         .createNamedQuery("getRandomGeneratedAvailableValuesNamedQuery")
                         .setParameter("teaId", reservedValue.getTrackedEntityAttributeId())
                         .setParameter("ownerObject", reservedValue.getOwnerObject())
@@ -106,7 +106,7 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
                             v.parallelStream()
                                 .map(String::toLowerCase)
                                 .collect(Collectors.toList()))
-                        .list()));
+                        .getResultList()));
 
     return values;
   }
