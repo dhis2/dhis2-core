@@ -63,7 +63,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeService;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
 import org.hisp.dhis.dxf2.dataset.tasks.ImportCompleteDataSetRegistrationsTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -112,7 +112,7 @@ public class CompleteDataSetRegistrationController {
 
   @Autowired private InputUtils inputUtils;
 
-  @Autowired private DefaultCompleteDataSetRegistrationExchangeService registrationExchangeService;
+  @Autowired private CompleteDataSetRegistrationExchangeService registrationExchangeService;
 
   @Autowired private AsyncTaskExecutor taskExecutor;
 
