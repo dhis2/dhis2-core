@@ -33,7 +33,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 public interface OutlierSqlStatementProcessor {
 
   /**
-   * retrieve parametrised sql statement for outliers
+   * Creates a parametrised SQL statement for outliers.
    *
    * @param request the instance of {@link OutlierDetectionRequest}.
    * @return sql statement as a string
