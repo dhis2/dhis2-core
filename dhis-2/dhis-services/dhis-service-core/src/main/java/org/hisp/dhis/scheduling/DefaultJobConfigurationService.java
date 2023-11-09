@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -245,6 +246,13 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
           60 * systemSettings.getIntSetting(SettingKey.JOBS_RESCHEDULE_STALE_FOR_MINUTES);
     }
     return jobConfigurationStore.getStaleConfigurations(staleForSeconds);
+  }
+
+  @Nonnull
+  @Override
+  @Transactional(readOnly = true)
+  public List<JobConfiguration> findJobConfigurations(@Nonnull JobConfigurationErrorParams params) {
+    return jobConfigurationStore.findJobConfigurations(params);
   }
 
   @Override

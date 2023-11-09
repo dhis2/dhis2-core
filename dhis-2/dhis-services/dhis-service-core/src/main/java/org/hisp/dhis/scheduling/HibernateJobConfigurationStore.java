@@ -30,6 +30,8 @@ package org.hisp.dhis.scheduling;
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.toSet;
 
+import com.vladmihalcea.hibernate.type.array.StringArrayType;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -39,7 +41,9 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -239,6 +243,44 @@ public class HibernateJobConfigurationStore
         .createNativeQuery(sql, JobConfiguration.class)
         .setParameter("waiting", includeWaiting)
         .stream();
+  }
+
+  @Nonnull
+  @Override
+  public List<JobConfiguration> findJobConfigurations(@Nonnull JobConfigurationErrorParams params) {
+    // language=SQL
+    String sql =
+        """
+    select * from jobconfiguration
+    where errorcodes is not null and errorcodes != ''
+      and (:skipUser or executedby = :user)
+      and (:skipStart or lastexecuted >= :start)
+      and (:skipEnd or lastexecuted <= :end)
+      and (:skipObjects or jsonb_exists_any(progress -> 'errors', :objects ))
+      and (:skipCodes or string_to_array(errorcodes, ' ') && :codes)
+    order by lastexecuted desc;
+    """;
+    List<UID> objectList = params.getObject();
+    List<String> errors =
+        objectList == null ? List.of() : objectList.stream().map(UID::getValue).toList();
+    List<ErrorCode> codeList = params.getCode();
+    List<String> codes =
+        codeList == null ? List.of() : codeList.stream().map(ErrorCode::name).toList();
+    Date start = params.getStart();
+    Date end = params.getEnd();
+    return getSession()
+        .createNativeQuery(sql, JobConfiguration.class)
+        .setParameter("skipUser", params.getUser() == null)
+        .setParameter("user", params.getUser())
+        .setParameter("skipStart", start == null)
+        .setParameter("start", start == null ? new Date() : start)
+        .setParameter("skipEnd", end == null)
+        .setParameter("end", end == null ? new Date() : end)
+        .setParameter("skipObjects", errors.isEmpty())
+        .setParameter("objects", errors.toArray(String[]::new), StringArrayType.INSTANCE)
+        .setParameter("skipCodes", codes.isEmpty())
+        .setParameter("codes", codes.toArray(String[]::new), StringArrayType.INSTANCE)
+        .list();
   }
 
   @Override

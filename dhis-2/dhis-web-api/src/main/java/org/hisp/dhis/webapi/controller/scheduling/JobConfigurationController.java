@@ -34,15 +34,9 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.feedback.ObjectReport;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.feedback.*;
+import org.hisp.dhis.scheduling.*;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
-import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
@@ -73,6 +67,11 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
 
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
+
+  @GetMapping("/errors")
+  public List<JobConfiguration> findJobConfigurations(JobConfigurationErrorParams params) {
+    return jobConfigurationService.findJobConfigurations(params);
+  }
 
   @GetMapping("/due")
   public List<JobConfiguration> getDueJobConfigurations(
