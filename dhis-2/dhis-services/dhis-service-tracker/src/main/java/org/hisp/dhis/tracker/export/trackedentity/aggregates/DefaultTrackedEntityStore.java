@@ -96,7 +96,7 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
             + "LEFT JOIN organisationunit OU on OU.organisationunitid = TPO.organisationunitid "
             + "LEFT JOIN trackedentity TE on TE.trackedentityid = tpo.trackedentityid "
             + "WHERE TPO.trackedentityid in (:ids) "
-            + "AND p.programid in (SELECT programid FROM program) ";
+            + "AND p.uid = :programUid ";
 
     if (!skipUserScopeValidation) {
       sql +=
