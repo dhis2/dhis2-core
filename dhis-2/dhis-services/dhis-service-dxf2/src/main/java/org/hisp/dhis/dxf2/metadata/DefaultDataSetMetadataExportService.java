@@ -159,8 +159,8 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
     List<OptionSet> optionSets = sortById(getOptionSets(dataElements));
 
     dataSetCategoryCombos.remove(defaultCategoryCombo);
-    if(!dataElementCategoryCombos.contains(defaultCategoryCombo)) {
-        dataElementCategoryCombos.add(0,defaultCategoryCombo);
+    if (!dataElementCategoryCombos.contains(defaultCategoryCombo)) {
+      dataElementCategoryCombos.add(0, defaultCategoryCombo);
     }
 
     expressionService.substituteIndicatorExpressions(indicators);
