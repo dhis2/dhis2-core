@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.hibernate.HibernateGenericStore;

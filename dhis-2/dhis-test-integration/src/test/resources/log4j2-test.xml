@@ -14,7 +14,7 @@
     </Appenders>
 
     <Loggers>
-        <Root level="warn">
+        <Root level="DEBUG">
             <!-- Set to error so CI test runs are quiet, we see failed tests easily but still see errors from libraries
             we use due to for example misconfigurations or so. If you want to increase the verbosity of specific
             packages use a logger like shown below. -->
@@ -45,8 +45,17 @@
         <!--     <AppenderRef ref="console"/>-->
         <!-- </Logger>-->
         <!-- Uncomment if you want to debug JDBC template queries (SQL) -->
-        <!-- <Logger name="org.springframework.jdbc.core" level="TRACE">-->
-        <!--    <AppenderRef ref="console"/>-->
-        <!-- </Logger>-->
+         <Logger name="org.springframework.jdbc.core" level="TRACE">
+            <AppenderRef ref="console"/>
+         </Logger>
+        <Logger name="logging.level.org.hibernate.SQL" level="DEBUG">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="logging.level.org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="logging.level.org.springframework.transaction" level="DEBUG">
+            <AppenderRef ref="console"/>
+        </Logger>
     </Loggers>
 </Configuration>

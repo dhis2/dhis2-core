@@ -133,10 +133,6 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     return entityManager.unwrap(Session.class);
   }
 
-  protected final EntityManager getEntityManager() {
-    return entityManager;
-  }
-
   /**
    * Creates a Query for given HQL query string. Return type is casted to generic type T of the
    * Store class.
@@ -703,5 +699,18 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
               }
             })
         .collect(Collectors.toList());
+  }
+
+  public void flush() {
+    entityManager.flush();
+  }
+
+  public void clear() {
+    entityManager.clear();
+  }
+
+  public void flushAndClear() {
+    flush();
+    clear();
   }
 }

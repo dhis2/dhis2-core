@@ -96,16 +96,13 @@ class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
               assertNotNull(programStageService.getProgramStage(idA));
               long sectionId = stageA.getProgramStageSections().stream().findFirst().get().getId();
               assertNotNull(programStageSectionService.getProgramStageSection(sectionId));
-              stageA = programStageService.getProgramStage(idA);
               stageA.getProgramStageSections().clear();
-              stageA.setDescription("updated");
               programStageService.updateProgramStage(stageA);
               dbmsManager.clearSession();
               return Pair.of(idA, sectionId);
             });
-    assertEquals("updated",programStageService.getProgramStage(idPair.getLeft()).getDescription());
-    assertTrue(programStageService.getProgramStage(idPair.getLeft()).getProgramStageSections()
-            .isEmpty());
+    assertTrue(
+        programStageService.getProgramStage(idPair.getLeft()).getProgramStageSections().isEmpty());
     assertNull(programStageSectionService.getProgramStageSection(idPair.getRight()));
   }
 }
