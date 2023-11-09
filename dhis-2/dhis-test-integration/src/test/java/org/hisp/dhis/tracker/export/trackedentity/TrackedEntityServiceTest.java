@@ -322,7 +322,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     eventA.setOrganisationUnit(orgUnitA);
     eventA.setAttributeOptionCombo(defaultCategoryOptionCombo);
     eventA.setOccurredDate(parseDate("2021-05-27T12:05:00.000"));
-    eventA.setDueDate(parseDate("2021-02-27T12:05:00.000"));
+    eventA.setScheduledDate(parseDate("2021-02-27T12:05:00.000"));
     eventA.setCompletedDate(parseDate("2021-02-27T11:05:00.000"));
     eventA.setCompletedBy("herb");
     eventA.setAssignedUser(user);
@@ -1317,7 +1317,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         () -> assertEquals(user, event.getAssignedUser()),
         () -> checkDate(currentTime, event.getCreated()),
         () -> checkDate(currentTime, event.getLastUpdated()),
-        () -> checkDate(eventA.getDueDate(), event.getDueDate()),
+        () -> checkDate(eventA.getScheduledDate(), event.getScheduledDate()),
         () -> checkDate(currentTime, event.getCreatedAtClient()),
         () -> checkDate(currentTime, event.getLastUpdatedAtClient()),
         () -> checkDate(eventA.getCompletedDate(), event.getCompletedDate()),

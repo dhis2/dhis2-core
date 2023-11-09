@@ -472,7 +472,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
         // Set status as skipped for overdue events, or delete
         // -------------------------------------------------------------
 
-        if (event.getDueDate().before(enrollment.getEndDate())) {
+        if (event.getScheduledDate().before(enrollment.getEndDate())) {
           event.setStatus(EventStatus.SKIPPED);
           eventStore.update(event);
         } else {
