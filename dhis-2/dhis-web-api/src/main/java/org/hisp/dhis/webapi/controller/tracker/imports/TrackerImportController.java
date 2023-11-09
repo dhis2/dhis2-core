@@ -255,6 +255,6 @@ public class TrackerImportController {
 
     return Optional.ofNullable(notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid))
         .map(report -> trackerImportService.buildImportReport((ImportReport) report, reportMode))
-        .orElseThrow(() -> new NotFoundException(JobConfiguration.class, uid));
+        .orElseThrow(() -> new NotFoundException("Summary for job " + uid + " does not exist"));
   }
 }
