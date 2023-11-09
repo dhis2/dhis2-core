@@ -27,17 +27,13 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.Objects;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -67,215 +63,31 @@ public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
   private final DhisConfigurationProvider dhisConfig;
 
   @Override
-  public void validate(UserRole user, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
-
-    String s = "s";
-    log.info("s = {}", s);
-    //
-    //    if (bundle.getImportMode().isCreate() && !ValidationUtils.isValidUid(user.getUid())) {
-    //      addReports.accept(
-    //          new ErrorReport(User.class, ErrorCode.E4014, user.getUid(), "uid")
-    //              .setErrorProperty("uid"));
-    //    }
-    //
-    //    if (bundle.getImportMode().isCreate()
-    //        && !ValidationUtils.usernameIsValid(user.getUsername(), user.isInvitation())) {
-    //      addReports.accept(
-    //          new ErrorReport(User.class, ErrorCode.E4049, USERNAME, user.getUsername())
-    //              .setErrorProperty(USERNAME));
-    //    }
-    //
-    //    boolean usernameExists = userService.getUserByUsername(user.getUsername()) != null;
-    //    if ((bundle.getImportMode().isCreate() && usernameExists)) {
-    //      addReports.accept(
-    //          new ErrorReport(User.class, ErrorCode.E4054, USERNAME, user.getUsername())
-    //              .setErrorProperty(USERNAME));
-    //    }
-    //
-    //    User existingUser = userService.getUser(user.getUid());
-    //    if (bundle.getImportMode().isUpdate()
-    //        && existingUser != null
-    //        && user.getUsername() != null
-    //        && !user.getUsername().equals(existingUser.getUsername())) {
-    //      addReports.accept(
-    //          new ErrorReport(User.class, ErrorCode.E4056, USERNAME, user.getUsername())
-    //              .setErrorProperty(USERNAME));
-    //    }
-    //
-    //    boolean openIdMappingExists = userService.getUserByOpenId(user.getOpenId()) != null;
-    //    if ((dhisConfig.isDisabled(ConfigurationKey.LINKED_ACCOUNTS_ENABLED) &&
-    // openIdMappingExists)) {
-    //      addReports.accept(
-    //          new ErrorReport(User.class, ErrorCode.E4054, "OIDC mapping value", user.getOpenId())
-    //              .setErrorProperty(USERNAME));
-    //    }
-    //
-    //    if (user.getUserRoles() == null || user.getUserRoles().isEmpty()) {
-    //      addReports.accept(
-    //          new ErrorReport(User.class, ErrorCode.E4055, USERNAME, user.getUsername())
-    //              .setErrorProperty(USERNAME));
-    //    }
-    //
-    //    if (user.getWhatsApp() != null && !ValidationUtils.validateWhatsApp(user.getWhatsApp())) {
-    //      addReports.accept(
-    //          new ErrorReport(User.class, ErrorCode.E4027, user.getWhatsApp(), "whatsApp")
-    //              .setErrorProperty("whatsApp"));
-    //    }
-  }
-
-  @Override
-  public void preCreate(UserRole user, ObjectBundle bundle) {
-    log.info("preCreate");
-    //    if (user == null) return;
-    //
-    //    User currentUser = currentUserService.getCurrentUser();
-    //
-    //    if (currentUser != null) {
-    //      user.getCogsDimensionConstraints().addAll(currentUser.getCogsDimensionConstraints());
-    //
-    //      user.getCatDimensionConstraints().addAll(currentUser.getCatDimensionConstraints());
-    //    }
-  }
-
-  @Override
-  public void postCreate(UserRole user, ObjectBundle bundle) {
-    log.info("postCreate");
-    //    if (!StringUtils.isEmpty(user.getPassword())) {
-    //      userService.encodeAndSetPassword(user, user.getPassword());
-    //    }
-    //
-    //    if (user.getAvatar() != null) {
-    //      FileResource fileResource =
-    // fileResourceService.getFileResource(user.getAvatar().getUid());
-    //      fileResource.setAssigned(true);
-    //      fileResourceService.updateFileResource(fileResource);
-    //    }
-    //
-    //    preheatService.connectReferences(user, bundle.getPreheat(),
-    // bundle.getPreheatIdentifier());
-    //    sessionFactory.getCurrentSession().update(user);
-    //    userSettingService.saveUserSettings(user.getSettings(), user);
-  }
-
-  @Override
-  public void preUpdate(UserRole user, UserRole persisted, ObjectBundle bundle) {
+  public void preUpdate(UserRole update, UserRole existing, ObjectBundle bundle) {
     log.info("preUpdate");
-    //    if (user == null) return;
-    //
-    //    bundle.putExtras(user, "preUpdateUser", user);
-    //
-    //    if (persisted.getAvatar() != null
-    //        && (user.getAvatar() == null
-    //            || !persisted.getAvatar().getUid().equals(user.getAvatar().getUid()))) {
-    //      FileResource fileResource =
-    //          fileResourceService.getFileResource(persisted.getAvatar().getUid());
-    //      fileResourceService.updateFileResource(fileResource);
-    //
-    //      if (user.getAvatar() != null) {
-    //        fileResource = fileResourceService.getFileResource(user.getAvatar().getUid());
-    //        fileResource.setAssigned(true);
-    //        fileResourceService.updateFileResource(fileResource);
-    //      }
-    //    }
+
+    if (update == null) return;
+
+    bundle.putExtras(update, "shouldInvalidateUsers", userRolesUpdated(update, existing));
+  }
+
+  private Object userRolesUpdated(UserRole update, UserRole existing) {
+    Set<String> newAuthorities = update.getAuthorities();
+    Set<String> existingAuthorities = existing.getAuthorities();
+    return !Objects.equals(newAuthorities, existingAuthorities);
   }
 
   @Override
-  public void postUpdate(UserRole persistedUser, ObjectBundle bundle) {
+  public void postUpdate(UserRole updatedUserRole, ObjectBundle bundle) {
     log.info("postUpdate");
-    //    final User preUpdateUser = (User) bundle.getExtras(persistedUser, "preUpdateUser");
-    //
-    //    if (!StringUtils.isEmpty(preUpdateUser.getPassword())) {
-    //      userService.encodeAndSetPassword(persistedUser, preUpdateUser.getPassword());
-    //      sessionFactory.getCurrentSession().update(persistedUser);
-    //    }
-    //
-    //    bundle.removeExtras(persistedUser, "preUpdateUser");
-    //    userSettingService.saveUserSettings(persistedUser.getSettings(), persistedUser);
-  }
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public void postCommit(ObjectBundle bundle) {
-    log.info("postCommit");
-    //
-    //    Iterable<User> objects = bundle.getObjects(User.class);
-    //
-    //    Map<String, Map<String, Object>> userReferences = bundle.getObjectReferences(User.class);
-    //
-    //    if (userReferences == null || userReferences.isEmpty()) {
-    //      return;
-    //    }
-    //
-    //    for (User identifiableObject : objects) {
-    //      User user = identifiableObject;
-    //
-    //      user = bundle.getPreheat().get(bundle.getPreheatIdentifier(), user);
-    //
-    //      Map<String, Object> userReferenceMap = userReferences.get(identifiableObject.getUid());
-    //
-    //      if (user == null || userReferenceMap == null || userReferenceMap.isEmpty()) {
-    //        continue;
-    //      }
-    //
-    //      Set<UserRole> userRoles = (Set<UserRole>) userReferenceMap.get("userRoles");
-    //      user.setUserRoles(Objects.requireNonNullElseGet(userRoles, HashSet::new));
-    //
-    //      Set<OrganisationUnit> organisationUnits =
-    //          (Set<OrganisationUnit>) userReferenceMap.get("organisationUnits");
-    //      user.setOrganisationUnits(organisationUnits);
-    //
-    //      Set<OrganisationUnit> dataViewOrganisationUnits =
-    //          (Set<OrganisationUnit>) userReferenceMap.get("dataViewOrganisationUnits");
-    //      user.setDataViewOrganisationUnits(dataViewOrganisationUnits);
-    //
-    //      Set<OrganisationUnit> teiSearchOrganisationUnits =
-    //          (Set<OrganisationUnit>) userReferenceMap.get("teiSearchOrganisationUnits");
-    //      user.setTeiSearchOrganisationUnits(teiSearchOrganisationUnits);
-    //
-    //      user.setCreatedBy((User) userReferenceMap.get(BaseIdentifiableObject_.CREATED_BY));
-    //
-    //      if (user.getCreatedBy() == null) {
-    //        user.setCreatedBy(bundle.getUser());
-    //      }
-    //
-    //      user.setLastUpdatedBy(bundle.getUser());
-    //
-    //      preheatService.connectReferences(user, bundle.getPreheat(),
-    // bundle.getPreheatIdentifier());
-    //
-    //      handleNoAccessRoles(user, bundle, userRoles);
-    //
-    //      sessionFactory.getCurrentSession().update(user);
-    //    }
-  }
+    final Boolean shouldInvalidateUsers =
+        (Boolean) bundle.getExtras(updatedUserRole, "shouldInvalidateUsers");
 
-  /**
-   * If currentUser doesn't have read access to a UserRole, and it is included in the payload, then
-   * that UserRole should not be removed from updating User.
-   *
-   * @param user the updating User.
-   * @param bundle the ObjectBundle.
-   */
-  private void handleNoAccessRoles(User user, ObjectBundle bundle, Set<UserRole> userRoles) {
-    Set<UserRole> roles = user.getUserRoles();
-    Set<String> currentRoles =
-        roles.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet());
-
-    if (userRoles != null) {
-      userRoles.stream()
-          .filter(role -> !currentRoles.contains(role.getUid()))
-          .forEach(
-              role -> {
-                UserRole persistedRole = bundle.getPreheat().get(PreheatIdentifier.UID, role);
-
-                if (persistedRole == null) {
-                  persistedRole = manager.getNoAcl(UserRole.class, role.getUid());
-                }
-
-                if (!aclService.canRead(bundle.getUser(), persistedRole)) {
-                  roles.add(persistedRole);
-                }
-              });
+    if (Boolean.TRUE.equals(shouldInvalidateUsers)) {
+      for (User user : updatedUserRole.getUsers()) {
+        currentUserService.invalidateUserSessions(user.getUid());
+      }
     }
   }
 }
