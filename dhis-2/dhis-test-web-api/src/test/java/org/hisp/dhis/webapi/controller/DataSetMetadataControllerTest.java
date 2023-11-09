@@ -42,6 +42,7 @@ import org.junit.jupiter.api.Test;
 class DataSetMetadataControllerTest extends DhisControllerIntegrationTest {
 
   @Test
+  @SuppressWarnings("java:S5976") // tests have different conditions checked
   void testGetDatasetMetadata_NoDatasetCatCombo_OneDataElementCatCombo() {
     // given there is only 1 cat combo associated with a 1 data element
     POST("/metadata", WebClient.Body("dataset/data_element_with_catcombo.json"))
