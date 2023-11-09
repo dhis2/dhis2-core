@@ -189,13 +189,9 @@ public class TrackerImportExportActions extends RestApiActions {
 
     this.waitUntilJobIsCompleted(jobId);
 
-    Callable<TrackerApiResponse> jobIsCompleted =
-        () -> this.getJobReport(jobId, "FULL").as(TrackerApiResponse.class);
+    Callable<Integer> jobIsCompleted = () -> this.getJobReport(jobId, "FULL").statusCode();
 
-    with()
-        .atMost(2, TimeUnit.SECONDS)
-        .await()
-        .until(() -> jobIsCompleted.call().statusCode() == 200);
+    with().atMost(2, TimeUnit.SECONDS).await().until(() -> jobIsCompleted.call() == 200);
 
     return this.getJobReport(jobId, "FULL");
   }
