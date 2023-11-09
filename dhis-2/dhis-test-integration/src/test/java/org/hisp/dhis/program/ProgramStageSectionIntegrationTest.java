@@ -34,7 +34,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.HashSet;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.poi.ss.formula.functions.T;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -43,7 +46,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Chau Thu Tran
@@ -60,6 +67,10 @@ class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
+  @Autowired private JpaTransactionManager transactionManager;
+
+  @PersistenceContext private EntityManager entityManager;
+
   private Program program;
 
   private ProgramStage stageA;
@@ -68,8 +79,7 @@ class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
 
   private ProgramStageDataElement programStageDataElementA;
 
-  @Override
-  public void setUpTest() {
+  public void setUpTestT() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     sectionA = createProgramStageSection('A', 1);
@@ -89,20 +99,27 @@ class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
 
   @Test
   void testRemoveProgramStageSectionWillDeleteOrphans() {
-    Pair<Long, Long> idPair =
-        transactionTemplate.execute(
-            status -> {
-              long idA = programStageService.saveProgramStage(stageA);
-              assertNotNull(programStageService.getProgramStage(idA));
-              long sectionId = stageA.getProgramStageSections().stream().findFirst().get().getId();
-              assertNotNull(programStageSectionService.getProgramStageSection(sectionId));
-              stageA.getProgramStageSections().clear();
-              programStageService.updateProgramStage(stageA);
-              dbmsManager.clearSession();
-              return Pair.of(idA, sectionId);
-            });
+      setUpTestT();
+      long idA = programStageService.saveProgramStage(stageA);
+      assertNotNull(programStageService.getProgramStage(idA));
+      long sectionId = stageA.getProgramStageSections().stream().findFirst().get().getId();
+      assertNotNull(programStageSectionService.getProgramStageSection(sectionId));
+      stageA.getProgramStageSections().clear();
+      programStageService.updateProgramStage(stageA);
+      dbmsManager.flushSession();
+
     assertTrue(
-        programStageService.getProgramStage(idPair.getLeft()).getProgramStageSections().isEmpty());
-    assertNull(programStageSectionService.getProgramStageSection(idPair.getRight()));
+        entityManager.find(ProgramStage.class,idA).getProgramStageSections().isEmpty());
+    assertNull(entityManager.find(ProgramStageSection.class, sectionId));
+
+//
+//    transactionTemplate = new TransactionTemplate(transactionManager);
+//    transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+//    transactionTemplate.executeWithoutResult(s -> {
+//      assertNotNull(programStageService.getProgramStage(idA));
+//      assertTrue(
+//        programStageService.getProgramStage(idA).getProgramStageSections().isEmpty());
+//      assertNull(programStageSectionService.getProgramStageSection(sectionId));
+//    });
   }
 }

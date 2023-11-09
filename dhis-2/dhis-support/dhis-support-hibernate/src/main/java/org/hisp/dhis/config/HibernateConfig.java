@@ -53,6 +53,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -88,11 +89,8 @@ public class HibernateConfig {
   @Bean("jpaTransactionManager")
   @DependsOn("entityManagerFactory")
   public JpaTransactionManager jpaTransactionManager(
-      @Qualifier("entityManagerFactory") EntityManagerFactory emf, DataSource dataSource) {
-    JpaTransactionManager transactionManager = new JpaTransactionManager();
-    transactionManager.setDataSource(dataSource);
-    transactionManager.setEntityManagerFactory(emf);
-    return transactionManager;
+      @Qualifier("entityManagerFactory") EntityManagerFactory emf) {
+    return new JpaTransactionManager(emf);
   }
 
   @Bean("transactionTemplate")

@@ -700,17 +700,4 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
             })
         .collect(Collectors.toList());
   }
-
-  public void flush() {
-    entityManager.flush();
-  }
-
-  public void clear() {
-    entityManager.clear();
-  }
-
-  public void flushAndClear() {
-    flush();
-    clear();
-  }
 }
