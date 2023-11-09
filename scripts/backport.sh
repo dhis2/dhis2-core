@@ -23,10 +23,10 @@ if [[ -z "${*:-}" ]]; then
   exit 1
 fi
 
-prId=$(gh pr list --search "$commit" --state merged --head "$base_branch" --json number --jq '.[0].number')
-prUrl=$(gh pr view "$prId" --json url --jq '.url')
-prTitle=$(gh pr view "$prId" --json title --jq '.title')
-prReviewers=$(gh pr view "$prId" --json reviews --jq '.reviews | map(.author.login) | join(",")')
+pr_id=$(gh pr list --search "$commit" --state merged --head "$base_branch" --json number --jq '.[0].number')
+pr_url=$(gh pr view "$pr_id" --json url --jq '.url')
+pr_title=$(gh pr view "$pr_id" --json title --jq '.title')
+pr_reviewer=$(gh pr view "$pr_id" --json reviews --jq '.reviews | map(.author.login) | join(",")')
 
 branches=("$@")
 for branch in "${branches[@]}"; do
@@ -35,5 +35,5 @@ for branch in "${branches[@]}"; do
     echo git checkout -b "${base_branch}_${branch}"
     echo git cherry-pick "$commit"
     echo git push origin "${base_branch}_${branch}"
-    echo gh pr create --head "${base_branch}_${branch}" --title "backport: $prTitle" --body "$prUrl" --reviewer "$prReviewers"
+    echo gh pr create --head "${base_branch}_${branch}" --title "backport: $pr_title" --body "$pr_url" --reviewer "$pr_reviewer"
 done
