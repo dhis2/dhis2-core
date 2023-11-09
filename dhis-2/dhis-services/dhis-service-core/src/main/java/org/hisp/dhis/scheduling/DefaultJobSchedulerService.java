@@ -84,6 +84,12 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       // run "execute now" request directly when scheduling is not active (tests)
       jobRunner.runDueJob(job);
+    } else {
+      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
+      if (job.getJobType().isUsingContinuousExecution()) {
+        jobRunner.runIfDue(job);
+      }
     }
   }
 
