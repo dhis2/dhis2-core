@@ -35,10 +35,15 @@ import static org.mockito.Mockito.when;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.PrefixedDimension;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.webapi.dimension.mappers.BaseDimensionalItemObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,19 +61,23 @@ class DimensionMapperServiceTest {
   }
 
   @Test
-  void testReturnedDimensionsHaveNoDuplicates() {
+  void testReturnedDimensionsHaveNoDuplicatesWhenProgramAttributes() {
 
     when(baseDimensionMapper.map(any(), any()))
         .thenAnswer(
             invocation -> {
               PrefixedDimension prefixedDimension = invocation.getArgument(0);
-              return DimensionResponse.builder().uid(prefixedDimension.getItem().getUid()).build();
+              return DimensionResponse.builder()
+                  .dimensionType(prefixedDimension.getDimensionType())
+                  .id(prefixedDimension.getPrefix() + "." + prefixedDimension.getItem().getUid())
+                  .uid(prefixedDimension.getItem().getUid())
+                  .build();
             });
     when(baseDimensionMapper.supports(any())).thenReturn(true);
 
     List<DimensionResponse> dimensionResponse =
         dimensionMapperService.toDimensionResponse(
-            mockDimensions(), EnrollmentAnalyticsPrefixStrategy.INSTANCE, true);
+            mockDimensions(DimType.PROGRAM_ATTRIBUTE), TeiAnalyticsPrefixStrategy.INSTANCE, true);
 
     assertEquals(4, dimensionResponse.size());
 
@@ -78,21 +87,61 @@ class DimensionMapperServiceTest {
     assertEquals(List.of("uid1", "uid2", "uid3", "repeated"), dimensionResponseUids);
   }
 
-  private Collection<PrefixedDimension> mockDimensions() {
-    return Stream.of("uid1", "uid2", "uid3", "repeated", "repeated")
-        .map(this::asPrefixedDimension)
+  @Test
+  void testReturnedDimensionsHaveDuplicatesWhenDataElements() {
+
+    when(baseDimensionMapper.map(any(), any()))
+        .thenAnswer(
+            invocation -> {
+              PrefixedDimension prefixedDimension = invocation.getArgument(0);
+              return DimensionResponse.builder()
+                  .dimensionType(prefixedDimension.getDimensionType())
+                  .id(prefixedDimension.getPrefix() + "." + prefixedDimension.getItem().getUid())
+                  .uid(prefixedDimension.getItem().getUid())
+                  .build();
+            });
+    when(baseDimensionMapper.supports(any())).thenReturn(true);
+
+    List<DimensionResponse> dimensionResponse =
+        dimensionMapperService.toDimensionResponse(
+            mockDimensions(DimType.DATA_ELEMENT), TeiAnalyticsPrefixStrategy.INSTANCE, true);
+
+    assertEquals(5, dimensionResponse.size());
+
+    Collection<String> dimensionResponseIds =
+        dimensionResponse.stream().map(DimensionResponse::getId).toList();
+
+    assertEquals(
+        List.of("p1.s1.uid1", "p1.s1.uid2", "p1.s1.uid3", "p1.s1.repeated", "p1.s2.repeated"),
+        dimensionResponseIds);
+  }
+
+  @Getter
+  @RequiredArgsConstructor
+  private enum DimType {
+    PROGRAM_ATTRIBUTE(TrackedEntityAttribute::new),
+    DATA_ELEMENT(ProgramStageDataElement::new);
+    private final Supplier<BaseIdentifiableObject> instanceSupplier;
+  }
+
+  private Collection<PrefixedDimension> mockDimensions(DimType dimType) {
+    return Stream.of("p1.s1.uid1", "p1.s1.uid2", "p1.s1.uid3", "p1.s1.repeated", "p1.s2.repeated")
+        .map(uid -> asItem(uid, dimType))
         .toList();
   }
 
-  private PrefixedDimension asPrefixedDimension(String dimension) {
+  private PrefixedDimension asItem(String uid, DimType dimType) {
+    String[] split = uid.split("\\.");
     return PrefixedDimension.builder()
-        .item(buildItem(dimension))
-        .dimensionType(DimensionType.PROGRAM_ATTRIBUTE.name())
+        .program((Program) buildItem(split[0], Program::new))
+        .programStage((ProgramStage) buildItem(split[1], ProgramStage::new))
+        .item(buildItem(split[2], dimType.getInstanceSupplier()))
+        .dimensionType(dimType.name())
         .build();
   }
 
-  private BaseIdentifiableObject buildItem(String uid) {
-    TrackedEntityAttribute item = new TrackedEntityAttribute();
+  private BaseIdentifiableObject buildItem(String uid, Supplier<BaseIdentifiableObject> supplier) {
+    BaseIdentifiableObject item = supplier.get();
     item.setUid(uid);
     return item;
   }
