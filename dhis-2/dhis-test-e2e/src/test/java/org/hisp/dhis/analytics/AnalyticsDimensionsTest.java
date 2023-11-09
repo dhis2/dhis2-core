@@ -319,7 +319,7 @@ public class AnalyticsDimensionsTest extends ApiTest {
             new QueryParamsBuilder().add("filter", "dimensionType:eq:DATA_ELEMENT"))
         .validate()
         .statusCode(200)
-        .body("dimensions", hasSize(equalTo(distinctDataElements.size())))
-        .body("dimensions.id", everyItem(in(distinctDataElements)));
+        .body("dimensions", hasSize(equalTo(dataElements.size())))
+        .body("dimensions.uid", everyItem(in(distinctDataElements)));
   }
 }
