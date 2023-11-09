@@ -365,7 +365,7 @@ class EventOperationParamsMapperTest {
             .orderBy(UID.of(TEA_1_UID), SortDirection.ASC)
             .orderBy("programStage.uid", SortDirection.DESC)
             .orderBy(UID.of(DE_1_UID), SortDirection.DESC)
-            .orderBy("dueDate", SortDirection.ASC)
+            .orderBy("scheduledDate", SortDirection.ASC)
             .build();
 
     EventQueryParams params = mapper.map(operationParams);
@@ -376,7 +376,7 @@ class EventOperationParamsMapperTest {
             new Order(tea1, SortDirection.ASC),
             new Order("programStage.uid", SortDirection.DESC),
             new Order(de1, SortDirection.DESC),
-            new Order("dueDate", SortDirection.ASC)),
+            new Order("scheduledDate", SortDirection.ASC)),
         params.getOrder());
   }
 

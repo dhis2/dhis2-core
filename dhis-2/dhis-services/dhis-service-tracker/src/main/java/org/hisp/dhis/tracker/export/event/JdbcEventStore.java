@@ -201,7 +201,7 @@ class JdbcEventStore implements EventStore {
           entry("occurredDate", COLUMN_EVENT_EXECUTION_DATE),
           entry("enrollment.followUp", COLUMN_ENROLLMENT_FOLLOWUP),
           entry("status", COLUMN_EVENT_STATUS),
-          entry("dueDate", COLUMN_EVENT_DUE_DATE),
+          entry("scheduledDate", COLUMN_EVENT_DUE_DATE),
           entry("storedBy", COLUMN_EVENT_STORED_BY),
           entry("lastUpdatedBy", COLUMN_EVENT_LAST_UPDATED_BY),
           entry("createdBy", COLUMN_EVENT_CREATED_BY),
@@ -326,7 +326,7 @@ class JdbcEventStore implements EventStore {
               event.setAttributeOptionCombo(coc);
 
               event.setStoredBy(resultSet.getString(COLUMN_EVENT_STORED_BY));
-              event.setDueDate(resultSet.getTimestamp(COLUMN_EVENT_DUE_DATE));
+              event.setScheduledDate(resultSet.getTimestamp(COLUMN_EVENT_DUE_DATE));
               event.setOccurredDate(resultSet.getTimestamp(COLUMN_EVENT_EXECUTION_DATE));
               event.setCreated(resultSet.getTimestamp(COLUMN_EVENT_CREATED));
               event.setCreatedByUserInfo(

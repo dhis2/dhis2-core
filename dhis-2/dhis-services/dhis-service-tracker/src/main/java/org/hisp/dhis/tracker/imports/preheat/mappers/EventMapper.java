@@ -55,7 +55,7 @@ public interface EventMapper extends PreheatMapper<Event> {
   @Mapping(target = "created")
   @Mapping(target = "eventDataValues")
   @Mapping(target = "notes")
-  @Mapping(target = "dueDate")
+  @Mapping(target = "scheduledDate")
   @Mapping(target = "occurredDate")
   @Mapping(target = "completedDate")
   @Mapping(target = "completedBy")

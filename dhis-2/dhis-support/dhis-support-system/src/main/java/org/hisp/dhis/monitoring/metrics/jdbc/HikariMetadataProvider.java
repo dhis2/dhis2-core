@@ -27,44 +27,52 @@
  */
 package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import javax.sql.DataSource;
+import com.zaxxer.hikari.HikariDataSource;
 
 /**
- * A {@link DataSourcePoolMetadataProvider} implementation that returns the first {@link
- * DataSourcePoolMetadata} that is found by one of its delegate.
- *
- * @author Stephane Nicoll
- * @since 2.0.0
+ * @author Morten Svanæs
  */
-public class CompositeDataSourcePoolMetadataProvider implements DataSourcePoolMetadataProvider {
-  private final List<DataSourcePoolMetadataProvider> providers;
+public class HikariMetadataProvider extends AbstractPoolMetadata<HikariDataSource> {
+
+  private HikariPoolMetadataAccessor hikariDataSourcePoolMetadata;
 
   /**
-   * Create a {@link CompositeDataSourcePoolMetadataProvider} instance with an initial collection of
-   * delegates to use.
+   * Create an instance with the data source to use.
    *
-   * @param providers the data source pool metadata providers
+   * @param dataSource the data source
    */
-  public CompositeDataSourcePoolMetadataProvider(
-      Collection<? extends DataSourcePoolMetadataProvider> providers) {
-    this.providers =
-        (providers != null)
-            ? Collections.unmodifiableList(new ArrayList<>(providers))
-            : Collections.emptyList();
+  public HikariMetadataProvider(HikariDataSource dataSource) {
+    super(dataSource);
+    this.hikariDataSourcePoolMetadata = new HikariPoolMetadataAccessor(getDataSource());
   }
 
   @Override
-  public DataSourcePoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
-    for (DataSourcePoolMetadataProvider provider : this.providers) {
-      DataSourcePoolMetadata metadata = provider.getDataSourcePoolMetadata(dataSource);
-      if (metadata != null) {
-        return metadata;
-      }
-    }
-    return null;
+  public Integer getActive() {
+    return hikariDataSourcePoolMetadata.getActive();
+  }
+
+  @Override
+  public Integer getMax() {
+    return hikariDataSourcePoolMetadata.getMax();
+  }
+
+  @Override
+  public Integer getMin() {
+    return hikariDataSourcePoolMetadata.getMin();
+  }
+
+  @Override
+  public String getValidationQuery() {
+    return "";
+  }
+
+  @Override
+  public Boolean getDefaultAutoCommit() {
+    return hikariDataSourcePoolMetadata.getDefaultAutoCommit();
+  }
+
+  @Override
+  public Integer getIdle() {
+    return hikariDataSourcePoolMetadata.getIdle();
   }
 }

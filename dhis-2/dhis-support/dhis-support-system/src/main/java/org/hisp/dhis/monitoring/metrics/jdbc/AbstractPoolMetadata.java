@@ -27,42 +27,45 @@
  */
 package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import javax.sql.DataSource;
 
 /**
- * A {@link DataSourcePoolMetadataProvider} implementation that returns the first {@link
- * DataSourcePoolMetadata} that is found by one of its delegate.
+ * A base {@link PoolMetadata} implementation.
  *
+ * @param <T> the data source type
  * @author Stephane Nicoll
- * @since 1.2.0
+ * @since 2.0.0
  */
-public class DataSourcePoolMetadataProviders implements DataSourcePoolMetadataProvider {
+public abstract class AbstractPoolMetadata<T extends DataSource> implements PoolMetadata {
 
-  private final List<DataSourcePoolMetadataProvider> providers;
+  private final T dataSource;
 
   /**
-   * Create a {@link DataSourcePoolMetadataProviders} instance with an initial collection of
-   * delegates to use.
+   * Create an instance with the data source to use.
    *
-   * @param providers the data source pool metadata providers
+   * @param dataSource the data source
    */
-  public DataSourcePoolMetadataProviders(
-      Collection<? extends DataSourcePoolMetadataProvider> providers) {
-    this.providers = (providers == null ? Collections.emptyList() : new ArrayList<>(providers));
+  protected AbstractPoolMetadata(T dataSource) {
+    this.dataSource = dataSource;
   }
 
   @Override
-  public DataSourcePoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
-    for (DataSourcePoolMetadataProvider provider : this.providers) {
-      DataSourcePoolMetadata metadata = provider.getDataSourcePoolMetadata(dataSource);
-      if (metadata != null) {
-        return metadata;
-      }
+  public Float getUsage() {
+    Integer maxSize = getMax();
+    Integer currentSize = getActive();
+    if (maxSize == null || currentSize == null) {
+      return null;
     }
-    return null;
+    if (maxSize < 0) {
+      return -1F;
+    }
+    if (currentSize == 0) {
+      return 0F;
+    }
+    return (float) currentSize / (float) maxSize;
+  }
+
+  protected final T getDataSource() {
+    return this.dataSource;
   }
 }
