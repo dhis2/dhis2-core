@@ -24,10 +24,6 @@
         
         <property name="delay" />
 
-        <property name="cancel" column="cancel" type="boolean" update="false" insert="false" />
-
-        <property name="progress" column="progress" update="false" insert="false" />
-
         <property name="jobType" column="jobtype" not-null="true" length="120" update="false">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">org.hisp.dhis.scheduling.JobType</param>
