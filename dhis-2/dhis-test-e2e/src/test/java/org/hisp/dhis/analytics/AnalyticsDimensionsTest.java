@@ -320,6 +320,6 @@ public class AnalyticsDimensionsTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body("dimensions", hasSize(equalTo(distinctDataElements.size())))
-        .body("dimensions.uid", everyItem(in(distinctDataElements)));
+        .body("dimensions.id", everyItem(in(distinctDataElements)));
   }
 }
