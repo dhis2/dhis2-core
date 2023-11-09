@@ -4,6 +4,16 @@
 
 set -euo pipefail
 
+if ! command -v git &> /dev/null; then
+    echo "git could not be found."
+    exit 1
+fi
+
+if ! command -v gh &> /dev/null; then
+    echo "git could not be found."
+    exit 1
+fi
+
 if [[ -z "${1:-}" ]]; then
   echo "No base branch specified."
   exit 1
