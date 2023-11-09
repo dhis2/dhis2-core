@@ -10,7 +10,7 @@ if ! command -v git &> /dev/null; then
 fi
 
 if ! command -v gh &> /dev/null; then
-    echo "git could not be found."
+    echo "gh could not be found."
     exit 1
 fi
 
