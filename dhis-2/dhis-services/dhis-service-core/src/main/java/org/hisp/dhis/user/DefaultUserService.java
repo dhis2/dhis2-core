@@ -107,8 +107,6 @@ public class DefaultUserService implements UserService {
 
   private final PasswordManager passwordManager;
 
-  private final SessionRegistry sessionRegistry;
-
   private final SecurityService securityService;
 
   private final Cache<String> userDisplayNameCache;
@@ -125,7 +123,6 @@ public class DefaultUserService implements UserService {
       SystemSettingManager systemSettingManager,
       CacheProvider cacheProvider,
       @Lazy PasswordManager passwordManager,
-      @Lazy SessionRegistry sessionRegistry,
       @Lazy SecurityService securityService,
       AclService aclService,
       @Lazy OrganisationUnitService organisationUnitService) {
@@ -134,7 +131,6 @@ public class DefaultUserService implements UserService {
     checkNotNull(userRoleStore);
     checkNotNull(systemSettingManager);
     checkNotNull(passwordManager);
-    checkNotNull(sessionRegistry);
     checkNotNull(securityService);
     checkNotNull(aclService);
     checkNotNull(organisationUnitService);
@@ -145,7 +141,6 @@ public class DefaultUserService implements UserService {
     this.currentUserService = currentUserService;
     this.systemSettingManager = systemSettingManager;
     this.passwordManager = passwordManager;
-    this.sessionRegistry = sessionRegistry;
     this.securityService = securityService;
     this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
     this.aclService = aclService;
