@@ -36,7 +36,7 @@ public interface OutlierSqlStatementProcessor {
    * Creates a parametrised SQL statement for outliers.
    *
    * @param request the instance of {@link OutlierDetectionRequest}.
-   * @return sql statement as a string
+   * @return SQL statement as a string.
    */
   String getSqlStatement(OutlierDetectionRequest request);
 
