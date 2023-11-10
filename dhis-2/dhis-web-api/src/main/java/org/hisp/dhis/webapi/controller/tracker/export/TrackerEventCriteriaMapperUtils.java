@@ -80,17 +80,12 @@ public class TrackerEventCriteriaMapperUtils {
   }
 
   private static void validateUserCanSearchOrgUnitModeALL(User user) {
-    // TODO(tracker) This user check is unnecessary for events, but needs to be here for
-    // trackedEntities. In that case, it should be done in a separate validation, so when it gets
-    // here we already know it's not null
     if (user == null
         || !(user.isSuper()
             || user.isAuthorized(
                 Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))) {
       throw new IllegalQueryException(
           "Current user is not authorized to query across all organisation units");
-
-      // TODO(tracker) Validate user scope if mode ALL needs to use user's search or capture scope
     }
   }
 
@@ -100,9 +95,6 @@ public class TrackerEventCriteriaMapperUtils {
       OrganisationUnitSelectionMode orgUnitMode,
       OrganisationUnit requestedOrgUnit) {
 
-    // TODO(tracker) This user check is unnecessary for events, but needs to be here for
-    // trackedEntities. In that case, it should be done in a separate validation, so when it gets
-    // here we already know it's not null
     if (user == null) {
       throw new IllegalQueryException("User is required for orgUnitMode: " + orgUnitMode);
     }
@@ -124,9 +116,6 @@ public class TrackerEventCriteriaMapperUtils {
   }
 
   private static void validateCaptureScope(User user) {
-    // TODO(tracker) This user check is unnecessary for events, but needs to be here for
-    // trackedEntities. In that case, it should be done in a separate validation, so when it gets
-    // here we already know it's not null
     if (user == null) {
       throw new IllegalQueryException("User is required for orgUnitMode: " + CAPTURE);
     } else if (user.getOrganisationUnits().isEmpty()) {
