@@ -62,7 +62,7 @@ import org.springframework.stereotype.Component;
 class EventRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
 
-  private final FieldFilterService fieldFilterService;
+  private final EventFieldsParamMapper eventsMapper;
 
   public EventOperationParams map(RequestParams requestParams) throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
@@ -150,9 +150,7 @@ class EventRequestParamsMapper {
             .events(UID.toValueSet(eventUids))
             .enrollments(UID.toValueSet(requestParams.getEnrollments()))
             .includeDeleted(requestParams.isIncludeDeleted())
-            .includeRelationships(
-                fieldFilterService.filterIncludes(
-                    Event.class, requestParams.getFields(), FIELD_RELATIONSHIPS));
+            .eventParams(eventsMapper.map(requestParams.getFields()));
 
     mapOrderParam(builder, requestParams.getOrder());
 

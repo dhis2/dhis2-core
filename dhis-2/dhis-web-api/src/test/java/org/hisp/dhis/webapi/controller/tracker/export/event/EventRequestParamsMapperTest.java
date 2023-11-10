@@ -73,6 +73,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
+import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
@@ -119,7 +120,7 @@ class EventRequestParamsMapperTest {
 
   @Mock private DataElementService dataElementService;
 
-  @Mock FieldFilterService fieldFilterService;
+  @Mock EventFieldsParamMapper eventFieldsParamMapper;
 
   @InjectMocks private EventRequestParamsMapper mapper;
 
@@ -599,29 +600,26 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
-  void shouldIncludeRelationshipsWhenFieldPathIncludeRelationships() throws BadRequestException {
+  void shouldMapEventParamsTrueWhenFieldPathIncludeRelationships() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
     List<FieldPath> fieldPaths = FieldFilterParser.parse(FIELD_RELATIONSHIPS);
 
     requestParams.setFields(fieldPaths);
-    when(fieldFilterService.filterIncludes(Event.class, fieldPaths, FIELD_RELATIONSHIPS))
-        .thenReturn(true);
+    when(eventFieldsParamMapper.map(fieldPaths)).thenReturn(EventParams.TRUE);
 
     EventOperationParams eventOperationParams = mapper.map(requestParams);
-    assertTrue(eventOperationParams.isIncludeRelationships());
+    assertEquals(EventParams.TRUE, eventOperationParams.getEventParams());
   }
 
   @Test
-  void shouldNotIncludeRelationshipsWhenFieldPathDoNotIncludeRelationships()
-      throws BadRequestException {
+  void shouldMapEventParamsFalseWhenFieldPathIncludeRelationships() throws BadRequestException {
     RequestParams requestParams = new RequestParams();
     List<FieldPath> fieldPaths = FieldFilterParser.parse(FIELD_RELATIONSHIPS);
 
     requestParams.setFields(fieldPaths);
-    when(fieldFilterService.filterIncludes(Event.class, fieldPaths, FIELD_RELATIONSHIPS))
-        .thenReturn(false);
+    when(eventFieldsParamMapper.map(fieldPaths)).thenReturn(EventParams.FALSE);
 
     EventOperationParams eventOperationParams = mapper.map(requestParams);
-    assertFalse(eventOperationParams.isIncludeRelationships());
+    assertEquals(EventParams.FALSE, eventOperationParams.getEventParams());
   }
 }

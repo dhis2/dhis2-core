@@ -40,6 +40,7 @@ import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -153,7 +154,7 @@ class EventOperationParamsMapperTest {
 
     // By default set to ACCESSIBLE for tests that don't set an orgUnit. The orgUnitMode needs to be
     // set because its validation is in the EventRequestParamsMapper.
-    eventBuilder = eventBuilder.orgUnitMode(ACCESSIBLE);
+    eventBuilder = eventBuilder.orgUnitMode(ACCESSIBLE).eventParams(EventParams.FALSE);
 
     userMap.put("admin", createUserWithAuthority(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS));
     userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
@@ -499,7 +500,7 @@ class EventOperationParamsMapperTest {
         .thenReturn(true);
 
     EventOperationParams operationParams =
-        EventOperationParams.builder()
+        eventBuilder
             .programUid(program.getUid())
             .orgUnitUid(searchScopeChildOrgUnit.getUid())
             .orgUnitMode(orgUnitMode)
@@ -532,7 +533,7 @@ class EventOperationParamsMapperTest {
         .thenReturn(searchScopeChildOrgUnit);
 
     EventOperationParams operationParams =
-        EventOperationParams.builder()
+      eventBuilder
             .programUid(program.getUid())
             .orgUnitUid(searchScopeChildOrgUnit.getUid())
             .orgUnitMode(ALL)
@@ -572,6 +573,28 @@ class EventOperationParamsMapperTest {
     EventQueryParams params = mapper.map(operationParams);
     assertNull(params.getOrgUnit());
     assertEquals(ALL, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldIncludeRelationshipsWhenFieldPathIncludeRelationships()
+      throws BadRequestException, ForbiddenException {
+    when(currentUserService.getCurrentUser()).thenReturn(userMap.get("admin"));
+
+    EventOperationParams operationParams =
+        eventBuilder.orgUnitMode(ALL).eventParams(EventParams.TRUE).build();
+    EventQueryParams params = mapper.map(operationParams);
+    assertTrue(params.isIncludeRelationships());
+  }
+
+  @Test
+  void shouldNotIncludeRelationshipsWhenFieldPathDoNotIncludeRelationships()
+      throws BadRequestException, ForbiddenException {
+    when(currentUserService.getCurrentUser()).thenReturn(userMap.get("admin"));
+
+    EventOperationParams operationParams =
+        eventBuilder.orgUnitMode(ALL).eventParams(EventParams.FALSE).build();
+    EventQueryParams params = mapper.map(operationParams);
+    assertFalse(params.isIncludeRelationships());
   }
 
   private User createUserWithAuthority(Authorities authority) {
