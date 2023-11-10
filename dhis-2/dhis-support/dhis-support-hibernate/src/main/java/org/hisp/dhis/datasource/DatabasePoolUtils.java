@@ -346,8 +346,8 @@ public class DatabasePoolUtils {
     try (Connection conn = dataSource.getConnection();
         Statement stmt = conn.createStatement()) {
       stmt.executeQuery("select 'connection_test' as connection_test;");
-    } catch ( SQLException e ) {
-      log.error( e.getMessage() );
+    } catch (SQLException e) {
+      log.error(e.getMessage());
     }
   }
 }
