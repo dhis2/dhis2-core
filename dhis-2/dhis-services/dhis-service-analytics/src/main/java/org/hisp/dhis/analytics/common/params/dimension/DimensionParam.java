@@ -241,7 +241,7 @@ public class DimensionParam implements UidObject {
     ENROLLMENTDATE(DATETIME, DimensionParamObjectType.PERIOD),
     ENDDATE(DATETIME, DimensionParamObjectType.PERIOD),
     INCIDENTDATE(DATETIME, DimensionParamObjectType.PERIOD),
-    occurreddate(DATETIME, DimensionParamObjectType.PERIOD),
+    EXECUTIONDATE(DATETIME, DimensionParamObjectType.PERIOD),
     LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD),
     LASTUPDATEDBYDISPLAYNAME(TEXT, DimensionParamObjectType.STATIC),
     CREATED(DATETIME, DimensionParamObjectType.PERIOD),
