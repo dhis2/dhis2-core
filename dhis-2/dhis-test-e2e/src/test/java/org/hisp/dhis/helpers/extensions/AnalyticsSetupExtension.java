@@ -73,7 +73,10 @@ public class AnalyticsSetupExtension implements BeforeAllCallback {
       // Invoke the analytics table generation process.
       ApiResponse response =
           new ResourceTableActions()
-              .post("/analytics", new JsonObject(), new QueryParamsBuilder().add("executeTei=true"))
+              .post(
+                  "/analytics",
+                  new JsonObject(),
+                  new QueryParamsBuilder().add("skipTrackedEntities=false"))
               .validateStatus(200);
 
       String analyticsTaskId = response.extractString("response.id");
