@@ -72,9 +72,9 @@ public class Event extends SoftDeletableObject {
 
   private UserInfoSnapshot lastUpdatedByUserInfo;
 
-  private Date dueDate;
+  private Date scheduledDate;
 
-  private Date executionDate;
+  private Date occurredDate;
 
   @AuditAttribute private OrganisationUnit organisationUnit;
 
@@ -216,22 +216,22 @@ public class Event extends SoftDeletableObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getDueDate() {
-    return dueDate;
+  public Date getScheduledDate() {
+    return scheduledDate;
   }
 
-  public void setDueDate(Date dueDate) {
-    this.dueDate = dueDate;
+  public void setScheduledDate(Date scheduledDate) {
+    this.scheduledDate = scheduledDate;
   }
 
   @JsonProperty("eventDate")
   @JacksonXmlProperty(localName = "eventDate", namespace = DxfNamespaces.DXF_2_0)
-  public Date getExecutionDate() {
-    return executionDate;
+  public Date getOccurredDate() {
+    return occurredDate;
   }
 
-  public void setExecutionDate(Date executionDate) {
-    this.executionDate = executionDate;
+  public void setOccurredDate(Date occurredDate) {
+    this.occurredDate = occurredDate;
   }
 
   @JsonProperty
@@ -362,7 +362,7 @@ public class Event extends SoftDeletableObject {
   public boolean isCreatableInSearchScope() {
     return this.getStatus() == EventStatus.SCHEDULE
         && this.getEventDataValues().isEmpty()
-        && this.getExecutionDate() == null;
+        && this.getOccurredDate() == null;
   }
 
   @Override

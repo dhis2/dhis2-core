@@ -119,6 +119,9 @@ public class JobScheduler implements Runnable, JobRunner {
                 .collect(groupingBy(JobConfiguration::getJobType));
         // only attempt to start one per type per loop invocation
         readyByType.forEach((type, jobs) -> runIfDue(now, type, jobs));
+        if (!readyByType.containsKey(JobType.HOUSEKEEPING)) {
+          createHousekeepingJob();
+        }
       }
     } catch (Exception ex) {
       log.error("Exceptions thrown in scheduler loop", ex);
@@ -126,20 +129,35 @@ public class JobScheduler implements Runnable, JobRunner {
     }
   }
 
+  private void createHousekeepingJob() {
+    try {
+      service.createHousekeepingJob();
+    } catch (Exception ex) {
+      log.error("Unable to create house-keeping job: " + ex.getMessage());
+    }
+  }
+
+  @Override
+  public void runIfDue(JobConfiguration job) {
+    runIfDue(Instant.now().truncatedTo(ChronoUnit.SECONDS), job.getJobType(), List.of(job));
+  }
+
   private void runIfDue(Instant now, JobType type, List<JobConfiguration> jobs) {
     if (!type.isUsingContinuousExecution()) {
       runIfDue(now, jobs.get(0));
       return;
     }
-    Queue<String> jobIds =
-        continuousJobsByType.computeIfAbsent(type, key -> new ConcurrentLinkedQueue<>());
-    // add a worker either if no worker is on it (empty new queue) or if there are many jobs
-    boolean spawnWorker = jobIds.isEmpty();
+    Queue<String> jobIds = continuousJobsByType.get(type);
+    boolean spawnWorker = false;
+    if (jobIds == null) {
+      Queue<String> localQueue = new ConcurrentLinkedQueue<>();
+      Queue<String> sharedQueue = continuousJobsByType.putIfAbsent(type, localQueue);
+      spawnWorker = sharedQueue == null; // no previous queue => this thread put the queue
+      jobIds = continuousJobsByType.get(type);
+    }
     // add those IDs to the queue that are not yet in it
-    jobs.stream()
-        .map(JobConfiguration::getUid)
-        .filter(jobId -> !jobIds.contains(jobId))
-        .forEach(jobIds::add);
+    jobs.stream().map(JobConfiguration::getUid).forEach(jobIds::add);
+
     if (spawnWorker) {
       // we want to prevent starting more than one worker per job type
       // but if this does happen it is no issue as both will be pulling

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
@@ -65,6 +66,7 @@ import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
@@ -127,6 +129,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private User user;
 
+  private User userWithSearchInAllAuthority;
+
   private User admin;
 
   private OrganisationUnit orgUnitA;
@@ -140,6 +144,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   private Program programA;
 
   private Program programB;
+
+  private Program programC;
 
   private Enrollment enrollmentA;
 
@@ -173,7 +179,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
-    admin = preCreateInjectAdminUser();
 
     orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
@@ -182,8 +187,22 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     OrganisationUnit orgUnitC = createOrganisationUnit('C');
     manager.save(orgUnitC, false);
 
+    admin = preCreateInjectAdminUser();
+    admin.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
+    manager.save(admin);
+
     user = createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
     user.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
+
+    userWithSearchInAllAuthority =
+        createAndAddUser(
+            false,
+            "userSearchInAll",
+            Set.of(orgUnitA),
+            Set.of(orgUnitA),
+            "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
+    userWithSearchInAllAuthority.setTeiSearchOrganisationUnits(
+        Set.of(orgUnitA, orgUnitB, orgUnitC));
 
     teaA = createTrackedEntityAttribute('A', ValueType.TEXT);
     manager.save(teaA, false);
@@ -216,6 +235,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
     programA.setTrackedEntityType(trackedEntityTypeA);
     programA.setCategoryCombo(defaultCategoryCombo);
+    programA.setMinAttributesRequiredToSearch(0);
     manager.save(programA, false);
     ProgramStage programStageA1 = createProgramStage(programA);
     programStageA1.setPublicAccess(AccessStringHelper.FULL);
@@ -254,6 +274,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     programB.getSharing().setPublicAccess(AccessStringHelper.FULL);
     manager.update(programB);
 
+    programC = createProgram('C', new HashSet<>(), orgUnitC);
+    programC.setProgramType(ProgramType.WITH_REGISTRATION);
+    programC.setTrackedEntityType(trackedEntityTypeA);
+    programC.setCategoryCombo(defaultCategoryCombo);
+    programC.setAccessLevel(AccessLevel.PROTECTED);
+    programC.getSharing().setPublicAccess(AccessStringHelper.READ);
+    manager.save(programC, false);
+
     programB
         .getProgramAttributes()
         .addAll(
@@ -274,8 +302,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     eventA.setProgramStage(programStageA1);
     eventA.setOrganisationUnit(orgUnitA);
     eventA.setAttributeOptionCombo(defaultCategoryOptionCombo);
-    eventA.setExecutionDate(parseDate("2021-05-27T12:05:00.000"));
-    eventA.setDueDate(parseDate("2021-02-27T12:05:00.000"));
+    eventA.setOccurredDate(parseDate("2021-05-27T12:05:00.000"));
+    eventA.setScheduledDate(parseDate("2021-02-27T12:05:00.000"));
     eventA.setCompletedDate(parseDate("2021-02-27T11:05:00.000"));
     eventA.setCompletedBy("herb");
     eventA.setAssignedUser(user);
@@ -788,8 +816,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnTrackedEntityIfEventOccurredBetweenPassedDateAndTimes()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Date oneHourBeforeEventDate = oneHourBefore(eventA.getExecutionDate());
-    Date oneHourAfterEventDate = oneHourAfter(eventA.getExecutionDate());
+    Date oneHourBeforeOccurredDate = oneHourBefore(eventA.getOccurredDate());
+    Date oneHourAfterOccurredDate = oneHourAfter(eventA.getOccurredDate());
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -797,8 +825,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
             .eventStatus(EventStatus.ACTIVE)
-            .eventStartDate(oneHourBeforeEventDate)
-            .eventEndDate(oneHourAfterEventDate)
+            .eventStartDate(oneHourBeforeOccurredDate)
+            .eventEndDate(oneHourAfterOccurredDate)
             .user(user)
             .build();
 
@@ -810,8 +838,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnEmptyIfEventOccurredBeforePassedDateAndTimes()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Date oneHourAfterEventDate = oneHourAfter(eventA.getExecutionDate());
-    Date twoHoursAfterEventDate = twoHoursAfter(eventA.getExecutionDate());
+    Date oneHourAfterOccurredDate = oneHourAfter(eventA.getOccurredDate());
+    Date twoHoursAfterOccurredDate = twoHoursAfter(eventA.getOccurredDate());
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -819,8 +847,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
             .eventStatus(EventStatus.ACTIVE)
-            .eventStartDate(oneHourAfterEventDate)
-            .eventEndDate(twoHoursAfterEventDate)
+            .eventStartDate(oneHourAfterOccurredDate)
+            .eventEndDate(twoHoursAfterOccurredDate)
             .user(user)
             .build();
 
@@ -832,8 +860,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnEmptyIfEventOccurredAfterPassedDateAndTimes()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Date oneHourBeforeEventDate = oneHourBefore(eventA.getExecutionDate());
-    Date twoHoursBeforeEventDate = twoHoursBefore(eventA.getExecutionDate());
+    Date oneHourBeforeOccurredDate = oneHourBefore(eventA.getOccurredDate());
+    Date twoHoursBeforeOccurredDate = twoHoursBefore(eventA.getOccurredDate());
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -841,8 +869,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
             .eventStatus(EventStatus.ACTIVE)
-            .eventStartDate(twoHoursBeforeEventDate)
-            .eventEndDate(oneHourBeforeEventDate)
+            .eventStartDate(twoHoursBeforeOccurredDate)
+            .eventEndDate(oneHourBeforeOccurredDate)
             .user(user)
             .build();
 
@@ -1270,7 +1298,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         () -> assertEquals(user, event.getAssignedUser()),
         () -> checkDate(currentTime, event.getCreated()),
         () -> checkDate(currentTime, event.getLastUpdated()),
-        () -> checkDate(eventA.getDueDate(), event.getDueDate()),
+        () -> checkDate(eventA.getScheduledDate(), event.getScheduledDate()),
         () -> checkDate(currentTime, event.getCreatedAtClient()),
         () -> checkDate(currentTime, event.getLastUpdatedAtClient()),
         () -> checkDate(eventA.getCompletedDate(), event.getCompletedDate()),
@@ -1359,6 +1387,43 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertAll(
         () -> assertEquals(trackedEntityA.getUid(), actual.getFrom().getTrackedEntity().getUid()),
         () -> assertEquals(eventA.getUid(), actual.getTo().getEvent().getUid()));
+  }
+
+  @Test
+  void shouldFailWhenModeAllUserCanSearchEverywhereButNotSuperuserAndNoAccessToProgram() {
+    injectSecurityContext(userWithSearchInAllAuthority);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ALL)
+            .programUid(programC.getUid())
+            .user(userWithSearchInAllAuthority)
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> trackedEntityService.getTrackedEntities(operationParams));
+
+    assertContains(
+        String.format(
+            "Current user is not authorized to read data from selected program:  %s",
+            programC.getUid()),
+        ex.getMessage());
+  }
+
+  @Test
+  void shouldReturnAllEntitiesWhenSuperuserAndModeAll()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContext(admin);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ALL)
+            .programUid(programA.getUid())
+            .user(admin)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    assertContainsOnly(Set.of(trackedEntityA.getUid()), uids(trackedEntities));
   }
 
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {
