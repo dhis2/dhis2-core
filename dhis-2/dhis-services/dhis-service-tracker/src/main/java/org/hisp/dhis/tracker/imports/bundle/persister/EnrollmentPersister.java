@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Objects;
 import javax.persistence.EntityManager;
-import org.hibernate.Session;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -95,7 +94,8 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected void persistNotes(EntityManager entityManager, TrackerPreheat preheat, Enrollment enrollment) {
+  protected void persistNotes(
+      EntityManager entityManager, TrackerPreheat preheat, Enrollment enrollment) {
     if (!enrollment.getNotes().isEmpty()) {
       for (Note note : enrollment.getNotes()) {
         if (Objects.isNull(preheat.getNote(note.getUid()))) {

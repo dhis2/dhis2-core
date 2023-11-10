@@ -40,7 +40,6 @@ import java.util.HashSet;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import org.hamcrest.Matchers;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
@@ -588,8 +587,6 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest {
   private ImportSummary updateEvent(org.hisp.dhis.dxf2.deprecated.tracker.event.Event event) {
     return eventService.updateEvent(event, false, null, false);
   }
-
-
 
   private Event getPsi(String event) {
     entityManager.clear();

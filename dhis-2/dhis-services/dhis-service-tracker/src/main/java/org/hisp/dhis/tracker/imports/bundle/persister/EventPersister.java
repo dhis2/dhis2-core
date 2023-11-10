@@ -43,7 +43,6 @@ import javax.persistence.EntityManager;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -153,7 +152,10 @@ public class EventPersister
   }
 
   private void handleDataValues(
-      EntityManager entityManager, TrackerPreheat preheat, Set<DataValue> payloadDataValues, Event event) {
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      Set<DataValue> payloadDataValues,
+      Event event) {
     Map<String, EventDataValue> dataValueDBMap =
         Optional.ofNullable(preheat.getEvent(event.getUid()))
             .map(
@@ -182,7 +184,8 @@ public class EventPersister
 
           if (StringUtils.isEmpty(dv.getValue())) {
             if (dataElement.isFileType()) {
-              unassignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
+              unassignFileResource(
+                  entityManager, preheat, event.getUid(), eventDataValue.getValue());
             }
 
             event.getEventDataValues().remove(eventDataValue);

@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseAnalyticalObject;
@@ -56,7 +55,10 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
 
   @Override
   public void handleAnalyticalObject(
-      EntityManager entityManager, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
+      EntityManager entityManager,
+      Schema schema,
+      BaseAnalyticalObject analyticalObject,
+      ObjectBundle bundle) {
     handleDataDimensionItems(entityManager, schema, analyticalObject, bundle);
     handleCategoryDimensions(entityManager, schema, analyticalObject, bundle);
     handleDataElementDimensions(entityManager, schema, analyticalObject, bundle);
@@ -116,7 +118,10 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
   }
 
   private void handleDataDimensionItems(
-      EntityManager entityManager, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
+      EntityManager entityManager,
+      Schema schema,
+      BaseAnalyticalObject analyticalObject,
+      ObjectBundle bundle) {
     if (!schema.hasPersistedProperty("dataDimensionItems")) return;
 
     for (DataDimensionItem dataDimensionItem : analyticalObject.getDataDimensionItems()) {
@@ -198,7 +203,10 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
   }
 
   private void handleCategoryDimensions(
-      EntityManager entityManager, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
+      EntityManager entityManager,
+      Schema schema,
+      BaseAnalyticalObject analyticalObject,
+      ObjectBundle bundle) {
     if (!schema.hasPersistedProperty("categoryDimensions")) return;
 
     for (CategoryDimension categoryDimension : analyticalObject.getCategoryDimensions()) {
@@ -225,7 +233,10 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
   }
 
   private void handleDataElementDimensions(
-      EntityManager entityManager, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
+      EntityManager entityManager,
+      Schema schema,
+      BaseAnalyticalObject analyticalObject,
+      ObjectBundle bundle) {
     if (!schema.hasPersistedProperty("dataElementDimensions")) return;
 
     for (TrackedEntityDataElementDimension dataElementDimension :
@@ -254,7 +265,10 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
   }
 
   private void handleAttributeDimensions(
-      EntityManager entityManager, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
+      EntityManager entityManager,
+      Schema schema,
+      BaseAnalyticalObject analyticalObject,
+      ObjectBundle bundle) {
     if (!schema.hasPersistedProperty("attributeDimensions")) return;
 
     for (TrackedEntityAttributeDimension attributeDimension :
@@ -280,7 +294,10 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
   }
 
   private void handleProgramIndicatorDimensions(
-      EntityManager entityManager, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
+      EntityManager entityManager,
+      Schema schema,
+      BaseAnalyticalObject analyticalObject,
+      ObjectBundle bundle) {
     if (!schema.hasPersistedProperty("programIndicatorDimensions")) return;
 
     for (TrackedEntityProgramIndicatorDimension programIndicatorDimension :

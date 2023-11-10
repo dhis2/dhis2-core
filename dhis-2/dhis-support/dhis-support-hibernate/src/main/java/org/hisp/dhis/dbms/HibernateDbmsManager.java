@@ -27,14 +27,10 @@
  */
 package org.hisp.dhis.dbms;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -59,7 +55,7 @@ public class HibernateDbmsManager implements DbmsManager {
 
   private EntityManager entityManager;
 
-  public void setEntityManager(EntityManager entityManager){
+  public void setEntityManager(EntityManager entityManager) {
     this.entityManager = entityManager;
   }
 

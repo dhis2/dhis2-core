@@ -62,8 +62,7 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private TrackerOrgUnitMergeHandler mergeHandler;
 
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
   private ProgramStage psA;
 

@@ -135,13 +135,11 @@ public class FollowupValueManager {
     }
 
     TypedQuery<FollowupValue> query =
-        entityManager
-            .createQuery(
-                FOLLOWUP_VALUE_HQL.replace(
-                    "<<sharing>>",
-                    generateHqlQueryForSharingCheck(
-                        "de", currentUser, AclService.LIKE_READ_METADATA)),
-                FollowupValue.class);
+        entityManager.createQuery(
+            FOLLOWUP_VALUE_HQL.replace(
+                "<<sharing>>",
+                generateHqlQueryForSharingCheck("de", currentUser, AclService.LIKE_READ_METADATA)),
+            FollowupValue.class);
 
     query.setParameter("ou_ids", request.getOu());
     query.setParameter("de_ids", request.getDe());

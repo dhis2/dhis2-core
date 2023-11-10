@@ -135,7 +135,7 @@ public class HibernateConfig {
   @Bean("entityManagerFactory")
   @DependsOn({"flyway"})
   public EntityManagerFactory entityManagerFactoryBean(
-      DhisConfigurationProvider config, DataSource dataSource ) throws IOException {
+      DhisConfigurationProvider config, DataSource dataSource) throws IOException {
     HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
     adapter.setDatabasePlatform(config.getProperty(ConfigurationKey.CONNECTION_DIALECT));
     adapter.setGenerateDdl(isGenerateDDL(config.getProperty(ConfigurationKey.CONNECTION_SCHEMA)));
@@ -165,7 +165,7 @@ public class HibernateConfig {
         "org.springframework.orm.hibernate5.SpringSessionContext");
 
     // TODO: this is anti-pattern and should be turn off
-    additionalProperties.put( "hibernate.allow_update_outside_transaction", "true" );
+    additionalProperties.put("hibernate.allow_update_outside_transaction", "true");
 
     return additionalProperties;
   }
@@ -192,7 +192,7 @@ public class HibernateConfig {
     return ArrayUtils.EMPTY_STRING_ARRAY;
   }
 
-  private boolean isGenerateDDL(String value){
+  private boolean isGenerateDDL(String value) {
     return !"none".equals(value);
   }
 }

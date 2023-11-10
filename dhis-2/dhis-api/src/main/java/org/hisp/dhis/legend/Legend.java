@@ -111,8 +111,7 @@ public class Legend extends BaseIdentifiableObject implements EmbeddedObject {
   @Column(nullable = false)
   private Date created;
 
-  @Column
-  private Date lastUpdated;
+  @Column private Date lastUpdated;
 
   @ManyToOne
   @JoinColumn(

@@ -200,7 +200,8 @@ public abstract class AbstractTrackerPersister<
   protected abstract V convert(TrackerBundle bundle, T trackerDto);
 
   /** Persists the notes for the given entity, if the entity has notes */
-  protected abstract void persistNotes(EntityManager entityManager, TrackerPreheat preheat, V entity);
+  protected abstract void persistNotes(
+      EntityManager entityManager, TrackerPreheat preheat, V entity);
 
   /** Persists ownership records for the given entity */
   protected abstract void persistOwnership(TrackerPreheat preheat, V entity);
@@ -342,7 +343,12 @@ public abstract class AbstractTrackerPersister<
                     .setValue(attribute.getValue());
 
             saveOrUpdate(
-                entityManager, preheat, isNew, trackedEntity, trackedEntityAttributeValue, isUpdated);
+                entityManager,
+                preheat,
+                isNew,
+                trackedEntity,
+                trackedEntityAttributeValue,
+                isUpdated);
           }
 
           handleReservedValue(trackedEntityAttributeValue);
@@ -359,7 +365,10 @@ public abstract class AbstractTrackerPersister<
           entityManager, preheat, trackedEntity.getUid(), trackedEntityAttributeValue.getValue());
     }
 
-    entityManager.remove( entityManager.contains(trackedEntityAttributeValue) ? trackedEntityAttributeValue : entityManager.merge(trackedEntityAttributeValue) );
+    entityManager.remove(
+        entityManager.contains(trackedEntityAttributeValue)
+            ? trackedEntityAttributeValue
+            : entityManager.merge(trackedEntityAttributeValue));
 
     logTrackedEntityAttributeValueHistory(
         preheat.getUsername(), trackedEntityAttributeValue, trackedEntity, AuditType.DELETE);

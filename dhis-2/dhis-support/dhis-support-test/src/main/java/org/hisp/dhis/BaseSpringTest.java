@@ -119,14 +119,17 @@ public abstract class BaseSpringTest extends DhisConvenienceTest
   }
 
   protected void bindSession() {
-    EntityManagerFactory entityManagerFactory = (EntityManagerFactory) applicationContext.getBean("entityManagerFactory");
+    EntityManagerFactory entityManagerFactory =
+        (EntityManagerFactory) applicationContext.getBean("entityManagerFactory");
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     entityManager.setProperty(QueryHints.FLUSH_MODE, FlushMode.AUTO);
-    TransactionSynchronizationManager.bindResource(entityManagerFactory, new EntityManagerHolder(entityManager));
+    TransactionSynchronizationManager.bindResource(
+        entityManagerFactory, new EntityManagerHolder(entityManager));
   }
 
   protected void unbindSession() {
-    EntityManagerFactory sessionFactory = (EntityManagerFactory) applicationContext.getBean("entityManagerFactory");
+    EntityManagerFactory sessionFactory =
+        (EntityManagerFactory) applicationContext.getBean("entityManagerFactory");
     EntityManagerHolder entityManagerHolder =
         (EntityManagerHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
     EntityManagerFactoryUtils.closeEntityManager(entityManagerHolder.getEntityManager());

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dbms;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**

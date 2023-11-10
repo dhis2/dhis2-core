@@ -186,9 +186,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
    * @return executable TypedQuery
    */
   private TypedQuery<T> getExecutableTypedQuery(CriteriaQuery<T> criteriaQuery) {
-    return entityManager
-        .createQuery(criteriaQuery)
-        .setHint(QueryHints.CACHEABLE, cacheable);
+    return entityManager.createQuery(criteriaQuery).setHint(QueryHints.CACHEABLE, cacheable);
   }
 
   /** Method for adding additional Predicates into where clause */
