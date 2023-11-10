@@ -130,7 +130,7 @@ class EventExporterTest extends TrackerTest {
     // expect to be run by admin
     injectAdminUser();
 
-    operationParamsBuilder = EventOperationParams.builder();
+    operationParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
     operationParamsBuilder.orgUnitUid(orgUnit.getUid()).orgUnitMode(SELECTED);
   }
 
@@ -152,7 +152,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWithRelationships() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        operationParamsBuilder.events(Set.of("pTzf9KYMk72")).includeRelationships(true).build();
+        operationParamsBuilder.events(Set.of("pTzf9KYMk72")).eventParams(EventParams.TRUE).build();
 
     List<Event> events = eventService.getEvents(params);
 
@@ -208,8 +208,8 @@ class EventExporterTest extends TrackerTest {
         operationParamsBuilder
             .enrollments(Set.of("TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
-            .startDate(getDate(2018, 1, 1))
-            .endDate(getDate(2020, 1, 29))
+            .occurredAfter(getDate(2018, 1, 1))
+            .occurredBefore(getDate(2020, 1, 29))
             .skipChangedBefore(getDate(2018, 1, 1))
             .build();
 
@@ -262,10 +262,7 @@ class EventExporterTest extends TrackerTest {
   void testExportEventsWithDatesIncludingTimeStamp()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .events(Set.of("pTzf9KYMk72"))
-            .build();
+        operationParamsBuilder.orgUnitMode(ACCESSIBLE).events(Set.of("pTzf9KYMk72")).build();
 
     List<Event> events = eventService.getEvents(params);
 
@@ -276,18 +273,19 @@ class EventExporterTest extends TrackerTest {
         () ->
             assertEquals(
                 "2019-01-25T12:10:38.100",
-                DateUtils.getIso8601NoTz(event.getExecutionDate()),
+                DateUtils.getIso8601NoTz(event.getOccurredDate()),
                 () ->
                     String.format(
                         "Expected %s to be in %s",
-                        event.getExecutionDate(), "2019-01-25T12:10:38.100")),
+                        event.getOccurredDate(), "2019-01-25T12:10:38.100")),
         () ->
             assertEquals(
                 "2019-01-28T12:32:38.100",
-                DateUtils.getIso8601NoTz(event.getDueDate()),
+                DateUtils.getIso8601NoTz(event.getScheduledDate()),
                 () ->
                     String.format(
-                        "Expected %s to be in %s", event.getDueDate(), "2019-01-28T12:32:38.100")),
+                        "Expected %s to be in %s",
+                        event.getScheduledDate(), "2019-01-28T12:32:38.100")),
         () -> assertHasTimeStamp(event.getCompletedDate()));
   }
 
@@ -413,7 +411,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsGivenCategoryOptionCombo() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .attributeCategoryCombo("O4VaNks6tta")
@@ -449,7 +447,7 @@ class EventExporterTest extends TrackerTest {
     IdSchemes idSchemes = new IdSchemes();
     idSchemes.setCategoryOptionComboIdScheme("ATTRIBUTE:GOLswS44mh8");
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)
@@ -471,7 +469,7 @@ class EventExporterTest extends TrackerTest {
     idSchemes.setCategoryOptionComboIdScheme("code");
 
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)
@@ -522,7 +520,7 @@ class EventExporterTest extends TrackerTest {
     idSchemes.setOrgUnitIdScheme("ATTRIBUTE:j45AR9cBQKc");
     idSchemes.setCategoryOptionComboIdScheme("ATTRIBUTE:j45AR9cBQKc");
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)
@@ -842,6 +840,24 @@ class EventExporterTest extends TrackerTest {
             .collect(Collectors.toList());
 
     assertContainsOnly(List.of("TvctPPhpD8z"), enrollments);
+  }
+
+  @Test
+  void
+      shouldFilterOutEventsWithATrackedEntityWithoutThatAttributeWhenFilterAttributeHasNoQueryFilter()
+          throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .attributeFilters(Map.of("notUpdated0", List.of()))
+            .build();
+
+    List<String> trackedEntities =
+        eventService.getEvents(params).stream()
+            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
+            .collect(Collectors.toList());
+
+    assertContainsOnly(List.of("dUE514NMOlo"), trackedEntities);
   }
 
   @Test

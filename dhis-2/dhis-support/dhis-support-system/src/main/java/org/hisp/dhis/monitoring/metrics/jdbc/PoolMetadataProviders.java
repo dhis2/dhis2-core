@@ -25,24 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.enrollment;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.program.Enrollment;
+import javax.sql.DataSource;
 
-@RequiredArgsConstructor(staticName = "of")
-@Getter
-@EqualsAndHashCode
-public class Enrollments {
+/**
+ * A {@link PoolMetadataProvider} implementation that returns the first {@link PoolMetadata} that is
+ * found by one of its delegate.
+ *
+ * @author Stephane Nicoll
+ * @since 1.2.0
+ */
+public class PoolMetadataProviders implements PoolMetadataProvider {
 
-  private final List<Enrollment> enrollments;
-  private final Pager pager;
+  private final List<PoolMetadataProvider> providers;
 
-  public static Enrollments withoutPagination(List<Enrollment> enrollments) {
-    return new Enrollments(enrollments, null);
+  /**
+   * Create a {@link PoolMetadataProviders} instance with an initial collection of delegates to use.
+   *
+   * @param providers the data source pool metadata providers
+   */
+  public PoolMetadataProviders(Collection<? extends PoolMetadataProvider> providers) {
+    this.providers = (providers == null ? Collections.emptyList() : new ArrayList<>(providers));
+  }
+
+  @Override
+  public PoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
+    for (PoolMetadataProvider provider : this.providers) {
+      PoolMetadata metadata = provider.getDataSourcePoolMetadata(dataSource);
+      if (metadata != null) {
+        return metadata;
+      }
+    }
+    return null;
   }
 }

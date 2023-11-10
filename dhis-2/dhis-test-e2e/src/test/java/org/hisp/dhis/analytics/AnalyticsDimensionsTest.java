@@ -40,7 +40,9 @@ import static org.hamcrest.Matchers.oneOf;
 import static org.hamcrest.Matchers.startsWith;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -283,7 +285,7 @@ public class AnalyticsDimensionsTest extends ApiTest {
                 "programs.programTrackedEntityAttributes.flatten().trackedEntityAttribute.id",
                 String.class)
             .stream()
-            // .distinct() attributes can be duplicated in different programs
+            .distinct()
             .collect(Collectors.toList());
 
     analyticsTeiActions
@@ -308,6 +310,8 @@ public class AnalyticsDimensionsTest extends ApiTest {
             .extractList(
                 "programs.programStages.programStageDataElements.flatten().dataElement.id");
 
+    Set<String> distinctDataElements = new HashSet<>(dataElements);
+
     analyticsTeiActions
         .query()
         .getDimensions(
@@ -316,6 +320,6 @@ public class AnalyticsDimensionsTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body("dimensions", hasSize(equalTo(dataElements.size())))
-        .body("dimensions.uid", everyItem(in(dataElements)));
+        .body("dimensions.uid", everyItem(in(distinctDataElements)));
   }
 }

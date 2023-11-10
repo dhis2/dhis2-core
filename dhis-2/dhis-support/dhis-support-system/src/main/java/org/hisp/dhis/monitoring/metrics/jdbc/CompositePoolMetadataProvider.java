@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query.context.querybuilder;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.GroupableCondition;
-import org.hisp.dhis.analytics.tei.query.EnrolledInProgramCondition;
-import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
-import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilderAdaptor;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.springframework.stereotype.Service;
+import javax.sql.DataSource;
 
 /**
- * This class is responsible for adding the "is enrolled in program" filter to the sql query. The
- * generated conditions are "ungrouped", since each one needs to be a separate "AND" condition.
+ * A {@link PoolMetadataProvider} implementation that returns the first {@link PoolMetadata} that is
+ * found by one of its delegate.
+ *
+ * @author Stephane Nicoll
+ * @since 2.0.0
  */
-@Service
-public class ProgramEnrolledQueryBuilder extends SqlQueryBuilderAdaptor {
-  @Override
-  protected Stream<GroupableCondition> getWhereClauses(
-      QueryContext queryContext, List<DimensionIdentifier<DimensionParam>> unused) {
-    return queryContext.getTeiQueryParams().getCommonParams().getPrograms().stream()
-        .map(IdentifiableObject::getUid)
-        .map(ProgramEnrolledQueryBuilder::asUngroupedEnrolledInProgramCondition);
+public class CompositePoolMetadataProvider implements PoolMetadataProvider {
+  private final List<PoolMetadataProvider> providers;
+
+  /**
+   * Create a {@link CompositePoolMetadataProvider} instance with an initial collection of delegates
+   * to use.
+   *
+   * @param providers the data source pool metadata providers
+   */
+  public CompositePoolMetadataProvider(Collection<? extends PoolMetadataProvider> providers) {
+    this.providers =
+        (providers != null)
+            ? Collections.unmodifiableList(new ArrayList<>(providers))
+            : Collections.emptyList();
   }
 
-  private static GroupableCondition asUngroupedEnrolledInProgramCondition(String programUid) {
-    return GroupableCondition.ofUngroupedCondition(EnrolledInProgramCondition.of(programUid));
-  }
-
   @Override
-  public boolean alwaysRun() {
-    return true;
+  public PoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
+    for (PoolMetadataProvider provider : this.providers) {
+      PoolMetadata metadata = provider.getDataSourcePoolMetadata(dataSource);
+      if (metadata != null) {
+        return metadata;
+      }
+    }
+    return null;
   }
 }

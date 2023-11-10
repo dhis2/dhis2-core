@@ -34,10 +34,10 @@ import org.hisp.dhis.common.PrefixedDimension;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TeiAnalyticsPrefixStrategy implements PrefixStrategy {
 
-  public static final TeiAnalyticsPrefixStrategy INSTANCE = new TeiAnalyticsPrefixStrategy();
+  public static final PrefixStrategy INSTANCE = EnrollmentAnalyticsPrefixStrategy.INSTANCE;
 
   @Override
   public String apply(PrefixedDimension pDimension) {
-    return pDimension.getPrefix();
+    throw new UnsupportedOperationException("This method should not be called for TEI analytics");
   }
 }

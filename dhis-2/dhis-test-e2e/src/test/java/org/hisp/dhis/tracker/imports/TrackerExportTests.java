@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyIterable;
+import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
@@ -88,6 +89,8 @@ public class TrackerExportTests extends TrackerApiTest {
 
   private static String enrollmentToTeiRelationship;
 
+  private static String eventToTeiRelationship;
+
   private static JsonObject teiWithEnrollmentAndEventsTemplate;
 
   @BeforeAll
@@ -103,12 +106,15 @@ public class TrackerExportTests extends TrackerApiTest {
 
     enrollment = response.extractImportedEnrollments().get(0);
 
+    event = response.extractImportedEvents().get(0);
+
     teiToTeiRelationship =
         importRelationshipBetweenTeis(teiA, teiB).extractImportedRelationships().get(0);
     enrollmentToTeiRelationship =
         importRelationshipEnrollmentToTei(enrollment, teiB).extractImportedRelationships().get(0);
 
-    event = response.extractImportedEvents().get(0);
+    eventToTeiRelationship =
+        importRelationshipEventToTei(event, teiB).extractImportedRelationships().get(0);
 
     teiWithEnrollmentAndEventsTemplate =
         new FileReaderUtils()
@@ -426,6 +432,28 @@ public class TrackerExportTests extends TrackerApiTest {
   }
 
   @Test
+  public void shouldReturnRelationshipsWhenEventHasRelationshipsAndFieldsIncludeRelationships() {
+    trackerImportExportActions
+        .get("events?event=" + event + "&fields=relationships")
+        .validate()
+        .statusCode(200)
+        .body("instances", hasSize(greaterThanOrEqualTo(1)))
+        .rootPath("instances[0].relationships[0]")
+        .body("relationship", equalTo(eventToTeiRelationship))
+        .body("from.event.event", equalTo(event))
+        .body("to.trackedEntity.trackedEntity", equalTo(teiB));
+  }
+
+  @Test
+  public void shouldNotReturnRelationshipsWhenEventHasRelationshipsAndFieldsExcludeRelationships() {
+    trackerImportExportActions
+        .get("events?event=" + event)
+        .validate()
+        .statusCode(200)
+        .body("instances[0].relationships", emptyOrNullString());
+  }
+
+  @Test
   public void shouldReturnFilteredEvent() {
     trackerImportExportActions
         .get(
@@ -438,7 +466,9 @@ public class TrackerExportTests extends TrackerApiTest {
 
   @Test
   public void shouldReturnDescOrderedEventByTEIAttribute() {
-    ApiResponse response = trackerImportExportActions.get("events?order=dIVt4l5vIOa:desc");
+    ApiResponse response =
+        trackerImportExportActions.get(
+            "events?order=dIVt4l5vIOa:desc&event=olfXZzSGacW;ZwwuwNp6gVd");
     response.validate().statusCode(200).body("instances", hasSize(equalTo(2)));
     List<String> events = response.extractList("instances.event.flatten()");
     assertEquals(
@@ -447,7 +477,9 @@ public class TrackerExportTests extends TrackerApiTest {
 
   @Test
   public void shouldReturnAscOrderedEventByTEIAttribute() {
-    ApiResponse response = trackerImportExportActions.get("events?order=dIVt4l5vIOa:asc");
+    ApiResponse response =
+        trackerImportExportActions.get(
+            "events?order=dIVt4l5vIOa:asc&event=olfXZzSGacW;ZwwuwNp6gVd");
     response.validate().statusCode(200).body("instances", hasSize(equalTo(2)));
     List<String> events = response.extractList("instances.event.flatten()");
     assertEquals(

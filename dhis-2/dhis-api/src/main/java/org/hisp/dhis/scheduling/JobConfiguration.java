@@ -166,6 +166,10 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private Integer queuePosition;
 
+  @CheckForNull
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  private String errorCodes;
+
   public JobConfiguration() {}
 
   /**
@@ -341,7 +345,10 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   }
 
   public boolean isRunOnce() {
-    return cronExpression == null && delay == null && queueName == null;
+    return schedulingType == SchedulingType.ONCE_ASAP
+        && cronExpression == null
+        && delay == null
+        && queueName == null;
   }
 
   public boolean isDueBetween(

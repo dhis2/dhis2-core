@@ -25,24 +25,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import java.util.List;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.HikariPool;
+import org.springframework.beans.DirectFieldAccessor;
 
-@RequiredArgsConstructor(staticName = "of")
-@Getter
-@EqualsAndHashCode
-public class TrackedEntities {
+/**
+ * @author Morten Svanæs
+ */
+public class HikariPoolMetadataAccessor extends AbstractPoolMetadata<HikariDataSource> {
 
-  private final List<TrackedEntity> trackedEntities;
-  private final Pager pager;
+  public HikariPoolMetadataAccessor(HikariDataSource dataSource) {
+    super(dataSource);
+  }
 
-  public static TrackedEntities withoutPagination(List<TrackedEntity> trackedEntities) {
-    return new TrackedEntities(trackedEntities, null);
+  @Override
+  public Integer getActive() {
+    try {
+      return getHikariPool().getActiveConnections();
+    } catch (Exception ex) {
+      return null;
+    }
+  }
+
+  @Override
+  public Integer getIdle() {
+    try {
+      return getHikariPool().getIdleConnections();
+    } catch (Exception ex) {
+      return null;
+    }
+  }
+
+  private HikariPool getHikariPool() {
+    return (HikariPool) new DirectFieldAccessor(getDataSource()).getPropertyValue("pool");
+  }
+
+  @Override
+  public Integer getMax() {
+    return getDataSource().getMaximumPoolSize();
+  }
+
+  @Override
+  public Integer getMin() {
+    return getDataSource().getMinimumIdle();
+  }
+
+  @Override
+  public String getValidationQuery() {
+    return getDataSource().getConnectionTestQuery();
+  }
+
+  @Override
+  public Boolean getDefaultAutoCommit() {
+    return getDataSource().isAutoCommit();
   }
 }

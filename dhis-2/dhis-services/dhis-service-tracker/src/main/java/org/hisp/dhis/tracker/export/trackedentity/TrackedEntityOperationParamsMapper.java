@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -76,9 +75,7 @@ class TrackedEntityOperationParamsMapper {
         validateTrackedEntityType(operationParams.getTrackedEntityTypeUid());
 
     User user = operationParams.getUser();
-    Set<OrganisationUnit> orgUnits =
-        validateOrgUnits(
-            user, operationParams.getOrganisationUnits(), operationParams.getOrgUnitMode());
+    Set<OrganisationUnit> orgUnits = validateOrgUnits(user, operationParams.getOrganisationUnits());
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     mapAttributeFilters(params, operationParams.getFilters());
@@ -106,10 +103,6 @@ class TrackedEntityOperationParamsMapper {
         .setAssignedUserQueryParam(operationParams.getAssignedUserQueryParam())
         .setUser(user)
         .setTrackedEntityUids(operationParams.getTrackedEntityUids())
-        .setPage(operationParams.getPage())
-        .setPageSize(operationParams.getPageSize())
-        .setTotalPages(operationParams.isTotalPages())
-        .setSkipPaging(operationParams.isSkipPaging())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
@@ -139,8 +132,7 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private Set<OrganisationUnit> validateOrgUnits(
-      User user, Set<String> orgUnitIds, OrganisationUnitSelectionMode orgUnitMode)
+  private Set<OrganisationUnit> validateOrgUnits(User user, Set<String> orgUnitIds)
       throws BadRequestException, ForbiddenException {
     Set<OrganisationUnit> orgUnits = new HashSet<>();
     for (String orgUnitUid : orgUnitIds) {
@@ -158,10 +150,6 @@ class TrackedEntityOperationParamsMapper {
       }
 
       orgUnits.add(orgUnit);
-    }
-
-    if (orgUnitMode == OrganisationUnitSelectionMode.CAPTURE && user != null) {
-      orgUnits.addAll(user.getOrganisationUnits());
     }
 
     return orgUnits;

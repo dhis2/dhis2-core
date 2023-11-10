@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.tei.query;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
@@ -43,11 +44,11 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.DataElementQueryBuilder;
+import org.hisp.dhis.analytics.tei.query.context.querybuilder.EnrolledInProgramQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.LimitOffsetQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.MainTableQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.OrgUnitQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.PeriodQueryBuilder;
-import org.hisp.dhis.analytics.tei.query.context.querybuilder.ProgramEnrolledQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.ProgramIndicatorQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.TeiQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
@@ -79,7 +80,7 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
             new MainTableQueryBuilder(),
             new OrgUnitQueryBuilder(),
             new PeriodQueryBuilder(),
-            new ProgramEnrolledQueryBuilder(),
+            new EnrolledInProgramQueryBuilder(),
             new TeiQueryBuilder(),
             new ProgramIndicatorQueryBuilder(programIndicatorService));
     sqlQueryCreatorService = new SqlQueryCreatorService(queryBuilders);
@@ -123,6 +124,60 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
     assertTrue(
         sql.contains(
             "(\"prabcdefghA[1].pgabcdefghS[1]\".\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT as \"prabcdefghA[1].pgabcdefghS[1].abc\""));
+  }
+
+  @Test
+  void testEnrolledInProgramWhenSpecifiedInRequest() {
+    // given
+    CommonParams commonParams =
+        CommonParams.builder()
+            .programs(List.of(mockProgram("program1"), mockProgram("program2")))
+            .build()
+            .withProgramsFromRequest(true);
+
+    TeiQueryParams teiQueryParams =
+        TeiQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .commonParams(commonParams)
+            .build();
+
+    // when
+    String sql =
+        sqlQueryCreatorService.getSqlQueryCreator(teiQueryParams).createForSelect().getStatement();
+
+    // then
+    assertTrue(sql.contains("ouname"));
+    assertContains("t_1.\"program1\" and t_1.\"program2\"", sql);
+  }
+
+  @Test
+  void testEnrolledInProgramWhenNotSpecifiedInRequest() {
+    // given
+    CommonParams commonParams =
+        CommonParams.builder()
+            .programs(List.of(mockProgram("program1"), mockProgram("program2")))
+            .build()
+            .withProgramsFromRequest(false);
+
+    TeiQueryParams teiQueryParams =
+        TeiQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .commonParams(commonParams)
+            .build();
+
+    // when
+    String sql =
+        sqlQueryCreatorService.getSqlQueryCreator(teiQueryParams).createForSelect().getStatement();
+
+    // then
+    assertTrue(sql.contains("ouname"));
+    assertContains("(t_1.\"program1\" or t_1.\"program2\")", sql);
+  }
+
+  private Program mockProgram(String uid) {
+    Program program = mock(Program.class);
+    when(program.getUid()).thenReturn(uid);
+    return program;
   }
 
   private CommonParams stubSortingCommonParams(

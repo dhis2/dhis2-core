@@ -37,7 +37,6 @@ import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodTypePopulator;
-import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobScheduler;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.startup.ConfigurationPopulator;
@@ -124,9 +123,8 @@ public class StartupConfig {
   }
 
   @Bean
-  public SchedulerStart schedulerStart(
-      JobScheduler scheduler, JobConfigurationService jobConfigurationService) {
-    SchedulerStart schedulerStart = new SchedulerStart(scheduler, jobConfigurationService);
+  public SchedulerStart schedulerStart(JobScheduler scheduler) {
+    SchedulerStart schedulerStart = new SchedulerStart(scheduler);
     schedulerStart.setRunlevel(15);
     schedulerStart.setSkipInTests(true);
     return schedulerStart;

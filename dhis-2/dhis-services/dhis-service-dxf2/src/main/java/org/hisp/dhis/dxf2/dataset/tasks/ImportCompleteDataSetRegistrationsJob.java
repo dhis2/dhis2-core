@@ -78,13 +78,9 @@ public class ImportCompleteDataSetRegistrationsJob implements Job {
       ImportSummary summary =
           switch (contentType) {
             case "application/json" -> progress.runStage(
-                () ->
-                    registrationService.saveCompleteDataSetRegistrationsJson(
-                        input, options, jobConfig));
+                () -> registrationService.saveCompleteDataSetRegistrationsJson(input, options));
             case "application/xml" -> progress.runStage(
-                () ->
-                    registrationService.saveCompleteDataSetRegistrationsXml(
-                        input, options, jobConfig));
+                () -> registrationService.saveCompleteDataSetRegistrationsXml(input, options));
             default -> {
               progress.failedStage("Unknown format: " + contentType);
               yield null;

@@ -35,14 +35,18 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.JobTypes;
 import org.springframework.http.HttpStatus;
@@ -108,13 +112,28 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
 
   @PostMapping("{uid}/cancel")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void cancelExecution(@PathVariable("uid") String uid) {
+  public void cancelExecution(@PathVariable("uid") String uid, @CurrentUser User currentUser)
+      throws NotFoundException, ForbiddenException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
+    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid);
+    boolean canCancel =
+        currentUser.isSuper()
+            || currentUser.isAuthorized("F_PERFORM_MAINTENANCE")
+            || currentUser.getUid().equals(obj.getExecutedBy());
+    if (!canCancel) throw new ForbiddenException(JobConfiguration.class, obj.getUid());
     jobSchedulerService.requestCancel(uid);
   }
 
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @GetMapping("{uid}/progress")
   public Progress getProgress(@PathVariable("uid") String uid) {
     return jobSchedulerService.getProgress(uid);
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @GetMapping("{uid}/errors")
+  public List<JobProgress.Error> getErrors(@PathVariable("uid") String uid) {
+    return jobSchedulerService.getErrors(uid);
   }
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
@@ -122,6 +141,30 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteDoneJobs(@RequestParam int minutes) {
     jobConfigurationService.deleteFinishedJobs(minutes);
+  }
+
+  @PostMapping("{uid}/enable")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void enable(@PathVariable("uid") String uid) throws NotFoundException, ConflictException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
+    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid);
+    checkModifiable(obj, "Job %s is a system job that cannot be modified.");
+    if (!obj.isEnabled()) {
+      obj.setEnabled(true);
+      jobConfigurationService.updateJobConfiguration(obj);
+    }
+  }
+
+  @PostMapping("{uid}/disable")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void disable(@PathVariable("uid") String uid) throws NotFoundException, ConflictException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
+    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid);
+    checkModifiable(obj, "Job %s is a system job that cannot be modified.");
+    if (obj.isEnabled()) {
+      obj.setEnabled(false);
+      jobConfigurationService.updateJobConfiguration(obj);
+    }
   }
 
   @Override

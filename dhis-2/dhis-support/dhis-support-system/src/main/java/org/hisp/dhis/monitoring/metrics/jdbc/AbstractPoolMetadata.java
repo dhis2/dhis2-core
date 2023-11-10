@@ -30,14 +30,13 @@ package org.hisp.dhis.monitoring.metrics.jdbc;
 import javax.sql.DataSource;
 
 /**
- * A base {@link DataSourcePoolMetadata} implementation.
+ * A base {@link PoolMetadata} implementation.
  *
  * @param <T> the data source type
  * @author Stephane Nicoll
  * @since 2.0.0
  */
-public abstract class AbstractDataSourcePoolMetadata<T extends DataSource>
-    implements DataSourcePoolMetadata {
+public abstract class AbstractPoolMetadata<T extends DataSource> implements PoolMetadata {
 
   private final T dataSource;
 
@@ -46,7 +45,7 @@ public abstract class AbstractDataSourcePoolMetadata<T extends DataSource>
    *
    * @param dataSource the data source
    */
-  protected AbstractDataSourcePoolMetadata(T dataSource) {
+  protected AbstractPoolMetadata(T dataSource) {
     this.dataSource = dataSource;
   }
 

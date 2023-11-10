@@ -27,8 +27,13 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
+import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
+import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursAfter;
+import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursBefore;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
@@ -61,6 +66,7 @@ import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
@@ -123,6 +129,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private User user;
 
+  private User userWithSearchInAllAuthority;
+
   private User admin;
 
   private OrganisationUnit orgUnitA;
@@ -136,6 +144,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   private Program programA;
 
   private Program programB;
+
+  private Program programC;
 
   private Enrollment enrollmentA;
 
@@ -169,7 +179,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
-    admin = preCreateInjectAdminUser();
 
     orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
@@ -178,8 +187,22 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     OrganisationUnit orgUnitC = createOrganisationUnit('C');
     manager.save(orgUnitC, false);
 
+    admin = preCreateInjectAdminUser();
+    admin.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
+    manager.save(admin);
+
     user = createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
     user.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
+
+    userWithSearchInAllAuthority =
+        createAndAddUser(
+            false,
+            "userSearchInAll",
+            Set.of(orgUnitA),
+            Set.of(orgUnitA),
+            "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
+    userWithSearchInAllAuthority.setTeiSearchOrganisationUnits(
+        Set.of(orgUnitA, orgUnitB, orgUnitC));
 
     teaA = createTrackedEntityAttribute('A', ValueType.TEXT);
     manager.save(teaA, false);
@@ -212,6 +235,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
     programA.setTrackedEntityType(trackedEntityTypeA);
     programA.setCategoryCombo(defaultCategoryCombo);
+    programA.setMinAttributesRequiredToSearch(0);
     manager.save(programA, false);
     ProgramStage programStageA1 = createProgramStage(programA);
     programStageA1.setPublicAccess(AccessStringHelper.FULL);
@@ -250,6 +274,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     programB.getSharing().setPublicAccess(AccessStringHelper.FULL);
     manager.update(programB);
 
+    programC = createProgram('C', new HashSet<>(), orgUnitC);
+    programC.setProgramType(ProgramType.WITH_REGISTRATION);
+    programC.setTrackedEntityType(trackedEntityTypeA);
+    programC.setCategoryCombo(defaultCategoryCombo);
+    programC.setAccessLevel(AccessLevel.PROTECTED);
+    programC.getSharing().setPublicAccess(AccessStringHelper.READ);
+    manager.save(programC, false);
+
     programB
         .getProgramAttributes()
         .addAll(
@@ -270,7 +302,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     eventA.setProgramStage(programStageA1);
     eventA.setOrganisationUnit(orgUnitA);
     eventA.setAttributeOptionCombo(defaultCategoryOptionCombo);
-    eventA.setDueDate(parseDate("2021-02-27T12:05:00.000"));
+    eventA.setOccurredDate(parseDate("2021-05-27T12:05:00.000"));
+    eventA.setScheduledDate(parseDate("2021-02-27T12:05:00.000"));
     eventA.setCompletedDate(parseDate("2021-02-27T11:05:00.000"));
     eventA.setCompletedBy("herb");
     eventA.setAssignedUser(user);
@@ -431,7 +464,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .build();
 
     final List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+        trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
   }
@@ -452,7 +485,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .build();
 
     final List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+        trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA.getUid()), uids(trackedEntities));
     assertContainsOnly(Set.of(enrollmentA.getUid()), uids(trackedEntities.get(0).getEnrollments()));
@@ -491,7 +524,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .build();
 
     final List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+        trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     assertContainsOnly(
@@ -510,8 +543,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     assertContainsOnly(
@@ -531,8 +563,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertIsEmpty(trackedEntities);
   }
@@ -549,10 +580,303 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfTEWasUpdatedAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeLastUpdated = oneHourBefore(trackedEntityA.getLastUpdated());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .lastUpdatedStartDate(oneHourBeforeLastUpdated)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfTEWasUpdatedBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterLastUpdated = oneHourAfter(trackedEntityA.getLastUpdated());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .lastUpdatedStartDate(oneHourAfterLastUpdated)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfTEWasUpdatedBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterLastUpdated = oneHourAfter(trackedEntityA.getLastUpdated());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .lastUpdatedEndDate(oneHourAfterLastUpdated)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfTEWasUpdatedAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeLastUpdated = oneHourBefore(trackedEntityA.getLastUpdated());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .lastUpdatedEndDate(oneHourBeforeLastUpdated)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfTEWasEnrolledAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeEnrollmentDate = oneHourBefore(enrollmentA.getEnrollmentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programEnrollmentStartDate(oneHourBeforeEnrollmentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfTEWasEnrolledBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterEnrollmentDate = oneHourAfter(enrollmentA.getEnrollmentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programEnrollmentStartDate(oneHourAfterEnrollmentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfTEWasEnrolledBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterEnrollmentDate = oneHourAfter(enrollmentA.getEnrollmentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programEnrollmentEndDate(oneHourAfterEnrollmentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfTEWasEnrolledAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeEnrollmentDate = oneHourBefore(enrollmentA.getEnrollmentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programEnrollmentEndDate(oneHourBeforeEnrollmentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfEnrollmentOccurredAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeIncidentDate = oneHourBefore(enrollmentA.getIncidentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programIncidentStartDate(oneHourBeforeIncidentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfEnrollmentOccurredBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterIncidentDate = oneHourAfter(enrollmentA.getIncidentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programIncidentStartDate(oneHourAfterIncidentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfEnrollmentOccurredBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterIncidentDate = oneHourAfter(enrollmentA.getIncidentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programIncidentEndDate(oneHourAfterIncidentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfEnrollmentOccurredPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeIncidentDate = oneHourBefore(enrollmentA.getIncidentDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programIncidentEndDate(oneHourBeforeIncidentDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfEventOccurredBetweenPassedDateAndTimes()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeOccurredDate = oneHourBefore(eventA.getOccurredDate());
+    Date oneHourAfterOccurredDate = oneHourAfter(eventA.getOccurredDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .eventStatus(EventStatus.ACTIVE)
+            .eventStartDate(oneHourBeforeOccurredDate)
+            .eventEndDate(oneHourAfterOccurredDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfEventOccurredBeforePassedDateAndTimes()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterOccurredDate = oneHourAfter(eventA.getOccurredDate());
+    Date twoHoursAfterOccurredDate = twoHoursAfter(eventA.getOccurredDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .eventStatus(EventStatus.ACTIVE)
+            .eventStartDate(oneHourAfterOccurredDate)
+            .eventEndDate(twoHoursAfterOccurredDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfEventOccurredAfterPassedDateAndTimes()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeOccurredDate = oneHourBefore(eventA.getOccurredDate());
+    Date twoHoursBeforeOccurredDate = twoHoursBefore(eventA.getOccurredDate());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .programUid(programA.getUid())
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .eventStatus(EventStatus.ACTIVE)
+            .eventStartDate(twoHoursBeforeOccurredDate)
+            .eventEndDate(oneHourBeforeOccurredDate)
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
   }
 
   @Test
@@ -567,8 +891,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertIsEmpty(trackedEntities);
   }
@@ -585,8 +908,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
   }
@@ -600,12 +922,11 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .lastUpdatedStartDate(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)))
-            .lastUpdatedEndDate(new Date())
+            .lastUpdatedEndDate(Date.from(Instant.now().plus(1, ChronoUnit.MINUTES)))
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
 
@@ -616,11 +937,11 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityTypeA.getUid())
             .lastUpdatedStartDate(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))
-            .lastUpdatedEndDate(new Date())
+            .lastUpdatedEndDate(Date.from(Instant.now().plus(1, ChronoUnit.MINUTES)))
             .user(user)
             .build();
 
-    assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities());
+    assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams));
   }
 
   @Test
@@ -637,39 +958,27 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .eventEndDate(Date.from(Instant.now().plus(10, ChronoUnit.DAYS)));
 
     final List<TrackedEntity> trackedEntities =
-        trackedEntityService
-            .getTrackedEntities(builder.eventStatus(EventStatus.COMPLETED).build())
-            .getTrackedEntities();
+        trackedEntityService.getTrackedEntities(builder.eventStatus(EventStatus.COMPLETED).build());
     assertEquals(4, trackedEntities.size());
     // Update status to active
     final List<TrackedEntity> limitedTrackedEntities =
-        trackedEntityService
-            .getTrackedEntities(builder.eventStatus(EventStatus.ACTIVE).build())
-            .getTrackedEntities();
+        trackedEntityService.getTrackedEntities(builder.eventStatus(EventStatus.ACTIVE).build());
     assertIsEmpty(limitedTrackedEntities);
     // Update status to overdue
     final List<TrackedEntity> limitedTrackedEntities2 =
-        trackedEntityService
-            .getTrackedEntities(builder.eventStatus(EventStatus.OVERDUE).build())
-            .getTrackedEntities();
+        trackedEntityService.getTrackedEntities(builder.eventStatus(EventStatus.OVERDUE).build());
     assertIsEmpty(limitedTrackedEntities2);
     // Update status to schedule
     final List<TrackedEntity> limitedTrackedEntities3 =
-        trackedEntityService
-            .getTrackedEntities(builder.eventStatus(EventStatus.OVERDUE).build())
-            .getTrackedEntities();
+        trackedEntityService.getTrackedEntities(builder.eventStatus(EventStatus.OVERDUE).build());
     assertIsEmpty(limitedTrackedEntities3);
     // Update status to schedule
     final List<TrackedEntity> limitedTrackedEntities4 =
-        trackedEntityService
-            .getTrackedEntities(builder.eventStatus(EventStatus.SCHEDULE).build())
-            .getTrackedEntities();
+        trackedEntityService.getTrackedEntities(builder.eventStatus(EventStatus.SCHEDULE).build());
     assertIsEmpty(limitedTrackedEntities4);
     // Update status to visited
     final List<TrackedEntity> limitedTrackedEntities5 =
-        trackedEntityService
-            .getTrackedEntities(builder.eventStatus(EventStatus.VISITED).build())
-            .getTrackedEntities();
+        trackedEntityService.getTrackedEntities(builder.eventStatus(EventStatus.VISITED).build());
     assertIsEmpty(limitedTrackedEntities5);
   }
 
@@ -686,8 +995,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .trackedEntityParams(TrackedEntityParams.TRUE)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     TrackedEntity trackedEntity = trackedEntities.get(0);
@@ -708,7 +1016,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     enrollmentService.deleteEnrollment(enrollmentA);
     eventService.deleteEvent(eventA);
 
-    trackedEntities = trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     trackedEntity = trackedEntities.get(0);
@@ -741,7 +1049,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .includeDeleted(false)
             .trackedEntityParams(TrackedEntityParams.TRUE)
             .build();
-    trackedEntities = trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     trackedEntity = trackedEntities.get(0);
@@ -768,8 +1076,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA.getUid()), uids(trackedEntities));
     assertContainsOnly(
@@ -799,8 +1106,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     assertIsEmpty(trackedEntities.get(0).getEnrollments());
@@ -821,8 +1127,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     assertContainsOnly(
@@ -854,8 +1159,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(trackedEntityA.getUid()), uids(trackedEntities));
     assertContainsOnly(
@@ -881,8 +1185,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     TrackedEntity trackedEntity = trackedEntities.get(0);
     assertAll(
@@ -916,8 +1219,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     List<Enrollment> enrollments = new ArrayList<>(trackedEntities.get(0).getEnrollments());
     Optional<Enrollment> enrollmentOpt =
@@ -963,8 +1265,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     List<Enrollment> enrollments = new ArrayList<>(trackedEntities.get(0).getEnrollments());
     Optional<Enrollment> enrollmentOpt =
@@ -997,7 +1298,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         () -> assertEquals(user, event.getAssignedUser()),
         () -> checkDate(currentTime, event.getCreated()),
         () -> checkDate(currentTime, event.getLastUpdated()),
-        () -> checkDate(eventA.getDueDate(), event.getDueDate()),
+        () -> checkDate(eventA.getScheduledDate(), event.getScheduledDate()),
         () -> checkDate(currentTime, event.getCreatedAtClient()),
         () -> checkDate(currentTime, event.getLastUpdatedAtClient()),
         () -> checkDate(eventA.getCompletedDate(), event.getCompletedDate()),
@@ -1018,8 +1319,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     TrackedEntity trackedEntity = trackedEntities.get(0);
     Optional<RelationshipItem> relOpt =
@@ -1047,8 +1347,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     TrackedEntity trackedEntity = trackedEntities.get(0);
     Optional<RelationshipItem> relOpt =
@@ -1076,8 +1375,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities();
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     TrackedEntity trackedEntity = trackedEntities.get(0);
     Optional<RelationshipItem> relOpt =
@@ -1089,6 +1387,43 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertAll(
         () -> assertEquals(trackedEntityA.getUid(), actual.getFrom().getTrackedEntity().getUid()),
         () -> assertEquals(eventA.getUid(), actual.getTo().getEvent().getUid()));
+  }
+
+  @Test
+  void shouldFailWhenModeAllUserCanSearchEverywhereButNotSuperuserAndNoAccessToProgram() {
+    injectSecurityContext(userWithSearchInAllAuthority);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ALL)
+            .programUid(programC.getUid())
+            .user(userWithSearchInAllAuthority)
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> trackedEntityService.getTrackedEntities(operationParams));
+
+    assertContains(
+        String.format(
+            "Current user is not authorized to read data from selected program:  %s",
+            programC.getUid()),
+        ex.getMessage());
+  }
+
+  @Test
+  void shouldReturnAllEntitiesWhenSuperuserAndModeAll()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContext(admin);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ALL)
+            .programUid(programA.getUid())
+            .user(admin)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    assertContainsOnly(Set.of(trackedEntityA.getUid()), uids(trackedEntities));
   }
 
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {
