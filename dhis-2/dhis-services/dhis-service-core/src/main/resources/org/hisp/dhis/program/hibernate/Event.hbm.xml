@@ -44,7 +44,7 @@
 
     <property name="storedBy" />
 
-    <property name="scheduledDate" column="duedate" />
+    <property name="scheduledDate" column="scheduleddate" />
 
     <property name="occurredDate" column="executiondate" type="timestamp" index="programstageinstance_executiondate" />
 
