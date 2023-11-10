@@ -533,7 +533,7 @@ class EventOperationParamsMapperTest {
         .thenReturn(searchScopeChildOrgUnit);
 
     EventOperationParams operationParams =
-      eventBuilder
+        eventBuilder
             .programUid(program.getUid())
             .orgUnitUid(searchScopeChildOrgUnit.getUid())
             .orgUnitMode(ALL)
