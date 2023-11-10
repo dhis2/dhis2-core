@@ -45,7 +45,7 @@ public class EventQuery {
     ID(new TableColumn("ev", "eventid")),
     UID(new TableColumn("ev", "uid")),
     STATUS(new TableColumn("ev", "status")),
-    EXECUTION_DATE(new TableColumn("ev", "executiondate")),
+    OCCURRED_DATE(new TableColumn("ev", "occurreddate")),
     SCHEDULED_DATE(new TableColumn("ev", "scheduleddate")),
     STOREDBY(new TableColumn("ev", "storedby")),
     COMPLETEDBY(new TableColumn("ev", "completedby")),

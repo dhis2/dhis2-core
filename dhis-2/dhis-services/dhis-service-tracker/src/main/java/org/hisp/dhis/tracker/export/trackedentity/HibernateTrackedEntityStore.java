@@ -96,7 +96,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private static final String ENROLLMENT_DATE_KEY = "enrollment.enrollmentDate";
 
-  private static final String EV_EXECUTIONDATE = "EV.executiondate";
+  private static final String EV_OCCURREDDATE = "EV.occurreddate";
 
   private static final String EV_SCHEDULEDDATE = "EV.scheduleddate";
 
@@ -278,7 +278,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * the program_constraint, we also have a sub-query to deal with any event-related constraints.
    * These can either be constraints on any static properties, or user assignment. For user
    * assignment, we also join with the userinfo table. For events, we have an index (status,
-   * executiondate) which speeds up the lookup significantly order: Order is used both in the
+   * occurreddate) which speeds up the lookup significantly order: Order is used both in the
    * sub-query and the main query. The sort depends on the params (see more info on the related
    * method). We order the sub-query to make sure we get correct results before we limit. We order
    * the main query since the aggregation mixes up the order, so to return a consistent order, we
@@ -796,7 +796,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
       if (params.isEventStatus(EventStatus.COMPLETED)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, EV_EXECUTIONDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_OCCURREDDATE, start, end))
             .append(whereHlp.whereAnd())
             .append(EV_STATUS)
             .append(EQUALS)
@@ -807,7 +807,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       } else if (params.isEventStatus(EventStatus.VISITED)
           || params.isEventStatus(EventStatus.ACTIVE)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, EV_EXECUTIONDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_OCCURREDDATE, start, end))
             .append(whereHlp.whereAnd())
             .append(EV_STATUS)
             .append(EQUALS)
@@ -823,7 +823,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(SPACE)
             .append(IS_NOT_NULL)
             .append(whereHlp.whereAnd())
-            .append(EV_EXECUTIONDATE)
+            .append(EV_OCCURREDDATE)
             .append(SPACE)
             .append(IS_NULL)
             .append(whereHlp.whereAnd())
@@ -836,7 +836,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(SPACE)
             .append(IS_NOT_NULL)
             .append(whereHlp.whereAnd())
-            .append(EV_EXECUTIONDATE)
+            .append(EV_OCCURREDDATE)
             .append(SPACE)
             .append(IS_NULL)
             .append(whereHlp.whereAnd())
