@@ -360,7 +360,7 @@ public abstract class AbstractTrackerPersister<
           entityManager, preheat, trackedEntity.getUid(), trackedEntityAttributeValue.getValue());
     }
 
-    entityManager.remove(trackedEntityAttributeValue);
+    entityManager.remove( entityManager.contains(trackedEntityAttributeValue) ? trackedEntityAttributeValue : entityManager.merge(trackedEntityAttributeValue) );
 
     logTrackedEntityAttributeValueHistory(
         preheat.getUsername(), trackedEntityAttributeValue, trackedEntity, AuditType.DELETE);

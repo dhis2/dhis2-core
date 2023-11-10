@@ -52,15 +52,4 @@ public class ServiceConfig {
   public UriComponentsBuilder uriComponentsBuilder() {
     return UriComponentsBuilder.newInstance();
   }
-
-  @Bean
-  public DatabaseInfoProvider databaseInfoProvider(
-      DhisConfigurationProvider config, JdbcTemplate jdbcTemplate, Environment environment) {
-    return new HibernateDatabaseInfoProvider(config, jdbcTemplate, environment);
-  }
-
-  @Bean
-  public DatabaseInfoFactoryBean databaseInfo(DatabaseInfoProvider databaseInfoProvider) {
-    return new DatabaseInfoFactoryBean(databaseInfoProvider);
-  }
 }
