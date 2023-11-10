@@ -33,6 +33,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -42,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -52,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -73,6 +76,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -653,10 +657,36 @@ class TrackerTrackedEntityCriteriaMapperTest {
         actualFilters);
   }
 
+  @Test
+  void shouldFailWhenModeAllUserCanSearchEverywhereButNotSuperuserAndNoAccessToProgram() {
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+    criteria.setOuMode(ALL);
+
+    IllegalQueryException exception =
+        Assertions.assertThrows(IllegalQueryException.class, () -> mapper.map(criteria));
+    assertEquals(
+        "Current user is not authorized to query across all organisation units",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldMapWhenModeAllAndUserIsSuperuser() throws ForbiddenException, BadRequestException {
+    User admin = new User();
+    UserRole userRole = new UserRole();
+    userRole.setAuthorities(Set.of(ALL.name()));
+    admin.setUserRoles(Set.of(userRole));
+
+    when(currentUserService.currentUserIsAuthorized(anyString())).thenReturn(true);
+    criteria.setOuMode(ALL);
+
+    TrackedEntityInstanceQueryParams params = mapper.map(criteria);
+    assertEquals(ALL, params.getOrganisationUnitMode());
+  }
+
   @ParameterizedTest
   @EnumSource(
       value = OrganisationUnitSelectionMode.class,
-      names = {"CAPTURE", "ACCESSIBLE", "ALL"})
+      names = {"CAPTURE", "ACCESSIBLE"})
   void shouldPassWhenOuModeDoesNotNeedOrgUnitAndOrgUnitProvided(
       OrganisationUnitSelectionMode mode) {
     when(trackerAccessManager.canAccess(user, null, orgUnit1)).thenReturn(true);

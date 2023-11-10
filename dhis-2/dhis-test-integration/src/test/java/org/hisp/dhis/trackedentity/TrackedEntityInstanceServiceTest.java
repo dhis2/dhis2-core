@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static java.util.Collections.emptySet;
+import static org.hisp.dhis.common.AccessLevel.CLOSED;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.ENROLLED_AT;
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,7 +45,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -55,6 +61,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -116,6 +123,10 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
   private static final String ATTRIBUTE_VALUE = "Value";
 
   private User superUser;
+
+  private User userWithSearchInAllAuthority;
+
+  private Program disabledAccessProgram;
 
   @Override
   public void setUpTest() {
@@ -179,6 +190,20 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     attributeService.addTrackedEntityAttribute(attrE);
     attributeService.addTrackedEntityAttribute(filtF);
     attributeService.addTrackedEntityAttribute(filtG);
+
+    userWithSearchInAllAuthority =
+        createAndAddUser(
+            false,
+            "userSearchInAll",
+            Set.of(organisationUnit),
+            Set.of(organisationUnit),
+            "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
+
+    disabledAccessProgram = createProgram('C', new HashSet<>(), null);
+    disabledAccessProgram.setProgramType(ProgramType.WITH_REGISTRATION);
+    disabledAccessProgram.setAccessLevel(CLOSED);
+    disabledAccessProgram.getSharing().setPublicAccess(AccessStringHelper.disableDataSharing(null));
+    programService.addProgram(disabledAccessProgram);
 
     User user = createUserWithAuth("testUser");
     user.setTeiSearchOrganisationUnits(Set.of(organisationUnit));
@@ -895,6 +920,48 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
         entityInstanceService.getTrackedEntityInstances(params, true, true);
 
     assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldFailWhenModeAllUserCanSearchEverywhereButNotSuperuserAndNoAccessToProgram() {
+    injectSecurityContext(userWithSearchInAllAuthority);
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.setOrganisationUnitMode(ALL);
+    params.setProgram(disabledAccessProgram);
+    params.setUserWithAssignedUsers(
+        AssignedUserSelectionMode.ALL, userWithSearchInAllAuthority, emptySet());
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> entityInstanceService.getTrackedEntityInstanceIds(params, false, false));
+
+    assertContains(
+        String.format(
+            "Current user is not authorized to read data from selected program:  %s",
+            disabledAccessProgram.getUid()),
+        ex.getMessage());
+  }
+
+  @Test
+  void shouldReturnAllEntitiesWhenSuperuserAndModeAll() {
+    injectSecurityContext(superUser);
+    addEntityInstances();
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.setOrganisationUnitMode(ALL);
+    params.setOrganisationUnits(Set.of(organisationUnit));
+
+    List<Long> trackedEntities =
+        entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
+    assertContainsOnly(
+        Set.of(
+            entityInstanceA1.getId(),
+            entityInstanceB1.getId(),
+            entityInstanceC1.getId(),
+            entityInstanceD1.getId()),
+        trackedEntities);
   }
 
   private void initializeEntityInstance(TrackedEntityInstance entityInstance) {

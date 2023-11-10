@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.security;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -103,10 +104,12 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest {
 
   private ProgramStage programStageB;
 
+  private User admin;
+
   @Override
   protected void setUpTest() {
     userService = _userService;
-    User admin = createAndInjectAdminUser();
+    admin = createAndInjectAdminUser();
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
     manager.save(organisationUnitA);
@@ -433,6 +436,23 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest {
     manager.updateNoAcl(programA);
     importSummary = enrollmentService.addEnrollment(en, importOptions);
     assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+  }
+
+  @Test
+  void shouldReturnAllEnrollmentsWhenOrgUnitModeAllAndUserAuthorized() {
+    ImportSummary importSummary =
+        enrollmentService.addEnrollment(
+            createEnrollment(programA.getUid(), maleA.getUid()),
+            ImportOptions.getDefaultImportOptions());
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+
+    injectSecurityContext(admin);
+    ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+    params.setOrganisationUnitMode(ALL);
+    params.setUser(admin);
+
+    Enrollments enrollments = enrollmentService.getEnrollments(params);
+    assertNotNull(enrollments);
   }
 
   private Enrollment createEnrollment(String program, String person) {
