@@ -65,9 +65,12 @@ import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
@@ -81,6 +84,8 @@ import org.jboss.aerogear.security.otp.api.Base32;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
@@ -95,6 +100,12 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   @Autowired private SystemSettingManager systemSettingManager;
 
   @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private CurrentUserService currentUserService;
+
+  @Autowired private SessionRegistry sessionRegistry;
+
+  @Autowired private UserService userService;
 
   private User peter;
 
@@ -115,6 +126,41 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
     User user = userService.getUser(peter.getUid());
     assertEquals("peter@pan.net", user.getEmail());
+  }
+
+  @Test
+  void updateRolesShouldInvalidateUserSessions() {
+    CurrentUserDetails sessionPrincipal = userService.createUserDetails(superUser);
+    sessionRegistry.registerNewSession("session1", sessionPrincipal);
+
+    UserRole roleB = createUserRole("ROLE_B", "ALL");
+    userService.addUserRole(roleB);
+
+    String roleBID = userService.getUserRoleByName("ROLE_B").getUid();
+
+    PATCH(
+            "/users/" + superUser.getUid(),
+            "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleBID + "'}]}]")
+        .content(HttpStatus.OK);
+
+    List<SessionInformation> allSessionsA = sessionRegistry.getAllSessions(sessionPrincipal, false);
+    assertTrue(allSessionsA.isEmpty());
+
+    sessionRegistry.registerNewSession("session2", sessionPrincipal);
+
+    PATCH(
+            "/userRoles/" + roleBID,
+            "["
+                + " {"
+                + "   'op': 'add',"
+                + "   'path': '/authorities',"
+                + "   'value': ['NONE']"
+                + " }"
+                + "]")
+        .content(HttpStatus.OK);
+
+    List<SessionInformation> allSessionsB = sessionRegistry.getAllSessions(sessionPrincipal, false);
+    assertTrue(allSessionsB.isEmpty());
   }
 
   @Test
