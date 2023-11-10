@@ -553,7 +553,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           && !item.getRepeatableStageParams().simpleStageValueExpected()) {
         return "(select json_agg(t1) from (select "
             + colName
-            + ", incidentdate, duedate, executiondate "
+            + ", incidentdate, scheduleddate, executiondate "
             + " from "
             + eventTableName
             + " where "

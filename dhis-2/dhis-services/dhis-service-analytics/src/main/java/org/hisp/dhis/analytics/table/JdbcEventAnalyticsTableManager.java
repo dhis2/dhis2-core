@@ -142,7 +142,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTableColumn(quote("enrollmentdate"), TIMESTAMP, "pi.enrollmentdate"),
           new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.incidentdate"),
           new AnalyticsTableColumn(quote("executiondate"), TIMESTAMP, "psi.executiondate"),
-          new AnalyticsTableColumn(quote("duedate"), TIMESTAMP, "psi.duedate"),
+          new AnalyticsTableColumn(quote("scheduleddate"), TIMESTAMP, "psi.scheduleddate"),
           new AnalyticsTableColumn(quote("completeddate"), TIMESTAMP, "psi.completeddate"),
 
           /*
@@ -262,7 +262,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    *     status
    */
   static String getDateLinkedToStatus() {
-    return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.duedate ELSE psi.executiondate END";
+    return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.executiondate END";
   }
 
   /**

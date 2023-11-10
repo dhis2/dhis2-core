@@ -50,7 +50,7 @@ public class EventQuery {
     UID(new TableColumn("psi", "uid")),
     STATUS(new TableColumn("psi", "status")),
     EXECUTION_DATE(new TableColumn("psi", "executiondate")),
-    DUE_DATE(new TableColumn("psi", "duedate")),
+    DUE_DATE(new TableColumn("psi", "scheduleddate")),
     STOREDBY(new TableColumn("psi", "storedby")),
     COMPLETEDBY(new TableColumn("psi", "completedby")),
     COMPLETEDDATE(new TableColumn("psi", "completeddate")),
