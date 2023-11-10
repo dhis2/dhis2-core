@@ -342,10 +342,12 @@ public class DatabasePoolUtils {
   }
 
   public static void testConnection(DataSource dataSource) throws SQLException {
-    Connection conn = dataSource.getConnection();
 
-    try (Statement stmt = conn.createStatement()) {
+    try (Connection conn = dataSource.getConnection();
+        Statement stmt = conn.createStatement()) {
       stmt.executeQuery("select 'connection_test' as connection_test;");
+    } catch ( SQLException e ) {
+      log.error( e.getMessage() );
     }
   }
 }
