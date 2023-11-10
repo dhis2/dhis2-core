@@ -36,10 +36,12 @@ import java.util.Map;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
+@Component
 public class ContextInterceptor implements Interceptor {
   private static final String KEY_IN_MEMORY_DATABASE = "inMemoryDatabase";
 
