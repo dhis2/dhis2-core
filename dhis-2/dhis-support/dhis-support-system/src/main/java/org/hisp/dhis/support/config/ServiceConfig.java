@@ -27,14 +27,8 @@
  */
 package org.hisp.dhis.support.config;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.system.database.DatabaseInfoFactoryBean;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
-import org.hisp.dhis.system.database.HibernateDatabaseInfoProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
