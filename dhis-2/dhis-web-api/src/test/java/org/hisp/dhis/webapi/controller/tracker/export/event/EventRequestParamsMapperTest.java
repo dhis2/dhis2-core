@@ -520,7 +520,7 @@ class EventRequestParamsMapperTest {
             new Order("created", SortDirection.ASC),
             new Order(UID.of("zGlzbfreTOH"), SortDirection.ASC),
             new Order("programStage.uid", SortDirection.DESC),
-            new Order("dueDate", SortDirection.ASC)),
+            new Order("scheduledDate", SortDirection.ASC)),
         params.getOrder());
   }
 

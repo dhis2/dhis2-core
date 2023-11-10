@@ -596,7 +596,7 @@ public abstract class AbstractEventService
         EnrollmentStatus.fromProgramStatus(programStageInstance.getEnrollment().getStatus()));
     event.setStatus(programStageInstance.getStatus());
     event.setEventDate(DateUtils.getIso8601NoTz(programStageInstance.getOccurredDate()));
-    event.setDueDate(DateUtils.getIso8601NoTz(programStageInstance.getDueDate()));
+    event.setDueDate(DateUtils.getIso8601NoTz(programStageInstance.getScheduledDate()));
     event.setStoredBy(programStageInstance.getStoredBy());
     event.setCompletedBy(programStageInstance.getCompletedBy());
     event.setCompletedDate(DateUtils.getIso8601NoTz(programStageInstance.getCompletedDate()));
@@ -806,7 +806,8 @@ public abstract class AbstractEventService
       executionDate = DateUtils.parseDate(event.getEventDate());
     }
 
-    Date eventDate = executionDate != null ? executionDate : programStageInstance.getDueDate();
+    Date eventDate =
+        executionDate != null ? executionDate : programStageInstance.getScheduledDate();
 
     validateAttributeOptionComboDate(programStageInstance.getAttributeOptionCombo(), eventDate);
 

@@ -294,7 +294,7 @@ class EventImportTest extends TransactionalIntegrationTest {
 
     Event psi = programStageInstanceService.getEvent(eventUid);
 
-    assertEquals(DUE_DATE, DateUtils.getLongDateString(psi.getDueDate()));
+    assertEquals(DUE_DATE, DateUtils.getLongDateString(psi.getScheduledDate()));
   }
 
   /**

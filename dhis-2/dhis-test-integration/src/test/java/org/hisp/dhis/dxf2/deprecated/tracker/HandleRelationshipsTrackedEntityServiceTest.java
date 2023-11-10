@@ -109,7 +109,7 @@ class HandleRelationshipsTrackedEntityServiceTest extends SingleSetupIntegration
         enrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, null, null, organisationUnitA);
     eventA = new Event(enrollmentA, programStageA1);
-    eventA.setDueDate(null);
+    eventA.setScheduledDate(null);
     eventA.setUid("UID-A");
     CategoryCombo categoryComboA = createCategoryCombo('A');
     CategoryOptionCombo categoryOptionComboA = createCategoryOptionCombo('A');
