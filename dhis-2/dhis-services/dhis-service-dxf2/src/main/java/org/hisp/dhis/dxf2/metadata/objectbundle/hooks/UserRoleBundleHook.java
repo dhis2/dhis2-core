@@ -32,14 +32,9 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,25 +45,14 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
 
-  private final UserService userService;
-
-  private final FileResourceService fileResourceService;
+  public static final String INVALIDATE_SESSION_KEY = "shouldInvalidateUserSessions";
 
   private final CurrentUserService currentUserService;
 
-  private final AclService aclService;
-
-  private final UserSettingService userSettingService;
-
-  private final DhisConfigurationProvider dhisConfig;
-
   @Override
   public void preUpdate(UserRole update, UserRole existing, ObjectBundle bundle) {
-    log.info("preUpdate");
-
     if (update == null) return;
-
-    bundle.putExtras(update, "shouldInvalidateUsers", userRolesUpdated(update, existing));
+    bundle.putExtras(update, INVALIDATE_SESSION_KEY, userRolesUpdated(update, existing));
   }
 
   private Object userRolesUpdated(UserRole update, UserRole existing) {
@@ -79,15 +63,15 @@ public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
 
   @Override
   public void postUpdate(UserRole updatedUserRole, ObjectBundle bundle) {
-    log.info("postUpdate");
+    final Boolean invalidateSessions =
+        (Boolean) bundle.getExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
 
-    final Boolean shouldInvalidateUsers =
-        (Boolean) bundle.getExtras(updatedUserRole, "shouldInvalidateUsers");
-
-    if (Boolean.TRUE.equals(shouldInvalidateUsers)) {
+    if (Boolean.TRUE.equals(invalidateSessions)) {
       for (User user : updatedUserRole.getUsers()) {
         currentUserService.invalidateUserSessions(user.getUid());
       }
     }
+
+    bundle.removeExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
   }
 }
