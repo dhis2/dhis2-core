@@ -68,6 +68,9 @@ public class DefaultTrackerImportService implements TrackerImportService {
 
   @Nonnull private final TrackerUserService trackerUserService;
 
+  /* Import is not meant to be annotated with @Transactional.
+   * PreHeat and Commit phases are separated transactions, other
+   * phases do not need to be in a transaction. */
   @Override
   public ImportReport importTracker(
       TrackerImportParams params, TrackerObjects trackerObjects, JobProgress jobProgress) {
@@ -80,7 +83,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
     Map<TrackerType, Integer> bundleSize = calculatePayloadSize(trackerBundle);
 
     jobProgress.startingStage("Running PreProcess");
-    jobProgress.runStage(() -> preProcessBundle(trackerBundle));
+    jobProgress.runStage(() -> trackerPreprocessService.preprocess(trackerBundle));
 
     jobProgress.startingStage("Running Validation");
     ValidationResult validationResult = jobProgress.runStage(() -> validateBundle(trackerBundle));
@@ -111,7 +114,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
     PersistenceReport persistenceReport = jobProgress.runStage(() -> commit(params, trackerBundle));
 
     jobProgress.startingStage("PostCommit");
-    jobProgress.runStage(() -> postCommit(trackerBundle));
+    jobProgress.runStage(() -> trackerBundleService.postCommit(trackerBundle));
 
     return ImportReport.withImportCompleted(
         Status.OK, persistenceReport, validationReport, bundleSize);
@@ -123,10 +126,6 @@ public class DefaultTrackerImportService implements TrackerImportService {
     } else {
       return commitBundle(trackerBundle);
     }
-  }
-
-  private void postCommit(TrackerBundle trackerBundle) {
-    trackerBundleService.postCommit(trackerBundle);
   }
 
   protected ValidationResult validateBundle(TrackerBundle bundle) {
@@ -149,10 +148,6 @@ public class DefaultTrackerImportService implements TrackerImportService {
         TrackerType.ENROLLMENT, bundle.getEnrollments().size(),
         TrackerType.EVENT, bundle.getEvents().size(),
         TrackerType.RELATIONSHIP, bundle.getRelationships().size());
-  }
-
-  protected void preProcessBundle(TrackerBundle bundle) {
-    trackerPreprocessService.preprocess(bundle);
   }
 
   protected PersistenceReport commitBundle(TrackerBundle trackerBundle) {

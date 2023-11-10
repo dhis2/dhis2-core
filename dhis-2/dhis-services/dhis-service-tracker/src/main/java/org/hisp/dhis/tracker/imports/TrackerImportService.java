@@ -37,9 +37,11 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
  */
 public interface TrackerImportService {
   /**
-   * TO FINISH
+   * Import object using provided params. Takes the objects through all phases of the importer from
+   * preheating to validation, and then finished with a commit (unless its validate only)
    *
-   * @param params Parameters for import, including objects
+   * @param params Parameters for import
+   * @param trackerObjects the objects to import
    * @return Report giving status of import (and any errors)
    */
   default ImportReport importTracker(TrackerImportParams params, TrackerObjects trackerObjects) {
@@ -50,7 +52,9 @@ public interface TrackerImportService {
    * Import object using provided params. Takes the objects through all phases of the importer from
    * preheating to validation, and then finished with a commit (unless its validate only)
    *
-   * @param params Parameters for import, including objects
+   * @param params Parameters for import
+   * @param trackerObjects the objects to import
+   * @param jobProgress to track import progress
    * @return Report giving status of import (and any errors)
    */
   ImportReport importTracker(
