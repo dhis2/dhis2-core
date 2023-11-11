@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
 import java.util.Date;
@@ -43,6 +44,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -139,6 +141,13 @@ public class EnrollmentCriteriaMapper {
 
     if (program != null && pr == null) {
       throw new IllegalQueryException("Program does not exist: " + program);
+    }
+
+    if (params.isOrganisationUnitMode(ALL)
+        && !currentUserService.currentUserIsAuthorized(
+            Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name())) {
+      throw new IllegalQueryException(
+          "Current user is not authorized to query across all organisation units");
     }
 
     TrackedEntityType te =
