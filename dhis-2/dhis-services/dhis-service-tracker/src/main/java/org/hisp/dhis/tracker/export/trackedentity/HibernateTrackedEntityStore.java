@@ -658,6 +658,29 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       }
 
       orgUnits.append(") ");
+    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
+      SqlHelper orHlp = new SqlHelper(true);
+
+      orgUnits.append("AND (");
+
+      for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
+
+        OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
+        if (ou != null) {
+          orgUnits
+              .append(orHlp.or())
+              .append("OU.path LIKE '")
+              .append(ou.getPath())
+              .append("%'")
+              .append(" AND (ou.hierarchylevel = ")
+              .append(ou.getHierarchyLevel())
+              .append(" OR ou.hierarchylevel = ")
+              .append((ou.getHierarchyLevel() + 1))
+              .append(")");
+        }
+      }
+
+      orgUnits.append(") ");
     } else if (!params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ALL)) {
       orgUnits
           .append("AND OU.organisationunitid IN (")
