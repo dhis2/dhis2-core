@@ -355,9 +355,7 @@ public class DataValueSetImportValidator {
             .getOrgUnitInHierarchyMap()
             .get(
                 valueContext.getOrgUnit().getUid(),
-                () ->
-                    organisationUnitService.isDescendant(
-                        valueContext.getOrgUnit(), context.getCurrentOrgUnits()));
+                () -> valueContext.getOrgUnit().isDescendant(context.getCurrentOrgUnits()));
 
     if (!inUserHierarchy) {
       context.addConflict(
