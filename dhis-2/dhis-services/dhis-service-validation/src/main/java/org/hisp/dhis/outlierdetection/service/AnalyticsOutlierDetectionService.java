@@ -42,6 +42,8 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.stereotype.Service;
@@ -50,13 +52,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class AnalyticsOutlierDetectionService extends AbstractOutlierDetectionService<Grid> {
   private final AnalyticsZScoreOutlierDetectionManager zScoreOutlierDetection;
-  private static final int MAX_LIMIT = 5000;
+  private final int MAX_LIMIT;
 
   public AnalyticsOutlierDetectionService(
-      IdentifiableObjectManager idObjectManager,
-      AnalyticsZScoreOutlierDetectionManager zScoreOutlierDetection) {
+          IdentifiableObjectManager idObjectManager,
+          AnalyticsZScoreOutlierDetectionManager zScoreOutlierDetection, SystemSettingManager systemSettingManager) {
     super(idObjectManager);
     this.zScoreOutlierDetection = zScoreOutlierDetection;
+    MAX_LIMIT = systemSettingManager.getSystemSetting(SettingKey.ANALYTICS_MAX_LIMIT, Integer.class);
   }
 
   @Override

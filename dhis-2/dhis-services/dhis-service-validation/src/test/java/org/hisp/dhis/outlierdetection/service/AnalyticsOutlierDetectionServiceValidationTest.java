@@ -45,6 +45,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,6 +58,8 @@ class AnalyticsOutlierDetectionServiceValidationTest {
   @Mock private IdentifiableObjectManager idObjectManager;
 
   @Mock private AnalyticsZScoreOutlierDetectionManager zScoreOutlierManager;
+
+  @Mock private SystemSettingManager systemSettingManager;
 
   private OutlierDetectionService<Grid> subject;
 
@@ -76,7 +79,7 @@ class AnalyticsOutlierDetectionServiceValidationTest {
 
   @BeforeEach
   public void setUp() {
-    subject = new AnalyticsOutlierDetectionService(idObjectManager, zScoreOutlierManager);
+    subject = new AnalyticsOutlierDetectionService(idObjectManager, zScoreOutlierManager, systemSettingManager);
 
     deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM);
