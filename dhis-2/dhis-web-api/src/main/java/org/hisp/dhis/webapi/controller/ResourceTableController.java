@@ -95,7 +95,7 @@ public class ResourceTableController {
       @RequestParam(required = false) boolean executeTei,
       @RequestParam(required = false) boolean skipOrgUnitOwnership,
       @RequestParam(required = false) Integer lastYears,
-      @RequestParam(required = false) boolean skipOutliersStats)
+      @RequestParam(required = false) boolean skipOutliers)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
     Set<String> skipPrograms = new HashSet<>();
@@ -128,7 +128,7 @@ public class ResourceTableController {
     config.setExecutedBy(currentUserService.getCurrentUser().getUid());
     config.setJobParameters(
         new AnalyticsJobParameters(
-            lastYears, skipTableTypes, skipPrograms, skipResourceTables, skipOutliersStats));
+            lastYears, skipTableTypes, skipPrograms, skipResourceTables, skipOutliers));
 
     return execute(config);
   }

@@ -48,18 +48,19 @@ import org.springframework.stereotype.Component;
 @Component
 @Qualifier("ZScoreSqlProcessor")
 public class ZScoreSqlStatementProcessor extends AbstractOutlierSqlStatementProcessor {
+
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
     if (request == null) {
       return StringUtils.EMPTY;
     }
 
-    final String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
-    final String dataStartDateClause = getDataStartDateClause(request.getDataStartDate());
-    final String dataEndDateClause = getDataEndDateClause(request.getDataEndDate());
+    String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
+    String dataStartDateClause = getDataStartDateClause(request.getDataStartDate());
+    String dataEndDateClause = getDataEndDateClause(request.getDataEndDate());
 
-    final boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
-    final String middle_stats_calc =
+    boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
+    String middle_stats_calc =
         modifiedZ
             ? "percentile_cont(0.5) within group(order by dv.value::double precision)"
             : "avg(dv.value::double precision)";

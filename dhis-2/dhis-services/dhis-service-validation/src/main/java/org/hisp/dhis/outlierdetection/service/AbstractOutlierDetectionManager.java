@@ -59,10 +59,10 @@ public abstract class AbstractOutlierDetectionManager {
 
   public List<OutlierValue> getOutlierValues(OutlierDetectionRequest request) {
 
-    final String sql = sqlStatementProcessor.getSqlStatement(request);
-    final SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);
-    final Calendar calendar = PeriodType.getCalendar();
-    final boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
+    String sql = sqlStatementProcessor.getSqlStatement(request);
+    SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);
+    Calendar calendar = PeriodType.getCalendar();
+    boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
 
     try {
       return jdbcTemplate.query(sql, params, getRowMapper(calendar, modifiedZ));
@@ -86,10 +86,9 @@ public abstract class AbstractOutlierDetectionManager {
       final Calendar calendar, boolean modifiedZ);
 
   protected OutlierValue getOutlierValue(Calendar calendar, ResultSet rs) throws SQLException {
-    final OutlierValue outlier = new OutlierValue();
+    OutlierValue outlier = new OutlierValue();
 
-    final String isoPeriod =
-        getIsoPeriod(calendar, rs.getString("pt_name"), rs.getDate("pe_start_date"));
+    String isoPeriod = getIsoPeriod(calendar, rs.getString("pt_name"), rs.getDate("pe_start_date"));
 
     outlier.setDe(rs.getString("de_uid"));
     outlier.setDeName(rs.getString("de_name"));

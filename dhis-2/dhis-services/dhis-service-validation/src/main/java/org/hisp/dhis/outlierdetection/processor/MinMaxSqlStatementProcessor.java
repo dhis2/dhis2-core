@@ -42,13 +42,14 @@ import org.springframework.stereotype.Component;
 @Component
 @Qualifier("MinMaxSqlProcessor")
 public class MinMaxSqlStatementProcessor extends AbstractOutlierSqlStatementProcessor {
+
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
     if (request == null) {
       return StringUtils.EMPTY;
     }
 
-    final String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
+    String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
 
     return "select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, "
         + "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, "

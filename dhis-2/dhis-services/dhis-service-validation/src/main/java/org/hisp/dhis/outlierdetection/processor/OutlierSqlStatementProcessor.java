@@ -41,7 +41,7 @@ public interface OutlierSqlStatementProcessor {
   String getSqlStatement(OutlierDetectionRequest request);
 
   /**
-   * retrieve psql parameters for outliers sql statement
+   * Retrieve SQL parameters for outliers SQL statement
    *
    * @param request the instance of {@link OutlierDetectionRequest}.
    * @return teh instance of {@link SqlParameterSource}.

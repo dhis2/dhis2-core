@@ -52,17 +52,17 @@ public class ContinuousAnalyticsJobParameters implements JobParameters {
   /** The types of analytics tables for which to skip update. */
   @JsonProperty private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
-  /** Outliers staistics columns of Analytics tables will be skipped. */
-  @JsonProperty private Boolean skipOutliersStatistics = false;
+  /** Outliers statistics columns of Analytics tables will be skipped. */
+  @JsonProperty private Boolean skipOutliers = false;
 
   public ContinuousAnalyticsJobParameters(
       Integer fullUpdateHourOfDay,
       Integer lastYears,
       Set<AnalyticsTableType> skipTableTypes,
-      Boolean skipOutliersStatistics) {
+      Boolean skipOutliers) {
     this.fullUpdateHourOfDay = fullUpdateHourOfDay;
     this.lastYears = lastYears;
     this.skipTableTypes = skipTableTypes;
-    this.skipOutliersStatistics = skipOutliersStatistics;
+    this.skipOutliers = skipOutliers;
   }
 }

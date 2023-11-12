@@ -46,15 +46,16 @@ import org.springframework.stereotype.Component;
 @Component
 @Qualifier("AnalyticsZScoreSqlProcessor")
 public class AnalyticsZScoreSqlStatementProcessor extends AbstractOutlierSqlStatementProcessor {
+
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
     if (request == null) {
       return StringUtils.EMPTY;
     }
 
-    final String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
+    String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
 
-    final boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
+    boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
 
     String middleValue = modifiedZ ? " ax.percentile_middle_value" : " ax.avg_middle_value";
 

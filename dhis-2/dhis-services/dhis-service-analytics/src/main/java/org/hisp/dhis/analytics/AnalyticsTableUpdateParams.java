@@ -58,7 +58,7 @@ public class AnalyticsTableUpdateParams {
   private boolean skipResourceTables;
 
   /** Indicates whether to skip update of analytics tables, outliers stats columns. */
-  private boolean skipOutliersStatistics;
+  private boolean skipOutliers;
 
   /** Analytics table types to skip. */
   private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
@@ -104,8 +104,8 @@ public class AnalyticsTableUpdateParams {
     return skipResourceTables;
   }
 
-  public boolean isSkipOutliersStatistics() {
-    return skipOutliersStatistics;
+  public boolean isSkipOutliers() {
+    return skipOutliers;
   }
 
   public Set<AnalyticsTableType> getSkipTableTypes() {
@@ -156,7 +156,7 @@ public class AnalyticsTableUpdateParams {
         .add("skip resource tables", skipResourceTables)
         .add("skip table types", skipTableTypes)
         .add("skip programs", skipPrograms)
-        .add("skip outliers statistics", skipOutliersStatistics)
+        .add("skip outliers statistics", skipOutliers)
         .add("start time", DateUtils.getLongDateString(startTime))
         .toString();
   }
@@ -194,7 +194,7 @@ public class AnalyticsTableUpdateParams {
 
     params.lastYears = this.lastYears;
     params.skipResourceTables = this.skipResourceTables;
-    params.skipOutliersStatistics = this.skipOutliersStatistics;
+    params.skipOutliers = this.skipOutliers;
     params.skipTableTypes = new HashSet<>(this.skipTableTypes);
     params.skipPrograms = new HashSet<>(this.skipPrograms);
     params.jobId = this.jobId;
@@ -239,8 +239,8 @@ public class AnalyticsTableUpdateParams {
       return this;
     }
 
-    public Builder withSkipOutliersStatistics(boolean skipOutliersStatistics) {
-      this.params.skipOutliersStatistics = skipOutliersStatistics;
+    public Builder withSkipOutliers(boolean skipOutliers) {
+      this.params.skipOutliers = skipOutliers;
       return this;
     }
 
