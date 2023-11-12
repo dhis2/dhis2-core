@@ -39,7 +39,8 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
-import org.hisp.dhis.outlierdetection.service.OutlierDetectionService;
+import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
+import org.hisp.dhis.outlierdetection.service.DefaultOutlierDetectionService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -58,13 +59,14 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @PreAuthorize("hasRole('ALL') or hasRole('F_RUN_VALIDATION')")
 public class OutlierDetectionController {
-  private final OutlierDetectionService<OutlierDetectionResponse> outlierService;
 
+  private final DefaultOutlierDetectionService outlierService;
   private final ContextUtils contextUtils;
+  private final OutlierDetectionQueryParser queryParser;
 
   @GetMapping(value = "/outlierDetection", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody OutlierDetectionResponse getOutliersJson(OutlierDetectionQuery query) {
-    OutlierDetectionRequest request = outlierService.getFromQuery(query);
+    OutlierDetectionRequest request = getFromQuery(query);
 
     return outlierService.getOutlierValues(request);
   }
@@ -72,11 +74,14 @@ public class OutlierDetectionController {
   @GetMapping(value = "/outlierDetection.csv")
   public void getOutliersCsv(OutlierDetectionQuery query, HttpServletResponse response)
       throws IOException {
-    OutlierDetectionRequest request = outlierService.getFromQuery(query);
-
+    OutlierDetectionRequest request = getFromQuery(query);
     contextUtils.configureResponse(
         response, CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE, "outlierdata.csv", true);
 
     outlierService.getOutlierValuesAsCsv(request, response.getWriter());
+  }
+
+  private OutlierDetectionRequest getFromQuery(OutlierDetectionQuery query){
+    return queryParser.getFromQuery(query, false);
   }
 }

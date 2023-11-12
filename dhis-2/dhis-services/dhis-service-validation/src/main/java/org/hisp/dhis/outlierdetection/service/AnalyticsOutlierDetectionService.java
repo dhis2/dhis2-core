@@ -31,40 +31,27 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.stereotype.Service;
 
 @Slf4j
+@AllArgsConstructor
 @Service
-public class AnalyticsOutlierDetectionService extends AbstractOutlierDetectionService<Grid> {
+public class AnalyticsOutlierDetectionService {
+
   private final AnalyticsZScoreOutlierDetectionManager zScoreOutlierDetection;
-  private SystemSettingManager systemSettingManager;
 
-  public AnalyticsOutlierDetectionService(
-          IdentifiableObjectManager idObjectManager,
-          AnalyticsZScoreOutlierDetectionManager zScoreOutlierDetection, SystemSettingManager systemSettingManager) {
-    super(idObjectManager);
-    this.zScoreOutlierDetection = zScoreOutlierDetection;
-    this.systemSettingManager = systemSettingManager;
-  }
-
-  @Override
   public Grid getOutlierValues(OutlierDetectionRequest request) throws IllegalQueryException {
-    validate(request);
     List<OutlierValue> outlierValues = zScoreOutlierDetection.getOutlierValues(request);
 
     Grid grid = new ListGrid();
@@ -75,64 +62,29 @@ public class AnalyticsOutlierDetectionService extends AbstractOutlierDetectionSe
     return grid;
   }
 
-  @Override
   public void getOutlierValuesAsCsv(OutlierDetectionRequest request, Writer writer)
       throws IllegalQueryException, IOException {
     GridUtils.toCsv(getOutlierValues(request), writer);
   }
 
-  @Override
   public void getOutlierValuesAsXml(OutlierDetectionRequest request, OutputStream outputStream)
       throws IllegalQueryException {
     GridUtils.toXml(getOutlierValues(request), outputStream);
   }
 
-  @Override
   public void getOutlierValuesAsXls(OutlierDetectionRequest request, OutputStream outputStream)
       throws IllegalQueryException, IOException {
     GridUtils.toXls(getOutlierValues(request), outputStream);
   }
 
-  @Override
   public void getOutlierValuesAsHtml(OutlierDetectionRequest request, Writer writer)
       throws IllegalQueryException {
     GridUtils.toHtml(getOutlierValues(request), writer);
   }
 
-  @Override
   public void getOutlierValuesAsHtmlCss(OutlierDetectionRequest request, Writer writer)
       throws IllegalQueryException {
     GridUtils.toHtmlCss(getOutlierValues(request), writer);
-  }
-
-  @Override
-  protected ErrorMessage validateForErrorMessage(OutlierDetectionRequest request) {
-    ErrorMessage error = null;
-    int maxLimit = systemSettingManager.getSystemSetting(SettingKey.ANALYTICS_MAX_LIMIT, Integer.class);
-
-    if (request.getDataElements().isEmpty()) {
-      error = new ErrorMessage(ErrorCode.E2200);
-    } else if (request.getStartDate() == null || request.getEndDate() == null) {
-      error = new ErrorMessage(ErrorCode.E2201);
-    } else if (request.getStartDate().after(request.getEndDate())) {
-      error = new ErrorMessage(ErrorCode.E2202);
-    } else if (request.getOrgUnits().isEmpty()) {
-      error = new ErrorMessage(ErrorCode.E2203);
-    } else if (request.getThreshold() <= 0) {
-      error = new ErrorMessage(ErrorCode.E2204);
-    } else if (request.getMaxResults() <= 0) {
-      error = new ErrorMessage(ErrorCode.E2205);
-    } else if (request.getMaxResults() > maxLimit) {
-      error = new ErrorMessage(ErrorCode.E2206, maxLimit);
-    } else if (request.getDataStartDate() != null) {
-      error = new ErrorMessage(ErrorCode.E2209);
-    } else if (request.getDataEndDate() != null) {
-      error = new ErrorMessage(ErrorCode.E2210);
-    } else if (request.getAlgorithm() == OutlierDetectionAlgorithm.MIN_MAX) {
-      error = new ErrorMessage(ErrorCode.E2211);
-    }
-
-    return error;
   }
 
   private void setHeaders(Grid grid) {

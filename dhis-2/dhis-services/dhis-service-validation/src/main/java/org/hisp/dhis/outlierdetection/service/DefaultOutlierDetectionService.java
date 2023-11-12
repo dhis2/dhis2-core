@@ -28,11 +28,11 @@
 package org.hisp.dhis.outlierdetection.service;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Writer;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.outlierdetection.OutlierDetectionMetadata;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
@@ -45,60 +45,24 @@ import org.springframework.stereotype.Service;
  * @author Lars Helge Overland
  */
 @Slf4j
+@AllArgsConstructor
 @Service
-public class DefaultOutlierDetectionService
-    extends AbstractOutlierDetectionService<OutlierDetectionResponse> {
+public class DefaultOutlierDetectionService {
+
   private final ZScoreOutlierDetectionManager zScoreOutlierDetection;
   private final MinMaxOutlierDetectionManager minMaxOutlierDetection;
 
-  public DefaultOutlierDetectionService(
-      IdentifiableObjectManager idObjectManager,
-      ZScoreOutlierDetectionManager zScoreOutlierDetection,
-      MinMaxOutlierDetectionManager minMaxOutlierDetection) {
-    super(idObjectManager);
-    this.zScoreOutlierDetection = zScoreOutlierDetection;
-    this.minMaxOutlierDetection = minMaxOutlierDetection;
-  }
-
-  @Override
   public OutlierDetectionResponse getOutlierValues(OutlierDetectionRequest request)
       throws IllegalQueryException {
-    validate(request);
-
     final OutlierDetectionResponse response = new OutlierDetectionResponse();
     response.setOutlierValues(getOutliers(request));
     response.setMetadata(getMetadata(request, response.getOutlierValues()));
     return response;
   }
 
-  @Override
   public void getOutlierValuesAsCsv(OutlierDetectionRequest request, Writer writer)
       throws IllegalQueryException, IOException {
     JacksonCsvUtils.toCsv(getOutlierValues(request).getOutlierValues(), OutlierValue.class, writer);
-  }
-
-  @Override
-  public void getOutlierValuesAsXml(OutlierDetectionRequest request, OutputStream outputStream)
-      throws IllegalQueryException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void getOutlierValuesAsXls(OutlierDetectionRequest request, OutputStream outputStream)
-      throws IllegalQueryException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void getOutlierValuesAsHtml(OutlierDetectionRequest request, Writer writer)
-      throws IllegalQueryException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void getOutlierValuesAsHtmlCss(OutlierDetectionRequest request, Writer writer)
-      throws IllegalQueryException {
-    throw new UnsupportedOperationException();
   }
 
   /**

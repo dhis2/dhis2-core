@@ -42,7 +42,8 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.outlierdetection.service.OutlierDetectionService;
+import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
+import org.hisp.dhis.outlierdetection.service.AnalyticsOutlierDetectionService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -61,12 +62,13 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('ALL') or hasRole('F_RUN_VALIDATION')")
 public class AnalyticsOutlierDetectionController {
   private static final String RESOURCE_PATH = "/analytics/outlierDetection";
-  private final OutlierDetectionService<Grid> outlierService;
+  private final AnalyticsOutlierDetectionService outlierService;
   private final ContextUtils contextUtils;
+  private final OutlierDetectionQueryParser queryParser;
 
   @GetMapping(value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE)
   public Grid getOutliersJson(OutlierDetectionQuery query) {
-    OutlierDetectionRequest request = outlierService.getFromQuery(query);
+    OutlierDetectionRequest request = getFromQuery(query);
 
     return outlierService.getOutlierValues(request);
   }
@@ -74,8 +76,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".csv")
   public void getOutliersCsv(OutlierDetectionQuery query, HttpServletResponse response)
       throws IOException {
-    OutlierDetectionRequest request = outlierService.getFromQuery(query);
-
+    OutlierDetectionRequest request = getFromQuery(query);
     contextUtils.configureResponse(
         response, CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE, "outlierdata.csv", true);
 
@@ -85,8 +86,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".xml")
   public void getOutliersXml(OutlierDetectionQuery query, HttpServletResponse response)
       throws IOException {
-    OutlierDetectionRequest request = outlierService.getFromQuery(query);
-
+    OutlierDetectionRequest request = getFromQuery(query);
     contextUtils.configureResponse(response, CONTENT_TYPE_XML, CacheStrategy.NO_CACHE);
 
     outlierService.getOutlierValuesAsXml(request, response.getOutputStream());
@@ -95,8 +95,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".xls")
   public void getOutliersXls(OutlierDetectionQuery query, HttpServletResponse response)
       throws IOException {
-    OutlierDetectionRequest request = outlierService.getFromQuery(query);
-
+    OutlierDetectionRequest request = getFromQuery(query);
     contextUtils.configureResponse(
         response, CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE, "outlierdata.xls", true);
 
@@ -106,7 +105,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".html")
   public void getOutliersHtml(OutlierDetectionQuery query, HttpServletResponse response)
       throws IOException {
-    OutlierDetectionRequest request = outlierService.getFromQuery(query);
+    OutlierDetectionRequest request = getFromQuery(query);
 
     contextUtils.configureResponse(response, CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE);
 
@@ -116,10 +115,13 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".html+css")
   public void getOutliersHtmlCss(OutlierDetectionQuery query, HttpServletResponse response)
       throws IOException {
-    OutlierDetectionRequest request = outlierService.getFromQuery(query);
-
+    OutlierDetectionRequest request = getFromQuery(query);
     contextUtils.configureResponse(response, CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE);
 
     outlierService.getOutlierValuesAsHtmlCss(request, response.getWriter());
+  }
+
+  private OutlierDetectionRequest getFromQuery(OutlierDetectionQuery query){
+    return queryParser.getFromQuery(query, true);
   }
 }

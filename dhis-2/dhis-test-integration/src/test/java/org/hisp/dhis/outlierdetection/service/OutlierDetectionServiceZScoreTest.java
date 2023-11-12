@@ -53,6 +53,7 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.hisp.dhis.outlierdetection.OutlierValue;
+import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -74,7 +75,9 @@ class OutlierDetectionServiceZScoreTest extends IntegrationTestBase {
 
   @Autowired private DataValueService dataValueService;
 
-  @Autowired private OutlierDetectionService<OutlierDetectionResponse> subject;
+  @Autowired private DefaultOutlierDetectionService subject;
+
+  @Autowired private OutlierDetectionQueryParser parser;
 
   private DataElement deA;
 
@@ -125,7 +128,7 @@ class OutlierDetectionServiceZScoreTest extends IntegrationTestBase {
     query.setAlgorithm(OutlierDetectionAlgorithm.Z_SCORE);
     query.setThreshold(2.5);
     query.setMaxResults(100);
-    OutlierDetectionRequest request = subject.getFromQuery(query);
+    OutlierDetectionRequest request = parser.getFromQuery(query, false);
     assertEquals(2, request.getDataElements().size());
     assertEquals(2, request.getOrgUnits().size());
     assertEquals(getDate(2020, 1, 1), request.getStartDate());
