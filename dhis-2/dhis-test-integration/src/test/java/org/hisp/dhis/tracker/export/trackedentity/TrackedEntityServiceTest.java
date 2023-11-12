@@ -1472,6 +1472,27 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  void
+      shouldReturnAllChildrenOfRequestedOrgUnitsWhenOrgUnitModeChildrenAndMultipleOrgUnitsRequested()
+          throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(CHILDREN)
+            .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitChildA.getUid()))
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    assertContainsOnly(
+        Set.of(
+            trackedEntityA.getUid(),
+            trackedEntityChildA.getUid(),
+            trackedEntityGrandchildA.getUid()),
+        uids(trackedEntities));
+  }
+
+  @Test
   void shouldReturnAllEntitiesWhenSuperuserAndModeAll()
       throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContext(admin);
