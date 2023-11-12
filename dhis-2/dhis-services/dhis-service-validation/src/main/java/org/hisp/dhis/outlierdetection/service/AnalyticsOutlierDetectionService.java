@@ -52,14 +52,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class AnalyticsOutlierDetectionService extends AbstractOutlierDetectionService<Grid> {
   private final AnalyticsZScoreOutlierDetectionManager zScoreOutlierDetection;
-  private final int MAX_LIMIT;
+  private SystemSettingManager systemSettingManager;
 
   public AnalyticsOutlierDetectionService(
           IdentifiableObjectManager idObjectManager,
           AnalyticsZScoreOutlierDetectionManager zScoreOutlierDetection, SystemSettingManager systemSettingManager) {
     super(idObjectManager);
     this.zScoreOutlierDetection = zScoreOutlierDetection;
-    MAX_LIMIT = systemSettingManager.getSystemSetting(SettingKey.ANALYTICS_MAX_LIMIT, Integer.class);
+    this.systemSettingManager = systemSettingManager;
   }
 
   @Override
@@ -108,6 +108,7 @@ public class AnalyticsOutlierDetectionService extends AbstractOutlierDetectionSe
   @Override
   protected ErrorMessage validateForErrorMessage(OutlierDetectionRequest request) {
     ErrorMessage error = null;
+    int maxLimit = systemSettingManager.getSystemSetting(SettingKey.ANALYTICS_MAX_LIMIT, Integer.class);
 
     if (request.getDataElements().isEmpty()) {
       error = new ErrorMessage(ErrorCode.E2200);
@@ -121,8 +122,8 @@ public class AnalyticsOutlierDetectionService extends AbstractOutlierDetectionSe
       error = new ErrorMessage(ErrorCode.E2204);
     } else if (request.getMaxResults() <= 0) {
       error = new ErrorMessage(ErrorCode.E2205);
-    } else if (request.getMaxResults() > MAX_LIMIT) {
-      error = new ErrorMessage(ErrorCode.E2206, MAX_LIMIT);
+    } else if (request.getMaxResults() > maxLimit) {
+      error = new ErrorMessage(ErrorCode.E2206, maxLimit);
     } else if (request.getDataStartDate() != null) {
       error = new ErrorMessage(ErrorCode.E2209);
     } else if (request.getDataEndDate() != null) {
