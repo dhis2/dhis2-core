@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyIterable;
+import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
@@ -88,6 +89,8 @@ public class TrackerExportTests extends TrackerNtiApiTest {
 
   private static final String TEI_POTENTIAL_DUPLICATE = "Nav6inZRw1u";
 
+  private static String eventToTeiRelationship;
+
   private static JsonObject teiWithEnrollmentAndEventsTemplate;
 
   @BeforeAll
@@ -103,12 +106,15 @@ public class TrackerExportTests extends TrackerNtiApiTest {
 
     enrollment = response.extractImportedEnrollments().get(0);
 
+    event = response.extractImportedEvents().get(0);
+
     teiToTeiRelationship =
         importRelationshipBetweenTeis(teiA, teiB).extractImportedRelationships().get(0);
     enrollmentToTeiRelationship =
         importRelationshipEnrollmentToTei(enrollment, teiB).extractImportedRelationships().get(0);
 
-    event = response.extractImportedEvents().get(0);
+    eventToTeiRelationship =
+        importRelationshipEventToTei(event, teiB).extractImportedRelationships().get(0);
 
     teiWithEnrollmentAndEventsTemplate =
         new FileReaderUtils()
@@ -425,6 +431,28 @@ public class TrackerExportTests extends TrackerNtiApiTest {
         .body("relationship", equalTo(teiToTeiRelationship))
         .body("from.trackedEntity.trackedEntity", equalTo(teiA))
         .body("to.trackedEntity.trackedEntity", equalTo(teiB));
+  }
+
+  @Test
+  public void shouldReturnRelationshipsWhenEventHasRelationshipsAndFieldsIncludeRelationships() {
+    trackerActions
+        .get("events?event=" + event + "&fields=relationships")
+        .validate()
+        .statusCode(200)
+        .body("instances", hasSize(greaterThanOrEqualTo(1)))
+        .rootPath("instances[0].relationships[0]")
+        .body("relationship", equalTo(eventToTeiRelationship))
+        .body("from.event.event", equalTo(event))
+        .body("to.trackedEntity.trackedEntity", equalTo(teiB));
+  }
+
+  @Test
+  public void shouldNotReturnRelationshipsWhenEventHasRelationshipsAndFieldsExcludeRelationships() {
+    trackerActions
+        .get("events?event=" + event)
+        .validate()
+        .statusCode(200)
+        .body("instances[0].relationships", emptyOrNullString());
   }
 
   @Test
