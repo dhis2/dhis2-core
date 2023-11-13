@@ -4,6 +4,11 @@
 
 set -euo pipefail
 
+if ! git diff --cached --exit-code; then
+  echo "Nothing should be staged when running this script."
+  exit 1
+fi
+
 if ! command -v git &> /dev/null; then
     echo "git could not be found."
     exit 1
