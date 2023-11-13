@@ -59,5 +59,5 @@ git checkout "$current_branch"
 
 # Delete local branches
 for branch in "${branches[@]}"; do
-  git branch -D "$branch"
+  git branch -D "${base_branch}_${branch}"
 done
