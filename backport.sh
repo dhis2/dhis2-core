@@ -43,6 +43,8 @@ pr_url=$(gh pr view "$pr_id" --json url --jq '.url')
 pr_title=$(gh pr view "$pr_id" --json title --jq '.title')
 pr_reviewer=$(gh pr view "$pr_id" --json reviews --jq '.reviews | map(.author.login) | join(",")')
 
+current_branch=$(git branch --show-current)
+
 branches=("$@")
 for branch in "${branches[@]}"; do
   git checkout "$branch"
@@ -51,4 +53,11 @@ for branch in "${branches[@]}"; do
   git cherry-pick "$commit"
   git push origin "${base_branch}_${branch}"
   gh pr create --head "${base_branch}_${branch}" --base "$branch" --title "backport: $pr_title" --body "$pr_url" --reviewer "$pr_reviewer"
+done
+
+git checkout "$current_branch"
+
+# Delete local branches
+for branch in "${branches[@]}"; do
+  git branch -D "$branch"
 done
