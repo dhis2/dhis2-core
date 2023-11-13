@@ -41,6 +41,7 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -247,18 +248,27 @@ public class HibernateJobConfigurationStore
 
   @Nonnull
   @Override
-  public List<JobConfiguration> findJobConfigurations(@Nonnull JobConfigurationErrorParams params) {
+  public Stream<String> findJobsWithErrors(@Nonnull JobsWithErrorsParams params) {
     // language=SQL
     String sql =
         """
-    select * from jobconfiguration
-    where errorcodes is not null and errorcodes != ''
-      and (:skipUser or executedby = :user)
-      and (:skipStart or lastexecuted >= :start)
-      and (:skipEnd or lastexecuted <= :end)
-      and (:skipObjects or jsonb_exists_any(progress -> 'errors', :objects ))
-      and (:skipCodes or string_to_array(errorcodes, ' ') && :codes)
-    order by lastexecuted desc;
+    select jsonb_build_object(
+    'id', c.uid,
+    'user', c.executedby,
+    'created', c.created,
+    'executed', c.lastexecuted,
+    'finished', c.lastfinished,
+    'filesize', fr.contentlength,
+    'filetype', fr.contenttype,
+    'errors', c.progress -> 'errors') #>> '{}'
+    from jobconfiguration c left join fileresource fr on c.uid = fr.uid
+    where c.errorcodes is not null and c.errorcodes != ''
+      and (:skipUser or c.executedby = :user)
+      and (:skipStart or c.lastexecuted >= :start)
+      and (:skipEnd or c.lastexecuted <= :end)
+      and (:skipObjects or jsonb_exists_any(c.progress -> 'errors', :objects ))
+      and (:skipCodes or string_to_array(c.errorcodes, ' ') && :codes)
+    order by c.lastexecuted desc;
     """;
     List<UID> objectList = params.getObject();
     List<String> errors =
@@ -266,12 +276,12 @@ public class HibernateJobConfigurationStore
     List<ErrorCode> codeList = params.getCode();
     List<String> codes =
         codeList == null ? List.of() : codeList.stream().map(ErrorCode::name).toList();
-    Date start = params.getStart();
-    Date end = params.getEnd();
-    return getSession()
-        .createNativeQuery(sql, JobConfiguration.class)
-        .setParameter("skipUser", params.getUser() == null)
-        .setParameter("user", params.getUser())
+    Date start = params.getFrom();
+    Date end = params.getTo();
+    UID user = params.getUser();
+    return getResultStream(nativeQuery(sql)
+        .setParameter("skipUser", user == null)
+        .setParameter("user", user == null ? "" : user.getValue())
         .setParameter("skipStart", start == null)
         .setParameter("start", start == null ? new Date() : start)
         .setParameter("skipEnd", end == null)
@@ -280,7 +290,7 @@ public class HibernateJobConfigurationStore
         .setParameter("objects", errors.toArray(String[]::new), StringArrayType.INSTANCE)
         .setParameter("skipCodes", codes.isEmpty())
         .setParameter("codes", codes.toArray(String[]::new), StringArrayType.INSTANCE)
-        .list();
+        , Object::toString);
   }
 
   @Override
@@ -507,8 +517,15 @@ public class HibernateJobConfigurationStore
   }
 
   @SuppressWarnings("unchecked")
-  private static <T> Set<T> getResultSet(NativeQuery<?> query, Function<String, T> mapper) {
+  private static <T> Set<T> getResultSet(Query<?> query, Function<String, T> mapper) {
     Stream<String> stream = (Stream<String>) query.stream();
     return stream.map(mapper).collect(toSet());
   }
+
+  @SuppressWarnings("unchecked")
+  private static <T> Stream<T> getResultStream(Query<?> query, Function<String, T> mapper) {
+    Stream<String> stream = (Stream<String>) query.stream();
+    return stream.map(mapper);
+  }
+
 }

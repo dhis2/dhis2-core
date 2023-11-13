@@ -35,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.*;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.scheduling.*;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.hisp.dhis.schema.Property;
@@ -69,8 +70,8 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   private final JobSchedulerService jobSchedulerService;
 
   @GetMapping("/errors")
-  public List<JobConfiguration> findJobConfigurations(JobConfigurationErrorParams params) {
-    return jobConfigurationService.findJobConfigurations(params);
+  public List<JsonObject> findJobConfigurationErrors(JobsWithErrorsParams params) {
+    return jobConfigurationService.findJobsWithErrors(params);
   }
 
   @GetMapping("/due")

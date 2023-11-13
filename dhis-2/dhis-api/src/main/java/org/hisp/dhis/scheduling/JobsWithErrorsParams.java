@@ -45,16 +45,16 @@ import org.hisp.dhis.feedback.ErrorCode;
  * @author Jan Bernitt
  */
 @Data
-public class JobConfigurationErrorParams {
+public class JobsWithErrorsParams {
 
   /** The user that ran the job */
   @CheckForNull private UID user;
 
   /** The earliest date the job ran that should be included */
-  @CheckForNull private Date start;
+  @CheckForNull private Date from;
 
   /** The latest date the job ran that should be included */
-  @CheckForNull private Date end;
+  @CheckForNull private Date to;
 
   /** The codes to select, any match combined */
   @CheckForNull private List<ErrorCode> code;

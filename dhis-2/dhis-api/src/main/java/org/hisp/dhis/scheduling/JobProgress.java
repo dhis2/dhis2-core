@@ -147,7 +147,8 @@ public interface JobProgress {
   }
 
   default void addError(ErrorCode code, String uid, String type, Integer index, List<String> args) {
-    // default implementation is a NOOP, we don't remember or handle the error
+    // is overridden by a tracker that collects errors
+    // default is to not collect errors
   }
 
   /*
@@ -590,10 +591,12 @@ public interface JobProgress {
     }
 
     public void addError(Error error) {
-      errors
-          .computeIfAbsent(error.getId(), key -> new ConcurrentHashMap<>())
-          .computeIfAbsent(error.getCode(), key2 -> new ConcurrentLinkedQueue<>())
-          .add(error);
+      Queue<Error> sameObjectAndCode = errors
+              .computeIfAbsent(error.getId(), key -> new ConcurrentHashMap<>())
+              .computeIfAbsent(error.getCode(), key2 -> new ConcurrentLinkedQueue<>());
+      if (sameObjectAndCode.stream().noneMatch(e -> e.args.equals(error.args))) {
+        sameObjectAndCode.add(error);
+      }
     }
 
     public boolean hasErrors() {
@@ -625,6 +628,7 @@ public interface JobProgress {
      * information is not available.
      */
     @CheckForNull @JsonProperty private final Integer index;
+    //TODO make a list/array  to collect or have a count
 
     /** The arguments used in the {@link #code}'s {@link ErrorCode#getMessage()} template */
     @Nonnull @JsonProperty private final List<String> args;

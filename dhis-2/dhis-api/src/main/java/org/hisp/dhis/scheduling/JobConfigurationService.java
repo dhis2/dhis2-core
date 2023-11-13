@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.schema.Property;
 import org.springframework.util.MimeType;
 
@@ -166,7 +167,7 @@ public interface JobConfigurationService {
    * @return all job configurations that match the query parameters
    */
   @Nonnull
-  List<JobConfiguration> findJobConfigurations(@Nonnull JobConfigurationErrorParams params);
+  List<JsonObject> findJobsWithErrors(@Nonnull JobsWithErrorsParams params);
 
   /**
    * Get a map of parameter classes with appropriate properties This can be used for a frontend app
