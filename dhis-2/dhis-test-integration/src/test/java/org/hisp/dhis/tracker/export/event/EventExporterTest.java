@@ -130,7 +130,7 @@ class EventExporterTest extends TrackerTest {
     // expect to be run by admin
     injectAdminUser();
 
-    operationParamsBuilder = EventOperationParams.builder();
+    operationParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
     operationParamsBuilder.orgUnitUid(orgUnit.getUid()).orgUnitMode(SELECTED);
   }
 
@@ -152,7 +152,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWithRelationships() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        operationParamsBuilder.events(Set.of("pTzf9KYMk72")).includeRelationships(true).build();
+        operationParamsBuilder.events(Set.of("pTzf9KYMk72")).eventParams(EventParams.TRUE).build();
 
     List<Event> events = eventService.getEvents(params);
 
@@ -262,10 +262,7 @@ class EventExporterTest extends TrackerTest {
   void testExportEventsWithDatesIncludingTimeStamp()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .events(Set.of("pTzf9KYMk72"))
-            .build();
+        operationParamsBuilder.orgUnitMode(ACCESSIBLE).events(Set.of("pTzf9KYMk72")).build();
 
     List<Event> events = eventService.getEvents(params);
 
@@ -414,7 +411,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsGivenCategoryOptionCombo() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .attributeCategoryCombo("O4VaNks6tta")
@@ -450,7 +447,7 @@ class EventExporterTest extends TrackerTest {
     IdSchemes idSchemes = new IdSchemes();
     idSchemes.setCategoryOptionComboIdScheme("ATTRIBUTE:GOLswS44mh8");
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)
@@ -472,7 +469,7 @@ class EventExporterTest extends TrackerTest {
     idSchemes.setCategoryOptionComboIdScheme("code");
 
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)
@@ -523,7 +520,7 @@ class EventExporterTest extends TrackerTest {
     idSchemes.setOrgUnitIdScheme("ATTRIBUTE:j45AR9cBQKc");
     idSchemes.setCategoryOptionComboIdScheme("ATTRIBUTE:j45AR9cBQKc");
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)

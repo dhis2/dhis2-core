@@ -98,7 +98,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
 
   public static final String DB_INCIDENT_DATE = "incidentdate";
 
-  public static final String DB_SCHEDULED_DATE = "duedate";
+  public static final String DB_SCHEDULED_DATE = "scheduleddate";
 
   public static final String DB_QUOTE = "\"";
 

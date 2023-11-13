@@ -44,7 +44,7 @@ public enum TimeField {
   ENROLLMENT_DATE("enrollmentdate"),
   INCIDENT_DATE("incidentdate"),
   // Not a typo, different naming convention between FE and database
-  SCHEDULED_DATE("duedate"),
+  SCHEDULED_DATE("scheduleddate"),
   COMPLETED_DATE("completeddate"),
   CREATED("created"),
   LAST_UPDATED("lastupdated");

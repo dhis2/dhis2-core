@@ -116,7 +116,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   private static final String EV_EXECUTIONDATE = "EV.executiondate";
 
-  private static final String EV_DUEDATE = "EV.duedate";
+  private static final String EV_DUEDATE = "EV.scheduleddate";
 
   private static final String IS_NULL = "IS NULL";
 
@@ -1035,7 +1035,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
             .append(SPACE)
             .append(IS_NULL)
             .append(whereHlp.whereAnd())
-            .append("date(now()) <= date(EV.duedate) ");
+            .append("date(now()) <= date(EV.scheduleddate) ");
       } else if (params.isEventStatus(EventStatus.OVERDUE)) {
         events
             .append(getQueryDateConditionBetween(whereHlp, EV_DUEDATE, start, end))
@@ -1048,7 +1048,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
             .append(SPACE)
             .append(IS_NULL)
             .append(whereHlp.whereAnd())
-            .append("date(now()) > date(EV.duedate) ");
+            .append("date(now()) > date(EV.scheduleddate) ");
       } else if (params.isEventStatus(EventStatus.SKIPPED)) {
         events
             .append(getQueryDateConditionBetween(whereHlp, EV_DUEDATE, start, end))

@@ -118,7 +118,7 @@ public class PeriodDataProvider {
    */
   private List<Integer> fetchAvailableYears() {
     String dueDateOrExecutionDate =
-        "(case when 'SCHEDULE' = ev.status then ev.duedate else ev.executiondate end)";
+        "(case when 'SCHEDULE' = ev.status then ev.scheduleddate else ev.executiondate end)";
 
     String sql =
         "( select distinct (extract(year from pe.startdate)) as datayear from period pe )"

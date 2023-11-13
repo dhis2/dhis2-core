@@ -98,7 +98,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private static final String EV_EXECUTIONDATE = "EV.executiondate";
 
-  private static final String EV_DUEDATE = "EV.duedate";
+  private static final String EV_SCHEDULEDDATE = "EV.scheduleddate";
 
   private static final String IS_NULL = "IS NULL";
 
@@ -817,7 +817,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(SPACE);
       } else if (params.isEventStatus(EventStatus.SCHEDULE)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, EV_DUEDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_SCHEDULEDDATE, start, end))
             .append(whereHlp.whereAnd())
             .append(EV_STATUS)
             .append(SPACE)
@@ -827,10 +827,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(SPACE)
             .append(IS_NULL)
             .append(whereHlp.whereAnd())
-            .append("date(now()) <= date(EV.duedate) ");
+            .append("date(now()) <= date(EV.scheduleddate) ");
       } else if (params.isEventStatus(EventStatus.OVERDUE)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, EV_DUEDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_SCHEDULEDDATE, start, end))
             .append(whereHlp.whereAnd())
             .append(EV_STATUS)
             .append(SPACE)
@@ -840,10 +840,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(SPACE)
             .append(IS_NULL)
             .append(whereHlp.whereAnd())
-            .append("date(now()) > date(EV.duedate) ");
+            .append("date(now()) > date(EV.scheduleddate) ");
       } else if (params.isEventStatus(EventStatus.SKIPPED)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, EV_DUEDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_SCHEDULEDDATE, start, end))
             .append(whereHlp.whereAnd())
             .append(EV_STATUS)
             .append(EQUALS)
