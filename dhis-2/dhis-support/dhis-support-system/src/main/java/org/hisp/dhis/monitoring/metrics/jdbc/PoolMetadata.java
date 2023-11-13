@@ -36,7 +36,7 @@ import javax.sql.DataSource;
  * @author Stephane Nicoll
  * @since 2.0.0
  */
-public interface DataSourcePoolMetadata {
+public interface PoolMetadata {
 
   /**
    * Return the usage of the pool as value between 0 and 1 (or -1 if the pool is not limited).

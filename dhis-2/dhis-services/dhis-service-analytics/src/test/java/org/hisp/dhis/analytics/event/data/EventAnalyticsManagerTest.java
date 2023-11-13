@@ -119,7 +119,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
           + "createdbydisplayname"
           + ","
           + "lastupdatedbydisplayname"
-          + ",lastupdated,duedate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,"
+          + ",lastupdated,scheduleddate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,"
           + "oucode,pistatus,psistatus";
 
   @BeforeEach
@@ -157,7 +157,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + "createdbydisplayname"
             + ","
             + "lastupdatedbydisplayname"
-            + ",lastupdated,duedate,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,"
+            + ",lastupdated,scheduleddate,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,"
             + "longitude,latitude,ouname,ounamehierarchy,oucode,pistatus,psistatus,ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
@@ -218,7 +218,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + "createdbydisplayname"
             + ","
             + "lastupdatedbydisplayname"
-            + ",lastupdated,duedate,enrollmentdate,"
+            + ",lastupdated,scheduleddate,enrollmentdate,"
             + "incidentdate,tei,pi,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,oucode,pistatus,"
             + "psistatus,ax.\"quarterly\",ax.\"ou\",\""
             + dataElement.getUid()
@@ -334,7 +334,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     String expected =
         "ps.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
-            + " as ax left join _dateperiodstructure as ps on cast(ax.\"duedate\" as date) = ps.\"dateperiod\" "
+            + " as ax left join _dateperiodstructure as ps on cast(ax.\"scheduleddate\" as date) = ps.\"dateperiod\" "
             + "where (ps.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" "
             + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') limit 101";
 

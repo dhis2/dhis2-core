@@ -156,7 +156,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
     enrollmentA = new Enrollment(enrollmentDate, incidentDate, entityInstanceA, programA);
     enrollmentA.setUid("UID-A");
     eventA = new Event(enrollmentA, stageA);
-    eventA.setDueDate(enrollmentDate);
+    eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     Set<OrganisationUnit> ouSet = new HashSet<>();
     ouSet.add(ouA);

@@ -67,5 +67,8 @@
         <property name="enabled" not-null="true" type="boolean" />
 
         <property name="jobParameters" column="jsonbjobparameters" type="jbJobParameters" />
+
+        <property name="errorCodes" column="errorcodes" type="text" update="false" insert="false" />
+
     </class>
 </hibernate-mapping>

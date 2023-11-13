@@ -311,7 +311,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     DataElement dataElement = createDataElement('A');
     dataElementService.addDataElement(dataElement);
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
-    eventA.setDueDate(enrollmentDate);
+    eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     eventService.addEvent(eventA);
     TrackedEntityDataValueAudit trackedEntityDataValueAudit =
@@ -342,7 +342,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     rType.getFromConstraint().setTrackedEntityType(trackedEntity.getTrackedEntityType());
     relationshipTypeService.addRelationshipType(rType);
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
-    eventA.setDueDate(enrollmentDate);
+    eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     long idA = eventService.addEvent(eventA);
     Relationship r = new Relationship();

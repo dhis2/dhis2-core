@@ -324,7 +324,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
                 "createdbydisplayname",
                 "lastupdatedbydisplayname",
                 "lastupdated",
-                "duedate");
+                "scheduleddate");
 
     if (params.getProgram().isRegistration()) {
       cols.add("enrollmentdate", "incidentdate", "tei", "pi");

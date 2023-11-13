@@ -110,11 +110,6 @@ class DataValueSetImportValidatorTest {
     approvalService = mock(DataApprovalService.class);
     dataValueService = mock(DataValueService.class);
     organisationUnitService = mock(OrganisationUnitService.class);
-    when(organisationUnitService.isDescendant(any(OrganisationUnit.class), any(Set.class)))
-        .thenReturn(true);
-    when(organisationUnitService.isDescendant(
-            any(OrganisationUnit.class), any(OrganisationUnit.class)))
-        .thenReturn(true);
 
     i18n = mock(I18n.class);
     validator =
@@ -899,6 +894,9 @@ class DataValueSetImportValidatorTest {
     if (ouId != null) {
       OrganisationUnit ou = new OrganisationUnit();
       ou.setUid(ouId);
+      // we set the path here just for the tests. This is usually done by the persistence layer
+      // but there is no interaction with that in these tests.
+      ou.setPath(ou.getPath());
       builder.orgUnit(ou);
     }
     if (coId != null) {

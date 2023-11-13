@@ -124,7 +124,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
   private static final String COL_NAME_INCIDENTDATE = "incidentdate";
 
-  private static final String COL_NAME_DUEDATE = "duedate";
+  private static final String COL_NAME_DUEDATE = "scheduleddate";
 
   private final ProgramService programService;
 

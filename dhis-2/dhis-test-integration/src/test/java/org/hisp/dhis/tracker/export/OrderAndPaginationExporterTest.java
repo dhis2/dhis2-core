@@ -68,6 +68,7 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
+import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
@@ -125,7 +126,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     // expect to be run by admin
     injectAdminUser();
 
-    eventParamsBuilder = EventOperationParams.builder();
+    eventParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
     eventParamsBuilder.orgUnitMode(SELECTED);
   }
 
@@ -522,6 +523,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.ASC)
             .build();
 
@@ -553,6 +555,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.ASC)
             .build();
 
@@ -590,7 +593,10 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .toList();
 
     EnrollmentOperationParams params =
-        EnrollmentOperationParams.builder().orgUnitUids(Set.of(orgUnit.getUid())).build();
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
+            .build();
 
     List<String> enrollments = getEnrollments(params);
 
@@ -603,6 +609,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.ASC)
             .build();
 
@@ -617,6 +624,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.DESC)
             .build();
 
@@ -749,7 +757,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .toList();
 
     EventOperationParams params =
-        EventOperationParams.builder()
+        eventParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .events(Set.of("pTzf9KYMk72", "QRYjLTiJTrA"))
             .orderBy("enrollment.program.uid", SortDirection.ASC)
@@ -1035,7 +1043,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
-            .orderBy("dueDate", SortDirection.DESC)
+            .orderBy("scheduledDate", SortDirection.DESC)
             .orderBy(UID.of("DATAEL00006"), SortDirection.DESC)
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .build();

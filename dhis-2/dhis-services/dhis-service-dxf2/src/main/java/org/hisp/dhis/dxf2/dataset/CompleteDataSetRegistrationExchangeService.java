@@ -34,7 +34,6 @@ import java.util.Set;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.scheduling.JobConfiguration;
 
 /**
  * Import/export service for {@link CompleteDataSetRegistration data set completion registrations}.
@@ -110,17 +109,6 @@ public interface CompleteDataSetRegistrationExchangeService {
   ImportSummary saveCompleteDataSetRegistrationsXml(InputStream in, ImportOptions importOptions);
 
   /**
-   * Imports {@link CompleteDataSetRegistrations} from an XML payload.
-   *
-   * @param in the stream providing the XML payload.
-   * @param importOptions the options for the import.
-   * @param jobId the task (optional).
-   * @return a summary of the import process.
-   */
-  ImportSummary saveCompleteDataSetRegistrationsXml(
-      InputStream in, ImportOptions importOptions, JobConfiguration jobId);
-
-  /**
    * Imports {@link CompleteDataSetRegistrations} from a JSON payload.
    *
    * @param in the stream providing the XML payload.
@@ -130,21 +118,9 @@ public interface CompleteDataSetRegistrationExchangeService {
   ImportSummary saveCompleteDataSetRegistrationsJson(InputStream in, ImportOptions importOptions);
 
   /**
-   * Imports {@link CompleteDataSetRegistrations} from a JSON payload.
-   *
-   * @param in the stream providing the XML payload.
-   * @param importOptions the options for the import.
-   * @param jobId the task (optional).
-   * @return a summary of the import process.
-   */
-  ImportSummary saveCompleteDataSetRegistrationsJson(
-      InputStream in, ImportOptions importOptions, JobConfiguration jobId);
-
-  /**
    * Validates the given {@link ExportParams}.
    *
    * @param params the export parameters.
-   * @throws IllegalQueryException if validation failed.
    */
   void validate(ExportParams params);
 }

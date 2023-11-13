@@ -95,7 +95,7 @@ class DefaultEventService implements EventService {
 
     result.setStatus(event.getStatus());
     result.setOccurredDate(event.getOccurredDate());
-    result.setDueDate(event.getDueDate());
+    result.setScheduledDate(event.getScheduledDate());
     result.setStoredBy(event.getStoredBy());
     result.setCompletedBy(event.getCompletedBy());
     result.setCompletedDate(event.getCompletedDate());

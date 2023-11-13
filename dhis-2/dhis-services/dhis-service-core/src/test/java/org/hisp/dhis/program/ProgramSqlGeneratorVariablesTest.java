@@ -159,7 +159,7 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
   @Test
   void testDueDate() {
     String sql = castString(test("V{due_date}", new DefaultLiteral(), eventIndicator));
-    assertThat(sql, is("duedate"));
+    assertThat(sql, is("scheduleddate"));
   }
 
   @Test

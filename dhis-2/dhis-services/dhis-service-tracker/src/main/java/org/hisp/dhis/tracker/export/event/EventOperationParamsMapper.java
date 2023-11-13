@@ -129,8 +129,8 @@ class EventOperationParamsMapper {
                 operationParams.getAssignedUserMode(), user, operationParams.getAssignedUsers()))
         .setOccurredStartDate(operationParams.getOccurredAfter())
         .setOccurredEndDate(operationParams.getOccurredBefore())
-        .setScheduleAtStartDate(operationParams.getScheduledAfter())
-        .setScheduleAtEndDate(operationParams.getScheduledBefore())
+        .setScheduledStartDate(operationParams.getScheduledAfter())
+        .setScheduledEndDate(operationParams.getScheduledBefore())
         .setUpdatedAtStartDate(operationParams.getUpdatedAfter())
         .setUpdatedAtEndDate(operationParams.getUpdatedBefore())
         .setUpdatedAtDuration(operationParams.getUpdatedWithin())
@@ -146,7 +146,7 @@ class EventOperationParamsMapper {
         .setEvents(operationParams.getEvents())
         .setEnrollments(operationParams.getEnrollments())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
-        .setIncludeRelationships(operationParams.isIncludeRelationships());
+        .setIncludeRelationships(operationParams.getEventParams().isIncludeRelationships());
   }
 
   private Program validateProgram(String programUid) throws BadRequestException {
