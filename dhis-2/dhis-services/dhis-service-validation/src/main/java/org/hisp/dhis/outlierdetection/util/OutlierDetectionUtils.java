@@ -51,8 +51,6 @@ import org.springframework.jdbc.BadSqlGrammarException;
 @Slf4j
 public class OutlierDetectionUtils {
 
-  private static final String ERR_MSG_SQL_SYNTAX_ERROR =
-      "An error occurred during the execution of an analytics query: ";
   public static final String ERR_MSG_TABLE_NOT_EXISTING =
       "Query failed, likely because the requested analytics table does not exist: ";
   public static final String ERR_MSG_SILENT_FALLBACK =
@@ -79,7 +77,6 @@ public class OutlierDetectionUtils {
    *
    * @param supplier the {@link Supplier} containing the code block to execute and wrap around the
    *     exception handling.
-   * @param isMultipleQueries special treatment for multiple queries should be applied (or not).
    * @return the {@link Optional} wrapping th result of the supplier execution.
    */
   public static <T> Optional<T> withExceptionHandling(Supplier<T> supplier) {
