@@ -32,7 +32,7 @@
 
     <property name="enrollmentDate" column="enrollmentdate" not-null="true"/>
 
-    <property name="endDate" column="enddate"/>
+    <property name="completedDate" column="enddate"/>
 
     <property name="followup" column="followup"/>
 

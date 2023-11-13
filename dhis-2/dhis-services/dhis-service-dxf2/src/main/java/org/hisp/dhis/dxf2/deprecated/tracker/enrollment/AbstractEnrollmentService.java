@@ -320,7 +320,7 @@ public abstract class AbstractEnrollmentService
     enrollment.setEnrollmentDate(programInstance.getEnrollmentDate());
     enrollment.setIncidentDate(programInstance.getIncidentDate());
     enrollment.setFollowup(programInstance.getFollowup());
-    enrollment.setCompletedDate(programInstance.getEndDate());
+    enrollment.setCompletedDate(programInstance.getCompletedDate());
     enrollment.setCompletedBy(programInstance.getCompletedBy());
     enrollment.setStoredBy(programInstance.getStoredBy());
     enrollment.setCreatedByUserInfo(programInstance.getCreatedByUserInfo());
@@ -598,7 +598,7 @@ public abstract class AbstractEnrollmentService
       }
 
       programInstance.setCompletedBy(user);
-      programInstance.setEndDate(date);
+      programInstance.setCompletedDate(date);
     }
 
     programInstance.setCreatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
@@ -973,11 +973,11 @@ public abstract class AbstractEnrollmentService
       }
 
       if (EnrollmentStatus.CANCELLED == enrollment.getStatus()) {
-        programInstance.setEndDate(endDate);
+        programInstance.setCompletedDate(endDate);
 
         enrollmentService.cancelEnrollmentStatus(programInstance);
       } else if (EnrollmentStatus.COMPLETED == enrollment.getStatus()) {
-        programInstance.setEndDate(endDate);
+        programInstance.setCompletedDate(endDate);
         programInstance.setCompletedBy(user);
 
         enrollmentService.completeEnrollmentStatus(programInstance);
