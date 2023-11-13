@@ -98,6 +98,10 @@ public class TrackerEventsExportController {
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields) {
     EventQueryParams eventQueryParams = requestToSearchParams.map(eventCriteria);
 
+    EventParams eventParams = eventsMapper.map(fields);
+
+    eventQueryParams.setIncludeRelationships(eventParams.isIncludeRelationships());
+
     if (areAllEnrollmentsInvalid(eventCriteria, eventQueryParams)) {
       return new PagingWrapper<ObjectNode>().withInstances(Collections.emptyList());
     }
