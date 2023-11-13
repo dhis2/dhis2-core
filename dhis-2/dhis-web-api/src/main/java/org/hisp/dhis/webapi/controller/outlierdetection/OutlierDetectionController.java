@@ -81,7 +81,7 @@ public class OutlierDetectionController {
     outlierService.getOutlierValuesAsCsv(request, response.getWriter());
   }
 
-  private OutlierDetectionRequest getFromQuery(OutlierDetectionQuery query){
+  private OutlierDetectionRequest getFromQuery(OutlierDetectionQuery query) {
     return queryParser.getFromQuery(query, false);
   }
 }

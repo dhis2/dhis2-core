@@ -82,7 +82,8 @@ class ValidationOutlierDetectionRequestTest {
   @BeforeEach
   public void setUp() {
     subject = new ValidationOutlierDetectionRequest(systemSettingManager);
-    when(systemSettingManager.getSystemSetting(SettingKey.ANALYTICS_MAX_LIMIT, Integer.class)).thenReturn(500);
+    when(systemSettingManager.getSystemSetting(SettingKey.ANALYTICS_MAX_LIMIT, Integer.class))
+        .thenReturn(500);
     deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM);
     deC = createDataElement('C', ValueType.NUMBER, AggregationType.SUM);
@@ -92,7 +93,7 @@ class ValidationOutlierDetectionRequestTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans =  {true, false})
+  @ValueSource(booleans = {true, false})
   void testSuccessfulValidation(boolean isAnalytics) {
     OutlierDetectionRequest request =
         new OutlierDetectionRequest.Builder()
@@ -103,8 +104,9 @@ class ValidationOutlierDetectionRequestTest {
 
     assertDoesNotThrow(() -> subject.validate(request, isAnalytics));
   }
+
   @ParameterizedTest
-  @ValueSource(booleans =  {true, false})
+  @ValueSource(booleans = {true, false})
   void testErrorValidation() {
     OutlierDetectionRequest request =
         new OutlierDetectionRequest.Builder()
