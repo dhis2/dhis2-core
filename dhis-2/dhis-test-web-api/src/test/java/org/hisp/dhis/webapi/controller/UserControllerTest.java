@@ -152,8 +152,11 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
     UserRole roleB = createUserRole("ROLE_B", "ALL");
     userService.addUserRole(roleB);
-    superUser.getUserRoles().add(roleB);
-    userService.updateUser(superUser);
+
+    PATCH(
+            "/users/" + superUser.getUid(),
+            "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleB.getUid() + "'}]}]")
+        .content(HttpStatus.OK);
 
     String roleBID = userService.getUserRoleByName("ROLE_B").getUid();
 
