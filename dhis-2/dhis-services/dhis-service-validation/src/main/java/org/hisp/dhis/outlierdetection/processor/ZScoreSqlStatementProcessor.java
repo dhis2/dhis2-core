@@ -40,6 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.outlierdetection.Order;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -47,7 +48,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Qualifier("ZScoreSqlProcessor")
-public class ZScoreSqlStatementProcessor extends AbstractOutlierSqlStatementProcessor {
+public class ZScoreSqlStatementProcessor implements OutlierSqlStatementProcessor {
 
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
@@ -55,7 +56,7 @@ public class ZScoreSqlStatementProcessor extends AbstractOutlierSqlStatementProc
       return StringUtils.EMPTY;
     }
 
-    String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
+    String ouPathClause = OutlierDetectionUtils.getOrgUnitPathClause(request.getOrgUnits(), "ou");
     String dataStartDateClause = getDataStartDateClause(request.getDataStartDate());
     String dataEndDateClause = getDataEndDateClause(request.getDataEndDate());
 
@@ -170,11 +171,6 @@ public class ZScoreSqlStatementProcessor extends AbstractOutlierSqlStatementProc
         .addValue(DATA_START_DATE.getKey(), request.getDataStartDate())
         .addValue(DATA_END_DATE.getKey(), request.getDataEndDate())
         .addValue(MAX_RESULTS.getKey(), request.getMaxResults());
-  }
-
-  @Override
-  protected String getOrganisationUnitAlias() {
-    return "ou";
   }
 
   private String getDataStartDateClause(Date dataStartDate) {

@@ -34,6 +34,7 @@ import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.START_DATE;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -41,7 +42,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Qualifier("MinMaxSqlProcessor")
-public class MinMaxSqlStatementProcessor extends AbstractOutlierSqlStatementProcessor {
+public class MinMaxSqlStatementProcessor implements OutlierSqlStatementProcessor {
 
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
@@ -49,7 +50,7 @@ public class MinMaxSqlStatementProcessor extends AbstractOutlierSqlStatementProc
       return StringUtils.EMPTY;
     }
 
-    String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
+    String ouPathClause = OutlierDetectionUtils.getOrgUnitPathClause(request.getOrgUnits(), "ou");
 
     return "select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, "
         + "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, "
@@ -93,10 +94,5 @@ public class MinMaxSqlStatementProcessor extends AbstractOutlierSqlStatementProc
         .addValue(START_DATE.getKey(), request.getStartDate())
         .addValue(END_DATE.getKey(), request.getEndDate())
         .addValue(MAX_RESULTS.getKey(), request.getMaxResults());
-  }
-
-  @Override
-  protected String getOrganisationUnitAlias() {
-    return "ou";
   }
 }

@@ -38,6 +38,7 @@ import org.hisp.dhis.outlierdetection.Order;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutliersSqlParamName;
+import org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -45,7 +46,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Qualifier("AnalyticsZScoreSqlProcessor")
-public class AnalyticsZScoreSqlStatementProcessor extends AbstractOutlierSqlStatementProcessor {
+public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatementProcessor {
 
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
@@ -53,7 +54,7 @@ public class AnalyticsZScoreSqlStatementProcessor extends AbstractOutlierSqlStat
       return StringUtils.EMPTY;
     }
 
-    String ouPathClause = getOrgUnitPathClause(request.getOrgUnits());
+    String ouPathClause = OutlierDetectionUtils.getOrgUnitPathClause(request.getOrgUnits(), "ax");
 
     boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
 
@@ -129,10 +130,5 @@ public class AnalyticsZScoreSqlStatementProcessor extends AbstractOutlierSqlStat
         .addValue(START_DATE.getKey(), request.getStartDate())
         .addValue(END_DATE.getKey(), request.getEndDate())
         .addValue(MAX_RESULTS.getKey(), request.getMaxResults());
-  }
-
-  @Override
-  protected String getOrganisationUnitAlias() {
-    return "ax";
   }
 }
