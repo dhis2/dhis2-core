@@ -10,13 +10,13 @@ if ! git diff --cached --exit-code; then
 fi
 
 if ! command -v git &> /dev/null; then
-    echo "git could not be found."
-    exit 1
+  echo "git could not be found."
+  exit 1
 fi
 
 if ! command -v gh &> /dev/null; then
-    echo "gh could not be found."
-    exit 1
+  echo "gh could not be found."
+  exit 1
 fi
 
 if [[ -z "${1:-}" ]]; then
@@ -45,10 +45,10 @@ pr_reviewer=$(gh pr view "$pr_id" --json reviews --jq '.reviews | map(.author.lo
 
 branches=("$@")
 for branch in "${branches[@]}"; do
-    echo git checkout "$branch"
-    echo git pull origin "$branch"
-    echo git checkout -b "${base_branch}_${branch}"
-    echo git cherry-pick "$commit"
-    echo git push origin "${base_branch}_${branch}"
-    echo gh pr create --head "${base_branch}_${branch}" --title "backport: $pr_title" --body "$pr_url" --reviewer "$pr_reviewer"
+  git checkout "$branch"
+  git pull origin "$branch"
+  git checkout -b "${base_branch}_${branch}"
+  git cherry-pick "$commit"
+  git push origin "${base_branch}_${branch}"
+  gh pr create --head "${base_branch}_${branch}" --base "$branch" --title "backport: $pr_title" --body "$pr_url" --reviewer "$pr_reviewer"
 done
