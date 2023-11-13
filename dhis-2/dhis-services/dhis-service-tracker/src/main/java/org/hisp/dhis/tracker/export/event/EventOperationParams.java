@@ -147,6 +147,8 @@ public class EventOperationParams {
 
   private Set<String> enrollments;
 
+  private EventParams eventParams;
+
   public static class EventOperationParamsBuilder {
 
     private List<Order> order = new ArrayList<>();

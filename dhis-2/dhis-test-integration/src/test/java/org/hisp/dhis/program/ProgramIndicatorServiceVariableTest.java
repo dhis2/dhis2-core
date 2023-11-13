@@ -138,9 +138,9 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
 
   @Test
   void testDueDate() {
-    assertEquals("duedate", getSql("V{due_date}"));
+    assertEquals("scheduleddate", getSql("V{due_date}"));
     assertEquals(
-        "(select duedate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and duedate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date ) order by executiondate desc limit 1 )",
+        "(select scheduleddate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and scheduleddate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date ) order by executiondate desc limit 1 )",
         getSqlEnrollment("V{due_date}"));
   }
 
@@ -211,9 +211,9 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
 
   @Test
   void testScheduledDate() {
-    assertEquals("duedate", getSql("V{scheduled_date}"));
+    assertEquals("scheduleddate", getSql("V{scheduled_date}"));
     assertEquals(
-        "(select duedate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and duedate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date )  and psistatus = 'SCHEDULE' order by executiondate desc limit 1 )",
+        "(select scheduleddate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and scheduleddate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date )  and psistatus = 'SCHEDULE' order by executiondate desc limit 1 )",
         getSqlEnrollment("V{scheduled_date}"));
   }
 

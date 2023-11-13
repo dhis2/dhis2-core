@@ -59,7 +59,7 @@ public interface EnrollmentMapper
    */
   Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
-          entry("completedAt", "endDate"),
+          entry("completedAt", "completedDate"),
           entry("createdAt", "created"),
           entry("createdAtClient", "createdAtClient"),
           entry("enrolledAt", "enrollmentDate"),
@@ -77,7 +77,7 @@ public interface EnrollmentMapper
   @Mapping(target = "enrolledAt", source = "enrollmentDate")
   @Mapping(target = "occurredAt", source = "incidentDate")
   @Mapping(target = "followUp", source = "followup")
-  @Mapping(target = "completedAt", source = "endDate")
+  @Mapping(target = "completedAt", source = "completedDate")
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "relationships", source = "relationshipItems")

@@ -137,7 +137,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
           new AnalyticsTableColumn(quote("executiondate"), TIMESTAMP, "psi.executiondate"),
           new AnalyticsTableColumn(quote("lastupdated"), TIMESTAMP, "psi.lastupdated"),
           new AnalyticsTableColumn(quote("created"), TIMESTAMP, "psi.created"),
-          new AnalyticsTableColumn(quote("duedate"), TIMESTAMP, "psi.duedate"),
+          new AnalyticsTableColumn(quote("scheduleddate"), TIMESTAMP, "psi.scheduleddate"),
           new AnalyticsTableColumn(quote("status"), VARCHAR_50, "psi.status"),
           new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry")
               .withIndexType(GIST),
