@@ -27,15 +27,37 @@
  */
 package org.hisp.dhis.outlierdetection.util;
 
+import static org.hisp.dhis.feedback.ErrorCode.E2208;
+import static org.hisp.dhis.feedback.ErrorCode.E7131;
+
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.BadSqlGrammarException;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class OutlierDetectionUtils {
+
+  private static final String ERR_MSG_SQL_SYNTAX_ERROR =
+      "An error occurred during the execution of an analytics query: ";
+  public static final String ERR_MSG_TABLE_NOT_EXISTING =
+      "Query failed, likely because the requested analytics table does not exist: ";
+  public static final String ERR_MSG_SILENT_FALLBACK =
+      "An exception occurred - silently fallback since it's multiple analytics query: ";
+
   /**
    * Returns an organisation unit 'path' "like" clause for the given list of {@link
    * OrganisationUnit}.
@@ -50,5 +72,44 @@ public class OutlierDetectionUtils {
             sql.append(pathAlias).append(".\"path\" like '").append(ou.getPath()).append("%' or "));
 
     return StringUtils.trim(TextUtils.removeLastOr(sql.toString())) + ")";
+  }
+
+  /**
+   * Wraps the provided interface around a common exception handling strategy.
+   *
+   * @param supplier the {@link Supplier} containing the code block to execute and wrap around the
+   *     exception handling.
+   * @param isMultipleQueries special treatment for multiple queries should be applied (or not).
+   * @return the {@link Optional} wrapping th result of the supplier execution.
+   */
+  public static <T> Optional<T> withExceptionHandling(Supplier<T> supplier) {
+    try {
+      return Optional.ofNullable(supplier.get());
+    } catch (BadSqlGrammarException ex) {
+      if (relationDoesNotExist(ex.getSQLException())) {
+        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+        throw ex;
+      }
+      log.info(ERR_MSG_SILENT_FALLBACK, ex);
+    } catch (QueryRuntimeException ex) {
+      log.error("Internal runtime exception", ex);
+      throw ex;
+    } catch (DataIntegrityViolationException ex) {
+      log.error(E2208.getMessage(), ex);
+      throw new IllegalQueryException(ErrorCode.E2208);
+    } catch (DataAccessResourceFailureException ex) {
+      log.error(E7131.getMessage(), ex);
+      throw new QueryRuntimeException(E7131);
+    }
+
+    return Optional.empty();
+  }
+
+  private static boolean relationDoesNotExist(SQLException ex) {
+    if (ex != null) {
+      return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
+    }
+
+    return false;
   }
 }

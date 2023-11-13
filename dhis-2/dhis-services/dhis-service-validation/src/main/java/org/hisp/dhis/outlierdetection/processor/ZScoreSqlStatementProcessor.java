@@ -61,7 +61,7 @@ public class ZScoreSqlStatementProcessor implements OutlierSqlStatementProcessor
     String dataEndDateClause = getDataEndDateClause(request.getDataEndDate());
 
     boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
-    String middle_stats_calc =
+    String middleStatsCalc =
         modifiedZ
             ? "percentile_cont(0.5) within group(order by dv.value::double precision)"
             : "avg(dv.value::double precision)";
@@ -122,7 +122,7 @@ public class ZScoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + "select dv.dataelementid as dataelementid, dv.sourceid as sourceid, "
         + "dv.categoryoptioncomboid as categoryoptioncomboid, "
         + "dv.attributeoptioncomboid as attributeoptioncomboid, "
-        + middle_stats_calc
+        + middleStatsCalc
         + " as middle_value, "
         + "stddev_pop(dv.value::double precision) as std_dev "
         + "from datavalue dv "

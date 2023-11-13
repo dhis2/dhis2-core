@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.outlierdetection.service;
 
+import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.withExceptionHandling;
 import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
 
 import java.sql.ResultSet;
@@ -34,14 +35,11 @@ import java.sql.SQLException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.outlierdetection.processor.OutlierSqlStatementProcessor;
 import org.hisp.dhis.period.PeriodType;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -58,22 +56,14 @@ public abstract class AbstractOutlierDetectionManager {
   }
 
   public List<OutlierValue> getOutlierValues(OutlierDetectionRequest request) {
-
     String sql = sqlStatementProcessor.getSqlStatement(request);
     SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);
     Calendar calendar = PeriodType.getCalendar();
     boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
 
-    try {
-      return jdbcTemplate.query(sql, params, getRowMapper(calendar, modifiedZ));
-    } catch (DataIntegrityViolationException ex) {
-      // Casting non-numeric data to double, catching exception is faster
-      // than filtering
-
-      log.error(ErrorCode.E2208.getMessage(), ex);
-
-      throw new IllegalQueryException(ErrorCode.E2208);
-    }
+    return withExceptionHandling(
+            () -> jdbcTemplate.query(sql, params, getRowMapper(calendar, modifiedZ)))
+        .orElse(null);
   }
 
   /**
