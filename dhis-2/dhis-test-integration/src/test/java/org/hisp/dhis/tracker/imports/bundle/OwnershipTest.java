@@ -175,7 +175,7 @@ class OwnershipTest extends TrackerTest {
         enrollments.stream().filter(e -> e.getUid().equals("TvctPPhpD8u")).findAny().get();
     compareEnrollmentBasicProperties(enrollment, enrollmentParams.getEnrollments().get(0));
     assertNull(enrollment.getCompletedBy());
-    assertNull(enrollment.getEndDate());
+    assertNull(enrollment.getCompletedDate());
 
     org.hisp.dhis.tracker.imports.domain.Enrollment updatedEnrollment =
         enrollmentParams.getEnrollments().get(0);
@@ -194,7 +194,7 @@ class OwnershipTest extends TrackerTest {
     enrollment = enrollments.stream().filter(e -> e.getUid().equals("TvctPPhpD8u")).findAny().get();
     compareEnrollmentBasicProperties(enrollment, updatedEnrollment);
     assertNotNull(enrollment.getCompletedBy());
-    assertNotNull(enrollment.getEndDate());
+    assertNotNull(enrollment.getCompletedDate());
   }
 
   @Test
