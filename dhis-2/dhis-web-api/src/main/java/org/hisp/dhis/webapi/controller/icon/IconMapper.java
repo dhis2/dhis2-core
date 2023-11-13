@@ -61,14 +61,18 @@ public class IconMapper {
           ci.getFileResourceUid(),
           ci.getCreatedByUserUid(),
           getCustomIconReference(ci.getKey()),
-          icon.isCustom());
+          icon.isCustom(),
+          icon.getCreated(),
+          icon.getLastUpdated());
     } else {
       return new IconResponse(
           icon.getKey(),
           icon.getDescription(),
           icon.getKeywords(),
           getDefaultIconReference(icon.getKey()),
-          icon.isCustom());
+          icon.isCustom(),
+          icon.getCreated(),
+          icon.getLastUpdated());
     }
   }
 
