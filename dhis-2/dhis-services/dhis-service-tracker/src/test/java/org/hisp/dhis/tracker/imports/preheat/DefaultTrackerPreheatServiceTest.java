@@ -37,9 +37,8 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.supplier.ClassBasedSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatSupplier;
 import org.hisp.dhis.user.User;
@@ -73,12 +72,11 @@ class DefaultTrackerPreheatServiceTest {
 
   private DefaultTrackerPreheatService preheatService;
 
-  private final TrackerObjects preheatParams =
-      TrackerObjects.builder()
+  private final TrackerImportParams preheatParams =
+      TrackerImportParams.builder()
+          .user(getUser())
           .trackedEntities(Collections.singletonList(new TrackedEntity()))
           .build();
-
-  private final TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
 
   @BeforeEach
   public void setUp() {
@@ -97,7 +95,7 @@ class DefaultTrackerPreheatServiceTest {
 
     doCallRealMethod().when(classBasedSupplier).add(any(), any());
 
-    preheatService.preheat(preheatParams, idSchemeParams, getUser());
+    preheatService.preheat(preheatParams);
 
     verify(applicationContext).getBean(bean.getValue(), preheatSupplierClassCaptor.getValue());
     verify(classBasedSupplier).add(any(), any());
@@ -109,7 +107,7 @@ class DefaultTrackerPreheatServiceTest {
     when(applicationContext.getBean(bean.capture(), preheatSupplierClassCaptor.capture()))
         .thenThrow(new BeanCreationException("e"));
 
-    preheatService.preheat(preheatParams, idSchemeParams, getUser());
+    preheatService.preheat(preheatParams);
 
     verify(applicationContext).getBean(bean.getValue(), preheatSupplierClassCaptor.getValue());
     verify(classBasedSupplier, times(0)).add(any(), any());
@@ -122,7 +120,7 @@ class DefaultTrackerPreheatServiceTest {
         .thenReturn(classBasedSupplier);
     doThrow(new RuntimeException("e")).when(classBasedSupplier).add(any(), any());
 
-    preheatService.preheat(preheatParams, idSchemeParams, getUser());
+    preheatService.preheat(preheatParams);
 
     verify(applicationContext).getBean(bean.getValue(), preheatSupplierClassCaptor.getValue());
     verify(classBasedSupplier).add(any(), any());

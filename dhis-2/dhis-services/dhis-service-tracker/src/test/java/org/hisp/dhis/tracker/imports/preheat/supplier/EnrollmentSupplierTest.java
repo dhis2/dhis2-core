@@ -43,7 +43,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,7 +73,7 @@ class EnrollmentSupplierTest extends DhisConvenienceTest {
 
   private Program programWithoutRegistration;
 
-  private TrackerObjects params;
+  private TrackerImportParams params;
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
@@ -100,7 +100,7 @@ class EnrollmentSupplierTest extends DhisConvenienceTest {
     when(enrollmentStore.getByPrograms(Lists.newArrayList(programWithoutRegistration)))
         .thenReturn(enrollments);
 
-    params = TrackerObjects.builder().build();
+    params = TrackerImportParams.builder().build();
     preheat = new TrackerPreheat();
   }
 

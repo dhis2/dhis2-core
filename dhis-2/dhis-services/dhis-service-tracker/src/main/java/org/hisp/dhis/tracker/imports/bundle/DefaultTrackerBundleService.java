@@ -41,7 +41,6 @@ import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
@@ -49,7 +48,6 @@ import org.hisp.dhis.tracker.imports.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.imports.sideeffect.SideEffectHandlerService;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,11 +78,9 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   }
 
   @Override
-  public TrackerBundle create(
-      TrackerImportParams params, TrackerObjects trackerObjects, User user) {
-    TrackerBundle trackerBundle = ParamsConverter.convert(params, trackerObjects, user);
-    TrackerPreheat preheat =
-        trackerPreheatService.preheat(trackerObjects, params.getIdSchemes(), user);
+  public TrackerBundle create(TrackerImportParams params) {
+    TrackerBundle trackerBundle = ParamsConverter.convert(params);
+    TrackerPreheat preheat = trackerPreheatService.preheat(params);
     trackerBundle.setPreheat(preheat);
 
     return trackerBundle;

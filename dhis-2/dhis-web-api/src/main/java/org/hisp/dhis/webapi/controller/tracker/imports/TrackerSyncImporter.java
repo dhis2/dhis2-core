@@ -25,26 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.domain;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luca Cambi <luca@dhis2.org>
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class RelationshipItem {
+@Component
+@RequiredArgsConstructor
+public class TrackerSyncImporter {
 
-  @JsonProperty private String trackedEntity;
+  @Nonnull private final TrackerImportService trackerImportService;
 
-  @JsonProperty private String enrollment;
+  public ImportReport importTracker(TrackerImportParams params) {
+    ImportReport importReport = trackerImportService.importTracker(params);
 
-  @JsonProperty private String event;
+    return trackerImportService.buildImportReport(importReport, params.getReportMode());
+  }
 }

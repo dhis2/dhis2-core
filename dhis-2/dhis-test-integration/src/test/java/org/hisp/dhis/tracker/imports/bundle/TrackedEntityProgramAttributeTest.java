@@ -40,7 +40,6 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,9 +63,8 @@ class TrackedEntityProgramAttributeTest extends TrackerTest {
 
   @Test
   void testTrackedEntityProgramAttributeValue() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/te_program_with_tea_data.json");
-    ImportReport importReport =
-        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+    TrackerImportParams trackerImportParams = fromJson("tracker/te_program_with_tea_data.json");
+    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
     assertNoErrors(importReport);
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
@@ -79,9 +77,8 @@ class TrackedEntityProgramAttributeTest extends TrackerTest {
 
   @Test
   void testTrackedEntityProgramAttributeValueUpdate() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/te_program_with_tea_data.json");
-    TrackerImportParams params = new TrackerImportParams();
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    TrackerImportParams trackerImportParams = fromJson("tracker/te_program_with_tea_data.json");
+    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
     assertNoErrors(importReport);
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
@@ -92,9 +89,9 @@ class TrackedEntityProgramAttributeTest extends TrackerTest {
     assertEquals(5, attributeValues.size());
     manager.clear();
     // update
-    trackerObjects = fromJson("tracker/te_program_with_tea_update_data.json");
-    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
-    importReport = trackerImportService.importTracker(params, trackerObjects);
+    trackerImportParams = fromJson("tracker/te_program_with_tea_update_data.json");
+    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    importReport = trackerImportService.importTracker(trackerImportParams);
     assertNoErrors(importReport);
 
     trackedEntities = manager.getAll(TrackedEntity.class);
@@ -107,9 +104,8 @@ class TrackedEntityProgramAttributeTest extends TrackerTest {
 
   @Test
   void testTrackedEntityProgramAttributeValueUpdateAndDelete() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/te_program_with_tea_data.json");
-    TrackerImportParams params = new TrackerImportParams();
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    TrackerImportParams trackerImportParams = fromJson("tracker/te_program_with_tea_data.json");
+    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
     assertNoErrors(importReport);
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
@@ -120,9 +116,9 @@ class TrackedEntityProgramAttributeTest extends TrackerTest {
     assertEquals(5, attributeValues.size());
     manager.clear();
     // update
-    trackerObjects = fromJson("tracker/te_program_with_tea_update_data.json");
-    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
-    importReport = trackerImportService.importTracker(params, trackerObjects);
+    trackerImportParams = fromJson("tracker/te_program_with_tea_update_data.json");
+    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    importReport = trackerImportService.importTracker(trackerImportParams);
     assertNoErrors(importReport);
 
     trackedEntities = manager.getAll(TrackedEntity.class);
@@ -133,9 +129,9 @@ class TrackedEntityProgramAttributeTest extends TrackerTest {
     assertEquals(5, attributeValues.size());
     manager.clear();
     // delete
-    trackerObjects = fromJson("tracker/te_program_with_tea_delete_data.json");
-    params.setImportStrategy(TrackerImportStrategy.DELETE);
-    importReport = trackerImportService.importTracker(params, trackerObjects);
+    trackerImportParams = fromJson("tracker/te_program_with_tea_delete_data.json");
+    trackerImportParams.setImportStrategy(TrackerImportStrategy.DELETE);
+    importReport = trackerImportService.importTracker(trackerImportParams);
     assertNoErrors(importReport);
 
     trackedEntities = manager.getAll(TrackedEntity.class);

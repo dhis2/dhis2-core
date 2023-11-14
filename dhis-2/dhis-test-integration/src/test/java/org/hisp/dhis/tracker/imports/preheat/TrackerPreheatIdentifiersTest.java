@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.imports.preheat;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.imports.TrackerIdSchemeParams.builder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -53,11 +54,10 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -69,12 +69,9 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  private User user;
-
   @Override
   protected void initTest() throws IOException {
     setUpMetadata("tracker/identifier_metadata.json");
-    user = currentUserService.getCurrentUser();
   }
 
   @Test
@@ -84,10 +81,9 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
       String id = pair.getLeft();
       TrackerIdSchemeParam param = pair.getRight();
       Event event = Event.builder().orgUnit(param.toMetadataIdentifier(id)).build();
-      TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
-      TrackerIdSchemeParams params = TrackerIdSchemeParams.builder().orgUnitIdScheme(param).build();
+      TrackerImportParams params = buildParams(event, builder().orgUnitIdScheme(param).build());
 
-      TrackerPreheat preheat = trackerPreheatService.preheat(trackerObjects, params, user);
+      TrackerPreheat preheat = trackerPreheatService.preheat(params);
 
       assertPreheatedObjectExists(preheat, OrganisationUnit.class, param, id);
     }
@@ -100,11 +96,10 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
       String id = pair.getLeft();
       TrackerIdSchemeParam param = pair.getRight();
       Event event = Event.builder().programStage(param.toMetadataIdentifier(id)).build();
-      TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
-      TrackerIdSchemeParams params =
-          TrackerIdSchemeParams.builder().programStageIdScheme(param).build();
+      TrackerImportParams params =
+          buildParams(event, builder().programStageIdScheme(param).build());
 
-      TrackerPreheat preheat = trackerPreheatService.preheat(trackerObjects, params, user);
+      TrackerPreheat preheat = trackerPreheatService.preheat(params);
 
       assertPreheatedObjectExists(preheat, ProgramStage.class, param, id);
     }
@@ -123,11 +118,9 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
               .programStage(MetadataIdentifier.ofUid("NpsdDv6kKSO"))
               .dataValues(Collections.singleton(dv1))
               .build();
-      TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
-      TrackerIdSchemeParams params =
-          TrackerIdSchemeParams.builder().dataElementIdScheme(param).build();
+      TrackerImportParams params = buildParams(event, builder().dataElementIdScheme(param).build());
 
-      TrackerPreheat preheat = trackerPreheatService.preheat(trackerObjects, params, user);
+      TrackerPreheat preheat = trackerPreheatService.preheat(params);
 
       assertPreheatedObjectExists(preheat, DataElement.class, param, id);
     }
@@ -141,11 +134,10 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
       TrackerIdSchemeParam param = pair.getRight();
       Event event =
           Event.builder().attributeCategoryOptions(Set.of(param.toMetadataIdentifier(id))).build();
-      TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
-      TrackerIdSchemeParams params =
-          TrackerIdSchemeParams.builder().categoryOptionIdScheme(param).build();
+      TrackerImportParams params =
+          buildParams(event, builder().categoryOptionIdScheme(param).build());
 
-      TrackerPreheat preheat = trackerPreheatService.preheat(trackerObjects, params, user);
+      TrackerPreheat preheat = trackerPreheatService.preheat(params);
 
       assertPreheatedObjectExists(preheat, CategoryOption.class, param, id);
     }
@@ -158,11 +150,10 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
       String id = pair.getLeft();
       TrackerIdSchemeParam param = pair.getRight();
       Event event = Event.builder().attributeOptionCombo(param.toMetadataIdentifier(id)).build();
-      TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
-      TrackerIdSchemeParams params =
-          TrackerIdSchemeParams.builder().categoryOptionComboIdScheme(param).build();
+      TrackerImportParams params =
+          buildParams(event, builder().categoryOptionComboIdScheme(param).build());
 
-      TrackerPreheat preheat = trackerPreheatService.preheat(trackerObjects, params, user);
+      TrackerPreheat preheat = trackerPreheatService.preheat(params);
 
       assertPreheatedObjectExists(preheat, CategoryOptionCombo.class, param, id);
     }
@@ -171,10 +162,10 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
   @Test
   void testDefaultsWithIdSchemeUID() {
 
-    TrackerObjects trackerObjects = TrackerObjects.builder().build();
-    TrackerIdSchemeParams params = TrackerIdSchemeParams.builder().build();
+    TrackerImportParams params =
+        TrackerImportParams.builder().user(currentUserService.getCurrentUser()).build();
 
-    TrackerPreheat preheat = trackerPreheatService.preheat(trackerObjects, params, user);
+    TrackerPreheat preheat = trackerPreheatService.preheat(params);
 
     assertPreheatHasDefault(preheat, Category.class);
     assertPreheatHasDefault(preheat, CategoryCombo.class);
@@ -184,20 +175,35 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
 
   @Test
   void testDefaultsWithIdSchemesOtherThanUID() {
-    TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(new Event())).build();
-    TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder()
-            .idScheme(TrackerIdSchemeParam.NAME)
-            .categoryOptionIdScheme(TrackerIdSchemeParam.ofAttribute(CodeGenerator.generateUid()))
-            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
-            .build();
 
-    TrackerPreheat preheat = trackerPreheatService.preheat(trackerObjects, params, user);
+    Event event = new Event();
+
+    TrackerImportParams params =
+        buildParams(
+            event,
+            builder()
+                .idScheme(TrackerIdSchemeParam.NAME)
+                .categoryOptionIdScheme(
+                    TrackerIdSchemeParam.ofAttribute(CodeGenerator.generateUid()))
+                .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
+                .build());
+
+    TrackerPreheat preheat = trackerPreheatService.preheat(params);
 
     assertPreheatHasDefault(preheat, Category.class);
     assertPreheatHasDefault(preheat, CategoryCombo.class);
     assertPreheatHasDefault(preheat, CategoryOption.class);
     assertPreheatHasDefault(preheat, CategoryOptionCombo.class);
+  }
+
+  private TrackerImportParams buildParams(Event event, TrackerIdSchemeParams idParams) {
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .events(Collections.singletonList(event))
+            .user(currentUserService.getCurrentUser())
+            .idSchemes(idParams)
+            .build();
+    return params;
   }
 
   private List<Pair<String, TrackerIdSchemeParam>> buildDataSet(

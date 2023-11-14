@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 
@@ -50,7 +50,7 @@ public abstract class AbstractPreheatSupplier implements PreheatSupplier {
   private final long CACHE_CAPACITY = 1000;
 
   @Override
-  public void add(TrackerObjects trackerObjects, TrackerPreheat preheat) {
+  public void add(TrackerImportParams params, TrackerPreheat preheat) {
     StopWatch watch = null;
     if (log.isDebugEnabled()) {
       log.debug("Executing preheat supplier: {}", this.getClass().getName());
@@ -58,7 +58,7 @@ public abstract class AbstractPreheatSupplier implements PreheatSupplier {
       watch.start();
     }
 
-    preheatAdd(trackerObjects, preheat);
+    preheatAdd(params, preheat);
 
     if (log.isDebugEnabled()) {
       if (watch != null && watch.isStarted()) {
@@ -72,7 +72,7 @@ public abstract class AbstractPreheatSupplier implements PreheatSupplier {
   }
 
   /** Template method: executes preheat logic from the subclass */
-  public abstract void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat);
+  public abstract void preheatAdd(TrackerImportParams params, TrackerPreheat preheat);
 
   protected void addToCache(PreheatCacheService cache, List<? extends IdentifiableObject> objects) {
     objects.forEach(

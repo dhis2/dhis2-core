@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,7 +42,7 @@ import org.hisp.dhis.common.ValueType;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Attribute implements Serializable {
+public class Attribute {
   @JsonProperty private MetadataIdentifier attribute;
 
   @JsonProperty private String code;

@@ -40,11 +40,9 @@ import java.io.IOException;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
@@ -70,33 +68,28 @@ class EnrollmentImportValidationTest extends TrackerTest {
     injectAdminUser();
     assertNoErrors(
         trackerImportService.importTracker(
-            new TrackerImportParams(),
             fromJson("tracker/validations/enrollments_te_te-data.json")));
     manager.flush();
   }
 
   @Test
   void testEnrollmentValidationOkAll() throws IOException {
-    TrackerObjects trackerObjects =
+    TrackerImportParams params =
         fromJson("tracker/validations/enrollments_te_enrollments-data.json");
-    ImportReport importReport =
-        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+    ImportReport importReport = trackerImportService.importTracker(params);
     assertNoErrors(importReport);
   }
 
   @Test
   void testPreheatOwnershipForSubsequentEnrollment() throws IOException {
-    TrackerObjects trackerObjects =
+    TrackerImportParams params =
         fromJson("tracker/validations/enrollments_te_enrollments-data.json");
-    ImportReport importReport =
-        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+    ImportReport importReport = trackerImportService.importTracker(params);
     assertNoErrors(importReport);
-    TrackerObjects secondTrackerObjects =
+    TrackerImportParams secondParams =
         fromJson("tracker/validations/enrollments_te_enrollments-data.json");
-    TrackerPreheat preheat =
-        trackerPreheatService.preheat(
-            secondTrackerObjects, new TrackerIdSchemeParams(), userService.getUser(ADMIN_USER_UID));
-    secondTrackerObjects
+    TrackerPreheat preheat = trackerPreheatService.preheat(secondParams);
+    secondParams
         .getEnrollments()
         .forEach(
             e -> {
@@ -120,34 +113,31 @@ class EnrollmentImportValidationTest extends TrackerTest {
 
   @Test
   void testNoWriteAccessToOrg() throws IOException {
-    TrackerObjects trackerObjects =
+    TrackerImportParams params =
         fromJson("tracker/validations/enrollments_te_enrollments-data.json");
     User user = userService.getUser(USER_2);
-    TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(user.getUid());
+    params.setUser(user);
 
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    ImportReport importReport = trackerImportService.importTracker(params);
 
     assertHasErrors(importReport, 4, ValidationCode.E1000);
   }
 
   @Test
   void testOnlyProgramAttributesAllowedOnEnrollments() throws IOException {
-    TrackerObjects trackerObjects =
+    TrackerImportParams params =
         fromJson("tracker/validations/enrollments_error_non_program_attr.json");
 
-    ImportReport importReport =
-        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+    ImportReport importReport = trackerImportService.importTracker(params);
 
     assertHasErrors(importReport, 3, ValidationCode.E1019);
   }
 
   @Test
   void testAttributesOk() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_attr-data.json");
+    TrackerImportParams params = fromJson("tracker/validations/enrollments_te_attr-data.json");
 
-    ImportReport importReport =
-        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+    ImportReport importReport = trackerImportService.importTracker(params);
 
     assertNoErrors(importReport);
     assertEquals(
@@ -163,49 +153,45 @@ class EnrollmentImportValidationTest extends TrackerTest {
   @Test
   void testDeleteCascadeEnrollments() throws IOException {
 
-    TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_attr-data.json");
-    TrackerImportParams params = new TrackerImportParams();
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    TrackerImportParams params = fromJson("tracker/validations/enrollments_te_attr-data.json");
+    ImportReport importReport = trackerImportService.importTracker(params);
 
     assertNoErrors(importReport);
     manager.flush();
     importEvents();
     manager.flush();
-    trackerObjects = fromJson("tracker/validations/enrollments_te_attr-data.json");
+    params = fromJson("tracker/validations/enrollments_te_attr-data.json");
     User user2 = userService.getUser(USER_4);
-    params.setUserId(user2.getUid());
+    params.setUser(user2);
     params.setImportStrategy(TrackerImportStrategy.DELETE);
 
-    ImportReport trackerImportDeleteReport =
-        trackerImportService.importTracker(params, trackerObjects);
+    ImportReport trackerImportDeleteReport = trackerImportService.importTracker(params);
 
     assertHasOnlyErrors(trackerImportDeleteReport, ValidationCode.E1103, ValidationCode.E1091);
   }
 
   protected void importEvents() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/events-with-registration.json");
-    TrackerImportParams params = new TrackerImportParams();
+    TrackerImportParams params = fromJson("tracker/validations/events-with-registration.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE);
 
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    ImportReport importReport = trackerImportService.importTracker(params);
 
     assertNoErrors(importReport);
   }
 
   @Test
   void testActiveEnrollmentAlreadyExists() throws IOException {
-    TrackerObjects trackerObjects =
+    TrackerImportParams trackerImportParams =
         fromJson("tracker/validations/enrollments_double-tei-enrollment_part1.json");
 
-    ImportReport importReport =
-        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
 
     assertNoErrors(importReport);
 
-    TrackerObjects trackerObjects2 =
+    TrackerImportParams trackerImportParams1 =
         fromJson("tracker/validations/enrollments_double-tei-enrollment_part2.json");
 
-    importReport = trackerImportService.importTracker(new TrackerImportParams(), trackerObjects2);
+    importReport = trackerImportService.importTracker(trackerImportParams1);
 
     ValidationReport validationResult = importReport.getValidationReport();
 
@@ -214,21 +200,19 @@ class EnrollmentImportValidationTest extends TrackerTest {
 
   @Test
   void testEnrollmentDeleteOk() throws IOException {
-    TrackerObjects trackerObjects =
+    TrackerImportParams paramsCreate =
         fromJson("tracker/validations/enrollments_te_enrollments-data.json");
-    TrackerImportParams params = new TrackerImportParams();
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    ImportReport importReport = trackerImportService.importTracker(paramsCreate);
     assertNoErrors(importReport);
 
     manager.flush();
     manager.clear();
 
-    TrackerObjects deleteTrackerObjects =
+    TrackerImportParams paramsDelete =
         fromJson("tracker/validations/enrollments_te_enrollments-data-delete.json");
-    params.setImportStrategy(TrackerImportStrategy.DELETE);
+    paramsDelete.setImportStrategy(TrackerImportStrategy.DELETE);
 
-    ImportReport importReportDelete =
-        trackerImportService.importTracker(params, deleteTrackerObjects);
+    ImportReport importReportDelete = trackerImportService.importTracker(paramsDelete);
 
     assertNoErrors(importReportDelete);
     assertEquals(1, importReportDelete.getStats().getDeleted());
@@ -237,11 +221,9 @@ class EnrollmentImportValidationTest extends TrackerTest {
   /** Notes with no value are ignored */
   @Test
   void testBadEnrollmentNoteNoValue() throws IOException {
-    TrackerObjects trackerObjects =
-        fromJson("tracker/validations/enrollments_bad-note-no-value.json");
+    TrackerImportParams params = fromJson("tracker/validations/enrollments_bad-note-no-value.json");
 
-    ImportReport importReport =
-        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+    ImportReport importReport = trackerImportService.importTracker(params);
 
     assertNoErrors(importReport);
   }

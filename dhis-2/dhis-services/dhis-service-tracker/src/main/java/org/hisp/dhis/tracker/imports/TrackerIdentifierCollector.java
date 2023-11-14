@@ -53,7 +53,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -71,12 +70,12 @@ import org.springframework.stereotype.Component;
 public class TrackerIdentifierCollector {
   private final ProgramRuleService programRuleService;
 
-  public Map<Class<?>, Set<String>> collect(TrackerObjects trackerObjects) {
+  public Map<Class<?>, Set<String>> collect(TrackerImportParams params) {
     final Map<Class<?>, Set<String>> identifiers = new HashMap<>();
-    collectTrackedEntities(identifiers, trackerObjects.getTrackedEntities());
-    collectEnrollments(identifiers, trackerObjects.getEnrollments());
-    collectEvents(identifiers, trackerObjects.getEvents());
-    collectRelationships(identifiers, trackerObjects.getRelationships());
+    collectTrackedEntities(identifiers, params.getTrackedEntities());
+    collectEnrollments(identifiers, params.getEnrollments());
+    collectEvents(identifiers, params.getEvents());
+    collectRelationships(identifiers, params.getRelationships());
     collectProgramRulesFields(identifiers);
     return identifiers;
   }

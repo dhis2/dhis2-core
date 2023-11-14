@@ -32,6 +32,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStore;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.EnrollmentMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
@@ -49,7 +50,8 @@ public class EnrollmentStrategy implements ClassBasedSupplierStrategy {
   @Nonnull private final EnrollmentStore enrollmentStore;
 
   @Override
-  public void add(List<List<String>> splitList, TrackerPreheat preheat) {
+  public void add(
+      TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
     for (List<String> ids : splitList) {
       List<Enrollment> enrollments = enrollmentStore.getIncludingDeleted(ids);
 

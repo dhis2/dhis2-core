@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +45,7 @@ import org.locationtech.jts.geom.Geometry;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackedEntity implements TrackerDto, Serializable {
+public class TrackedEntity implements TrackerDto {
   @JsonProperty private String trackedEntity;
 
   @JsonProperty private MetadataIdentifier trackedEntityType;

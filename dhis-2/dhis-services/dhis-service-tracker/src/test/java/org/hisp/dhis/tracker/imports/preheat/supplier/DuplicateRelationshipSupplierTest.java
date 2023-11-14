@@ -39,9 +39,9 @@ import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -148,12 +148,12 @@ class DuplicateRelationshipSupplierTest extends DhisConvenienceTest {
     when(relationshipStore.getByUid(List.of(REL_A_UID, REL_B_UID)))
         .thenReturn(List.of(relationshipA(), relationshipB()));
 
-    TrackerObjects trackerObjects =
-        TrackerObjects.builder()
+    TrackerImportParams trackerImportParams =
+        TrackerImportParams.builder()
             .relationships(List.of(relationshipA, relationshipB, relationshipC))
             .build();
 
-    supplier.preheatAdd(trackerObjects, preheat);
+    supplier.preheatAdd(trackerImportParams, preheat);
 
     assertTrue(preheat.isDuplicate(relationshipA));
     assertFalse(preheat.isDuplicate(invertTeToTeRelationship(relationshipA)));

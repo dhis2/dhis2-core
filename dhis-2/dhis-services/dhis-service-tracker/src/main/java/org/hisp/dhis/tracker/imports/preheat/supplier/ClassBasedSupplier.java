@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.tracker.imports.TrackerIdentifierCollector;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.supplier.strategy.ClassBasedSupplierStrategy;
 import org.hisp.dhis.tracker.imports.preheat.supplier.strategy.GenericStrategy;
@@ -67,13 +67,13 @@ public class ClassBasedSupplier extends AbstractPreheatSupplier implements Appli
   private final Map<String, String> classStrategies;
 
   @Override
-  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
     /*
      * Collects all references from the payload and create a Map where key
      * is the reference type (e.g. Enrollment) and the value is a Set of
      * identifiers (e.g. a list of all Enrollment UIDs found in the payload)
      */
-    Map<Class<?>, Set<String>> identifierMap = identifierCollector.collect(trackerObjects);
+    Map<Class<?>, Set<String>> identifierMap = identifierCollector.collect(params);
 
     identifierMap.forEach(
         (key, identifiers) -> {
@@ -90,7 +90,7 @@ public class ClassBasedSupplier extends AbstractPreheatSupplier implements Appli
           } else {
             context
                 .getBean(Introspector.decapitalize(bean), ClassBasedSupplierStrategy.class)
-                .add(splitList, preheat);
+                .add(params, splitList, preheat);
           }
         });
   }

@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,6 +55,11 @@ class TrackerEntityStrategyTest {
 
   @Test
   void verifyStrategyAddRightTeToPreheat() {
+    final List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =
+        trackedEntities();
+    final TrackerImportParams params =
+        TrackerImportParams.builder().trackedEntities(trackedEntities).build();
+
     final List<String> uids = List.of("TEIA", "TEIB");
 
     List<List<String>> splitUids = new ArrayList<>();
@@ -65,7 +71,7 @@ class TrackerEntityStrategyTest {
     teB.setUid("TEIB");
     List<TrackedEntity> dbTrackedEntities = List.of(teA, teB);
     when(trackedEntityStore.getIncludingDeleted(uids)).thenReturn(dbTrackedEntities);
-    strategy.add(splitUids, preheat);
+    strategy.add(params, splitUids, preheat);
 
     Mockito.verify(trackedEntityStore).getIncludingDeleted(uids);
     Mockito.verify(preheat).putTrackedEntities(dbTrackedEntities);

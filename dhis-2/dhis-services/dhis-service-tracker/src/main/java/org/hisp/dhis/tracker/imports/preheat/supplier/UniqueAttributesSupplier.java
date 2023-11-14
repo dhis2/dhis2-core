@@ -52,9 +52,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValue;
 import org.springframework.stereotype.Component;
@@ -74,20 +74,20 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
   @Nonnull private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Override
-  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
     List<TrackedEntityAttribute> uniqueTrackedEntityAttributes =
         trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes();
 
     Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>>
         allUniqueAttributesByTrackedEntity =
-            getAllAttributesByTrackedEntity(trackerObjects, preheat, uniqueTrackedEntityAttributes);
+            getAllAttributesByTrackedEntity(params, preheat, uniqueTrackedEntityAttributes);
 
     List<UniqueAttributeValue> uniqueAttributeValuesFromPayload =
         getDuplicatedUniqueValuesInPayload(allUniqueAttributesByTrackedEntity);
 
     List<UniqueAttributeValue> uniqueAttributeValuesFromDB =
         getAlreadyPresentInDbUniqueValues(
-            preheat.getIdSchemes(),
+            params.getIdSchemes(),
             allUniqueAttributesByTrackedEntity,
             uniqueTrackedEntityAttributes);
 
@@ -102,11 +102,11 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
 
   private Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>>
       getAllAttributesByTrackedEntity(
-          TrackerObjects trackerObjects,
+          TrackerImportParams params,
           TrackerPreheat preheat,
           List<TrackedEntityAttribute> uniqueTrackedEntityAttributes) {
     Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> teUniqueAttributes =
-        trackerObjects.getTrackedEntities().stream()
+        params.getTrackedEntities().stream()
             .collect(
                 toMap(
                     Function.identity(),
@@ -115,10 +115,9 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
 
     Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>>
         enrollmentUniqueAttributes =
-            trackerObjects.getEnrollments().stream()
+            params.getEnrollments().stream()
                 .collect(
-                    groupingBy(
-                        e -> getEntityForEnrollment(trackerObjects, preheat, e.getTrackedEntity())))
+                    groupingBy(e -> getEntityForEnrollment(params, preheat, e.getTrackedEntity())))
                 .entrySet()
                 .stream()
                 .collect(
@@ -137,12 +136,12 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
   }
 
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity getEntityForEnrollment(
-      TrackerObjects trackerObjects, TrackerPreheat preheat, String teUid) {
+      TrackerImportParams params, TrackerPreheat preheat, String teUid) {
     TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
 
     // Get te from Preheat
     Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> optionalTe =
-        trackerObjects.getTrackedEntities().stream()
+        params.getTrackedEntities().stream()
             .filter(te -> Objects.equals(te.getTrackedEntity(), teUid))
             .findAny();
     if (optionalTe.isPresent()) {
@@ -153,7 +152,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
           new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
       te.setTrackedEntity(teUid);
       te.setOrgUnit(
-          preheat.getIdSchemes().toMetadataIdentifier(trackedEntity.getOrganisationUnit()));
+          params.getIdSchemes().toMetadataIdentifier(trackedEntity.getOrganisationUnit()));
       return te;
     } else // TE is not present. but we do not fail here.
     // A validation error will be thrown in validation phase

@@ -46,7 +46,6 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,8 +71,7 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest {
   @Test
   void testTrackedEntityAttributeValueAuditCreate() throws IOException {
     assertNoErrors(
-        trackerImportService.importTracker(
-            new TrackerImportParams(), fromJson("tracker/te_program_with_tea_data.json")));
+        trackerImportService.importTracker(fromJson("tracker/te_program_with_tea_data.json")));
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());
@@ -97,10 +95,9 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest {
 
   @Test
   void testTrackedEntityAttributeValueAuditDelete() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/te_program_with_tea_data.json");
+    TrackerImportParams trackerImportParams = fromJson("tracker/te_program_with_tea_data.json");
 
-    TrackerImportParams params = new TrackerImportParams();
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
     assertNoErrors(importReport);
     List<TrackedEntityAttributeValue> attributeValues1 =
         trackedEntityAttributeValueService.getTrackedEntityAttributeValues(
@@ -109,9 +106,9 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest {
         attributeValues1.stream()
             .map(TrackedEntityAttributeValue::getAttribute)
             .collect(Collectors.toList());
-    trackerObjects = fromJson("tracker/te_program_with_tea_null_data.json");
-    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
-    importReport = trackerImportService.importTracker(params, trackerObjects);
+    trackerImportParams = fromJson("tracker/te_program_with_tea_null_data.json");
+    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    importReport = trackerImportService.importTracker(trackerImportParams);
     assertNoErrors(importReport);
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     List<TrackedEntityAttributeValueAudit> attributeValueAudits =

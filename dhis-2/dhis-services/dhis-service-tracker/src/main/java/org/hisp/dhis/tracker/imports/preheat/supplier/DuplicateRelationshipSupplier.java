@@ -34,8 +34,8 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.RelationshipMapper;
 import org.hisp.dhis.tracker.imports.util.RelationshipKeySupport;
@@ -47,9 +47,9 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier {
   @Nonnull private final RelationshipStore relationshipStore;
 
   @Override
-  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
     List<org.hisp.dhis.relationship.Relationship> relationships =
-        retrieveRelationshipKeys(trackerObjects.getRelationships(), preheat);
+        retrieveRelationshipKeys(params.getRelationships(), preheat);
 
     relationships.stream()
         .map(RelationshipMapper.INSTANCE::map)

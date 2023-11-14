@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -50,7 +49,7 @@ import org.locationtech.jts.geom.Geometry;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Event implements TrackerDto, Serializable {
+public class Event implements TrackerDto {
   @JsonProperty private String event;
 
   @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;

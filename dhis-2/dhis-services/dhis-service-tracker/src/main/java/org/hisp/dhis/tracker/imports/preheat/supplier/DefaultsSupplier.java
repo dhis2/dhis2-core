@@ -36,7 +36,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.imports.preheat.mappers.CategoryComboMapper;
@@ -59,7 +59,7 @@ public class DefaultsSupplier extends AbstractPreheatSupplier {
   @Nonnull private final PreheatCacheService cache;
 
   @Override
-  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
     // not using manager.getDefaults() as the collections of the entities
     // are still hibernate proxies
     // this leads to lazy init exceptions with - no session. reason is the

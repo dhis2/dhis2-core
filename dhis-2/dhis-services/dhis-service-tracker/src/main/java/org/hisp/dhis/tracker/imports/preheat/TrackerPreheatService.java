@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.preheat;
 
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,6 +39,5 @@ public interface TrackerPreheatService {
    *
    * @param params Params for preheating
    */
-  TrackerPreheat preheat(
-      TrackerObjects trackerObjects, TrackerIdSchemeParams idSchemeParams, User user);
+  TrackerPreheat preheat(TrackerImportParams params);
 }

@@ -45,10 +45,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -120,21 +120,20 @@ class TrackerPreheatServiceIntegrationTest extends TransactionalIntegrationTest 
             .trackedEntity("TE123456789")
             .build();
 
-    TrackerObjects trackerObjects =
-        TrackerObjects.builder()
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .user(currentUser)
             .trackedEntities(Lists.newArrayList(teA))
             .enrollments(Lists.newArrayList(enrollmentA))
+            .idSchemes(
+                TrackerIdSchemeParams.builder()
+                    .idScheme(TrackerIdSchemeParam.UID)
+                    .orgUnitIdScheme(TrackerIdSchemeParam.CODE)
+                    .programIdScheme(TrackerIdSchemeParam.ofAttribute(ATTRIBUTE_UID))
+                    .build())
             .build();
 
-    TrackerIdSchemeParams idSchemeParams =
-        TrackerIdSchemeParams.builder()
-            .idScheme(TrackerIdSchemeParam.UID)
-            .orgUnitIdScheme(TrackerIdSchemeParam.CODE)
-            .programIdScheme(TrackerIdSchemeParam.ofAttribute(ATTRIBUTE_UID))
-            .build();
-
-    TrackerPreheat preheat =
-        trackerPreheatService.preheat(trackerObjects, idSchemeParams, currentUser);
+    TrackerPreheat preheat = trackerPreheatService.preheat(params);
 
     assertNotNull(preheat);
     // asserting on specific fields instead of plain assertEquals since

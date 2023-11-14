@@ -35,7 +35,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 import org.springframework.stereotype.Component;
@@ -51,7 +51,7 @@ public class PeriodTypeSupplier extends AbstractPreheatSupplier {
   @Nonnull private final PreheatCacheService cache;
 
   @Override
-  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
     if (cache.hasKey(Period.class.getName())) {
       preheat.put(TrackerIdSchemeParam.UID, cache.getAll(Period.class.getName()));
     } else {
