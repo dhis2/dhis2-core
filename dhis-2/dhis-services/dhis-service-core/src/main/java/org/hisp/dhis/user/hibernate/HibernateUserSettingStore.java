@@ -88,7 +88,8 @@ public class HibernateUserSettingStore implements UserSettingStore {
   @Override
   @SuppressWarnings("unchecked")
   public List<UserSetting> getAllUserSettings(User user) {
-    Query<UserSetting> query = getSession().createQuery("from UserSetting us where us.user = :user");
+    Query<UserSetting> query =
+        getSession().createQuery("from UserSetting us where us.user = :user");
     query.setParameter("user", user);
     query.setCacheable(CACHEABLE);
 

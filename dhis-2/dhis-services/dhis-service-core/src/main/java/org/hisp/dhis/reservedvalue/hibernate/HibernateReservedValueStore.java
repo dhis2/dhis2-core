@@ -32,7 +32,6 @@ import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Query;
@@ -99,13 +98,10 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
             .setParameter("ownerObject", reservedValue.getOwnerObject())
             .setParameter("ownerUid", reservedValue.getOwnerUid())
             .setParameter("key", reservedValue.getKey())
-            .setParameter(
-                "values", values.stream().map(String::toLowerCase).toList())
+            .setParameter("values", values.stream().map(String::toLowerCase).toList())
             .list();
 
-    return values.stream()
-        .filter(rv -> !teavOrReservedValues.contains(rv))
-        .toList();
+    return values.stream().filter(rv -> !teavOrReservedValues.contains(rv)).toList();
   }
 
   @Override

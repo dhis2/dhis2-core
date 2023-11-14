@@ -96,8 +96,7 @@ public class DataSourceConfig {
     return jdbcTemplate;
   }
 
-  static DataSource createActualDataSource(
-      DhisConfigurationProvider dhisConfig) {
+  static DataSource createActualDataSource(DhisConfigurationProvider dhisConfig) {
     String jdbcUrl = dhisConfig.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = dhisConfig.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);

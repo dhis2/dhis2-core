@@ -135,7 +135,9 @@ public class HibernateConfig {
   @Bean("entityManagerFactory")
   @DependsOn({"flyway"})
   public EntityManagerFactory entityManagerFactoryBean(
-      DhisConfigurationProvider dhisConfig, HibernateConfigurationProvider hibernateConfig, DataSource dataSource) {
+      DhisConfigurationProvider dhisConfig,
+      HibernateConfigurationProvider hibernateConfig,
+      DataSource dataSource) {
     HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
     adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
     adapter.setGenerateDdl(shouldGenerateDDL(dhisConfig));

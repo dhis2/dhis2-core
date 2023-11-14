@@ -41,10 +41,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.jpa.JpaTransactionManager;
 
 /**
  * @author Chau Thu Tran
@@ -102,6 +100,5 @@ class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
 
     assertTrue(entityManager.find(ProgramStage.class, idA).getProgramStageSections().isEmpty());
     assertNull(entityManager.find(ProgramStageSection.class, sectionId));
-
   }
 }
