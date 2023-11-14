@@ -90,11 +90,9 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFa
   private static Iterable<String> getEntityManagerFactoryBeanNames(
       ListableBeanFactory beanFactory) {
 
-    Set<String> names = new HashSet<String>();
-    names.addAll(
-        asList(
-            beanNamesForTypeIncludingAncestors(
-                beanFactory, EntityManagerFactory.class, true, false)));
+    Set<String> names = new HashSet<>(asList(
+        beanNamesForTypeIncludingAncestors(
+            beanFactory, EntityManagerFactory.class, true, false)));
 
     for (String factoryBeanName :
         beanNamesForTypeIncludingAncestors(

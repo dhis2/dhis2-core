@@ -46,11 +46,8 @@ public class HibernateUserSettingStore implements UserSettingStore {
 
   private EntityManager entityManager;
 
-  private Session session;
-
   public HibernateUserSettingStore(EntityManager entityManager) {
     this.entityManager = entityManager;
-    this.session = entityManager.unwrap(Session.class);
   }
 
   // -------------------------------------------------------------------------
@@ -62,12 +59,12 @@ public class HibernateUserSettingStore implements UserSettingStore {
 
   @Override
   public void addUserSetting(UserSetting userSetting) {
-    session.save(userSetting);
+    getSession().save(userSetting);
   }
 
   @Override
   public void updateUserSetting(UserSetting userSetting) {
-    session.update(userSetting);
+    getSession().update(userSetting);
   }
 
   @Override
@@ -80,7 +77,7 @@ public class HibernateUserSettingStore implements UserSettingStore {
   @SuppressWarnings("unchecked")
   public UserSetting getUserSetting(User user, String name) {
     Query<UserSetting> query =
-        session.createQuery("from UserSetting us where us.user = :user and us.name = :name");
+        getSession().createQuery("from UserSetting us where us.user = :user and us.name = :name");
     query.setParameter("user", user);
     query.setParameter("name", name);
     query.setCacheable(CACHEABLE);
@@ -91,7 +88,7 @@ public class HibernateUserSettingStore implements UserSettingStore {
   @Override
   @SuppressWarnings("unchecked")
   public List<UserSetting> getAllUserSettings(User user) {
-    Query<UserSetting> query = session.createQuery("from UserSetting us where us.user = :user");
+    Query<UserSetting> query = getSession().createQuery("from UserSetting us where us.user = :user");
     query.setParameter("user", user);
     query.setCacheable(CACHEABLE);
 
@@ -100,13 +97,17 @@ public class HibernateUserSettingStore implements UserSettingStore {
 
   @Override
   public void deleteUserSetting(UserSetting userSetting) {
-    session.delete(userSetting);
+    getSession().delete(userSetting);
   }
 
   @Override
   public void removeUserSettings(User user) {
     String hql = "delete from UserSetting us where us.user = :user";
 
-    session.createQuery(hql).setParameter("user", user).executeUpdate();
+    getSession().createQuery(hql).setParameter("user", user).executeUpdate();
+  }
+
+  private Session getSession() {
+    return entityManager.unwrap(Session.class);
   }
 }

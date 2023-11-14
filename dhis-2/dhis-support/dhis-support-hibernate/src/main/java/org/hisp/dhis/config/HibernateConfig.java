@@ -156,9 +156,9 @@ public class HibernateConfig {
   /**
    * Returns additional properties to be used by the {@link LocalContainerEntityManagerFactoryBean}
    *
-   * @param config {@link DhisConfigurationProvider}
+   * @param hibernateConfig {@link HibernateConfigurationProvider}
    */
-  private Properties getAdditionalProperties(DhisConfigurationProvider config, HibernateConfigurationProvider hibernateConfig) {
+  private Properties getAdditionalProperties(HibernateConfigurationProvider hibernateConfig) {
     Properties properties = new Properties();
     properties.put(
         "hibernate.current_session_context_class",
