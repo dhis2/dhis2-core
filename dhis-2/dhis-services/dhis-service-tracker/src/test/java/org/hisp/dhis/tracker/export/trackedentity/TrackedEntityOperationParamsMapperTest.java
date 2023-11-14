@@ -32,6 +32,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
@@ -72,11 +73,14 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -471,6 +475,63 @@ class TrackedEntityOperationParamsMapperTest {
         assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
     assertEquals(
         "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID, e.getMessage());
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = OrganisationUnitSelectionMode.class)
+  void shouldMapParamsWhenOrgUnitNotInScopeButUserIsSuperuser(
+      OrganisationUnitSelectionMode orgUnitMode) throws ForbiddenException, BadRequestException {
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(false);
+
+    User superuser = createUser("ALL");
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(orgUnitMode)
+            .user(superuser)
+            .organisationUnits(Set.of(ORG_UNIT_1_UID))
+            .build();
+
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams);
+    assertEquals(user, queryParams.getUser());
+    assertContainsOnly(
+        Set.of(ORG_UNIT_1_UID),
+        queryParams.getOrgUnits().stream().map(BaseIdentifiableObject::getUid).toList());
+    assertEquals(orgUnitMode, queryParams.getOrgUnitMode());
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = OrganisationUnitSelectionMode.class)
+  void shouldFailWhenOrgUnitNotInScopeAndUserHasSearchInAllAuthority(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(false);
+
+    User user = createUser(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(orgUnitMode)
+            .user(user)
+            .organisationUnits(Set.of(ORG_UNIT_1_UID))
+            .build();
+
+    ForbiddenException e =
+        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
+    assertEquals(
+        "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID, e.getMessage());
+  }
+
+  private User createUser(String authority) {
+    User user = new User();
+    UserRole userRole = new UserRole();
+    userRole.setAuthorities(Set.of(authority));
+    user.setUserRoles(Set.of(userRole));
+
+    return user;
   }
 
   @Test
