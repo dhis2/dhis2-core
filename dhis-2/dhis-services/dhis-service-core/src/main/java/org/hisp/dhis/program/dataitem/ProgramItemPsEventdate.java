@@ -66,7 +66,7 @@ public class ProgramItemPsEventdate extends ProgramExpressionItem {
         .getStatementBuilder()
         .getProgramIndicatorEventColumnSql(
             ctx.uid0.getText(),
-            "executiondate",
+            "occurreddate",
             params.getReportingStartDate(),
             params.getReportingEndDate(),
             params.getProgramIndicator());

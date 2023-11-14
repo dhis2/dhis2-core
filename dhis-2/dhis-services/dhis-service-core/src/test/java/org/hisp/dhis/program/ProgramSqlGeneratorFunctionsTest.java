@@ -259,7 +259,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
                 + "from analytics_event_Program000A "
                 + "where analytics_event_Program000A.pi = ax.pi "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
-                + "and executiondate < cast( '2021-01-01' as date ) "
+                + "and occurreddate < cast( '2021-01-01' as date ) "
                 + "and ps = 'ProgrmStagA')"));
   }
 
@@ -278,7 +278,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
                 + "from analytics_event_Program000A "
                 + "where analytics_event_Program000A.pi = ax.pi "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
-                + "and executiondate >= cast( '2020-01-01' as date ) "
+                + "and occurreddate >= cast( '2020-01-01' as date ) "
                 + "and ps = 'ProgrmStagA')"));
   }
 
@@ -297,7 +297,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
                 + "from analytics_event_Program000A "
                 + "where analytics_event_Program000A.pi = ax.pi "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
-                + "and executiondate < cast( '2021-01-01' as date ) and executiondate >= cast( '2020-01-01' as date ) "
+                + "and occurreddate < cast( '2021-01-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) "
                 + "and ps = 'ProgrmStagA')"));
   }
 
@@ -514,10 +514,10 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     assertThat(
         sql,
         is(
-            "(date_part('year',age(cast((select executiondate from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi and executiondate is not null "
+            "(date_part('year',age(cast((select occurreddate from analytics_event_Program000A "
+                + "where analytics_event_Program000A.pi = ax.pi and occurreddate is not null "
                 + "and ps = 'ProgrmStagA' "
-                + "order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date))))"));
+                + "order by occurreddate desc limit 1 ) as date), cast(enrollmentdate as date))))"));
   }
 
   @Test
@@ -530,11 +530,11 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     assertThat(
         sql,
         is(
-            "(date_part('year',age(cast((select executiondate from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi and executiondate is not null "
-                + "and executiondate < cast( '2021-01-01' as date ) and executiondate >= cast( '2020-01-01' as date ) "
+            "(date_part('year',age(cast((select occurreddate from analytics_event_Program000A "
+                + "where analytics_event_Program000A.pi = ax.pi and occurreddate is not null "
+                + "and occurreddate < cast( '2021-01-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) "
                 + "and ps = 'ProgrmStagA' "
-                + "order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1"));
+                + "order by occurreddate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1"));
   }
 
   @Test
