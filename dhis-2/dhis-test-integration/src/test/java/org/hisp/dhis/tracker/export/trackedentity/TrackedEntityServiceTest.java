@@ -1466,7 +1466,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
-    assertContainsOnly(List.of(trackedEntityA, trackedEntityB, trackedEntityC), trackedEntities);
+    assertContainsOnly(
+        List.of(
+            trackedEntityA,
+            trackedEntityB,
+            trackedEntityC,
+            trackedEntityChildA,
+            trackedEntityGrandchildA),
+        trackedEntities);
   }
 
   @Test
