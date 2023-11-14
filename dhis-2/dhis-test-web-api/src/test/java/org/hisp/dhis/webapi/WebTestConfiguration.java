@@ -78,7 +78,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
-import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
@@ -131,7 +131,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Order(10)
 public class WebTestConfiguration {
   @Bean
-  public static SessionRegistryImpl sessionRegistry() {
+  public static SessionRegistry sessionRegistry() {
     return new org.springframework.security.core.session.SessionRegistryImpl();
   }
 
