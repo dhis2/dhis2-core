@@ -97,7 +97,7 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment> {
         ProgramStatus.valueOf(rs.getString(EnrollmentQuery.getColumnName(COLUMNS.STATUS))));
     enrollment.setEnrollmentDate(
         rs.getTimestamp(EnrollmentQuery.getColumnName(COLUMNS.ENROLLMENTDATE)));
-    enrollment.setIncidentDate(
+    enrollment.setOccurredDate(
         rs.getTimestamp(EnrollmentQuery.getColumnName(COLUMNS.INCIDENTDATE)));
     enrollment.setCompletedDate(rs.getTimestamp(EnrollmentQuery.getColumnName(COLUMNS.COMPLETED)));
     enrollment.setCompletedBy(rs.getString(EnrollmentQuery.getColumnName(COLUMNS.COMPLETEDBY)));

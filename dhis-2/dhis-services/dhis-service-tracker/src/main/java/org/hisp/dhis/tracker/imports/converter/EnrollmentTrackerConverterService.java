@@ -139,10 +139,10 @@ public class EnrollmentTrackerConverterService
     dbEnrollment.setLastUpdatedAtClient(DateUtils.fromInstant(enrollment.getUpdatedAtClient()));
 
     Date enrollmentDate = DateUtils.fromInstant(enrollment.getEnrolledAt());
-    Date incidentDate = DateUtils.fromInstant(enrollment.getOccurredAt());
+    Date occurredDate = DateUtils.fromInstant(enrollment.getOccurredAt());
 
     dbEnrollment.setEnrollmentDate(enrollmentDate);
-    dbEnrollment.setIncidentDate(incidentDate != null ? incidentDate : enrollmentDate);
+    dbEnrollment.setOccurredDate(occurredDate != null ? occurredDate : enrollmentDate);
     dbEnrollment.setOrganisationUnit(organisationUnit);
     dbEnrollment.setProgram(program);
     dbEnrollment.setTrackedEntity(trackedEntity);
