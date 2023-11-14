@@ -82,7 +82,7 @@ public class MetadataImportJob implements Job {
     MetadataImportParams params = (MetadataImportParams) config.getJobParameters();
     progress.startingStage("Loading file resource");
     FileResource data =
-        progress.runStage(() -> fileResourceService.getFileResource(config.getUid()));
+        progress.runStage(() -> fileResourceService.getExistingFileResource(config.getUid()));
     progress.startingStage("Loading file content");
     try (InputStream input =
         progress.runStage(() -> fileResourceService.getFileResourceContent(data))) {
