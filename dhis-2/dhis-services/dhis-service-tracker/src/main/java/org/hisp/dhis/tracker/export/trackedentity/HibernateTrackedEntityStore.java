@@ -645,27 +645,67 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
-      SqlHelper orHlp = new SqlHelper(true);
-
-      orgUnits.append("AND (");
-
-      for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
-
-        OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
-        if (ou != null) {
-          orgUnits.append(orHlp.or()).append("OU.path LIKE '").append(ou.getPath()).append("%'");
-        }
-      }
-
-      orgUnits.append(") ");
-    } else if (!params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ALL)) {
-      orgUnits
-          .append("AND OU.organisationunitid IN (")
-          .append(getCommaDelimitedString(getIdentifiers(params.getOrgUnits())))
-          .append(") ");
+      orgUnits.append(getDescendantsQuery(params));
+    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
+      orgUnits.append(getChildrenQuery(params));
+    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
+      orgUnits.append(getSelectedQuery(params));
     }
 
     return orgUnits.toString();
+  }
+
+  private String getDescendantsQuery(TrackedEntityQueryParams params) {
+    StringBuilder orgUnits = new StringBuilder();
+    SqlHelper orHlp = new SqlHelper(true);
+
+    orgUnits.append("AND (");
+
+    for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
+
+      OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
+      if (ou != null) {
+        orgUnits.append(orHlp.or()).append("OU.path LIKE '").append(ou.getPath()).append("%'");
+      }
+    }
+
+    orgUnits.append(") ");
+
+    return orgUnits.toString();
+  }
+
+  private String getChildrenQuery(TrackedEntityQueryParams params) {
+    StringBuilder orgUnits = new StringBuilder();
+    SqlHelper orHlp = new SqlHelper(true);
+
+    orgUnits.append("AND (");
+
+    for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
+
+      OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
+      if (ou != null) {
+        orgUnits
+            .append(orHlp.or())
+            .append(" OU.path LIKE '")
+            .append(ou.getPath())
+            .append("%'")
+            .append(" AND (ou.hierarchylevel = ")
+            .append(ou.getHierarchyLevel())
+            .append(" OR ou.hierarchylevel = ")
+            .append((ou.getHierarchyLevel() + 1))
+            .append(")");
+      }
+    }
+
+    orgUnits.append(") ");
+
+    return orgUnits.toString();
+  }
+
+  private String getSelectedQuery(TrackedEntityQueryParams params) {
+    return "AND OU.organisationunitid IN ("
+        + getCommaDelimitedString(getIdentifiers(params.getOrgUnits()))
+        + ") ";
   }
 
   /**
