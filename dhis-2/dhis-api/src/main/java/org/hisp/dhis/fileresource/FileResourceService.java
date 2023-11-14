@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.time.Duration;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -99,6 +100,10 @@ public interface FileResourceService {
 
   @Nonnull
   InputStream getFileResourceContent(FileResource fileResource) throws ConflictException;
+
+  @Nonnull
+  InputStream getFileResourceContent(FileResource fileResource, Duration timeout)
+      throws ConflictException;
 
   /** Copy fileResource content to outputStream and Return File content length */
   void copyFileResourceContent(FileResource fileResource, OutputStream outputStream)

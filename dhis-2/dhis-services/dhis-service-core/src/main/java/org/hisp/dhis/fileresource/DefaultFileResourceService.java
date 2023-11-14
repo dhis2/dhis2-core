@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.fileresource;
 
+import static java.lang.System.currentTimeMillis;
+import static java.time.Duration.ofMillis;
+import static java.time.Duration.ofSeconds;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -241,14 +245,26 @@ public class DefaultFileResourceService implements FileResourceService {
   @Override
   @Nonnull
   public InputStream getFileResourceContent(FileResource fileResource) throws ConflictException {
+    return getFileResourceContent(fileResource, ofSeconds(10));
+  }
+
+  @Nonnull
+  @Override
+  public InputStream getFileResourceContent(FileResource fileResource, java.time.Duration timeout)
+      throws ConflictException {
     String key = fileResource.getStorageKey();
     InputStream content = fileResourceContentStore.getFileResourceContent(key);
-    boolean exists = fileResourceContentStore.fileResourceContentExists(key);
+    long since = currentTimeMillis();
+    while (content == null && !timeout.minus(ofMillis(currentTimeMillis() - since)).isNegative()) {
+      try {
+        Thread.sleep(50);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+      content = fileResourceContentStore.getFileResourceContent(key);
+    }
     if (content == null)
-      throw new ConflictException(
-          "File resource exists but content input stream was null (exists? "
-              + (exists ? "yes" : "no")
-              + ")");
+      throw new ConflictException("File resource exists but content input stream was null");
     return content;
   }
 
