@@ -80,7 +80,9 @@ public class DefaultTrackerImportService implements TrackerImportService {
     TrackerBundle trackerBundle =
         jobProgress.runStage(() -> trackerBundleService.create(params, trackerObjects, user));
 
-    Map<TrackerType, Integer> bundleSize = calculatePayloadSize(trackerBundle);
+    jobProgress.startingStage("Calculating Payload Size");
+    Map<TrackerType, Integer> bundleSize =
+        jobProgress.runStage(() -> calculatePayloadSize(trackerBundle));
 
     jobProgress.startingStage("Running PreProcess");
     jobProgress.runStage(() -> trackerPreprocessService.preprocess(trackerBundle));

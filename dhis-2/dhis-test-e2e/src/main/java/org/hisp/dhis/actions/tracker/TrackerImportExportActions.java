@@ -92,6 +92,10 @@ public class TrackerImportExportActions extends RestApiActions {
     return getJobReportByImportResponse(response);
   }
 
+  public ApiResponse checkJobReport(String jobId, String reportMode) {
+    return this.get(String.format("/jobs/%s/report?reportMode=%s", jobId, reportMode));
+  }
+
   public TrackerApiResponse getJobReport(String jobId, String reportMode) {
     ApiResponse response =
         this.get(String.format("/jobs/%s/report?reportMode=%s", jobId, reportMode));
@@ -189,9 +193,9 @@ public class TrackerImportExportActions extends RestApiActions {
 
     this.waitUntilJobIsCompleted(jobId);
 
-    Callable<Integer> jobIsCompleted = () -> this.getJobReport(jobId, "FULL").statusCode();
+    Callable<Integer> jobIsCompleted = () -> this.checkJobReport(jobId, "FULL").statusCode();
 
-    with().atMost(20, TimeUnit.SECONDS).await().until(() -> jobIsCompleted.call() == 200);
+    with().atMost(21, TimeUnit.SECONDS).await().until(() -> jobIsCompleted.call() == 200);
 
     return this.getJobReport(jobId, "FULL");
   }
