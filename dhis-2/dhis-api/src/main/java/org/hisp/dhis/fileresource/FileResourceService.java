@@ -37,6 +37,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 
 /**
@@ -48,15 +49,14 @@ public interface FileResourceService {
   FileResource getFileResource(String uid);
 
   /**
-   * Get the {@link FileResource} with the given ID in the {@link FileResourceStorageStatus#STORED}
-   * status
+   * Get the {@link FileResource} with the given ID
    *
    * @param uid the resource to fetch
-   * @return the file resource in status {@link FileResourceStorageStatus#STORED}
+   * @return the file resource
    * @throws NotFoundException when no such file resource exits
    */
   @Nonnull
-  FileResource getFileResourceWhenStored(String uid) throws NotFoundException;
+  FileResource getExistingFileResource(String uid) throws NotFoundException;
 
   /**
    * Lookup a {@link FileResource} by uid and {@link FileResourceDomain}.
@@ -97,8 +97,8 @@ public interface FileResourceService {
 
   void deleteFileResource(FileResource fileResource);
 
-  @CheckForNull
-  InputStream getFileResourceContent(FileResource fileResource);
+  @Nonnull
+  InputStream getFileResourceContent(FileResource fileResource) throws ConflictException;
 
   /** Copy fileResource content to outputStream and Return File content length */
   void copyFileResourceContent(FileResource fileResource, OutputStream outputStream)
