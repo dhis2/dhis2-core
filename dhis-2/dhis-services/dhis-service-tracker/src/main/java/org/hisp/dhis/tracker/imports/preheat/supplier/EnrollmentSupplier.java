@@ -36,7 +36,7 @@ import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.EnrollmentMapper;
 import org.springframework.stereotype.Component;
@@ -52,7 +52,7 @@ public class EnrollmentSupplier extends AbstractPreheatSupplier {
   @Nonnull private final ProgramStore programStore;
 
   @Override
-  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
     List<Program> programsWithoutRegistration =
         preheat.getAll(Program.class).stream()
             .filter(program -> program.getProgramType().equals(ProgramType.WITHOUT_REGISTRATION))

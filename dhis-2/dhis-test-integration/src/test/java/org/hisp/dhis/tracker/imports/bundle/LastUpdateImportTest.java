@@ -44,6 +44,7 @@ import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,16 +62,19 @@ class LastUpdateImportTest extends TrackerTest {
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
     injectAdminUser();
-    TrackerImportParams trackerImportParams = fromJson("tracker/single_tei.json");
-    assertNoErrors(trackerImportService.importTracker(trackerImportParams));
-    trackedEntity = trackerImportParams.getTrackedEntities().get(0);
-    assertNoErrors(trackerImportService.importTracker(fromJson("tracker/single_enrollment.json")));
+    TrackerObjects trackerObjects = fromJson("tracker/single_tei.json");
+    assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
+    trackedEntity = trackerObjects.getTrackedEntities().get(0);
+    assertNoErrors(
+        trackerImportService.importTracker(
+            new TrackerImportParams(), fromJson("tracker/single_enrollment.json")));
     manager.flush();
   }
 
   @Test
   void shouldUpdateTeiIfTeiIsUpdated() throws IOException {
-    TrackerImportParams trackerImportParams = fromJson("tracker/single_tei.json");
+    TrackerObjects trackerObjects = fromJson("tracker/single_tei.json");
+    TrackerImportParams trackerImportParams = new TrackerImportParams();
     trackerImportParams.setImportStrategy(TrackerImportStrategy.UPDATE);
     Attribute attribute =
         Attribute.builder()
@@ -80,7 +84,7 @@ class LastUpdateImportTest extends TrackerTest {
     trackedEntity.setAttributes(Collections.singletonList(attribute));
     Date lastUpdateBefore =
         trackedEntityService.getTrackedEntity(trackedEntity.getTrackedEntity()).getLastUpdated();
-    assertNoErrors(trackerImportService.importTracker(trackerImportParams));
+    assertNoErrors(trackerImportService.importTracker(trackerImportParams, trackerObjects));
     assertTrue(
         manager
                 .get(TrackedEntity.class, trackedEntity.getTrackedEntity())
@@ -91,14 +95,15 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdateTeiIfEventIsUpdated() throws IOException {
-    TrackerImportParams trackerImportParams = fromJson("tracker/event_with_data_values.json");
+    TrackerObjects trackerObjects = fromJson("tracker/event_with_data_values.json");
+    TrackerImportParams trackerImportParams = new TrackerImportParams();
     Date lastUpdateBefore =
         trackedEntityService.getTrackedEntity(trackedEntity.getTrackedEntity()).getLastUpdated();
-    assertNoErrors(trackerImportService.importTracker(trackerImportParams));
+    assertNoErrors(trackerImportService.importTracker(trackerImportParams, trackerObjects));
 
-    trackerImportParams = fromJson("tracker/event_with_updated_data_values.json");
+    trackerObjects = fromJson("tracker/event_with_updated_data_values.json");
     trackerImportParams.setImportStrategy(TrackerImportStrategy.UPDATE);
-    assertNoErrors(trackerImportService.importTracker(trackerImportParams));
+    assertNoErrors(trackerImportService.importTracker(trackerImportParams, trackerObjects));
     manager.clear();
     assertTrue(
         manager
@@ -110,13 +115,15 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdateTeiIfEnrollmentIsUpdated() throws IOException {
-    TrackerImportParams trackerImportParams = fromJson("tracker/single_enrollment.json");
+    TrackerObjects trackerObjects = fromJson("tracker/single_enrollment.json");
+    TrackerImportParams trackerImportParams = new TrackerImportParams();
     Date lastUpdateBefore =
         trackedEntityService.getTrackedEntity(trackedEntity.getTrackedEntity()).getLastUpdated();
-    Enrollment enrollment = trackerImportParams.getEnrollments().get(0);
+    Enrollment enrollment = trackerObjects.getEnrollments().get(0);
     enrollment.setStatus(EnrollmentStatus.COMPLETED);
     trackerImportParams.setImportStrategy(TrackerImportStrategy.UPDATE);
-    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    ImportReport importReport =
+        trackerImportService.importTracker(trackerImportParams, trackerObjects);
     assertNoErrors(importReport);
     manager.clear();
     assertTrue(

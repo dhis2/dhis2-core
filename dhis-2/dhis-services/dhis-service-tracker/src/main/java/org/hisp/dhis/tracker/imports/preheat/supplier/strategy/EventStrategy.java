@@ -32,7 +32,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.EventMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
@@ -48,8 +47,7 @@ public class EventStrategy implements ClassBasedSupplierStrategy {
   @Nonnull private final EventStore eventStore;
 
   @Override
-  public void add(
-      TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
+  public void add(List<List<String>> splitList, TrackerPreheat preheat) {
     for (List<String> ids : splitList) {
       List<Event> events = eventStore.getIncludingDeleted(ids);
 

@@ -44,7 +44,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -107,26 +107,8 @@ public abstract class TrackerTest extends SingleSetupIntegrationTestBase {
     return bundle;
   }
 
-  protected TrackerImportParams fromJson(String path) throws IOException {
-    TrackerImportParams trackerImportParams = _fromJson(path);
-    trackerImportParams.setUser(currentUserService.getCurrentUser());
-    return trackerImportParams;
-  }
-
-  protected TrackerImportParams fromJson(String path, String userUid) throws IOException {
-    TrackerImportParams trackerImportParams = _fromJson(path);
-    trackerImportParams.setUserId(userUid);
-    return trackerImportParams;
-  }
-
-  protected TrackerImportParams fromJson(String path, User user) throws IOException {
-    TrackerImportParams trackerImportParams = _fromJson(path);
-    trackerImportParams.setUser(user);
-    return trackerImportParams;
-  }
-
-  private TrackerImportParams _fromJson(String path) throws IOException {
+  protected TrackerObjects fromJson(String path) throws IOException {
     return renderService.fromJson(
-        new ClassPathResource(path).getInputStream(), TrackerImportParams.class);
+        new ClassPathResource(path).getInputStream(), TrackerObjects.class);
   }
 }
