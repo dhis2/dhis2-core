@@ -194,6 +194,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
     final Blob blob = getBlob(key);
 
     if (blob == null) {
+
       return null;
     }
 

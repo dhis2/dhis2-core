@@ -32,7 +32,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.TrackedEntityMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
@@ -50,8 +49,7 @@ public class TrackerEntityStrategy implements ClassBasedSupplierStrategy {
   @Nonnull private TrackedEntityStore trackedEntityStore;
 
   @Override
-  public void add(
-      TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
+  public void add(List<List<String>> splitList, TrackerPreheat preheat) {
     for (List<String> ids : splitList) {
       // Fetch all Tracked Entity present in the payload
       List<TrackedEntity> trackedEntities = trackedEntityStore.getIncludingDeleted(ids);

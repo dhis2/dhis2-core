@@ -40,9 +40,9 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.CategoryOptionComboMapper;
 import org.springframework.stereotype.Component;
@@ -63,10 +63,10 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier {
   @Nonnull private final CategoryService categoryService;
 
   @Override
-  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
 
     List<Pair<CategoryCombo, Set<CategoryOption>>> events =
-        params.getEvents().stream()
+        trackerObjects.getEvents().stream()
             .filter(
                 e ->
                     e.getAttributeOptionCombo().isBlank()

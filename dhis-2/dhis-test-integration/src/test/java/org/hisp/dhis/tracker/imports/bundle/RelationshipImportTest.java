@@ -37,6 +37,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.User;
@@ -58,31 +59,33 @@ class RelationshipImportTest extends TrackerTest {
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
     userA = userService.getUser("M5zQapPyTZI");
+    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
+    assertNoErrors(trackerImportService.importTracker(params, fromJson("tracker/single_tei.json")));
     assertNoErrors(
-        trackerImportService.importTracker(fromJson("tracker/single_tei.json", userA.getUid())));
+        trackerImportService.importTracker(params, fromJson("tracker/single_enrollment.json")));
     assertNoErrors(
-        trackerImportService.importTracker(
-            fromJson("tracker/single_enrollment.json", userA.getUid())));
-    assertNoErrors(
-        trackerImportService.importTracker(fromJson("tracker/single_event.json", userA.getUid())));
+        trackerImportService.importTracker(params, fromJson("tracker/single_event.json")));
     manager.flush();
   }
 
   @Test
   void successImportingRelationships() throws IOException {
-    TrackerImportParams trackerImportParams = fromJson("tracker/relationships.json");
-    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            new TrackerImportParams(), fromJson("tracker/relationships.json"));
     assertThat(importReport.getStatus(), is(Status.OK));
     assertThat(importReport.getStats().getCreated(), is(2));
   }
 
   @Test
   void successUpdateRelationships() throws IOException {
-    TrackerImportParams trackerImportParams = fromJson("tracker/relationships.json");
-    trackerImportService.importTracker(trackerImportParams);
-    trackerImportParams = fromJson("tracker/relationshipToUpdate.json");
+    TrackerImportParams trackerImportParams = new TrackerImportParams();
+    TrackerObjects trackerObjects = fromJson("tracker/relationships.json");
+    trackerImportService.importTracker(trackerImportParams, trackerObjects);
+    trackerObjects = fromJson("tracker/relationshipToUpdate.json");
     trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
-    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    ImportReport importReport =
+        trackerImportService.importTracker(trackerImportParams, trackerObjects);
     assertThat(importReport.getStatus(), is(Status.OK));
     assertThat(importReport.getStats().getCreated(), is(0));
     assertThat(importReport.getStats().getIgnored(), is(1));

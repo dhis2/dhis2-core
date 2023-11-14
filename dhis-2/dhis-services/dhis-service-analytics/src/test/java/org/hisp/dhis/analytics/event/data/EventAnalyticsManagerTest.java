@@ -115,7 +115,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   private static final String TABLE_NAME = "analytics_event";
 
   private static final String DEFAULT_COLUMNS_WITH_REGISTRATION =
-      "psi,ps,executiondate,storedby,"
+      "psi,ps,occurreddate,storedby,"
           + "createdbydisplayname"
           + ","
           + "lastupdatedbydisplayname"
@@ -153,7 +153,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "select psi,ps,executiondate,storedby,"
+        "select psi,ps,occurreddate,storedby,"
             + "createdbydisplayname"
             + ","
             + "lastupdatedbydisplayname"
@@ -214,7 +214,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "select psi,ps,executiondate,storedby,"
+        "select psi,ps,occurreddate,storedby,"
             + "createdbydisplayname"
             + ","
             + "lastupdatedbydisplayname"
@@ -563,9 +563,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         "from (select \"psi\",ax.\"deabcdefghX\",\"ou\","
             + "\"monthly\",\"jkYhtGth12t\","
             + "row_number() over (partition by ax.\"ou\",ax.\"jkYhtGth12t\" "
-            + "order by ax.\"executiondate\" desc, ax.\"created\" desc) as pe_rank "
+            + "order by ax.\"occurreddate\" desc, ax.\"created\" desc) as pe_rank "
             + "from analytics_event_prabcdefghA as ax "
-            + "where ax.\"executiondate\" >= '2012-01-31' and ax.\"executiondate\" <= '2022-01-31' "
+            + "where ax.\"occurreddate\" >= '2012-01-31' and ax.\"occurreddate\" <= '2022-01-31' "
             + "and ax.\"deabcdefghX\" is not null)";
 
     assertThat(params.isAggregationType(AggregationType.LAST), is(true));
@@ -648,15 +648,15 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         "from (select \"psi\",ax.\""
             + deU.getUid()
             + "\",\"quarterly\",\"ou\","
-            + "row_number() over (partition by ax.\"ou\",ax.\"ao\" order by ax.\"executiondate\" "
+            + "row_number() over (partition by ax.\"ou\",ax.\"ao\" order by ax.\"occurreddate\" "
             + order
             + ", ax.\"created\" "
             + order
             + ") as pe_rank "
             + "from "
             + getTable(programA.getUid())
-            + " as ax where ax.\"executiondate\" >= '1990-03-31' "
-            + "and ax.\"executiondate\" <= '2000-03-31' and ax.\""
+            + " as ax where ax.\"occurreddate\" >= '1990-03-31' "
+            + "and ax.\"occurreddate\" <= '2000-03-31' and ax.\""
             + deU.getUid()
             + "\" is not null)";
 

@@ -75,9 +75,6 @@ public class ImportReport {
    */
   @JsonProperty Stats stats;
 
-  /** A report object containing the elapsed time for each Import stage */
-  @JsonProperty TimingsStats timingsStats;
-
   /** A report containing the outcome of the commit stage (e.g. how many entities were persisted) */
   @JsonProperty("bundleReport")
   PersistenceReport persistenceReport;
@@ -96,15 +93,13 @@ public class ImportReport {
    * therefore all bundle objects were ignored.
    *
    * @param validationReport The validation report
-   * @param timingsStats The timing stats
    * @param bundleSize The sum of all bundle objects
    */
   public static ImportReport withValidationErrors(
-      ValidationReport validationReport, TimingsStats timingsStats, int bundleSize) {
+      ValidationReport validationReport, int bundleSize) {
     return builder()
         .status(Status.ERROR)
         .validationReport(validationReport)
-        .timingsStats(timingsStats)
         .stats(Stats.builder().ignored(bundleSize).build())
         .build();
   }
@@ -119,15 +114,12 @@ public class ImportReport {
    *
    * @param message The error message
    * @param validationReport The validation report if available
-   * @param timingsStats The timing stats if available
    */
-  public static ImportReport withError(
-      String message, ValidationReport validationReport, TimingsStats timingsStats) {
+  public static ImportReport withError(String message, ValidationReport validationReport) {
     // TODO shall we calculate stats in this case?
     return builder()
         .status(Status.ERROR)
         .validationReport(validationReport)
-        .timingsStats(timingsStats)
         .message(message)
         .build();
   }
@@ -142,7 +134,6 @@ public class ImportReport {
    * @param persistenceReport The report containing how many bundle objects were successfully
    *     persisted
    * @param validationReport The validation report if available
-   * @param timingsStats The timing stats if available
    * @param bundleSize a map containing the size of each entity type in the Bundle - before the
    *     validation
    */
@@ -150,7 +141,6 @@ public class ImportReport {
       Status status,
       PersistenceReport persistenceReport,
       ValidationReport validationReport,
-      TimingsStats timingsStats,
       Map<TrackerType, Integer> bundleSize) {
     Stats stats = Stats.builder().build();
     Stats brs = persistenceReport.getStats();
@@ -159,7 +149,6 @@ public class ImportReport {
     return builder()
         .status(status)
         .validationReport(validationReport)
-        .timingsStats(timingsStats)
         .persistenceReport(processBundleReport(persistenceReport, bundleSize))
         .stats(stats)
         .build();

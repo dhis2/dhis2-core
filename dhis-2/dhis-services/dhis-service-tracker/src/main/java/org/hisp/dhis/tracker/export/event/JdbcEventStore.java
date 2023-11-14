@@ -161,7 +161,7 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_ENROLLMENT_DATE = "en_enrollmentdate";
   private static final String COLUMN_ORG_UNIT_UID = "orgunit_uid";
   private static final String COLUMN_TRACKEDENTITY_UID = "te_uid";
-  private static final String COLUMN_EVENT_EXECUTION_DATE = "ev_executiondate";
+  private static final String COLUMN_EVENT_OCCURRED_DATE = "ev_occurreddate";
   private static final String COLUMN_ENROLLMENT_FOLLOWUP = "en_followup";
   private static final String COLUMN_EVENT_STATUS = "ev_status";
   private static final String COLUMN_EVENT_SCHEDULED_DATE = "ev_scheduleddate";
@@ -198,7 +198,7 @@ class JdbcEventStore implements EventStore {
           entry("enrollment.enrollmentDate", COLUMN_ENROLLMENT_DATE),
           entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
           entry("enrollment.trackedEntity.uid", COLUMN_TRACKEDENTITY_UID),
-          entry("occurredDate", COLUMN_EVENT_EXECUTION_DATE),
+          entry("occurredDate", COLUMN_EVENT_OCCURRED_DATE),
           entry("enrollment.followUp", COLUMN_ENROLLMENT_FOLLOWUP),
           entry("status", COLUMN_EVENT_STATUS),
           entry("scheduledDate", COLUMN_EVENT_SCHEDULED_DATE),
@@ -327,7 +327,7 @@ class JdbcEventStore implements EventStore {
 
               event.setStoredBy(resultSet.getString(COLUMN_EVENT_STORED_BY));
               event.setScheduledDate(resultSet.getTimestamp(COLUMN_EVENT_SCHEDULED_DATE));
-              event.setOccurredDate(resultSet.getTimestamp(COLUMN_EVENT_EXECUTION_DATE));
+              event.setOccurredDate(resultSet.getTimestamp(COLUMN_EVENT_OCCURRED_DATE));
               event.setCreated(resultSet.getTimestamp(COLUMN_EVENT_CREATED));
               event.setCreatedByUserInfo(
                   EventUtils.jsonToUserInfo(
@@ -733,8 +733,8 @@ class JdbcEventStore implements EventStore {
             .append(COLUMN_EVENT_ID)
             .append(", ev.status as ")
             .append(COLUMN_EVENT_STATUS)
-            .append(", ev.executiondate as ")
-            .append(COLUMN_EVENT_EXECUTION_DATE)
+            .append(", ev.occurreddate as ")
+            .append(COLUMN_EVENT_OCCURRED_DATE)
             .append(", ")
             .append("ev.eventdatavalues as ev_eventdatavalues, ev.scheduleddate as ")
             .append(COLUMN_EVENT_SCHEDULED_DATE)
@@ -985,9 +985,9 @@ class JdbcEventStore implements EventStore {
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (ev.executiondate >= ")
+          .append(" (ev.occurreddate >= ")
           .append(":startDate")
-          .append(" or (ev.executiondate is null and ev.scheduleddate >= ")
+          .append(" or (ev.occurreddate is null and ev.scheduleddate >= ")
           .append(":startDate")
           .append(" )) ");
     }
@@ -998,9 +998,9 @@ class JdbcEventStore implements EventStore {
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (ev.executiondate < ")
+          .append(" (ev.occurreddate < ")
           .append(":endDate")
-          .append(" or (ev.executiondate is null and ev.scheduleddate < ")
+          .append(" or (ev.occurreddate is null and ev.scheduleddate < ")
           .append(":endDate")
           .append(" )) ");
     }
@@ -1372,7 +1372,7 @@ class JdbcEventStore implements EventStore {
             .append(hlp.whereAnd())
             .append(EVENT_STATUS_EQ)
             .append(":" + COLUMN_EVENT_STATUS)
-            .append(" and ev.executiondate is not null ");
+            .append(" and ev.occurreddate is not null ");
       } else if (params.getEventStatus() == EventStatus.OVERDUE) {
         mapSqlParameterSource.addValue(COLUMN_EVENT_STATUS, EventStatus.SCHEDULE.name());
 

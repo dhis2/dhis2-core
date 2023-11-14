@@ -127,7 +127,7 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
                 + enrollmentIndicator.getProgram().getUid()
                 + " where analytics_event_"
                 + enrollmentIndicator.getProgram().getUid()
-                + ".pi = ax.pi and created is not null order by executiondate desc limit 1 )"));
+                + ".pi = ax.pi and created is not null order by occurreddate desc limit 1 )"));
   }
 
   @Test
@@ -189,13 +189,13 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
   @Test
   void testExecutionDate() {
     String sql = castString(test("V{execution_date}", new DefaultLiteral(), eventIndicator));
-    assertThat(sql, is("executiondate"));
+    assertThat(sql, is("occurreddate"));
   }
 
   @Test
   void testEventDate() {
     String sql = castString(test("V{event_date}", new DefaultLiteral(), eventIndicator));
-    assertThat(sql, is("executiondate"));
+    assertThat(sql, is("occurreddate"));
   }
 
   @Test
