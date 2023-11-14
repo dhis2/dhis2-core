@@ -41,28 +41,24 @@ import org.springframework.util.ConcurrentReferenceHashMap;
 /**
  * @author Jon Schneider
  */
-public class DataSourcePoolMetrics implements MeterBinder {
+public class PoolMetrics implements MeterBinder {
   private final DataSource dataSource;
 
   private final CachingDataSourcePoolMetadataProvider metadataProvider;
 
   private final Iterable<Tag> tags;
 
-  public DataSourcePoolMetrics(
+  public PoolMetrics(
       DataSource dataSource,
-      Collection<DataSourcePoolMetadataProvider> metadataProviders,
+      Collection<PoolMetadataProvider> metadataProviders,
       String dataSourceName,
       Iterable<Tag> tags) {
-    this(
-        dataSource,
-        new CompositeDataSourcePoolMetadataProvider(metadataProviders),
-        dataSourceName,
-        tags);
+    this(dataSource, new CompositePoolMetadataProvider(metadataProviders), dataSourceName, tags);
   }
 
-  public DataSourcePoolMetrics(
+  public PoolMetrics(
       DataSource dataSource,
-      DataSourcePoolMetadataProvider metadataProvider,
+      PoolMetadataProvider metadataProvider,
       String name,
       Iterable<Tag> tags) {
     Assert.notNull(dataSource, "DataSource must not be null");
@@ -75,15 +71,15 @@ public class DataSourcePoolMetrics implements MeterBinder {
   @Override
   public void bindTo(MeterRegistry registry) {
     if (this.metadataProvider.getDataSourcePoolMetadata(this.dataSource) != null) {
-      bindPoolMetadata(registry, "active", DataSourcePoolMetadata::getActive);
-      bindPoolMetadata(registry, "idle", DataSourcePoolMetadata::getIdle);
-      bindPoolMetadata(registry, "max", DataSourcePoolMetadata::getMax);
-      bindPoolMetadata(registry, "min", DataSourcePoolMetadata::getMin);
+      bindPoolMetadata(registry, "active", PoolMetadata::getActive);
+      bindPoolMetadata(registry, "idle", PoolMetadata::getIdle);
+      bindPoolMetadata(registry, "max", PoolMetadata::getMax);
+      bindPoolMetadata(registry, "min", PoolMetadata::getMin);
     }
   }
 
   private <N extends Number> void bindPoolMetadata(
-      MeterRegistry registry, String metricName, Function<DataSourcePoolMetadata, N> function) {
+      MeterRegistry registry, String metricName, Function<PoolMetadata, N> function) {
     bindDataSource(registry, metricName, this.metadataProvider.getValueFunction(function));
   }
 
@@ -94,35 +90,28 @@ public class DataSourcePoolMetrics implements MeterBinder {
           "jdbc.connections." + metricName,
           this.tags,
           this.dataSource,
-          (m) -> function.apply(m).doubleValue());
+          m -> function.apply(m).doubleValue());
     }
   }
 
-  private static class CachingDataSourcePoolMetadataProvider
-      implements DataSourcePoolMetadataProvider {
+  private static class CachingDataSourcePoolMetadataProvider implements PoolMetadataProvider {
 
-    private static final Map<DataSource, DataSourcePoolMetadata> cache =
-        new ConcurrentReferenceHashMap<>();
+    private static final Map<DataSource, PoolMetadata> cache = new ConcurrentReferenceHashMap<>();
 
-    private final DataSourcePoolMetadataProvider metadataProvider;
+    private final PoolMetadataProvider metadataProvider;
 
-    CachingDataSourcePoolMetadataProvider(DataSourcePoolMetadataProvider metadataProvider) {
+    CachingDataSourcePoolMetadataProvider(PoolMetadataProvider metadataProvider) {
       this.metadataProvider = metadataProvider;
     }
 
     <N extends Number> Function<DataSource, N> getValueFunction(
-        Function<DataSourcePoolMetadata, N> function) {
-      return (dataSource) -> function.apply(getDataSourcePoolMetadata(dataSource));
+        Function<PoolMetadata, N> function) {
+      return dS -> function.apply(getDataSourcePoolMetadata(dS));
     }
 
     @Override
-    public DataSourcePoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
-      DataSourcePoolMetadata metadata = cache.get(dataSource);
-      if (metadata == null) {
-        metadata = this.metadataProvider.getDataSourcePoolMetadata(dataSource);
-        cache.put(dataSource, metadata);
-      }
-      return metadata;
+    public PoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
+      return cache.computeIfAbsent(dataSource, this.metadataProvider::getDataSourcePoolMetadata);
     }
   }
 }

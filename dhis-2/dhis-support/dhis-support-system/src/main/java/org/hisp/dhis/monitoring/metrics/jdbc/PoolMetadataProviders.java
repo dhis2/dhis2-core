@@ -25,38 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import org.hisp.dhis.security.SecurityContextRunnable;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.sql.DataSource;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * A {@link PoolMetadataProvider} implementation that returns the first {@link PoolMetadata} that is
+ * found by one of its delegate.
+ *
+ * @author Stephane Nicoll
+ * @since 1.2.0
  */
-@Component
-@Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class TrackerImportThread extends SecurityContextRunnable {
-  private final TrackerImportService trackerImportService;
+public class PoolMetadataProviders implements PoolMetadataProvider {
 
-  private TrackerImportParams trackerImportParams;
+  private final List<PoolMetadataProvider> providers;
 
-  public TrackerImportThread(TrackerImportService trackerImportService) {
-    this.trackerImportService = trackerImportService;
+  /**
+   * Create a {@link PoolMetadataProviders} instance with an initial collection of delegates to use.
+   *
+   * @param providers the data source pool metadata providers
+   */
+  public PoolMetadataProviders(Collection<? extends PoolMetadataProvider> providers) {
+    this.providers = (providers == null ? Collections.emptyList() : new ArrayList<>(providers));
   }
 
   @Override
-  public void call() {
-    Assert.notNull(trackerImportParams, "Field trackerImportParams can not be null. ");
-
-    trackerImportService.importTracker(trackerImportParams); // discard returned report
-  }
-
-  public void setTrackerImportParams(TrackerImportParams trackerImportParams) {
-    this.trackerImportParams = trackerImportParams;
+  public PoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
+    for (PoolMetadataProvider provider : this.providers) {
+      PoolMetadata metadata = provider.getDataSourcePoolMetadata(dataSource);
+      if (metadata != null) {
+        return metadata;
+      }
+    }
+    return null;
   }
 }

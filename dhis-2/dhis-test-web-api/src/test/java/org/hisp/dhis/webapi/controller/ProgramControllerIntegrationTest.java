@@ -37,6 +37,8 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
@@ -59,6 +61,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Autowired private ObjectMapper jsonMapper;
+
+  @Autowired private OrganisationUnitService orgUnitService;
 
   public static final String PROGRAM_UID = "PrZMWi7rBga";
 
@@ -86,6 +90,10 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Test
   void testCopyProgramEnrollments() {
+    OrganisationUnit orgUnit = orgUnitService.getOrganisationUnit(ORG_UNIT_UID);
+    User user = createAndAddUser(true, "user", Set.of(orgUnit), Set.of(orgUnit));
+    injectSecurityContext(user);
+
     assertStatus(
         HttpStatus.CREATED,
         POST(

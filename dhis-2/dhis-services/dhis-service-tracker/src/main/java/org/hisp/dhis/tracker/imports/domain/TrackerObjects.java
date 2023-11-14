@@ -25,21 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.monitoring.metrics.jdbc;
+package org.hisp.dhis.tracker.imports.domain;
 
-import javax.sql.DataSource;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-/**
- * @author Luciano Fiandesio
- */
-@FunctionalInterface
-public interface DataSourcePoolMetadataProvider {
-  /**
-   * Return the {@link DataSourcePoolMetadata} instance able to manage the specified {@link
-   * DataSource} or {@code null} if the given data source could not be handled.
-   *
-   * @param dataSource the data source.
-   * @return the data source pool metadata.
-   */
-  DataSourcePoolMetadata getDataSourcePoolMetadata(DataSource dataSource);
+@Getter
+@ToString
+@EqualsAndHashCode
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TrackerObjects implements Serializable {
+  @JsonProperty @Builder.Default
+  private final List<TrackedEntity> trackedEntities = new ArrayList<>();
+
+  @JsonProperty @Builder.Default private final List<Enrollment> enrollments = new ArrayList<>();
+  @JsonProperty @Builder.Default private final List<Event> events = new ArrayList<>();
+  @JsonProperty @Builder.Default private final List<Relationship> relationships = new ArrayList<>();
 }

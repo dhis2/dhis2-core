@@ -29,6 +29,7 @@ package org.hisp.dhis.scheduling;
 
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.toSet;
+import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 import java.util.List;
 import java.util.Set;
@@ -45,6 +46,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jan Bernitt
@@ -97,9 +99,29 @@ public class HibernateJobConfigurationStore
     // language=SQL
     String sql =
         """
-      select progress #>> '{}' from jobconfiguration
+      select
+        case jsonb_typeof(progress)
+        when 'object' then progress #>> '{}'
+        when 'array' then jsonb_build_object('sequence', progress) #>> '{}'
+       end
+      from jobconfiguration
       where uid = :id
       """;
+    return getSingleResultOrNull(nativeQuery(sql).setParameter("id", jobId));
+  }
+
+  @Override
+  public String getErrors(@Nonnull String jobId) {
+    // language=SQL
+    String sql =
+        """
+          select
+            case jsonb_typeof(progress)
+            when 'object' then progress #>> '{errors}'
+           end
+          from jobconfiguration
+          where uid = :id
+          """;
     return getSingleResultOrNull(nativeQuery(sql).setParameter("id", jobId));
   }
 
@@ -207,7 +229,6 @@ public class HibernateJobConfigurationStore
         where enabled = true
         and jobstatus = 'SCHEDULED'
         and (queueposition is null or queueposition = 0 or schedulingtype = 'ONCE_ASAP')
-        and (schedulingtype != 'ONCE_ASAP' or lastfinished is null)
         and (:waiting = true or not exists (
           select 1 from jobconfiguration j2
           where j2.jobtype = j1.jobtype
@@ -223,6 +244,7 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
+  @Transactional(propagation = REQUIRES_NEW)
   public boolean tryExecuteNow(@Nonnull String jobId) {
     // language=SQL
     String sql =
@@ -351,17 +373,23 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  public void updateProgress(@Nonnull String jobId, @CheckForNull String progressJson) {
+  public void updateProgress(
+      @Nonnull String jobId, @CheckForNull String progressJson, @CheckForNull String errorCodes) {
     // language=SQL
     String sql =
         """
         update jobconfiguration
         set
-          progress = to_jsonb(:json),
-          lastalive = case when jobstatus = 'RUNNING' then now() else lastalive end
+          lastalive = case when jobstatus = 'RUNNING' then now() else lastalive end,
+          errorcodes = :errors,
+          progress = cast(:json as jsonb)
         where uid = :id
         """;
-    nativeQuery(sql).setParameter("id", jobId).setParameter("json", progressJson).executeUpdate();
+    nativeQuery(sql)
+        .setParameter("id", jobId)
+        .setParameter("json", progressJson)
+        .setParameter("errors", errorCodes)
+        .executeUpdate();
   }
 
   @Override

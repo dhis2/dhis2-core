@@ -33,7 +33,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipStore;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.RelationshipMapper;
@@ -50,8 +49,7 @@ public class RelationshipStrategy implements ClassBasedSupplierStrategy {
   @Nonnull private final RelationshipStore relationshipStore;
 
   @Override
-  public void add(
-      TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
+  public void add(List<List<String>> splitList, TrackerPreheat preheat) {
     List<org.hisp.dhis.relationship.Relationship> relationships = retrieveRelationships(splitList);
 
     preheat.putRelationships(

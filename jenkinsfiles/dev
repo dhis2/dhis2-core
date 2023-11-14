@@ -188,7 +188,7 @@ pipeline {
             }
         }
 
-        stage('Update IM Play dev instance') {
+        stage('Update IM Play instance') {
             environment {
                 HTTP = "http --check-status"
                 IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
@@ -233,7 +233,7 @@ pipeline {
                             dir('scripts/instances') {
                                 sh "(./findByName.sh play dev${branch} && ./restart.sh play dev${branch}) || ./deploy-dhis2.sh play dev${branch}"
                                 timeout(5) {
-                                    waitFor.statusOk("${env.INSTANCE_URL}")
+                                    waitFor.statusOk("${env.INSTANCE_URL}${branch}")
                                 }
                             }
                         }

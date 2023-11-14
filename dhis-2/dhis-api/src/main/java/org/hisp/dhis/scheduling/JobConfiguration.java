@@ -166,6 +166,10 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private Integer queuePosition;
 
+  @CheckForNull
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  private String errorCodes;
+
   public JobConfiguration() {}
 
   /**

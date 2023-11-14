@@ -42,12 +42,11 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerIdentifierCollector;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -65,11 +64,11 @@ class TrackerPreheatServiceTest extends TrackerTest {
 
   @Test
   void testCollectIdentifiersEvents() throws IOException {
-    TrackerImportParams params = fromJson("tracker/event_events.json");
-    assertTrue(params.getTrackedEntities().isEmpty());
-    assertTrue(params.getEnrollments().isEmpty());
-    assertFalse(params.getEvents().isEmpty());
-    Map<Class<?>, Set<String>> collectedMap = identifierCollector.collect(params);
+    TrackerObjects trackerObjects = fromJson("tracker/event_events.json");
+    assertTrue(trackerObjects.getTrackedEntities().isEmpty());
+    assertTrue(trackerObjects.getEnrollments().isEmpty());
+    assertFalse(trackerObjects.getEvents().isEmpty());
+    Map<Class<?>, Set<String>> collectedMap = identifierCollector.collect(trackerObjects);
     assertTrue(collectedMap.containsKey(DataElement.class));
     assertTrue(collectedMap.containsKey(ProgramStage.class));
     assertTrue(collectedMap.containsKey(OrganisationUnit.class));
@@ -103,12 +102,8 @@ class TrackerPreheatServiceTest extends TrackerTest {
 
   @Test
   void testCollectIdentifiersAttributeValues() {
-    TrackerImportParams params =
-        TrackerImportParams.builder()
-            .idSchemes(
-                TrackerIdSchemeParams.builder()
-                    .idScheme(TrackerIdSchemeParam.ofAttribute("ATTR1234567"))
-                    .build())
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
             .trackedEntities(
                 Lists.newArrayList(
                     TrackedEntity.builder()
@@ -116,10 +111,10 @@ class TrackerPreheatServiceTest extends TrackerTest {
                         .orgUnit(MetadataIdentifier.ofCode("OU123456789"))
                         .build()))
             .build();
-    assertFalse(params.getTrackedEntities().isEmpty());
-    assertTrue(params.getEnrollments().isEmpty());
-    assertTrue(params.getEvents().isEmpty());
-    Map<Class<?>, Set<String>> collectedMap = identifierCollector.collect(params);
+    assertFalse(trackerObjects.getTrackedEntities().isEmpty());
+    assertTrue(trackerObjects.getEnrollments().isEmpty());
+    assertTrue(trackerObjects.getEvents().isEmpty());
+    Map<Class<?>, Set<String>> collectedMap = identifierCollector.collect(trackerObjects);
     assertTrue(collectedMap.containsKey(TrackedEntity.class));
     Set<String> trackedEntities = collectedMap.get(TrackedEntity.class);
     assertTrue(collectedMap.containsKey(OrganisationUnit.class));
@@ -132,21 +127,20 @@ class TrackerPreheatServiceTest extends TrackerTest {
 
   @Test
   void testPreheatValidation() throws IOException {
-    TrackerImportParams params = fromJson("tracker/event_events.json");
-    assertTrue(params.getTrackedEntities().isEmpty());
-    assertTrue(params.getEnrollments().isEmpty());
-    assertFalse(params.getEvents().isEmpty());
+    TrackerObjects trackerObjects = fromJson("tracker/event_events.json");
+    assertTrue(trackerObjects.getTrackedEntities().isEmpty());
+    assertTrue(trackerObjects.getEnrollments().isEmpty());
+    assertFalse(trackerObjects.getEvents().isEmpty());
   }
 
   @Test
   void testPreheatEvents() throws IOException {
     setUpMetadata("tracker/event_metadata.json");
-    TrackerImportParams params = fromJson("tracker/event_events.json");
-    assertTrue(params.getTrackedEntities().isEmpty());
-    assertTrue(params.getEnrollments().isEmpty());
-    assertFalse(params.getEvents().isEmpty());
+    TrackerObjects trackerObjects = fromJson("tracker/event_events.json");
 
-    TrackerPreheat preheat = trackerPreheatService.preheat(params);
+    TrackerPreheat preheat =
+        trackerPreheatService.preheat(
+            trackerObjects, new TrackerIdSchemeParams(), userService.getUser(ADMIN_USER_UID));
 
     assertNotNull(preheat);
     assertFalse(preheat.getAll(DataElement.class).isEmpty());

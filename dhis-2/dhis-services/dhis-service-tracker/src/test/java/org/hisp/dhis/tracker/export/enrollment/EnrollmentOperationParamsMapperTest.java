@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,6 +40,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -50,6 +55,7 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -118,6 +124,8 @@ class EnrollmentOperationParamsMapperTest {
             orgUnit2.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(true);
 
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
+
     program = new Program();
     program.setUid(PROGRAM_UID);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
@@ -135,7 +143,8 @@ class EnrollmentOperationParamsMapperTest {
   @Test
   void shouldMapWithoutFetchingNullParamsWhenParamsAreNotSpecified()
       throws BadRequestException, ForbiddenException {
-    EnrollmentOperationParams operationParams = EnrollmentOperationParams.EMPTY;
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
     mapper.map(operationParams);
 
@@ -151,10 +160,17 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID))
+            .orgUnitMode(SELECTED)
             .programUid(program.getUid())
             .build();
     when(trackerAccessManager.canAccess(user, program, orgUnit1)).thenReturn(true);
     when(trackerAccessManager.canAccess(user, program, orgUnit2)).thenReturn(true);
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(true);
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnit2.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(true);
 
     EnrollmentQueryParams params = mapper.map(operationParams);
 
@@ -165,7 +181,8 @@ class EnrollmentOperationParamsMapperTest {
   void shouldThrowExceptionWhenOrgUnitNotFound() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of("JW6BrFd0HLu", ORG_UNIT_2_UID))
+            .orgUnitUids(Set.of("JW6BrFd0HLu"))
+            .orgUnitMode(SELECTED)
             .programUid(PROGRAM_UID)
             .build();
 
@@ -191,9 +208,62 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
+  void shouldMapParamsWhenOrgUnitNotInScopeButUserIsSuperuser()
+      throws ForbiddenException, BadRequestException {
+    User superuser = createUser("ALL");
+    when(currentUserService.getCurrentUser()).thenReturn(superuser);
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(ORG_UNIT_1_UID))
+            .orgUnitMode(ALL)
+            .build();
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(false);
+
+    EnrollmentQueryParams queryParams = mapper.map(operationParams);
+    assertContainsOnly(
+        operationParams.getOrgUnitUids(),
+        queryParams.getOrganisationUnits().stream().map(BaseIdentifiableObject::getUid).toList());
+    assertEquals(operationParams.getOrgUnitMode(), queryParams.getOrganisationUnitMode());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitNotInScopeAndUserHasSearchInAllAuthority() {
+
+    User user = createUser(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit2));
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(ORG_UNIT_1_UID))
+            .orgUnitMode(SELECTED)
+            .build();
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnit1.getUid(), this.user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(false);
+
+    Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
+    assertEquals(
+        "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID,
+        exception.getMessage());
+  }
+
+  private User createUser(String authority) {
+    User user = new User();
+    UserRole userRole = new UserRole();
+    userRole.setAuthorities(Set.of(authority));
+    user.setUserRoles(Set.of(userRole));
+
+    return user;
+  }
+
+  @Test
   void shouldMapProgramWhenProgramUidIsSpecified() throws BadRequestException, ForbiddenException {
     EnrollmentOperationParams requestParams =
-        EnrollmentOperationParams.builder().programUid(PROGRAM_UID).build();
+        EnrollmentOperationParams.builder().programUid(PROGRAM_UID).orgUnitMode(ACCESSIBLE).build();
 
     EnrollmentQueryParams params = mapper.map(requestParams);
 
@@ -214,7 +284,10 @@ class EnrollmentOperationParamsMapperTest {
   void shouldMapTrackedEntityTypeWhenTrackedEntityTypeUidIsSpecified()
       throws BadRequestException, ForbiddenException {
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().trackedEntityTypeUid(TRACKED_ENTITY_TYPE_UID).build();
+        EnrollmentOperationParams.builder()
+            .trackedEntityTypeUid(TRACKED_ENTITY_TYPE_UID)
+            .orgUnitMode(ACCESSIBLE)
+            .build();
 
     EnrollmentQueryParams params = mapper.map(operationParams);
 
@@ -235,7 +308,10 @@ class EnrollmentOperationParamsMapperTest {
   void shouldMapTrackedEntityWhenTrackedEntityUidIsSpecified()
       throws BadRequestException, ForbiddenException {
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().trackedEntityUid(TRACKED_ENTITY_UID).build();
+        EnrollmentOperationParams.builder()
+            .trackedEntityUid(TRACKED_ENTITY_UID)
+            .orgUnitMode(ACCESSIBLE)
+            .build();
 
     EnrollmentQueryParams params = mapper.map(operationParams);
 
@@ -259,6 +335,7 @@ class EnrollmentOperationParamsMapperTest {
         EnrollmentOperationParams.builder()
             .orderBy("enrollmentDate", SortDirection.ASC)
             .orderBy("created", SortDirection.DESC)
+            .orgUnitMode(ACCESSIBLE)
             .build();
 
     EnrollmentQueryParams params = mapper.map(operationParams);
@@ -273,9 +350,10 @@ class EnrollmentOperationParamsMapperTest {
   @Test
   void shouldMapNullOrderingParamsWhenNoOrderingParamsAreSpecified()
       throws BadRequestException, ForbiddenException {
-    EnrollmentOperationParams requestParams = EnrollmentOperationParams.EMPTY;
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
-    EnrollmentQueryParams params = mapper.map(requestParams);
+    EnrollmentQueryParams params = mapper.map(operationParams);
 
     assertIsEmpty(params.getOrder());
   }

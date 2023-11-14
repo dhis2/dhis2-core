@@ -73,7 +73,7 @@ class ContextUtils {
       SqlParameterManager sqlParameterManager) {
     return "select innermost_evt.*"
         + " from (select *,"
-        + " row_number() over (partition by programinstanceuid order by executiondate desc) as rn"
+        + " row_number() over (partition by programinstanceuid order by occurreddate desc) as rn"
         + " from "
         + ANALYTICS_TEI_EVT
         + trackedEntityType.getUid().toLowerCase()

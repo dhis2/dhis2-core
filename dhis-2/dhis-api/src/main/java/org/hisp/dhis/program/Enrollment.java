@@ -71,7 +71,7 @@ public class Enrollment extends SoftDeletableObject {
 
   private Date enrollmentDate;
 
-  private Date endDate;
+  private Date completedDate;
 
   private UserInfoSnapshot createdByUserInfo;
 
@@ -238,12 +238,12 @@ public class Enrollment extends SoftDeletableObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getEndDate() {
-    return endDate;
+  public Date getCompletedDate() {
+    return completedDate;
   }
 
-  public void setEndDate(Date endDate) {
-    this.endDate = endDate;
+  public void setCompletedDate(Date completedDate) {
+    this.completedDate = completedDate;
   }
 
   @JsonProperty
@@ -434,7 +434,7 @@ public class Enrollment extends SoftDeletableObject {
     copy.setCompletedBy(original.getCompletedBy());
     copy.setCreatedAtClient(original.getCreatedAtClient());
     copy.setCreatedByUserInfo(original.getCreatedByUserInfo());
-    copy.setEndDate(original.getEndDate());
+    copy.setCompletedDate(original.getCompletedDate());
     copy.setEnrollmentDate(original.getEnrollmentDate());
     copy.setEvents(new HashSet<>());
     copy.setFollowup(original.getFollowup());

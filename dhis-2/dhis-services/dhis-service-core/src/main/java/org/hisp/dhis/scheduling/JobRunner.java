@@ -40,7 +40,27 @@ package org.hisp.dhis.scheduling;
  */
 public interface JobRunner {
 
+  /**
+   * During testing the scheduler might not be active in which case this is false. Otherwise, this
+   * should always be true in a production environment.
+   *
+   * @return true, if the scheduler is running a scheduling loop cycle, otherwise false
+   */
   boolean isScheduling();
 
+  /**
+   * Runs a job if it should now run according to its {@link SchedulingType} and related information
+   * like the CRON expression or the delay time.
+   *
+   * @param config the job to check and potentially run
+   */
+  void runIfDue(JobConfiguration config);
+
+  /**
+   * Manually runs a job. OBS! This bypasses any actual checking if the job is due to run. When this
+   * is called the job will run.
+   *
+   * @param config The job to run.
+   */
   void runDueJob(JobConfiguration config);
 }

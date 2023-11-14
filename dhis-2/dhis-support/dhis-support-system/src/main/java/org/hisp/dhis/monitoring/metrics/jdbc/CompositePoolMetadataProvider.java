@@ -25,27 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.springframework.stereotype.Component;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.sql.DataSource;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * A {@link PoolMetadataProvider} implementation that returns the first {@link PoolMetadata} that is
+ * found by one of its delegate.
+ *
+ * @author Stephane Nicoll
+ * @since 2.0.0
  */
-@Component
-@RequiredArgsConstructor
-public class TrackerSyncImporter {
+public class CompositePoolMetadataProvider implements PoolMetadataProvider {
+  private final List<PoolMetadataProvider> providers;
 
-  @Nonnull private final TrackerImportService trackerImportService;
+  /**
+   * Create a {@link CompositePoolMetadataProvider} instance with an initial collection of delegates
+   * to use.
+   *
+   * @param providers the data source pool metadata providers
+   */
+  public CompositePoolMetadataProvider(Collection<? extends PoolMetadataProvider> providers) {
+    this.providers =
+        (providers != null)
+            ? Collections.unmodifiableList(new ArrayList<>(providers))
+            : Collections.emptyList();
+  }
 
-  public ImportReport importTracker(TrackerImportParams params) {
-    ImportReport importReport = trackerImportService.importTracker(params);
-
-    return trackerImportService.buildImportReport(importReport, params.getReportMode());
+  @Override
+  public PoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
+    for (PoolMetadataProvider provider : this.providers) {
+      PoolMetadata metadata = provider.getDataSourcePoolMetadata(dataSource);
+      if (metadata != null) {
+        return metadata;
+      }
+    }
+    return null;
   }
 }

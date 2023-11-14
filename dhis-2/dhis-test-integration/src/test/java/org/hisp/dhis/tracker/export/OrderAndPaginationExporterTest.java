@@ -68,11 +68,13 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
+import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
@@ -109,9 +111,9 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
     importUser = userService.getUser("M5zQapPyTZI");
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     assertNoErrors(
-        trackerImportService.importTracker(
-            fromJson("tracker/event_and_enrollment.json", importUser.getUid())));
+        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
     trackedEntityType = get(TrackedEntityType.class, "ja8NY4PW7Xm");
@@ -125,7 +127,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     // expect to be run by admin
     injectAdminUser();
 
-    eventParamsBuilder = EventOperationParams.builder();
+    eventParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
     eventParamsBuilder.orgUnitMode(SELECTED);
   }
 
@@ -157,7 +159,9 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     assertAll(
         "second (last) page",
         () -> assertPager(2, 3, secondPage),
-        () -> assertEquals(List.of("QesgJkTyTCk", "guVNoAerxWo"), uids(secondPage.getItems())));
+        () ->
+            assertEquals(
+                List.of("QesgJkTyTCk", "woitxQbWYNq", "guVNoAerxWo"), uids(secondPage.getItems())));
 
     assertIsEmpty(
         trackedEntityService.getTrackedEntities(params, new PageParams(3, 3, false)).getItems());
@@ -180,7 +184,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "first page",
-        () -> assertPager(1, 3, 5, firstPage.getPager()),
+        () -> assertPager(1, 3, 6, firstPage.getPager()),
         () ->
             assertEquals(
                 List.of("dUE514NMOlo", "mHWCacsGYYn", "QS6w44flWAf"), uids(firstPage.getItems())));
@@ -190,8 +194,10 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "second (last) page",
-        () -> assertPager(2, 3, 5, secondPage.getPager()),
-        () -> assertEquals(List.of("QesgJkTyTCk", "guVNoAerxWo"), uids(secondPage.getItems())));
+        () -> assertPager(2, 3, 6, secondPage.getPager()),
+        () ->
+            assertEquals(
+                List.of("QesgJkTyTCk", "woitxQbWYNq", "guVNoAerxWo"), uids(secondPage.getItems())));
 
     assertIsEmpty(
         trackedEntityService.getTrackedEntities(params, new PageParams(3, 3, true)).getItems());
@@ -518,6 +524,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.ASC)
             .build();
 
@@ -549,6 +556,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.ASC)
             .build();
 
@@ -586,7 +594,10 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .toList();
 
     EnrollmentOperationParams params =
-        EnrollmentOperationParams.builder().orgUnitUids(Set.of(orgUnit.getUid())).build();
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
+            .build();
 
     List<String> enrollments = getEnrollments(params);
 
@@ -599,6 +610,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.ASC)
             .build();
 
@@ -613,6 +625,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.DESC)
             .build();
 
@@ -628,7 +641,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .events(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"))
-            .orderBy("executionDate", SortDirection.DESC)
+            .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
     Page<Event> firstPage = eventService.getEvents(operationParams, new PageParams(1, 1, false));
@@ -674,7 +687,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
-            .orderBy("executionDate", SortDirection.DESC)
+            .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
     Page<Event> firstPage = eventService.getEvents(operationParams, new PageParams(1, 3, false));
@@ -704,7 +717,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
             .programUid(program.getUid())
-            .orderBy("executionDate", SortDirection.DESC)
+            .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
     Page<Event> events = eventService.getEvents(params, new PageParams(1, 2, true));
@@ -745,7 +758,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .toList();
 
     EventOperationParams params =
-        EventOperationParams.builder()
+        eventParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .events(Set.of("pTzf9KYMk72", "QRYjLTiJTrA"))
             .orderBy("enrollment.program.uid", SortDirection.ASC)
@@ -974,7 +987,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
-            .orderBy("executionDate", SortDirection.DESC)
+            .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
     List<String> events = getEvents(params);
@@ -987,7 +1000,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
-            .orderBy("executionDate", SortDirection.ASC)
+            .orderBy("occurredDate", SortDirection.ASC)
             .build();
 
     List<String> events = getEvents(params);
@@ -1031,7 +1044,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
-            .orderBy("dueDate", SortDirection.DESC)
+            .orderBy("scheduledDate", SortDirection.DESC)
             .orderBy(UID.of("DATAEL00006"), SortDirection.DESC)
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .build();

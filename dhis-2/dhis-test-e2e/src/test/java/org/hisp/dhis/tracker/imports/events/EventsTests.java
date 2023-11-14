@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.tracker.imports.events;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.JsonObject;
 import io.restassured.http.ContentType;
@@ -43,9 +44,11 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
+import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.actions.deprecated.tracker.EventActions;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -65,7 +68,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventsTests extends TrackerApiTest {
+class EventsTests extends TrackerApiTest {
   private static final String OU_ID_0 = Constants.ORG_UNIT_IDS[0];
 
   private static final String OU_ID = Constants.ORG_UNIT_IDS[1];
@@ -73,6 +76,7 @@ public class EventsTests extends TrackerApiTest {
   private static final String OU_ID_2 = Constants.ORG_UNIT_IDS[2];
 
   private EventActions eventActions;
+  private SystemActions systemActions;
 
   private static Stream<Arguments> provideEventFilesTestArguments() {
     return Stream.of(
@@ -84,10 +88,11 @@ public class EventsTests extends TrackerApiTest {
   public void beforeAll() {
     loginActions.loginAsSuperUser();
     eventActions = new EventActions();
+    systemActions = new SystemActions();
   }
 
   @Test
-  public void shouldImportEvents() throws Exception {
+  void shouldImportEvents() throws Exception {
     JsonObject eventBody =
         new FileReaderUtils()
             .readJsonAndGenerateData(
@@ -116,7 +121,7 @@ public class EventsTests extends TrackerApiTest {
 
   @ParameterizedTest
   @MethodSource("provideEventFilesTestArguments")
-  public void eventsImportNewEventsFromFile(String fileName, String contentType) throws Exception {
+  void eventsImportNewEventsFromFile(String fileName, String contentType) throws Exception {
     Object obj =
         new FileReaderUtils()
             .read(new File("src/test/resources/tracker/importer/events/" + fileName))
@@ -141,9 +146,45 @@ public class EventsTests extends TrackerApiTest {
     response.validate().statusCode(200).body("status", equalTo("OK"));
   }
 
+  /**
+   * This test name has the postfix 'EventsApi' (/events) to distinguish it from other tests in this
+   * class that call the '/tracker' API. There is a concept of 'old' & 'new' tracker APIs. This test
+   * tests the 'old' API
+   */
+  @Test
+  void asyncImportEventsFromCsvFile_EventsApi() {
+    // given we want to import events asynchronously with csv format
+
+    // when
+    // an async event import with csv file is posted
+    ApiResponse postAsyncResponse =
+        eventActions.postFile(
+            new File("src/test/resources/tracker/importer/events/event-with-de-optionset.csv"),
+            new QueryParamsBuilder()
+                .addAll(
+                    "skipFirst=true",
+                    "dryRun=false",
+                    "async=true",
+                    "eventIdScheme=UID",
+                    "orgUnitIdScheme=UID",
+                    "payloadFormat=csv"),
+            "text/csv");
+
+    postAsyncResponse.validate().statusCode(200);
+    String jobId = postAsyncResponse.extractString("response.id");
+
+    // then
+    // the task event completes
+    systemActions.waitUntilTaskCompleted("EVENT_IMPORT", jobId, 10);
+
+    // and the task summary shows a successful import
+    List<ImportSummary> eventImport = systemActions.getTaskSummaries("EVENT_IMPORT", jobId);
+    assertEquals("SUCCESS", eventImport.get(0).getStatus());
+  }
+
   @ParameterizedTest
   @ValueSource(strings = {"true", "false"})
-  public void shouldImportToRepeatableStage(Boolean repeatableStage) throws Exception {
+  void shouldImportToRepeatableStage(Boolean repeatableStage) throws Exception {
     // arrange
     String program = Constants.TRACKER_PROGRAM_ID;
     String programStage =
@@ -183,7 +224,7 @@ public class EventsTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldImportAndGetEventWithOrgUnitDifferentFromEnrollmentOrgUnit() throws Exception {
+  void shouldImportAndGetEventWithOrgUnitDifferentFromEnrollmentOrgUnit() throws Exception {
     String programId = Constants.TRACKER_PROGRAM_ID;
     String programStageId = "nlXNK4b7LVr";
 
@@ -235,7 +276,7 @@ public class EventsTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldAddEventsToExistingTei() throws Exception {
+  void shouldAddEventsToExistingTei() throws Exception {
     String programId = Constants.TRACKER_PROGRAM_ID;
     String programStageId = "nlXNK4b7LVr";
 
@@ -258,7 +299,7 @@ public class EventsTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldImportWithCategoryCombo() {
+  void shouldImportWithCategoryCombo() {
     ApiResponse program =
         programActions.get(
             "",

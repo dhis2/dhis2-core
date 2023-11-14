@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 
 /**
@@ -51,7 +52,7 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 @Conditional(value = CacheInvalidationEnabledCondition.class)
 public class TestableCacheInvalidationConfiguration {
   @Bean
-  public static SessionRegistryImpl sessionRegistry() {
+  public static SessionRegistry sessionRegistry() {
     return new SessionRegistryImpl();
   }
 

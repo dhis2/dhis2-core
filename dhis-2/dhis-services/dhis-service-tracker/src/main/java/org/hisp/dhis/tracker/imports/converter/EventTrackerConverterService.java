@@ -89,8 +89,8 @@ public class EventTrackerConverterService
           e.setEvent(event.getUid());
 
           e.setStatus(event.getStatus());
-          e.setOccurredAt(DateUtils.instantFromDate(event.getExecutionDate()));
-          e.setScheduledAt(DateUtils.instantFromDate(event.getDueDate()));
+          e.setOccurredAt(DateUtils.instantFromDate(event.getOccurredDate()));
+          e.setScheduledAt(DateUtils.instantFromDate(event.getScheduledDate()));
           e.setStoredBy(event.getStoredBy());
           e.setCompletedBy(event.getCompletedBy());
           e.setCompletedAt(DateUtils.instantFromDate(event.getCompletedDate()));
@@ -211,8 +211,8 @@ public class EventTrackerConverterService
     result.setEnrollment(getEnrollment(preheat, event.getEnrollment(), program));
     result.setProgramStage(programStage);
     result.setOrganisationUnit(organisationUnit);
-    result.setExecutionDate(DateUtils.fromInstant(event.getOccurredAt()));
-    result.setDueDate(DateUtils.fromInstant(event.getScheduledAt()));
+    result.setOccurredDate(DateUtils.fromInstant(event.getOccurredAt()));
+    result.setScheduledDate(DateUtils.fromInstant(event.getScheduledAt()));
 
     if (event.getAttributeOptionCombo().isNotBlank()) {
       result.setAttributeOptionCombo(
@@ -241,9 +241,9 @@ public class EventTrackerConverterService
     }
 
     if (program.isRegistration()
-        && result.getDueDate() == null
-        && result.getExecutionDate() != null) {
-      result.setDueDate(result.getExecutionDate());
+        && result.getScheduledDate() == null
+        && result.getOccurredDate() != null) {
+      result.setScheduledDate(result.getOccurredDate());
     }
 
     for (DataValue dataValue : event.getDataValues()) {

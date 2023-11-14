@@ -25,38 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import lombok.Builder;
-import lombok.Value;
-import org.hisp.dhis.artemis.MessageType;
-import org.hisp.dhis.artemis.SerializableMessage;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import javax.sql.DataSource;
 
 /**
- * Used by Apache Artemis to pass tracker import jobs from the /api/tracker endpoint to the tracker
- * import services.
+ * A base {@link PoolMetadata} implementation.
  *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @param <T> the data source type
+ * @author Stephane Nicoll
+ * @since 2.0.0
  */
-@Value
-@Builder(builderClassName = "TrackerMessageBuilder")
-@JsonDeserialize(builder = TrackerMessage.TrackerMessageBuilder.class)
-public class TrackerMessage implements SerializableMessage {
-  @JsonProperty private final String uid;
+public abstract class AbstractPoolMetadata<T extends DataSource> implements PoolMetadata {
 
-  @JsonProperty private final String authentication;
+  private final T dataSource;
 
-  @JsonProperty private final TrackerImportParams trackerImportParams;
-
-  @Override
-  public MessageType getMessageType() {
-    return MessageType.TRACKER_JOB;
+  /**
+   * Create an instance with the data source to use.
+   *
+   * @param dataSource the data source
+   */
+  protected AbstractPoolMetadata(T dataSource) {
+    this.dataSource = dataSource;
   }
 
-  @JsonPOJOBuilder(withPrefix = "")
-  public static final class TrackerMessageBuilder {}
+  @Override
+  public Float getUsage() {
+    Integer maxSize = getMax();
+    Integer currentSize = getActive();
+    if (maxSize == null || currentSize == null) {
+      return null;
+    }
+    if (maxSize < 0) {
+      return -1F;
+    }
+    if (currentSize == 0) {
+      return 0F;
+    }
+    return (float) currentSize / (float) maxSize;
+  }
+
+  protected final T getDataSource() {
+    return this.dataSource;
+  }
 }
