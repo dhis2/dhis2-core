@@ -135,9 +135,7 @@ public class HibernateConfig {
   @Bean("entityManagerFactory")
   @DependsOn({"flyway"})
   public EntityManagerFactory entityManagerFactoryBean(
-      DhisConfigurationProvider dhisConfig,
-      HibernateConfigurationProvider hibernateConfig,
-      DataSource dataSource) {
+      DhisConfigurationProvider dhisConfig, DataSource dataSource) {
     HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
     adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
     adapter.setGenerateDdl(shouldGenerateDDL(dhisConfig));
@@ -148,8 +146,8 @@ public class HibernateConfig {
     factory.setDataSource(dataSource);
     factory.setPackagesToScan("org.hisp.dhis");
     factory.setSharedCacheMode(SharedCacheMode.ENABLE_SELECTIVE);
-    factory.setValidationMode(ValidationMode.NONE);
-    factory.setJpaProperties(getAdditionalProperties(hibernateConfig));
+    factory.setValidationMode(ValidationMode.AUTO);
+    factory.setJpaProperties(getAdditionalProperties());
     factory.setMappingResources(loadResources());
     factory.afterPropertiesSet();
     return factory.getObject();
@@ -157,10 +155,8 @@ public class HibernateConfig {
 
   /**
    * Returns additional properties to be used by the {@link LocalContainerEntityManagerFactoryBean}
-   *
-   * @param hibernateConfig {@link HibernateConfigurationProvider}
    */
-  private Properties getAdditionalProperties(HibernateConfigurationProvider hibernateConfig) {
+  private Properties getAdditionalProperties() {
     Properties properties = new Properties();
     properties.put(
         "hibernate.current_session_context_class",
@@ -168,7 +164,6 @@ public class HibernateConfig {
 
     // TODO: this is anti-pattern and should be turn off
     properties.put("hibernate.allow_update_outside_transaction", "true");
-    properties.putAll(hibernateConfig.getConfiguration().getProperties());
 
     return properties;
   }
@@ -195,7 +190,12 @@ public class HibernateConfig {
     return ArrayUtils.EMPTY_STRING_ARRAY;
   }
 
+  /**
+   * If return true, hibernate will generate the DDL for the database. This is used by h2-test.
+   * @param dhisConfig {@link DhisConfigurationProvider
+   * @return TRUE if connection.schema is not set to none
+   */
   private boolean shouldGenerateDDL(DhisConfigurationProvider dhisConfig) {
-    return !"none".equals(dhisConfig.getProperty(ConfigurationKey.CONNECTION_SCHEMA));
+    return "update".equals(dhisConfig.getProperty(ConfigurationKey.CONNECTION_SCHEMA));
   }
 }
