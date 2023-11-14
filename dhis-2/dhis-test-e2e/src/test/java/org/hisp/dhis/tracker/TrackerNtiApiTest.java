@@ -194,6 +194,17 @@ public class TrackerNtiApiTest extends TrackerApiTest {
     return trackerActions.postAndGetJobReport(payload).validateSuccessfulImport();
   }
 
+  protected TrackerApiResponse importRelationshipEventToTei(String event, String tei) {
+    JsonObject payload =
+        new RelationshipDataBuilder()
+            .setFromEntity("event", event)
+            .setToTrackedEntity(tei)
+            .setRelationshipType("gdc6uOvgoji")
+            .array();
+
+    return trackerActions.postAndGetJobReport(payload).validateSuccessfulImport();
+  }
+
   @AfterEach
   public void afterEachNTI() {
     loginActions.loginAsSuperUser();
