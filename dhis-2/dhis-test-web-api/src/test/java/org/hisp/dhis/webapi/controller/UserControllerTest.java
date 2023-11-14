@@ -322,7 +322,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  public void testPostJsonObjectInvalidUid() {
+  void testPostJsonObjectInvalidUid() {
     assertWebMessage(
         "Conflict",
         409,

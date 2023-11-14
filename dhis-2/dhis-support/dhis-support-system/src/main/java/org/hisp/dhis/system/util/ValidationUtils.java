@@ -29,7 +29,6 @@ package org.hisp.dhis.system.util;
 
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.*;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.datavalue.DataValue.FALSE;
 import static org.hisp.dhis.datavalue.DataValue.TRUE;
 import static org.hisp.dhis.system.util.MathUtils.*;
