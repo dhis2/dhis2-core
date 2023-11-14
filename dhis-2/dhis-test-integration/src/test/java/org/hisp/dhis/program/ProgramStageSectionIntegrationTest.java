@@ -41,6 +41,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -60,8 +61,6 @@ class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private JpaTransactionManager transactionManager;
-
   @PersistenceContext private EntityManager entityManager;
 
   private Program program;
@@ -72,7 +71,8 @@ class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
 
   private ProgramStageDataElement programStageDataElementA;
 
-  public void setUpTestT() {
+  @Override
+  public void setUpTest() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     sectionA = createProgramStageSection('A', 1);
@@ -92,7 +92,6 @@ class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
 
   @Test
   void testRemoveProgramStageSectionWillDeleteOrphans() {
-    setUpTestT();
     long idA = programStageService.saveProgramStage(stageA);
     assertNotNull(programStageService.getProgramStage(idA));
     long sectionId = stageA.getProgramStageSections().stream().findFirst().get().getId();
@@ -104,15 +103,5 @@ class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
     assertTrue(entityManager.find(ProgramStage.class, idA).getProgramStageSections().isEmpty());
     assertNull(entityManager.find(ProgramStageSection.class, sectionId));
 
-    //
-    //    transactionTemplate = new TransactionTemplate(transactionManager);
-    //
-    // transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-    //    transactionTemplate.executeWithoutResult(s -> {
-    //      assertNotNull(programStageService.getProgramStage(idA));
-    //      assertTrue(
-    //        programStageService.getProgramStage(idA).getProgramStageSections().isEmpty());
-    //      assertNull(programStageSectionService.getProgramStageSection(sectionId));
-    //    });
   }
 }

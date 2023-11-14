@@ -135,10 +135,10 @@ public class HibernateConfig {
   @Bean("entityManagerFactory")
   @DependsOn({"flyway"})
   public EntityManagerFactory entityManagerFactoryBean(
-      DhisConfigurationProvider config, DataSource dataSource) throws IOException {
+      DhisConfigurationProvider dhisConfig, HibernateConfigurationProvider hibernateConfig, DataSource dataSource) {
     HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
-    adapter.setDatabasePlatform(config.getProperty(ConfigurationKey.CONNECTION_DIALECT));
-    adapter.setGenerateDdl(isGenerateDDL(config.getProperty(ConfigurationKey.CONNECTION_SCHEMA)));
+    adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
+    adapter.setGenerateDdl(shouldGenerateDDL(dhisConfig));
     LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
     factory.setJpaVendorAdapter(adapter);
     factory.setPersistenceUnitName("dhis");
@@ -147,7 +147,7 @@ public class HibernateConfig {
     factory.setPackagesToScan("org.hisp.dhis");
     factory.setSharedCacheMode(SharedCacheMode.ENABLE_SELECTIVE);
     factory.setValidationMode(ValidationMode.NONE);
-    factory.setJpaProperties(getAdditionalProperties(config));
+    factory.setJpaProperties(getAdditionalProperties(dhisConfig, hibernateConfig));
     factory.setMappingResources(loadResources());
     factory.afterPropertiesSet();
     return factory.getObject();
@@ -158,16 +158,17 @@ public class HibernateConfig {
    *
    * @param config {@link DhisConfigurationProvider}
    */
-  private Properties getAdditionalProperties(DhisConfigurationProvider config) {
-    Properties additionalProperties = new Properties();
-    additionalProperties.put(
+  private Properties getAdditionalProperties(DhisConfigurationProvider config, HibernateConfigurationProvider hibernateConfig) {
+    Properties properties = new Properties();
+    properties.put(
         "hibernate.current_session_context_class",
         "org.springframework.orm.hibernate5.SpringSessionContext");
 
     // TODO: this is anti-pattern and should be turn off
-    additionalProperties.put("hibernate.allow_update_outside_transaction", "true");
+    properties.put("hibernate.allow_update_outside_transaction", "true");
+    properties.putAll(hibernateConfig.getConfiguration().getProperties());
 
-    return additionalProperties;
+    return properties;
   }
 
   /**
@@ -192,7 +193,7 @@ public class HibernateConfig {
     return ArrayUtils.EMPTY_STRING_ARRAY;
   }
 
-  private boolean isGenerateDDL(String value) {
-    return !"none".equals(value);
+  private boolean shouldGenerateDDL(DhisConfigurationProvider dhisConfig) {
+    return !"none".equals(dhisConfig.getProperty(ConfigurationKey.CONNECTION_SCHEMA));
   }
 }

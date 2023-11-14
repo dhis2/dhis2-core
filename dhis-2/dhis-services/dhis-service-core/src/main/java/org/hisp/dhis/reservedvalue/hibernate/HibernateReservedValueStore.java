@@ -78,7 +78,7 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
 
     return availableValues.stream()
         .map(value -> reservedValue.toBuilder().value(value).build())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @Override
@@ -100,12 +100,12 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
             .setParameter("ownerUid", reservedValue.getOwnerUid())
             .setParameter("key", reservedValue.getKey())
             .setParameter(
-                "values", values.stream().map(String::toLowerCase).collect(Collectors.toList()))
+                "values", values.stream().map(String::toLowerCase).toList())
             .list();
 
     return values.stream()
         .filter(rv -> !teavOrReservedValues.contains(rv))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @Override
