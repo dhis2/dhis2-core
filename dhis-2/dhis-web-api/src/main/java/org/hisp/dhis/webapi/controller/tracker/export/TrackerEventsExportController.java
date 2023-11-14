@@ -101,6 +101,10 @@ public class TrackerEventsExportController {
       throws WebMessageException {
     EventQueryParams eventQueryParams = requestToSearchParamsMapper.map(eventCriteria);
 
+    EventParams eventParams = eventsMapper.map(fields);
+
+    eventQueryParams.setIncludeRelationships(eventParams.isIncludeRelationships());
+
     if (areAllEnrollmentsInvalid(eventCriteria, eventQueryParams)) {
       return new PagingWrapper<ObjectNode>().withInstances(Collections.emptyList());
     }
