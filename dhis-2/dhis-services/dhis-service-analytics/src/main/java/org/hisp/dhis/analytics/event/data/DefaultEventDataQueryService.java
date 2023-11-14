@@ -118,7 +118,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
   private static final String COL_NAME_EVENT_STATUS = "psistatus";
 
-  private static final String COL_NAME_EVENTDATE = "executiondate";
+  private static final String COL_NAME_EVENTDATE = "occurreddate";
 
   private static final String COL_NAME_ENROLLMENTDATE = "enrollmentdate";
 

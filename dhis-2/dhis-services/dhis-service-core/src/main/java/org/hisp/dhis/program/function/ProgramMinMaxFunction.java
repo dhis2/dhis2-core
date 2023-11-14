@@ -58,7 +58,7 @@ public abstract class ProgramMinMaxFunction extends ProgramExpressionItem {
 
     if (ctx.uid1 == null) // arg: PS_EVENTDATE:programStageUid
     {
-      columnName = "\"executiondate\"";
+      columnName = "\"occurreddate\"";
     } else // arg: #{programStageUid.dataElementUid}
     {
       String dataElement = ctx.uid1.getText();
