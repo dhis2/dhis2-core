@@ -120,7 +120,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @return all job configurations that match the query parameters
    */
   @Nonnull
-  Stream<String> findJobsWithErrors(@Nonnull JobsWithErrorsParams params);
+  Stream<String> findJobRunErrors(@Nonnull JobRunErrorsParams params);
 
   /**
    * @return A list of all job types that are currently in {@link JobStatus#RUNNING} state.

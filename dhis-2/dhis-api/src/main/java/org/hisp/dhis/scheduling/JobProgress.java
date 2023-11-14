@@ -591,7 +591,8 @@ public interface JobProgress {
     }
 
     public void addError(Error error) {
-      Queue<Error> sameObjectAndCode = errors
+      Queue<Error> sameObjectAndCode =
+          errors
               .computeIfAbsent(error.getId(), key -> new ConcurrentHashMap<>())
               .computeIfAbsent(error.getCode(), key2 -> new ConcurrentLinkedQueue<>());
       if (sameObjectAndCode.stream().noneMatch(e -> e.args.equals(error.args))) {
@@ -628,7 +629,8 @@ public interface JobProgress {
      * information is not available.
      */
     @CheckForNull @JsonProperty private final Integer index;
-    //TODO make a list/array  to collect or have a count
+
+    // TODO make a list/array  to collect or have a count
 
     /** The arguments used in the {@link #code}'s {@link ErrorCode#getMessage()} template */
     @Nonnull @JsonProperty private final List<String> args;

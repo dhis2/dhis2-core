@@ -167,7 +167,7 @@ public interface JobConfigurationService {
    * @return all job configurations that match the query parameters
    */
   @Nonnull
-  List<JsonObject> findJobsWithErrors(@Nonnull JobsWithErrorsParams params);
+  List<JsonObject> findJobRunErrors(@Nonnull JobRunErrorsParams params);
 
   /**
    * Get a map of parameter classes with appropriate properties This can be used for a frontend app

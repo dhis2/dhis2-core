@@ -31,8 +31,11 @@ import java.util.Date;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import lombok.Data;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.user.User;
 
 /**
  * Query params when searching for {@link JobConfiguration}s with errors.
@@ -45,10 +48,15 @@ import org.hisp.dhis.feedback.ErrorCode;
  * @author Jan Bernitt
  */
 @Data
-public class JobsWithErrorsParams {
+@Accessors(chain = true)
+public class JobRunErrorsParams {
+
+  @OpenApi.Ignore @CheckForNull private UID job;
 
   /** The user that ran the job */
-  @CheckForNull private UID user;
+  @OpenApi.Property({UID.class, User.class})
+  @CheckForNull
+  private UID user;
 
   /** The earliest date the job ran that should be included */
   @CheckForNull private Date from;
@@ -61,4 +69,7 @@ public class JobsWithErrorsParams {
 
   /** The object with errors to select, any match combined */
   @CheckForNull private List<UID> object;
+
+  /** The {@link JobType} with errors to select, any match combined */
+  @CheckForNull private List<JobType> type;
 }

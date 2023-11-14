@@ -248,12 +248,13 @@ public class HibernateJobConfigurationStore
 
   @Nonnull
   @Override
-  public Stream<String> findJobsWithErrors(@Nonnull JobsWithErrorsParams params) {
+  public Stream<String> findJobRunErrors(@Nonnull JobRunErrorsParams params) {
     // language=SQL
     String sql =
         """
     select jsonb_build_object(
     'id', c.uid,
+    'type', c.jobType,
     'user', c.executedby,
     'created', c.created,
     'executed', c.lastexecuted,
@@ -263,11 +264,13 @@ public class HibernateJobConfigurationStore
     'errors', c.progress -> 'errors') #>> '{}'
     from jobconfiguration c left join fileresource fr on c.uid = fr.uid
     where c.errorcodes is not null and c.errorcodes != ''
+      and (:skipUid or c.uid = :uid)
       and (:skipUser or c.executedby = :user)
       and (:skipStart or c.lastexecuted >= :start)
       and (:skipEnd or c.lastexecuted <= :end)
       and (:skipObjects or jsonb_exists_any(c.progress -> 'errors', :objects ))
       and (:skipCodes or string_to_array(c.errorcodes, ' ') && :codes)
+      and (:skipTypes or c.jobtype = any (:types))
     order by c.lastexecuted desc;
     """;
     List<UID> objectList = params.getObject();
@@ -276,21 +279,30 @@ public class HibernateJobConfigurationStore
     List<ErrorCode> codeList = params.getCode();
     List<String> codes =
         codeList == null ? List.of() : codeList.stream().map(ErrorCode::name).toList();
+    List<JobType> typeList = params.getType();
+    List<String> types =
+        typeList == null ? List.of() : typeList.stream().map(JobType::name).toList();
     Date start = params.getFrom();
     Date end = params.getTo();
     UID user = params.getUser();
-    return getResultStream(nativeQuery(sql)
-        .setParameter("skipUser", user == null)
-        .setParameter("user", user == null ? "" : user.getValue())
-        .setParameter("skipStart", start == null)
-        .setParameter("start", start == null ? new Date() : start)
-        .setParameter("skipEnd", end == null)
-        .setParameter("end", end == null ? new Date() : end)
-        .setParameter("skipObjects", errors.isEmpty())
-        .setParameter("objects", errors.toArray(String[]::new), StringArrayType.INSTANCE)
-        .setParameter("skipCodes", codes.isEmpty())
-        .setParameter("codes", codes.toArray(String[]::new), StringArrayType.INSTANCE)
-        , Object::toString);
+    UID job = params.getJob();
+    return getResultStream(
+        nativeQuery(sql)
+            .setParameter("skipUid", job == null)
+            .setParameter("uid", job == null ? "" : job.getValue())
+            .setParameter("skipUser", user == null)
+            .setParameter("user", user == null ? "" : user.getValue())
+            .setParameter("skipStart", start == null)
+            .setParameter("start", start == null ? new Date() : start)
+            .setParameter("skipEnd", end == null)
+            .setParameter("end", end == null ? new Date() : end)
+            .setParameter("skipObjects", errors.isEmpty())
+            .setParameter("objects", errors.toArray(String[]::new), StringArrayType.INSTANCE)
+            .setParameter("skipCodes", codes.isEmpty())
+            .setParameter("codes", codes.toArray(String[]::new), StringArrayType.INSTANCE)
+            .setParameter("skipTypes", types.isEmpty())
+            .setParameter("types", types.toArray(String[]::new), StringArrayType.INSTANCE),
+        Object::toString);
   }
 
   @Override
@@ -527,5 +539,4 @@ public class HibernateJobConfigurationStore
     Stream<String> stream = (Stream<String>) query.stream();
     return stream.map(mapper);
   }
-
 }
