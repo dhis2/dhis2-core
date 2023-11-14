@@ -45,6 +45,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,9 +81,9 @@ class TeTaValidationTest extends TrackerTest {
     File file = File.createTempFile("file-resource", "test");
     fileResourceService.saveFileResource(fileResource, file);
     assertFalse(fileResource.isAssigned());
-    TrackerImportParams trackerImportParams =
+    TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_fileresource_data.json");
-    trackerImportService.importTracker(trackerImportParams);
+    trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());
     TrackedEntity trackedEntity = trackedEntities.get(0);
@@ -106,9 +107,9 @@ class TeTaValidationTest extends TrackerTest {
     File file = File.createTempFile("file-resource", "test");
     fileResourceService.saveFileResource(fileResource, file);
     assertFalse(fileResource.isAssigned());
-    TrackerImportParams trackerImportParams =
+    TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_fileresource_data.json");
-    trackerImportService.importTracker(trackerImportParams);
+    trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());
     TrackedEntity trackedEntity = trackedEntities.get(0);
@@ -117,17 +118,18 @@ class TeTaValidationTest extends TrackerTest {
     assertEquals(1, attributeValues.size());
     fileResource = fileResourceService.getFileResource(fileResource.getUid());
     assertTrue(fileResource.isAssigned());
-    trackerImportParams =
-        fromJson("tracker/validations/te-program_with_tea_fileresource_data2.json");
-    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    trackerObjects = fromJson("tracker/validations/te-program_with_tea_fileresource_data2.json");
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
     assertHasOnlyErrors(importReport, ValidationCode.E1009);
   }
 
   @Test
   void testNoFileRef() throws IOException {
-    TrackerImportParams trackerImportParams =
+    TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_fileresource_data.json");
-    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
 
     assertHasOnlyErrors(importReport, ValidationCode.E1084);
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
@@ -136,40 +138,44 @@ class TeTaValidationTest extends TrackerTest {
 
   @Test
   void testTeaMaxTextValueLength() throws IOException {
-    TrackerImportParams trackerImportParams =
+    TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_too_long_text_value.json");
 
-    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
 
     assertHasOnlyErrors(importReport, ValidationCode.E1077);
   }
 
   @Test
   void testTeaInvalidFormat() throws IOException {
-    TrackerImportParams trackerImportParams =
+    TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_invalid_format_value.json");
 
-    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
 
     assertHasOnlyErrors(importReport, ValidationCode.E1085);
   }
 
   @Test
   void testTeaInvalidImage() throws IOException {
-    TrackerImportParams trackerImportParams =
+    TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_invalid_image_value.json");
 
-    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
 
     assertHasOnlyErrors(importReport, ValidationCode.E1085, ValidationCode.E1007);
   }
 
   @Test
   void testTeaIsNull() throws IOException {
-    TrackerImportParams trackerImportParams =
+    TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_invalid_value_isnull.json");
 
-    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
 
     assertHasOnlyErrors(importReport, ValidationCode.E1076);
   }

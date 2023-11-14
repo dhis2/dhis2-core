@@ -115,11 +115,11 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   private static final String TABLE_NAME = "analytics_event";
 
   private static final String DEFAULT_COLUMNS_WITH_REGISTRATION =
-      "psi,ps,executiondate,storedby,"
+      "psi,ps,occurreddate,storedby,"
           + "createdbydisplayname"
           + ","
           + "lastupdatedbydisplayname"
-          + ",lastupdated,duedate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,"
+          + ",lastupdated,scheduleddate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,"
           + "oucode,pistatus,psistatus";
 
   @BeforeEach
@@ -153,11 +153,11 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "select psi,ps,executiondate,storedby,"
+        "select psi,ps,occurreddate,storedby,"
             + "createdbydisplayname"
             + ","
             + "lastupdatedbydisplayname"
-            + ",lastupdated,duedate,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,"
+            + ",lastupdated,scheduleddate,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,"
             + "longitude,latitude,ouname,ounamehierarchy,oucode,pistatus,psistatus,ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
@@ -214,11 +214,11 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "select psi,ps,executiondate,storedby,"
+        "select psi,ps,occurreddate,storedby,"
             + "createdbydisplayname"
             + ","
             + "lastupdatedbydisplayname"
-            + ",lastupdated,duedate,enrollmentdate,"
+            + ",lastupdated,scheduleddate,enrollmentdate,"
             + "incidentdate,tei,pi,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,oucode,pistatus,"
             + "psistatus,ax.\"quarterly\",ax.\"ou\",\""
             + dataElement.getUid()
@@ -334,7 +334,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     String expected =
         "ps.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
-            + " as ax left join _dateperiodstructure as ps on cast(ax.\"duedate\" as date) = ps.\"dateperiod\" "
+            + " as ax left join _dateperiodstructure as ps on cast(ax.\"scheduleddate\" as date) = ps.\"dateperiod\" "
             + "where (ps.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" "
             + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') limit 101";
 
@@ -563,9 +563,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         "from (select \"psi\",ax.\"deabcdefghX\",\"ou\","
             + "\"monthly\",\"jkYhtGth12t\","
             + "row_number() over (partition by ax.\"ou\",ax.\"jkYhtGth12t\" "
-            + "order by ax.\"executiondate\" desc, ax.\"created\" desc) as pe_rank "
+            + "order by ax.\"occurreddate\" desc, ax.\"created\" desc) as pe_rank "
             + "from analytics_event_prabcdefghA as ax "
-            + "where ax.\"executiondate\" >= '2012-01-31' and ax.\"executiondate\" <= '2022-01-31' "
+            + "where ax.\"occurreddate\" >= '2012-01-31' and ax.\"occurreddate\" <= '2022-01-31' "
             + "and ax.\"deabcdefghX\" is not null)";
 
     assertThat(params.isAggregationType(AggregationType.LAST), is(true));
@@ -648,15 +648,15 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         "from (select \"psi\",ax.\""
             + deU.getUid()
             + "\",\"quarterly\",\"ou\","
-            + "row_number() over (partition by ax.\"ou\",ax.\"ao\" order by ax.\"executiondate\" "
+            + "row_number() over (partition by ax.\"ou\",ax.\"ao\" order by ax.\"occurreddate\" "
             + order
             + ", ax.\"created\" "
             + order
             + ") as pe_rank "
             + "from "
             + getTable(programA.getUid())
-            + " as ax where ax.\"executiondate\" >= '1990-03-31' "
-            + "and ax.\"executiondate\" <= '2000-03-31' and ax.\""
+            + " as ax where ax.\"occurreddate\" >= '1990-03-31' "
+            + "and ax.\"occurreddate\" <= '2000-03-31' and ax.\""
             + deU.getUid()
             + "\" is not null)";
 

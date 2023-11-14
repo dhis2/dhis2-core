@@ -91,20 +91,6 @@ public class TrackerApiTest extends ApiTest {
         .get(0);
   }
 
-  protected String importTei(String orgUnit) throws Exception {
-    JsonObject teiBody =
-        new FileReaderUtils()
-            .read(new File("src/test/resources/tracker/importer/teis/tei.json"))
-            .replacePropertyValuesRecursivelyWith("orgUnit", orgUnit)
-            .get(JsonObject.class);
-
-    return trackerImportExportActions
-        .postAndGetJobReport(teiBody)
-        .validateSuccessfulImport()
-        .extractImportedTeis()
-        .get(0);
-  }
-
   protected List<String> importEvents() throws Exception {
     JsonObject object =
         new FileReaderUtils()
@@ -123,20 +109,6 @@ public class TrackerApiTest extends ApiTest {
         new FileReaderUtils()
             .read(new File("src/test/resources/tracker/importer/teis/teiWithEnrollments.json"))
             .replacePropertyValuesRecursivelyWith("program", programId)
-            .get(JsonObject.class);
-
-    return trackerImportExportActions
-        .postAndGetJobReport(teiWithEnrollment)
-        .validateSuccessfulImport();
-  }
-
-  protected TrackerApiResponse importTeiWithEnrollment(String ouId, String programId)
-      throws Exception {
-    JsonObject teiWithEnrollment =
-        new FileReaderUtils()
-            .read(new File("src/test/resources/tracker/importer/teis/teiWithEnrollments.json"))
-            .replacePropertyValuesRecursivelyWith("program", programId)
-            .replacePropertyValuesRecursivelyWith("orgUnit", ouId)
             .get(JsonObject.class);
 
     return trackerImportExportActions
@@ -196,12 +168,23 @@ public class TrackerApiTest extends ApiTest {
     return trackerImportExportActions.postAndGetJobReport(payload).validateSuccessfulImport();
   }
 
-  protected TrackerApiResponse importRelationshipEnrollmentToTei(String enrollment, String teiB) {
+  protected TrackerApiResponse importRelationshipEnrollmentToTei(String enrollment, String tei) {
     JsonObject payload =
         new RelationshipDataBuilder()
             .setFromEntity("enrollment", enrollment)
-            .setToTrackedEntity(teiB)
+            .setToTrackedEntity(tei)
             .setRelationshipType("fdc6uOvgoji")
+            .array();
+
+    return trackerImportExportActions.postAndGetJobReport(payload).validateSuccessfulImport();
+  }
+
+  protected TrackerApiResponse importRelationshipEventToTei(String event, String tei) {
+    JsonObject payload =
+        new RelationshipDataBuilder()
+            .setFromEntity("event", event)
+            .setToTrackedEntity(tei)
+            .setRelationshipType("gdc6uOvgoji")
             .array();
 
     return trackerImportExportActions.postAndGetJobReport(payload).validateSuccessfulImport();

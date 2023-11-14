@@ -57,8 +57,6 @@ class ImportReportTest {
     // Create validation report with 3 objects
     ValidationReport validationReport = ValidationReport.emptyReport();
     validationReport.addErrors(rnd.objects(Error.class, 3).collect(Collectors.toList()));
-    // Create empty Timing Stats report
-    TimingsStats timingsStats = new TimingsStats();
     // Create payload map
     Map<TrackerType, Integer> originalPayload = new HashMap<>();
     originalPayload.put(TrackerType.TRACKED_ENTITY, 10);
@@ -66,7 +64,7 @@ class ImportReportTest {
     // Method under test
     ImportReport rep =
         ImportReport.withImportCompleted(
-            Status.OK, persistenceReport, validationReport, timingsStats, originalPayload);
+            Status.OK, persistenceReport, validationReport, originalPayload);
     assertThat(rep.getStats().getCreated(), is(8));
     assertThat(rep.getStats().getUpdated(), is(6));
     assertThat(rep.getStats().getIgnored(), is(3));

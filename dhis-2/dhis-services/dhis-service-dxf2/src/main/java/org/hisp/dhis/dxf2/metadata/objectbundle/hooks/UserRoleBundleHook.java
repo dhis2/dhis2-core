@@ -25,27 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
+import java.util.Objects;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * @author Morten Svanæs <msvanaes@dhi2.org>
  */
 @Component
-@RequiredArgsConstructor
-public class TrackerSyncImporter {
+@AllArgsConstructor
+@Slf4j
+public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
 
-  @Nonnull private final TrackerImportService trackerImportService;
+  public static final String INVALIDATE_SESSION_KEY = "shouldInvalidateUserSessions";
 
-  public ImportReport importTracker(TrackerImportParams params) {
-    ImportReport importReport = trackerImportService.importTracker(params);
+  private final CurrentUserService currentUserService;
 
-    return trackerImportService.buildImportReport(importReport, params.getReportMode());
+  @Override
+  public void preUpdate(UserRole update, UserRole existing, ObjectBundle bundle) {
+    if (update == null) return;
+    bundle.putExtras(update, INVALIDATE_SESSION_KEY, userRolesUpdated(update, existing));
+  }
+
+  private Boolean userRolesUpdated(UserRole update, UserRole existing) {
+    Set<String> newAuthorities = update.getAuthorities();
+    Set<String> existingAuthorities = existing.getAuthorities();
+    return !Objects.equals(newAuthorities, existingAuthorities);
+  }
+
+  @Override
+  public void postUpdate(UserRole updatedUserRole, ObjectBundle bundle) {
+    final Boolean invalidateSessions =
+        (Boolean) bundle.getExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
+
+    if (Boolean.TRUE.equals(invalidateSessions)) {
+      for (User user : updatedUserRole.getUsers()) {
+        currentUserService.invalidateUserSessions(user.getUid());
+      }
+    }
+
+    bundle.removeExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
   }
 }

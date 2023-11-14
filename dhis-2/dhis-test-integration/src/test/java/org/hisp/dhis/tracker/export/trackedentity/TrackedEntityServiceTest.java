@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static java.util.Collections.emptySet;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
@@ -133,11 +135,17 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private User admin;
 
+  private User authorizedUser;
+
   private OrganisationUnit orgUnitA;
 
   private OrganisationUnit orgUnitB;
 
+  private OrganisationUnit orgUnitChildA;
+
   private TrackedEntityAttribute teaA;
+
+  private TrackedEntityAttribute teaC;
 
   private TrackedEntityType trackedEntityTypeA;
 
@@ -158,6 +166,12 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   private TrackedEntity trackedEntityA;
 
   private TrackedEntity trackedEntityB;
+
+  private TrackedEntity trackedEntityChildA;
+
+  private TrackedEntity trackedEntityGrandchildA;
+
+  private TrackedEntity trackedEntityC;
 
   private Note note;
 
@@ -186,6 +200,16 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     manager.save(orgUnitB, false);
     OrganisationUnit orgUnitC = createOrganisationUnit('C');
     manager.save(orgUnitC, false);
+    orgUnitChildA = createOrganisationUnit("childA");
+    orgUnitChildA.setParent(orgUnitA);
+    manager.save(orgUnitChildA);
+    orgUnitA.setChildren(Set.of(orgUnitChildA));
+    manager.update(orgUnitA);
+    OrganisationUnit orgUnitGrandchildA = createOrganisationUnit("grandchildA");
+    orgUnitGrandchildA.setParent(orgUnitChildA);
+    manager.save(orgUnitGrandchildA);
+    orgUnitChildA.setChildren(Set.of(orgUnitGrandchildA));
+    manager.update(orgUnitChildA);
 
     admin = preCreateInjectAdminUser();
     admin.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
@@ -193,6 +217,15 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     user = createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
     user.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
+
+    authorizedUser =
+        createAndAddUser(
+            false,
+            "authorizedUser",
+            Set.of(orgUnitA, orgUnitB, orgUnitC),
+            emptySet(),
+            "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
+    authorizedUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
 
     userWithSearchInAllAuthority =
         createAndAddUser(
@@ -208,7 +241,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     manager.save(teaA, false);
     TrackedEntityAttribute teaB = createTrackedEntityAttribute('B', ValueType.TEXT);
     manager.save(teaB, false);
-    TrackedEntityAttribute teaC = createTrackedEntityAttribute('C', ValueType.TEXT);
+    teaC = createTrackedEntityAttribute('C', ValueType.TEXT);
     manager.save(teaC, false);
     TrackedEntityAttribute teaD = createTrackedEntityAttribute('D', ValueType.TEXT);
     manager.save(teaD, false);
@@ -247,7 +280,10 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         Stream.of(programStageA1, programStageA2).collect(Collectors.toCollection(HashSet::new)));
     programA.getSharing().setOwner(admin);
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
-    programA.getProgramAttributes().add(new ProgramTrackedEntityAttribute(programA, teaC));
+    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
+        new ProgramTrackedEntityAttribute(programA, teaC);
+    programTrackedEntityAttribute.setSearchable(true);
+    programA.getProgramAttributes().add(programTrackedEntityAttribute);
     manager.update(programA);
 
     User currentUser = currentUserService.getCurrentUser();
@@ -294,6 +330,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     trackedEntityA.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityA, false);
 
+    trackedEntityChildA = createTrackedEntity(orgUnitChildA);
+    trackedEntityChildA.setTrackedEntityType(trackedEntityTypeA);
+    manager.save(trackedEntityChildA, false);
+
+    trackedEntityGrandchildA = createTrackedEntity(orgUnitGrandchildA);
+    trackedEntityGrandchildA.setTrackedEntityType(trackedEntityTypeA);
+    manager.save(trackedEntityGrandchildA, false);
+
     enrollmentA =
         enrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, new Date(), new Date(), orgUnitA);
@@ -333,7 +377,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     trackedEntityB.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityB, false);
 
-    TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC);
+    trackedEntityC = createTrackedEntity(orgUnitC);
     trackedEntityC.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityC, false);
 
@@ -466,7 +510,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     final List<TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams);
 
-    assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
+    assertContainsOnly(
+        List.of(trackedEntityA, trackedEntityB, trackedEntityChildA, trackedEntityGrandchildA),
+        trackedEntities);
   }
 
   @Test
@@ -1390,6 +1436,47 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldReturnAllEntitiesWhenSuperuserAndNotInSearchScope()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContext(admin);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ALL)
+            .user(admin)
+            .programUid(programA.getUid())
+            .filters(Map.of(teaC.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "C"))))
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnAllEntitiesWhenAuthorizedUserAndInSearchScope()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContext(authorizedUser);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ALL)
+            .user(authorizedUser)
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(
+        List.of(
+            trackedEntityA,
+            trackedEntityB,
+            trackedEntityC,
+            trackedEntityChildA,
+            trackedEntityGrandchildA),
+        trackedEntities);
+  }
+
+  @Test
   void shouldFailWhenModeAllUserCanSearchEverywhereButNotSuperuserAndNoAccessToProgram() {
     injectSecurityContext(userWithSearchInAllAuthority);
     TrackedEntityOperationParams operationParams =
@@ -1409,6 +1496,60 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             "Current user is not authorized to read data from selected program:  %s",
             programC.getUid()),
         ex.getMessage());
+  }
+
+  @Test
+  void shouldReturnChildrenOfRootOrgUnitWhenOrgUnitModeChildren()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(CHILDREN)
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    assertContainsOnly(
+        Set.of(trackedEntityA.getUid(), trackedEntityChildA.getUid()), uids(trackedEntities));
+  }
+
+  @Test
+  void shouldReturnChildrenOfRequestedOrgUnitWhenOrgUnitModeChildren()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(CHILDREN)
+            .organisationUnits(Set.of(orgUnitChildA.getUid()))
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    assertContainsOnly(
+        Set.of(trackedEntityChildA.getUid(), trackedEntityGrandchildA.getUid()),
+        uids(trackedEntities));
+  }
+
+  @Test
+  void
+      shouldReturnAllChildrenOfRequestedOrgUnitsWhenOrgUnitModeChildrenAndMultipleOrgUnitsRequested()
+          throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(CHILDREN)
+            .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitChildA.getUid()))
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    assertContainsOnly(
+        Set.of(
+            trackedEntityA.getUid(),
+            trackedEntityChildA.getUid(),
+            trackedEntityGrandchildA.getUid()),
+        uids(trackedEntities));
   }
 
   @Test

@@ -78,7 +78,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
    */
   private static final Set<String> ORDERABLE_FIELDS =
       Set.of(
-          "endDate",
+          "completedDate",
           "created",
           "createdAtClient",
           "enrollmentDate",
@@ -187,23 +187,12 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
 
     if (params.hasOrganisationUnits()) {
       if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
-        String ouClause = "(";
-        SqlHelper orHlp = new SqlHelper(true);
+        hql += hlp.whereAnd() + getDescendantsQuery(params.getOrganisationUnits());
+      } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
+        hql += hlp.whereAnd() + getChildrenQuery(hlp, params.getOrganisationUnits());
 
-        for (OrganisationUnit organisationUnit : params.getOrganisationUnits()) {
-          ouClause +=
-              orHlp.or() + "en.organisationUnit.path LIKE '" + organisationUnit.getPath() + "%'";
-        }
-
-        ouClause += ")";
-
-        hql += hlp.whereAnd() + ouClause;
       } else {
-        hql +=
-            hlp.whereAnd()
-                + "en.organisationUnit.uid in ("
-                + getQuotedCommaDelimitedString(getUids(params.getOrganisationUnits()))
-                + ")";
+        hql += hlp.whereAnd() + getSelectedQuery(params.getOrganisationUnits());
       }
     }
 
@@ -240,6 +229,48 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     }
 
     return QueryWithOrderBy.builder().query(hql).orderBy(orderBy(params.getOrder())).build();
+  }
+
+  private String getDescendantsQuery(Set<OrganisationUnit> organisationUnits) {
+    StringBuilder ouClause = new StringBuilder();
+    ouClause.append("(");
+
+    SqlHelper orHlp = new SqlHelper(true);
+
+    for (OrganisationUnit organisationUnit : organisationUnits) {
+      ouClause
+          .append(orHlp.or())
+          .append("en.organisationUnit.path LIKE '")
+          .append(organisationUnit.getPath())
+          .append("%'");
+    }
+
+    ouClause.append(")");
+
+    return ouClause.toString();
+  }
+
+  private String getChildrenQuery(SqlHelper hlp, Set<OrganisationUnit> organisationUnits) {
+    StringBuilder orgUnits = new StringBuilder();
+    for (OrganisationUnit organisationUnit : organisationUnits) {
+      orgUnits
+          .append(hlp.or())
+          .append("en.organisationUnit.path LIKE '")
+          .append(organisationUnit.getPath())
+          .append("%'")
+          .append(" AND (en.organisationUnit.hierarchyLevel = ")
+          .append(organisationUnit.getHierarchyLevel())
+          .append(" OR en.organisationUnit.hierarchyLevel = ")
+          .append((organisationUnit.getHierarchyLevel() + 1))
+          .append(")");
+    }
+    return orgUnits.toString();
+  }
+
+  private String getSelectedQuery(Set<OrganisationUnit> organisationUnits) {
+    return "en.organisationUnit.uid in ("
+        + getQuotedCommaDelimitedString(getUids(organisationUnits))
+        + ")";
   }
 
   private static String orderBy(List<Order> orders) {

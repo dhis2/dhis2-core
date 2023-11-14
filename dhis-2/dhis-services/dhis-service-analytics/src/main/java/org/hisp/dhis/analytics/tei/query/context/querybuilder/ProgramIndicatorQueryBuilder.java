@@ -260,7 +260,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
         + ", "
         + expression
         + " as value, "
-        + " row_number() over (partition by pi order by executiondate desc) as rn "
+        + " row_number() over (partition by pi order by occurreddate desc) as rn "
         + " from analytics_event_"
         + program.getElement().getUid()
         + " as "

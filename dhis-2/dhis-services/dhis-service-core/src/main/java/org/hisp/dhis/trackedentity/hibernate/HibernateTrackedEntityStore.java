@@ -114,9 +114,9 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   private static final String LIMIT = "LIMIT";
 
-  private static final String EV_EXECUTIONDATE = "EV.executiondate";
+  private static final String EV_EXECUTIONDATE = "EV.occurreddate";
 
-  private static final String EV_DUEDATE = "EV.duedate";
+  private static final String EV_DUEDATE = "EV.scheduleddate";
 
   private static final String IS_NULL = "IS NULL";
 
@@ -359,7 +359,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
    * the program_constraint, we also have a subquery to deal with any event-related constraints.
    * These can either be constraints on any static properties, or user assignment. For user
    * assignment, we also join with the userinfo table. For events, we have an index (status,
-   * executiondate) which speeds up the lookup significantly order: Order is used both in the
+   * occurreddate) which speeds up the lookup significantly order: Order is used both in the
    * subquery and the main query. The sort depends on the params (see more info on the related
    * method). We order the subquery to make sure we get correct results before we limit. We order
    * the main query since the aggregation mixes up the order, so to return a consistent order, we
@@ -1035,7 +1035,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
             .append(SPACE)
             .append(IS_NULL)
             .append(whereHlp.whereAnd())
-            .append("date(now()) <= date(EV.duedate) ");
+            .append("date(now()) <= date(EV.scheduleddate) ");
       } else if (params.isEventStatus(EventStatus.OVERDUE)) {
         events
             .append(getQueryDateConditionBetween(whereHlp, EV_DUEDATE, start, end))
@@ -1048,7 +1048,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
             .append(SPACE)
             .append(IS_NULL)
             .append(whereHlp.whereAnd())
-            .append("date(now()) > date(EV.duedate) ");
+            .append("date(now()) > date(EV.scheduleddate) ");
       } else if (params.isEventStatus(EventStatus.SKIPPED)) {
         events
             .append(getQueryDateConditionBetween(whereHlp, EV_DUEDATE, start, end))

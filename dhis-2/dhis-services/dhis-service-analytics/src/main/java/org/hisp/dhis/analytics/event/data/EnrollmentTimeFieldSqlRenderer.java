@@ -144,11 +144,11 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
               + eventTableName
               + ".pi = "
               + ANALYTICS_TBL_ALIAS
-              + ".pi and executiondate is not null ";
+              + ".pi and occurreddate is not null ";
 
       for (AnalyticsPeriodBoundary boundary : boundaries) {
         sql +=
-            " and executiondate "
+            " and occurreddate "
                 + (boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() ? ">=" : "<")
                 + " cast( '"
                 + format.format(boundary.getBoundaryDate(reportingStartDate, reportingEndDate))
