@@ -149,7 +149,7 @@ public class HibernateConfig {
     factory.setPackagesToScan("org.hisp.dhis");
     factory.setSharedCacheMode(SharedCacheMode.ENABLE_SELECTIVE);
     factory.setValidationMode(ValidationMode.NONE);
-    factory.setJpaProperties(getAdditionalProperties(dhisConfig, hibernateConfig));
+    factory.setJpaProperties(getAdditionalProperties(hibernateConfig));
     factory.setMappingResources(loadResources());
     factory.afterPropertiesSet();
     return factory.getObject();
