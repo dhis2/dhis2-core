@@ -37,7 +37,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -97,9 +97,9 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
   }
 
   @Override
-  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
     List<String> trackedEntityList =
-        trackerObjects.getEnrollments().stream()
+        params.getEnrollments().stream()
             .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
             .collect(Collectors.toList());
 
@@ -115,7 +115,7 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
 
     Map<String, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
 
-    if (trackerObjects.getEnrollments().isEmpty()) return;
+    if (params.getEnrollments().isEmpty()) return;
 
     for (List<String> trackedEntityListSubList : trackedEntities) {
       queryTeiAndAddToMap(trackedEntityToEnrollmentMap, trackedEntityListSubList, programList);

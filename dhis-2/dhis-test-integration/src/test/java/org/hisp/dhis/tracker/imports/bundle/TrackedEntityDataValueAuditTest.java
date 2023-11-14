@@ -43,7 +43,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,16 +77,15 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest {
 
   @Test
   void testTrackedEntityDataValueAuditCreate() throws IOException {
-    TrackerImportParams params = new TrackerImportParams();
     assertNoErrors(
         trackerImportService.importTracker(
-            params, fromJson("tracker/event_and_enrollment_with_data_values.json")));
+            fromJson("tracker/event_and_enrollment_with_data_values.json")));
     assertNoErrors(
         trackerImportService.importTracker(
-            params, fromJson("tracker/event_with_data_values_for_update_audit.json")));
+            fromJson("tracker/event_with_data_values_for_update_audit.json")));
     assertNoErrors(
         trackerImportService.importTracker(
-            params, fromJson("tracker/event_with_data_values_for_delete_audit.json")));
+            fromJson("tracker/event_with_data_values_for_delete_audit.json")));
 
     dataElement = manager.search(DataElement.class, DE);
     event = manager.search(Event.class, PSI);

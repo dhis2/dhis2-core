@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -51,7 +50,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackerIdSchemeParams implements Serializable {
+public class TrackerIdSchemeParams {
   /** Specific identifier to match data elements on. */
   @JsonProperty @Builder.Default
   private TrackerIdSchemeParam dataElementIdScheme = TrackerIdSchemeParam.UID;

@@ -37,9 +37,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.UserMapper;
 import org.hisp.dhis.user.User;
@@ -56,7 +56,7 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier {
   @Nonnull private final UserService userService;
 
   @Override
-  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
     List<TrackedEntityAttribute> attributes = preheat.getAll(TrackedEntityAttribute.class);
 
     TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
@@ -68,10 +68,10 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier {
 
     List<String> usernames = new ArrayList<>();
 
-    trackerObjects
+    params
         .getTrackedEntities()
         .forEach(te -> collectResourceIds(usernameAttributes, usernames, te.getAttributes()));
-    trackerObjects
+    params
         .getEnrollments()
         .forEach(en -> collectResourceIds(usernameAttributes, usernames, en.getAttributes()));
 

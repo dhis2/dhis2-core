@@ -49,8 +49,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,7 +77,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
 
   @Mock private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-  private TrackerObjects params;
+  private TrackerImportParams params;
 
   private TrackerPreheat preheat;
 
@@ -91,7 +91,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
 
   @BeforeEach
   public void setUp() {
-    params = TrackerObjects.builder().build();
+    params = TrackerImportParams.builder().build();
     preheat = new TrackerPreheat();
     uniqueAttribute = createTrackedEntityAttribute('A', ValueType.TEXT);
     OrganisationUnit orgUnit = createOrganisationUnit('A');
@@ -121,8 +121,8 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
   void verifySupplierWhenTeAndEnrollmentHaveTheSameUniqueAttribute() {
     when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
         .thenReturn(Collections.singletonList(uniqueAttribute));
-    TrackerObjects importParams =
-        TrackerObjects.builder()
+    TrackerImportParams importParams =
+        TrackerImportParams.builder()
             .trackedEntities(Collections.singletonList(trackedEntity()))
             .enrollments(Collections.singletonList(enrollment(TE_UID)))
             .build();
@@ -136,8 +136,8 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
   void verifySupplierWhenTwoTesHaveAttributeWithSameUniqueValue() {
     when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
         .thenReturn(Collections.singletonList(uniqueAttribute));
-    TrackerObjects importParams =
-        TrackerObjects.builder().trackedEntities(sameUniqueAttributeTrackedEntities()).build();
+    TrackerImportParams importParams =
+        TrackerImportParams.builder().trackedEntities(sameUniqueAttributeTrackedEntities()).build();
 
     this.supplier.preheatAdd(importParams, preheat);
 
@@ -148,8 +148,8 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
   void verifySupplierWhenTeAndEnrollmentFromAnotherTeHaveAttributeWithSameUniqueValue() {
     when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
         .thenReturn(Collections.singletonList(uniqueAttribute));
-    TrackerObjects importParams =
-        TrackerObjects.builder()
+    TrackerImportParams importParams =
+        TrackerImportParams.builder()
             .trackedEntities(Collections.singletonList(trackedEntity()))
             .enrollments(Collections.singletonList(enrollment(ANOTHER_TE_UID)))
             .build();
@@ -169,8 +169,8 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     when(trackedEntityAttributeValueService.getUniqueAttributeByValues(
             trackedEntityAttributeListMap))
         .thenReturn(attributeValues);
-    TrackerObjects importParams =
-        TrackerObjects.builder()
+    TrackerImportParams importParams =
+        TrackerImportParams.builder()
             .trackedEntities(Collections.singletonList(trackedEntity()))
             .build();
 
@@ -189,8 +189,8 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest {
     when(trackedEntityAttributeValueService.getUniqueAttributeByValues(
             trackedEntityAttributeListMap))
         .thenReturn(attributeValues);
-    TrackerObjects importParams =
-        TrackerObjects.builder()
+    TrackerImportParams importParams =
+        TrackerImportParams.builder()
             .trackedEntities(Collections.singletonList(anotherTrackedEntity()))
             .build();
 

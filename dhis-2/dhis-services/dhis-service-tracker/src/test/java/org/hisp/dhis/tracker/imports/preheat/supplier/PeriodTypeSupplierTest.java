@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.DefaultPreheatCacheService;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
@@ -70,7 +70,7 @@ class PeriodTypeSupplierTest {
     final List<Period> periods = rnd.objects(Period.class, 20).collect(Collectors.toList());
     when(periodStore.getAll()).thenReturn(periods);
 
-    final TrackerObjects params = TrackerObjects.builder().build();
+    final TrackerImportParams params = TrackerImportParams.builder().build();
 
     TrackerPreheat preheat = new TrackerPreheat();
     this.supplier.preheatAdd(params, preheat);

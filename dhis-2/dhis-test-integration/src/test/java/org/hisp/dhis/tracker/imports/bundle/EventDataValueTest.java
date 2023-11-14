@@ -45,7 +45,6 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
@@ -67,11 +66,12 @@ class EventDataValueTest extends TrackerTest {
     setUpMetadata("tracker/simple_metadata.json");
     final User userA = userService.getUser("M5zQapPyTZI");
     injectSecurityContext(userA);
-    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
-    TrackerObjects trackerObjects = fromJson("tracker/single_tei.json");
-    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
-    TrackerObjects enTrackerObjects = fromJson("tracker/single_enrollment.json");
-    assertNoErrors(trackerImportService.importTracker(params, enTrackerObjects));
+
+    TrackerImportParams teiParams = fromJson("tracker/single_tei.json", userA.getUid());
+    assertNoErrors(trackerImportService.importTracker(teiParams));
+    TrackerImportParams enrollmentParams =
+        fromJson("tracker/single_enrollment.json", userA.getUid());
+    assertNoErrors(trackerImportService.importTracker(enrollmentParams));
     manager.flush();
   }
 
@@ -79,7 +79,7 @@ class EventDataValueTest extends TrackerTest {
   void successWhenEventHasNoProgramAndHasProgramStage() throws IOException {
     ImportReport importReport =
         trackerImportService.importTracker(
-            new TrackerImportParams(), fromJson("tracker/validations/events-with_no_program.json"));
+            fromJson("tracker/validations/events-with_no_program.json"));
 
     assertNoErrors(importReport);
   }
@@ -87,8 +87,7 @@ class EventDataValueTest extends TrackerTest {
   @Test
   void testEventDataValue() throws IOException {
     ImportReport importReport =
-        trackerImportService.importTracker(
-            new TrackerImportParams(), fromJson("tracker/event_with_data_values.json"));
+        trackerImportService.importTracker(fromJson("tracker/event_with_data_values.json"));
 
     assertNoErrors(importReport);
     List<Event> events = manager.getAll(Event.class);
@@ -100,9 +99,8 @@ class EventDataValueTest extends TrackerTest {
 
   @Test
   void testEventDataValueUpdate() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/event_with_data_values.json");
-    TrackerImportParams params = new TrackerImportParams();
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    ImportReport importReport =
+        trackerImportService.importTracker(fromJson("tracker/event_with_data_values.json"));
 
     assertNoErrors(importReport);
     List<Event> events = manager.getAll(Event.class);
@@ -111,10 +109,17 @@ class EventDataValueTest extends TrackerTest {
     Set<EventDataValue> eventDataValues = event.getEventDataValues();
     assertEquals(4, eventDataValues.size());
     // update
-
-    TrackerObjects updatedTrackerObjects = fromJson("tracker/event_with_updated_data_values.json");
-    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
-    importReport = trackerImportService.importTracker(params, updatedTrackerObjects);
+    TrackerImportParams trackerImportParams =
+        fromJson("tracker/event_with_updated_data_values.json");
+    // make sure that the uid property is populated as well - otherwise
+    // update will
+    // not work
+    trackerImportParams
+        .getEvents()
+        .get(0)
+        .setEvent(trackerImportParams.getEvents().get(0).getEvent());
+    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    importReport = trackerImportService.importTracker(trackerImportParams);
     assertNoErrors(importReport);
     List<Event> updatedEvents = manager.getAll(Event.class);
     assertEquals(1, updatedEvents.size());

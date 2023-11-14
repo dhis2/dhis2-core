@@ -41,10 +41,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
@@ -57,7 +57,7 @@ public class OrgUnitValueTypeSupplier extends AbstractPreheatSupplier {
   @Nonnull private final IdentifiableObjectManager manager;
 
   @Override
-  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
     TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
 
     List<MetadataIdentifier> orgUnitAttributes =
@@ -73,13 +73,13 @@ public class OrgUnitValueTypeSupplier extends AbstractPreheatSupplier {
             .collect(Collectors.toList());
 
     List<String> orgUnitIds = new ArrayList<>();
-    trackerObjects
+    params
         .getTrackedEntities()
         .forEach(te -> collectResourceIds(orgUnitAttributes, orgUnitIds, te.getAttributes()));
-    trackerObjects
+    params
         .getEnrollments()
         .forEach(en -> collectResourceIds(orgUnitAttributes, orgUnitIds, en.getAttributes()));
-    trackerObjects
+    params
         .getEvents()
         .forEach(ev -> collectResourceIds(orgUnitDataElements, orgUnitIds, ev.getDataValues()));
 

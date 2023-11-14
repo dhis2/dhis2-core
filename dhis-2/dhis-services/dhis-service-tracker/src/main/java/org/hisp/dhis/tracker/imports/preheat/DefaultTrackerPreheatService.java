@@ -36,10 +36,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.preheat.PreheatException;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatSupplier;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -72,18 +70,17 @@ public class DefaultTrackerPreheatService
 
   @Override
   @Transactional(readOnly = true)
-  public TrackerPreheat preheat(
-      TrackerObjects trackerObjects, TrackerIdSchemeParams idSchemeParams, User user) {
+  public TrackerPreheat preheat(TrackerImportParams params) {
     TrackerPreheat preheat = new TrackerPreheat();
-    preheat.setIdSchemes(idSchemeParams);
-    preheat.setUser(user);
+    preheat.setIdSchemes(params.getIdSchemes());
+    preheat.setUser(params.getUser());
 
     checkNotNull(preheat.getUser(), "TrackerPreheat is missing the user object.");
 
     for (String supplier : preheatSuppliers) {
       final String beanName = Introspector.decapitalize(supplier);
       try {
-        ctx.getBean(beanName, PreheatSupplier.class).add(trackerObjects, preheat);
+        ctx.getBean(beanName, PreheatSupplier.class).add(params, preheat);
       } catch (BeansException beanException) {
         processException(
             "Unable to find a preheat supplier with name "

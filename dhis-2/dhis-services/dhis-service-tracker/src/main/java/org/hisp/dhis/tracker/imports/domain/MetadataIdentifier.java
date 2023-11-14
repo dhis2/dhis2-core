@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -58,7 +57,7 @@ import org.hisp.dhis.tracker.imports.TrackerIdScheme;
  */
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class MetadataIdentifier implements Serializable {
+public class MetadataIdentifier {
 
   public static final MetadataIdentifier EMPTY_UID = MetadataIdentifier.ofUid((String) null);
 

@@ -25,26 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.domain;
+package org.hisp.dhis.tracker.imports.job;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class RelationshipItem {
+@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
+public class TrackerImportThread extends SecurityContextRunnable {
+  private final TrackerImportService trackerImportService;
 
-  @JsonProperty private String trackedEntity;
+  private TrackerImportParams trackerImportParams;
 
-  @JsonProperty private String enrollment;
+  public TrackerImportThread(TrackerImportService trackerImportService) {
+    this.trackerImportService = trackerImportService;
+  }
 
-  @JsonProperty private String event;
+  @Override
+  public void call() {
+    Assert.notNull(trackerImportParams, "Field trackerImportParams can not be null. ");
+
+    trackerImportService.importTracker(trackerImportParams); // discard returned report
+  }
+
+  public void setTrackerImportParams(TrackerImportParams trackerImportParams) {
+    this.trackerImportParams = trackerImportParams;
+  }
 }

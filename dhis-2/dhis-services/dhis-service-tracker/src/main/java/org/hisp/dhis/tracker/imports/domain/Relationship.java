@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,7 +42,7 @@ import org.hisp.dhis.tracker.TrackerType;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Relationship implements TrackerDto, Serializable {
+public class Relationship implements TrackerDto {
   @JsonProperty private String relationship;
 
   @JsonProperty private String relationshipName;

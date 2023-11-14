@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.io.Serializable;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -51,7 +50,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 // which is invalid. Drop @OpenApi.Property annotation after implementing support for the unpacking
 // of query param classes in OpenApiGenerator
 @OpenApi.Property(value = TrackerIdScheme.class)
-public class TrackerIdSchemeParam implements Serializable {
+public class TrackerIdSchemeParam {
   public static final TrackerIdSchemeParam UID = TrackerIdSchemeParam.of(TrackerIdScheme.UID, null);
 
   public static final TrackerIdSchemeParam CODE =

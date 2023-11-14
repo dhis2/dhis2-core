@@ -25,26 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.domain;
+package org.hisp.dhis.tracker.imports.job;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
+import org.hisp.dhis.artemis.MessageType;
+import org.hisp.dhis.artemis.SerializableMessage;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 
 /**
+ * Used by Apache Artemis to pass tracker import jobs from the /api/tracker endpoint to the tracker
+ * import services.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class RelationshipItem {
+@Value
+@Builder(builderClassName = "TrackerMessageBuilder")
+@JsonDeserialize(builder = TrackerMessage.TrackerMessageBuilder.class)
+public class TrackerMessage implements SerializableMessage {
+  @JsonProperty private final String uid;
 
-  @JsonProperty private String trackedEntity;
+  @JsonProperty private final String authentication;
 
-  @JsonProperty private String enrollment;
+  @JsonProperty private final TrackerImportParams trackerImportParams;
 
-  @JsonProperty private String event;
+  @Override
+  public MessageType getMessageType() {
+    return MessageType.TRACKER_JOB;
+  }
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static final class TrackerMessageBuilder {}
 }

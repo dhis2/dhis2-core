@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class TrackerImportControllerTest extends DhisControllerIntegrationTest {
+class TrackerImportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void shouldSucceedWhenAllValidParametersArePassed() {
     assertWebMessage(

@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -55,7 +54,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonDeserialize(converter = BodyConverter.class)
-class Body implements Serializable {
+class Body {
   /** Tracked entities to import. */
   @JsonProperty @Builder.Default
   private final List<TrackedEntity> trackedEntities = new ArrayList<>();

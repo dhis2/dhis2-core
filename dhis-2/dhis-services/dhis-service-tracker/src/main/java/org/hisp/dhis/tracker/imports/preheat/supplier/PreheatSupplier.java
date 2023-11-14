@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 
 /**
@@ -40,8 +39,8 @@ public interface PreheatSupplier {
   /**
    * Adds data to the {@link TrackerPreheat} using the supplied {@link TrackerImportParams}
    *
-   * @param trackerObjects {@link TrackerObjects}
+   * @param params {@link TrackerImportParams}
    * @param preheat {@link TrackerPreheat}
    */
-  void add(TrackerObjects trackerObjects, TrackerPreheat preheat);
+  void add(TrackerImportParams params, TrackerPreheat preheat);
 }

@@ -37,8 +37,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.UserMapper;
@@ -56,9 +56,9 @@ public class UserSupplier extends AbstractPreheatSupplier {
   @Nonnull private final UserService userService;
 
   @Override
-  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
     Set<String> userUids =
-        trackerObjects.getEvents().stream()
+        params.getEvents().stream()
             .filter(Objects::nonNull)
             .map(Event::getAssignedUser)
             .filter(Objects::nonNull)
@@ -67,7 +67,7 @@ public class UserSupplier extends AbstractPreheatSupplier {
             .collect(Collectors.toSet());
 
     Set<String> usernames =
-        trackerObjects.getEvents().stream()
+        params.getEvents().stream()
             .filter(Objects::nonNull)
             .map(Event::getAssignedUser)
             .filter(Objects::nonNull)

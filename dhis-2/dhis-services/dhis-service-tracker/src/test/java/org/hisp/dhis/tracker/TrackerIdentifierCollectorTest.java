@@ -65,7 +65,6 @@ import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -82,6 +81,13 @@ class TrackerIdentifierCollectorTest {
 
   @Test
   void collectTrackedEntities() {
+
+    TrackerIdSchemeParams idSchemes =
+        TrackerIdSchemeParams.builder()
+            .idScheme(TrackerIdSchemeParam.ofAttribute("NTVsGflP5Ix"))
+            .orgUnitIdScheme(TrackerIdSchemeParam.NAME)
+            .build();
+
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
             .trackedEntity(uid())
@@ -90,10 +96,10 @@ class TrackerIdentifierCollectorTest {
             .attributes(teAttributes("VohJnvWfvyo", "qv9xOw8fBzy"))
             .build();
 
-    TrackerObjects trackerObjects =
-        TrackerObjects.builder().trackedEntities(singletonList(trackedEntity)).build();
+    TrackerImportParams params =
+        params(idSchemes).trackedEntities(singletonList(trackedEntity)).build();
 
-    Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
+    Map<Class<?>, Set<String>> ids = collector.collect(params);
 
     assertNotNull(ids);
     assertContainsOnly(Set.of(trackedEntity.getTrackedEntity()), ids.get(TrackedEntity.class));
@@ -104,6 +110,13 @@ class TrackerIdentifierCollectorTest {
 
   @Test
   void collectEnrollments() {
+
+    TrackerIdSchemeParams idSchemes =
+        TrackerIdSchemeParams.builder()
+            .orgUnitIdScheme(TrackerIdSchemeParam.NAME)
+            .programIdScheme(TrackerIdSchemeParam.ofAttribute("NTVsGflP5Ix"))
+            .build();
+
     Enrollment enrollment =
         Enrollment.builder()
             .enrollment(uid())
@@ -113,10 +126,9 @@ class TrackerIdentifierCollectorTest {
             .attributes(teAttributes("VohJnvWfvyo", "qv9xOw8fBzy"))
             .build();
 
-    TrackerObjects trackerObjects =
-        TrackerObjects.builder().enrollments(singletonList(enrollment)).build();
+    TrackerImportParams params = params(idSchemes).enrollments(singletonList(enrollment)).build();
 
-    Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
+    Map<Class<?>, Set<String>> ids = collector.collect(params);
 
     assertNotNull(ids);
     assertContainsOnly(Set.of(enrollment.getUid()), ids.get(Enrollment.class));
@@ -150,9 +162,9 @@ class TrackerIdentifierCollectorTest {
             .notes(List.of(Note.builder().note("i1vviSlidJE").value("nice day!").build()))
             .build();
 
-    TrackerObjects trackerObjects = TrackerObjects.builder().events(singletonList(event)).build();
+    TrackerImportParams params = params(idSchemes).events(singletonList(event)).build();
 
-    Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
+    Map<Class<?>, Set<String>> ids = collector.collect(params);
 
     assertNotNull(ids);
     assertContainsOnly(Set.of(event.getUid()), ids.get(Event.class));
@@ -170,9 +182,10 @@ class TrackerIdentifierCollectorTest {
   void collectEventsSkipsNotesWithoutAnId() {
     Event event = Event.builder().notes(List.of(Note.builder().value("nice day!").build())).build();
 
-    TrackerObjects trackerObjects = TrackerObjects.builder().events(singletonList(event)).build();
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build()).events(singletonList(event)).build();
 
-    Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
+    Map<Class<?>, Set<String>> ids = collector.collect(params);
 
     assertNotNull(ids);
     assertNull(ids.get(org.hisp.dhis.note.Note.class));
@@ -183,9 +196,10 @@ class TrackerIdentifierCollectorTest {
     Event event =
         Event.builder().notes(List.of(Note.builder().note("i1vviSlidJE").build())).build();
 
-    TrackerObjects trackerObjects = TrackerObjects.builder().events(singletonList(event)).build();
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build()).events(singletonList(event)).build();
 
-    Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
+    Map<Class<?>, Set<String>> ids = collector.collect(params);
 
     assertNotNull(ids);
     assertNull(ids.get(org.hisp.dhis.note.Note.class));
@@ -208,10 +222,10 @@ class TrackerIdentifierCollectorTest {
             .to(RelationshipItem.builder().event(uid()).build())
             .build();
 
-    TrackerObjects trackerObjects =
-        TrackerObjects.builder().relationships(singletonList(relationship)).build();
+    TrackerImportParams params =
+        params(idSchemes).relationships(singletonList(relationship)).build();
 
-    Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
+    Map<Class<?>, Set<String>> ids = collector.collect(params);
 
     assertNotNull(ids);
     assertContainsOnly(Set.of(relationship.getRelationship()), ids.get(Relationship.class));

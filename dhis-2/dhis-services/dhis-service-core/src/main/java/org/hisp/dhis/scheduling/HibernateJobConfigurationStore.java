@@ -29,7 +29,6 @@ package org.hisp.dhis.scheduling;
 
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.toSet;
-import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 import java.util.List;
 import java.util.Set;
@@ -46,7 +45,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jan Bernitt
@@ -244,7 +242,6 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  @Transactional(propagation = REQUIRES_NEW)
   public boolean tryExecuteNow(@Nonnull String jobId) {
     // language=SQL
     String sql =

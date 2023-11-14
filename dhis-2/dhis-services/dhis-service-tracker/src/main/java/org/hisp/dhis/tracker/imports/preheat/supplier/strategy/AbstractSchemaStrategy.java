@@ -44,6 +44,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.tracker.imports.TrackerIdScheme;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.imports.preheat.mappers.CopyMapper;
@@ -78,8 +79,9 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
   }
 
   @Override
-  public void add(List<List<String>> splitList, TrackerPreheat preheat) {
-    TrackerIdSchemeParam idSchemeParam = preheat.getIdSchemes().getByClass(getSchemaClass());
+  public void add(
+      TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
+    TrackerIdSchemeParam idSchemeParam = params.getIdSchemes().getByClass(getSchemaClass());
     Schema schema = schemaService.getDynamicSchema(getSchemaClass());
 
     queryForIdentifiableObjects(preheat, schema, idSchemeParam, splitList, mapper());

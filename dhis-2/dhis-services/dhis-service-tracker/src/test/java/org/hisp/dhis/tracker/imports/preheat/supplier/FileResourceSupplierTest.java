@@ -43,13 +43,14 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,8 +86,8 @@ class FileResourceSupplierTest extends DhisConvenienceTest {
     when(fileResourceService.getFileResources(List.of("kKacJUdANDC")))
         .thenReturn(List.of(fileResource));
 
-    TrackerObjects params =
-        TrackerObjects.builder()
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
             .trackedEntities(
                 List.of(
                     trackedEntity(numericAttribute(), fileAttribute("hQKI6KcEu5t", "kKacJUdANDC"))))
@@ -101,8 +102,8 @@ class FileResourceSupplierTest extends DhisConvenienceTest {
   void testSupplierDoesNotAddFileResourceIfTeAttributeValueIsEmpty() {
     preheat.put(TrackerIdSchemeParam.UID, List.of(teaFileResource("hQKI6KcEu5t")));
 
-    TrackerObjects params =
-        TrackerObjects.builder()
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
             .trackedEntities(List.of(trackedEntity(fileAttribute("hQKI6KcEu5t", ""))))
             .build();
 
@@ -121,8 +122,8 @@ class FileResourceSupplierTest extends DhisConvenienceTest {
     when(fileResourceService.getFileResources(List.of("kKacJUdANDC")))
         .thenReturn(List.of(fileResource));
 
-    TrackerObjects params =
-        TrackerObjects.builder()
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
             .enrollments(
                 List.of(
                     enrollment(numericAttribute(), fileAttribute("hQKI6KcEu5t", "kKacJUdANDC"))))
@@ -143,8 +144,8 @@ class FileResourceSupplierTest extends DhisConvenienceTest {
     when(fileResourceService.getFileResources(List.of("kKacJUdANDC")))
         .thenReturn(List.of(fileResource));
 
-    TrackerObjects params =
-        TrackerObjects.builder()
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
             .events(
                 List.of(event(dataValue("numeric", "2"), dataValue("hQKI6KcEu5t", "kKacJUdANDC"))))
             .build();
@@ -158,8 +159,10 @@ class FileResourceSupplierTest extends DhisConvenienceTest {
   void testSupplierDoesNotAddFileResourceIfEventDataValueValueIsEmpty() {
     preheat.put(TrackerIdSchemeParam.UID, List.of(fileDataElement("hQKI6KcEu5t")));
 
-    TrackerObjects params =
-        TrackerObjects.builder().events(List.of(event(dataValue("hQKI6KcEu5t", "")))).build();
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
+            .events(List.of(event(dataValue("hQKI6KcEu5t", ""))))
+            .build();
 
     supplier.preheatAdd(params, preheat);
 
@@ -184,6 +187,10 @@ class FileResourceSupplierTest extends DhisConvenienceTest {
     FileResource fileResource = createFileResource('A', "FileResource".getBytes());
     fileResource.setUid(uid);
     return fileResource;
+  }
+
+  private TrackerImportParams.TrackerImportParamsBuilder params(TrackerIdSchemeParams idSchemes) {
+    return TrackerImportParams.builder().idSchemes(idSchemes);
   }
 
   private Attribute numericAttribute() {
