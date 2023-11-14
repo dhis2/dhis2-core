@@ -115,12 +115,12 @@ public class EventBaseCheck implements Checker {
 
       referenceDate = removeTimeStamp(referenceDate);
 
-      if (referenceDate.after(removeTimeStamp(enrollment.getEndDate()))) {
+      if (referenceDate.after(removeTimeStamp(enrollment.getCompletedDate()))) {
         errors.add(
             "Not possible to add event to a completed enrollment. Event created date ( "
                 + referenceDate
                 + " ) is after enrollment completed date ( "
-                + removeTimeStamp(enrollment.getEndDate())
+                + removeTimeStamp(enrollment.getCompletedDate())
                 + " ).");
       }
     }

@@ -125,7 +125,7 @@ class DefaultEnrollmentService
     result.setEnrollmentDate(enrollment.getEnrollmentDate());
     result.setIncidentDate(enrollment.getIncidentDate());
     result.setFollowup(enrollment.getFollowup());
-    result.setEndDate(enrollment.getEndDate());
+    result.setCompletedDate(enrollment.getCompletedDate());
     result.setCompletedBy(enrollment.getCompletedBy());
     result.setStoredBy(enrollment.getStoredBy());
     result.setCreatedByUserInfo(enrollment.getCreatedByUserInfo());

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static java.util.Collections.emptySet;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
@@ -91,6 +92,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private User userWithoutOrgUnit;
 
+  private User authorizedUser;
+
   private Program programA;
 
   private ProgramStage programStageA;
@@ -139,6 +142,13 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
         createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
     user.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
     userWithoutOrgUnit = createUserWithAuth("userWithoutOrgUnit");
+    authorizedUser =
+        createAndAddUser(
+            false,
+            "test user",
+            Set.of(orgUnitA, orgUnitB, orgUnitC),
+            emptySet(),
+            "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
 
     trackedEntityTypeA = createTrackedEntityType('A');
     trackedEntityTypeA.getSharing().setOwner(user);
@@ -637,6 +647,21 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
 
     assertIsEmpty(enrollments);
+  }
+
+  @Test
+  void shouldReturnAllEnrollmentsWhenModeAllAndUserAuthorizedAndInSearchScope()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+
+    injectSecurityContext(authorizedUser);
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    assertContainsOnly(
+        List.of(enrollmentA.getUid(), enrollmentB.getUid(), enrollmentChildA.getUid()),
+        uids(enrollments));
   }
 
   @Test

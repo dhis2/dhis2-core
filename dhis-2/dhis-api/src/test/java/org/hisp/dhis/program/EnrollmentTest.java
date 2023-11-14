@@ -68,7 +68,7 @@ class EnrollmentTest {
     assertEquals(original.getFollowup(), copy.getFollowup());
     assertEquals(original.getGeometry(), copy.getGeometry());
     assertEquals(original.getOrganisationUnit(), copy.getOrganisationUnit());
-    assertEquals(original.getEndDate(), copy.getEndDate());
+    assertEquals(original.getCompletedDate(), copy.getCompletedDate());
     assertEquals(original.getRelationshipItems(), copy.getRelationshipItems());
     assertEquals(original.getCreatedByUserInfo(), copy.getCreatedByUserInfo());
     assertEquals(original.getMessageConversations(), copy.getMessageConversations());
@@ -86,7 +86,7 @@ class EnrollmentTest {
     assertNotEquals(original.getProgram(), copy.getProgram());
 
     assertEquals(original.getCreatedByUserInfo(), copy.getCreatedByUserInfo());
-    assertEquals(original.getEndDate(), copy.getEndDate());
+    assertEquals(original.getCompletedDate(), copy.getCompletedDate());
     assertEquals(original.getEnrollmentDate(), copy.getEnrollmentDate());
     assertEquals(original.getFollowup(), copy.getFollowup());
     assertEquals(original.getGeometry(), copy.getGeometry());
@@ -117,7 +117,7 @@ class EnrollmentTest {
     e.setAutoFields();
     e.setNotes(List.of(new Note("note", "amin")));
     e.setCompletedBy("admin");
-    e.setEndDate(new Date());
+    e.setCompletedDate(new Date());
     e.setEnrollmentDate(new Date());
     e.setEvents(Set.of());
     e.setFollowup(true);
@@ -138,7 +138,7 @@ class EnrollmentTest {
     e.setName(null);
     e.setNotes(null);
     e.setCompletedBy(null);
-    e.setEndDate(null);
+    e.setCompletedDate(null);
     e.setEnrollmentDate(null);
     e.setEvents(null);
     e.setIncidentDate(null);

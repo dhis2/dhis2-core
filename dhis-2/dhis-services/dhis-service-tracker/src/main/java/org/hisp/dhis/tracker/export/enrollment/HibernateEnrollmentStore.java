@@ -78,7 +78,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
    */
   private static final Set<String> ORDERABLE_FIELDS =
       Set.of(
-          "endDate",
+          "completedDate",
           "created",
           "createdAtClient",
           "enrollmentDate",

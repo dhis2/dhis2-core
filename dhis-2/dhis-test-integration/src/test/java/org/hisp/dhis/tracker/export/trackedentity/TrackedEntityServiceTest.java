@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static java.util.Collections.emptySet;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
@@ -134,6 +135,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private User admin;
 
+  private User authorizedUser;
+
   private OrganisationUnit orgUnitA;
 
   private OrganisationUnit orgUnitB;
@@ -141,6 +144,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   private OrganisationUnit orgUnitChildA;
 
   private TrackedEntityAttribute teaA;
+
+  private TrackedEntityAttribute teaC;
 
   private TrackedEntityType trackedEntityTypeA;
 
@@ -165,6 +170,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   private TrackedEntity trackedEntityChildA;
 
   private TrackedEntity trackedEntityGrandchildA;
+
+  private TrackedEntity trackedEntityC;
 
   private Note note;
 
@@ -211,6 +218,15 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     user = createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
     user.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
 
+    authorizedUser =
+        createAndAddUser(
+            false,
+            "authorizedUser",
+            Set.of(orgUnitA, orgUnitB, orgUnitC),
+            emptySet(),
+            "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
+    authorizedUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
+
     userWithSearchInAllAuthority =
         createAndAddUser(
             false,
@@ -225,7 +241,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     manager.save(teaA, false);
     TrackedEntityAttribute teaB = createTrackedEntityAttribute('B', ValueType.TEXT);
     manager.save(teaB, false);
-    TrackedEntityAttribute teaC = createTrackedEntityAttribute('C', ValueType.TEXT);
+    teaC = createTrackedEntityAttribute('C', ValueType.TEXT);
     manager.save(teaC, false);
     TrackedEntityAttribute teaD = createTrackedEntityAttribute('D', ValueType.TEXT);
     manager.save(teaD, false);
@@ -264,7 +280,10 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         Stream.of(programStageA1, programStageA2).collect(Collectors.toCollection(HashSet::new)));
     programA.getSharing().setOwner(admin);
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
-    programA.getProgramAttributes().add(new ProgramTrackedEntityAttribute(programA, teaC));
+    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
+        new ProgramTrackedEntityAttribute(programA, teaC);
+    programTrackedEntityAttribute.setSearchable(true);
+    programA.getProgramAttributes().add(programTrackedEntityAttribute);
     manager.update(programA);
 
     User currentUser = currentUserService.getCurrentUser();
@@ -358,7 +377,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     trackedEntityB.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityB, false);
 
-    TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC);
+    trackedEntityC = createTrackedEntity(orgUnitC);
     trackedEntityC.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityC, false);
 
@@ -1414,6 +1433,40 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertAll(
         () -> assertEquals(trackedEntityA.getUid(), actual.getFrom().getTrackedEntity().getUid()),
         () -> assertEquals(eventA.getUid(), actual.getTo().getEvent().getUid()));
+  }
+
+  @Test
+  void shouldReturnAllEntitiesWhenSuperuserAndNotInSearchScope()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContext(admin);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ALL)
+            .user(admin)
+            .programUid(programA.getUid())
+            .filters(Map.of(teaC.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "C"))))
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnAllEntitiesWhenAuthorizedUserAndInSearchScope()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContext(authorizedUser);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ALL)
+            .user(authorizedUser)
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA, trackedEntityB, trackedEntityC), trackedEntities);
   }
 
   @Test
