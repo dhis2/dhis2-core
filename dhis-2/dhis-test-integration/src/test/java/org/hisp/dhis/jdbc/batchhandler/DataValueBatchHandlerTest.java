@@ -72,7 +72,7 @@ class DataValueBatchHandlerTest extends IntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
-  private BatchHandler<DataValue> batchHandler;
+
 
   private DataElement dataElementA;
 
@@ -105,7 +105,7 @@ class DataValueBatchHandlerTest extends IntegrationTestBase {
   // -------------------------------------------------------------------------
   @Override
   public void setUpTest() {
-    batchHandler = batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class);
+
     dataElementA = createDataElement('A');
     dataElementService.addDataElement(dataElementA);
     categoryOptionComboA = categoryService.getDefaultCategoryOptionCombo();
@@ -142,19 +142,19 @@ class DataValueBatchHandlerTest extends IntegrationTestBase {
             dataElementA, periodB, unitB, categoryOptionComboA, categoryOptionComboA, "15");
     // with
     // 4th
-    batchHandler.init();
+
   }
 
   @Override
-  public void tearDownTest() {
-    batchHandler.flush();
-  }
+  public void tearDownTest() {}
 
   // -------------------------------------------------------------------------
   // Tests
   // -------------------------------------------------------------------------
   @Test
   void testInsertObject() {
+    BatchHandler<DataValue> batchHandler;
+    batchHandler = batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class).init();
     batchHandler.insertObject(dataValueA);
     DataValue dataValue =
         dataValueService.getDataValue(
@@ -164,6 +164,8 @@ class DataValueBatchHandlerTest extends IntegrationTestBase {
 
   @Test
   void testAddObject() {
+    BatchHandler<DataValue> batchHandler;
+    batchHandler = batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class).init();
     batchHandler.addObject(dataValueA);
     batchHandler.addObject(dataValueB);
     batchHandler.addObject(dataValueC);
@@ -185,6 +187,8 @@ class DataValueBatchHandlerTest extends IntegrationTestBase {
 
   @Test
   void testAddObjectDuplicates() {
+    BatchHandler<DataValue> batchHandler;
+    batchHandler = batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class).init();
     batchHandler.addObject(dataValueA);
     batchHandler.addObject(dataValueB);
     batchHandler.addObject(dataValueC);
@@ -208,6 +212,8 @@ class DataValueBatchHandlerTest extends IntegrationTestBase {
 
   @Test
   void testFindObject() {
+    BatchHandler<DataValue> batchHandler;
+    batchHandler = batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class).init();
     dataValueService.addDataValue(dataValueA);
     dataValueService.addDataValue(dataValueC);
     DataValue retrievedDataValueA = batchHandler.findObject(dataValueA);
@@ -224,6 +230,8 @@ class DataValueBatchHandlerTest extends IntegrationTestBase {
 
   @Test
   void testObjectExists() {
+    BatchHandler<DataValue> batchHandler;
+    batchHandler = batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class).init();
     dataValueService.addDataValue(dataValueA);
     dataValueService.addDataValue(dataValueC);
     assertTrue(batchHandler.objectExists(dataValueA));
@@ -235,6 +243,8 @@ class DataValueBatchHandlerTest extends IntegrationTestBase {
   @Test
   @Disabled("ERROR: cannot execute UPDATE in a read-only transaction")
   void testUpdateObject() {
+    BatchHandler<DataValue> batchHandler;
+    batchHandler = batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class).init();
     dataValueService.addDataValue(dataValueA);
     dataValueA.setValue("20");
     batchHandler.updateObject(dataValueA);
@@ -247,6 +257,8 @@ class DataValueBatchHandlerTest extends IntegrationTestBase {
 
   @Test
   void testDeleteObject() {
+    BatchHandler<DataValue> batchHandler;
+    batchHandler = batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class).init();
     dataValueService.addDataValue(dataValueA);
     dataValueService.addDataValue(dataValueC);
     assertTrue(batchHandler.objectExists(dataValueA));
