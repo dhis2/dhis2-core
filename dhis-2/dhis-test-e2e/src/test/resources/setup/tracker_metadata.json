@@ -3259,6 +3259,41 @@
           }
         }
       }
+    },
+    {
+      "lastUpdated": "2020-11-20T09:06:23.348",
+      "id": "gdc6uOvgoji",
+      "created": "2020-11-20T09:06:23.348",
+      "name": "Person to Event",
+      "code": "Person to Event",
+      "bidirectional": false,
+      "displayName": "Person to Event",
+      "fromToName": "Person to Event",
+      "displayFromToName": "Person to Event",
+      "favorite": false,
+      "toConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL",
+          "code": "TA_PERSON_TET"
+        }
+      },
+      "fromConstraint": {
+        "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
+        "programStage": {
+          "id": "PaOOjwLVW23"
+        }
+      },
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
+        }
+      }
     }
   ]
 }
