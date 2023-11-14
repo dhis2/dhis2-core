@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -76,6 +77,8 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.webdomain.user.UserLookup;
+import org.hisp.dhis.webapi.webdomain.user.UserLookups;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -511,8 +514,11 @@ public class AccountController {
   }
 
   @GetMapping("/linkedAccounts")
-  public @ResponseBody List<User> getLinkedAccounts(@CurrentUser User currentUser) {
-    return userService.getLinkedUserAccounts(currentUser);
+  public @ResponseBody UserLookups getLinkedAccounts(@CurrentUser User currentUser) {
+    List<User> linkedUserAccounts = userService.getLinkedUserAccounts(currentUser);
+    List<UserLookup> userLookups =
+        linkedUserAccounts.stream().map(UserLookup::fromUser).collect(Collectors.toList());
+    return new UserLookups(userLookups);
   }
 
   @GetMapping("/username")
