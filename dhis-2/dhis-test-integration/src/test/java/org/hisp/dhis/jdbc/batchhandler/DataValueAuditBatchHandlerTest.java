@@ -72,8 +72,6 @@ class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
-
-
   private DataElement dataElementA;
 
   private CategoryOptionCombo categoryOptionComboA;
@@ -132,7 +130,6 @@ class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase {
     auditB = new DataValueAudit(dataValueA, "12", storedBy, AuditType.UPDATE);
     auditC = new DataValueAudit(dataValueB, "21", storedBy, AuditType.UPDATE);
     auditD = new DataValueAudit(dataValueB, "22", storedBy, AuditType.UPDATE);
-
   }
 
   @Override

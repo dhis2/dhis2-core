@@ -72,8 +72,6 @@ class DataValueBatchHandlerTest extends IntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
-
-
   private DataElement dataElementA;
 
   private CategoryOptionCombo categoryOptionComboA;
