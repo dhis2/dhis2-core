@@ -660,7 +660,11 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
     assertContainsOnly(
-        List.of(enrollmentA.getUid(), enrollmentB.getUid(), enrollmentChildA.getUid()),
+        List.of(
+            enrollmentA.getUid(),
+            enrollmentB.getUid(),
+            enrollmentChildA.getUid(),
+            enrollmentGrandchildA.getUid()),
         uids(enrollments));
   }
 
