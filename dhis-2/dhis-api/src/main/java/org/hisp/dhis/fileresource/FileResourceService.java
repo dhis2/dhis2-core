@@ -37,12 +37,26 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.NotFoundException;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 public interface FileResourceService {
+
+  @CheckForNull
   FileResource getFileResource(String uid);
+
+  /**
+   * Get the {@link FileResource} with the given ID in the {@link FileResourceStorageStatus#STORED}
+   * status
+   *
+   * @param uid the resource to fetch
+   * @return the file resource in status {@link FileResourceStorageStatus#STORED}
+   * @throws NotFoundException when no such file resource exits
+   */
+  @Nonnull
+  FileResource getFileResourceWhenStored(String uid) throws NotFoundException;
 
   /**
    * Lookup a {@link FileResource} by uid and {@link FileResourceDomain}.
@@ -83,6 +97,7 @@ public interface FileResourceService {
 
   void deleteFileResource(FileResource fileResource);
 
+  @CheckForNull
   InputStream getFileResourceContent(FileResource fileResource);
 
   /** Copy fileResource content to outputStream and Return File content length */

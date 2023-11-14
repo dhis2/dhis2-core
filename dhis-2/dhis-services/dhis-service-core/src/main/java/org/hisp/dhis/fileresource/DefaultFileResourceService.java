@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -44,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
@@ -85,6 +87,25 @@ public class DefaultFileResourceService implements FileResourceService {
   // -------------------------------------------------------------------------
   // FileResourceService implementation
   // -------------------------------------------------------------------------
+
+  @Nonnull
+  @Override
+  @Transactional(readOnly = true)
+  public FileResource getFileResourceWhenStored(String uid) throws NotFoundException {
+    FileResource fr = fileResourceStore.getByUid(uid);
+    if (fr == null) throw new NotFoundException(FileResource.class, uid);
+    int waitTimeMillis = 50;
+    while (waitTimeMillis < 1000
+        && !fileResourceContentStore.fileResourceContentExists(fr.getStorageKey())) {
+      try {
+        TimeUnit.MICROSECONDS.sleep(waitTimeMillis);
+        waitTimeMillis *= 2;
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+      }
+    }
+    return fr;
+  }
 
   @Override
   @Transactional(readOnly = true)
