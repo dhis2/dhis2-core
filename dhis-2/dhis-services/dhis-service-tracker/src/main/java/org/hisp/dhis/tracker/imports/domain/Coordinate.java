@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -41,7 +42,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Coordinate {
+public class Coordinate implements Serializable {
   @JsonProperty private Double latitude;
 
   @JsonProperty private Double longitude;
