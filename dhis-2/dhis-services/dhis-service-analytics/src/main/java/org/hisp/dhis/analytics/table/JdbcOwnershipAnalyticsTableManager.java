@@ -183,6 +183,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
             .jdbcConfiguration(jdbcConfiguration)
             .tableName(partition.getTempTableName())
             .columns(columnNames)
+            .addObjectCount(0)
+            .closed(false)
             .build()) {
       batchHandler.init();
 
@@ -202,7 +204,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
           partition.getTempTableName());
       batchHandler.flush();
     } catch (Exception ex) {
-      log.error("Failed to alter table ownership: ", ex );
+      log.error("Failed to alter table ownership: ", ex);
     }
   }
 
