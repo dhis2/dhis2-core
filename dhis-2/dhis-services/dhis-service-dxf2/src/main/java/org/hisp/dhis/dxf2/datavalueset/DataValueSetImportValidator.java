@@ -55,7 +55,6 @@ import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataValueContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
@@ -81,8 +80,6 @@ public class DataValueSetImportValidator {
   private final DataApprovalService approvalService;
 
   private final DataValueService dataValueService;
-
-  private final OrganisationUnitService organisationUnitService;
 
   /** Validation on the {@link DataSet} level */
   interface DataSetValidation {
@@ -649,8 +646,7 @@ public class DataValueSetImportValidator {
 
   private boolean isOrgUnitValidForAttrOptionCombo(DataValueContext valueContext) {
     Set<OrganisationUnit> aocOrgUnits = valueContext.getAttrOptionCombo().getOrganisationUnits();
-    return aocOrgUnits == null
-        || organisationUnitService.isDescendant(valueContext.getOrgUnit(), aocOrgUnits);
+    return aocOrgUnits == null || valueContext.getOrgUnit().isDescendant(aocOrgUnits);
   }
 
   private static void checkDataValueTargetDataSets(
