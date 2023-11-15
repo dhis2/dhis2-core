@@ -63,7 +63,7 @@ class EnrollmentTest {
     assertEquals(original.getStatus(), copy.getStatus());
     assertEquals(original.getNotes(), copy.getNotes());
     assertEquals(original.getName(), copy.getName());
-    assertEquals(original.getIncidentDate(), copy.getIncidentDate());
+    assertEquals(original.getOccurredDate(), copy.getOccurredDate());
     assertEquals(original.getEnrollmentDate(), copy.getEnrollmentDate());
     assertEquals(original.getFollowup(), copy.getFollowup());
     assertEquals(original.getGeometry(), copy.getGeometry());
@@ -90,7 +90,7 @@ class EnrollmentTest {
     assertEquals(original.getEnrollmentDate(), copy.getEnrollmentDate());
     assertEquals(original.getFollowup(), copy.getFollowup());
     assertEquals(original.getGeometry(), copy.getGeometry());
-    assertEquals(original.getIncidentDate(), copy.getIncidentDate());
+    assertEquals(original.getOccurredDate(), copy.getOccurredDate());
     assertEquals(original.getName(), copy.getName());
     assertEquals(original.getOrganisationUnit(), copy.getOrganisationUnit());
     assertEquals(original.getStatus(), copy.getStatus());
@@ -121,7 +121,7 @@ class EnrollmentTest {
     e.setEnrollmentDate(new Date());
     e.setEvents(Set.of());
     e.setFollowup(true);
-    e.setIncidentDate(new Date());
+    e.setOccurredDate(new Date());
     e.setMessageConversations(List.of(new MessageConversation()));
     e.setName("Enrollment 1");
     e.setOrganisationUnit(new OrganisationUnit("org1"));
@@ -141,7 +141,7 @@ class EnrollmentTest {
     e.setCompletedDate(null);
     e.setEnrollmentDate(null);
     e.setEvents(null);
-    e.setIncidentDate(null);
+    e.setOccurredDate(null);
     e.setMessageConversations(null);
     e.setOrganisationUnit(null);
     e.setProgram(null);

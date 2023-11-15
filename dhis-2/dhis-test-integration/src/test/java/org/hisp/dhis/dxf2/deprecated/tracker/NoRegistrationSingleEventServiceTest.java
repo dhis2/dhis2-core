@@ -103,7 +103,7 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest 
     identifiableObjectManager.update(programA);
     Enrollment enrollment = new Enrollment();
     enrollment.setProgram(programA);
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setEnrollmentDate(new Date());
     enrollmentService.addEnrollment(enrollment);
     identifiableObjectManager.update(programA);

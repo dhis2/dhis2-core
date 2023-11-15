@@ -465,7 +465,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     enrollment.setStatus(ProgramStatus.ACTIVE);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setTrackedEntity(trackedEntity);
 
     eventA = new Event(enrollment, programStage);

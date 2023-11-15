@@ -222,7 +222,7 @@ public abstract class CommandSMSListener extends BaseSMSListener {
     if (enrollments.isEmpty()) {
       Enrollment enrollment = new Enrollment();
       enrollment.setEnrollmentDate(new Date());
-      enrollment.setIncidentDate(new Date());
+      enrollment.setOccurredDate(new Date());
       enrollment.setProgram(smsCommand.getProgram());
       enrollment.setStatus(ProgramStatus.ACTIVE);
 

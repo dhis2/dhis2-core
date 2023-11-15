@@ -786,7 +786,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnTrackedEntityIfEnrollmentOccurredAfterPassedDateAndTime()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Date oneHourBeforeIncidentDate = oneHourBefore(enrollmentA.getIncidentDate());
+    Date oneHourBeforeIncidentDate = oneHourBefore(enrollmentA.getOccurredDate());
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -805,7 +805,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnEmptyIfEnrollmentOccurredBeforePassedDateAndTime()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Date oneHourAfterIncidentDate = oneHourAfter(enrollmentA.getIncidentDate());
+    Date oneHourAfterIncidentDate = oneHourAfter(enrollmentA.getOccurredDate());
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -824,7 +824,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnTrackedEntityIfEnrollmentOccurredBeforePassedDateAndTime()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Date oneHourAfterIncidentDate = oneHourAfter(enrollmentA.getIncidentDate());
+    Date oneHourAfterIncidentDate = oneHourAfter(enrollmentA.getOccurredDate());
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -843,7 +843,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnEmptyIfEnrollmentOccurredPassedDateAndTime()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Date oneHourBeforeIncidentDate = oneHourBefore(enrollmentA.getIncidentDate());
+    Date oneHourBeforeIncidentDate = oneHourBefore(enrollmentA.getOccurredDate());
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -1292,7 +1292,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         () -> checkDate(currentTime, enrollment.getLastUpdated()),
         () -> checkDate(currentTime, enrollment.getLastUpdatedAtClient()),
         () -> checkDate(currentTime, enrollment.getEnrollmentDate()),
-        () -> checkDate(currentTime, enrollment.getIncidentDate()),
+        () -> checkDate(currentTime, enrollment.getOccurredDate()),
         () -> assertNull(enrollment.getStoredBy()));
   }
 

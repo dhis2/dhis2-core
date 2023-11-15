@@ -1631,7 +1631,7 @@ public abstract class DhisConvenienceTest {
     enrollment.setTrackedEntity(te);
     enrollment.setOrganisationUnit(organisationUnit);
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
 
     return enrollment;
   }

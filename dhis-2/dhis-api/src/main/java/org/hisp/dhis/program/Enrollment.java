@@ -67,7 +67,7 @@ public class Enrollment extends SoftDeletableObject {
 
   @AuditAttribute private OrganisationUnit organisationUnit;
 
-  private Date incidentDate;
+  private Date occurredDate;
 
   private Date enrollmentDate;
 
@@ -104,9 +104,9 @@ public class Enrollment extends SoftDeletableObject {
   public Enrollment() {}
 
   public Enrollment(
-      Date enrollmentDate, Date incidentDate, TrackedEntity trackedEntity, Program program) {
+      Date enrollmentDate, Date occurredDate, TrackedEntity trackedEntity, Program program) {
     this.enrollmentDate = enrollmentDate;
-    this.incidentDate = incidentDate;
+    this.occurredDate = occurredDate;
     this.trackedEntity = trackedEntity;
     this.program = program;
   }
@@ -160,7 +160,7 @@ public class Enrollment extends SoftDeletableObject {
     final int prime = 31;
     int result = super.hashCode();
 
-    result = prime * result + ((incidentDate == null) ? 0 : incidentDate.hashCode());
+    result = prime * result + ((occurredDate == null) ? 0 : occurredDate.hashCode());
     result = prime * result + ((enrollmentDate == null) ? 0 : enrollmentDate.hashCode());
     result = prime * result + ((trackedEntity == null) ? 0 : trackedEntity.hashCode());
     result = prime * result + ((program == null) ? 0 : program.hashCode());
@@ -174,7 +174,7 @@ public class Enrollment extends SoftDeletableObject {
   }
 
   private boolean objectEquals(Enrollment other) {
-    return Objects.equals(incidentDate, other.incidentDate)
+    return Objects.equals(occurredDate, other.occurredDate)
         && Objects.equals(enrollmentDate, other.enrollmentDate)
         && Objects.equals(trackedEntity, other.trackedEntity)
         && Objects.equals(program, other.program);
@@ -218,12 +218,12 @@ public class Enrollment extends SoftDeletableObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getIncidentDate() {
-    return incidentDate;
+  public Date getOccurredDate() {
+    return occurredDate;
   }
 
-  public void setIncidentDate(Date incidentDate) {
-    this.incidentDate = incidentDate;
+  public void setOccurredDate(Date occurredDate) {
+    this.occurredDate = occurredDate;
   }
 
   @JsonProperty
@@ -405,7 +405,7 @@ public class Enrollment extends SoftDeletableObject {
         + ", organisationUnit="
         + (organisationUnit != null ? organisationUnit.getUid() : "null")
         + ", incidentDate="
-        + incidentDate
+        + occurredDate
         + ", enrollmentDate="
         + enrollmentDate
         + ", entityInstance="
@@ -439,7 +439,7 @@ public class Enrollment extends SoftDeletableObject {
     copy.setEvents(new HashSet<>());
     copy.setFollowup(original.getFollowup());
     copy.setGeometry(original.getGeometry());
-    copy.setIncidentDate(original.getIncidentDate());
+    copy.setOccurredDate(original.getOccurredDate());
     copy.setLastUpdatedAtClient(original.getLastUpdatedAtClient());
     copy.setLastUpdatedByUserInfo(original.getLastUpdatedByUserInfo());
     copy.setMessageConversations(ObjectUtils.copyOf(original.getMessageConversations()));

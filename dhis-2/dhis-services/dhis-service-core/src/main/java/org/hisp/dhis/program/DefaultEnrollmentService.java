@@ -357,9 +357,9 @@ public class DefaultEnrollmentService implements EnrollmentService {
     }
 
     if (incidentDate != null) {
-      enrollment.setIncidentDate(incidentDate);
+      enrollment.setOccurredDate(incidentDate);
     } else {
-      enrollment.setIncidentDate(new Date());
+      enrollment.setOccurredDate(new Date());
     }
 
     enrollment.setStatus(programStatus);

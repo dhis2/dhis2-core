@@ -81,7 +81,7 @@ interface RelationshipItemMapper
   @Mapping(target = "program", source = "program.uid")
   @Mapping(target = "orgUnit", source = "organisationUnit.uid")
   @Mapping(target = "enrolledAt", source = "enrollmentDate")
-  @Mapping(target = "occurredAt", source = "incidentDate")
+  @Mapping(target = "occurredAt", source = "occurredDate")
   @Mapping(target = "followUp", source = "followup")
   @Mapping(target = "completedAt", source = "completedDate")
   @Mapping(target = "createdBy", source = "createdByUserInfo")

@@ -28,7 +28,7 @@
 
     <property name="lastUpdatedByUserInfo" type="jbUserInfoSnapshot" column="lastupdatedbyuserinfo"/>
 
-    <property name="incidentDate" column="incidentDate"/>
+    <property name="occurredDate" column="incidentDate"/>
 
     <property name="enrollmentDate" column="enrollmentdate" not-null="true"/>
 
