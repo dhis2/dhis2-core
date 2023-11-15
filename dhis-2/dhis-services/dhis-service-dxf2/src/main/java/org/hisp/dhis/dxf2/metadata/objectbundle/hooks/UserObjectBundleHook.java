@@ -60,6 +60,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 {
+
     private final UserService userService;
 
     private final FileResourceService fileResourceService;
@@ -75,6 +76,13 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
             addReports.accept( new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "Whatsapp" ) );
+        }
+
+        if ( bundle.getImportMode().isCreate() && !ValidationUtils.isValidUid( user.getUid() ) )
+        {
+            addReports.accept(
+                new ErrorReport( User.class, ErrorCode.E4014, user.getUid(), "uid" )
+                    .setErrorProperty( "uid" ) );
         }
     }
 

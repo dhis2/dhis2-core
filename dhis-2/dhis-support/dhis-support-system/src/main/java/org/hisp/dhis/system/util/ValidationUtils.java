@@ -32,7 +32,6 @@ import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.lowerCase;
 import static org.apache.commons.lang3.StringUtils.trim;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.datavalue.DataValue.FALSE;
 import static org.hisp.dhis.datavalue.DataValue.TRUE;
 import static org.hisp.dhis.system.util.MathUtils.isBool;
@@ -61,6 +60,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
@@ -811,5 +811,10 @@ public class ValidationUtils
     public static boolean validateInternationalPhoneNumber( String phoneNumber )
     {
         return INTERNATIONAL_PHONE_PATTERN.matcher( phoneNumber ).matches();
+    }
+
+    public static boolean isValidUid( String value )
+    {
+        return CodeGenerator.isValidUid( value );
     }
 }
