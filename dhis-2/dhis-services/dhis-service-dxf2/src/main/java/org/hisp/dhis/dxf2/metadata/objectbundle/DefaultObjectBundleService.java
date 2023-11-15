@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
@@ -79,7 +78,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
   private final CurrentUserService currentUserService;
   private final PreheatService preheatService;
   private final SchemaService schemaService;
-  @PersistenceContext private EntityManager entityManager;
+  private final EntityManager entityManager;
   private final IdentifiableObjectManager manager;
   private final DbmsManager dbmsManager;
   private final HibernateCacheManager cacheManager;
