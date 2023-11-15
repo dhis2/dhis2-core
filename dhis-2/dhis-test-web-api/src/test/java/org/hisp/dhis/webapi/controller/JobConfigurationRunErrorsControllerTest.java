@@ -49,7 +49,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-public class JobConfigurationRunErrorsControllerTest extends DhisControllerIntegrationTest {
+class JobConfigurationRunErrorsControllerTest extends DhisControllerIntegrationTest {
 
   private String jobId;
 
