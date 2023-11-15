@@ -79,7 +79,7 @@ public class EnrollmentQuery {
           .put(COLUMNS.ENROLLMENTDATE, new TableColumn("pi", "enrollmentdate"))
           .put(COLUMNS.INCIDENTDATE, new TableColumn("pi", "incidentdate"))
           .put(COLUMNS.FOLLOWUP, new TableColumn("pi", "followup"))
-          .put(COLUMNS.COMPLETED, new TableColumn("pi", "enddate"))
+          .put(COLUMNS.COMPLETED, new TableColumn("pi", "completeddate"))
           .put(COLUMNS.COMPLETEDBY, new TableColumn("pi", "completedby"))
           .put(COLUMNS.STOREDBY, new TableColumn("pi", "storedby"))
           .put(COLUMNS.DELETED, new TableColumn("pi", "deleted"))
