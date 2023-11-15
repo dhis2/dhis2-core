@@ -69,6 +69,10 @@ public class MappingBatchHandler extends AbstractBatchHandler<Map<String, Object
 
   @Builder.Default private List<String> uniqueColumns = emptyList();
 
+  @Builder.Default private boolean closed = false;
+
+  @Builder.Default private int addObjectCount = 0;
+
   // -------------------------------------------------------------------------
   // Constructor
   // -------------------------------------------------------------------------
