@@ -60,6 +60,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 {
+
     private final UserService userService;
 
     private final FileResourceService fileResourceService;
