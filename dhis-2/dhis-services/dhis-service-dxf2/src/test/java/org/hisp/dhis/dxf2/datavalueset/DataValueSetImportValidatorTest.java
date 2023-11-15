@@ -72,7 +72,6 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -99,8 +98,6 @@ class DataValueSetImportValidatorTest {
 
   private DataValueSetImportValidator validator;
 
-  private OrganisationUnitService organisationUnitService;
-
   private final CategoryCombo defaultCombo = new CategoryCombo();
 
   @BeforeEach
@@ -109,16 +106,10 @@ class DataValueSetImportValidatorTest {
     lockExceptionStore = mock(LockExceptionStore.class);
     approvalService = mock(DataApprovalService.class);
     dataValueService = mock(DataValueService.class);
-    organisationUnitService = mock(OrganisationUnitService.class);
-
     i18n = mock(I18n.class);
     validator =
         new DataValueSetImportValidator(
-            aclService,
-            lockExceptionStore,
-            approvalService,
-            dataValueService,
-            organisationUnitService);
+            aclService, lockExceptionStore, approvalService, dataValueService);
     validator.init();
     setupUserCanWriteCategoryOptions(true);
     when(i18n.getString(anyString()))
@@ -298,12 +289,6 @@ class DataValueSetImportValidatorTest {
 
   @Test
   void testValidateDataValueOrgUnitInUserHierarchy() {
-    when(organisationUnitService.isDescendant(any(OrganisationUnit.class), any(Set.class)))
-        .thenReturn(false);
-    when(organisationUnitService.isDescendant(
-            any(OrganisationUnit.class), any(OrganisationUnit.class)))
-        .thenReturn(false);
-
     DataValue dataValue = createRandomDataValue();
     DataValueContext valueContext = createDataValueContext(dataValue).build();
     DataSetContext dataSetContext = createMinimalDataSetContext().build();
