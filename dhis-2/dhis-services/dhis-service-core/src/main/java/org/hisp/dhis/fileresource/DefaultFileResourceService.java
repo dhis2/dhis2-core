@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
-import org.hibernate.Session;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -65,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Halvdan Hoem Grelland
  */
+@RequiredArgsConstructor
 @Service("org.hisp.dhis.fileresource.FileResourceService")
 public class DefaultFileResourceService implements FileResourceService {
   private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
@@ -85,27 +86,7 @@ public class DefaultFileResourceService implements FileResourceService {
 
   private final ApplicationEventPublisher fileEventPublisher;
 
-  private EntityManager entityManager;
-
-  private Session session;
-
-  // Constructor
-
-  public DefaultFileResourceService(
-      FileResourceStore fileResourceStore,
-      PeriodService periodService,
-      FileResourceContentStore fileResourceContentStore,
-      ImageProcessingService imageProcessingService,
-      ApplicationEventPublisher fileEventPublisher,
-      EntityManager entityManager) {
-    this.fileResourceStore = fileResourceStore;
-    this.periodService = periodService;
-    this.fileResourceContentStore = fileResourceContentStore;
-    this.imageProcessingService = imageProcessingService;
-    this.fileEventPublisher = fileEventPublisher;
-    this.entityManager = entityManager;
-    this.session = entityManager.unwrap(Session.class);
-  }
+  private final EntityManager entityManager;
 
   // -------------------------------------------------------------------------
   // FileResourceService implementation
@@ -216,7 +197,7 @@ public class DefaultFileResourceService implements FileResourceService {
   public String saveFileResource(FileResource fileResource, byte[] bytes) {
     fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
     fileResourceStore.save(fileResource);
-    session.flush();
+    entityManager.flush();
 
     final String uid = fileResource.getUid();
 
