@@ -38,6 +38,6 @@ public class TeiAnalyticsPrefixStrategy implements PrefixStrategy {
 
   @Override
   public String apply(PrefixedDimension pDimension) {
-    throw new UnsupportedOperationException("This method should not be called for TEI analytics");
+    throw new UnsupportedOperationException("This method should - not be called for TEI analytics");
   }
 }
