@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.organisationunit;
 
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -47,8 +46,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.category.CategoryOption;
@@ -556,15 +555,63 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * @param ancestors the collection of ancestor org units.
    * @return true if this org unit is a descendant of the ancestors.
    */
-  public boolean isDescendant(Collection<OrganisationUnit> ancestors) {
-    if (isEmpty(ancestors)) {
+//  public boolean isDescendant(Collection<OrganisationUnit> ancestors) {
+//    if (isEmpty(ancestors)) {
+//      return false;
+//    }
+//
+//    return ancestors.stream()
+//        .filter(Objects::nonNull)
+//        .map(OrganisationUnit::getUid)
+//        .anyMatch(uid -> StringUtils.contains(path, uid));
+//  }
+
+  public boolean isDescendant( Set<OrganisationUnit> ancestors )
+  {
+    if ( ancestors == null || ancestors.isEmpty() )
+    {
       return false;
     }
 
-    return ancestors.stream()
-        .filter(Objects::nonNull)
-        .map(OrganisationUnit::getUid)
-        .anyMatch(uid -> StringUtils.contains(path, uid));
+    Set<String> ancestorsUid = ancestors.stream()
+        .map( OrganisationUnit::getUid )
+        .collect( Collectors.toSet() );
+
+    OrganisationUnit unit = this;
+
+    while ( unit != null )
+    {
+      if ( ancestorsUid.contains( unit.getUid() ) )
+      {
+        return true;
+      }
+
+      unit = unit.getParent();
+    }
+
+    return false;
+  }
+
+  public boolean isDescendant( OrganisationUnit ancestor )
+  {
+    if ( ancestor == null )
+    {
+      return false;
+    }
+
+    OrganisationUnit unit = this;
+
+    while ( unit != null )
+    {
+      if ( ancestor.equals( unit ) )
+      {
+        return true;
+      }
+
+      unit = unit.getParent();
+    }
+
+    return false;
   }
 
   public Set<OrganisationUnit> getChildrenThisIfEmpty() {
