@@ -202,7 +202,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
           partition.getTempTableName());
       batchHandler.flush();
     } catch (Exception e) {
-      log.error(e.getStackTrace().toString());
+      log.error(e.toString());
     }
   }
 
