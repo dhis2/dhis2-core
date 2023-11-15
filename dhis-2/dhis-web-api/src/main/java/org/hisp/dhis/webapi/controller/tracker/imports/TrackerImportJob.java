@@ -25,124 +25,78 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.metadata;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.dxf2.csv.CsvImportOptions;
-import org.hisp.dhis.dxf2.csv.CsvImportService;
-import org.hisp.dhis.dxf2.gml.GmlImportService;
-import org.hisp.dhis.dxf2.metadata.Metadata;
-import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.dxf2.metadata.MetadataImportService;
-import org.hisp.dhis.dxf2.metadata.MetadataObjects;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.feedback.Stats;
-import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.Stats;
+import org.hisp.dhis.tracker.imports.report.Status;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Jan Bernitt
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class MetadataImportJob implements Job {
-
-  private final MetadataImportService metadataImportService;
-  private final GmlImportService gmlImportService;
+public class TrackerImportJob implements Job {
+  private final TrackerImportService trackerImportService;
   private final FileResourceService fileResourceService;
   private final Notifier notifier;
-  private final RenderService renderService;
-  private final CsvImportService csvImportService;
-  private final SchemaService schemaService;
 
   @Override
   public JobType getJobType() {
-    return JobType.METADATA_IMPORT;
+    return JobType.TRACKER_IMPORT_JOB;
   }
 
   @Override
   public void execute(JobConfiguration config, JobProgress progress) {
-    progress.startingProcess("Metadata import started");
-    MetadataImportParams params = (MetadataImportParams) config.getJobParameters();
+    progress.startingProcess("Tracker import started");
+    TrackerImportParams params = (TrackerImportParams) config.getJobParameters();
     progress.startingStage("Loading file resource");
     FileResource data =
         progress.runStage(() -> fileResourceService.getExistingFileResource(config.getUid()));
     progress.startingStage("Loading file content");
     try (InputStream input =
         progress.runStage(() -> fileResourceService.getFileResourceContent(data))) {
-      String contentType = data.getContentType();
       ImportReport report =
-          switch (contentType) {
-            case "application/json" -> metadataImportService.importMetadata(
-                params, jsonToMetadataObjects(input), progress);
-            case "application/csv" -> metadataImportService.importMetadata(
-                params, csvToMetadataObjects(params, input), progress);
-            case "application/xml" -> gmlImportService.importGml(input, params, progress);
-            default -> null;
-          };
+          trackerImportService.importTracker(params, toTrackerObjects(input), progress);
       if (report == null) {
         progress.failedProcess("Import failed, no summary available");
         return;
       }
-
-      if (report.hasErrorReports()) {
-        report.forEachErrorReport(
-            r ->
-                progress.addError(
-                    r.getErrorCode(),
-                    r.getMainId(),
-                    r.getMainKlass().getSimpleName(),
-                    null,
-                    r.getArgs()));
-      }
-
       notifier.addJobSummary(config, report, ImportReport.class);
-      Stats count = report.getStats();
+      Stats stats = report.getStats();
       Consumer<String> endProcess =
           report.getStatus() == Status.ERROR ? progress::failedProcess : progress::completedProcess;
       endProcess.accept(
           "Import complete with status %s, %d created, %d updated, %d deleted, %d ignored"
               .formatted(
                   report.getStatus(),
-                  count.getCreated(),
-                  count.getUpdated(),
-                  count.getDeleted(),
-                  count.getIgnored()));
-    } catch (IOException ex) {
+                  stats.getCreated(),
+                  stats.getUpdated(),
+                  stats.getDeleted(),
+                  stats.getIgnored()));
+    } catch (Exception ex) {
       progress.failedProcess(ex);
     }
   }
 
-  private MetadataObjects csvToMetadataObjects(MetadataImportParams params, InputStream input)
-      throws IOException {
-    Metadata metadata =
-        csvImportService.fromCsv(
-            input,
-            new CsvImportOptions()
-                .setImportClass(params.getCsvImportClass())
-                .setFirstRowIsHeader(params.isFirstRowIsHeader()));
-    return new MetadataObjects().addMetadata(schemaService.getMetadataSchemas(), metadata);
-  }
-
-  private MetadataObjects jsonToMetadataObjects(InputStream input) throws IOException {
-    return new MetadataObjects(
-        renderService.fromMetadata(
-            StreamUtils.wrapAndCheckCompressionFormat(input), RenderFormat.JSON));
+  private TrackerObjects toTrackerObjects(InputStream input)
+      throws IOException, ClassNotFoundException {
+    ObjectInputStream ois = new ObjectInputStream(input);
+    return (TrackerObjects) ois.readObject();
   }
 }

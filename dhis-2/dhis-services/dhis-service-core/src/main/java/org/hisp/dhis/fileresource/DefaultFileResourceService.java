@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.fileresource;
 
+import static java.lang.System.currentTimeMillis;
+import static java.time.Duration.ofMillis;
+import static java.time.Duration.ofSeconds;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +47,9 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
@@ -85,6 +91,15 @@ public class DefaultFileResourceService implements FileResourceService {
   // -------------------------------------------------------------------------
   // FileResourceService implementation
   // -------------------------------------------------------------------------
+
+  @Nonnull
+  @Override
+  @Transactional(readOnly = true)
+  public FileResource getExistingFileResource(String uid) throws NotFoundException {
+    FileResource fr = fileResourceStore.getByUid(uid);
+    if (fr == null) throw new NotFoundException(FileResource.class, uid);
+    return fr;
+  }
 
   @Override
   @Transactional(readOnly = true)
@@ -228,26 +243,43 @@ public class DefaultFileResourceService implements FileResourceService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public InputStream getFileResourceContent(FileResource fileResource) {
-    return fileResourceContentStore.getFileResourceContent(fileResource.getStorageKey());
+  @Nonnull
+  public InputStream getFileResourceContent(FileResource fileResource) throws ConflictException {
+    return getFileResourceContent(fileResource, ofSeconds(10));
+  }
+
+  @Nonnull
+  @Override
+  public InputStream getFileResourceContent(FileResource fileResource, java.time.Duration timeout)
+      throws ConflictException {
+    String key = fileResource.getStorageKey();
+    InputStream content = fileResourceContentStore.getFileResourceContent(key);
+    long since = currentTimeMillis();
+    while (content == null && !timeout.minus(ofMillis(currentTimeMillis() - since)).isNegative()) {
+      try {
+        Thread.sleep(50);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+      content = fileResourceContentStore.getFileResourceContent(key);
+    }
+    if (content == null)
+      throw new ConflictException("File resource exists but content input stream was null");
+    return content;
   }
 
   @Override
-  @Transactional(readOnly = true)
   public long getFileResourceContentLength(FileResource fileResource) {
     return fileResourceContentStore.getFileResourceContentLength(fileResource.getStorageKey());
   }
 
   @Override
-  @Transactional(readOnly = true)
   public void copyFileResourceContent(FileResource fileResource, OutputStream outputStream)
       throws IOException, NoSuchElementException {
     fileResourceContentStore.copyContent(fileResource.getStorageKey(), outputStream);
   }
 
   @Override
-  @Transactional(readOnly = true)
   public byte[] copyFileResourceContent(FileResource fileResource)
       throws IOException, NoSuchElementException {
     return fileResourceContentStore.copyContent(fileResource.getStorageKey());

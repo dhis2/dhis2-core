@@ -39,12 +39,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerUserService;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationResult;
@@ -78,27 +80,26 @@ class TrackerImporterServiceTest {
 
   private TrackerImportParams params = null;
 
+  private TrackerObjects trackerObjects;
+
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
   @BeforeEach
   public void setUp() {
     subject =
         new DefaultTrackerImportService(
-            trackerBundleService,
-            validationService,
-            trackerPreprocessService,
-            trackerUserService,
-            notifier);
+            trackerBundleService, validationService, trackerPreprocessService, trackerUserService);
 
     final List<Event> events = rnd.objects(Event.class, 3).collect(Collectors.toList());
 
-    params =
-        TrackerImportParams.builder()
+    params = TrackerImportParams.builder().userId("123").build();
+
+    trackerObjects =
+        TrackerObjects.builder()
             .events(events)
             .enrollments(new ArrayList<>())
             .relationships(new ArrayList<>())
             .trackedEntities(new ArrayList<>())
-            .userId("123")
             .build();
 
     PersistenceReport persistenceReport = PersistenceReport.emptyReport();
@@ -110,25 +111,26 @@ class TrackerImporterServiceTest {
     when(validationService.validateRuleEngine(any(TrackerBundle.class)))
         .thenReturn(validationResult);
     when(trackerPreprocessService.preprocess(any(TrackerBundle.class)))
-        .thenReturn(ParamsConverter.convert(params));
+        .thenReturn(ParamsConverter.convert(params, trackerObjects, new User()));
   }
 
   @Test
   void testSkipSideEffect() {
     TrackerImportParams parameters =
-        TrackerImportParams.builder()
-            .events(params.getEvents())
+        TrackerImportParams.builder().skipSideEffects(true).userId("123").build();
+
+    TrackerObjects objects =
+        TrackerObjects.builder()
+            .events(trackerObjects.getEvents())
             .enrollments(new ArrayList<>())
             .relationships(new ArrayList<>())
             .trackedEntities(new ArrayList<>())
-            .skipSideEffects(true)
-            .userId("123")
             .build();
 
-    when(trackerBundleService.create(any(TrackerImportParams.class)))
-        .thenReturn(ParamsConverter.convert(parameters));
+    when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
+        .thenReturn(ParamsConverter.convert(parameters, objects, new User()));
 
-    subject.importTracker(parameters);
+    subject.importTracker(parameters, trackerObjects, NoopJobProgress.INSTANCE);
 
     verify(trackerBundleService, times(0)).handleTrackerSideEffects(anyList());
   }
@@ -138,10 +140,10 @@ class TrackerImporterServiceTest {
     doAnswer(invocationOnMock -> null)
         .when(trackerBundleService)
         .handleTrackerSideEffects(anyList());
-    when(trackerBundleService.create(any(TrackerImportParams.class)))
-        .thenReturn(ParamsConverter.convert(params));
+    when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
+        .thenReturn(ParamsConverter.convert(params, trackerObjects, new User()));
 
-    subject.importTracker(params);
+    subject.importTracker(params, trackerObjects, NoopJobProgress.INSTANCE);
 
     verify(trackerBundleService, times(1)).handleTrackerSideEffects(anyList());
   }
