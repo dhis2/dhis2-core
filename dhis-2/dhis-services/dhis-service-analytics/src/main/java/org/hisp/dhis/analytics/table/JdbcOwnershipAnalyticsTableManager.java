@@ -183,8 +183,6 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
             .jdbcConfiguration(jdbcConfiguration)
             .tableName(partition.getTempTableName())
             .columns(columnNames)
-            .addObjectCount(0)
-            .closed(false)
             .build()) {
       batchHandler.init();
 
