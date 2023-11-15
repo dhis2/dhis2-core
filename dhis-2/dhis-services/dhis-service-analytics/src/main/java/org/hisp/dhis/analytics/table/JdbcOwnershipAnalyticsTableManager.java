@@ -201,8 +201,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
           queryRowCount,
           partition.getTempTableName());
       batchHandler.flush();
-    } catch (Exception e) {
-      log.error(e.toString());
+    } catch (Exception ex) {
+      log.error("Failed to alter table ownership: ", ex );
     }
   }
 
