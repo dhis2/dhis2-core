@@ -52,7 +52,6 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -106,13 +105,6 @@ public class HibernateConfig {
     cacheManager.setSessionFactory(emf.unwrap(SessionFactory.class));
 
     return cacheManager;
-  }
-
-  @Bean("sessionFactory")
-  @Primary
-  public SessionFactory sessionFactory(
-      @Qualifier("entityManagerFactory") EntityManagerFactory entityManager) {
-    return entityManager.unwrap(SessionFactory.class);
   }
 
   @Bean
