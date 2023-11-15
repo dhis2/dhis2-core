@@ -113,7 +113,7 @@ class ProgramObjectBundleHookTest {
     verify(enrollmentService).addEnrollment(argument.capture());
 
     assertThat(argument.getValue().getEnrollmentDate(), is(notNullValue()));
-    assertThat(argument.getValue().getIncidentDate(), is(notNullValue()));
+    assertThat(argument.getValue().getOccurredDate(), is(notNullValue()));
     assertThat(argument.getValue().getProgram(), is(programA));
     assertThat(argument.getValue().getStatus(), is(ProgramStatus.ACTIVE));
     assertThat(argument.getValue().getStoredBy(), is("system-process"));

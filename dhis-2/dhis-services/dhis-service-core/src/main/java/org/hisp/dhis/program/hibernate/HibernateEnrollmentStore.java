@@ -449,7 +449,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
     if (trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE) {
       return "enrollmentDate";
     } else if (trigger == NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE) {
-      return "incidentDate";
+      return "occurredDate";
     }
 
     return null;

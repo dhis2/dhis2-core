@@ -241,7 +241,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     manager.update(programB);
     enrollment = new Enrollment();
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setProgram(programB);
     enrollment.setStatus(ProgramStatus.ACTIVE);
     enrollment.setStoredBy("test");
@@ -305,7 +305,7 @@ class EventImportTest extends TransactionalIntegrationTest {
   void testAddEventOnProgramWithoutRegistrationAndExistingEnrollment() throws IOException {
     Enrollment dbEnrollment = new Enrollment();
     dbEnrollment.setEnrollmentDate(new Date());
-    dbEnrollment.setIncidentDate(new Date());
+    dbEnrollment.setOccurredDate(new Date());
     dbEnrollment.setProgram(programB);
     dbEnrollment.setStatus(ProgramStatus.ACTIVE);
     dbEnrollment.setStoredBy("test");

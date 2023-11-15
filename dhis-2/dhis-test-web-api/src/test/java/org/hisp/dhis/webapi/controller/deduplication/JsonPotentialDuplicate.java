@@ -25,53 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
+package org.hisp.dhis.webapi.controller.deduplication;
 
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Program;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
+import org.hisp.dhis.jsontree.JsonObject;
 
-@Mapper(
-    uses = {
-      DebugMapper.class,
-      TrackedEntityMapper.class,
-      OrganisationUnitMapper.class,
-      AttributeValueMapper.class
-    })
-public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
-  EnrollmentMapper INSTANCE = Mappers.getMapper(EnrollmentMapper.class);
+/** Representation of {@link org.hisp.dhis.deduplication.PotentialDuplicate}. */
+public interface JsonPotentialDuplicate extends JsonObject {
+  default String getUid() {
+    return getString("id").string();
+  }
 
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
-  @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "user")
-  @Mapping(target = "program", qualifiedByName = "program")
-  @Mapping(target = "trackedEntity")
-  @Mapping(target = "organisationUnit")
-  @Mapping(target = "created")
-  @Mapping(target = "occurredDate")
-  @Mapping(target = "enrollmentDate")
-  @Mapping(target = "notes")
-  @Mapping(target = "deleted")
-  @Mapping(target = "createdByUserInfo")
-  @Mapping(target = "lastUpdatedByUserInfo")
-  Enrollment map(Enrollment enrollment);
+  default String getOriginal() {
+    return getString("original").string();
+  }
 
-  @Named("program")
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
-  @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "name")
-  @Mapping(target = "attributeValues")
-  @Mapping(target = "trackedEntityType")
-  @Mapping(target = "programType")
-  @Mapping(target = "sharing")
-  @Mapping(target = "accessLevel")
-  Program mapProgram(Program p);
+  default String getDuplicate() {
+    return getString("duplicate").string();
+  }
+
+  default String getLastUpdated() {
+    return getString("lastUpdated").string();
+  }
+
+  default String getCreated() {
+    return getString("created").string();
+  }
+
+  default String getStatus() {
+    return getString("status").string();
+  }
 }

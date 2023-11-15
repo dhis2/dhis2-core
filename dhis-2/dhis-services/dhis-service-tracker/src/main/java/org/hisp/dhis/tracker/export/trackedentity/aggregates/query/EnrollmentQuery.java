@@ -76,7 +76,7 @@ public class EnrollmentQuery {
           .put(COLUMNS.ENROLLMENTDATE, new TableColumn("en", "enrollmentdate"))
           .put(COLUMNS.INCIDENTDATE, new TableColumn("en", "incidentdate"))
           .put(COLUMNS.FOLLOWUP, new TableColumn("en", "followup"))
-          .put(COLUMNS.COMPLETED, new TableColumn("en", "enddate"))
+          .put(COLUMNS.COMPLETED, new TableColumn("en", "completeddate"))
           .put(COLUMNS.COMPLETEDBY, new TableColumn("en", "completedby"))
           .put(COLUMNS.STOREDBY, new TableColumn("en", "storedby"))
           .put(COLUMNS.DELETED, new TableColumn("en", "deleted"))

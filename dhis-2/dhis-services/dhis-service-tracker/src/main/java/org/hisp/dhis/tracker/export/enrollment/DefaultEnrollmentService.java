@@ -123,7 +123,7 @@ class DefaultEnrollmentService
     result.setProgram(enrollment.getProgram());
     result.setStatus(enrollment.getStatus());
     result.setEnrollmentDate(enrollment.getEnrollmentDate());
-    result.setIncidentDate(enrollment.getIncidentDate());
+    result.setOccurredDate(enrollment.getOccurredDate());
     result.setFollowup(enrollment.getFollowup());
     result.setCompletedDate(enrollment.getCompletedDate());
     result.setCompletedBy(enrollment.getCompletedBy());

@@ -120,7 +120,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
           new AnalyticsTableColumn(quote("programuid"), CHARACTER_11, NULL, "p.uid"),
           new AnalyticsTableColumn(quote("programinstanceuid"), CHARACTER_11, NULL, "pi.uid"),
           new AnalyticsTableColumn(quote("enrollmentdate"), TIMESTAMP, "pi.enrollmentdate"),
-          new AnalyticsTableColumn(quote("enddate"), TIMESTAMP, "pi.enddate"),
+          new AnalyticsTableColumn(quote("enddate"), TIMESTAMP, "pi.completeddate"),
           new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.incidentdate"),
           new AnalyticsTableColumn(quote("enrollmentstatus"), VARCHAR_50, "pi.status"),
           new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry")

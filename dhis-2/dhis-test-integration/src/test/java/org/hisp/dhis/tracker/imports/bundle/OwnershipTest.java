@@ -290,7 +290,7 @@ class OwnershipTest extends TrackerTest {
       Enrollment dbEnrollment, org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
     assertEquals(
         DateUtils.fromInstant(enrollment.getEnrolledAt()), dbEnrollment.getEnrollmentDate());
-    assertEquals(DateUtils.fromInstant(enrollment.getOccurredAt()), dbEnrollment.getIncidentDate());
+    assertEquals(DateUtils.fromInstant(enrollment.getOccurredAt()), dbEnrollment.getOccurredDate());
     assertEquals(
         DateUtils.fromInstant(enrollment.getCreatedAtClient()), dbEnrollment.getCreatedAtClient());
     assertEquals(

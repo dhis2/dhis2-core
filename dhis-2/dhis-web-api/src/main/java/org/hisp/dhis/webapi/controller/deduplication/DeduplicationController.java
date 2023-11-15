@@ -87,7 +87,7 @@ public class DeduplicationController {
   private final FieldFilterService fieldFilterService;
 
   private static final String DEFAULT_FIELDS_PARAM =
-      "created, lastUpdated, original, duplicate, status";
+      "id, created, lastUpdated, original, duplicate, status";
 
   @OpenApi.Response(PotentialDuplicate[].class)
   @GetMapping
