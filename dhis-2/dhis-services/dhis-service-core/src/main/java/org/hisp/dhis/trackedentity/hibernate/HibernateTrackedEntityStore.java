@@ -953,14 +953,14 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
     if (params.hasProgramIncidentStartDate()) {
       program
-          .append("AND EN.incidentdate >= '")
+          .append("AND EN.occurreddate >= '")
           .append(getLongDateString(params.getProgramIncidentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentEndDate()) {
       program
-          .append("AND EN.incidentdate <= '")
+          .append("AND EN.occurreddate <= '")
           .append(getLongDateString(params.getProgramIncidentEndDate()))
           .append("' ");
     }
