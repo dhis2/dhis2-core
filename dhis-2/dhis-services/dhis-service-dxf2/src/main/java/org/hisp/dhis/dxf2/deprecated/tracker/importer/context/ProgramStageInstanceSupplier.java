@@ -91,7 +91,7 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, E
 
     final String sql =
         "select psi.enrollmentid, psi.programstageid, psi.eventid, "
-            + "psi.uid, psi.status, psi.deleted, psi.eventdatavalues, psi.scheduleddate, psi.executiondate, "
+            + "psi.uid, psi.status, psi.deleted, psi.eventdatavalues, psi.scheduleddate, psi.occurreddate, "
             + "psi.completeddate, psi.attributeoptioncomboid, psi.geometry, "
             + "ou.organisationunitid, ou.uid, ou.code, ou.name, psi.attributeoptioncomboid,  c.uid as coc_uid  "
             + "from event psi join organisationunit ou on psi.organisationunitid = ou.organisationunitid "
@@ -117,7 +117,7 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, E
             psi.setProgramStage(getProgramStage(importOptions, rs.getLong("programstageid")));
             psi.setOrganisationUnit(getOu(rs));
             psi.setScheduledDate(rs.getTimestamp("scheduleddate"));
-            psi.setOccurredDate(rs.getTimestamp("executiondate"));
+            psi.setOccurredDate(rs.getTimestamp("occurreddate"));
             psi.setCompletedDate(rs.getTimestamp("completeddate"));
             psi.setAttributeOptionCombo(getCatOptionCombo(rs));
             try {

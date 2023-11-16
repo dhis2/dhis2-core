@@ -38,8 +38,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.stream.Stream;
+import javax.persistence.EntityManager;
 import org.hamcrest.Matchers;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
@@ -88,6 +88,8 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest {
   @Autowired protected CurrentUserService currentUserService;
 
   @Autowired private EventService programStageInstanceService;
+
+  @Autowired private EntityManager entityManager;
 
   private TrackedEntityInstance trackedEntityInstanceMaleA;
 
@@ -204,7 +206,7 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest {
     manager.update(programA);
     Enrollment enrollment = new Enrollment();
     enrollment.setProgram(programA);
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setEnrollmentDate(new Date());
     enrollment.setTrackedEntity(maleA);
     enrollment.getSharing().addUserAccess(userAccess1);
@@ -586,10 +588,8 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest {
     return eventService.updateEvent(event, false, null, false);
   }
 
-  @Autowired private SessionFactory sessionFactory;
-
   private Event getPsi(String event) {
-    sessionFactory.getCurrentSession().clear();
+    entityManager.clear();
     return programStageInstanceService.getEvent(event);
   }
 

@@ -394,12 +394,12 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     // Enrollments (Enrollments)
     Enrollment piA = enrollmentService.enrollTrackedEntity(teiA, programA, jan1, jan1, ouE);
     piA.setEnrollmentDate(jan1);
-    piA.setIncidentDate(jan1);
+    piA.setOccurredDate(jan1);
     enrollmentService.addEnrollment(piA);
 
     Enrollment piB = enrollmentService.enrollTrackedEntity(teiA, programB, jan1, jan1, ouE);
     piB.setEnrollmentDate(jan1);
-    piB.setIncidentDate(jan1);
+    piB.setOccurredDate(jan1);
     enrollmentService.addEnrollment(piB);
 
     // Change programA / teiA ownership through time:

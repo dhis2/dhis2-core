@@ -117,7 +117,7 @@ class EventSecurityTest extends TransactionalIntegrationTest {
     manager.update(programA);
     Enrollment enrollment = new Enrollment();
     enrollment.setProgram(programA);
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setEnrollmentDate(new Date());
     enrollmentService.addEnrollment(enrollment);
     manager.update(programA);

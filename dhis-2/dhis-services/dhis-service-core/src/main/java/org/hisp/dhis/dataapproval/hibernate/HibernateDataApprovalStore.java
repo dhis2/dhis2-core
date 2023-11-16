@@ -42,11 +42,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
@@ -113,7 +113,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
   private final OrganisationUnitService organisationUnitService;
 
   public HibernateDataApprovalStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CacheProvider cacheProvider,
@@ -124,7 +124,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
       SystemSettingManager systemSettingManager,
       StatementBuilder statementBuilder,
       OrganisationUnitService organisationUnitService) {
-    super(sessionFactory, jdbcTemplate, publisher, DataApproval.class, false);
+    super(entityManager, jdbcTemplate, publisher, DataApproval.class, false);
 
     checkNotNull(cacheProvider);
     checkNotNull(periodService);

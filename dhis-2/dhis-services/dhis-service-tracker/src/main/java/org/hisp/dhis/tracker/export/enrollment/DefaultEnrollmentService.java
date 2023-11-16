@@ -123,7 +123,7 @@ class DefaultEnrollmentService
     result.setProgram(enrollment.getProgram());
     result.setStatus(enrollment.getStatus());
     result.setEnrollmentDate(enrollment.getEnrollmentDate());
-    result.setIncidentDate(enrollment.getIncidentDate());
+    result.setOccurredDate(enrollment.getOccurredDate());
     result.setFollowup(enrollment.getFollowup());
     result.setCompletedDate(enrollment.getCompletedDate());
     result.setCompletedBy(enrollment.getCompletedBy());
@@ -208,14 +208,6 @@ class DefaultEnrollmentService
     } else if (user != null && queryParams.isOrganisationUnitMode(CAPTURE)) {
       queryParams.setOrganisationUnits(user.getOrganisationUnits());
       queryParams.setOrganisationUnitMode(DESCENDANTS);
-    } else if (queryParams.isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> organisationUnits = new HashSet<>(queryParams.getOrganisationUnits());
-
-      for (OrganisationUnit organisationUnit : queryParams.getOrganisationUnits()) {
-        organisationUnits.addAll(organisationUnit.getChildren());
-      }
-
-      queryParams.setOrganisationUnits(organisationUnits);
     }
 
     return getEnrollments(

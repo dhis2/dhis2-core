@@ -976,6 +976,6 @@ class JdbcEventAnalyticsTableManagerTest {
   }
 
   private String getDateLinkedToStatus() {
-    return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.executiondate END";
+    return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
   }
 }

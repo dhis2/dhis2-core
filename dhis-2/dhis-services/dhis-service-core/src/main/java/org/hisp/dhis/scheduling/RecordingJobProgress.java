@@ -149,13 +149,12 @@ public class RecordingJobProgress implements JobProgress {
       @Nonnull ErrorCode code,
       @CheckForNull String uid,
       @Nonnull String type,
-      @CheckForNull Integer index,
       @Nonnull List<String> args) {
     try {
       // Note: we use empty string in case the UID is not known/defined yet to allow use in maps
-      progress.addError(new Error(code, uid == null ? "" : uid, type, index, args));
+      progress.addError(new Error(code, uid == null ? "" : uid, type, args));
     } catch (Exception ex) {
-      log.error("Failed to add error: %s %s %s %d %s".formatted(code, uid, type, index, args), ex);
+      log.error("Failed to add error: %s %s %s %s".formatted(code, uid, type, args), ex);
     }
   }
 

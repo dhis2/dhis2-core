@@ -31,7 +31,7 @@ import com.google.common.collect.Iterables;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
@@ -49,10 +49,8 @@ public class HibernateTrackedEntityProgramOwnerStore
     extends HibernateGenericStore<TrackedEntityProgramOwner>
     implements TrackedEntityProgramOwnerStore {
   public HibernateTrackedEntityProgramOwnerStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher) {
-    super(sessionFactory, jdbcTemplate, publisher, TrackedEntityProgramOwner.class, false);
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, TrackedEntityProgramOwner.class, false);
   }
 
   @Override

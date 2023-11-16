@@ -48,7 +48,6 @@ import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -96,9 +95,7 @@ public class DataSourceConfig {
     return jdbcTemplate;
   }
 
-  static DataSource createActualDataSource(
-      DhisConfigurationProvider dhisConfig,
-      HibernateConfigurationProvider hibernateConfigurationProvider) {
+  static DataSource createActualDataSource(DhisConfigurationProvider dhisConfig) {
     String jdbcUrl = dhisConfig.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = dhisConfig.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
@@ -106,7 +103,6 @@ public class DataSourceConfig {
     DatabasePoolUtils.PoolConfig poolConfig =
         DatabasePoolUtils.PoolConfig.builder()
             .dhisConfig(dhisConfig)
-            .hibernateConfig(hibernateConfigurationProvider)
             .dbPoolType(dbPoolType)
             .build();
 
@@ -182,9 +178,8 @@ public class DataSourceConfig {
   }
 
   @Bean("actualDataSource")
-  public DataSource actualDataSource(
-      HibernateConfigurationProvider hibernateConfigurationProvider) {
-    return createActualDataSource(dhisConfig, hibernateConfigurationProvider);
+  public DataSource actualDataSource() {
+    return createActualDataSource(dhisConfig);
   }
 
   private static void executeAfterMethod(MethodExecutionContext executionContext) {

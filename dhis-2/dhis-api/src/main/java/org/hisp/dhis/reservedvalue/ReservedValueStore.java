@@ -42,8 +42,6 @@ public interface ReservedValueStore extends GenericStore<ReservedValue> {
   List<ReservedValue> getAvailableValues(
       ReservedValue reservedValue, List<String> values, String ownerObject);
 
-  List<ReservedValue> reserveValuesJpa(ReservedValue reservedValue, List<String> values);
-
   int getNumberOfUsedValues(ReservedValue reservedValue);
 
   boolean useReservedValue(String ownerUID, String value);

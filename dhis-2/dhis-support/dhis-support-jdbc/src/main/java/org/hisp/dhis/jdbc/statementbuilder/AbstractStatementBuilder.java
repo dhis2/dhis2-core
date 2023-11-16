@@ -553,14 +553,14 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
 
   /**
    * This method is needed to keep the logic/code backward compatible. Previously, we didn't
-   * consider statuses, as we always based on the "executiondate" only (it means ACTIVE and
-   * COMPLETED status).
+   * consider statuses, as we always based on the "occurreddate" only (it means ACTIVE and COMPLETED
+   * status).
    *
    * <p>Now, we also need to support SCHEDULE status for events. For this reason this method
    * compares the status. If the column is "scheduleddate", it means we only want SCHEDULE status,
    * so we return "scheduleddate". In all other cases we assume any other status different from
    * SCHEDULE (which makes it backward compatible). In this case the logic will remain based on
-   * "executiondate".
+   * "occurreddate".
    *
    * @param column
    * @return the backwards compatible column

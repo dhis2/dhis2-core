@@ -51,10 +51,10 @@ import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.proxy.HibernateProxy;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -100,7 +100,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   private final Set<GenericDimensionalObjectStore<? extends DimensionalObject>>
       dimensionalObjectStores;
 
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
 
   private final CurrentUserService currentUserService;
 
@@ -119,20 +119,20 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   public DefaultIdentifiableObjectManager(
       Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
       Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores,
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       CurrentUserService currentUserService,
       SchemaService schemaService,
       CacheProvider cacheProvider) {
     checkNotNull(identifiableObjectStores);
     checkNotNull(dimensionalObjectStores);
-    checkNotNull(sessionFactory);
+    checkNotNull(entityManager);
     checkNotNull(currentUserService);
     checkNotNull(schemaService);
     checkNotNull(cacheProvider);
 
     this.identifiableObjectStores = identifiableObjectStores;
     this.dimensionalObjectStores = dimensionalObjectStores;
-    this.sessionFactory = sessionFactory;
+    this.entityManager = entityManager;
     this.currentUserService = currentUserService;
     this.schemaService = schemaService;
     this.defaultObjectCache = cacheProvider.createDefaultObjectCache();
@@ -202,8 +202,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional
   public void updateTranslations(
       @Nonnull IdentifiableObject persistedObject, @Nonnull Set<Translation> translations) {
-    Session session = sessionFactory.getCurrentSession();
-
     BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
 
     translatedObject.setTranslations(
@@ -214,7 +212,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     translatedObject.setLastUpdated(new Date());
     translatedObject.setLastUpdatedBy(currentUserService.getCurrentUser());
 
-    session.update(translatedObject);
+    entityManager.unwrap(Session.class).update(translatedObject);
   }
 
   @Override
@@ -954,7 +952,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional
   public void refresh(@Nonnull Object object) {
-    sessionFactory.getCurrentSession().refresh(object);
+    entityManager.refresh(object);
   }
 
   @Override
@@ -988,19 +986,19 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional
   public void flush() {
-    sessionFactory.getCurrentSession().flush();
+    entityManager.flush();
   }
 
   @Override
   @Transactional
   public void clear() {
-    sessionFactory.getCurrentSession().clear();
+    entityManager.clear();
   }
 
   @Override
   @Transactional
   public void evict(@Nonnull Object object) {
-    sessionFactory.getCurrentSession().evict(object);
+    entityManager.unwrap(Session.class).evict(object);
   }
 
   @Override

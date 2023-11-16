@@ -34,15 +34,12 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.feedback.ObjectReport;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.*;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.scheduling.*;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
-import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
@@ -73,6 +70,25 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
 
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
+
+  @GetMapping("/errors")
+  public List<JsonObject> getJobRunErrors(JobRunErrorsParams params) {
+    return jobConfigurationService.findJobRunErrors(params);
+  }
+
+  @GetMapping("{uid}/errors")
+  public JsonObject getJobRunErrors(
+      @PathVariable("uid") @OpenApi.Param({UID.class, JobConfiguration.class}) UID uid)
+      throws NotFoundException {
+    List<JsonObject> errors =
+        jobConfigurationService.findJobRunErrors(new JobRunErrorsParams().setJob(uid));
+    if (errors.isEmpty()) {
+      JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid.getValue());
+      if (obj == null) throw new NotFoundException(JobConfiguration.class, uid.getValue());
+      return JsonMixed.of("{}");
+    }
+    return errors.get(0);
+  }
 
   @GetMapping("/due")
   public List<JobConfiguration> getDueJobConfigurations(
@@ -131,7 +147,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   }
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
-  @GetMapping("{uid}/errors")
+  @GetMapping("{uid}/progress/errors")
   public List<JobProgress.Error> getErrors(@PathVariable("uid") String uid) {
     return jobSchedulerService.getErrors(uid);
   }

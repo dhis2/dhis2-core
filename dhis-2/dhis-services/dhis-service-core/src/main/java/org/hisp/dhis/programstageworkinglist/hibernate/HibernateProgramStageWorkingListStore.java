@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.programstageworkinglist.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.programstageworkinglist.ProgramStageWorkingList;
 import org.hisp.dhis.programstageworkinglist.ProgramStageWorkingListStore;
@@ -42,13 +42,13 @@ public class HibernateProgramStageWorkingListStore
     extends HibernateIdentifiableObjectStore<ProgramStageWorkingList>
     implements ProgramStageWorkingListStore {
   public HibernateProgramStageWorkingListStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         ProgramStageWorkingList.class,

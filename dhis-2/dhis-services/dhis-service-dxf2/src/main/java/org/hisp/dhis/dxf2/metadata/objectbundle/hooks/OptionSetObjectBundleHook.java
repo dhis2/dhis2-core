@@ -58,6 +58,6 @@ public class OptionSetObjectBundleHook extends AbstractObjectBundleHook<OptionSe
               }
             });
 
-    sessionFactory.getCurrentSession().refresh(optionSet);
+    getSession().refresh(optionSet);
   }
 }

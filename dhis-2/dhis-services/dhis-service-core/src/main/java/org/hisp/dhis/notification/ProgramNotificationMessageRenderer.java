@@ -56,7 +56,7 @@ public class ProgramNotificationMessageRenderer
                   e -> e.getOrganisationUnit().getDisplayName())
               .put(ProgramTemplateVariable.CURRENT_DATE, e -> formatDate(new Date()))
               .put(ProgramTemplateVariable.ENROLLMENT_DATE, e -> formatDate(e.getEnrollmentDate()))
-              .put(ProgramTemplateVariable.INCIDENT_DATE, e -> formatDate(e.getIncidentDate()))
+              .put(ProgramTemplateVariable.INCIDENT_DATE, e -> formatDate(e.getOccurredDate()))
               .put(
                   ProgramTemplateVariable.DAYS_SINCE_ENROLLMENT_DATE,
                   e -> daysSince(e.getEnrollmentDate()))

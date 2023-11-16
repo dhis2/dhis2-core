@@ -25,38 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import org.hisp.dhis.security.SecurityContextRunnable;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.Scope;
+import java.util.Objects;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhi2.org>
  */
 @Component
-@Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class TrackerImportThread extends SecurityContextRunnable {
-  private final TrackerImportService trackerImportService;
+@AllArgsConstructor
+@Slf4j
+public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
 
-  private TrackerImportParams trackerImportParams;
+  public static final String INVALIDATE_SESSION_KEY = "shouldInvalidateUserSessions";
 
-  public TrackerImportThread(TrackerImportService trackerImportService) {
-    this.trackerImportService = trackerImportService;
+  private final CurrentUserService currentUserService;
+
+  @Override
+  public void preUpdate(UserRole update, UserRole existing, ObjectBundle bundle) {
+    if (update == null) return;
+    bundle.putExtras(update, INVALIDATE_SESSION_KEY, userRolesUpdated(update, existing));
+  }
+
+  private Boolean userRolesUpdated(UserRole update, UserRole existing) {
+    Set<String> newAuthorities = update.getAuthorities();
+    Set<String> existingAuthorities = existing.getAuthorities();
+    return !Objects.equals(newAuthorities, existingAuthorities);
   }
 
   @Override
-  public void call() {
-    Assert.notNull(trackerImportParams, "Field trackerImportParams can not be null. ");
+  public void postUpdate(UserRole updatedUserRole, ObjectBundle bundle) {
+    final Boolean invalidateSessions =
+        (Boolean) bundle.getExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
 
-    trackerImportService.importTracker(trackerImportParams); // discard returned report
-  }
+    if (Boolean.TRUE.equals(invalidateSessions)) {
+      for (User user : updatedUserRole.getUsers()) {
+        currentUserService.invalidateUserSessions(user.getUid());
+      }
+    }
 
-  public void setTrackerImportParams(TrackerImportParams trackerImportParams) {
-    this.trackerImportParams = trackerImportParams;
+    bundle.removeExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
   }
 }

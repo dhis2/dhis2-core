@@ -38,7 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastatistics.DataStatisticsEventStore;
@@ -66,12 +66,12 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
   private final UserSettingService userSettingService;
 
   public HibernateDataStatisticsEventStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       SystemSettingManager systemSettingManager,
       UserSettingService userSettingService) {
-    super(sessionFactory, jdbcTemplate, publisher, DataStatisticsEvent.class, false);
+    super(entityManager, jdbcTemplate, publisher, DataStatisticsEvent.class, false);
 
     checkNotNull(systemSettingManager);
     checkNotNull(userSettingService);

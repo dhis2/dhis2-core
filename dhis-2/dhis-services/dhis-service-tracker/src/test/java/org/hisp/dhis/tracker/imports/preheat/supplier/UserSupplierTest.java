@@ -41,8 +41,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.UserService;
@@ -97,7 +97,7 @@ class UserSupplierTest {
     when(manager.getByUid(eq(org.hisp.dhis.user.User.class), argThat(t -> t.containsAll(userIds))))
         .thenReturn(users);
 
-    final TrackerImportParams params = TrackerImportParams.builder().events(events).build();
+    final TrackerObjects params = TrackerObjects.builder().events(events).build();
 
     TrackerPreheat preheat = new TrackerPreheat();
     this.supplier.preheatAdd(params, preheat);
@@ -117,7 +117,7 @@ class UserSupplierTest {
 
     when(userService.getUsersByUsernames(argThat(t -> t.containsAll(usernames)))).thenReturn(users);
 
-    final TrackerImportParams params = TrackerImportParams.builder().events(events).build();
+    final TrackerObjects params = TrackerObjects.builder().events(events).build();
 
     TrackerPreheat preheat = new TrackerPreheat();
     this.supplier.preheatAdd(params, preheat);
