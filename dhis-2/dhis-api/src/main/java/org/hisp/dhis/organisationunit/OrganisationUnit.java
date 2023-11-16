@@ -564,7 +564,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     return ancestors.stream()
         .filter(Objects::nonNull)
         .map(OrganisationUnit::getUid)
-        .anyMatch(uid -> StringUtils.contains(path, uid));
+        .anyMatch(uid -> StringUtils.contains(this.getPath(), uid));
   }
 
   /**
