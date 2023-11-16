@@ -87,8 +87,10 @@ public class TrackerImportJob implements Job {
             .forEach(
                 e ->
                     progress.addError(
-                        ValidationCode.valueOf(e.getErrorCode()), e.getUid(), e.getTrackerType()));
-        // TODO args
+                        ValidationCode.valueOf(e.getErrorCode()),
+                        e.getUid(),
+                        e.getTrackerType(),
+                        e.getArgs()));
       }
 
       Stats stats = report.getStats();

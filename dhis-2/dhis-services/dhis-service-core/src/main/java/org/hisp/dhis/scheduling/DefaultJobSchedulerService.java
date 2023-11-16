@@ -127,11 +127,9 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
     if (progress == null) return List.of();
     Map<String, Map<String, Queue<JobProgress.Error>>> map = progress.getErrors();
     if (map.isEmpty()) return List.of();
-    List<JobProgress.Error> errors =
-        map.values().stream()
-            .flatMap(e -> e.values().stream().flatMap(Collection::stream))
-            .toList();
-    return errors;
+    return map.values().stream()
+        .flatMap(e -> e.values().stream().flatMap(Collection::stream))
+        .toList();
   }
 
   @Override
