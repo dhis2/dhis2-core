@@ -32,7 +32,6 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.concurrent.Callable;
 import javax.persistence.EntityManagerFactory;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -80,7 +79,7 @@ public class AdxPipedImporter implements Callable<ImportSummary> {
   @Override
   public ImportSummary call() {
     SecurityContextHolder.getContext().setAuthentication(authentication);
-    DbmsUtils.bindSessionToThread(entityManagerFactory.unwrap(SessionFactory.class));
+    DbmsUtils.bindSessionToThread(entityManagerFactory);
 
     try {
       return dataValueSetService.importDataValueSetXml(pipeIn, importOptions, id);
@@ -88,7 +87,7 @@ public class AdxPipedImporter implements Callable<ImportSummary> {
       return ImportSummary.error("Exception: " + ex.getMessage());
     } finally {
       StreamUtils.closeQuietly(pipeIn);
-      DbmsUtils.unbindSessionFromThread(entityManagerFactory.unwrap(SessionFactory.class));
+      DbmsUtils.unbindSessionFromThread(entityManagerFactory);
     }
   }
 }

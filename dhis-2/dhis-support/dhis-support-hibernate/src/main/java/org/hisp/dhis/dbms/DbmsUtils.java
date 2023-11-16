@@ -29,9 +29,7 @@ package org.hisp.dhis.dbms;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import org.hibernate.FlushMode;
 import org.hibernate.StatelessSession;
-import org.hibernate.annotations.QueryHints;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 import org.springframework.orm.jpa.EntityManagerHolder;
@@ -44,10 +42,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 public class DbmsUtils {
   public static void bindSessionToThread(EntityManagerFactory entityManagerFactory) {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
-    entityManager.setProperty(QueryHints.FLUSH_MODE, FlushMode.AUTO);
-    TransactionSynchronizationManager.bindResource(
-        entityManagerFactory, new EntityManagerHolder(entityManager));
-
     TransactionSynchronizationManager.bindResource(
         entityManagerFactory, new EntityManagerHolder(entityManager));
   }
