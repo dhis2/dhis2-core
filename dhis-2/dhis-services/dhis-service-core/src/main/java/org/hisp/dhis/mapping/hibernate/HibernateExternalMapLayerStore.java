@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.mapping.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.ExternalMapLayerStore;
@@ -44,13 +44,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateExternalMapLayerStore
     extends HibernateIdentifiableObjectStore<ExternalMapLayer> implements ExternalMapLayerStore {
   public HibernateExternalMapLayerStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         ExternalMapLayer.class,

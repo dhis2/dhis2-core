@@ -62,12 +62,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -146,7 +146,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   // TODO too many arguments in constructor. This needs to be refactored.
   public HibernateTrackedEntityStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
@@ -155,7 +155,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       OrganisationUnitStore organisationUnitStore,
       SystemSettingManager systemSettingManager) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         TrackedEntity.class,
@@ -953,14 +953,14 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
     if (params.hasProgramIncidentStartDate()) {
       program
-          .append("AND EN.incidentdate >= '")
+          .append("AND EN.occurreddate >= '")
           .append(getLongDateString(params.getProgramIncidentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentEndDate()) {
       program
-          .append("AND EN.incidentdate <= '")
+          .append("AND EN.occurreddate <= '")
           .append(getLongDateString(params.getProgramIncidentEndDate()))
           .append("' ");
     }

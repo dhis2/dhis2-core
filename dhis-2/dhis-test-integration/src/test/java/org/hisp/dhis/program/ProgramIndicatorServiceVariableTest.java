@@ -219,8 +219,8 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
 
   @Test
   void testIncidentDate() {
-    assertEquals("incidentdate", getSql("V{incident_date}"));
-    assertEquals("incidentdate", getSqlEnrollment("V{incident_date}"));
+    assertEquals("occurreddate", getSql("V{incident_date}"));
+    assertEquals("occurreddate", getSqlEnrollment("V{incident_date}"));
   }
 
   @Test

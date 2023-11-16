@@ -45,12 +45,15 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 class DefaultAclStoreTest extends IntegrationTestBase {
 
   @Autowired private UserService _userService;
 
-  @Autowired private DefaultAclStore aclStore;
+  @Autowired
+  @Qualifier("org.hisp.dhis.tracker.trackedentity.aggregates.AclStore")
+  private AclStore aclStore;
 
   @Autowired IdentifiableObjectManager manager;
 

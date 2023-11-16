@@ -33,13 +33,17 @@ import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.Interceptor;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AllArgsConstructor;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
+@Component
+@AllArgsConstructor
 public class ContextInterceptor implements Interceptor {
   private static final String KEY_IN_MEMORY_DATABASE = "inMemoryDatabase";
 
@@ -49,11 +53,7 @@ public class ContextInterceptor implements Interceptor {
 
   private static final String KEY_CURRENT_KEY = "keyCurrentKey";
 
-  private DatabaseInfoProvider databaseInfoProvider;
-
-  public void setDatabaseInfoProvider(DatabaseInfoProvider databaseInfoProvider) {
-    this.databaseInfoProvider = databaseInfoProvider;
-  }
+  private final DatabaseInfoProvider databaseInfoProvider;
 
   @Override
   public void destroy() {}

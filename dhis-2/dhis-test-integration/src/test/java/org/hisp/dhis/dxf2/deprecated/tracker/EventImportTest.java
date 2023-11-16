@@ -50,9 +50,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.persistence.EntityManager;
 import org.exparity.hamcrest.date.DateMatchers;
 import org.hamcrest.CoreMatchers;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -121,7 +121,7 @@ class EventImportTest extends TransactionalIntegrationTest {
 
   @Autowired private UserService _userService;
 
-  @Autowired private SessionFactory sessionFactory;
+  @Autowired private EntityManager entityManager;
 
   @Autowired JdbcTemplate jdbcTemplate;
 
@@ -697,8 +697,8 @@ class EventImportTest extends TransactionalIntegrationTest {
   }
 
   private void cleanSession() {
-    sessionFactory.getCurrentSession().flush();
-    sessionFactory.getCurrentSession().clear();
+    entityManager.flush();
+    entityManager.clear();
   }
 
   private InputStream createEventsJsonInputStream(

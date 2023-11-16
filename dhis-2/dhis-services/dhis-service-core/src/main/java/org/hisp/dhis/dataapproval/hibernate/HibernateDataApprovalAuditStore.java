@@ -34,8 +34,8 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.List;
 import java.util.Set;
+import javax.persistence.EntityManager;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
@@ -61,11 +61,11 @@ public class HibernateDataApprovalAuditStore extends HibernateGenericStore<DataA
   private final CurrentUserService currentUserService;
 
   public HibernateDataApprovalAuditStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService) {
-    super(sessionFactory, jdbcTemplate, publisher, DataApprovalAudit.class, false);
+    super(entityManager, jdbcTemplate, publisher, DataApprovalAudit.class, false);
 
     checkNotNull(currentUserService);
 

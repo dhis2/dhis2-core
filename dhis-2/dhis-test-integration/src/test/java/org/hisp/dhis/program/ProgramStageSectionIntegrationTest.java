@@ -33,7 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.HashSet;
-import org.apache.commons.lang3.tuple.Pair;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -57,6 +58,8 @@ class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
+
+  @PersistenceContext private EntityManager entityManager;
 
   private Program program;
 
@@ -87,20 +90,15 @@ class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
 
   @Test
   void testRemoveProgramStageSectionWillDeleteOrphans() {
-    Pair<Long, Long> idPair =
-        transactionTemplate.execute(
-            status -> {
-              long idA = programStageService.saveProgramStage(stageA);
-              assertNotNull(programStageService.getProgramStage(idA));
-              long sectionId = stageA.getProgramStageSections().stream().findFirst().get().getId();
-              assertNotNull(programStageSectionService.getProgramStageSection(sectionId));
-              stageA.getProgramStageSections().clear();
-              programStageService.saveProgramStage(stageA);
-              dbmsManager.clearSession();
-              return Pair.of(idA, sectionId);
-            });
-    assertTrue(
-        programStageService.getProgramStage(idPair.getLeft()).getProgramStageSections().isEmpty());
-    assertNull(programStageSectionService.getProgramStageSection(idPair.getRight()));
+    long idA = programStageService.saveProgramStage(stageA);
+    assertNotNull(programStageService.getProgramStage(idA));
+    long sectionId = stageA.getProgramStageSections().stream().findFirst().get().getId();
+    assertNotNull(programStageSectionService.getProgramStageSection(sectionId));
+    stageA.getProgramStageSections().clear();
+    programStageService.updateProgramStage(stageA);
+    dbmsManager.flushSession();
+
+    assertTrue(entityManager.find(ProgramStage.class, idA).getProgramStageSections().isEmpty());
+    assertNull(entityManager.find(ProgramStageSection.class, sectionId));
   }
 }

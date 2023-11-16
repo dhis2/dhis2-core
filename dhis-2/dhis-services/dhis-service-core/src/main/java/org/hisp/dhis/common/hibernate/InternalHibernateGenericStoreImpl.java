@@ -34,10 +34,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.adapter.Sharing_;
@@ -65,14 +65,14 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   protected final CurrentUserService currentUserService;
 
   public InternalHibernateGenericStoreImpl(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       Class<T> clazz,
       AclService aclService,
       CurrentUserService currentUserService,
       boolean cacheable) {
-    super(sessionFactory, jdbcTemplate, publisher, clazz, cacheable);
+    super(entityManager, jdbcTemplate, publisher, clazz, cacheable);
 
     checkNotNull(aclService);
     checkNotNull(currentUserService);

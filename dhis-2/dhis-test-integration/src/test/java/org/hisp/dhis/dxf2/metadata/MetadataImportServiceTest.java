@@ -745,6 +745,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     params.setMetadataSyncImport(false);
     report = importService.importMetadata(params, new MetadataObjects(metadata));
     assertEquals(Status.OK, report.getStatus());
+    dbmsManager.flushSession();
     dataset = manager.get(DataSet.class, "em8Bg4LCr5k");
     assertFalse(
         dataset.getDataElements().stream()
