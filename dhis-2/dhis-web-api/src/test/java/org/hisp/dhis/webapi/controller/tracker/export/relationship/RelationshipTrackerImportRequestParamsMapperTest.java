@@ -46,7 +46,7 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.Test;
 
-class RelationshipRequestParamsMapperTest {
+class RelationshipTrackerImportRequestParamsMapperTest {
 
   private final RelationshipRequestParamsMapper mapper = new RelationshipRequestParamsMapper();
 

@@ -32,6 +32,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
 import org.hisp.dhis.tracker.imports.TrackerBundleReportMode;
@@ -47,7 +48,7 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundleMode;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-class RequestParams {
+public class TrackerImportRequestParams {
   /** Should import be imported or just validated. */
   @JsonProperty @Builder.Default private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 

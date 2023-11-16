@@ -106,12 +106,12 @@ public class TrackerImportController {
   @ResponseBody
   public WebMessage asyncPostJsonTracker(
       HttpServletRequest request,
-      RequestParams requestParams,
+      TrackerImportRequestParams trackerImportRequestParams,
       @CurrentUser User currentUser,
       @RequestBody Body body)
       throws ConflictException, NotFoundException, IOException {
     TrackerImportParams trackerImportParams =
-        TrackerImportParamsMapper.trackerImportParams(currentUser.getUid(), requestParams);
+        TrackerImportParamsMapper.trackerImportParams(currentUser.getUid(), trackerImportRequestParams);
     TrackerObjects trackerObjects =
         TrackerImportParamsMapper.trackerObjects(body, trackerImportParams.getIdSchemes());
 
@@ -156,9 +156,9 @@ public class TrackerImportController {
       consumes = APPLICATION_JSON_VALUE,
       params = {"async=false"})
   public ResponseEntity<ImportReport> syncPostJsonTracker(
-      RequestParams requestParams, @CurrentUser User currentUser, @RequestBody Body body) {
+          TrackerImportRequestParams trackerImportRequestParams, @CurrentUser User currentUser, @RequestBody Body body) {
     TrackerImportParams params =
-        TrackerImportParamsMapper.trackerImportParams(currentUser.getUid(), requestParams);
+        TrackerImportParamsMapper.trackerImportParams(currentUser.getUid(), trackerImportRequestParams);
     TrackerObjects trackerObjects =
         TrackerImportParamsMapper.trackerObjects(body, params.getIdSchemes());
     ImportReport importReport =
@@ -180,7 +180,7 @@ public class TrackerImportController {
   @ResponseBody
   public WebMessage asyncPostCsvTracker(
       HttpServletRequest request,
-      RequestParams importRequest,
+      TrackerImportRequestParams importRequest,
       @CurrentUser User currentUser,
       @RequestParam(required = false, defaultValue = "true") boolean skipFirst)
       throws IOException, ParseException, ConflictException, NotFoundException {
@@ -211,7 +211,7 @@ public class TrackerImportController {
       params = {"async=false"})
   public ResponseEntity<ImportReport> syncPostCsvTracker(
       HttpServletRequest request,
-      RequestParams importRequest,
+      TrackerImportRequestParams importRequest,
       @RequestParam(required = false, defaultValue = "true") boolean skipFirst,
       @RequestParam(defaultValue = "errors", required = false) TrackerBundleReportMode reportMode,
       @CurrentUser User currentUser)

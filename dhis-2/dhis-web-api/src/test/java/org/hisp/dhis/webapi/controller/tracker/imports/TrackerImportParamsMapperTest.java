@@ -61,9 +61,9 @@ class TrackerImportParamsMapperTest {
     Arrays.stream(ValidationMode.values())
         .forEach(
             e -> {
-              RequestParams requestParams = RequestParams.builder().validationMode(e).build();
+              TrackerImportRequestParams trackerImportRequestParams = TrackerImportRequestParams.builder().validationMode(e).build();
               TrackerImportParams params =
-                  TrackerImportParamsMapper.trackerImportParams("userId", requestParams);
+                  TrackerImportParamsMapper.trackerImportParams("userId", trackerImportRequestParams);
               assertThat(params.getValidationMode(), is(e));
             });
   }
@@ -73,9 +73,9 @@ class TrackerImportParamsMapperTest {
     Arrays.stream(TrackerBundleMode.values())
         .forEach(
             e -> {
-              RequestParams requestParams = RequestParams.builder().importMode(e).build();
+              TrackerImportRequestParams trackerImportRequestParams = TrackerImportRequestParams.builder().importMode(e).build();
               TrackerImportParams params =
-                  TrackerImportParamsMapper.trackerImportParams("userId", requestParams);
+                  TrackerImportParamsMapper.trackerImportParams("userId", trackerImportRequestParams);
               assertThat(params.getImportMode(), is(e));
             });
   }
@@ -85,9 +85,9 @@ class TrackerImportParamsMapperTest {
     Arrays.stream(AtomicMode.values())
         .forEach(
             e -> {
-              RequestParams requestParams = RequestParams.builder().atomicMode(e).build();
+              TrackerImportRequestParams trackerImportRequestParams = TrackerImportRequestParams.builder().atomicMode(e).build();
               TrackerImportParams params =
-                  TrackerImportParamsMapper.trackerImportParams("userId", requestParams);
+                  TrackerImportParamsMapper.trackerImportParams("userId", trackerImportRequestParams);
               assertThat(params.getAtomicMode(), is(e));
             });
   }
@@ -97,9 +97,9 @@ class TrackerImportParamsMapperTest {
     Arrays.stream(FlushMode.values())
         .forEach(
             e -> {
-              RequestParams requestParams = RequestParams.builder().flushMode(e).build();
+              TrackerImportRequestParams trackerImportRequestParams = TrackerImportRequestParams.builder().flushMode(e).build();
               TrackerImportParams params =
-                  TrackerImportParamsMapper.trackerImportParams("userId", requestParams);
+                  TrackerImportParamsMapper.trackerImportParams("userId", trackerImportRequestParams);
               assertThat(params.getFlushMode(), is(e));
             });
   }
@@ -109,19 +109,19 @@ class TrackerImportParamsMapperTest {
     Arrays.stream(TrackerImportStrategy.values())
         .forEach(
             e -> {
-              RequestParams requestParams = RequestParams.builder().importStrategy(e).build();
+              TrackerImportRequestParams trackerImportRequestParams = TrackerImportRequestParams.builder().importStrategy(e).build();
               TrackerImportParams params =
-                  TrackerImportParamsMapper.trackerImportParams("userId", requestParams);
+                  TrackerImportParamsMapper.trackerImportParams("userId", trackerImportRequestParams);
               assertThat(params.getImportStrategy(), is(e));
             });
   }
 
   @Test
   void testIdSchemeUsingIdSchemeName() {
-    RequestParams requestParams =
-        RequestParams.builder().idScheme(TrackerIdSchemeParam.NAME).build();
+    TrackerImportRequestParams trackerImportRequestParams =
+        TrackerImportRequestParams.builder().idScheme(TrackerIdSchemeParam.NAME).build();
     TrackerImportParams params =
-        TrackerImportParamsMapper.trackerImportParams("userId", requestParams);
+        TrackerImportParamsMapper.trackerImportParams("userId", trackerImportRequestParams);
 
     TrackerIdSchemeParam expected = TrackerIdSchemeParam.NAME;
     assertEquals(expected, params.getIdSchemes().getIdScheme());
@@ -135,10 +135,10 @@ class TrackerImportParamsMapperTest {
 
   @Test
   void testIdSchemeUsingIdSchemeAttribute() {
-    RequestParams requestParams =
-        RequestParams.builder().idScheme(TrackerIdSchemeParam.ofAttribute("WSiOAALYocA")).build();
+    TrackerImportRequestParams trackerImportRequestParams =
+        TrackerImportRequestParams.builder().idScheme(TrackerIdSchemeParam.ofAttribute("WSiOAALYocA")).build();
     TrackerImportParams params =
-        TrackerImportParamsMapper.trackerImportParams("userId", requestParams);
+        TrackerImportParamsMapper.trackerImportParams("userId", trackerImportRequestParams);
 
     TrackerIdSchemeParam expected = TrackerIdSchemeParam.ofAttribute("WSiOAALYocA");
     assertEquals(expected, params.getIdSchemes().getIdScheme());
@@ -155,9 +155,9 @@ class TrackerImportParamsMapperTest {
     idSchemeParams()
         .forEach(
             e -> {
-              RequestParams requestParams = RequestParams.builder().orgUnitIdScheme(e).build();
+              TrackerImportRequestParams trackerImportRequestParams = TrackerImportRequestParams.builder().orgUnitIdScheme(e).build();
               TrackerImportParams params =
-                  TrackerImportParamsMapper.trackerImportParams("userId", requestParams);
+                  TrackerImportParamsMapper.trackerImportParams("userId", trackerImportRequestParams);
               assertThat(
                   params.getIdSchemes().getOrgUnitIdScheme().getIdScheme(), is(e.getIdScheme()));
             });
@@ -168,9 +168,9 @@ class TrackerImportParamsMapperTest {
     idSchemeParams()
         .forEach(
             e -> {
-              RequestParams requestParams = RequestParams.builder().programIdScheme(e).build();
+              TrackerImportRequestParams trackerImportRequestParams = TrackerImportRequestParams.builder().programIdScheme(e).build();
               TrackerImportParams params =
-                  TrackerImportParamsMapper.trackerImportParams("userId", requestParams);
+                  TrackerImportParamsMapper.trackerImportParams("userId", trackerImportRequestParams);
               assertThat(
                   params.getIdSchemes().getProgramIdScheme().getIdScheme(), is(e.getIdScheme()));
             });
@@ -178,12 +178,12 @@ class TrackerImportParamsMapperTest {
 
   @Test
   void testProgramIdentifierUsingIdSchemeAttribute() {
-    RequestParams requestParams =
-        RequestParams.builder()
+    TrackerImportRequestParams trackerImportRequestParams =
+        TrackerImportRequestParams.builder()
             .programIdScheme(TrackerIdSchemeParam.ofAttribute("WSiOAALYocA"))
             .build();
     TrackerImportParams params =
-        TrackerImportParamsMapper.trackerImportParams("userId", requestParams);
+        TrackerImportParamsMapper.trackerImportParams("userId", trackerImportRequestParams);
 
     assertEquals(
         TrackerIdSchemeParam.ofAttribute("WSiOAALYocA"),
@@ -195,9 +195,9 @@ class TrackerImportParamsMapperTest {
     idSchemeParams()
         .forEach(
             e -> {
-              RequestParams requestParams = RequestParams.builder().programStageIdScheme(e).build();
+              TrackerImportRequestParams trackerImportRequestParams = TrackerImportRequestParams.builder().programStageIdScheme(e).build();
               TrackerImportParams params =
-                  TrackerImportParamsMapper.trackerImportParams("userId", requestParams);
+                  TrackerImportParamsMapper.trackerImportParams("userId", trackerImportRequestParams);
               assertThat(
                   params.getIdSchemes().getProgramStageIdScheme().getIdScheme(),
                   is(e.getIdScheme()));
@@ -209,9 +209,9 @@ class TrackerImportParamsMapperTest {
     idSchemeParams()
         .forEach(
             e -> {
-              RequestParams requestParams = RequestParams.builder().dataElementIdScheme(e).build();
+              TrackerImportRequestParams trackerImportRequestParams = TrackerImportRequestParams.builder().dataElementIdScheme(e).build();
               TrackerImportParams params =
-                  TrackerImportParamsMapper.trackerImportParams("userId", requestParams);
+                  TrackerImportParamsMapper.trackerImportParams("userId", trackerImportRequestParams);
               assertThat(
                   params.getIdSchemes().getDataElementIdScheme().getIdScheme(),
                   is(e.getIdScheme()));
@@ -223,10 +223,10 @@ class TrackerImportParamsMapperTest {
     idSchemeParams()
         .forEach(
             e -> {
-              RequestParams requestParams =
-                  RequestParams.builder().categoryOptionComboIdScheme(e).build();
+              TrackerImportRequestParams trackerImportRequestParams =
+                  TrackerImportRequestParams.builder().categoryOptionComboIdScheme(e).build();
               TrackerImportParams params =
-                  TrackerImportParamsMapper.trackerImportParams("userId", requestParams);
+                  TrackerImportParamsMapper.trackerImportParams("userId", trackerImportRequestParams);
               assertThat(
                   params.getIdSchemes().getCategoryOptionComboIdScheme().getIdScheme(),
                   is(e.getIdScheme()));
@@ -238,10 +238,10 @@ class TrackerImportParamsMapperTest {
     idSchemeParams()
         .forEach(
             e -> {
-              RequestParams requestParams =
-                  RequestParams.builder().categoryOptionIdScheme(e).build();
+              TrackerImportRequestParams trackerImportRequestParams =
+                  TrackerImportRequestParams.builder().categoryOptionIdScheme(e).build();
               TrackerImportParams params =
-                  TrackerImportParamsMapper.trackerImportParams("userId", requestParams);
+                  TrackerImportParamsMapper.trackerImportParams("userId", trackerImportRequestParams);
               assertThat(
                   params.getIdSchemes().getCategoryOptionIdScheme().getIdScheme(),
                   is(e.getIdScheme()));
