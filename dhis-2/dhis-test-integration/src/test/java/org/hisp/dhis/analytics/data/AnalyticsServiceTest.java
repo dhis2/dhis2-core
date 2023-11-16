@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -217,7 +218,7 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private SystemSettingManager systemSettingManager;
 
-  private Date processStartTime;
+  private Instant processStartTime;
 
   @Autowired
   @Qualifier("readOnlyJdbcTemplate")
@@ -262,7 +263,7 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     assertNull(
         systemSettingManager.getSystemSetting(
             SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, Date.class));
-    processStartTime = new Date();
+    processStartTime = Instant.now();
     // Generate analytics tables
     analyticsTableGenerator.generateTables(
         AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
@@ -1539,7 +1540,7 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         systemSettingManager.getSystemSetting(
             SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, Date.class);
     assertNotEquals(null, resourceTablesUpdated);
-    assertTrue(tableLastUpdated.compareTo(processStartTime) > 0);
-    assertTrue(resourceTablesUpdated.compareTo(processStartTime) > 0);
+    assertTrue(tableLastUpdated.toInstant().compareTo(processStartTime) > 0);
+    assertTrue(resourceTablesUpdated.toInstant().compareTo(processStartTime) > 0);
   }
 }
