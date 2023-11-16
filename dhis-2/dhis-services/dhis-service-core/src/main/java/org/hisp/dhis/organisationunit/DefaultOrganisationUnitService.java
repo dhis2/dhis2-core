@@ -454,13 +454,12 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
       return false;
     }
 
-    return isDescendant(organisationUnit, user.getOrganisationUnits());
+    return organisationUnit.isDescendant(user.getOrganisationUnits());
   }
 
   @Override
   @Transactional
-  public boolean isDescendant(
-      OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors) { // TOdo
+  public boolean isDescendant(OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors) {
     Objects.requireNonNull(organisationUnit);
 
     if (isEmpty(ancestors)) {
