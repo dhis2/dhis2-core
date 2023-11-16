@@ -177,30 +177,32 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     List<String> columnNames =
         getDimensionColumns().stream().map(AnalyticsTableColumn::getName).collect(toList());
 
-    MappingBatchHandler batchHandler =
+    try (MappingBatchHandler batchHandler =
         MappingBatchHandler.builder()
             .jdbcConfiguration(jdbcConfiguration)
             .tableName(partition.getTempTableName())
             .columns(columnNames)
-            .build();
+            .build()) {
+      batchHandler.init();
 
-    batchHandler.init();
+      JdbcOwnershipWriter writer = JdbcOwnershipWriter.getInstance(batchHandler);
+      AtomicInteger queryRowCount = new AtomicInteger();
 
-    JdbcOwnershipWriter writer = JdbcOwnershipWriter.getInstance(batchHandler);
-    AtomicInteger queryRowCount = new AtomicInteger();
+      jdbcTemplate.query(
+          sql,
+          resultSet -> {
+            writer.write(getRowMap(columnNames, resultSet));
+            queryRowCount.getAndIncrement();
+          });
 
-    jdbcTemplate.query(
-        sql,
-        resultSet -> {
-          writer.write(getRowMap(columnNames, resultSet));
-          queryRowCount.getAndIncrement();
-        });
-
-    log.info(
-        "OwnershipAnalytics query row count was {} for {}",
-        queryRowCount,
-        partition.getTempTableName());
-    batchHandler.flush();
+      log.info(
+          "OwnershipAnalytics query row count was {} for {}",
+          queryRowCount,
+          partition.getTempTableName());
+      batchHandler.flush();
+    } catch (Exception ex) {
+      log.error("Failed to alter table ownership: ", ex);
+    }
   }
 
   private String getInputSql(Program program) {

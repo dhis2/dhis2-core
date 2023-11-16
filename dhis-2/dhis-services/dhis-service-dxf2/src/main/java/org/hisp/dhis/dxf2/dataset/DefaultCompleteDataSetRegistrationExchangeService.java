@@ -28,12 +28,14 @@
 package org.hisp.dhis.dxf2.dataset;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -76,10 +78,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -89,6 +88,7 @@ import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -112,8 +112,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   private final IdentifiableObjectManager idObjManager;
 
   private final OrganisationUnitService orgUnitService;
-
-  private final Notifier notifier;
 
   private final I18nManager i18nManager;
 
@@ -198,6 +196,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   @Override
+  @Transactional
   public void writeCompleteDataSetRegistrationsXml(ExportParams params, OutputStream out) {
     decideAccess(params);
     validate(params);
@@ -206,6 +205,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   @Override
+  @Transactional
   public void writeCompleteDataSetRegistrationsJson(ExportParams params, OutputStream out) {
     decideAccess(params);
     validate(params);
@@ -214,50 +214,58 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   @Override
+  @Transactional
   public void writeCompleteDataSetRegistrationsJson(
       Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes) {
     cdsrStore.writeCompleteDataSetRegistrationsJson(lastUpdated, outputStream, idSchemes);
   }
 
   @Override
+  @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsXml(
       InputStream in, ImportOptions importOptions) {
-    return saveCompleteDataSetRegistrationsXml(in, importOptions, null);
+    return saveCompleteDataSetRegistrations(importOptions, () -> readRegistrationsFromXml(in));
+  }
+
+  @Nonnull
+  private static CompleteDataSetRegistrations readRegistrationsFromXml(InputStream in)
+      throws IOException {
+    in = StreamUtils.wrapAndCheckCompressionFormat(in);
+    return new StreamingXmlCompleteDataSetRegistrations(XMLFactory.getXMLReader(in));
   }
 
   @Override
-  public ImportSummary saveCompleteDataSetRegistrationsXml(
-      InputStream in, ImportOptions importOptions, JobConfiguration jobId) {
-    try {
-      in = StreamUtils.wrapAndCheckCompressionFormat(in);
-      CompleteDataSetRegistrations completeDataSetRegistrations =
-          new StreamingXmlCompleteDataSetRegistrations(XMLFactory.getXMLReader(in));
+  @Transactional
+  public ImportSummary saveCompleteDataSetRegistrationsJson(
+      InputStream in, ImportOptions importOptions) {
+    return saveCompleteDataSetRegistrations(importOptions, () -> readRegistrationsFromJson(in));
+  }
 
-      return saveCompleteDataSetRegistrations(importOptions, jobId, completeDataSetRegistrations);
+  private ImportSummary saveCompleteDataSetRegistrations(
+      ImportOptions importOptions,
+      Callable<CompleteDataSetRegistrations> deserializeRegistrations) {
+
+    try (BatchHandler<CompleteDataSetRegistration> batchHandler =
+        batchHandlerFactory.createBatchHandler(CompleteDataSetRegistrationBatchHandler.class)) {
+      CompleteDataSetRegistrations completeDataSetRegistrations = deserializeRegistrations.call();
+      ImportSummary summary =
+          saveCompleteDataSetRegistrations(
+              importOptions, completeDataSetRegistrations, batchHandler);
+
+      batchHandler.flush();
+
+      return summary;
     } catch (Exception ex) {
-      return handleImportError(jobId, ex);
+      log.error("Complete data set registrations could not be saved.");
+      return handleImportError(ex);
     }
   }
 
-  @Override
-  public ImportSummary saveCompleteDataSetRegistrationsJson(
-      InputStream in, ImportOptions importOptions) {
-    return saveCompleteDataSetRegistrationsJson(in, importOptions, null);
-  }
-
-  @Override
-  public ImportSummary saveCompleteDataSetRegistrationsJson(
-      InputStream in, ImportOptions importOptions, JobConfiguration jobId) {
-    try {
-      in = StreamUtils.wrapAndCheckCompressionFormat(in);
-
-      CompleteDataSetRegistrations completeDataSetRegistrations =
-          jsonMapper.readValue(in, CompleteDataSetRegistrations.class);
-
-      return saveCompleteDataSetRegistrations(importOptions, jobId, completeDataSetRegistrations);
-    } catch (Exception ex) {
-      return handleImportError(jobId, ex);
-    }
+  @Nonnull
+  private CompleteDataSetRegistrations readRegistrationsFromJson(InputStream in)
+      throws IOException {
+    in = StreamUtils.wrapAndCheckCompressionFormat(in);
+    return jsonMapper.readValue(in, CompleteDataSetRegistrations.class);
   }
 
   @Override
@@ -357,21 +365,17 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
   }
 
-  private ImportSummary handleImportError(JobConfiguration jobId, Throwable ex) {
+  private ImportSummary handleImportError(Throwable ex) {
     log.error(DebugUtils.getStackTrace(ex));
-    notifier.notify(jobId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true);
     return new ImportSummary(ImportStatus.ERROR, "The import process failed: " + ex.getMessage());
   }
 
   private ImportSummary saveCompleteDataSetRegistrations(
       ImportOptions importOptions,
-      JobConfiguration id,
-      CompleteDataSetRegistrations completeRegistrations) {
+      CompleteDataSetRegistrations completeRegistrations,
+      BatchHandler<CompleteDataSetRegistration> batchHandler) {
     Clock clock =
-        new Clock(log)
-            .startClock()
-            .logTime("Starting complete data set registration import, options: " + importOptions);
-    notifier.clear(id).notify(id, "Process started");
+        new Clock(log).startClock().logTime("Starting complete data set registration import");
 
     // Start here so we can access any outer attributes for the
     // configuration
@@ -407,14 +411,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     // Perform import
     // ---------------------------------------------------------------------
 
-    notifier.notify(id, "Importing complete data set registrations");
-
     int totalCount =
-        batchImport(completeRegistrations, cfg, importSummary, metaDataCallables, caches);
-
-    notifier
-        .notify(id, NotificationLevel.INFO, "Import done", true)
-        .addJobSummary(id, importSummary, ImportSummary.class);
+        batchImport(
+            completeRegistrations, cfg, importSummary, metaDataCallables, caches, batchHandler);
 
     ImportCount count = importSummary.getImportCount();
 
@@ -436,16 +435,14 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       ImportConfig config,
       ImportSummary summary,
       MetadataCallables mdCallables,
-      MetadataCaches mdCaches) {
+      MetadataCaches mdCaches,
+      BatchHandler<CompleteDataSetRegistration> batchHandler) {
     final User currentUser = currentUserService.getCurrentUser();
     final String currentUserName = currentUser.getUsername();
     final Set<OrganisationUnit> userOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
     final I18n i18n = i18nManager.getI18n();
 
-    BatchHandler<CompleteDataSetRegistration> batchHandler =
-        batchHandlerFactory
-            .createBatchHandler(CompleteDataSetRegistrationBatchHandler.class)
-            .init();
+    batchHandler.init();
 
     int importCount = 0, updateCount = 0, deleteCount = 0, totalCount = 0;
 
@@ -614,8 +611,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
       }
     }
-
-    batchHandler.flush();
 
     finalizeSummary(summary, totalCount, importCount, updateCount, deleteCount);
 
