@@ -459,7 +459,8 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
 
   @Override
   @Transactional
-  public boolean isDescendant(OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors) {
+  public boolean isDescendant(
+      OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors) { // TOdo
     Objects.requireNonNull(organisationUnit);
 
     if (isEmpty(ancestors)) {
@@ -572,7 +573,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   public boolean isInUserHierarchy(String uid, Set<OrganisationUnit> organisationUnits) {
     OrganisationUnit organisationUnit = organisationUnitStore.getByUid(uid);
 
-    return organisationUnit != null && isDescendant(organisationUnit, organisationUnits);
+    return organisationUnit != null && organisationUnit.isDescendant(organisationUnits);
   }
 
   @Override
