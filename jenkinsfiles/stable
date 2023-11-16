@@ -3,7 +3,7 @@
 /*
 # This pipeline can be tested by executing the following steps
 * Create a branch with a non-existing version name such as "patch/4.1.2.3"
-* Update all the pom files with version the same version (4.1.2.3)
+* Update all the pom files with the same version (4.1.2.3)
 * Commit the pom files
 * Tag the commit from above with "4.1.2.3"
 * Push
