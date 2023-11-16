@@ -73,6 +73,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -518,6 +519,22 @@ public class AccountController {
     List<User> linkedUserAccounts = userService.getLinkedUserAccounts(currentUser);
     List<UserLookup> userLookups =
         linkedUserAccounts.stream().map(UserLookup::fromUser).collect(Collectors.toList());
+
+    for (int i = 0; i < linkedUserAccounts.size(); i++) {
+      userLookups
+          .get(i)
+          .setRoles(
+              linkedUserAccounts.get(i).getUserRoles().stream()
+                  .map(UserRole::getUid)
+                  .collect(Collectors.toSet()));
+      userLookups
+          .get(i)
+          .setGroups(
+              linkedUserAccounts.get(i).getGroups().stream()
+                  .map(UserGroup::getUid)
+                  .collect(Collectors.toSet()));
+    }
+
     return new UserLookups(userLookups);
   }
 
