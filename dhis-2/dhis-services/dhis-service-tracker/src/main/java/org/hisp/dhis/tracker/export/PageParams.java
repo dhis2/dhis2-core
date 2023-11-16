@@ -27,22 +27,15 @@
  */
 package org.hisp.dhis.tracker.export;
 
-import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-/**
- * {@link PageParams} represent the parameters that configure the page of items to be returned. By
- * default, the total number of items will not be fetched.
- */
+/** {@link PageParams} represent the parameters that configure the page of items to be returned. */
 @Getter
 @ToString
 @EqualsAndHashCode
 public class PageParams {
-  private static final int DEFAULT_PAGE = 1;
-  private static final int DEFAULT_PAGE_SIZE = 50;
-
   /** The page number to be returned. */
   final int page;
 
@@ -53,8 +46,8 @@ public class PageParams {
   final boolean pageTotal;
 
   public PageParams(Integer page, Integer pageSize, Boolean pageTotal) {
-    this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
-    this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
+    this.page = page;
+    this.pageSize = pageSize;
     this.pageTotal = Boolean.TRUE.equals(pageTotal);
   }
 }

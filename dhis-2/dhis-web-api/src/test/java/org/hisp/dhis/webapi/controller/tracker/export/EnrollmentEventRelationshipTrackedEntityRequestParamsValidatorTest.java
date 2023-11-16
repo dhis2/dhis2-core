@@ -65,7 +65,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /** Tests {@link RequestParamsValidator}. */
-class RequestParamsValidatorTest {
+class EnrollmentEventRelationshipTrackedEntityRequestParamsValidatorTest {
 
   private static final String TEA_1_UID = "TvjwTPToKHO";
 

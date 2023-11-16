@@ -45,14 +45,14 @@ import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-class RequestParams implements PageRequestParams {
+public class RelationshipRequestParams implements PageRequestParams {
   static final String DEFAULT_FIELDS_PARAM =
       "relationship,relationshipType,createdAtClient,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
 
-  private Integer page;
-  private Integer pageSize;
-  private Boolean totalPages;
-  private Boolean skipPaging;
+  private Integer page = 1;
+  private Integer pageSize = 50;
+  private Boolean totalPages = false;
+  private Boolean skipPaging = false;
 
   private List<OrderCriteria> order = new ArrayList<>();
 

@@ -64,13 +64,13 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-class RequestParams implements PageRequestParams {
+public class EventRequestParams implements PageRequestParams {
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships";
 
-  private Integer page;
-  private Integer pageSize;
-  private Boolean totalPages;
-  private Boolean skipPaging;
+  private Integer page = 1;
+  private Integer pageSize = 50;
+  private Boolean totalPages = false;
+  private Boolean skipPaging = false;
 
   private List<OrderCriteria> order = new ArrayList<>();
 
@@ -159,7 +159,7 @@ class RequestParams implements PageRequestParams {
   @OpenApi.Property({UID[].class, CategoryOption.class})
   private Set<UID> attributeCategoryOptions = new HashSet<>();
 
-  private boolean includeDeleted;
+  private boolean includeDeleted = false;
 
   /**
    * Semicolon-delimited list of event UIDs.

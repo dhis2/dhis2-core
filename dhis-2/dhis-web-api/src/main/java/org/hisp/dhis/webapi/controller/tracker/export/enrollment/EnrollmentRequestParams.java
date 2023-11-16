@@ -53,13 +53,13 @@ import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-class RequestParams implements PageRequestParams {
+public class EnrollmentRequestParams implements PageRequestParams {
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
 
-  private Integer page;
-  private Integer pageSize;
-  private Boolean totalPages;
-  private Boolean skipPaging;
+  private Integer page = 1;
+  private Integer pageSize = 50;
+  private Boolean totalPages = false;
+  private Boolean skipPaging = false;
 
   private List<OrderCriteria> order = new ArrayList<>();
 
@@ -116,7 +116,7 @@ class RequestParams implements PageRequestParams {
   @OpenApi.Property({UID[].class, Enrollment.class})
   private Set<UID> enrollments = new HashSet<>();
 
-  private boolean includeDeleted;
+  private boolean includeDeleted = false;
 
   @OpenApi.Property(value = String[].class)
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
