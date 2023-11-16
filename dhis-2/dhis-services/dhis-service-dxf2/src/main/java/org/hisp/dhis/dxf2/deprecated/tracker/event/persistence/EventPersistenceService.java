@@ -64,4 +64,6 @@ public interface EventPersistenceService {
    * @param events a List of {@see Event}
    */
   void delete(WorkContext context, List<Event> events);
+
+  void updateDataElements(String s);
 }

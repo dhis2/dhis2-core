@@ -195,4 +195,11 @@ public class DataValue {
         + '\''
         + '}';
   }
+
+  public String toString1() {
+    return "'{\""
+        + "value\" : "
+        + value
+        + "}'";
+  }
 }

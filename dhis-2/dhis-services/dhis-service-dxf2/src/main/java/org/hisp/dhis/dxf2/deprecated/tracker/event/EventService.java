@@ -186,4 +186,6 @@ public interface EventService {
   ImportSummaries deleteEvents(List<String> uids, boolean clearSession);
 
   void validate(EventSearchParams params, User user);
+
+  ImportSummary updateDataElements(org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent);
 }

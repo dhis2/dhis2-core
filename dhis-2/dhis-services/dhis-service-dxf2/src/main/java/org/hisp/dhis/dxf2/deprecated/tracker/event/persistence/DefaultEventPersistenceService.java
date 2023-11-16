@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
+
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.EventCommentStore;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.EventStore;
@@ -51,6 +53,8 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
   @Nonnull private final EventStore jdbcEventStore;
 
   @Nonnull private final EventCommentStore jdbcEventCommentStore;
+
+  @Nonnull private final EntityManager entityManager;
 
   @Override
   @Transactional
@@ -110,6 +114,12 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
     if (isNotEmpty(events)) {
       jdbcEventStore.delete(events);
     }
+  }
+
+  @Override
+  public void updateDataElements(String query) {
+
+    entityManager.createNativeQuery(query).executeUpdate();
   }
 
   /**

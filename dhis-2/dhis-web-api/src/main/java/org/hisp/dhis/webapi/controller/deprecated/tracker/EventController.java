@@ -1154,7 +1154,15 @@ public class EventController {
     Event updatedEvent = renderService.fromJson(inputStream, Event.class);
     updatedEvent.setEvent(uid);
 
-    return updateEvent(updatedEvent, true, null);
+    return updateEvent1(updatedEvent);
+  }
+
+
+  private WebMessage updateEvent1(
+    Event updatedEvent) {
+    ImportSummary importSummary =
+      eventService.updateDataElements(updatedEvent);
+    return importSummary(importSummary);
   }
 
   @PutMapping(value = "/{uid}/eventDate", consumes = APPLICATION_JSON_VALUE)

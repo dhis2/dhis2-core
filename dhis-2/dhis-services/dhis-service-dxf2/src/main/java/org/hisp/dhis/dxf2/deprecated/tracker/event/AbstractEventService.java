@@ -762,6 +762,13 @@ public abstract class AbstractEventService
 
   @Transactional
   @Override
+  public ImportSummary updateDataElements(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event) {
+    return eventManager.updateDataElements(event);
+  }
+
+  @Transactional
+  @Override
   public void updateEventForNote(org.hisp.dhis.dxf2.deprecated.tracker.event.Event event) {
     org.hisp.dhis.program.Event programStageInstance = eventService.getEvent(event.getEvent());
 

@@ -100,6 +100,27 @@ public class EventManager {
 
   private static final String IMPORT_ERROR_STRING = "Invalid or conflicting data";
 
+  public ImportSummary updateDataElements(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event events) {
+    for (DataValue de : events.getDataValues()) {
+
+      String s =
+          String.format(
+              "UPDATE event SET "
+                  + "eventdatavalues= (CASE"
+                  + "        WHEN eventdatavalues->'%1$s' IS NOT NULL"
+                  + "        THEN jsonb_set(eventdatavalues, '{%1$s}', %2$s)"
+                  + "        WHEN eventdatavalues->'%1$s' IS NULL"
+                  + "        THEN jsonb_insert(eventdatavalues, '{%1$s}', %2$s)"
+                  + "    END)"
+                  + "WHERE  uid = '%1$s'",
+              de.getDataElement(), de.toString1());
+
+      eventPersistenceService.updateDataElements(s);
+    }
+    return null;
+  }
+
   public ImportSummary addEvent(
       final org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
       final WorkContext workContext) {
