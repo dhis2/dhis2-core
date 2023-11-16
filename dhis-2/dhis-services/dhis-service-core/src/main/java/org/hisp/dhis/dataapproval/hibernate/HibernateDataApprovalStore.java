@@ -362,7 +362,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
     if (orgUnits != null) {
       for (OrganisationUnit orgUnit : orgUnits) {
-        if (!organisationUnitService.isDescendant(orgUnit, userOrgUnits)) {
+        if (!orgUnit.isDescendant(userOrgUnits)) {
           log.debug("User " + user.getUsername() + " can't see orgUnit " + orgUnit.getName());
 
           return new ArrayList<>(); // Unapprovable.
