@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import java.util.Collections;
 import javax.annotation.Nonnull;
-import org.hibernate.Session;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
@@ -63,16 +63,16 @@ public class TrackedEntityPersister
 
   @Override
   protected void updateAttributes(
-      Session session,
+      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
       TrackedEntity te) {
-    handleTrackedEntityAttributeValues(session, preheat, trackerDto.getAttributes(), te);
+    handleTrackedEntityAttributeValues(entityManager, preheat, trackerDto.getAttributes(), te);
   }
 
   @Override
   protected void updateDataValues(
-      Session session,
+      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
       TrackedEntity te) {
@@ -81,7 +81,7 @@ public class TrackedEntityPersister
 
   @Override
   protected void persistNotes(
-      Session session, TrackerPreheat preheat, TrackedEntity trackedEntity) {
+      EntityManager entityManager, TrackerPreheat preheat, TrackedEntity trackedEntity) {
     // DO NOTHING - TE HAVE NO NOTES
   }
 

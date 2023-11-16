@@ -37,8 +37,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
+import javax.persistence.EntityManager;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -62,7 +62,7 @@ class ProgramRuleVariableObjectBundleHookTest {
 
   @InjectMocks private ProgramRuleVariableObjectBundleHook programRuleVariableObjectBundleHook;
 
-  @Mock private SessionFactory sessionFactory;
+  @Mock private EntityManager entityManager;
 
   @Mock private Session session;
 
@@ -78,7 +78,7 @@ class ProgramRuleVariableObjectBundleHookTest {
 
   @BeforeEach
   public void setUp() {
-    when(sessionFactory.getCurrentSession()).thenReturn(session);
+    when(entityManager.unwrap(Session.class)).thenReturn(session);
     when(session.createQuery(anyString(), classArgumentCaptor.capture())).thenReturn(query);
     when(program.getUid()).thenReturn("uid");
   }

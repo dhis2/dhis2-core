@@ -44,8 +44,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -80,13 +80,13 @@ public class DefaultFileResourceService implements FileResourceService {
 
   private final PeriodService periodService;
 
-  private final SessionFactory sessionFactory;
-
   private final FileResourceContentStore fileResourceContentStore;
 
   private final ImageProcessingService imageProcessingService;
 
   private final ApplicationEventPublisher fileEventPublisher;
+
+  private final EntityManager entityManager;
 
   // -------------------------------------------------------------------------
   // FileResourceService implementation
@@ -178,7 +178,7 @@ public class DefaultFileResourceService implements FileResourceService {
 
     fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
     fileResourceStore.save(fileResource);
-    sessionFactory.getCurrentSession().flush();
+    entityManager.flush();
 
     if (FileResource.isImage(fileResource.getContentType())
         && FileResourceDomain.isDomainForMultipleImages(fileResource.getDomain())) {
@@ -197,7 +197,7 @@ public class DefaultFileResourceService implements FileResourceService {
   public String saveFileResource(FileResource fileResource, byte[] bytes) {
     fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
     fileResourceStore.save(fileResource);
-    sessionFactory.getCurrentSession().flush();
+    entityManager.flush();
 
     final String uid = fileResource.getUid();
 

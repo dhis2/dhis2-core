@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.user.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
@@ -46,13 +46,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<UserRole>
     implements UserRoleStore {
   public HibernateUserRoleStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         UserRole.class,

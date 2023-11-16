@@ -28,7 +28,7 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
 import java.util.List;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManagerFactory;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -46,20 +46,20 @@ public class ImportEventsTask extends SecurityContextRunnable {
 
   private final JobConfiguration id;
 
-  private final SessionFactory sessionFactory;
+  private final EntityManagerFactory entityManagerFactory;
 
   public ImportEventsTask(
       List<Event> events,
       EventService eventService,
       ImportOptions importOptions,
       JobConfiguration id,
-      SessionFactory sessionFactory) {
+      EntityManagerFactory entityManagerFactory) {
     super();
     this.events = events;
     this.eventService = eventService;
     this.importOptions = importOptions;
     this.id = id;
-    this.sessionFactory = sessionFactory;
+    this.entityManagerFactory = entityManagerFactory;
   }
 
   @Override
@@ -69,11 +69,11 @@ public class ImportEventsTask extends SecurityContextRunnable {
 
   @Override
   public void before() {
-    DbmsUtils.bindSessionToThread(sessionFactory);
+    DbmsUtils.bindSessionToThread(entityManagerFactory);
   }
 
   @Override
   public void after() {
-    DbmsUtils.unbindSessionFromThread(sessionFactory);
+    DbmsUtils.unbindSessionFromThread(entityManagerFactory);
   }
 }

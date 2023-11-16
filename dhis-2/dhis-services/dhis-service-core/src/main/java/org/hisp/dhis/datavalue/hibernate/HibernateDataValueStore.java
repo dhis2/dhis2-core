@@ -47,11 +47,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Function;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -92,12 +92,12 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   private static final String LAST_UPATED = "lastUpdated";
 
   public HibernateDataValueStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       PeriodStore periodStore,
       StatementBuilder statementBuilder) {
-    super(sessionFactory, jdbcTemplate, publisher, DataValue.class, false);
+    super(entityManager, jdbcTemplate, publisher, DataValue.class, false);
     this.periodStore = periodStore;
     this.statementBuilder = statementBuilder;
   }

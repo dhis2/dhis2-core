@@ -28,8 +28,8 @@
 package org.hisp.dhis.analytics.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookStore;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
@@ -51,13 +51,13 @@ public class HibernateAnalyticsTableHookStore
     extends HibernateIdentifiableObjectStore<AnalyticsTableHook>
     implements AnalyticsTableHookStore {
   public HibernateAnalyticsTableHookStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         AnalyticsTableHook.class,

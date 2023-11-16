@@ -42,12 +42,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
@@ -92,7 +92,7 @@ public class HibernatePotentialDuplicateStore
   private final DhisConfigurationProvider config;
 
   public HibernatePotentialDuplicateStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
@@ -102,7 +102,7 @@ public class HibernatePotentialDuplicateStore
       TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore,
       DhisConfigurationProvider config) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         PotentialDuplicate.class,

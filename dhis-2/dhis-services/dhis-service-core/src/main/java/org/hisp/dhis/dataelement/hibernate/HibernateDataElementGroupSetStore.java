@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataelement.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementGroupSetStore;
@@ -42,13 +42,13 @@ public class HibernateDataElementGroupSetStore
     extends HibernateIdentifiableObjectStore<DataElementGroupSet>
     implements DataElementGroupSetStore {
   public HibernateDataElementGroupSetStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         DataElementGroupSet.class,

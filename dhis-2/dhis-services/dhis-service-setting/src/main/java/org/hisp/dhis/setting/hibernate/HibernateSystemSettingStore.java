@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.setting.hibernate;
 
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettingStore;
@@ -43,10 +43,8 @@ import org.springframework.stereotype.Repository;
 public class HibernateSystemSettingStore extends HibernateGenericStore<SystemSetting>
     implements SystemSettingStore {
   public HibernateSystemSettingStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher) {
-    super(sessionFactory, jdbcTemplate, publisher, SystemSetting.class, true);
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, SystemSetting.class, true);
   }
 
   @Override

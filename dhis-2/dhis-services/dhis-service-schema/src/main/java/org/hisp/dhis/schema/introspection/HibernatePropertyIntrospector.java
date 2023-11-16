@@ -34,8 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.persistence.EntityManagerFactory;
 import org.hibernate.MappingException;
-import org.hibernate.SessionFactory;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.mapping.Column;
@@ -67,14 +67,14 @@ import org.hisp.dhis.schema.Property;
  * @author Jan Bernitt (extraction to this class)
  */
 public class HibernatePropertyIntrospector implements PropertyIntrospector {
-  private final SessionFactory sessionFactory;
+  private final EntityManagerFactory entityManagerFactory;
 
   private final Map<String, String> roleToRole = new ConcurrentHashMap<>();
 
   private final AtomicBoolean roleToRoleComputing = new AtomicBoolean(false);
 
-  public HibernatePropertyIntrospector(SessionFactory sessionFactory) {
-    this.sessionFactory = sessionFactory;
+  public HibernatePropertyIntrospector(EntityManagerFactory entityManager) {
+    this.entityManagerFactory = entityManager;
   }
 
   private void updateJoinTables() {
@@ -87,7 +87,8 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector {
     Map<String, List<String>> joinTableToRoles = new HashMap<>();
 
     SessionFactoryImplementor sessionFactoryImplementor =
-        (SessionFactoryImplementor) sessionFactory;
+        entityManagerFactory.unwrap(SessionFactoryImplementor.class);
+
     MetamodelImplementor metamodelImplementor = sessionFactoryImplementor.getMetamodel();
 
     for (CollectionPersister collectionPersister :
@@ -150,7 +151,7 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector {
   }
 
   private MetamodelImplementor getMetamodelImplementor() {
-    return ((SessionFactoryImplementor) sessionFactory).getMetamodel();
+    return entityManagerFactory.unwrap(SessionFactoryImplementor.class).getMetamodel();
   }
 
   private Property createProperty(

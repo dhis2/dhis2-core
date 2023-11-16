@@ -29,8 +29,8 @@ package org.hisp.dhis.datastatistics.hibernate;
 
 import java.util.Date;
 import java.util.List;
+import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.datastatistics.AggregatedStatistics;
 import org.hisp.dhis.datastatistics.DataStatistics;
@@ -52,13 +52,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectStore<DataStatistics>
     implements DataStatisticsStore {
   public HibernateDataStatisticsStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         DataStatistics.class,

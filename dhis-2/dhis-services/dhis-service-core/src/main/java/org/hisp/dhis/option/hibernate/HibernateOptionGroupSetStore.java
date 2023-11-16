@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.option.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionGroupSetStore;
@@ -44,13 +44,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateOptionGroupSetStore extends HibernateIdentifiableObjectStore<OptionGroupSet>
     implements OptionGroupSetStore {
   public HibernateOptionGroupSetStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         OptionGroupSet.class,

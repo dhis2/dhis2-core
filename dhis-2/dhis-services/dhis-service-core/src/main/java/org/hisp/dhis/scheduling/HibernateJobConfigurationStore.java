@@ -39,8 +39,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
@@ -62,13 +62,13 @@ public class HibernateJobConfigurationStore
     extends HibernateIdentifiableObjectStore<JobConfiguration> implements JobConfigurationStore {
 
   public HibernateJobConfigurationStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         JobConfiguration.class,
