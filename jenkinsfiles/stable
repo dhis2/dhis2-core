@@ -13,7 +13,7 @@
 # Clean up
 * Restore the regular expression previously updated to include your branch
 * Delete the war file from S3: aws s3 rm s3://releases.dhis2.org/...
-* Delete the docker image from the repository (Possible by using ./delete-remote-docker-image.sh)
+* Delete the docker image from the repository
 */
 
 @Library('pipeline-library') _
