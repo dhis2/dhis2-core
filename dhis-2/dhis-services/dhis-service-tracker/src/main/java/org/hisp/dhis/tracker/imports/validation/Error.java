@@ -70,6 +70,6 @@ public class Error implements Validation {
 
   @Override
   public List<String> getArgs() {
-    return args.stream().map(Object::toString).toList();
+    return args.stream().map(obj -> obj == null ? null : obj.toString()).toList();
   }
 }

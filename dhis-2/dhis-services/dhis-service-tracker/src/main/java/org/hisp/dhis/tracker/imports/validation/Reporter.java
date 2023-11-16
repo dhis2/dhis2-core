@@ -27,12 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 import lombok.AccessLevel;
@@ -159,7 +154,7 @@ public class Reporter {
             code,
             dto.getTrackerType(),
             dto.getUid(),
-            List.of(args)));
+            args == null ? List.of() : Arrays.asList(args)));
     return true;
   }
 

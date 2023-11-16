@@ -53,7 +53,7 @@ public class Error {
       @Nonnull @JsonProperty("errorCode") String errorCode,
       @Nonnull @JsonProperty("trackerType") String trackerType,
       @Nonnull @JsonProperty("uid") String uid,
-      @CheckForNull @JsonProperty("uid") List<String> args) {
+      @CheckForNull @JsonProperty("args") List<String> args) {
     this.message = message;
     this.errorCode = errorCode;
     this.trackerType = trackerType;
