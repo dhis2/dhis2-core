@@ -89,7 +89,7 @@
     <dhis2-rule-engine.version>2.1.9</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
-    <dhis-hisp-quick.version>1.4.1</dhis-hisp-quick.version>
+    <dhis-hisp-quick.version>1.4.3</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
     <dhis-json-tree.version>0.10.3</dhis-json-tree.version>
 
@@ -112,7 +112,7 @@
     <spring-restdocs.version>2.0.7.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.2.6.RELEASE</lettuce.version>
+    <lettuce.version>6.3.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-core.version>9.22.3</flyway-core.version>
@@ -215,7 +215,7 @@
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.19.1</testcontainers.version>
+    <testcontainers.version>1.19.2</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
     <swagger.version>2.1.18</swagger.version>

@@ -201,7 +201,7 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
   @Test
   void testIncidentDate() {
     String sql = castString(test("V{incident_date}", new DefaultLiteral(), eventIndicator));
-    assertThat(sql, is("incidentdate"));
+    assertThat(sql, is("occurreddate"));
   }
 
   @Test

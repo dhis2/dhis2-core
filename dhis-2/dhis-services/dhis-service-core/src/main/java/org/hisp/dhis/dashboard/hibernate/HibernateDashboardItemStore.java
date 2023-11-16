@@ -28,8 +28,8 @@
 package org.hisp.dhis.dashboard.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dashboard.Dashboard;
@@ -56,13 +56,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStore<DashboardItem>
     implements DashboardItemStore {
   public HibernateDashboardItemStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         DashboardItem.class,

@@ -49,8 +49,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.persistence.EntityManager;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
@@ -113,7 +113,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private SessionFactory sessionFactory;
+  @Autowired private EntityManager entityManager;
 
   @Autowired private UserService _userService;
 
@@ -472,7 +472,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
     // This is required because the Event creation takes place using JDBC,
     // therefore Hibernate does not
     // "see" the new event in the context of this session
-    sessionFactory.getCurrentSession().clear();
+    entityManager.clear();
     trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance(maleA.getUid());
     assertNotNull(trackedEntityInstance.getEnrollments());
     assertEquals(1, trackedEntityInstance.getEnrollments().size());
@@ -535,7 +535,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
         ImportStatus.SUCCESS,
         importSummary.getEnrollments().getImportSummaries().get(0).getEvents().getStatus());
     manager.flush();
-    sessionFactory.getCurrentSession().clear();
+    entityManager.clear();
     trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance(maleA.getUid());
     assertNotNull(trackedEntityInstance.getEnrollments());
     assertEquals(1, trackedEntityInstance.getEnrollments().size());

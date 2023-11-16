@@ -28,8 +28,8 @@
 package org.hisp.dhis.dataset.notifications;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.notification.NotificationTrigger;
@@ -45,13 +45,13 @@ public class HibernateDataSetNotificationTemplateStore
     extends HibernateIdentifiableObjectStore<DataSetNotificationTemplate>
     implements DataSetNotificationTemplateStore {
   public HibernateDataSetNotificationTemplateStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         DataSetNotificationTemplate.class,

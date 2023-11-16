@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.cache;
 
+import javax.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
@@ -42,10 +43,10 @@ public class DefaultHibernateCacheManager implements HibernateCacheManager {
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private SessionFactory sessionFactory;
+  private EntityManagerFactory entityManagerFactory;
 
-  public void setSessionFactory(SessionFactory sessionFactory) {
-    this.sessionFactory = sessionFactory;
+  public void setSessionFactory(EntityManagerFactory entityManagerFactory) {
+    this.entityManagerFactory = entityManagerFactory;
   }
 
   // -------------------------------------------------------------------------
@@ -54,14 +55,14 @@ public class DefaultHibernateCacheManager implements HibernateCacheManager {
 
   @Override
   public void clearObjectCache() {
-    sessionFactory.getCache().evictEntityData();
-    sessionFactory.getCache().evictCollectionData();
+    getSessionFactory().getCache().evictEntityData();
+    getSessionFactory().getCache().evictCollectionData();
   }
 
   @Override
   public void clearQueryCache() {
-    sessionFactory.getCache().evictDefaultQueryRegion();
-    sessionFactory.getCache().evictQueryRegions();
+    getSessionFactory().getCache().evictDefaultQueryRegion();
+    getSessionFactory().getCache().evictQueryRegions();
   }
 
   @Override
@@ -80,6 +81,10 @@ public class DefaultHibernateCacheManager implements HibernateCacheManager {
 
   @Override
   public Statistics getStatistics() {
-    return sessionFactory.getStatistics();
+    return getSessionFactory().getStatistics();
+  }
+
+  private SessionFactory getSessionFactory() {
+    return entityManagerFactory.unwrap(SessionFactory.class);
   }
 }

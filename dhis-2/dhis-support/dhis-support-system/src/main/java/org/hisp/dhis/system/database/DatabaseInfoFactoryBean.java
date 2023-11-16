@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component("databaseInfo")
+@Component
 public class DatabaseInfoFactoryBean implements FactoryBean<DatabaseInfo> {
   private final DatabaseInfoProvider databaseInfoProvider;
 

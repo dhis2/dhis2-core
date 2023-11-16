@@ -32,9 +32,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
@@ -62,7 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackerBundleService implements TrackerBundleService {
   private final TrackerPreheatService trackerPreheatService;
 
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
 
   private final CommitService commitService;
 
@@ -104,17 +103,16 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
       return PersistenceReport.emptyReport();
     }
 
-    Session session = sessionFactory.getCurrentSession();
     Map<TrackerType, TrackerTypeReport> reportMap =
         Map.of(
             TrackerType.TRACKED_ENTITY,
-            commitService.getTrackerPersister().persist(session, bundle),
+            commitService.getTrackerPersister().persist(entityManager, bundle),
             TrackerType.ENROLLMENT,
-            commitService.getEnrollmentPersister().persist(session, bundle),
+            commitService.getEnrollmentPersister().persist(entityManager, bundle),
             TrackerType.EVENT,
-            commitService.getEventPersister().persist(session, bundle),
+            commitService.getEventPersister().persist(entityManager, bundle),
             TrackerType.RELATIONSHIP,
-            commitService.getRelationshipPersister().persist(session, bundle));
+            commitService.getRelationshipPersister().persist(entityManager, bundle));
 
     return new PersistenceReport(reportMap);
   }

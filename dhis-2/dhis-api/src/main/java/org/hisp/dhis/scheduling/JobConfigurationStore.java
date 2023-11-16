@@ -116,6 +116,13 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
   Stream<JobConfiguration> getDueJobConfigurations(boolean includeWaiting);
 
   /**
+   * @param params query parameters (criteria) to find
+   * @return all job configurations that match the query parameters
+   */
+  @Nonnull
+  Stream<String> findJobRunErrors(@Nonnull JobRunErrorsParams params);
+
+  /**
    * @return A list of all job types that are currently in {@link JobStatus#RUNNING} state.
    */
   Set<JobType> getRunningTypes();

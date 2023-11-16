@@ -29,8 +29,8 @@ package org.hisp.dhis.metadata.version.hibernate;
 
 import java.util.Date;
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionStore;
@@ -49,13 +49,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateMetadataVersionStore extends HibernateIdentifiableObjectStore<MetadataVersion>
     implements MetadataVersionStore {
   public HibernateMetadataVersionStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         MetadataVersion.class,

@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.document.impl;
 
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.document.Document;
@@ -49,13 +49,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateDocumentStore extends HibernateIdentifiableObjectStore<Document>
     implements DocumentStore {
   public HibernateDocumentStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         Document.class,

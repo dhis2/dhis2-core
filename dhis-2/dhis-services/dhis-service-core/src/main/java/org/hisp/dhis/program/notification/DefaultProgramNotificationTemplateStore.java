@@ -29,9 +29,9 @@ package org.hisp.dhis.program.notification;
 
 import java.math.BigInteger;
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
@@ -54,13 +54,13 @@ public class DefaultProgramNotificationTemplateStore
   private static final String PROGRAM_STAGE_ID = "psid";
 
   public DefaultProgramNotificationTemplateStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         ProgramNotificationTemplate.class,

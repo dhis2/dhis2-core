@@ -244,9 +244,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   private ImportSummary saveCompleteDataSetRegistrations(
       ImportOptions importOptions,
       Callable<CompleteDataSetRegistrations> deserializeRegistrations) {
-    BatchHandler<CompleteDataSetRegistration> batchHandler =
-        batchHandlerFactory.createBatchHandler(CompleteDataSetRegistrationBatchHandler.class);
-    try {
+
+    try (BatchHandler<CompleteDataSetRegistration> batchHandler =
+        batchHandlerFactory.createBatchHandler(CompleteDataSetRegistrationBatchHandler.class)) {
       CompleteDataSetRegistrations completeDataSetRegistrations = deserializeRegistrations.call();
       ImportSummary summary =
           saveCompleteDataSetRegistrations(
@@ -256,7 +256,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
       return summary;
     } catch (Exception ex) {
-      batchHandler.flush();
+      log.error("Complete data set registrations could not be saved.");
       return handleImportError(ex);
     }
   }

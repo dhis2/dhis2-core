@@ -28,7 +28,7 @@
 package org.hisp.dhis.programstagefilter.hibernate;
 
 import java.util.List;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.programstagefilter.EventFilter;
 import org.hisp.dhis.programstagefilter.EventFilterStore;
@@ -45,13 +45,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateEventFilterStore extends HibernateIdentifiableObjectStore<EventFilter>
     implements EventFilterStore {
   public HibernateEventFilterStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         EventFilter.class,

@@ -336,7 +336,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
       Program program,
       ProgramStatus programStatus,
       Date enrollmentDate,
-      Date incidentDate,
+      Date occurredDate,
       OrganisationUnit organisationUnit,
       String uid) {
     if (program.getTrackedEntityType() != null
@@ -356,8 +356,8 @@ public class DefaultEnrollmentService implements EnrollmentService {
       enrollment.setEnrollmentDate(new Date());
     }
 
-    if (incidentDate != null) {
-      enrollment.setOccurredDate(incidentDate);
+    if (occurredDate != null) {
+      enrollment.setOccurredDate(occurredDate);
     } else {
       enrollment.setOccurredDate(new Date());
     }
@@ -373,13 +373,13 @@ public class DefaultEnrollmentService implements EnrollmentService {
       TrackedEntity trackedEntity,
       Program program,
       Date enrollmentDate,
-      Date incidentDate,
+      Date occurredDate,
       OrganisationUnit organisationUnit) {
     return enrollTrackedEntity(
         trackedEntity,
         program,
         enrollmentDate,
-        incidentDate,
+        occurredDate,
         organisationUnit,
         CodeGenerator.generateUid());
   }
@@ -390,7 +390,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
       TrackedEntity trackedEntity,
       Program program,
       Date enrollmentDate,
-      Date incidentDate,
+      Date occurredDate,
       OrganisationUnit organisationUnit,
       String uid) {
     // ---------------------------------------------------------------------
@@ -403,7 +403,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
             program,
             ProgramStatus.ACTIVE,
             enrollmentDate,
-            incidentDate,
+            occurredDate,
             organisationUnit,
             uid);
     addEnrollment(enrollment);

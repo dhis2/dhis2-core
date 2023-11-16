@@ -28,7 +28,7 @@
 package org.hisp.dhis.indicator.hibernate;
 
 import java.util.List;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorStore;
@@ -45,13 +45,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<Indicator>
     implements IndicatorStore {
   public HibernateIndicatorStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         Indicator.class,
