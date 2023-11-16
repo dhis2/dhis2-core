@@ -52,6 +52,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,6 +70,8 @@ import org.mockito.quality.Strictness;
 class EnrollmentAttributeValidationHookTest {
 
   @InjectMocks private EnrollmentAttributeValidationHook hookToTest;
+
+  @Mock private TrackedAttributeValidationService teAttrService;
 
   @Mock private Enrollment enrollment;
 
