@@ -568,17 +568,17 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   }
 
   /**
-   * Indicates whether this org unit is a descendant of any of the given ancestor org units.
+   * Indicates whether this org unit is a descendant of the given ancestor org unit.
    *
-   * @param ancestor the collection of ancestor org units.
-   * @return true if this org unit is a descendant of the ancestors.
+   * @param ancestor the ancestor org unit.
+   * @return true if this org unit is a descendant of the ancestor.
    */
   public boolean isDescendant(OrganisationUnit ancestor) {
     if (ancestor == null) {
       return false;
     }
 
-    return StringUtils.contains(path, ancestor.getUid());
+    return StringUtils.contains(this.getPath(), ancestor.getUid());
   }
 
   public Set<OrganisationUnit> getChildrenThisIfEmpty() {
