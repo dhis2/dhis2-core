@@ -567,6 +567,20 @@ public class OrganisationUnit extends BaseDimensionalItemObject
         .anyMatch(uid -> StringUtils.contains(path, uid));
   }
 
+  /**
+   * Indicates whether this org unit is a descendant of any of the given ancestor org units.
+   *
+   * @param ancestor the collection of ancestor org units.
+   * @return true if this org unit is a descendant of the ancestors.
+   */
+  public boolean isDescendant(OrganisationUnit ancestor) {
+    if (ancestor == null) {
+      return false;
+    }
+
+    return StringUtils.contains(path, ancestor.getUid());
+  }
+
   public Set<OrganisationUnit> getChildrenThisIfEmpty() {
     Set<OrganisationUnit> set = new HashSet<>();
 
