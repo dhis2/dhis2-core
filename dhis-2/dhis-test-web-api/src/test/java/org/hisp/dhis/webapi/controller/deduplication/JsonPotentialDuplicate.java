@@ -25,48 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.monitoring.metrics.jdbc;
+package org.hisp.dhis.webapi.controller.deduplication;
 
-import javax.sql.DataSource;
+import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * A base {@link DataSourcePoolMetadata} implementation.
- *
- * @param <T> the data source type
- * @author Stephane Nicoll
- * @since 2.0.0
- */
-public abstract class AbstractDataSourcePoolMetadata<T extends DataSource>
-    implements DataSourcePoolMetadata {
-
-  private final T dataSource;
-
-  /**
-   * Create an instance with the data source to use.
-   *
-   * @param dataSource the data source
-   */
-  protected AbstractDataSourcePoolMetadata(T dataSource) {
-    this.dataSource = dataSource;
+/** Representation of {@link org.hisp.dhis.deduplication.PotentialDuplicate}. */
+public interface JsonPotentialDuplicate extends JsonObject {
+  default String getUid() {
+    return getString("id").string();
   }
 
-  @Override
-  public Float getUsage() {
-    Integer maxSize = getMax();
-    Integer currentSize = getActive();
-    if (maxSize == null || currentSize == null) {
-      return null;
-    }
-    if (maxSize < 0) {
-      return -1F;
-    }
-    if (currentSize == 0) {
-      return 0F;
-    }
-    return (float) currentSize / (float) maxSize;
+  default String getOriginal() {
+    return getString("original").string();
   }
 
-  protected final T getDataSource() {
-    return this.dataSource;
+  default String getDuplicate() {
+    return getString("duplicate").string();
+  }
+
+  default String getLastUpdated() {
+    return getString("lastUpdated").string();
+  }
+
+  default String getCreated() {
+    return getString("created").string();
+  }
+
+  default String getStatus() {
+    return getString("status").string();
   }
 }

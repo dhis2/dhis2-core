@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,14 @@ package org.hisp.dhis.datastore.hibernate;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.copyOfRange;
 import static java.util.Collections.emptyList;
+import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.datastore.DatastoreEntry;
@@ -45,6 +46,7 @@ import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.DatastoreStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -56,13 +58,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<DatastoreEntry>
     implements DatastoreStore {
   public HibernateDatastoreStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         DatastoreEntry.class,
@@ -86,7 +88,12 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public List<String> getKeysInNamespace(String namespace, Date lastUpdated) {
-    String hql = "select key from DatastoreEntry where namespace = :namespace";
+    User currentUser = currentUserService.getCurrentUser();
+    String accessFilter =
+        generateHqlQueryForSharingCheck("ds", currentUser, AclService.LIKE_READ_METADATA);
+
+    String hql =
+        "select key from DatastoreEntry ds where namespace = :namespace and " + accessFilter;
 
     if (lastUpdated != null) {
       hql += " and lastupdated >= :lastUpdated ";
@@ -113,8 +120,13 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform) {
+    User currentUser = currentUserService.getCurrentUser();
+    String accessFilter =
+        generateHqlQueryForSharingCheck("ds", currentUser, AclService.LIKE_READ_METADATA);
     DatastoreQueryBuilder builder =
-        new DatastoreQueryBuilder("from DatastoreEntry where namespace = :namespace", query);
+        new DatastoreQueryBuilder(
+            "from DatastoreEntry ds where namespace = :namespace and " + accessFilter, query);
+
     String hql = builder.createFetchHQL();
 
     Query<?> hQuery =

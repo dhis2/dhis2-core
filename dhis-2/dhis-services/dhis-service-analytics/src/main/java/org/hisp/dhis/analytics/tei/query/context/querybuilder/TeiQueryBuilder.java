@@ -162,7 +162,7 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
     dimensionIdentifier.getDimensionIdentifierType() == TEI
         ||
         // Will match all dimensionIdentifiers whose type is PROGRAM_ATTRIBUTE.
-        // e.g. {programUid}.{attributeUid}
+        // e.g. {attributeUid}
         isOfType(dimensionIdentifier, PROGRAM_ATTRIBUTE);
   }
 

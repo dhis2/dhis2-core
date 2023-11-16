@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
+
 import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -72,6 +74,7 @@ class EnrollmentOperationParamsMapper {
 
     User user = currentUserService.getCurrentUser();
     Set<OrganisationUnit> orgUnits = validateOrgUnits(operationParams.getOrgUnitUids(), user);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
     params.setProgram(program);
@@ -134,10 +137,6 @@ class EnrollmentOperationParamsMapper {
 
   private Set<OrganisationUnit> validateOrgUnits(Set<String> orgUnitUids, User user)
       throws BadRequestException, ForbiddenException {
-    Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
-    if (user != null) {
-      possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
-    }
 
     Set<OrganisationUnit> orgUnits = new HashSet<>();
     if (orgUnitUids != null) {
@@ -150,7 +149,8 @@ class EnrollmentOperationParamsMapper {
 
         if (user != null
             && !user.isSuper()
-            && !organisationUnitService.isInUserHierarchy(orgUnitUid, possibleSearchOrgUnits)) {
+            && !organisationUnitService.isInUserHierarchy(
+                orgUnitUid, user.getTeiSearchOrganisationUnitsWithFallback())) {
           throw new ForbiddenException(
               "Organisation unit is not part of the search scope: " + orgUnitUid);
         }

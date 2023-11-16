@@ -394,12 +394,12 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     // Enrollments (Enrollments)
     Enrollment piA = enrollmentService.enrollTrackedEntity(teiA, programA, jan1, jan1, ouE);
     piA.setEnrollmentDate(jan1);
-    piA.setIncidentDate(jan1);
+    piA.setOccurredDate(jan1);
     enrollmentService.addEnrollment(piA);
 
     Enrollment piB = enrollmentService.enrollTrackedEntity(teiA, programB, jan1, jan1, ouE);
     piB.setEnrollmentDate(jan1);
-    piB.setIncidentDate(jan1);
+    piB.setOccurredDate(jan1);
     enrollmentService.addEnrollment(piB);
 
     // Change programA / teiA ownership through time:
@@ -416,8 +416,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     // Program Stage Instances (Events)
     Event eventA1 = createEvent(psA, piA, ouI);
-    eventA1.setDueDate(jan15);
-    eventA1.setExecutionDate(jan15);
+    eventA1.setScheduledDate(jan15);
+    eventA1.setOccurredDate(jan15);
     eventA1.setUid("event0000A1");
     eventA1.setEventDataValues(
         Set.of(
@@ -425,8 +425,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     eventA1.setAttributeOptionCombo(cocDefault);
 
     Event eventA2 = createEvent(psA, piA, ouJ);
-    eventA2.setDueDate(feb15);
-    eventA2.setExecutionDate(feb15);
+    eventA2.setScheduledDate(feb15);
+    eventA2.setOccurredDate(feb15);
     eventA2.setUid("event0000A2");
     eventA2.setEventDataValues(
         Set.of(
@@ -434,8 +434,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     eventA2.setAttributeOptionCombo(cocDefault);
 
     Event eventA3 = createEvent(psA, piA, ouK);
-    eventA3.setDueDate(mar15);
-    eventA3.setExecutionDate(mar15);
+    eventA3.setScheduledDate(mar15);
+    eventA3.setOccurredDate(mar15);
     eventA3.setUid("event0000A3");
     eventA3.setEventDataValues(
         Set.of(
@@ -443,64 +443,64 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     eventA3.setAttributeOptionCombo(cocDefault);
 
     Event eventB1 = createEvent(psB, piB, ouI);
-    eventB1.setDueDate(jan15);
-    eventB1.setExecutionDate(jan15);
+    eventB1.setScheduledDate(jan15);
+    eventB1.setOccurredDate(jan15);
     eventB1.setUid("event0000B1");
     eventB1.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "10"), new EventDataValue(deB.getUid(), "A")));
     eventB1.setAttributeOptionCombo(cocDefault);
 
     Event eventB2 = createEvent(psB, piB, ouI);
-    eventB2.setDueDate(jan20);
-    eventB2.setExecutionDate(jan20);
+    eventB2.setScheduledDate(jan20);
+    eventB2.setOccurredDate(jan20);
     eventB2.setUid("event0000B2");
     eventB2.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "20"), new EventDataValue(deB.getUid(), "B")));
     eventB2.setAttributeOptionCombo(cocDefault);
 
     Event eventB3 = createEvent(psB, piB, ouJ);
-    eventB3.setDueDate(jan15);
-    eventB3.setExecutionDate(jan15);
+    eventB3.setScheduledDate(jan15);
+    eventB3.setOccurredDate(jan15);
     eventB3.setUid("event0000B3");
     eventB3.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "30"), new EventDataValue(deB.getUid(), "C")));
     eventB3.setAttributeOptionCombo(cocDefault);
 
     Event eventB4 = createEvent(psB, piB, ouJ);
-    eventB4.setDueDate(jan20);
-    eventB4.setExecutionDate(jan20);
+    eventB4.setScheduledDate(jan20);
+    eventB4.setOccurredDate(jan20);
     eventB4.setUid("event0000B4");
     eventB4.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "40"), new EventDataValue(deB.getUid(), "D")));
     eventB4.setAttributeOptionCombo(cocDefault);
 
     Event eventB5 = createEvent(psB, piB, ouI);
-    eventB5.setDueDate(feb15);
-    eventB5.setExecutionDate(feb15);
+    eventB5.setScheduledDate(feb15);
+    eventB5.setOccurredDate(feb15);
     eventB5.setUid("event0000B5");
     eventB5.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "50"), new EventDataValue(deB.getUid(), "E")));
     eventB5.setAttributeOptionCombo(cocDefault);
 
     Event eventB6 = createEvent(psB, piB, ouI);
-    eventB6.setDueDate(feb15Noon);
-    eventB6.setExecutionDate(feb15Noon);
+    eventB6.setScheduledDate(feb15Noon);
+    eventB6.setOccurredDate(feb15Noon);
     eventB6.setUid("event0000B6");
     eventB6.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "60"), new EventDataValue(deB.getUid(), "F")));
     eventB6.setAttributeOptionCombo(cocDefault);
 
     Event eventB7 = createEvent(psB, piB, ouJ);
-    eventB7.setDueDate(feb15);
-    eventB7.setExecutionDate(feb15);
+    eventB7.setScheduledDate(feb15);
+    eventB7.setOccurredDate(feb15);
     eventB7.setUid("event0000B7");
     eventB7.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "70"), new EventDataValue(deB.getUid(), "G")));
     eventB7.setAttributeOptionCombo(cocDefault);
 
     Event eventB8 = createEvent(psB, piB, ouJ);
-    eventB8.setDueDate(feb15Noon);
-    eventB8.setExecutionDate(feb15Noon);
+    eventB8.setScheduledDate(feb15Noon);
+    eventB8.setOccurredDate(feb15Noon);
     eventB8.setUid("event0000B8");
     eventB8.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "80"), new EventDataValue(deB.getUid(), "H")));

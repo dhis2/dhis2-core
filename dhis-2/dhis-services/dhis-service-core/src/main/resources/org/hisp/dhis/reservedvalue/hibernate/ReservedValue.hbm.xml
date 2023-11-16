@@ -24,7 +24,7 @@
 
     </class>
 
-    <sql-query name="getRandomGeneratedAvailableValuesNamedQuery">
+    <sql-query name="getRandomGeneratedValuesNotAvailableNamedQuery">
         <![CDATA[ SELECT value
         FROM
         trackedentityattributevalue teav

@@ -28,11 +28,11 @@
 
     <property name="lastUpdatedByUserInfo" type="jbUserInfoSnapshot" column="lastupdatedbyuserinfo"/>
 
-    <property name="incidentDate" column="incidentDate"/>
+    <property name="occurredDate" column="occurreddate"/>
 
     <property name="enrollmentDate" column="enrollmentdate" not-null="true"/>
 
-    <property name="endDate" column="enddate"/>
+    <property name="completedDate" column="completeddate"/>
 
     <property name="followup" column="followup"/>
 
@@ -59,7 +59,7 @@
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" not-null="true" foreign-key="fk_programinstance_programid" lazy="false" />
 
-    <set name="events" order-by="executionDate,duedate" inverse="true">
+    <set name="events" order-by="occurreddate,scheduleddate" inverse="true">
       <key column="enrollmentid"/>
       <one-to-many class="org.hisp.dhis.program.Event"/>
     </set>

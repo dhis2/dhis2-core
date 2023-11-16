@@ -31,8 +31,9 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.util.Date;
 import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
@@ -50,13 +51,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @RequiredArgsConstructor
 public class HibernateDataIntegrityStore implements DataIntegrityStore {
-  private final SessionFactory sessionFactory;
+  @PersistenceContext private final EntityManager entityManager;
 
   @Override
   @Transactional(readOnly = true)
   public DataIntegritySummary querySummary(DataIntegrityCheck check, String sql) {
     Date startTime = new Date();
-    Object summary = sessionFactory.getCurrentSession().createNativeQuery(sql).getSingleResult();
+    Object summary = entityManager.createNativeQuery(sql).getSingleResult();
     return new DataIntegritySummary(
         check, startTime, new Date(), null, parseCount(summary), parsePercentage(summary));
   }
@@ -66,7 +67,7 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore {
   public DataIntegrityDetails queryDetails(DataIntegrityCheck check, String sql) {
     Date startTime = new Date();
     @SuppressWarnings("unchecked")
-    List<Object[]> rows = sessionFactory.getCurrentSession().createNativeQuery(sql).getResultList();
+    List<Object[]> rows = entityManager.createNativeQuery(sql).getResultList();
     return new DataIntegrityDetails(
         check,
         startTime,

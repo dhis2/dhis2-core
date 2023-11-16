@@ -184,7 +184,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
       enrollment = enrollmentService.getEnrollment(enrollmentid.getUid());
       // Update these dates in case they've changed
       enrollment.setEnrollmentDate(enrollmentDate);
-      enrollment.setIncidentDate(incidentDate);
+      enrollment.setOccurredDate(incidentDate);
     } else {
       enrollment =
           enrollmentService.enrollTrackedEntity(

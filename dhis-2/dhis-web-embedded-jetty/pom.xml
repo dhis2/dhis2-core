@@ -36,11 +36,6 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-core</artifactId>
-      <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-administration</artifactId>
       <type>jar</type>
     </dependency>

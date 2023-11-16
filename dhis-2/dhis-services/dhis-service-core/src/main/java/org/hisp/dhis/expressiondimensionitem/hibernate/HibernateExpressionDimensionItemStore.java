@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.expressiondimensionitem.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.security.acl.AclService;
@@ -45,13 +45,13 @@ public class HibernateExpressionDimensionItemStore
     extends HibernateIdentifiableObjectStore<ExpressionDimensionItem> {
   @Autowired
   public HibernateExpressionDimensionItemStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         ExpressionDimensionItem.class,

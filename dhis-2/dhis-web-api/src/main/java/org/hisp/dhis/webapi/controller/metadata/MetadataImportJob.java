@@ -82,7 +82,7 @@ public class MetadataImportJob implements Job {
     MetadataImportParams params = (MetadataImportParams) config.getJobParameters();
     progress.startingStage("Loading file resource");
     FileResource data =
-        progress.runStage(() -> fileResourceService.getFileResource(config.getUid()));
+        progress.runStage(() -> fileResourceService.getExistingFileResource(config.getUid()));
     progress.startingStage("Loading file content");
     try (InputStream input =
         progress.runStage(() -> fileResourceService.getFileResourceContent(data))) {
@@ -100,6 +100,17 @@ public class MetadataImportJob implements Job {
         progress.failedProcess("Import failed, no summary available");
         return;
       }
+
+      if (report.hasErrorReports()) {
+        report.forEachErrorReport(
+            r ->
+                progress.addError(
+                    r.getErrorCode(),
+                    r.getMainId(),
+                    r.getMainKlass().getSimpleName(),
+                    r.getArgs()));
+      }
+
       notifier.addJobSummary(config, report, ImportReport.class);
       Stats count = report.getStats();
       Consumer<String> endProcess =

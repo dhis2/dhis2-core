@@ -40,7 +40,7 @@ import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.hisp.dhis.system.startup.StartupListener;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.springframework.core.annotation.Order;
-import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
+import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
@@ -104,8 +104,9 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addMappingForUrlPatterns(null, false, "/api/*");
 
     FilterRegistration.Dynamic openSessionInViewFilter =
-        context.addFilter("openSessionInViewFilter", OpenSessionInViewFilter.class);
-    openSessionInViewFilter.setInitParameter("sessionFactoryBeanName", "sessionFactory");
+        context.addFilter("openSessionInViewFilter", OpenEntityManagerInViewFilter.class);
+    openSessionInViewFilter.setInitParameter(
+        "entityManagerFactoryBeanName", "entityManagerFactory");
     openSessionInViewFilter.addMappingForUrlPatterns(null, false, "/*");
     openSessionInViewFilter.addMappingForServletNames(null, false, "dispatcher");
 

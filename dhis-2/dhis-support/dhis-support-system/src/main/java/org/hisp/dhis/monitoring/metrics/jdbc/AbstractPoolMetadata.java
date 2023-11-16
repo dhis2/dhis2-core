@@ -25,27 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.springframework.stereotype.Component;
+import javax.sql.DataSource;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * A base {@link PoolMetadata} implementation.
+ *
+ * @param <T> the data source type
+ * @author Stephane Nicoll
+ * @since 2.0.0
  */
-@Component
-@RequiredArgsConstructor
-public class TrackerSyncImporter {
+public abstract class AbstractPoolMetadata<T extends DataSource> implements PoolMetadata {
 
-  @Nonnull private final TrackerImportService trackerImportService;
+  private final T dataSource;
 
-  public ImportReport importTracker(TrackerImportParams params) {
-    ImportReport importReport = trackerImportService.importTracker(params);
+  /**
+   * Create an instance with the data source to use.
+   *
+   * @param dataSource the data source
+   */
+  protected AbstractPoolMetadata(T dataSource) {
+    this.dataSource = dataSource;
+  }
 
-    return trackerImportService.buildImportReport(importReport, params.getReportMode());
+  @Override
+  public Float getUsage() {
+    Integer maxSize = getMax();
+    Integer currentSize = getActive();
+    if (maxSize == null || currentSize == null) {
+      return null;
+    }
+    if (maxSize < 0) {
+      return -1F;
+    }
+    if (currentSize == 0) {
+      return 0F;
+    }
+    return (float) currentSize / (float) maxSize;
+  }
+
+  protected final T getDataSource() {
+    return this.dataSource;
   }
 }

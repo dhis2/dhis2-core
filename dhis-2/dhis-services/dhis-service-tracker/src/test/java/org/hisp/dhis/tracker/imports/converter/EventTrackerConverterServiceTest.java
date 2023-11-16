@@ -115,12 +115,12 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
     event.setAutoFields();
     event.setAttributeOptionCombo(createCategoryOptionCombo('C'));
     event.setCreated(today);
-    event.setExecutionDate(today);
+    event.setOccurredDate(today);
     event.setEnrollment(enrollment);
     event.setOrganisationUnit(organisationUnit);
     event.setProgramStage(programStage);
     event.setEventDataValues(Sets.newHashSet());
-    event.setDueDate(null);
+    event.setScheduledDate(null);
     event.setCompletedDate(null);
     event.setStoredBy(user.getUsername());
     event.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));

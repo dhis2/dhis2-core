@@ -35,9 +35,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
-import org.hibernate.SessionFactory;
+import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
@@ -52,12 +53,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class SchemaToDataFetcher {
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
 
-  public SchemaToDataFetcher(SessionFactory sessionFactory) {
-    checkNotNull(sessionFactory);
+  public SchemaToDataFetcher(EntityManager entityManager) {
+    checkNotNull(entityManager);
 
-    this.sessionFactory = sessionFactory;
+    this.entityManager = entityManager;
   }
 
   /**
@@ -85,10 +86,9 @@ public class SchemaToDataFetcher {
       final String fields = extractUniqueFields(uniqueProperties);
 
       objects =
-          sessionFactory
-              .getCurrentSession()
+          entityManager
               .createQuery("SELECT " + fields + " from " + schema.getKlass().getSimpleName())
-              .setReadOnly(true)
+              .setHint(QueryHints.HINT_READONLY, true)
               .getResultList();
     }
 

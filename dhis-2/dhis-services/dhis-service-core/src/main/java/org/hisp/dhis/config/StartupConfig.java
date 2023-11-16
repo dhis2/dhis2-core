@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.config;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManagerFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator;
@@ -37,7 +37,6 @@ import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodTypePopulator;
-import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobScheduler;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.startup.ConfigurationPopulator;
@@ -57,8 +56,8 @@ import org.springframework.context.annotation.Configuration;
 public class StartupConfig {
   @Bean("org.hisp.dhis.period.PeriodTypePopulator")
   public PeriodTypePopulator periodTypePopulator(
-      PeriodStore periodStore, SessionFactory sessionFactory) {
-    PeriodTypePopulator populator = new PeriodTypePopulator(periodStore, sessionFactory);
+      PeriodStore periodStore, EntityManagerFactory entityManagerFactory) {
+    PeriodTypePopulator populator = new PeriodTypePopulator(periodStore, entityManagerFactory);
     populator.setName("PeriodTypePopulator");
     populator.setRunlevel(3);
     return populator;
@@ -124,9 +123,8 @@ public class StartupConfig {
   }
 
   @Bean
-  public SchedulerStart schedulerStart(
-      JobScheduler scheduler, JobConfigurationService jobConfigurationService) {
-    SchedulerStart schedulerStart = new SchedulerStart(scheduler, jobConfigurationService);
+  public SchedulerStart schedulerStart(JobScheduler scheduler) {
+    SchedulerStart schedulerStart = new SchedulerStart(scheduler);
     schedulerStart.setRunlevel(15);
     schedulerStart.setSkipInTests(true);
     return schedulerStart;

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryStore;
 import org.springframework.stereotype.Repository;
@@ -37,10 +37,10 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("org.hisp.dhis.program.ProgramOwnershipHistoryStore")
 public class HibernateProgramOwnershipHistoryStore implements ProgramOwnershipHistoryStore {
-  private SessionFactory sessionFactory;
+  private EntityManager entityManager;
 
-  public HibernateProgramOwnershipHistoryStore(SessionFactory sessionFactory) {
-    this.sessionFactory = sessionFactory;
+  public HibernateProgramOwnershipHistoryStore(EntityManager entityManager) {
+    this.entityManager = entityManager;
   }
 
   // -------------------------------------------------------------------------
@@ -49,6 +49,6 @@ public class HibernateProgramOwnershipHistoryStore implements ProgramOwnershipHi
 
   @Override
   public void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory) {
-    sessionFactory.getCurrentSession().save(programOwnershipHistory);
+    entityManager.persist(programOwnershipHistory);
   }
 }

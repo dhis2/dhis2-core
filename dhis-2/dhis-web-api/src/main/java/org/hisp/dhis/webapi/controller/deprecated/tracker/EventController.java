@@ -59,6 +59,7 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javax.persistence.EntityManagerFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -194,6 +195,8 @@ public class EventController {
   private final ContextUtils contextUtils;
 
   private final DhisConfigurationProvider dhisConfig;
+
+  private final EntityManagerFactory entityManagerFactory;
 
   private Schema schema;
 
@@ -1195,7 +1198,8 @@ public class EventController {
     JobConfiguration jobId =
         new JobConfiguration(
             "inMemoryEventImport", EVENT_IMPORT, currentUserService.getCurrentUser().getUid());
-    taskExecutor.executeTask(new ImportEventsTask(events, eventService, importOptions, jobId));
+    taskExecutor.executeTask(
+        new ImportEventsTask(events, eventService, importOptions, jobId, entityManagerFactory));
 
     return jobConfigurationReport(jobId);
   }

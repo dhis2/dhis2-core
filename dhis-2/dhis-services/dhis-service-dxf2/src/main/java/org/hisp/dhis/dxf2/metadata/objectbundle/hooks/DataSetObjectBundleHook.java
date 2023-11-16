@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -94,8 +93,6 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
       DataSet persistedDataSet, DataSet importDataSet, ObjectBundle bundle) {
     if (!bundle.isMetadataSyncImport()) return;
 
-    Session session = sessionFactory.getCurrentSession();
-
     List<String> importIds =
         importDataSet.getSections().stream()
             .map(IdentifiableObject::getUid)
@@ -103,16 +100,15 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
 
     persistedDataSet.getSections().stream()
         .filter(section -> !importIds.contains(section.getUid()))
-        .forEach(session::delete);
+        .forEach(getSession()::delete);
   }
 
   private void deleteRemovedDataElementFromSection(
       DataSet persistedDataSet, DataSet importDataSet) {
-    Session session = sessionFactory.getCurrentSession();
 
     persistedDataSet.getSections().stream()
         .peek(section -> section.setDataElements(getUpdatedDataElements(importDataSet, section)))
-        .forEach(session::update);
+        .forEach(getSession()::update);
   }
 
   private List<DataElement> getUpdatedDataElements(DataSet importDataSet, Section section) {

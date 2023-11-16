@@ -32,10 +32,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
@@ -64,11 +64,11 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
   private final PeriodStore periodStore;
 
   public HibernateDataValueAuditStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       PeriodStore periodStore) {
-    super(sessionFactory, jdbcTemplate, publisher, DataValueAudit.class, false);
+    super(entityManager, jdbcTemplate, publisher, DataValueAudit.class, false);
 
     checkNotNull(periodStore);
 

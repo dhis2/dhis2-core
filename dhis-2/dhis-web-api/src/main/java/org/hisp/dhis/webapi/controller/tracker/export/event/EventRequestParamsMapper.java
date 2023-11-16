@@ -59,6 +59,8 @@ import org.springframework.stereotype.Component;
 class EventRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
 
+  private final EventFieldsParamMapper eventsMapper;
+
   public EventOperationParams map(RequestParams requestParams) throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
         validateDeprecatedParameter(
@@ -122,8 +124,8 @@ class EventRequestParamsMapper {
             .orgUnitMode(orgUnitMode)
             .assignedUserMode(requestParams.getAssignedUserMode())
             .assignedUsers(UID.toValueSet(assignedUsers))
-            .startDate(requestParams.getOccurredAfter())
-            .endDate(requestParams.getOccurredBefore())
+            .occurredAfter(requestParams.getOccurredAfter())
+            .occurredBefore(requestParams.getOccurredBefore())
             .scheduledAfter(requestParams.getScheduledAfter())
             .scheduledBefore(requestParams.getScheduledBefore())
             .updatedAfter(requestParams.getUpdatedAfter())
@@ -144,7 +146,8 @@ class EventRequestParamsMapper {
             .attributeFilters(attributeFilters)
             .events(UID.toValueSet(eventUids))
             .enrollments(UID.toValueSet(requestParams.getEnrollments()))
-            .includeDeleted(requestParams.isIncludeDeleted());
+            .includeDeleted(requestParams.isIncludeDeleted())
+            .eventParams(eventsMapper.map(requestParams.getFields()));
 
     mapOrderParam(builder, requestParams.getOrder());
 

@@ -69,6 +69,9 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
   @CheckForNull
   String getProgress(@Nonnull String jobId);
 
+  @CheckForNull
+  String getErrors(@Nonnull String jobId);
+
   /**
    * @return UIDs of all existing job configurations.
    */
@@ -111,6 +114,13 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    *     or delay time
    */
   Stream<JobConfiguration> getDueJobConfigurations(boolean includeWaiting);
+
+  /**
+   * @param params query parameters (criteria) to find
+   * @return all job configurations that match the query parameters
+   */
+  @Nonnull
+  Stream<String> findJobRunErrors(@Nonnull JobRunErrorsParams params);
 
   /**
    * @return A list of all job types that are currently in {@link JobStatus#RUNNING} state.
@@ -201,7 +211,8 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    */
   boolean trySkip(@Nonnull String queue);
 
-  void updateProgress(@Nonnull String jobId, @CheckForNull String progressJson);
+  void updateProgress(
+      @Nonnull String jobId, @CheckForNull String progressJson, @CheckForNull String errorCodes);
 
   /**
    * Switches {@link JobConfiguration#getJobStatus()} to {@link JobStatus#DISABLED} for any job that

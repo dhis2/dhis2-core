@@ -32,6 +32,14 @@ import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.springframework.stereotype.Service;
@@ -39,13 +47,56 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DimensionMapperService {
+
+  private static final String PROGRAM_ATTRIBUTE = "PROGRAM_ATTRIBUTE";
   private final Collection<DimensionMapper> mappers;
 
   public List<DimensionResponse> toDimensionResponse(
       Collection<PrefixedDimension> dimensions, PrefixStrategy prefixStrategy) {
-    return mapToList(
-        dimensions,
-        pDimension -> toDimensionResponse(pDimension, prefixStrategy.apply(pDimension)));
+    return toDimensionResponse(dimensions, prefixStrategy, false);
+  }
+
+  public List<DimensionResponse> toDimensionResponse(
+      Collection<PrefixedDimension> dimensions, PrefixStrategy prefixStrategy, boolean distinct) {
+
+    UnaryOperator<List<DimensionResponse>> distinctFunction =
+        distinct ? this::distinctBy : UnaryOperator.identity();
+
+    return distinctFunction.apply(
+        mapToList(
+            dimensions,
+            pDimension -> toDimensionResponse(pDimension, prefixStrategy.apply(pDimension))));
+  }
+
+  private List<DimensionResponse> distinctBy(List<DimensionResponse> dimensionResponses) {
+
+    // dimensionResponses by type
+    Map<String, List<DimensionResponse>> byType =
+        dimensionResponses.stream()
+            .collect(Collectors.groupingBy(DimensionResponse::getDimensionType));
+
+    // we're gonna distinct by id (fully prefixed) for all whose type is not PROGRAM_ATTRIBUTE
+    Stream<DimensionResponse> byId =
+        byType.keySet().stream()
+            .filter(k -> !k.equals(PROGRAM_ATTRIBUTE))
+            .map(byType::get)
+            .flatMap(List::stream)
+            .filter(distinctBy(DimensionResponse::getId));
+
+    // we're gonna distinct by Uid for all whose type is PROGRAM_ATTRIBUTE
+    Stream<DimensionResponse> programAttributes =
+        byType.keySet().stream()
+            .filter(k -> k.equals(PROGRAM_ATTRIBUTE))
+            .map(byType::get)
+            .flatMap(List::stream)
+            .filter(distinctBy(DimensionResponse::getUid));
+
+    return Stream.concat(byId, programAttributes).toList();
+  }
+
+  private static <T> Predicate<T> distinctBy(Function<? super T, ?> keyExtractor) {
+    Set<Object> seen = ConcurrentHashMap.newKeySet();
+    return t -> seen.add(keyExtractor.apply(t));
   }
 
   private DimensionResponse toDimensionResponse(PrefixedDimension dimension, String prefix) {
@@ -56,6 +107,6 @@ public class DimensionMapperService {
         .orElseThrow(
             () ->
                 new IllegalArgumentException(
-                    "Unsupported dimension type: " + getRealClass(dimension)));
+                    "Unsupported dimension type: " + getRealClass(dimension.getItem())));
   }
 }

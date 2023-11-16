@@ -28,31 +28,25 @@
 package org.hisp.dhis.scheduling;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import lombok.*;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.feedback.ErrorCode;
 
 /**
  *
@@ -142,6 +136,24 @@ public interface JobProgress {
    */
   default boolean isSkipCurrentStage() {
     return isCancelled();
+  }
+
+  /*
+  Error reporting API:
+  */
+
+  default void addError(
+      @Nonnull ErrorCode code, @CheckForNull String uid, @Nonnull String type, String... args) {
+    addError(code, uid, type, List.of(args));
+  }
+
+  default void addError(
+      @Nonnull ErrorCode code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      @Nonnull List<String> args) {
+    // is overridden by a tracker that collects errors
+    // default is to not collect errors
   }
 
   /*
@@ -563,15 +575,80 @@ public interface JobProgress {
   @Getter
   final class Progress {
 
-    @JsonValue final Deque<Process> sequence;
+    @Nonnull @JsonProperty final Deque<Process> sequence;
+
+    @Nonnull
+    @JsonProperty
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private final Map<String, Map<ErrorCode, Queue<Error>>> errors;
 
     public Progress() {
       this.sequence = new ConcurrentLinkedDeque<>();
+      this.errors = new ConcurrentHashMap<>();
     }
 
     @JsonCreator
-    public Progress(Deque<Process> sequence) {
+    public Progress(
+        @Nonnull @JsonProperty("sequence") Deque<Process> sequence,
+        @CheckForNull @JsonProperty("errors") Map<String, Map<ErrorCode, Queue<Error>>> errors) {
       this.sequence = sequence;
+      this.errors = errors == null ? Map.of() : errors;
+    }
+
+    public void addError(Error error) {
+      Queue<Error> sameObjectAndCode =
+          errors
+              .computeIfAbsent(error.getId(), key -> new ConcurrentHashMap<>())
+              .computeIfAbsent(error.getCode(), key2 -> new ConcurrentLinkedQueue<>());
+      if (sameObjectAndCode.stream().noneMatch(e -> e.args.equals(error.args))) {
+        sameObjectAndCode.add(error);
+      }
+    }
+
+    public boolean hasErrors() {
+      return !errors.isEmpty();
+    }
+
+    public Set<ErrorCode> getErrorCodes() {
+      return errors.values().stream()
+          .flatMap(e -> e.keySet().stream())
+          .collect(toUnmodifiableSet());
+    }
+  }
+
+  @Getter
+  @Accessors(chain = true)
+  final class Error {
+
+    @Nonnull @JsonProperty private final ErrorCode code;
+
+    /** The object that has the error */
+    @Nonnull @JsonProperty private final String id;
+
+    /** The type of the object identified by #id that has the error */
+    @Nonnull @JsonProperty private final String type;
+
+    /** The arguments used in the {@link #code}'s {@link ErrorCode#getMessage()} template */
+    @Nonnull @JsonProperty private final List<String> args;
+
+    /**
+     * The message as created from {@link #code} and {@link #args}. This is only set in service
+     * layer for the web API using the setter, it is not persisted.
+     */
+    @Setter
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String message;
+
+    @JsonCreator
+    public Error(
+        @Nonnull @JsonProperty("code") ErrorCode code,
+        @Nonnull @JsonProperty("id") String id,
+        @Nonnull @JsonProperty("type") String type,
+        @Nonnull @JsonProperty("args") List<String> args) {
+      this.code = code;
+      this.id = id;
+      this.type = type;
+      this.args = args;
     }
   }
 
@@ -641,7 +718,7 @@ public interface JobProgress {
       this.stages = new ConcurrentLinkedDeque<>();
     }
 
-    /** For recreation when de-serializing from string */
+    /** For recreation when de-serializing from a JSON string */
     @JsonCreator
     public Process(
         @JsonProperty("error") String error,

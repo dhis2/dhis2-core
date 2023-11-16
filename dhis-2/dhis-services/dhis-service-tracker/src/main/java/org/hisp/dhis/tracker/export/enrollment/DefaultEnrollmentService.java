@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
@@ -124,9 +123,9 @@ class DefaultEnrollmentService
     result.setProgram(enrollment.getProgram());
     result.setStatus(enrollment.getStatus());
     result.setEnrollmentDate(enrollment.getEnrollmentDate());
-    result.setIncidentDate(enrollment.getIncidentDate());
+    result.setOccurredDate(enrollment.getOccurredDate());
     result.setFollowup(enrollment.getFollowup());
-    result.setEndDate(enrollment.getEndDate());
+    result.setCompletedDate(enrollment.getCompletedDate());
     result.setCompletedBy(enrollment.getCompletedBy());
     result.setStoredBy(enrollment.getStoredBy());
     result.setCreatedByUserInfo(enrollment.getCreatedByUserInfo());
@@ -209,14 +208,6 @@ class DefaultEnrollmentService
     } else if (user != null && queryParams.isOrganisationUnitMode(CAPTURE)) {
       queryParams.setOrganisationUnits(user.getOrganisationUnits());
       queryParams.setOrganisationUnitMode(DESCENDANTS);
-    } else if (queryParams.isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> organisationUnits = new HashSet<>(queryParams.getOrganisationUnits());
-
-      for (OrganisationUnit organisationUnit : queryParams.getOrganisationUnits()) {
-        organisationUnits.addAll(organisationUnit.getChildren());
-      }
-
-      queryParams.setOrganisationUnits(organisationUnits);
     }
 
     return getEnrollments(
@@ -290,14 +281,6 @@ class DefaultEnrollmentService
 
     if (params == null) {
       throw new IllegalQueryException("Params cannot be null");
-    }
-
-    User user = params.getUser();
-
-    if (params.isOrganisationUnitMode(ACCESSIBLE)
-        && (user == null || !user.hasDataViewOrganisationUnitWithFallback())) {
-      violation =
-          "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
     }
 
     if (params.hasProgram() && params.hasTrackedEntityType()) {

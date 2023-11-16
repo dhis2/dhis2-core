@@ -190,12 +190,12 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     event.setUid("PSUID-B");
     event.setOrganisationUnit(organisationUnit);
     event.setEnrollment(enrollment);
-    event.setExecutionDate(new Date());
+    event.setOccurredDate(new Date());
     eventWithTeiAssociation = new Event(enrollmentWithTeiAssociation, stageA);
     eventWithTeiAssociation.setUid("PSUID-C");
     eventWithTeiAssociation.setOrganisationUnit(organisationUnit);
     eventWithTeiAssociation.setEnrollment(enrollmentWithTeiAssociation);
-    eventWithTeiAssociation.setExecutionDate(new Date());
+    eventWithTeiAssociation.setOccurredDate(new Date());
     eventService.addEvent(eventWithTeiAssociation);
     relationshipType = createPersonToPersonRelationshipType('A', program, trackedEntityType, false);
     relationshipTypeService.addRelationshipType(relationshipType);
@@ -311,7 +311,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     DataElement dataElement = createDataElement('A');
     dataElementService.addDataElement(dataElement);
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
-    eventA.setDueDate(enrollmentDate);
+    eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     eventService.addEvent(eventA);
     TrackedEntityDataValueAudit trackedEntityDataValueAudit =
@@ -342,7 +342,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     rType.getFromConstraint().setTrackedEntityType(trackedEntity.getTrackedEntityType());
     relationshipTypeService.addRelationshipType(rType);
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
-    eventA.setDueDate(enrollmentDate);
+    eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     long idA = eventService.addEvent(eventA);
     Relationship r = new Relationship();

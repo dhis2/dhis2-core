@@ -406,7 +406,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
     return RuleEnrollment.create(
         enrollment.getUid(),
-        enrollment.getIncidentDate(),
+        enrollment.getOccurredDate(),
         enrollment.getEnrollmentDate(),
         RuleEnrollment.Status.valueOf(enrollment.getStatus().toString()),
         orgUnit,
@@ -438,8 +438,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         eventToEvaluate.getUid(),
         eventToEvaluate.getProgramStage().getUid(),
         RuleEvent.Status.valueOf(eventToEvaluate.getStatus().toString()),
-        ObjectUtils.defaultIfNull(eventToEvaluate.getExecutionDate(), eventToEvaluate.getDueDate()),
-        eventToEvaluate.getDueDate(),
+        ObjectUtils.defaultIfNull(
+            eventToEvaluate.getOccurredDate(), eventToEvaluate.getScheduledDate()),
+        eventToEvaluate.getScheduledDate(),
         orgUnit,
         orgUnitCode,
         eventToEvaluate.getEventDataValues().stream()
@@ -449,7 +450,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 dv ->
                     RuleDataValue.create(
                         ObjectUtils.defaultIfNull(
-                            eventToEvaluate.getExecutionDate(), eventToEvaluate.getDueDate()),
+                            eventToEvaluate.getOccurredDate(), eventToEvaluate.getScheduledDate()),
                         eventToEvaluate.getProgramStage().getUid(),
                         dv.getDataElement(),
                         dv.getValue()))

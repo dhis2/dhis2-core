@@ -25,38 +25,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import lombok.Builder;
-import lombok.Value;
-import org.hisp.dhis.artemis.MessageType;
-import org.hisp.dhis.artemis.SerializableMessage;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.HikariPool;
+import org.springframework.beans.DirectFieldAccessor;
 
 /**
- * Used by Apache Artemis to pass tracker import jobs from the /api/tracker endpoint to the tracker
- * import services.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs
  */
-@Value
-@Builder(builderClassName = "TrackerMessageBuilder")
-@JsonDeserialize(builder = TrackerMessage.TrackerMessageBuilder.class)
-public class TrackerMessage implements SerializableMessage {
-  @JsonProperty private final String uid;
+public class HikariPoolMetadataAccessor extends AbstractPoolMetadata<HikariDataSource> {
 
-  @JsonProperty private final String authentication;
-
-  @JsonProperty private final TrackerImportParams trackerImportParams;
-
-  @Override
-  public MessageType getMessageType() {
-    return MessageType.TRACKER_JOB;
+  public HikariPoolMetadataAccessor(HikariDataSource dataSource) {
+    super(dataSource);
   }
 
-  @JsonPOJOBuilder(withPrefix = "")
-  public static final class TrackerMessageBuilder {}
+  @Override
+  public Integer getActive() {
+    try {
+      return getHikariPool().getActiveConnections();
+    } catch (Exception ex) {
+      return null;
+    }
+  }
+
+  @Override
+  public Integer getIdle() {
+    try {
+      return getHikariPool().getIdleConnections();
+    } catch (Exception ex) {
+      return null;
+    }
+  }
+
+  private HikariPool getHikariPool() {
+    return (HikariPool) new DirectFieldAccessor(getDataSource()).getPropertyValue("pool");
+  }
+
+  @Override
+  public Integer getMax() {
+    return getDataSource().getMaximumPoolSize();
+  }
+
+  @Override
+  public Integer getMin() {
+    return getDataSource().getMinimumIdle();
+  }
+
+  @Override
+  public String getValidationQuery() {
+    return getDataSource().getConnectionTestQuery();
+  }
+
+  @Override
+  public Boolean getDefaultAutoCommit() {
+    return getDataSource().isAutoCommit();
+  }
 }
