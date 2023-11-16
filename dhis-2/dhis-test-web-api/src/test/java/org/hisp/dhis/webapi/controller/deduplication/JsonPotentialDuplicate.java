@@ -25,38 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.webapi.controller.deduplication;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import lombok.Builder;
-import lombok.Value;
-import org.hisp.dhis.artemis.MessageType;
-import org.hisp.dhis.artemis.SerializableMessage;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * Used by Apache Artemis to pass tracker import jobs from the /api/tracker endpoint to the tracker
- * import services.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Value
-@Builder(builderClassName = "TrackerMessageBuilder")
-@JsonDeserialize(builder = TrackerMessage.TrackerMessageBuilder.class)
-public class TrackerMessage implements SerializableMessage {
-  @JsonProperty private final String uid;
-
-  @JsonProperty private final String authentication;
-
-  @JsonProperty private final TrackerImportParams trackerImportParams;
-
-  @Override
-  public MessageType getMessageType() {
-    return MessageType.TRACKER_JOB;
+/** Representation of {@link org.hisp.dhis.deduplication.PotentialDuplicate}. */
+public interface JsonPotentialDuplicate extends JsonObject {
+  default String getUid() {
+    return getString("id").string();
   }
 
-  @JsonPOJOBuilder(withPrefix = "")
-  public static final class TrackerMessageBuilder {}
+  default String getOriginal() {
+    return getString("original").string();
+  }
+
+  default String getDuplicate() {
+    return getString("duplicate").string();
+  }
+
+  default String getLastUpdated() {
+    return getString("lastUpdated").string();
+  }
+
+  default String getCreated() {
+    return getString("created").string();
+  }
+
+  default String getStatus() {
+    return getString("status").string();
+  }
 }

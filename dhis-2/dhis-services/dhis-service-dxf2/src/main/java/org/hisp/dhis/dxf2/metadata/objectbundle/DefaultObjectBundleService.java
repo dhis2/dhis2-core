@@ -37,10 +37,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -78,7 +78,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
   private final CurrentUserService currentUserService;
   private final PreheatService preheatService;
   private final SchemaService schemaService;
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
   private final IdentifiableObjectManager manager;
   private final DbmsManager dbmsManager;
   private final HibernateCacheManager cacheManager;
@@ -125,7 +125,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
     }
 
     List<Class<? extends IdentifiableObject>> klasses = getSortedClasses(bundle);
-    Session session = sessionFactory.getCurrentSession();
+    Session session = entityManager.unwrap(Session.class);
 
     List<ObjectBundleHook<?>> commitHooks = objectBundleHooks.getCommitHooks(klasses);
     commitHooks.forEach(hook -> hook.preCommit(bundle));

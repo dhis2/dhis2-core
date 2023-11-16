@@ -29,9 +29,9 @@ package org.hisp.dhis.dxf2.deprecated.tracker.importer.context;
 
 import java.util.List;
 import java.util.Map;
+import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -71,7 +71,7 @@ public class WorkContextLoader {
 
   private static final UidGenerator uidGen = new UidGenerator();
 
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
 
   public WorkContextLoader(
       ProgramSupplier programSupplier,
@@ -85,7 +85,7 @@ public class WorkContextLoader {
       AssignedUserSupplier assignedUserSupplier,
       ServiceDelegatorSupplier serviceDelegatorSupplier,
       ProgramOrgUnitSupplier programOrgUnitSupplier,
-      SessionFactory sessionFactory) {
+      EntityManager entityManager) {
     this.programSupplier = programSupplier;
     this.organisationUnitSupplier = organisationUnitSupplier;
     this.trackedEntityInstanceSupplier = trackedEntityInstanceSupplier;
@@ -97,13 +97,13 @@ public class WorkContextLoader {
     this.assignedUserSupplier = assignedUserSupplier;
     this.programOrgUnitSupplier = programOrgUnitSupplier;
     this.serviceDelegatorSupplier = serviceDelegatorSupplier;
-    this.sessionFactory = sessionFactory;
+    this.entityManager = entityManager;
   }
 
   @Transactional(readOnly = true)
   public WorkContext load(
       ImportOptions importOptions, List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events) {
-    sessionFactory.getCurrentSession().flush();
+    entityManager.flush();
 
     ImportOptions localImportOptions = importOptions;
     // API allows a null Import Options

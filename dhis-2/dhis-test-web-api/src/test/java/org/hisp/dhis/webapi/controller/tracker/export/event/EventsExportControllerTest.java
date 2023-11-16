@@ -406,7 +406,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     Enrollment enrollment = new Enrollment(program, te, te.getOrganisationUnit());
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setStatus(ProgramStatus.COMPLETED);
     manager.save(enrollment);
     return enrollment;

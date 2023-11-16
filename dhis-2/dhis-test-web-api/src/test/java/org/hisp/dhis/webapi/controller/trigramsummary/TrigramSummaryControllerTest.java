@@ -188,7 +188,7 @@ class TrigramSummaryControllerTest extends DhisControllerConvenienceTest {
     enrollment = new Enrollment(program, tei, orgUnit);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setStatus(ProgramStatus.COMPLETED);
     enrollment.setFollowup(true);
     manager.save(enrollment);

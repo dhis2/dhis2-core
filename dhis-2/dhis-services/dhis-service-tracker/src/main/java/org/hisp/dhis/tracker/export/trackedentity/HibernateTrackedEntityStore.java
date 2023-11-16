@@ -44,12 +44,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -135,7 +135,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private final SystemSettingManager systemSettingManager;
 
   public HibernateTrackedEntityStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
@@ -144,7 +144,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       OrganisationUnitStore organisationUnitStore,
       SystemSettingManager systemSettingManager) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         TrackedEntity.class,
@@ -645,27 +645,67 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
-      SqlHelper orHlp = new SqlHelper(true);
-
-      orgUnits.append("AND (");
-
-      for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
-
-        OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
-        if (ou != null) {
-          orgUnits.append(orHlp.or()).append("OU.path LIKE '").append(ou.getPath()).append("%'");
-        }
-      }
-
-      orgUnits.append(") ");
-    } else if (!params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ALL)) {
-      orgUnits
-          .append("AND OU.organisationunitid IN (")
-          .append(getCommaDelimitedString(getIdentifiers(params.getOrgUnits())))
-          .append(") ");
+      orgUnits.append(getDescendantsQuery(params));
+    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
+      orgUnits.append(getChildrenQuery(params));
+    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
+      orgUnits.append(getSelectedQuery(params));
     }
 
     return orgUnits.toString();
+  }
+
+  private String getDescendantsQuery(TrackedEntityQueryParams params) {
+    StringBuilder orgUnits = new StringBuilder();
+    SqlHelper orHlp = new SqlHelper(true);
+
+    orgUnits.append("AND (");
+
+    for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
+
+      OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
+      if (ou != null) {
+        orgUnits.append(orHlp.or()).append("OU.path LIKE '").append(ou.getPath()).append("%'");
+      }
+    }
+
+    orgUnits.append(") ");
+
+    return orgUnits.toString();
+  }
+
+  private String getChildrenQuery(TrackedEntityQueryParams params) {
+    StringBuilder orgUnits = new StringBuilder();
+    SqlHelper orHlp = new SqlHelper(true);
+
+    orgUnits.append("AND (");
+
+    for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
+
+      OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
+      if (ou != null) {
+        orgUnits
+            .append(orHlp.or())
+            .append(" OU.path LIKE '")
+            .append(ou.getPath())
+            .append("%'")
+            .append(" AND (ou.hierarchylevel = ")
+            .append(ou.getHierarchyLevel())
+            .append(" OR ou.hierarchylevel = ")
+            .append((ou.getHierarchyLevel() + 1))
+            .append(")");
+      }
+    }
+
+    orgUnits.append(") ");
+
+    return orgUnits.toString();
+  }
+
+  private String getSelectedQuery(TrackedEntityQueryParams params) {
+    return "AND OU.organisationunitid IN ("
+        + getCommaDelimitedString(getIdentifiers(params.getOrgUnits()))
+        + ") ";
   }
 
   /**

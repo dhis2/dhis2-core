@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.mapping.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.mapping.Map;
@@ -45,12 +45,12 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.mapping.MapStore")
 public class HibernateMapStore extends HibernateIdentifiableObjectStore<Map> implements MapStore {
   public HibernateMapStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
-    super(sessionFactory, jdbcTemplate, publisher, Map.class, currentUserService, aclService, true);
+    super(entityManager, jdbcTemplate, publisher, Map.class, currentUserService, aclService, true);
   }
 
   @Override

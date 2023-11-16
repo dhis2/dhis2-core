@@ -29,7 +29,8 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationService;
@@ -55,7 +56,7 @@ class InterpretationDataOrgUnitMergeHandlerTest extends SingleSetupIntegrationTe
 
   @Autowired private DataOrgUnitMergeHandler mergeHandler;
 
-  @Autowired private SessionFactory sessionFactory;
+  @PersistenceContext private EntityManager entityManager;
 
   private OrganisationUnit ouA;
 
@@ -111,10 +112,9 @@ class InterpretationDataOrgUnitMergeHandlerTest extends SingleSetupIntegrationTe
    */
   private long getInterpretationCount(OrganisationUnit target) {
     return (Long)
-        sessionFactory
-            .getCurrentSession()
+        entityManager
             .createQuery("select count(*) from Interpretation i where i.organisationUnit = :target")
             .setParameter("target", target)
-            .uniqueResult();
+            .getSingleResult();
   }
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import static java.util.Collections.emptySet;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
@@ -140,6 +141,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private OrganisationUnit orgUnitB;
 
+  private OrganisationUnit orgUnitChildA;
+
   private TrackedEntityAttribute teaA;
 
   private TrackedEntityAttribute teaC;
@@ -163,6 +166,10 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   private TrackedEntity trackedEntityA;
 
   private TrackedEntity trackedEntityB;
+
+  private TrackedEntity trackedEntityChildA;
+
+  private TrackedEntity trackedEntityGrandchildA;
 
   private TrackedEntity trackedEntityC;
 
@@ -193,6 +200,16 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     manager.save(orgUnitB, false);
     OrganisationUnit orgUnitC = createOrganisationUnit('C');
     manager.save(orgUnitC, false);
+    orgUnitChildA = createOrganisationUnit("childA");
+    orgUnitChildA.setParent(orgUnitA);
+    manager.save(orgUnitChildA);
+    orgUnitA.setChildren(Set.of(orgUnitChildA));
+    manager.update(orgUnitA);
+    OrganisationUnit orgUnitGrandchildA = createOrganisationUnit("grandchildA");
+    orgUnitGrandchildA.setParent(orgUnitChildA);
+    manager.save(orgUnitGrandchildA);
+    orgUnitChildA.setChildren(Set.of(orgUnitGrandchildA));
+    manager.update(orgUnitChildA);
 
     admin = preCreateInjectAdminUser();
     admin.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
@@ -312,6 +329,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     trackedEntityA = createTrackedEntity(orgUnitA);
     trackedEntityA.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityA, false);
+
+    trackedEntityChildA = createTrackedEntity(orgUnitChildA);
+    trackedEntityChildA.setTrackedEntityType(trackedEntityTypeA);
+    manager.save(trackedEntityChildA, false);
+
+    trackedEntityGrandchildA = createTrackedEntity(orgUnitGrandchildA);
+    trackedEntityGrandchildA.setTrackedEntityType(trackedEntityTypeA);
+    manager.save(trackedEntityGrandchildA, false);
 
     enrollmentA =
         enrollmentService.enrollTrackedEntity(
@@ -485,7 +510,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     final List<TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams);
 
-    assertContainsOnly(List.of(trackedEntityA, trackedEntityB), trackedEntities);
+    assertContainsOnly(
+        List.of(trackedEntityA, trackedEntityB, trackedEntityChildA, trackedEntityGrandchildA),
+        trackedEntities);
   }
 
   @Test
@@ -759,7 +786,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnTrackedEntityIfEnrollmentOccurredAfterPassedDateAndTime()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Date oneHourBeforeIncidentDate = oneHourBefore(enrollmentA.getIncidentDate());
+    Date oneHourBeforeIncidentDate = oneHourBefore(enrollmentA.getOccurredDate());
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -778,7 +805,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnEmptyIfEnrollmentOccurredBeforePassedDateAndTime()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Date oneHourAfterIncidentDate = oneHourAfter(enrollmentA.getIncidentDate());
+    Date oneHourAfterIncidentDate = oneHourAfter(enrollmentA.getOccurredDate());
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -797,7 +824,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnTrackedEntityIfEnrollmentOccurredBeforePassedDateAndTime()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Date oneHourAfterIncidentDate = oneHourAfter(enrollmentA.getIncidentDate());
+    Date oneHourAfterIncidentDate = oneHourAfter(enrollmentA.getOccurredDate());
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -816,7 +843,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnEmptyIfEnrollmentOccurredPassedDateAndTime()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Date oneHourBeforeIncidentDate = oneHourBefore(enrollmentA.getIncidentDate());
+    Date oneHourBeforeIncidentDate = oneHourBefore(enrollmentA.getOccurredDate());
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -1265,7 +1292,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         () -> checkDate(currentTime, enrollment.getLastUpdated()),
         () -> checkDate(currentTime, enrollment.getLastUpdatedAtClient()),
         () -> checkDate(currentTime, enrollment.getEnrollmentDate()),
-        () -> checkDate(currentTime, enrollment.getIncidentDate()),
+        () -> checkDate(currentTime, enrollment.getOccurredDate()),
         () -> assertNull(enrollment.getStoredBy()));
   }
 
@@ -1439,7 +1466,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
-    assertContainsOnly(List.of(trackedEntityA, trackedEntityB, trackedEntityC), trackedEntities);
+    assertContainsOnly(
+        List.of(
+            trackedEntityA,
+            trackedEntityB,
+            trackedEntityC,
+            trackedEntityChildA,
+            trackedEntityGrandchildA),
+        trackedEntities);
   }
 
   @Test
@@ -1462,6 +1496,60 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             "Current user is not authorized to read data from selected program:  %s",
             programC.getUid()),
         ex.getMessage());
+  }
+
+  @Test
+  void shouldReturnChildrenOfRootOrgUnitWhenOrgUnitModeChildren()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(CHILDREN)
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    assertContainsOnly(
+        Set.of(trackedEntityA.getUid(), trackedEntityChildA.getUid()), uids(trackedEntities));
+  }
+
+  @Test
+  void shouldReturnChildrenOfRequestedOrgUnitWhenOrgUnitModeChildren()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(CHILDREN)
+            .organisationUnits(Set.of(orgUnitChildA.getUid()))
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    assertContainsOnly(
+        Set.of(trackedEntityChildA.getUid(), trackedEntityGrandchildA.getUid()),
+        uids(trackedEntities));
+  }
+
+  @Test
+  void
+      shouldReturnAllChildrenOfRequestedOrgUnitsWhenOrgUnitModeChildrenAndMultipleOrgUnitsRequested()
+          throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(CHILDREN)
+            .organisationUnits(Set.of(orgUnitA.getUid(), orgUnitChildA.getUid()))
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    assertContainsOnly(
+        Set.of(
+            trackedEntityA.getUid(),
+            trackedEntityChildA.getUid(),
+            trackedEntityGrandchildA.getUid()),
+        uids(trackedEntities));
   }
 
   @Test

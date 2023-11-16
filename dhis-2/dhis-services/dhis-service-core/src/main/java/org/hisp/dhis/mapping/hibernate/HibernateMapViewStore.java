@@ -28,8 +28,8 @@
 package org.hisp.dhis.mapping.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.mapping.MapViewStore;
@@ -47,13 +47,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateMapViewStore extends HibernateAnalyticalObjectStore<MapView>
     implements MapViewStore {
   public HibernateMapViewStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         MapView.class,

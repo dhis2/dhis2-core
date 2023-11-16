@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.scheduling;
 
-import org.hisp.dhis.security.SecurityContextRunnable;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
+import java.util.Date;
+import java.util.List;
+import javax.annotation.CheckForNull;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.user.User;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Query params when searching for {@link JobConfiguration}s with errors.
+ *
+ * <p>A match has to satisfy all filters (AND logic) but only one of the given codes or object
+ * {@link UID} (OR logic).
+ *
+ * <p>If any of the criteria is not defined it has no filter effect.
+ *
+ * @author Jan Bernitt
  */
-@Component
-@Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class TrackerImportThread extends SecurityContextRunnable {
-  private final TrackerImportService trackerImportService;
+@Data
+@Accessors(chain = true)
+public class JobRunErrorsParams {
 
-  private TrackerImportParams trackerImportParams;
+  @OpenApi.Ignore @CheckForNull private UID job;
 
-  public TrackerImportThread(TrackerImportService trackerImportService) {
-    this.trackerImportService = trackerImportService;
-  }
+  /** The user that ran the job */
+  @OpenApi.Property({UID.class, User.class})
+  @CheckForNull
+  private UID user;
 
-  @Override
-  public void call() {
-    Assert.notNull(trackerImportParams, "Field trackerImportParams can not be null. ");
+  /** The earliest date the job ran that should be included */
+  @CheckForNull private Date from;
 
-    trackerImportService.importTracker(trackerImportParams); // discard returned report
-  }
+  /** The latest date the job ran that should be included */
+  @CheckForNull private Date to;
 
-  public void setTrackerImportParams(TrackerImportParams trackerImportParams) {
-    this.trackerImportParams = trackerImportParams;
-  }
+  /** The codes to select, any match combined */
+  @CheckForNull private List<ErrorCode> code;
+
+  /** The object with errors to select, any match combined */
+  @CheckForNull private List<UID> object;
+
+  /** The {@link JobType} with errors to select, any match combined */
+  @CheckForNull private List<JobType> type;
 }

@@ -28,8 +28,8 @@
 package org.hisp.dhis.category.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.common.DataDimensionType;
@@ -47,13 +47,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStore<CategoryCombo>
     implements CategoryComboStore {
   public HibernateCategoryComboStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         CategoryCombo.class,

@@ -28,9 +28,9 @@
 package org.hisp.dhis.category.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Join;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
@@ -50,13 +50,13 @@ public class HibernateCategoryOptionGroupStore
     extends HibernateIdentifiableObjectStore<CategoryOptionGroup>
     implements CategoryOptionGroupStore {
   public HibernateCategoryOptionGroupStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         CategoryOptionGroup.class,

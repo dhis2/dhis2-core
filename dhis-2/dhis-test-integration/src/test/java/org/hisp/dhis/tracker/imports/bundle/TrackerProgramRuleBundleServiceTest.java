@@ -40,6 +40,7 @@ import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -70,9 +71,11 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
 
   @Test
   void testRunRuleEngineForEventOnBundleCreate() throws IOException {
-    TrackerImportParams trackerImportParams = fromJson("tracker/event_events_and_enrollment.json");
-    assertEquals(8, trackerImportParams.getEvents().size());
-    TrackerBundle trackerBundle = trackerBundleService.create(trackerImportParams);
+    TrackerObjects trackerObjects = fromJson("tracker/event_events_and_enrollment.json");
+    assertEquals(8, trackerObjects.getEvents().size());
+    TrackerBundle trackerBundle =
+        trackerBundleService.create(
+            new TrackerImportParams(), trackerObjects, userService.getUser(ADMIN_USER_UID));
     trackerBundle = trackerBundleService.runRuleEngine(trackerBundle);
     assertEquals(trackerBundle.getEvents().size(), trackerBundle.getEventRuleEffects().size());
   }

@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -48,8 +49,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -60,9 +63,11 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.jsontree.*;
 import org.hisp.dhis.scheduling.JobType.Defaults;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.setting.SettingKey;
@@ -245,6 +250,54 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
           60 * systemSettings.getIntSetting(SettingKey.JOBS_RESCHEDULE_STALE_FOR_MINUTES);
     }
     return jobConfigurationStore.getStaleConfigurations(staleForSeconds);
+  }
+
+  @Nonnull
+  @Override
+  @Transactional(readOnly = true)
+  public List<JsonObject> findJobRunErrors(@Nonnull JobRunErrorsParams params) {
+    Function<String, JsonObject> toObject =
+        json -> {
+          JsonObject obj = JsonMixed.of(json);
+          List<JsonNode> flatErrors = new ArrayList<>();
+          JsonObject errors = obj.getObject("errors");
+          errors
+              .node()
+              .members()
+              .forEach(
+                  byObject ->
+                      byObject
+                          .getValue()
+                          .members()
+                          .forEach(
+                              byCode ->
+                                  byCode
+                                      .getValue()
+                                      .elements()
+                                      .forEach(
+                                          error -> {
+                                            ErrorCode code =
+                                                ErrorCode.valueOf(
+                                                    JsonMixed.of(error).getString("code").string());
+                                            Object[] args =
+                                                JsonMixed.of(error)
+                                                    .getArray("args")
+                                                    .stringValues()
+                                                    .toArray(new String[0]);
+                                            String msg =
+                                                MessageFormat.format(code.getMessage(), args);
+                                            flatErrors.add(
+                                                error
+                                                    .extract()
+                                                    .addMembers(e -> e.addString("message", msg)));
+                                          })));
+          return JsonMixed.of(
+              errors
+                  .node()
+                  .replaceWith(
+                      JsonBuilder.createArray(arr -> flatErrors.forEach(arr::addElement))));
+        };
+    return jobConfigurationStore.findJobRunErrors(params).map(toObject).toList();
   }
 
   @Override

@@ -285,7 +285,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     try {
       JobProgress.Progress progress = job.getProgress();
       String errorCodes =
-          progress.getErrorCodes().stream().map(ErrorCode::name).collect(joining(" "));
+          progress.getErrorCodes().stream().map(ErrorCode::name).sorted().collect(joining(" "));
       jobConfigurationStore.updateProgress(
           jobId, jsonMapper.writeValueAsString(progress), errorCodes);
     } catch (JsonProcessingException ex) {

@@ -28,8 +28,8 @@
 package org.hisp.dhis.trackedentityfilter.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
@@ -48,13 +48,13 @@ public class HibernateTrackedEntityFilterStore
     extends HibernateIdentifiableObjectStore<TrackedEntityFilter>
     implements TrackedEntityFilterStore {
   public HibernateTrackedEntityFilterStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         TrackedEntityFilter.class,

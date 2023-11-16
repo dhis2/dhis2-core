@@ -111,7 +111,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
           new AnalyticsTableColumn(
               quote("completeddate"),
               TIMESTAMP,
-              "case pi.status when 'COMPLETED' then pi.enddate end"),
+              "case pi.status when 'COMPLETED' then pi.completeddate end"),
           new AnalyticsTableColumn(quote("lastupdated"), TIMESTAMP, "pi.lastupdated"),
           new AnalyticsTableColumn(quote("storedby"), VARCHAR_255, "pi.storedby"),
           new AnalyticsTableColumn(

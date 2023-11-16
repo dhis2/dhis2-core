@@ -73,6 +73,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
@@ -205,7 +206,7 @@ public class TrackedEntityInstanceController {
       @RequestParam(required = false) Integer height,
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletResponse response)
-      throws WebMessageException {
+      throws WebMessageException, ConflictException {
     User user = currentUserService.getCurrentUser();
 
     TrackedEntity trackedEntity = instanceService.getTrackedEntity(teiId);

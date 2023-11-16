@@ -41,13 +41,13 @@ import java.util.function.Function;
 import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.Builder;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
@@ -86,13 +86,13 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
           "lastUpdatedAtClient");
 
   public HibernateEnrollmentStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         Enrollment.class,
@@ -187,23 +187,12 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
 
     if (params.hasOrganisationUnits()) {
       if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
-        String ouClause = "(";
-        SqlHelper orHlp = new SqlHelper(true);
+        hql += hlp.whereAnd() + getDescendantsQuery(params.getOrganisationUnits());
+      } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
+        hql += hlp.whereAnd() + getChildrenQuery(hlp, params.getOrganisationUnits());
 
-        for (OrganisationUnit organisationUnit : params.getOrganisationUnits()) {
-          ouClause +=
-              orHlp.or() + "en.organisationUnit.path LIKE '" + organisationUnit.getPath() + "%'";
-        }
-
-        ouClause += ")";
-
-        hql += hlp.whereAnd() + ouClause;
       } else {
-        hql +=
-            hlp.whereAnd()
-                + "en.organisationUnit.uid in ("
-                + getQuotedCommaDelimitedString(getUids(params.getOrganisationUnits()))
-                + ")";
+        hql += hlp.whereAnd() + getSelectedQuery(params.getOrganisationUnits());
       }
     }
 
@@ -240,6 +229,48 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     }
 
     return QueryWithOrderBy.builder().query(hql).orderBy(orderBy(params.getOrder())).build();
+  }
+
+  private String getDescendantsQuery(Set<OrganisationUnit> organisationUnits) {
+    StringBuilder ouClause = new StringBuilder();
+    ouClause.append("(");
+
+    SqlHelper orHlp = new SqlHelper(true);
+
+    for (OrganisationUnit organisationUnit : organisationUnits) {
+      ouClause
+          .append(orHlp.or())
+          .append("en.organisationUnit.path LIKE '")
+          .append(organisationUnit.getPath())
+          .append("%'");
+    }
+
+    ouClause.append(")");
+
+    return ouClause.toString();
+  }
+
+  private String getChildrenQuery(SqlHelper hlp, Set<OrganisationUnit> organisationUnits) {
+    StringBuilder orgUnits = new StringBuilder();
+    for (OrganisationUnit organisationUnit : organisationUnits) {
+      orgUnits
+          .append(hlp.or())
+          .append("en.organisationUnit.path LIKE '")
+          .append(organisationUnit.getPath())
+          .append("%'")
+          .append(" AND (en.organisationUnit.hierarchyLevel = ")
+          .append(organisationUnit.getHierarchyLevel())
+          .append(" OR en.organisationUnit.hierarchyLevel = ")
+          .append((organisationUnit.getHierarchyLevel() + 1))
+          .append(")");
+    }
+    return orgUnits.toString();
+  }
+
+  private String getSelectedQuery(Set<OrganisationUnit> organisationUnits) {
+    return "en.organisationUnit.uid in ("
+        + getQuotedCommaDelimitedString(getUids(organisationUnits))
+        + ")";
   }
 
   private static String orderBy(List<Order> orders) {

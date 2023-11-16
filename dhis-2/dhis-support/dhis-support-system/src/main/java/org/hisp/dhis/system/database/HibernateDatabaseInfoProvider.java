@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component("databaseInfoProvider")
+@Component
 public class HibernateDatabaseInfoProvider implements DatabaseInfoProvider {
   private static final String EXTENSION_MISSING_ERROR =
       "%s extension is not installed. Execute \"CREATE EXTENSION %s;\" as a superuser and restart the application.";
