@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static org.hisp.dhis.scheduling.JobType.TRACKER_IMPORT_JOB;
 import static org.hisp.dhis.scheduling.JobType.values;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -72,6 +73,7 @@ import org.hisp.dhis.scheduling.JobType.Defaults;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -260,6 +262,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
         json -> {
           JsonObject obj = JsonMixed.of(json);
           List<JsonNode> flatErrors = new ArrayList<>();
+          JobType type = obj.getString("type").parsed(JobType::valueOf);
           JsonObject errors = obj.getObject("errors");
           errors
               .node()
@@ -275,22 +278,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
                                       .getValue()
                                       .elements()
                                       .forEach(
-                                          error -> {
-                                            ErrorCode code =
-                                                ErrorCode.valueOf(
-                                                    JsonMixed.of(error).getString("code").string());
-                                            Object[] args =
-                                                JsonMixed.of(error)
-                                                    .getArray("args")
-                                                    .stringValues()
-                                                    .toArray(new String[0]);
-                                            String msg =
-                                                MessageFormat.format(code.getMessage(), args);
-                                            flatErrors.add(
-                                                error
-                                                    .extract()
-                                                    .addMembers(e -> e.addString("message", msg)));
-                                          })));
+                                          error -> flatErrors.add(errorWithMessage(type, error)))));
           return JsonMixed.of(
               errors
                   .node()
@@ -298,6 +286,17 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
                       JsonBuilder.createArray(arr -> flatErrors.forEach(arr::addElement))));
         };
     return jobConfigurationStore.findJobRunErrors(params).map(toObject).toList();
+  }
+
+  private static JsonNode errorWithMessage(JobType type, JsonNode error) {
+    String codeName = JsonMixed.of(error).getString("code").string();
+    String template =
+        type == TRACKER_IMPORT_JOB
+            ? ValidationCode.valueOf(codeName).getMessage()
+            : ErrorCode.valueOf(codeName).getMessage();
+    Object[] args = JsonMixed.of(error).getArray("args").stringValues().toArray(new String[0]);
+    String msg = MessageFormat.format(template, args);
+    return error.extract().addMembers(e -> e.addString("message", msg));
   }
 
   @Override

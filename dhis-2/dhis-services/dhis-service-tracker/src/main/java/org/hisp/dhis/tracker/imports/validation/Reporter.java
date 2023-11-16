@@ -158,7 +158,8 @@ public class Reporter {
             MessageFormatter.format(idSchemes, code.getMessage(), args),
             code,
             dto.getTrackerType(),
-            dto.getUid()));
+            dto.getUid(),
+            List.of(args)));
     return true;
   }
 

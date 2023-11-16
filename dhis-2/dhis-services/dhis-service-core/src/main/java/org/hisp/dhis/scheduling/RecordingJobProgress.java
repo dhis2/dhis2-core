@@ -150,6 +150,14 @@ public class RecordingJobProgress implements JobProgress {
       @CheckForNull String uid,
       @Nonnull String type,
       @Nonnull List<String> args) {
+    addError(code.name(), uid, type, args);
+  }
+
+  private void addError(
+      @Nonnull String code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      @Nonnull List<String> args) {
     try {
       // Note: we use empty string in case the UID is not known/defined yet to allow use in maps
       progress.addError(new Error(code, uid == null ? "" : uid, type, args));

@@ -46,6 +46,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Stats;
 import org.hisp.dhis.tracker.imports.report.Status;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -78,6 +79,18 @@ public class TrackerImportJob implements Job {
         return;
       }
       notifier.addJobSummary(config, report, ImportReport.class);
+
+      if (report.getValidationReport().hasErrors()) {
+        report
+            .getValidationReport()
+            .getErrors()
+            .forEach(
+                e ->
+                    progress.addError(
+                        ValidationCode.valueOf(e.getErrorCode()), e.getUid(), e.getTrackerType()));
+        // TODO args
+      }
+
       Stats stats = report.getStats();
       Consumer<String> endProcess =
           report.getStatus() == Status.ERROR ? progress::failedProcess : progress::completedProcess;
