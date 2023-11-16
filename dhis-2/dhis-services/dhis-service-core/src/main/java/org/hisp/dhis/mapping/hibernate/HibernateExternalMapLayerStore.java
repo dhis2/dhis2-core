@@ -47,14 +47,12 @@ public class HibernateExternalMapLayerStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ExternalMapLayer.class,
-        currentUserService,
         aclService,
         false);
   }

@@ -48,14 +48,12 @@ public class HibernateDataSetNotificationTemplateStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         DataSetNotificationTemplate.class,
-        currentUserService,
         aclService,
         true);
   }

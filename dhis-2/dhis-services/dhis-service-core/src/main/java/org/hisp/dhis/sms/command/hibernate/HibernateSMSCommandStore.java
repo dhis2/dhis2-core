@@ -49,14 +49,12 @@ public class HibernateSMSCommandStore extends HibernateIdentifiableObjectStore<S
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         SMSCommand.class,
-        currentUserService,
         aclService,
         true);
   }

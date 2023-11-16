@@ -72,10 +72,9 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        entityManager, jdbcTemplate, publisher, Event.class, currentUserService, aclService, false);
+        entityManager, jdbcTemplate, publisher, Event.class, aclService, false);
   }
 
   @Override

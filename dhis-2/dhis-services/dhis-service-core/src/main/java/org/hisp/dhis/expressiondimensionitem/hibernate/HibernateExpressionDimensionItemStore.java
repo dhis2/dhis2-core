@@ -48,14 +48,12 @@ public class HibernateExpressionDimensionItemStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ExpressionDimensionItem.class,
-        currentUserService,
         aclService,
         true);
   }

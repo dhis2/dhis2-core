@@ -53,7 +53,6 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       PeriodService periodService) {
     super(
@@ -61,7 +60,6 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
         jdbcTemplate,
         publisher,
         Predictor.class,
-        currentUserService,
         aclService,
         false);
 

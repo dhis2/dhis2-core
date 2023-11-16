@@ -60,10 +60,9 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       Class<T> clazz,
-      CurrentUserService currentUserService,
       AclService aclService,
       boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, currentUserService, aclService, cacheable);
+    super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
   }
 
   @Override

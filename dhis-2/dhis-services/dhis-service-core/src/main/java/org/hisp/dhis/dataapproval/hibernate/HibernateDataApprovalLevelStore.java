@@ -49,14 +49,12 @@ public class HibernateDataApprovalLevelStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         DataApprovalLevel.class,
-        currentUserService,
         aclService,
         true);
   }

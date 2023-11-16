@@ -81,14 +81,12 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         Relationship.class,
-        currentUserService,
         aclService,
         true);
   }

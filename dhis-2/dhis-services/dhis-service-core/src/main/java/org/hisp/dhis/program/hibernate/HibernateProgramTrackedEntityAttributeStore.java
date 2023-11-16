@@ -54,14 +54,12 @@ public class HibernateProgramTrackedEntityAttributeStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ProgramTrackedEntityAttribute.class,
-        currentUserService,
         aclService,
         true);
   }

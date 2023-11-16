@@ -69,14 +69,12 @@ public class HibernateEventVisualizationStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         EventVisualization.class,
-        currentUserService,
         aclService,
         true);
   }

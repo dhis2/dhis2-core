@@ -55,14 +55,12 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         DataStatistics.class,
-        currentUserService,
         aclService,
         false);
   }

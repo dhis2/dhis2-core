@@ -65,7 +65,6 @@ public class HibernateMessageConversationStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       StatementBuilder statementBuilder) {
     super(
@@ -73,7 +72,6 @@ public class HibernateMessageConversationStore
         jdbcTemplate,
         publisher,
         MessageConversation.class,
-        currentUserService,
         aclService,
         false);
 

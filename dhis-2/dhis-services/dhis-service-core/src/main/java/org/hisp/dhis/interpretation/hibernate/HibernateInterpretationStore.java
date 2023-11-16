@@ -53,14 +53,12 @@ public class HibernateInterpretationStore extends HibernateIdentifiableObjectSto
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         Interpretation.class,
-        currentUserService,
         aclService,
         false);
   }

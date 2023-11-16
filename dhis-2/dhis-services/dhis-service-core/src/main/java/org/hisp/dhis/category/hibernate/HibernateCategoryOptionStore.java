@@ -51,14 +51,12 @@ public class HibernateCategoryOptionStore extends HibernateIdentifiableObjectSto
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         CategoryOption.class,
-        currentUserService,
         aclService,
         true);
   }

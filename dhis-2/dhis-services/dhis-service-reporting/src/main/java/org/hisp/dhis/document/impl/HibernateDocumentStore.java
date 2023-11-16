@@ -52,14 +52,12 @@ public class HibernateDocumentStore extends HibernateIdentifiableObjectStore<Doc
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         Document.class,
-        currentUserService,
         aclService,
         true);
   }

@@ -60,7 +60,6 @@ public class HibernateValidationRuleStore extends HibernateIdentifiableObjectSto
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       PeriodService periodService) {
     super(
@@ -68,7 +67,6 @@ public class HibernateValidationRuleStore extends HibernateIdentifiableObjectSto
         jdbcTemplate,
         publisher,
         ValidationRule.class,
-        currentUserService,
         aclService,
         true);
 

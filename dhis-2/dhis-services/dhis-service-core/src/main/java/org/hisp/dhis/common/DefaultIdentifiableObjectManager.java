@@ -73,7 +73,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.util.SharingUtils;
@@ -102,7 +102,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
 
   private final EntityManager entityManager;
 
-  private final CurrentUserService currentUserService;
 
   protected final SchemaService schemaService;
 
@@ -120,20 +119,17 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
       Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
       Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores,
       EntityManager entityManager,
-      CurrentUserService currentUserService,
       SchemaService schemaService,
       CacheProvider cacheProvider) {
     checkNotNull(identifiableObjectStores);
     checkNotNull(dimensionalObjectStores);
     checkNotNull(entityManager);
-    checkNotNull(currentUserService);
     checkNotNull(schemaService);
     checkNotNull(cacheProvider);
 
     this.identifiableObjectStores = identifiableObjectStores;
     this.dimensionalObjectStores = dimensionalObjectStores;
     this.entityManager = entityManager;
-    this.currentUserService = currentUserService;
     this.schemaService = schemaService;
     this.defaultObjectCache = cacheProvider.createDefaultObjectCache();
   }
@@ -167,7 +163,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional
   public void update(@Nonnull IdentifiableObject object) {
-    update(object, currentUserService.getCurrentUser());
+    update(object,getCurrentUser());
   }
 
   @Override
@@ -183,7 +179,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional
   public void update(@Nonnull List<IdentifiableObject> objects) {
-    update(objects, currentUserService.getCurrentUser());
+    update(objects, getCurrentUser());
   }
 
   @Override
@@ -210,7 +206,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
             .collect(Collectors.toSet()));
 
     translatedObject.setLastUpdated(new Date());
-    translatedObject.setLastUpdatedBy(currentUserService.getCurrentUser());
+    translatedObject.setLastUpdatedBy(getCurrentUser());
 
     entityManager.unwrap(Session.class).update(translatedObject);
   }
@@ -218,7 +214,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional
   public void delete(@Nonnull IdentifiableObject object) {
-    delete(object, currentUserService.getCurrentUser());
+    delete(object, getCurrentUser());
   }
 
   @Override
@@ -407,21 +403,27 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T getByUniqueAttributeValue(
       @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull String value) {
-    return getByUniqueAttributeValue(type, attribute, value, currentUserService.getCurrentUser());
+    return getByUniqueAttributeValue(type, attribute, value, CurrentUserUtil.getCurrentUsername());
   }
 
   @CheckForNull
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T getByUniqueAttributeValue(
-      @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull String value, User user) {
+      @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull String value, String username) {
     IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
 
     if (store == null) {
       return null;
     }
 
-    return store.getByUniqueAttributeValue(attribute, value, user);
+    User currentUser = getCurrentUser();
+
+    return store.getByUniqueAttributeValue(attribute, value, currentUser);
+  }
+
+  private User getCurrentUser() {
+    return get(User.class, CurrentUserUtil.getCurrentUsername());
   }
 
   @CheckForNull

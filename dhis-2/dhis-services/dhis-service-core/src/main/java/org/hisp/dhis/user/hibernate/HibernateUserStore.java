@@ -103,11 +103,10 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       SchemaService schemaService,
       QueryCacheManager queryCacheManager) {
-    super(entityManager, jdbcTemplate, publisher, User.class, currentUserService, aclService, true);
+    super(entityManager, jdbcTemplate, publisher, User.class, aclService, true);
 
     checkNotNull(schemaService);
     this.schemaService = schemaService;
@@ -118,7 +117,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   public void save(@Nonnull User user, boolean clearSharing) {
     super.save(user, clearSharing);
 
-    currentUserService.invalidateUserGroupCache(user.getUid());
+//    currentUserService.invalidateUserGroupCache(user.getUid());
   }
 
   @Override

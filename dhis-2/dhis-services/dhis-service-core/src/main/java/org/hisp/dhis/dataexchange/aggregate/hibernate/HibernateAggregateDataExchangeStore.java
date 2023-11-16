@@ -45,14 +45,12 @@ public class HibernateAggregateDataExchangeStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         AggregateDataExchange.class,
-        currentUserService,
         aclService,
         false);
   }

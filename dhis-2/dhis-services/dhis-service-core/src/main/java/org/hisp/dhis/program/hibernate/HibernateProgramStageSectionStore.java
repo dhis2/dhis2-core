@@ -48,14 +48,12 @@ public class HibernateProgramStageSectionStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ProgramStageSection.class,
-        currentUserService,
         aclService,
         true);
   }

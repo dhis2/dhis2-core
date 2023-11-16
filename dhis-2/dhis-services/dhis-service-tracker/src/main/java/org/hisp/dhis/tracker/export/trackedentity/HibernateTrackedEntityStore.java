@@ -138,7 +138,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       StatementBuilder statementBuilder,
       OrganisationUnitStore organisationUnitStore,
@@ -148,7 +147,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         jdbcTemplate,
         publisher,
         TrackedEntity.class,
-        currentUserService,
         aclService,
         false);
 

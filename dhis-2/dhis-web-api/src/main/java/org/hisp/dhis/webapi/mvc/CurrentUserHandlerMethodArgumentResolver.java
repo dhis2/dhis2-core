@@ -32,6 +32,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -48,7 +49,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 @Component
 @AllArgsConstructor
 public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
-  private final CurrentUserService currentUserService;
+  private final @Lazy CurrentUserService currentUserService;
 
   @Override
   public boolean supportsParameter(MethodParameter parameter) {

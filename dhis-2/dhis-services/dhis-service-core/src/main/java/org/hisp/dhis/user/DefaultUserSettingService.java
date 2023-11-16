@@ -44,6 +44,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.SerializableOptional;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,9 +78,9 @@ public class DefaultUserSettingService implements UserSettingService {
 
   public DefaultUserSettingService(
       CacheProvider cacheProvider,
-      CurrentUserService currentUserService,
+      @Lazy CurrentUserService currentUserService,
       UserSettingStore userSettingStore,
-      UserService userService,
+      @Lazy UserService userService,
       SystemSettingManager systemSettingManager) {
     checkNotNull(cacheProvider);
     checkNotNull(currentUserService);

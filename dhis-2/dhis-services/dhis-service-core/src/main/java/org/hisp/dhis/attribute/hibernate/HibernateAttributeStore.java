@@ -49,14 +49,12 @@ public class HibernateAttributeStore extends HibernateIdentifiableObjectStore<At
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         Attribute.class,
-        currentUserService,
         aclService,
         true);
   }

@@ -46,14 +46,12 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         UserGroup.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -61,16 +59,16 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   @Override
   public void save(@Nonnull UserGroup object, boolean clearSharing) {
     super.save(object, clearSharing);
-    object
-        .getMembers()
-        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
+//    object
+//        .getMembers()
+//        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
   }
 
   @Override
   public void update(@Nonnull UserGroup object, User user) {
     super.update(object, user);
-    object
-        .getMembers()
-        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
+//    object
+//        .getMembers()
+//        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
   }
 }

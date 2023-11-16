@@ -48,9 +48,8 @@ public class HibernateMapStore extends HibernateIdentifiableObjectStore<Map> imp
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, Map.class, currentUserService, aclService, true);
+    super(entityManager, jdbcTemplate, publisher, Map.class, aclService, true);
   }
 
   @Override

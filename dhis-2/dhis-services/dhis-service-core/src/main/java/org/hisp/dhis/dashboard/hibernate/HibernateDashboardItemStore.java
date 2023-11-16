@@ -59,14 +59,12 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         DashboardItem.class,
-        currentUserService,
         aclService,
         false);
   }

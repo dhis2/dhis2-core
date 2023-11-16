@@ -57,14 +57,12 @@ public class DefaultProgramNotificationTemplateStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ProgramNotificationTemplate.class,
-        currentUserService,
         aclService,
         true);
   }

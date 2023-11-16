@@ -30,6 +30,7 @@ package org.hisp.dhis.association;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -48,7 +49,7 @@ public class CategoryOptionOrganisationUnitAssociationsQueryBuilder
   private final String baseTableName = "categoryoption";
 
   public CategoryOptionOrganisationUnitAssociationsQueryBuilder(
-      CurrentUserService currentUserService) {
-    super(currentUserService);
+      UserService userService) {
+    super(userService);
   }
 }

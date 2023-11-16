@@ -64,7 +64,6 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       PeriodService periodService) {
     super(
@@ -72,7 +71,6 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
         jdbcTemplate,
         publisher,
         DataSet.class,
-        currentUserService,
         aclService,
         true);
 

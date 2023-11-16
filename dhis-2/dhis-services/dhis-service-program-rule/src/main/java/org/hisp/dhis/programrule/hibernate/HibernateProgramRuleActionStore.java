@@ -61,14 +61,12 @@ public class HibernateProgramRuleActionStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ProgramRuleAction.class,
-        currentUserService,
         aclService,
         true);
   }

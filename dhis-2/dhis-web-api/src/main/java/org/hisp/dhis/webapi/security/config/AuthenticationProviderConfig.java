@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -35,6 +37,9 @@ import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvid
 import org.hisp.dhis.security.ldap.authentication.DhisBindAuthenticator;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
+import org.hisp.dhis.webapi.security.ExternalAccessVoter;
+import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
+import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +47,10 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.access.vote.AuthenticatedVoter;
+import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -50,6 +59,8 @@ import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.UserDetailsServiceLdapAuthoritiesPopulator;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.access.expression.WebExpressionVoter;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -66,6 +77,43 @@ public class AuthenticationProviderConfig {
   @Autowired
   @Qualifier("ldapUserDetailsService")
   UserDetailsService ldapUserDetailsService;
+
+  @Autowired private ExternalAccessVoter externalAccessVoter;
+
+  public WebExpressionVoter apiWebExpressionVoter() {
+    WebExpressionVoter voter = new WebExpressionVoter();
+
+    DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
+    handler.setDefaultRolePrefix("");
+
+    voter.setExpressionHandler(handler);
+
+    return voter;
+  }
+
+  public LogicalOrAccessDecisionManager apiAccessDecisionManager() {
+    List<AccessDecisionManager> decisionVoters =
+        Arrays.asList(
+            new UnanimousBased(List.of(new SimpleAccessVoter("ALL"))),
+            new UnanimousBased(List.of(apiWebExpressionVoter())),
+            new UnanimousBased(List.of(externalAccessVoter)),
+            new UnanimousBased(List.of(new AuthenticatedVoter())));
+
+    return new LogicalOrAccessDecisionManager(decisionVoters);
+  }
+  @Bean
+  public RoleHierarchyImpl roleHierarchy() {
+    final RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
+    roleHierarchy.setHierarchy("ROLE_ADMIN > ROLE_STAFF > ROLE_USER > ROLE_GUEST");
+    return roleHierarchy;
+  }
+
+  @Bean
+  public DefaultWebSecurityExpressionHandler expressionHandler() {
+    DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
+    expressionHandler.setRoleHierarchy(roleHierarchy());
+    return expressionHandler;
+  }
 
   @Bean
   public TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource() {

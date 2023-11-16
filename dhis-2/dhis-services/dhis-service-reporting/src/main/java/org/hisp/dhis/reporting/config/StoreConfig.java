@@ -47,14 +47,12 @@ public class StoreConfig {
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     return new HibernateIdentifiableObjectStore<PushAnalysis>(
         entityManager,
         jdbcTemplate,
         publisher,
         PushAnalysis.class,
-        currentUserService,
         aclService,
         false);
   }

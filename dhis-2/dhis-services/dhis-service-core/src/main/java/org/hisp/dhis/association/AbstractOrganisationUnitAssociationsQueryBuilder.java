@@ -46,10 +46,11 @@ import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 
 @RequiredArgsConstructor
 public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private static final String SHARING_OUTER_QUERY_BEGIN =
       "select " + "    inner_query_alias.uid, " + "    inner_query_alias.agg_ou_uid " + "from (";
@@ -142,7 +143,7 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
   }
 
   private String getSharingConditions(String access) {
-    CurrentUserGroupInfo currentUserGroupInfo = currentUserService.getCurrentUserGroupsInfo();
+    CurrentUserGroupInfo currentUserGroupInfo = userService.getCurrentUserGroupsInfo();
     return String.join(
         " or ",
         getOwnerCondition(currentUserGroupInfo),

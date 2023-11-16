@@ -50,14 +50,12 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         Section.class,
-        currentUserService,
         aclService,
         true);
   }

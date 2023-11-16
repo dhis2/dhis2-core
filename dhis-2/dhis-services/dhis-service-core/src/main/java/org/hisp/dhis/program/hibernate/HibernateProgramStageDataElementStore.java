@@ -56,14 +56,12 @@ public class HibernateProgramStageDataElementStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ProgramStageDataElement.class,
-        currentUserService,
         aclService,
         false);
   }

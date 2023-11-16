@@ -89,14 +89,12 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         Enrollment.class,
-        currentUserService,
         aclService,
         true);
   }

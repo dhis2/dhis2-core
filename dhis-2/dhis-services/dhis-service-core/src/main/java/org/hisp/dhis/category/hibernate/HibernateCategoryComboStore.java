@@ -50,14 +50,12 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         CategoryCombo.class,
-        currentUserService,
         aclService,
         true);
   }

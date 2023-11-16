@@ -51,8 +51,6 @@ public class StoreConfig {
 
   @Autowired private ApplicationEventPublisher publisher;
 
-  @Autowired private CurrentUserService currentUserService;
-
   @Autowired private AclService aclService;
 
   @Bean("org.hisp.dhis.validation.notification.ValidationNotificationTemplateStore")
@@ -63,7 +61,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         ValidationNotificationTemplate.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -75,7 +72,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         ValidationRuleGroup.class,
-        currentUserService,
         aclService,
         true);
   }

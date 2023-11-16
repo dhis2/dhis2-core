@@ -49,14 +49,12 @@ public class HibernateDataEntryFormStore extends HibernateIdentifiableObjectStor
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         DataEntryForm.class,
-        currentUserService,
         aclService,
         false);
   }

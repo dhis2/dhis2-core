@@ -48,14 +48,12 @@ public class HibernateRelationshipTypeStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         RelationshipType.class,
-        currentUserService,
         aclService,
         true);
   }

@@ -49,10 +49,9 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        entityManager, jdbcTemplate, publisher, Option.class, currentUserService, aclService, true);
+        entityManager, jdbcTemplate, publisher, Option.class, aclService, true);
   }
 
   // -------------------------------------------------------------------------

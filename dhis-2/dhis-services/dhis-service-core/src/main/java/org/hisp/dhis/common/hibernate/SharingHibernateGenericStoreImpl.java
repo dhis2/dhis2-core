@@ -38,8 +38,10 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.hibernate.SharingHibernateGenericStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserGroupService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -55,9 +57,8 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
       ApplicationEventPublisher publisher,
       Class<T> clazz,
       AclService aclService,
-      CurrentUserService currentUserService,
       boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, aclService, currentUserService, cacheable);
+    super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
   }
 
   @Override

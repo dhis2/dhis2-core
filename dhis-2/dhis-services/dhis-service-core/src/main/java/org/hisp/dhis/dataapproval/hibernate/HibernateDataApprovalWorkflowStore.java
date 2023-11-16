@@ -48,14 +48,12 @@ public class HibernateDataApprovalWorkflowStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         DataApprovalWorkflow.class,
-        currentUserService,
         aclService,
         true);
   }

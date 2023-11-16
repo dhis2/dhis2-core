@@ -72,7 +72,6 @@ public class StoreConfig {
 
   @Autowired private ApplicationEventPublisher publisher;
 
-  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private AclService aclService;
 
@@ -83,7 +82,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         IndicatorType.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -95,7 +93,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         IndicatorGroup.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -107,7 +104,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         IndicatorGroupSet.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -119,7 +115,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         PredictorGroup.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -165,7 +160,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         Constant.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -177,7 +171,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         OptionSet.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -189,7 +182,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         LegendSet.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -201,7 +193,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         ProgramIndicatorGroup.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -209,7 +200,7 @@ public class StoreConfig {
   @Bean("org.hisp.dhis.report.ReportStore")
   public HibernateIdentifiableObjectStore<Report> reportStore() {
     return new HibernateIdentifiableObjectStore<>(
-        entityManager, jdbcTemplate, publisher, Report.class, currentUserService, aclService, true);
+        entityManager, jdbcTemplate, publisher, Report.class, aclService, true);
   }
 
   @Bean("org.hisp.dhis.visualization.generic.VisualizationStore")
@@ -219,7 +210,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         Visualization.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -231,7 +221,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         Dashboard.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -253,7 +242,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         EventReport.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -269,7 +257,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         EventChart.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -281,7 +268,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         ProgramNotificationTemplate.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -294,7 +280,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         ProgramNotificationInstance.class,
-        currentUserService,
         aclService,
         true);
   }

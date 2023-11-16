@@ -48,14 +48,12 @@ public class HibernateEventFilterStore extends HibernateIdentifiableObjectStore<
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         EventFilter.class,
-        currentUserService,
         aclService,
         false);
   }

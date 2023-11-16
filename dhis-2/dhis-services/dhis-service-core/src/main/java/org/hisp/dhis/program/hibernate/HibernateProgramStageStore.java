@@ -52,14 +52,12 @@ public class HibernateProgramStageStore extends HibernateIdentifiableObjectStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ProgramStage.class,
-        currentUserService,
         aclService,
         true);
   }

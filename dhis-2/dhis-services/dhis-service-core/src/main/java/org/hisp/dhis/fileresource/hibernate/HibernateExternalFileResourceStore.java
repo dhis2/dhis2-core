@@ -48,14 +48,12 @@ public class HibernateExternalFileResourceStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ExternalFileResource.class,
-        currentUserService,
         aclService,
         false);
   }

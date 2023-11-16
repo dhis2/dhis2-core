@@ -36,11 +36,15 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import org.hibernate.Session;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.adapter.Sharing_;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
@@ -52,6 +56,7 @@ import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
@@ -62,22 +67,17 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     extends HibernateGenericStore<T> implements InternalHibernateGenericStore<T> {
   protected AclService aclService;
 
-  protected final CurrentUserService currentUserService;
-
   public InternalHibernateGenericStoreImpl(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       Class<T> clazz,
       AclService aclService,
-      CurrentUserService currentUserService,
       boolean cacheable) {
     super(entityManager, jdbcTemplate, publisher, clazz, cacheable);
 
     checkNotNull(aclService);
-    checkNotNull(currentUserService);
     this.aclService = aclService;
-    this.currentUserService = currentUserService;
   }
 
   /**
@@ -216,16 +216,43 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     return predicates;
   }
 
+  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+    CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);
+    Root<User> root = query.from(User.class);
+    query.where(builder.equal(root.get("uid"), userUID));
+    query.select(builder.array(root.get("uid"), root.join("groups", JoinType.LEFT).get("uid")));
+
+    Session session = getSession();
+    List<Object[]> results = session.createQuery(query).getResultList();
+
+    CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
+
+    if (CollectionUtils.isEmpty(results)) {
+      currentUserGroupInfo.setUserUID(userUID);
+      return currentUserGroupInfo;
+    }
+
+    for (Object[] result : results) {
+      if (currentUserGroupInfo.getUserUID() == null) {
+        currentUserGroupInfo.setUserUID(result[0].toString());
+      }
+
+      if (result[1] != null) {
+        currentUserGroupInfo.getUserGroupUIDs().add(result[1].toString());
+      }
+    }
+
+    return currentUserGroupInfo;
+  }
+
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
       CriteriaBuilder builder, User user) {
     return user == null
         ? List.of()
         : getDataSharingPredicates(
-            builder,
-            user,
-            currentUserService.getCurrentUserGroupsInfo(user.getUid()),
-            AclService.LIKE_READ_DATA);
+            builder, user, getCurrentUserGroupInfo(user.getUid()), AclService.LIKE_READ_DATA);
   }
 
   @Override
@@ -234,10 +261,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     return user == null
         ? List.of()
         : getSharingPredicates(
-            builder,
-            user,
-            currentUserService.getCurrentUserGroupsInfo(user.getUid()),
-            AclService.LIKE_READ_METADATA);
+            builder, user, getCurrentUserGroupInfo(user.getUid()), AclService.LIKE_READ_METADATA);
   }
 
   @Override
@@ -248,7 +272,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     }
 
     Set<String> groupIds =
-        currentUserService.getCurrentUserGroupsInfo(user.getUid()).getUserGroupUIDs();
+        getCurrentUserGroupInfo(user.getUid()).getUserGroupUIDs();
 
     return getSharingPredicates(builder, user.getUid(), groupIds, access);
   }

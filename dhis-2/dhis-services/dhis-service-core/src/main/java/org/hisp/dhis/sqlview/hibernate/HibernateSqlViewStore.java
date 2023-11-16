@@ -66,7 +66,6 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       StatementBuilder statementBuilder,
       @Qualifier("readOnlyJdbcTemplate") JdbcTemplate readOnlyJdbcTemplate,
@@ -76,7 +75,6 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
         jdbcTemplate,
         publisher,
         SqlView.class,
-        currentUserService,
         aclService,
         false);
 

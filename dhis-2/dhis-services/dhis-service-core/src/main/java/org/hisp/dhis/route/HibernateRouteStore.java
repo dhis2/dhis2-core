@@ -45,9 +45,8 @@ public class HibernateRouteStore extends HibernateIdentifiableObjectStore<Route>
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        entityManager, jdbcTemplate, publisher, Route.class, currentUserService, aclService, false);
+        entityManager, jdbcTemplate, publisher, Route.class, aclService, false);
   }
 }

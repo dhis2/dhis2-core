@@ -53,14 +53,12 @@ public class HibernateProgramNotificationInstanceStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ProgramNotificationInstance.class,
-        currentUserService,
         aclService,
         true);
   }

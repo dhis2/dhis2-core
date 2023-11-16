@@ -47,14 +47,12 @@ public class HibernateTrackedEntityTypeStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         TrackedEntityType.class,
-        currentUserService,
         aclService,
         true);
   }

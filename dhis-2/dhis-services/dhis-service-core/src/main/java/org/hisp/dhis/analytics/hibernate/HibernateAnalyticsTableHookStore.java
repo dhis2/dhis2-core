@@ -39,6 +39,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -54,14 +55,12 @@ public class HibernateAnalyticsTableHookStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         AnalyticsTableHook.class,
-        currentUserService,
         aclService,
         false);
   }

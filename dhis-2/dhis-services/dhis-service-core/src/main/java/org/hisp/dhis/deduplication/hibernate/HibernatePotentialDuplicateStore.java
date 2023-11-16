@@ -75,6 +75,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditStore;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -95,7 +96,6 @@ public class HibernatePotentialDuplicateStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       TrackedEntityStore trackedEntityStore,
       AuditManager auditManager,
@@ -106,7 +106,6 @@ public class HibernatePotentialDuplicateStore
         jdbcTemplate,
         publisher,
         PotentialDuplicate.class,
-        currentUserService,
         aclService,
         false);
     this.trackedEntityStore = trackedEntityStore;
@@ -257,7 +256,7 @@ public class HibernatePotentialDuplicateStore
       TrackedEntityAttributeValue av,
       TrackedEntityAttributeValue createOrUpdateTeav,
       org.hisp.dhis.common.AuditType auditType) {
-    String currentUsername = currentUserService.getCurrentUsername();
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
 
     TrackedEntityAttributeValueAudit deleteTeavAudit =
         new TrackedEntityAttributeValueAudit(av, av.getAuditValue(), currentUsername, DELETE);
@@ -298,8 +297,8 @@ public class HibernatePotentialDuplicateStore
     enrollmentList.forEach(
         e -> {
           e.setTrackedEntity(original);
-          e.setLastUpdatedBy(currentUserService.getCurrentUser());
-          e.setLastUpdatedByUserInfo(UserInfoSnapshot.from(currentUserService.getCurrentUser()));
+          e.setLastUpdatedBy(getCurrentUser());
+          e.setLastUpdatedByUserInfo(UserInfoSnapshot.from(getCurrentUser()));
           e.setLastUpdated(new Date());
           getSession().update(e);
         });

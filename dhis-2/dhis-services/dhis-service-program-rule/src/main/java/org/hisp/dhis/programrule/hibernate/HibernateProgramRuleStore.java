@@ -54,14 +54,12 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ProgramRule.class,
-        currentUserService,
         aclService,
         false);
   }

@@ -74,7 +74,6 @@ public class HibernateOrganisationUnitStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       DbmsManager dbmsManager) {
     super(
@@ -82,7 +81,6 @@ public class HibernateOrganisationUnitStore
         jdbcTemplate,
         publisher,
         OrganisationUnit.class,
-        currentUserService,
         aclService,
         true);
 

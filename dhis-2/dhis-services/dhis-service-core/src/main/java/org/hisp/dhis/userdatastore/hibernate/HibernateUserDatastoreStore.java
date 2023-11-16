@@ -62,14 +62,12 @@ public class HibernateUserDatastoreStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         UserDatastoreEntry.class,
-        currentUserService,
         aclService,
         true);
   }

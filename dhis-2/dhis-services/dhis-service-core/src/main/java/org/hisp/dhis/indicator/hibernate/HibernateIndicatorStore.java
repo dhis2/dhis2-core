@@ -48,14 +48,12 @@ public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<In
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         Indicator.class,
-        currentUserService,
         aclService,
         true);
   }

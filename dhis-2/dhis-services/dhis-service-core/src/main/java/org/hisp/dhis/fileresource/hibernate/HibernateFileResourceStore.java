@@ -56,14 +56,12 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         FileResource.class,
-        currentUserService,
         aclService,
         false);
   }

@@ -192,7 +192,7 @@ public interface IdentifiableObjectManager {
       @Nonnull Class<T> type,
       @Nonnull Attribute attribute,
       @Nonnull String value,
-      @CheckForNull User userInfo);
+      @CheckForNull String username);
 
   @CheckForNull
   <T extends IdentifiableObject> T search(@Nonnull Class<T> type, @Nonnull String query);

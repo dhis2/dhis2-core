@@ -32,7 +32,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.cache.Cache;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import org.hibernate.annotations.QueryHints;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.context.annotation.Lazy;
@@ -50,19 +52,37 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("org.hisp.dhis.user.CurrentUserService")
 public class CurrentUserService {
-  private final UserStore userStore;
 
-  private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
+  //  private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
 
+  //  private final UserStore userService;
   private final SessionRegistry sessionRegistry;
+  private final EntityManager entityManager;
 
-  public CurrentUserService(
-      @Lazy UserStore userStore, CacheProvider cacheProvider, SessionRegistry sessionRegistry) {
-    checkNotNull(userStore);
+  public CurrentUserService(SessionRegistry sessionRegistry, EntityManager entityManager) {
 
-    this.userStore = userStore;
-    this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
+    //    this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
     this.sessionRegistry = sessionRegistry;
+    this.entityManager = entityManager;
+  }
+
+  private User getUserByUsername(String username, boolean ignoreCase) {
+    if (username == null) {
+      return null;
+    }
+
+    String hql =
+        ignoreCase
+            ? "from User u where lower(u.username) = lower(:username)"
+            : "from User u where u.username = :username";
+
+    TypedQuery<User> typedQuery = entityManager.createQuery(hql, User.class);
+    typedQuery.setParameter("username", username);
+    typedQuery.setHint(QueryHints.CACHEABLE, true);
+
+    return typedQuery.getSingleResult();
+    //    return QueryUtils.getSingleResult(typedQuery);
+
   }
 
   /**
@@ -77,7 +97,7 @@ public class CurrentUserService {
   public User getCurrentUser() {
     String username = CurrentUserUtil.getCurrentUsername();
 
-    return userStore.getUserByUsername(username, false);
+    return getUserByUsername(username, false);
   }
 
   @Transactional(readOnly = true)
@@ -99,27 +119,6 @@ public class CurrentUserService {
     User user = getCurrentUser();
 
     return user != null && user.isAuthorized(auth);
-  }
-
-  @Transactional(readOnly = true)
-  public CurrentUserGroupInfo getCurrentUserGroupsInfo() {
-    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
-
-    return user == null ? null : getCurrentUserGroupsInfo(user.getUid());
-  }
-
-  @Transactional(readOnly = true)
-  public CurrentUserGroupInfo getCurrentUserGroupsInfo(String userUID) {
-    return currentUserGroupInfoCache.get(userUID, key -> userStore.getCurrentUserGroupInfo(key));
-  }
-
-  @Transactional(readOnly = true)
-  public void invalidateUserGroupCache(String userUID) {
-    try {
-      currentUserGroupInfoCache.invalidate(userUID);
-    } catch (NullPointerException exception) {
-      // Ignore if key doesn't exist
-    }
   }
 
   public CurrentUserDetailsImpl getCurrentUserPrincipal(String uid) {

@@ -45,6 +45,7 @@ import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.QueryHints;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -59,9 +60,12 @@ import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserGroupService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -83,10 +87,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       Class<T> clazz,
-      CurrentUserService currentUserService,
       AclService aclService,
       boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, aclService, currentUserService, cacheable);
+    super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
 
     this.cacheable = cacheable;
   }
@@ -102,6 +105,27 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   // -------------------------------------------------------------------------
   // IdentifiableObjectStore implementation
   // -------------------------------------------------------------------------
+  public User getCurrentUser() {
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    return getUserByUsername(currentUsername, false);
+  }
+
+  private User getUserByUsername(String username, boolean ignoreCase) {
+    if (username == null) {
+      return null;
+    }
+
+    String hql =
+        ignoreCase
+            ? "from User u where lower(u.username) = lower(:username)"
+            : "from User u where u.username = :username";
+
+    TypedQuery<User> typedQuery = entityManager.createQuery(hql, User.class);
+    typedQuery.setParameter("username", username);
+    typedQuery.setHint(QueryHints.CACHEABLE, true);
+
+    return QueryUtils.getSingleResult(typedQuery);
+  }
 
   @Override
   public void save(@Nonnull T object) {
@@ -115,7 +139,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   public void save(@Nonnull T object, boolean clearSharing) {
-    save(object, currentUserService.getCurrentUser(), clearSharing);
+    save(object, getCurrentUser(), clearSharing);
   }
 
   private void save(T object, User user, boolean clearSharing) {
@@ -161,7 +185,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   public void update(@Nonnull T object) {
-    update(object, currentUserService.getCurrentUser());
+    update(object, getCurrentUser());
   }
 
   @Override
@@ -190,7 +214,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   public void delete(@Nonnull T object) {
-    this.delete(object, currentUserService.getCurrentUser());
+    this.delete(object, getCurrentUser());
   }
 
   @Override
@@ -212,9 +236,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   public final T get(long id) {
     T object = getNoPostProcess(id);
 
-    if (object != null && !isReadAllowed(object, currentUserService.getCurrentUser())) {
+    if (object != null && !isReadAllowed(object, getCurrentUser())) {
       AuditLogUtil.infoWrapper(
-          log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
+          log, CurrentUserUtil.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
       throw new ReadAccessDeniedException(object.toString());
     }
 
@@ -319,9 +343,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     T object = list != null && !list.isEmpty() ? list.get(0) : null;
 
-    if (!isReadAllowed(object, currentUserService.getCurrentUser())) {
+    if (!isReadAllowed(object, getCurrentUser())) {
       AuditLogUtil.infoWrapper(
-          log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
+          log, CurrentUserUtil.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
       throw new ReadAccessDeniedException(String.valueOf(object));
     }
 
@@ -680,7 +704,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Nonnull
   @Override
   public List<T> getById(@Nonnull Collection<Long> ids) {
-    return getById(ids, currentUserService.getCurrentUser());
+    return getById(ids, getCurrentUser());
   }
 
   @Nonnull
@@ -697,7 +721,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Nonnull
   @Override
   public List<T> getByUid(@Nonnull Collection<String> uids) {
-    return getByUid(uids, currentUserService.getCurrentUser());
+    return getByUid(uids, getCurrentUser());
   }
 
   @Nonnull
@@ -729,7 +753,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Nonnull
   @Override
   public List<T> getByCode(@Nonnull Collection<String> codes) {
-    return getByCode(codes, currentUserService.getCurrentUser());
+    return getByCode(codes, getCurrentUser());
   }
 
   @Nonnull
@@ -755,7 +779,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Nonnull
   @Override
   public List<T> getByName(@Nonnull Collection<String> names) {
-    return getByName(names, currentUserService.getCurrentUser());
+    return getByName(names, getCurrentUser());
   }
 
   @Nonnull
@@ -789,7 +813,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Nonnull
   @Override
   public final List<T> getDataReadAll() {
-    return getDataReadAll(currentUserService.getCurrentUser());
+    return getDataReadAll(getCurrentUser());
   }
 
   @Nonnull
@@ -806,7 +830,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Nonnull
   @Override
   public final List<T> getDataWriteAll() {
-    return getDataWriteAll(currentUserService.getCurrentUser());
+    return getDataWriteAll(getCurrentUser());
   }
 
   @Nonnull

@@ -120,15 +120,15 @@ public class DefaultSecurityService implements SecurityService {
   private final ObjectMapper jsonMapper;
 
   public DefaultSecurityService(
-      CurrentUserService currentUserService,
-      UserSettingService userSettingService,
+      @Lazy CurrentUserService currentUserService,
+      @Lazy UserSettingService userSettingService,
       AclService aclService,
       RestTemplate restTemplate,
       CacheProvider cacheProvider,
       @Lazy // Fix circular dependency
           PasswordManager passwordManager,
       MessageSender emailMessageSender,
-      UserService userService,
+      @Lazy UserService userService,
       SystemSettingManager systemSettingManager,
       I18nManager i18nManager,
       ObjectMapper jsonMapper) {

@@ -45,14 +45,12 @@ public class HibernateNotificationLoggingStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ExternalNotificationLogEntry.class,
-        currentUserService,
         aclService,
         true);
   }

@@ -49,14 +49,12 @@ public class HibernateProgramIndicatorStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ProgramIndicator.class,
-        currentUserService,
         aclService,
         true);
   }

@@ -50,14 +50,12 @@ public class HibernateMapViewStore extends HibernateAnalyticalObjectStore<MapVie
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         MapView.class,
-        currentUserService,
         aclService,
         true);
   }

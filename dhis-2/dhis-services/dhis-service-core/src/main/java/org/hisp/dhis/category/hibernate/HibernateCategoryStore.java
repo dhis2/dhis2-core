@@ -50,14 +50,12 @@ public class HibernateCategoryStore extends HibernateIdentifiableObjectStore<Cat
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         Category.class,
-        currentUserService,
         aclService,
         true);
   }

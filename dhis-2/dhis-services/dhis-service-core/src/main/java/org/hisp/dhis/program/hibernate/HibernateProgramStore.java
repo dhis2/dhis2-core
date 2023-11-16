@@ -55,14 +55,12 @@ public class HibernateProgramStore extends HibernateIdentifiableObjectStore<Prog
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         Program.class,
-        currentUserService,
         aclService,
         true);
   }

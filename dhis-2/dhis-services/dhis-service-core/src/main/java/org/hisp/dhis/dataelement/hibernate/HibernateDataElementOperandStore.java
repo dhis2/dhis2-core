@@ -50,14 +50,12 @@ public class HibernateDataElementOperandStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         DataElementOperand.class,
-        currentUserService,
         aclService,
         false);
 

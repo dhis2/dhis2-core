@@ -61,14 +61,12 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         DatastoreEntry.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -88,7 +86,7 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public List<String> getKeysInNamespace(String namespace, Date lastUpdated) {
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = getCurrentUser();
     String accessFilter =
         generateHqlQueryForSharingCheck("ds", currentUser, AclService.LIKE_READ_METADATA);
 
@@ -120,7 +118,7 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform) {
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = getCurrentUser();
     String accessFilter =
         generateHqlQueryForSharingCheck("ds", currentUser, AclService.LIKE_READ_METADATA);
     DatastoreQueryBuilder builder =

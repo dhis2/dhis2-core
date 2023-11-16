@@ -71,7 +71,6 @@ public class HibernateTrackedEntityAttributeStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       StatementBuilder statementBuilder) {
     super(
@@ -79,7 +78,6 @@ public class HibernateTrackedEntityAttributeStore
         jdbcTemplate,
         publisher,
         TrackedEntityAttribute.class,
-        currentUserService,
         aclService,
         true);
     this.statementBuilder = statementBuilder;

@@ -53,14 +53,12 @@ public class HibernateCategoryOptionGroupStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         CategoryOptionGroup.class,
-        currentUserService,
         aclService,
         true);
   }

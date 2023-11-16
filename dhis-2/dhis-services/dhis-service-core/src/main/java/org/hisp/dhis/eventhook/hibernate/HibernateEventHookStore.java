@@ -47,14 +47,12 @@ public class HibernateEventHookStore extends HibernateIdentifiableObjectStore<Ev
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         EventHook.class,
-        currentUserService,
         aclService,
         false);
   }

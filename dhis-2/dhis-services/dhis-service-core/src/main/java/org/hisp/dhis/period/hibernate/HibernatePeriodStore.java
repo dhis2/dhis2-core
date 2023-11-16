@@ -68,11 +68,10 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       CacheProvider cacheProvider) {
     super(
-        entityManager, jdbcTemplate, publisher, Period.class, currentUserService, aclService, true);
+        entityManager, jdbcTemplate, publisher, Period.class, aclService, true);
 
     transientIdentifiableProperties = true;
     this.periodIdCache = cacheProvider.createPeriodIdCache();

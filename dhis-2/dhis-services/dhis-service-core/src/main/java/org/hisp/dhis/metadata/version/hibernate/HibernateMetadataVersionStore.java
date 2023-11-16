@@ -52,14 +52,12 @@ public class HibernateMetadataVersionStore extends HibernateIdentifiableObjectSt
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         MetadataVersion.class,
-        currentUserService,
         aclService,
         false);
   }

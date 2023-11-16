@@ -50,14 +50,12 @@ public class HibernateApiTokenStore extends HibernateIdentifiableObjectStore<Api
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ApiToken.class,
-        currentUserService,
         aclService,
         true);
   }

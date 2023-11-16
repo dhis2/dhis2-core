@@ -49,14 +49,12 @@ public class HibernateOrganisationUnitLevelStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         OrganisationUnitLevel.class,
-        currentUserService,
         aclService,
         true);
   }

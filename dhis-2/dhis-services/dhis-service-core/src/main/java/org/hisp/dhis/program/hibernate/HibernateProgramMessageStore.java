@@ -53,14 +53,12 @@ public class HibernateProgramMessageStore extends HibernateIdentifiableObjectSto
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ProgramMessage.class,
-        currentUserService,
         aclService,
         true);
   }

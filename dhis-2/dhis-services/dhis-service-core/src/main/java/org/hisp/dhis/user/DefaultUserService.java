@@ -100,8 +100,6 @@ public class DefaultUserService implements UserService {
 
   private final UserRoleStore userRoleStore;
 
-  private final CurrentUserService currentUserService;
-
   private final SystemSettingManager systemSettingManager;
 
   private final PasswordManager passwordManager;
@@ -114,15 +112,17 @@ public class DefaultUserService implements UserService {
 
   private final OrganisationUnitService organisationUnitService;
 
+  private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
+
   public DefaultUserService(
-      UserStore userStore,
-      UserGroupService userGroupService,
-      UserRoleStore userRoleStore,
-      CurrentUserService currentUserService,
+      @Lazy UserStore userStore,
+      @Lazy UserGroupService userGroupService,
+      @Lazy UserRoleStore userRoleStore,
+      //      CurrentUserService currentUserService,
       SystemSettingManager systemSettingManager,
       CacheProvider cacheProvider,
       @Lazy PasswordManager passwordManager,
-      @Lazy SecurityService securityService,
+      SecurityService securityService,
       AclService aclService,
       @Lazy OrganisationUnitService organisationUnitService) {
     checkNotNull(userStore);
@@ -137,19 +137,20 @@ public class DefaultUserService implements UserService {
     this.userStore = userStore;
     this.userGroupService = userGroupService;
     this.userRoleStore = userRoleStore;
-    this.currentUserService = currentUserService;
+    //    this.currentUserService = currentUserService;
     this.systemSettingManager = systemSettingManager;
     this.passwordManager = passwordManager;
     this.securityService = securityService;
     this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
     this.aclService = aclService;
     this.organisationUnitService = organisationUnitService;
+    this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
   }
 
   @Override
   @Transactional
   public long addUser(User user) {
-    String currentUsername = currentUserService.getCurrentUsername();
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
     AuditLogUtil.infoWrapper(log, currentUsername, user, AuditLogUtil.ACTION_CREATE);
 
     userStore.save(user);
@@ -163,14 +164,14 @@ public class DefaultUserService implements UserService {
     userStore.update(user);
 
     AuditLogUtil.infoWrapper(
-        log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_UPDATE);
+        log, CurrentUserUtil.getCurrentUsername(), user, AuditLogUtil.ACTION_UPDATE);
   }
 
   @Override
   @Transactional
   public void deleteUser(User user) {
     AuditLogUtil.infoWrapper(
-        log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_DELETE);
+        log, CurrentUserUtil.getCurrentUsername(), user, AuditLogUtil.ACTION_DELETE);
 
     userStore.delete(user);
   }
@@ -291,7 +292,7 @@ public class DefaultUserService implements UserService {
     params.setDisjointRoles(!canSeeOwnRoles);
 
     if (!params.hasUser()) {
-      params.setUser(currentUserService.getCurrentUser());
+      params.setUser(getUserByUsername(CurrentUserUtil.getCurrentUsername()));
     }
 
     if (params.hasUser() && params.getUser().isSuper()) {
@@ -369,7 +370,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrUpdateUser(Collection<String> userGroups) {
-    return canAddOrUpdateUser(userGroups, currentUserService.getCurrentUser());
+    return canAddOrUpdateUser(userGroups, getUserByUsername(CurrentUserUtil.getCurrentUsername()));
   }
 
   @Override
@@ -479,7 +480,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public void canIssueFilter(Collection<UserRole> userRoles) {
-    User user = currentUserService.getCurrentUser();
+    User user = getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     boolean canGrantOwnUserRoles =
         systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
@@ -791,7 +792,8 @@ public class DefaultUserService implements UserService {
 
   @Override
   public void expireActiveSessions(User user) {
-    currentUserService.invalidateUserSessions(user.getUid());
+    //    currentUserService.invalidateUserSessions(user.getUid());
+
   }
 
   @Override
@@ -877,7 +879,7 @@ public class DefaultUserService implements UserService {
         .userGroupIds(
             user.getUid() == null
                 ? Set.of()
-                : currentUserService.getCurrentUserGroupsInfo(user.getUid()).getUserGroupUIDs())
+                : getCurrentUserGroupInfo(user.getUid()).getUserGroupUIDs())
         .isSuper(user.isSuper())
         .build();
   }
@@ -984,6 +986,26 @@ public class DefaultUserService implements UserService {
               : Date.from(oneHourAgo));
 
       updateUser(user);
+    }
+  }
+
+  @Transactional(readOnly = true)
+  public CurrentUserGroupInfo getCurrentUserGroupsInfo() {
+    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    return user == null ? null : getCurrentUserGroupInfo(user.getUid());
+  }
+
+  @Transactional(readOnly = true)
+  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
+    return currentUserGroupInfoCache.get(userUID, userStore::getCurrentUserGroupInfo);
+  }
+
+  @Transactional(readOnly = true)
+  public void invalidateUserGroupCache(String userUID) {
+    try {
+      currentUserGroupInfoCache.invalidate(userUID);
+    } catch (NullPointerException exception) {
+      // Ignore if key doesn't exist
     }
   }
 }

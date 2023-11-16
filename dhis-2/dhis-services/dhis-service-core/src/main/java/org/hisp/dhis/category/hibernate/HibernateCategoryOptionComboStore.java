@@ -59,7 +59,6 @@ public class HibernateCategoryOptionComboStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       DbmsManager dbmsManager) {
     super(
@@ -67,7 +66,6 @@ public class HibernateCategoryOptionComboStore
         jdbcTemplate,
         publisher,
         CategoryOptionCombo.class,
-        currentUserService,
         aclService,
         true);
     this.dbmsManager = dbmsManager;

@@ -25,39 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note.hibernate;
+package org.hisp.dhis.user;
 
-import javax.persistence.EntityManager;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.note.Note;
-import org.hisp.dhis.note.NoteStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * @author David Katuscak
- */
-@Repository("org.hisp.dhis.trackedentitycomment.NoteStore")
-public class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note>
-    implements NoteStore {
-  public HibernateNoteStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      AclService aclService) {
-    super(
-        entityManager, jdbcTemplate, publisher, Note.class, aclService, false);
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service("org.hisp.dhis.user.CurrentUserGroupService")
+public class CurrentUserGroupService {
+
+  private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
+
+  private final UserService userService;
+  public CurrentUserGroupService(UserService userService, CacheProvider cacheProvider) {
+    checkNotNull(cacheProvider);
+    checkNotNull(cacheProvider);
+
+    this.userService = userService;
+    this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
   }
 
-  @Override
-  public boolean exists(String uid) {
-    return (boolean)
-        entityManager
-            .createNativeQuery("select exists(select 1 from note where uid=:uid)")
-            .setParameter("uid", uid)
-            .getSingleResult();
+  @Transactional(readOnly = true)
+  public CurrentUserGroupInfo getCurrentUserGroupsInfo() {
+    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    return user == null ? null : getCurrentUserGroupsInfo(user.getUid());
+  }
+
+  @Transactional(readOnly = true)
+  public CurrentUserGroupInfo getCurrentUserGroupsInfo(String userUID) {
+    return currentUserGroupInfoCache.get(userUID, userService::getCurrentUserGroupInfo);
+  }
+
+  @Transactional(readOnly = true)
+  public void invalidateUserGroupCache(String userUID) {
+    try {
+      currentUserGroupInfoCache.invalidate(userUID);
+    } catch (NullPointerException exception) {
+      // Ignore if key doesn't exist
+    }
   }
 }

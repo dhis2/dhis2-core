@@ -49,14 +49,12 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         UserRole.class,
-        currentUserService,
         aclService,
         true);
   }

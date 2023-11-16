@@ -45,14 +45,12 @@ public class HibernateDataElementGroupSetStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         DataElementGroupSet.class,
-        currentUserService,
         aclService,
         false);
   }

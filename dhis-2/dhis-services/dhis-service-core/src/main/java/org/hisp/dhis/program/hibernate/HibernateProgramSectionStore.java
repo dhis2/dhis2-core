@@ -47,14 +47,12 @@ public class HibernateProgramSectionStore extends HibernateIdentifiableObjectSto
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ProgramSection.class,
-        currentUserService,
         aclService,
         true);
   }

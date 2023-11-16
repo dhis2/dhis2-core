@@ -51,14 +51,12 @@ public class HibernateOptionGroupStore extends HibernateIdentifiableObjectStore<
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         OptionGroup.class,
-        currentUserService,
         aclService,
         true);
   }

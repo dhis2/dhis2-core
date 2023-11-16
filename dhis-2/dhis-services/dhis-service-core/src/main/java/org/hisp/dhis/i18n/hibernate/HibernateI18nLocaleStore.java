@@ -46,14 +46,12 @@ public class HibernateI18nLocaleStore extends HibernateIdentifiableObjectStore<I
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         I18nLocale.class,
-        currentUserService,
         aclService,
         false);
   }
