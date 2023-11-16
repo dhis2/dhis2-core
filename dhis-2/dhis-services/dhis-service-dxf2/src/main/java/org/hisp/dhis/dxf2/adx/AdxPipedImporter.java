@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.concurrent.Callable;
+import javax.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dbms.DbmsUtils;
@@ -57,7 +58,7 @@ public class AdxPipedImporter implements Callable<ImportSummary> {
 
   private final JobConfiguration id;
 
-  private final SessionFactory sessionFactory;
+  private final EntityManagerFactory entityManagerFactory;
 
   private final Authentication authentication;
 
@@ -66,20 +67,20 @@ public class AdxPipedImporter implements Callable<ImportSummary> {
       ImportOptions importOptions,
       JobConfiguration id,
       PipedOutputStream pipeOut,
-      SessionFactory sessionFactory)
+      EntityManagerFactory entityManagerFactory)
       throws IOException {
     this.dataValueSetService = dataValueSetService;
     this.pipeIn = new PipedInputStream(pipeOut, PIPE_BUFFER_SIZE);
     this.importOptions = importOptions;
     this.id = id;
-    this.sessionFactory = sessionFactory;
+    this.entityManagerFactory = entityManagerFactory;
     this.authentication = SecurityContextHolder.getContext().getAuthentication();
   }
 
   @Override
   public ImportSummary call() {
     SecurityContextHolder.getContext().setAuthentication(authentication);
-    DbmsUtils.bindSessionToThread(sessionFactory);
+    DbmsUtils.bindSessionToThread(entityManagerFactory.unwrap(SessionFactory.class));
 
     try {
       return dataValueSetService.importDataValueSetXml(pipeIn, importOptions, id);
@@ -87,7 +88,7 @@ public class AdxPipedImporter implements Callable<ImportSummary> {
       return ImportSummary.error("Exception: " + ex.getMessage());
     } finally {
       StreamUtils.closeQuietly(pipeIn);
-      DbmsUtils.unbindSessionFromThread(sessionFactory);
+      DbmsUtils.unbindSessionFromThread(entityManagerFactory.unwrap(SessionFactory.class));
     }
   }
 }
