@@ -149,8 +149,6 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   // -------------------------------------------------------------------------
 
   private void generateResourceTablesInternal(JobProgress progress) {
-    final Date startTime = new Date();
-
     resourceTableService.dropAllSqlViews(progress);
 
     Map<String, Runnable> generators = new LinkedHashMap<>();
@@ -184,6 +182,6 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     resourceTableService.createAllSqlViews(progress);
 
     systemSettingManager.saveSystemSetting(
-        SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, startTime);
+        SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, new Date());
   }
 }
