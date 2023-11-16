@@ -48,6 +48,7 @@ import org.hisp.dhis.commons.jackson.config.geometry.GeometrySerializer;
 import org.hisp.dhis.commons.jackson.config.geometry.JtsXmlModule;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dataexchange.aggregate.ApiSerializer;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
@@ -152,6 +153,7 @@ public class JacksonObjectMapperConfig {
     module.addSerializer(Date.class, new WriteDateStdSerializer());
     module.addSerializer(JsonPointer.class, new JsonPointerStdSerializer());
     module.addSerializer(Api.class, new ApiSerializer());
+    module.addSerializer(JsonValue.class, new JsonValueSerializer());
 
     // Registering a custom Instant serializer/deserializer for DTOs
     JavaTimeModule javaTimeModule = new JavaTimeModule();

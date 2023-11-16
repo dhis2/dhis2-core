@@ -142,12 +142,18 @@ public interface JobProgress {
   Error reporting API:
   */
 
-  default void addError(ErrorCode code, String uid, String type, Integer index, String... args) {
-    addError(code, uid, type, index, List.of(args));
+  default void addError(
+      @Nonnull ErrorCode code, @CheckForNull String uid, @Nonnull String type, String... args) {
+    addError(code, uid, type, List.of(args));
   }
 
-  default void addError(ErrorCode code, String uid, String type, Integer index, List<String> args) {
-    // default implementation is a NOOP, we don't remember or handle the error
+  default void addError(
+      @Nonnull ErrorCode code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      @Nonnull List<String> args) {
+    // is overridden by a tracker that collects errors
+    // default is to not collect errors
   }
 
   /*
@@ -590,10 +596,13 @@ public interface JobProgress {
     }
 
     public void addError(Error error) {
-      errors
-          .computeIfAbsent(error.getId(), key -> new ConcurrentHashMap<>())
-          .computeIfAbsent(error.getCode(), key2 -> new ConcurrentLinkedQueue<>())
-          .add(error);
+      Queue<Error> sameObjectAndCode =
+          errors
+              .computeIfAbsent(error.getId(), key -> new ConcurrentHashMap<>())
+              .computeIfAbsent(error.getCode(), key2 -> new ConcurrentLinkedQueue<>());
+      if (sameObjectAndCode.stream().noneMatch(e -> e.args.equals(error.args))) {
+        sameObjectAndCode.add(error);
+      }
     }
 
     public boolean hasErrors() {
@@ -619,13 +628,6 @@ public interface JobProgress {
     /** The type of the object identified by #id that has the error */
     @Nonnull @JsonProperty private final String type;
 
-    /**
-     * The row index in the payload of the import. This is the index in the list of objects of a
-     * single type. This means the same index occurs for each object type. For some imports this
-     * information is not available.
-     */
-    @CheckForNull @JsonProperty private final Integer index;
-
     /** The arguments used in the {@link #code}'s {@link ErrorCode#getMessage()} template */
     @Nonnull @JsonProperty private final List<String> args;
 
@@ -642,12 +644,10 @@ public interface JobProgress {
         @Nonnull @JsonProperty("code") ErrorCode code,
         @Nonnull @JsonProperty("id") String id,
         @Nonnull @JsonProperty("type") String type,
-        @CheckForNull @JsonProperty("index") Integer index,
         @Nonnull @JsonProperty("args") List<String> args) {
       this.code = code;
       this.id = id;
       this.type = type;
-      this.index = index;
       this.args = args;
     }
   }
