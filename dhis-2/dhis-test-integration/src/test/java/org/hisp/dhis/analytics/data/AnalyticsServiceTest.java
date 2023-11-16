@@ -253,8 +253,8 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     // We need to make sure that table generation start time is greater than
     // lastUpdated on tables populated in the setup
-    Date oneSecondFromNow =
-        Date.from(LocalDateTime.now().plusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
+    Date tenSecondsFromNow =
+        Date.from(LocalDateTime.now().plusSeconds(10).atZone(ZoneId.systemDefault()).toInstant());
 
     assertNull(
         systemSettingManager.getSystemSetting(
@@ -265,7 +265,7 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     processStartTime = new Date();
     // Generate analytics tables
     analyticsTableGenerator.generateTables(
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
+        AnalyticsTableUpdateParams.newBuilder().withStartTime(tenSecondsFromNow).build(),
         NoopJobProgress.INSTANCE);
   }
 
