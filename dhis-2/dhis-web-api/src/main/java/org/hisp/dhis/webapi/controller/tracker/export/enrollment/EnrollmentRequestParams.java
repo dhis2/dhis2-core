@@ -49,15 +49,22 @@ import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 
 /** Represents query parameters sent to {@link EnrollmentsExportController}. */
+@OpenApi.Shared(name = "EnrollmentRequestParams")
 @OpenApi.Property
 @Data
 @NoArgsConstructor
 public class EnrollmentRequestParams implements PageRequestParams {
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
 
-  private Integer page = 1;
-  private Integer pageSize = 50;
+  @OpenApi.Property(defaultValue = "1")
+  private Integer page;
+
+  @OpenApi.Property(defaultValue = "50")
+  private Integer pageSize;
+
+  @OpenApi.Property(defaultValue = "false")
   private Boolean totalPages = false;
+
   private Boolean skipPaging = false;
 
   private List<OrderCriteria> order = new ArrayList<>();
