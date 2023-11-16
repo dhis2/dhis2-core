@@ -111,7 +111,8 @@ public class TrackerImportController {
       @RequestBody Body body)
       throws ConflictException, NotFoundException, IOException {
     TrackerImportParams trackerImportParams =
-        TrackerImportParamsMapper.trackerImportParams(currentUser.getUid(), trackerImportRequestParams);
+        TrackerImportParamsMapper.trackerImportParams(
+            currentUser.getUid(), trackerImportRequestParams);
     TrackerObjects trackerObjects =
         TrackerImportParamsMapper.trackerObjects(body, trackerImportParams.getIdSchemes());
 
@@ -156,9 +157,12 @@ public class TrackerImportController {
       consumes = APPLICATION_JSON_VALUE,
       params = {"async=false"})
   public ResponseEntity<ImportReport> syncPostJsonTracker(
-          TrackerImportRequestParams trackerImportRequestParams, @CurrentUser User currentUser, @RequestBody Body body) {
+      TrackerImportRequestParams trackerImportRequestParams,
+      @CurrentUser User currentUser,
+      @RequestBody Body body) {
     TrackerImportParams params =
-        TrackerImportParamsMapper.trackerImportParams(currentUser.getUid(), trackerImportRequestParams);
+        TrackerImportParamsMapper.trackerImportParams(
+            currentUser.getUid(), trackerImportRequestParams);
     TrackerObjects trackerObjects =
         TrackerImportParamsMapper.trackerObjects(body, params.getIdSchemes());
     ImportReport importReport =
