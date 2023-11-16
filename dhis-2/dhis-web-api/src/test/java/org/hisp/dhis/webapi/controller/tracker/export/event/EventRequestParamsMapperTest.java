@@ -89,7 +89,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings(strictness = Strictness.LENIENT) // common setup
 @ExtendWith(MockitoExtension.class)
-class EventEnrollmentEventRelationshipTrackedEntityRequestParamsMapperTest {
+class EventRequestParamsMapperTest {
 
   private static final String DE_1_UID = "OBzmpRP6YUh";
 

@@ -60,7 +60,6 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-@OpenApi.Shared(name = "EventRequestParams")
 @OpenApi.Property
 @Data
 @NoArgsConstructor

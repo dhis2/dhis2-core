@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import lombok.Data;
 import org.junit.jupiter.api.Test;
 
-class PageEnrollmentEventRelationshipTrackedEntityRequestParamsTest {
+class PageRequestParamsTest {
 
   @Data
   private static class PaginationParameters implements PageRequestParams {

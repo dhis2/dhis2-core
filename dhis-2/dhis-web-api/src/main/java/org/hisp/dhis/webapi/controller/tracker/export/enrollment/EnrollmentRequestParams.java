@@ -49,7 +49,6 @@ import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 
 /** Represents query parameters sent to {@link EnrollmentsExportController}. */
-@OpenApi.Shared(name = "EnrollmentRequestParams")
 @OpenApi.Property
 @Data
 @NoArgsConstructor
