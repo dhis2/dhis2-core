@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import org.hibernate.Session;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.tracker.TrackerType;
@@ -65,13 +65,15 @@ public class RelationshipPersister
 
   @Override
   protected void persistNotes(
-      Session session, TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship entity) {
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      org.hisp.dhis.relationship.Relationship entity) {
     // NOTHING TO DO
   }
 
   @Override
   protected void updateAttributes(
-      Session session,
+      EntityManager entityManager,
       TrackerPreheat preheat,
       Relationship trackerDto,
       org.hisp.dhis.relationship.Relationship hibernateEntity) {
@@ -80,7 +82,7 @@ public class RelationshipPersister
 
   @Override
   protected void updateDataValues(
-      Session session,
+      EntityManager entityManager,
       TrackerPreheat preheat,
       Relationship trackerDto,
       org.hisp.dhis.relationship.Relationship hibernateEntity) {

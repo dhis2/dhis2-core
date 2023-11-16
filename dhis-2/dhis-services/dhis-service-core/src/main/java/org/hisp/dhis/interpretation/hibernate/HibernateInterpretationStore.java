@@ -28,7 +28,7 @@
 package org.hisp.dhis.interpretation.hibernate;
 
 import java.util.List;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -50,13 +50,13 @@ public class HibernateInterpretationStore extends HibernateIdentifiableObjectSto
     implements InterpretationStore {
   @Autowired
   public HibernateInterpretationStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         Interpretation.class,

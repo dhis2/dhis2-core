@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.eventhook.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.EventHookStore;
@@ -44,13 +44,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateEventHookStore extends HibernateIdentifiableObjectStore<EventHook>
     implements EventHookStore {
   public HibernateEventHookStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         EventHook.class,

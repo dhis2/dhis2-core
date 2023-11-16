@@ -29,7 +29,7 @@ package org.hisp.dhis.dataelement.hibernate;
 
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
@@ -47,13 +47,13 @@ public class HibernateDataElementOperandStore
     extends HibernateIdentifiableObjectStore<DataElementOperand>
     implements DataElementOperandStore {
   public HibernateDataElementOperandStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         DataElementOperand.class,

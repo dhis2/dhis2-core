@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi;
 
+import java.time.Duration;
+import java.util.function.BooleanSupplier;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.IntegrationTest;
@@ -106,5 +108,15 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
       Configurator.setLevel(ORG_HISP_DHIS_DATASOURCE_QUERY, Level.INFO);
       Configurator.setRootLevel(Level.INFO);
     }
+  }
+
+  protected static boolean await(Duration timeout, BooleanSupplier test)
+      throws InterruptedException {
+    while (!timeout.isNegative() && !test.getAsBoolean()) {
+      Thread.sleep(20);
+      timeout = timeout.minusMillis(20);
+    }
+    if (!timeout.isNegative()) return true;
+    return test.getAsBoolean();
   }
 }

@@ -73,6 +73,7 @@ public class CurrentUserService {
     return CurrentUserUtil.getCurrentUsername();
   }
 
+  @Transactional(readOnly = true)
   public User getCurrentUser() {
     String username = CurrentUserUtil.getCurrentUsername();
 

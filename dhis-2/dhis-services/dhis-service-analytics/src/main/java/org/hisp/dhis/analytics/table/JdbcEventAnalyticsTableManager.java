@@ -140,7 +140,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTableColumn(quote("ps"), CHARACTER_11, NOT_NULL, "ps.uid"),
           new AnalyticsTableColumn(quote("ao"), CHARACTER_11, NOT_NULL, "ao.uid"),
           new AnalyticsTableColumn(quote("enrollmentdate"), TIMESTAMP, "pi.enrollmentdate"),
-          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.incidentdate"),
+          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.occurreddate"),
           new AnalyticsTableColumn(quote("occurreddate"), TIMESTAMP, "psi.occurreddate"),
           new AnalyticsTableColumn(quote("scheduleddate"), TIMESTAMP, "psi.scheduleddate"),
           new AnalyticsTableColumn(quote("completeddate"), TIMESTAMP, "psi.completeddate"),

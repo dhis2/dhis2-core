@@ -32,7 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
 import java.util.List;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -98,7 +99,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
   @Autowired private DataSetService dataSetService;
 
-  @Autowired private SessionFactory sessionFactory;
+  @PersistenceContext private EntityManager entityManager;
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
@@ -158,7 +159,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
   public void setUpTest() throws Exception {
     dataApprovalStore =
         new HibernateDataApprovalStore(
-            sessionFactory,
+            entityManager,
             jdbcTemplate,
             publisher,
             cacheProvider,

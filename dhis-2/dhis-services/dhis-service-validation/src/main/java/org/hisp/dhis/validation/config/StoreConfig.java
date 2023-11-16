@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.validation.config;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -44,7 +45,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 @Configuration("validationStoreConfig")
 public class StoreConfig {
-  @Autowired private SessionFactory sessionFactory;
+  @PersistenceContext private EntityManager entityManager;
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
@@ -58,7 +59,7 @@ public class StoreConfig {
   public HibernateIdentifiableObjectStore<ValidationNotificationTemplate>
       programNotificationInstanceStore() {
     return new HibernateIdentifiableObjectStore<ValidationNotificationTemplate>(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         ValidationNotificationTemplate.class,
@@ -70,7 +71,7 @@ public class StoreConfig {
   @Bean("org.hisp.dhis.validation.ValidationRuleGroupStore")
   public HibernateIdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore() {
     return new HibernateIdentifiableObjectStore<ValidationRuleGroup>(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         ValidationRuleGroup.class,

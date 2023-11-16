@@ -29,8 +29,8 @@ package org.hisp.dhis.sms.hibernate;
 
 import java.util.Date;
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.security.acl.AclService;
@@ -46,13 +46,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateOutboundSmsStore extends HibernateIdentifiableObjectStore<OutboundSms>
     implements OutboundSmsStore {
   public HibernateOutboundSmsStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         OutboundSms.class,

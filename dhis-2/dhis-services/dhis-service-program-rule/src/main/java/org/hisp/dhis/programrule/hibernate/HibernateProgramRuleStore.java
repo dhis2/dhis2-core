@@ -31,9 +31,9 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.*;
@@ -51,13 +51,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<ProgramRule>
     implements ProgramRuleStore {
   public HibernateProgramRuleStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         ProgramRule.class,
