@@ -27,20 +27,14 @@
  */
 package org.hisp.dhis.query.operators;
 
-import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
-import static org.hisp.dhis.user.UserSettingKey.UI_LOCALE;
-
-import java.util.Locale;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
-import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Henning Håkonsen
@@ -76,10 +70,8 @@ public class TokenOperator<T extends Comparable<? super T>> extends Operator<T> 
                 root.get(queryPath.getPath()),
                 builder.literal(TokenUtils.createRegex(value).toString())),
             true);
-    Locale currentLocale =
-        ObjectUtils.defaultIfNull(
-            CurrentUserUtil.getUserSetting(DB_LOCALE), CurrentUserUtil.getUserSetting(UI_LOCALE));
-    if (currentLocale == null
+
+    if (queryPath.getLocale() == null
         || !queryPath.getProperty().isTranslatable()
         || queryPath.getProperty().getTranslationKey() == null) {
       return defaultSearch;
@@ -90,7 +82,7 @@ public class TokenOperator<T extends Comparable<? super T>> extends Operator<T> 
             Boolean.class,
             root.get("translations"),
             builder.literal("{" + queryPath.getProperty().getTranslationKey() + "}"),
-            builder.literal(currentLocale.getLanguage()),
+            builder.literal(queryPath.getLocale().getLanguage()),
             builder.literal(TokenUtils.createRegex(value).toString())),
         true);
   }
