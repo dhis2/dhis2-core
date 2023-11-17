@@ -51,13 +51,14 @@ public class CurrentUserService {
 
   //  private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
 
-  //  private final UserStore userService;
+    private final UserStore userStore;
   private final SessionRegistry sessionRegistry;
   private final EntityManager entityManager;
 
-  public CurrentUserService(SessionRegistry sessionRegistry, EntityManager entityManager) {
+  public CurrentUserService(UserStore userStore,SessionRegistry sessionRegistry, EntityManager entityManager) {
 
     //    this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
+    this.userStore = userStore;
     this.sessionRegistry = sessionRegistry;
     this.entityManager = entityManager;
   }
@@ -93,7 +94,9 @@ public class CurrentUserService {
   public User getCurrentUser() {
     String username = CurrentUserUtil.getCurrentUsername();
 
-    return getUserByUsername(username, false);
+
+//    return getUserByUsername(username, false);
+    return userStore.getUserByUsername(username, false);
   }
 
   @Transactional(readOnly = true)
