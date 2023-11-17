@@ -210,7 +210,7 @@ class JdbcEventStore implements EventStore {
           entry("created", COLUMN_EVENT_CREATED),
           entry("createdAtClient", COLUMN_EVENT_CREATED_AT_CLIENT),
           entry("lastUpdated", COLUMN_EVENT_LAST_UPDATED),
-          entry("updatedAtClient", COLUMN_EVENT_LAST_UPDATED_AT_CLIENT),
+          entry("lastUpdatedAtClient", COLUMN_EVENT_LAST_UPDATED_AT_CLIENT),
           entry("completedBy", COLUMN_EVENT_COMPLETED_BY),
           entry("attributeOptionCombo.uid", COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID),
           entry("completedDate", COLUMN_EVENT_COMPLETED_DATE),
