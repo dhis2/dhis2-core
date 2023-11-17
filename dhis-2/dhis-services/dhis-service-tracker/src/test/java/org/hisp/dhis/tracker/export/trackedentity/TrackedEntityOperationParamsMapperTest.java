@@ -239,12 +239,15 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Test
   void testMappingProgramEnrollmentStartDate() throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+
     Date date = parseDate("2022-12-13");
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .user(user)
             .programEnrollmentStartDate(date)
+            .programUid(program.getUid())
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams);
@@ -254,12 +257,15 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Test
   void testMappingProgramEnrollmentEndDate() throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+
     Date date = parseDate("2022-12-13");
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .user(user)
             .programEnrollmentEndDate(date)
+            .programUid(program.getUid())
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams);
@@ -269,10 +275,13 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Test
   void testFilter() throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .user(user)
+            .programUid(program.getUid())
             .filters(
                 Map.of(
                     TEA_1_UID,
@@ -321,10 +330,13 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Test
   void testFilterWhenTEAHasMultipleFilters() throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .user(user)
+            .programUid(program.getUid())
             .filters(
                 Map.of(
                     TEA_1_UID,
@@ -468,7 +480,10 @@ class TrackedEntityOperationParamsMapperTest {
   @Test
   void testMappingOrgUnitsNotFound() {
     TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder().organisationUnits(Set.of("NeU85luyD4w")).build();
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of("NeU85luyD4w"))
+            .programUid(program.getUid())
+            .build();
 
     BadRequestException e =
         assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
@@ -480,12 +495,14 @@ class TrackedEntityOperationParamsMapperTest {
     when(organisationUnitService.isInUserHierarchy(
             orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(false);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .user(user)
             .organisationUnits(Set.of(ORG_UNIT_1_UID))
+            .programUid(program.getUid())
             .build();
 
     ForbiddenException e =
@@ -498,6 +515,7 @@ class TrackedEntityOperationParamsMapperTest {
   @EnumSource(value = OrganisationUnitSelectionMode.class)
   void shouldMapParamsWhenOrgUnitNotInScopeButUserIsSuperuser(
       OrganisationUnitSelectionMode orgUnitMode) throws ForbiddenException, BadRequestException {
+    when(aclService.canDataRead(user, program)).thenReturn(true);
     when(organisationUnitService.isInUserHierarchy(
             orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(false);
@@ -510,6 +528,7 @@ class TrackedEntityOperationParamsMapperTest {
             .orgUnitMode(orgUnitMode)
             .user(superuser)
             .organisationUnits(Set.of(ORG_UNIT_1_UID))
+            .programUid(program.getUid())
             .build();
 
     TrackedEntityQueryParams queryParams = mapper.map(operationParams);
@@ -535,6 +554,7 @@ class TrackedEntityOperationParamsMapperTest {
             .orgUnitMode(orgUnitMode)
             .user(user)
             .organisationUnits(Set.of(ORG_UNIT_1_UID))
+            .programUid(program.getUid())
             .build();
 
     ForbiddenException e =
@@ -554,10 +574,13 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Test
   void testMappingAssignedUsers() throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .user(user)
+            .programUid(program.getUid())
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(
                     AssignedUserSelectionMode.PROVIDED, null, Set.of("IsdLBTOBzMi", "l5ab8q5skbB")))
@@ -573,6 +596,8 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Test
   void shouldMapOrderInGivenOrder() throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
@@ -581,6 +606,7 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .user(user)
+            .programUid(program.getUid())
             .orderBy("created", SortDirection.ASC)
             .orderBy(UID.of(TEA_1_UID), SortDirection.ASC)
             .orderBy("createdAtClient", SortDirection.DESC)
@@ -601,10 +627,12 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(null);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
+            .programUid(program.getUid())
             .user(user)
             .orderBy(UID.of(TEA_1_UID), SortDirection.ASC)
             .build();
@@ -620,12 +648,14 @@ class TrackedEntityOperationParamsMapperTest {
     // rule out all
     // invalid field names and UIDs. Such invalid order values will be caught in this mapper.
     assertTrue(CodeGenerator.isValidUid("lastUpdated"));
+    when(aclService.canDataRead(user, program)).thenReturn(true);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .user(user)
             .orderBy(UID.of("lastUpdated"), SortDirection.ASC)
+            .programUid(program.getUid())
             .build();
 
     Exception exception =
