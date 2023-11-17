@@ -29,14 +29,29 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Locale;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
+
+  @Autowired private UserSettingService userSettingService;
+
+  @Autowired private SystemSettingManager systemSettingManager;
+
   @Test
   void testGetNonAccessibleObject() {
     User admin = getCurrentUser();
@@ -72,5 +87,89 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
     assertEquals(testUser.getUid(), dataSet.getSharing().getOwner());
 
     GET("/dataSets/{id}", id).content(HttpStatus.OK);
+  }
+
+  @Test
+  @DisplayName("Search by token should use translations column instead of default columns")
+  void testSearchByToken() {
+    setUpTranslation();
+    User userA = createAndAddUser("userA", null, "ALL");
+    userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.FRENCH, userA);
+    injectSecurityContext(userA);
+    assertTrue(
+        GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets").isEmpty());
+    assertFalse(
+        GET("/dataSets?filter=identifiable:token:fr").content().getArray("dataSets").isEmpty());
+    assertFalse(
+        GET("/dataSets?filter=identifiable:token:dataSet")
+            .content()
+            .getArray("dataSets")
+            .isEmpty());
+  }
+
+  @Test
+  @DisplayName("Search by token should use default properties instead of translations column")
+  void testSearchTokenDefaultLocale() {
+    setUpTranslation();
+    User userA = createAndAddUser("userA", null, "ALL");
+    userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.ENGLISH, userA);
+    injectSecurityContext(userA);
+
+    systemSettingManager.saveSystemSetting(SettingKey.DB_LOCALE, Locale.ENGLISH);
+    assertTrue(
+        GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets").isEmpty());
+    assertTrue(
+        GET("/dataSets?filter=identifiable:token:fr").content().getArray("dataSets").isEmpty());
+    assertTrue(
+        GET("/dataSets?filter=identifiable:token:dataSet")
+            .content()
+            .getArray("dataSets")
+            .isEmpty());
+
+    assertFalse(
+        GET("/dataSets?filter=identifiable:token:my").content().getArray("dataSets").isEmpty());
+  }
+
+  @Test
+  @DisplayName("Search by token should use default properties instead of translations column")
+  void testSearchTokenWithNullLocale() {
+    setUpTranslation();
+    User userA = createAndAddUser("userA", null, "ALL");
+    injectSecurityContext(userA);
+
+    systemSettingManager.saveSystemSetting(SettingKey.DB_LOCALE, Locale.ENGLISH);
+    assertTrue(
+        GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets").isEmpty());
+    assertTrue(
+        GET("/dataSets?filter=identifiable:token:fr").content().getArray("dataSets").isEmpty());
+    assertTrue(
+        GET("/dataSets?filter=identifiable:token:dataSet")
+            .content()
+            .getArray("dataSets")
+            .isEmpty());
+
+    assertFalse(
+        GET("/dataSets?filter=identifiable:token:my").content().getArray("dataSets").isEmpty());
+  }
+
+  private void setUpTranslation() {
+    String id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
+
+    PUT(
+            "/dataSets/" + id + "/translations",
+            "{'translations': [{'locale':'fr', 'property':'NAME', 'value':'fr dataSet'}]}")
+        .content(HttpStatus.NO_CONTENT);
+
+    JsonArray translations =
+        GET("/dataSets/{id}/translations", id).content().getArray("translations");
+    assertEquals(1, translations.size());
+
+    assertTrue(
+        GET("/dataSets?filter=identifiable:token:fr", id).content().getArray("dataSets").isEmpty());
   }
 }

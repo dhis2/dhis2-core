@@ -104,7 +104,7 @@
     <com.google.zxing.javase.version>3.5.2</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.30</spring.version>
+    <spring.version>5.3.31</spring.version>
     <spring-data-redis.version>2.7.17</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -235,7 +235,7 @@
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.4.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.1</versions-maven-plugin.version>
-    <dependency-check-maven.version>8.4.2</dependency-check-maven.version>
+    <dependency-check-maven.version>8.4.3</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.8.1.0</spotbugs-maven-plugin.version>
     <spotless.version>2.40.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
