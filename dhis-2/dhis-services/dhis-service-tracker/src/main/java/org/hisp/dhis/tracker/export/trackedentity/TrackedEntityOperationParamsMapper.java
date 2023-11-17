@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +81,8 @@ class TrackedEntityOperationParamsMapper {
     User user = operationParams.getUser();
     TrackedEntityType trackedEntityType =
         validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
-    List<TrackedEntityType> trackedEntityTypes = getTrackedEntityTypes(user, trackedEntityType);
+    List<TrackedEntityType> trackedEntityTypes =
+        filterAndValidateTrackedEntityTypes(user, trackedEntityType, program);
 
     Set<OrganisationUnit> orgUnits = validateOrgUnits(user, operationParams.getOrganisationUnits());
     validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
@@ -120,15 +121,21 @@ class TrackedEntityOperationParamsMapper {
     return params;
   }
 
-  private List<TrackedEntityType> getTrackedEntityTypes(
-      User user, TrackedEntityType trackedEntityType) {
+  private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(
+      User user, TrackedEntityType trackedEntityType, Program program) throws BadRequestException {
+    List<TrackedEntityType> trackedEntityTypes = new ArrayList<>();
     if (trackedEntityType == null) {
-      return trackedEntityTypeService.getAllTrackedEntityType().stream()
-          .filter(tet -> aclService.canDataRead(user, tet))
-          .toList();
+      trackedEntityTypes =
+          trackedEntityTypeService.getAllTrackedEntityType().stream()
+              .filter(tet -> aclService.canDataRead(user, tet))
+              .toList();
     }
 
-    return Collections.emptyList();
+    if (program == null && trackedEntityType == null && trackedEntityTypes.isEmpty()) {
+      throw new BadRequestException("Either Program or Tracked entity type should be specified");
+    }
+
+    return trackedEntityTypes;
   }
 
   private void mapAttributeFilters(

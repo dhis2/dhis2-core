@@ -179,7 +179,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
     assertEquals(
         "Either Program or Tracked entity type should be specified",
-        GET("/tracker/trackedEntities").error(HttpStatus.CONFLICT).getMessage());
+        GET("/tracker/trackedEntities").error(HttpStatus.BAD_REQUEST).getMessage());
   }
 
   @Test
@@ -189,7 +189,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertEquals(
         "Either Program or Tracked entity type should be specified",
         GET("/tracker/trackedEntities?orgUnit={ou}", orgUnit.getUid())
-            .error(HttpStatus.CONFLICT)
+            .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
 

@@ -376,11 +376,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (!isLocalSearch(params, user)) {
       int maxTeiLimit = 0; // no limit
 
-      if (params.hasProgram() && params.hasTrackedEntityType()) {
-        throw new IllegalQueryException(
-            "Program and tracked entity cannot be specified simultaneously");
-      }
-
       if (params.hasFilters()) {
         List<String> searchableAttributeIds = new ArrayList<>();
 

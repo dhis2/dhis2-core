@@ -66,6 +66,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -113,6 +114,8 @@ class TrackedEntityOperationParamsMapperTest {
   @Mock private TrackedEntityAttributeService attributeService;
 
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
+
+  @Mock private AclService aclService;
 
   @InjectMocks private TrackedEntityOperationParamsMapper mapper;
 
@@ -174,6 +177,8 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Test
   void testMapping() throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
+
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
@@ -218,13 +223,18 @@ class TrackedEntityOperationParamsMapperTest {
   @Test
   void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
       throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
+
     TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).user(user).build();
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ACCESSIBLE)
+            .user(user)
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .build();
 
     mapper.map(operationParams);
 
     verifyNoInteractions(programService);
-    verifyNoInteractions(trackedEntityTypeService);
   }
 
   @Test
@@ -343,6 +353,8 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Test
   void testMappingProgram() throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
@@ -367,6 +379,8 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Test
   void testMappingProgramStage() throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
@@ -405,6 +419,8 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Test
   void testMappingTrackedEntityType() throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
+
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
@@ -434,6 +450,7 @@ class TrackedEntityOperationParamsMapperTest {
         .thenReturn(List.of(orgUnit1));
     when(organisationUnitService.getOrganisationUnitWithChildren(ORG_UNIT_2_UID))
         .thenReturn(List.of(orgUnit2));
+    when(aclService.canDataRead(user, program)).thenReturn(true);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -486,6 +503,7 @@ class TrackedEntityOperationParamsMapperTest {
         .thenReturn(false);
 
     User superuser = createUser("ALL");
+    superuser.setOrganisationUnits(Set.of(orgUnit1));
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()

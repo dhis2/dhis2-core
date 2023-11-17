@@ -151,10 +151,6 @@ class TrackedEntityRequestParamsMapper {
     }
 
     if (params.getProgram() == null) {
-      if (params.getTrackedEntities().isEmpty() && params.getTrackedEntityType() == null) {
-        violation = "Either Program or Tracked entity type should be specified";
-      }
-
       if (params.getProgramStatus() != null) {
         violation = "Program must be defined when program status is defined";
       }
