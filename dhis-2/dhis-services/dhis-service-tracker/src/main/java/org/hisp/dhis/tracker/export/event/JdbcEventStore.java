@@ -791,7 +791,7 @@ class JdbcEventStore implements EventStore {
                 + COLUMN_ENROLLMENT_FOLLOWUP
                 + ", en.enrollmentdate as "
                 + COLUMN_ENROLLMENT_DATE
-                + ", en.incidentdate as en_incidentdate, ")
+                + ", en.occurreddate as en_occurreddate, ")
         .append("p.type as p_type, ")
         .append("te.trackedentityid as te_id, te.uid as ")
         .append(COLUMN_TRACKEDENTITY_UID)
@@ -914,13 +914,13 @@ class JdbcEventStore implements EventStore {
           "enrollmentOccurredBefore", params.getEnrollmentOccurredBefore(), Types.TIMESTAMP);
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (en.incidentdate <= :enrollmentOccurredBefore ) ");
+          .append(" (en.occurreddate <= :enrollmentOccurredBefore ) ");
     }
 
     if (params.getEnrollmentOccurredAfter() != null) {
       mapSqlParameterSource.addValue(
           "enrollmentOccurredAfter", params.getEnrollmentOccurredAfter(), Types.TIMESTAMP);
-      fromBuilder.append(hlp.whereAnd()).append(" (en.incidentdate >= :enrollmentOccurredAfter ) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (en.occurreddate >= :enrollmentOccurredAfter ) ");
     }
 
     if (params.getScheduleAtStartDate() != null) {
