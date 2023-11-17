@@ -7,11 +7,12 @@
   <packaging>pom</packaging>
   <name>DHIS 2</name>
 
-  <description>DHIS 2 is a system for aggregation and reporting statistical data. The 
-    goal is to allow users to analyze and use this data to guide local 
-    action. The system is based around goals of empowering users, by
-    allowing them to decide what to register and report data for.</description>
-  <url>https://dhis2.org</url>
+  <description>The District Health Information System 2 deals with
+    aggregating and reporting statistical health data. The goal is to allow users to analyze
+    and use this data to guide local action. The system is based around goals of empowering
+    users, by allowing them to decide what to register and report data for.</description>
+  <url>http://dhis2.org</url>
+
 
   <organization>
     <name>UiO</name>
@@ -25,14 +26,6 @@
     </license>
   </licenses>
 
-  <mailingLists>
-    <mailingList>
-      <name>Developer mailing list</name>
-      <subscribe>https://launchpad.net/~dhis2-devs</subscribe>
-      <post>dhis2-devs@lists.launchpad.net</post>
-    </mailingList>
-  </mailingLists>
-
   <modules>
     <module>dhis-api</module>
     <module>dhis-services</module>
@@ -45,20 +38,16 @@
   </modules>
 
   <scm>
-    <url>lp:dhis2</url>
+    <url>https://github.com/dhis2/dhis2-core</url>
   </scm>
 
   <issueManagement>
-    <system>Launchpad</system>
-    <url>https://launchpad.net/dhis2</url>
+    <system>JIRA</system>
+    <url>https://jira.dhis2.org/</url>
   </issueManagement>
 
   <distributionManagement>
-    <repository>
-      <id/>
-      <name>DHIS 2 Maven repository</name>
-      <url>scp://</url>
-    </repository>
+    <downloadUrl>https://releases.dhis2.org/</downloadUrl>
   </distributionManagement>
 
   <properties>
