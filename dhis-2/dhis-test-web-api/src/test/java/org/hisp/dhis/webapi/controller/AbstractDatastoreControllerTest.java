@@ -29,12 +29,23 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.utils.JavaToJson.toJson;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.utils.JavaToJson;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Base class for testing the {@link DatastoreController} providing helpers to set up entries in the
@@ -67,5 +78,53 @@ abstract class AbstractDatastoreControllerTest extends DhisControllerConvenience
             "eats",
             eats == null ? List.of() : eats.stream().map(food -> Map.of("name", food)));
     postEntry("pets", key, toJson(obj));
+  }
+
+  static class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
+
+    @Autowired private UserSettingService userSettingService;
+
+    @Test
+    void testSearchByToken() {
+      String id =
+          assertStatus(
+              HttpStatus.CREATED,
+              POST(
+                  "/dataSets/",
+                  "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
+
+      PUT(
+              "/dataSets/" + id + "/translations",
+              "{'translations': [{'locale':'fr', 'property':'NAME', 'value':'fr dataSet'}]}")
+          .content(HttpStatus.NO_CONTENT);
+
+      JsonArray translations =
+          GET("/dataSets/{id}/translations", id).content().getArray("translations");
+      assertEquals(1, translations.size());
+
+      assertTrue(
+          GET("/dataSets?filter=identifiable:token:fr", id)
+              .content()
+              .getArray("dataSets")
+              .isEmpty());
+      User userA = createAndAddUser("userA", null, "ALL");
+      userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.FRENCH, userA);
+      injectSecurityContext(userA);
+      assertTrue(
+          GET("/dataSets?filter=identifiable:token:bb", id)
+              .content()
+              .getArray("dataSets")
+              .isEmpty());
+      assertFalse(
+          GET("/dataSets?filter=identifiable:token:fr", id)
+              .content()
+              .getArray("dataSets")
+              .isEmpty());
+      assertFalse(
+          GET("/dataSets?filter=identifiable:token:dataSet", id)
+              .content()
+              .getArray("dataSets")
+              .isEmpty());
+    }
   }
 }
