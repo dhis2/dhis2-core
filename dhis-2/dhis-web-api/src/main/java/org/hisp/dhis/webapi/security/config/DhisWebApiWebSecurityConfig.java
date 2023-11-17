@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.security.config;
 
 import java.util.Arrays;
+import java.util.Set;
 import javax.sql.DataSource;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -41,7 +42,10 @@ import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.jwt.Dhis2JwtAuthenticationManagerResolver;
 import org.hisp.dhis.security.jwt.DhisBearerJwtTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
+import org.hisp.dhis.security.oidc.DhisAuthorizationCodeTokenResponseClient;
+import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
+import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.user.UserService;
@@ -63,10 +67,8 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
@@ -204,18 +206,25 @@ public class DhisWebApiWebSecurityConfig {
 
   @Autowired private ApiTokenAuthManager apiTokenAuthManager;
 
-//  //  @Override
-//  public void configure(AuthenticationManagerBuilder auth) {
-//    auth.authenticationProvider(customLdapAuthenticationProvider);
-//    auth.authenticationProvider(twoFactorAuthenticationProvider);
-//    auth.authenticationEventPublisher(authenticationEventPublisher);
-//  }
+  @Autowired private DhisOidcProviderRepository dhisOidcProviderRepository;
+
+  @Autowired private DhisCustomAuthorizationRequestResolver dhisCustomAuthorizationRequestResolver;
+
+  @Autowired private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
+
+  //  //  @Override
+  //  public void configure(AuthenticationManagerBuilder auth) {
+  //    auth.authenticationProvider(customLdapAuthenticationProvider);
+  //    auth.authenticationProvider(twoFactorAuthenticationProvider);
+  //    auth.authenticationEventPublisher(authenticationEventPublisher);
+  //  }
 
   @Bean
   @Primary
-  protected AuthenticationManager authenticationManagers()  {
-    ProviderManager providerManager = new ProviderManager(
-        Arrays.asList(customLdapAuthenticationProvider, twoFactorAuthenticationProvider));
+  protected AuthenticationManager authenticationManagers() {
+    ProviderManager providerManager =
+        new ProviderManager(
+            Arrays.asList(customLdapAuthenticationProvider, twoFactorAuthenticationProvider));
     providerManager.setAuthenticationEventPublisher(authenticationEventPublisher);
     return providerManager;
   }
@@ -242,56 +251,6 @@ public class DhisWebApiWebSecurityConfig {
   //    return new LogicalOrAccessDecisionManager(decisionVoters);
   //  }
 
-  //  private void configureAccessRestrictions(
-  //      ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry
-  // authorize) {
-  //    authorize
-  //        .antMatchers("/impersonate")
-  //        .hasAnyAuthority("ALL", "F_IMPERSONATE_USER")
-  //
-  //        // Temporary solution for Struts less login page, will be removed when apps are fully
-  //        // migrated
-  //        .antMatchers("/index.html")
-  //        .permitAll()
-  //        .antMatchers("/external-static/**")
-  //        .permitAll()
-  //        .antMatchers("/favicon.ico")
-  //        .permitAll()
-  //        .antMatchers("/oauth2/**")
-  //        .permitAll()
-  //        .antMatchers(apiContextPath + "/authentication/login")
-  //        .permitAll()
-  //        .antMatchers(apiContextPath + "/account/recovery")
-  //        .permitAll()
-  //        .antMatchers(apiContextPath + "/account/restore")
-  //        .permitAll()
-  //        .antMatchers(apiContextPath + "/account")
-  //        .permitAll()
-  //        .antMatchers(apiContextPath + "/staticContent/**")
-  //        .permitAll()
-  //        .antMatchers(apiContextPath + "/externalFileResources/**")
-  //        .permitAll()
-  //        .antMatchers(apiContextPath + "/icons/*/icon.svg")
-  //        .permitAll()
-  //        .antMatchers(apiContextPath + "/files/style/external")
-  //        .permitAll()
-  //        .antMatchers(apiContextPath + "/publicKeys/**")
-  //        .permitAll()
-  //        .anyRequest()
-  //        .authenticated()
-  //        .accessDecisionManager(apiAccessDecisionManager());
-  //  }
-
-  /** This method configures almost everything security related to /api endpoints */
-  //    @Override
-  //    protected void configure(HttpSecurity http) throws Exception {
-
-  //  @Bean
-  //  public WebSecurityCustomizer webSecurityCustomizer() {
-  //    return (web) -> web
-  //        .ignoring().requestMatchers("/ignore1", "/ignore2");
-  //  }
-
   @Bean
   protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http.csrf().disable();
@@ -315,9 +274,80 @@ public class DhisWebApiWebSecurityConfig {
         httpSecuritySecurityContextConfigurer ->
             httpSecuritySecurityContextConfigurer.requireExplicitSave(true));
 
-    http.securityMatcher(apiContextPath + "/**")
-        .authorizeHttpRequests(configureRequestMatchers())
+    Set<String> providerIds = dhisOidcProviderRepository.getAllRegistrationId();
+    http.securityMatcher(new AntPathRequestMatcher("/oauth2/**"))
+        .authorizeHttpRequests(
+            authorize -> {
+              providerIds.forEach(
+                  providerId ->
+                      authorize
+                          .antMatchers("/oauth2/authorization/" + providerId)
+                          .permitAll()
+                          .antMatchers("/oauth2/code/" + providerId)
+                          .permitAll());
+//              authorize.anyRequest().authenticated();
+            })
+        .oauth2Login(
+            oauth2 ->
+                oauth2
+                    .tokenEndpoint()
+                    .accessTokenResponseClient(jwtPrivateCodeTokenResponseClient)
+                    .and()
+                    .failureUrl("/dhis-web-commons/security/login.action?oidcFailure=true")
+                    .clientRegistrationRepository(dhisOidcProviderRepository)
+                    .loginProcessingUrl("/oauth2/code/*")
+                    .authorizationEndpoint()
+                    .authorizationRequestResolver(dhisCustomAuthorizationRequestResolver));
+
+    //    http.securityMatcher(apiContextPath + "/**")
+    //        .authorizeHttpRequests(configureRequestMatchers())
+
+    http.securityMatcher(new AntPathRequestMatcher(apiContextPath + "/**"))
+        .authorizeHttpRequests(
+            authorize ->
+                authorize
+                    .requestMatchers(new AntPathRequestMatcher("/impersonate"))
+                    .hasAnyAuthority("ALL", "F_IMPERSONATE_USER")
+                    // Temporary solution for Struts less login page, will be removed when apps are
+                    // fully
+                    // migrated
+                    .requestMatchers(new AntPathRequestMatcher("/index.html"))
+                    .permitAll()
+                    .requestMatchers(new AntPathRequestMatcher("/external-static/**"))
+                    .permitAll()
+                    .requestMatchers(new AntPathRequestMatcher("/favicon.ico"))
+                    .permitAll()
+                    .requestMatchers(new AntPathRequestMatcher("/oauth2/**"))
+                    .permitAll()
+                    .requestMatchers(
+                        new AntPathRequestMatcher(apiContextPath + "/authentication/login"))
+                    .permitAll()
+                    .requestMatchers(
+                        new AntPathRequestMatcher(apiContextPath + "/account/recovery"))
+                    .permitAll()
+                    .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/account/restore"))
+                    .permitAll()
+                    .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/account"))
+                    .permitAll()
+                    .requestMatchers(
+                        new AntPathRequestMatcher(apiContextPath + "/staticContent/**"))
+                    .permitAll()
+                    .requestMatchers(
+                        new AntPathRequestMatcher(apiContextPath + "/externalFileResources/**"))
+                    .permitAll()
+                    .requestMatchers(
+                        new AntPathRequestMatcher(apiContextPath + "/icons/*/icon.svg"))
+                    .permitAll()
+                    .requestMatchers(
+                        new AntPathRequestMatcher(apiContextPath + "/files/style/external"))
+                    .permitAll()
+                    .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/publicKeys/**"))
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated())
+
         //        .accessDecisionManager(apiAccessDecisionManager())
+
         .httpBasic()
         .authenticationDetailsSource(httpBasicWebAuthenticationDetailsSource)
         .authenticationEntryPoint(formLoginBasicAuthenticationEntryPoint())
@@ -331,6 +361,7 @@ public class DhisWebApiWebSecurityConfig {
                 return filter;
               }
             });
+
     // Special handling if we are running in embedded Jetty mode
     if (Arrays.asList(activeProfiles).contains("embeddedJetty")) {
       http.formLogin()
@@ -359,47 +390,6 @@ public class DhisWebApiWebSecurityConfig {
               Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
           .expiredUrl("/dhis-web-commons-security/logout.action");
     }
-  }
-
-  private static Customizer<
-          AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry>
-      configureRequestMatchers() {
-    return (matcherRegistry) ->
-        matcherRegistry
-            .requestMatchers("/impersonate")
-            .hasAnyAuthority("ALL", "F_IMPERSONATE_USER")
-            // Temporary solution for Struts less login page, will be removed when apps are fully
-            // migrated
-            .requestMatchers("/index.html")
-            .permitAll()
-            .requestMatchers("/external-static/**")
-            .permitAll()
-            .requestMatchers("/favicon.ico")
-            .permitAll()
-            .requestMatchers("/oauth2/**")
-            .permitAll()
-            .requestMatchers(apiContextPath + "/authentication/login")
-            .permitAll()
-            .requestMatchers(apiContextPath + "/account/recovery")
-            .permitAll()
-            .requestMatchers(apiContextPath + "/account/restore")
-            .permitAll()
-            .requestMatchers(apiContextPath + "/account")
-            .permitAll()
-            .requestMatchers(apiContextPath + "/staticContent/**")
-            .permitAll()
-            .requestMatchers(apiContextPath + "/externalFileResources/**")
-            .permitAll()
-            .requestMatchers(apiContextPath + "/icons/*/icon.svg")
-            .permitAll()
-            .requestMatchers(apiContextPath + "/files/style/external")
-            .permitAll()
-            .requestMatchers(apiContextPath + "/publicKeys/**")
-            .permitAll()
-            .anyRequest()
-            .authenticated();
-
-    //            .accessDecisionManager(apiAccessDecisionManager());
   }
 
   private void configureCspFilter(
