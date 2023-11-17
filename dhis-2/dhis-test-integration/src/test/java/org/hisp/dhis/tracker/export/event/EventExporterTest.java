@@ -214,7 +214,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .programStageUid(programStage.getUid())
-            .orderBy("updatedAtClient", SortDirection.ASC)
+            .orderBy("lastUpdatedAtClient", SortDirection.ASC)
             .build();
 
     List<String> events = getEvents(params);
@@ -228,7 +228,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .programStageUid(programStage.getUid())
-            .orderBy("updatedAtClient", SortDirection.DESC)
+            .orderBy("lastUpdatedAtClient", SortDirection.DESC)
             .build();
 
     List<String> events = getEvents(params);
