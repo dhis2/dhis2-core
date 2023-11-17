@@ -53,7 +53,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -82,13 +81,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        Relationship.class,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
   }
 
   @Override

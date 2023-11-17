@@ -36,7 +36,6 @@ import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionGroupStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -52,13 +51,7 @@ public class HibernateOptionGroupStore extends HibernateIdentifiableObjectStore<
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        OptionGroup.class,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, OptionGroup.class, aclService, true);
   }
 
   @Override

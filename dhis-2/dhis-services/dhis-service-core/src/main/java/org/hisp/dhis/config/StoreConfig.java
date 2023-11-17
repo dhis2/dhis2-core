@@ -50,7 +50,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
@@ -72,51 +71,30 @@ public class StoreConfig {
 
   @Autowired private ApplicationEventPublisher publisher;
 
-
   @Autowired private AclService aclService;
 
   @Bean("org.hisp.dhis.indicator.IndicatorTypeStore")
   public HibernateIdentifiableObjectStore<IndicatorType> indicatorTypeStore() {
     return new HibernateIdentifiableObjectStore<>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        IndicatorType.class,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, IndicatorType.class, aclService, true);
   }
 
   @Bean("org.hisp.dhis.indicator.IndicatorGroupStore")
   public HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore() {
     return new HibernateIdentifiableObjectStore<>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        IndicatorGroup.class,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, IndicatorGroup.class, aclService, true);
   }
 
   @Bean("org.hisp.dhis.indicator.IndicatorGroupSetStore")
   public HibernateIdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore() {
     return new HibernateIdentifiableObjectStore<>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        IndicatorGroupSet.class,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, IndicatorGroupSet.class, aclService, true);
   }
 
   @Bean("org.hisp.dhis.predictor.PredictorGroupStore")
   public HibernateIdentifiableObjectStore<PredictorGroup> predictorGroupStore() {
     return new HibernateIdentifiableObjectStore<>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        PredictorGroup.class,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, PredictorGroup.class, aclService, true);
   }
 
   @Bean("org.hisp.dhis.expression.ExpressionStore")
@@ -156,45 +134,25 @@ public class StoreConfig {
   @Bean("org.hisp.dhis.constant.ConstantStore")
   public HibernateIdentifiableObjectStore<Constant> constantStore() {
     return new HibernateIdentifiableObjectStore<>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        Constant.class,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, Constant.class, aclService, true);
   }
 
   @Bean("org.hisp.dhis.option.OptionSetStore")
   public HibernateIdentifiableObjectStore<OptionSet> optionSetStore() {
     return new HibernateIdentifiableObjectStore<>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        OptionSet.class,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, OptionSet.class, aclService, true);
   }
 
   @Bean("org.hisp.dhis.legend.LegendSetStore")
   public HibernateIdentifiableObjectStore<LegendSet> legendSetStore() {
     return new HibernateIdentifiableObjectStore<>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        LegendSet.class,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, LegendSet.class, aclService, true);
   }
 
   @Bean("org.hisp.dhis.program.ProgramIndicatorGroupStore")
   public HibernateIdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore() {
     return new HibernateIdentifiableObjectStore<>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        ProgramIndicatorGroup.class,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, ProgramIndicatorGroup.class, aclService, true);
   }
 
   @Bean("org.hisp.dhis.report.ReportStore")
@@ -206,23 +164,13 @@ public class StoreConfig {
   @Bean("org.hisp.dhis.visualization.generic.VisualizationStore")
   public HibernateAnalyticalObjectStore<Visualization> visuzliationStore() {
     return new HibernateAnalyticalObjectStore<>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        Visualization.class,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, Visualization.class, aclService, true);
   }
 
   @Bean("org.hisp.dhis.dashboard.DashboardStore")
   public HibernateIdentifiableObjectStore<Dashboard> dashboardStore() {
     return new HibernateIdentifiableObjectStore<>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        Dashboard.class,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, Dashboard.class, aclService, true);
   }
 
   @Bean("org.hisp.dhis.program.ProgramExpressionStore")
@@ -238,12 +186,7 @@ public class StoreConfig {
   @Bean("org.hisp.dhis.eventreport.EventReportStore")
   public HibernateAnalyticalObjectStore<EventReport> eventReportStore() {
     return new HibernateAnalyticalObjectStore<>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        EventReport.class,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, EventReport.class, aclService, true);
   }
 
   /**
@@ -253,12 +196,7 @@ public class StoreConfig {
   @Bean("org.hisp.dhis.eventchart.EventChartStore")
   public HibernateAnalyticalObjectStore<EventChart> eventChartStore() {
     return new HibernateAnalyticalObjectStore<>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        EventChart.class,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, EventChart.class, aclService, true);
   }
 
   @Bean("org.hisp.dhis.program.notification.ProgramNotificationStore")

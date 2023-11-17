@@ -102,7 +102,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
 
   private final EntityManager entityManager;
 
-
   protected final SchemaService schemaService;
 
   private final Map<
@@ -163,7 +162,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional
   public void update(@Nonnull IdentifiableObject object) {
-    update(object,getCurrentUser());
+    update(object, getCurrentUser());
   }
 
   @Override
@@ -410,7 +409,10 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T getByUniqueAttributeValue(
-      @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull String value, String username) {
+      @Nonnull Class<T> type,
+      @Nonnull Attribute attribute,
+      @Nonnull String value,
+      String username) {
     IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
 
     if (store == null) {

@@ -37,7 +37,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.sms.outbound.OutboundSmsStore;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -50,13 +49,7 @@ public class HibernateOutboundSmsStore extends HibernateIdentifiableObjectStore<
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        OutboundSms.class,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, OutboundSms.class, aclService, true);
   }
 
   // -------------------------------------------------------------------------

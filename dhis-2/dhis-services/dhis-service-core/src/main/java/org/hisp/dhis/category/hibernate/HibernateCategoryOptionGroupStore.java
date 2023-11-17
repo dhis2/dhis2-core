@@ -37,7 +37,6 @@ import org.hisp.dhis.category.CategoryOptionGroupStore;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -54,13 +53,7 @@ public class HibernateCategoryOptionGroupStore
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        CategoryOptionGroup.class,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, CategoryOptionGroup.class, aclService, true);
   }
 
   @Override

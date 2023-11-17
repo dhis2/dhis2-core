@@ -34,7 +34,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -51,13 +50,7 @@ public class HibernateApiTokenStore extends HibernateIdentifiableObjectStore<Api
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        ApiToken.class,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, ApiToken.class, aclService, true);
   }
 
   @Override

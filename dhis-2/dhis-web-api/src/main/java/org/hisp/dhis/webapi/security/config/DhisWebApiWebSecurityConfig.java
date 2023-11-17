@@ -285,7 +285,7 @@ public class DhisWebApiWebSecurityConfig {
                           .permitAll()
                           .antMatchers("/oauth2/code/" + providerId)
                           .permitAll());
-//              authorize.anyRequest().authenticated();
+              //              authorize.anyRequest().authenticated();
             })
         .oauth2Login(
             oauth2 ->

@@ -35,7 +35,6 @@ import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.mapping.MapViewStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -51,13 +50,7 @@ public class HibernateMapViewStore extends HibernateAnalyticalObjectStore<MapVie
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        MapView.class,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, MapView.class, aclService, true);
   }
 
   @Override

@@ -586,9 +586,10 @@ public interface UserService {
    */
   void setActiveLinkedAccounts(@Nonnull User actingUser, @Nonnull String activeUsername);
 
-  CurrentUserGroupInfo getCurrentUserGroupsInfo();
-
-  CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
+  //
+  //  CurrentUserGroupInfo getCurrentUserGroupsInfo();
+  //
+  //  CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
 
   void invalidateUserGroupCache(String userUID);
 }

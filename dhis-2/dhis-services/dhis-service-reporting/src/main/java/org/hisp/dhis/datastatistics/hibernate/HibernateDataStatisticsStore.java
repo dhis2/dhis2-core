@@ -37,7 +37,6 @@ import org.hisp.dhis.datastatistics.DataStatistics;
 import org.hisp.dhis.datastatistics.DataStatisticsStore;
 import org.hisp.dhis.datastatistics.EventInterval;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -56,13 +55,7 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        DataStatistics.class,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, DataStatistics.class, aclService, false);
   }
 
   // -------------------------------------------------------------------------

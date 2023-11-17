@@ -70,7 +70,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -142,13 +141,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       StatementBuilder statementBuilder,
       OrganisationUnitStore organisationUnitStore,
       SystemSettingManager systemSettingManager) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        TrackedEntity.class,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
 
     checkNotNull(statementBuilder);
     checkNotNull(organisationUnitStore);

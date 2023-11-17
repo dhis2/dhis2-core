@@ -38,7 +38,6 @@ import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -54,13 +53,7 @@ public class HibernateProgramMessageStore extends HibernateIdentifiableObjectSto
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        ProgramMessage.class,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, ProgramMessage.class, aclService, true);
   }
 
   // -------------------------------------------------------------------------

@@ -55,7 +55,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -76,13 +75,7 @@ public class HibernateOrganisationUnitStore
       ApplicationEventPublisher publisher,
       AclService aclService,
       DbmsManager dbmsManager) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        OrganisationUnit.class,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, OrganisationUnit.class, aclService, true);
 
     checkNotNull(dbmsManager);
 

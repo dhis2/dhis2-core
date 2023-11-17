@@ -38,10 +38,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.hibernate.SharingHibernateGenericStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserGroupService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 

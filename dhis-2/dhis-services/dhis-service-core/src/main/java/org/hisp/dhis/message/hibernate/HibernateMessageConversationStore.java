@@ -41,7 +41,6 @@ import org.hisp.dhis.message.MessageConversationStatus;
 import org.hisp.dhis.message.MessageConversationStore;
 import org.hisp.dhis.message.UserMessage;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -67,13 +66,7 @@ public class HibernateMessageConversationStore
       ApplicationEventPublisher publisher,
       AclService aclService,
       StatementBuilder statementBuilder) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        MessageConversation.class,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, MessageConversation.class, aclService, false);
 
     checkNotNull(statementBuilder);
 

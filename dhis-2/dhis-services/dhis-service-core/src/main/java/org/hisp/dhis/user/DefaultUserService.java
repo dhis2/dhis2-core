@@ -864,6 +864,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional
   public CurrentUserDetailsImpl createUserDetails(
       User user, boolean accountNonLocked, boolean credentialsNonExpired) {
     return CurrentUserDetailsImpl.builder()
@@ -989,14 +990,12 @@ public class DefaultUserService implements UserService {
     }
   }
 
-  @Transactional(readOnly = true)
-  public CurrentUserGroupInfo getCurrentUserGroupsInfo() {
+  private CurrentUserGroupInfo getCurrentUserGroupsInfo() {
     CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
     return user == null ? null : getCurrentUserGroupInfo(user.getUid());
   }
 
-  @Transactional(readOnly = true)
-  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
+  private CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
     return currentUserGroupInfoCache.get(userUID, userStore::getCurrentUserGroupInfo);
   }
 

@@ -42,7 +42,6 @@ import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.context.ApplicationEventPublisher;
@@ -60,13 +59,7 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        DashboardItem.class,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, DashboardItem.class, aclService, false);
   }
 
   @Override

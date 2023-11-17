@@ -31,7 +31,6 @@ import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,11 +48,6 @@ public class StoreConfig {
       ApplicationEventPublisher publisher,
       AclService aclService) {
     return new HibernateIdentifiableObjectStore<PushAnalysis>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        PushAnalysis.class,
-        aclService,
-        false);
+        entityManager, jdbcTemplate, publisher, PushAnalysis.class, aclService, false);
   }
 }

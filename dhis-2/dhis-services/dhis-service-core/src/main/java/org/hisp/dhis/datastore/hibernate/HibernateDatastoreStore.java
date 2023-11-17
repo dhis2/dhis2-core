@@ -45,7 +45,6 @@ import org.hisp.dhis.datastore.DatastoreFields;
 import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.DatastoreStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -62,13 +61,7 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        DatastoreEntry.class,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, DatastoreEntry.class, aclService, true);
   }
 
   @Override

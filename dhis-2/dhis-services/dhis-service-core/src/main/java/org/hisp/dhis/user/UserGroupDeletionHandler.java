@@ -63,8 +63,6 @@ public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup>
       idObjectManager.updateNoAcl(group);
     }
 
-    userGroup
-        .getMembers()
-        .forEach(member -> userService.invalidateUserGroupCache(member.getUid()));
+    userGroup.getMembers().forEach(member -> userService.invalidateUserGroupCache(member.getUid()));
   }
 }

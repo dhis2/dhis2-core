@@ -29,7 +29,6 @@ package org.hisp.dhis.artemis.config;
 
 import java.util.Optional;
 import java.util.function.Supplier;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 

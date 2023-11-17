@@ -63,4 +63,6 @@ public class CurrentUserDetailsImpl implements CurrentUserDetails {
   private final Set<String> userGroupIds;
 
   private final boolean isSuper;
+
+  private final CurrentUserGroupInfo currentUserGroupInfo;
 }

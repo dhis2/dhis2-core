@@ -101,6 +101,7 @@ public class AuthenticationProviderConfig {
 
     return new LogicalOrAccessDecisionManager(decisionVoters);
   }
+
   @Bean
   public RoleHierarchyImpl roleHierarchy() {
     final RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
@@ -110,7 +111,8 @@ public class AuthenticationProviderConfig {
 
   @Bean
   public DefaultWebSecurityExpressionHandler expressionHandler() {
-    DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
+    DefaultWebSecurityExpressionHandler expressionHandler =
+        new DefaultWebSecurityExpressionHandler();
     expressionHandler.setRoleHierarchy(roleHierarchy());
     return expressionHandler;
   }

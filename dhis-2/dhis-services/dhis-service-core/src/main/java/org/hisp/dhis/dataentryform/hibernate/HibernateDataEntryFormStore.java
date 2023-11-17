@@ -34,7 +34,6 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -50,13 +49,7 @@ public class HibernateDataEntryFormStore extends HibernateIdentifiableObjectStor
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        DataEntryForm.class,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, DataEntryForm.class, aclService, false);
   }
 
   // -------------------------------------------------------------------------

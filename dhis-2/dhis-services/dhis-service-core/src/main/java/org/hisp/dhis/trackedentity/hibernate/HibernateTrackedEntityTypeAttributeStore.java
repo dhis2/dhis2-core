@@ -39,7 +39,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttributeStore;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -55,12 +54,7 @@ public class HibernateTrackedEntityTypeAttributeStore
       AclService aclService,
       StatementBuilder statementBuilder) {
     super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        TrackedEntityTypeAttribute.class,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, TrackedEntityTypeAttribute.class, aclService, true);
   }
 
   @Override

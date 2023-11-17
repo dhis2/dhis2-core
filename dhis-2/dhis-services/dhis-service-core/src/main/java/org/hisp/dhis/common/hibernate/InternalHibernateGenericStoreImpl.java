@@ -53,10 +53,8 @@ import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
@@ -271,8 +269,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
       return List.of();
     }
 
-    Set<String> groupIds =
-        getCurrentUserGroupInfo(user.getUid()).getUserGroupUIDs();
+    Set<String> groupIds = getCurrentUserGroupInfo(user.getUid()).getUserGroupUIDs();
 
     return getSharingPredicates(builder, user.getUid(), groupIds, access);
   }

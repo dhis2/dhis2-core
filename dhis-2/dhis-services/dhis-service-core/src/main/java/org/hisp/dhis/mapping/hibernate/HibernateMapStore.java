@@ -34,7 +34,6 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapStore;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;

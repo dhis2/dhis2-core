@@ -41,7 +41,6 @@ import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -61,13 +60,7 @@ public class HibernateCategoryOptionComboStore
       ApplicationEventPublisher publisher,
       AclService aclService,
       DbmsManager dbmsManager) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        CategoryOptionCombo.class,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, CategoryOptionCombo.class, aclService, true);
     this.dbmsManager = dbmsManager;
   }
 

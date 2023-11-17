@@ -43,15 +43,12 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.user.CurrentUserGroupInfo;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 
 @RequiredArgsConstructor
 public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
-  private final UserService userService;
-
   private static final String SHARING_OUTER_QUERY_BEGIN =
       "select " + "    inner_query_alias.uid, " + "    inner_query_alias.agg_ou_uid " + "from (";
 
@@ -143,21 +140,23 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
   }
 
   private String getSharingConditions(String access) {
-    CurrentUserGroupInfo currentUserGroupInfo = userService.getCurrentUserGroupsInfo();
+    //    CurrentUserGroupInfo currentUserGroupInfo = userService.getCurrentUserGroupsInfo();
+
+    CurrentUserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    Set<String> userGroupIds = currentUser.getUserGroupIds();
+
     return String.join(
         " or ",
-        getOwnerCondition(currentUserGroupInfo),
+        getOwnerCondition(currentUser.getUid()),
         getPublicSharingCondition(access),
-        getUserGroupAccessCondition(currentUserGroupInfo, access),
-        getUserAccessCondition(currentUserGroupInfo, access));
+        getUserGroupAccessCondition(userGroupIds, access),
+        getUserAccessCondition(currentUser.getUid(), access));
   }
 
-  private String getOwnerCondition(CurrentUserGroupInfo currentUserGroupInfo) {
+  private String getOwnerCondition(String userUid) {
     return String.join(
         " or ",
-        jsonbFunction(EXTRACT_PATH_TEXT, "owner")
-            + " = "
-            + singleQuote(currentUserGroupInfo.getUserUID()),
+        jsonbFunction(EXTRACT_PATH_TEXT, "owner") + " = " + singleQuote(userUid),
         jsonbFunction(EXTRACT_PATH_TEXT, "owner") + " is null");
   }
 
@@ -168,19 +167,17 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
         jsonbFunction(EXTRACT_PATH_TEXT, "public") + " is null");
   }
 
-  private String getUserAccessCondition(CurrentUserGroupInfo currentUserGroupInfo, String access) {
-    String userUid = currentUserGroupInfo.getUserUID();
+  private String getUserAccessCondition(String userUid, String access) {
     return Stream.of(
             jsonbFunction(HAS_USER_ID, userUid), jsonbFunction(CHECK_USER_ACCESS, userUid, access))
         .collect(joining(" and ", "(", ")"));
   }
 
-  private String getUserGroupAccessCondition(
-      CurrentUserGroupInfo currentUserGroupInfo, String access) {
-    if (CollectionUtils.isEmpty(currentUserGroupInfo.getUserGroupUIDs())) {
+  private String getUserGroupAccessCondition(Set<String> userGroupIds, String access) {
+    if (CollectionUtils.isEmpty(userGroupIds)) {
       return "1=0";
     }
-    String groupUids = "{" + String.join(",", currentUserGroupInfo.getUserGroupUIDs()) + "}";
+    String groupUids = "{" + String.join(",", userGroupIds) + "}";
     return Stream.of(
             jsonbFunction(HAS_USER_GROUP_IDS, groupUids),
             jsonbFunction(CHECK_USER_GROUPS_ACCESS, access, groupUids))

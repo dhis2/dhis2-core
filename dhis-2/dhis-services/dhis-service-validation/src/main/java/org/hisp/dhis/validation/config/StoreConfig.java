@@ -31,7 +31,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,11 +67,6 @@ public class StoreConfig {
   @Bean("org.hisp.dhis.validation.ValidationRuleGroupStore")
   public HibernateIdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore() {
     return new HibernateIdentifiableObjectStore<ValidationRuleGroup>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        ValidationRuleGroup.class,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, ValidationRuleGroup.class, aclService, true);
   }
 }

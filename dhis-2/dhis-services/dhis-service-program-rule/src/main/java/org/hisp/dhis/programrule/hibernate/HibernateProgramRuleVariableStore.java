@@ -37,7 +37,6 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -54,13 +53,7 @@ public class HibernateProgramRuleVariableStore
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        ProgramRuleVariable.class,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, ProgramRuleVariable.class, aclService, false);
   }
 
   @Override

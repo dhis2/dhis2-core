@@ -34,7 +34,6 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.i18n.I18nLocaleStore;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -47,13 +46,7 @@ public class HibernateI18nLocaleStore extends HibernateIdentifiableObjectStore<I
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        I18nLocale.class,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, I18nLocale.class, aclService, false);
   }
 
   @Override

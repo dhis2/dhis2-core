@@ -38,7 +38,6 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -55,13 +54,7 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        DataElement.class,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, DataElement.class, aclService, false);
   }
 
   // -------------------------------------------------------------------------

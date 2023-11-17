@@ -27,17 +27,13 @@
  */
 package org.hisp.dhis.user;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import org.hibernate.annotations.QueryHints;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
@@ -86,7 +82,7 @@ public class CurrentUserService {
   }
 
   /**
-   * @return the username of the currently logged in user. If no user is logged in or the auto
+   * @return the username of the currently logged-in user. If no user is logged in or the auto
    *     access admin is active, null is returned.
    */
   public String getCurrentUsername() {
