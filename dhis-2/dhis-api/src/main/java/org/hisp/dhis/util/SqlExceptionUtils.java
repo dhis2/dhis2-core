@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import java.sql.SQLException;
 import java.util.Optional;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SqlExceptionUtils {
   public static final String ERR_MSG_TABLE_NOT_EXISTING =
       "Query failed, likely because the requested analytics table does not exist: ";
