@@ -40,7 +40,7 @@ import lombok.Getter;
 
 /** Enum that maps database column names to their respective "business" names. */
 public enum TimeField {
-  EVENT_DATE("executiondate"),
+  EVENT_DATE("occurreddate"),
   ENROLLMENT_DATE("enrollmentdate"),
   INCIDENT_DATE("incidentdate"),
   // Not a typo, different naming convention between FE and database

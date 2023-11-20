@@ -406,7 +406,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
     return RuleEnrollment.create(
         enrollment.getUid(),
-        enrollment.getIncidentDate(),
+        enrollment.getOccurredDate(),
         enrollment.getEnrollmentDate(),
         RuleEnrollment.Status.valueOf(enrollment.getStatus().toString()),
         orgUnit,

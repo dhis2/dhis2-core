@@ -28,21 +28,12 @@
 package org.hisp.dhis.tracker.imports;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleMode;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.domain.Relationship;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -51,12 +42,9 @@ import org.hisp.dhis.user.User;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackerImportParams {
+public class TrackerImportParams implements JobParameters {
   /** User uid to use for import job. */
   @JsonProperty private String userId;
-
-  /** User to use for import job. */
-  private User user;
 
   /** Should import be imported or just validated. */
   @JsonProperty @Builder.Default
@@ -91,50 +79,6 @@ public class TrackerImportParams {
   /** Name of file that was used for import (if available). */
   @JsonProperty @Builder.Default private final String filename = null;
 
-  /** Job configuration */
-  private JobConfiguration jobConfiguration;
-
   @JsonProperty @Builder.Default
   private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
-
-  /** Tracked entities to import. */
-  @JsonProperty @Builder.Default
-  private final List<TrackedEntity> trackedEntities = new ArrayList<>();
-
-  /** Enrollments to import. */
-  @JsonProperty @Builder.Default private final List<Enrollment> enrollments = new ArrayList<>();
-
-  /** Events to import. */
-  @JsonProperty @Builder.Default private final List<Event> events = new ArrayList<>();
-
-  /** Relationships to import. */
-  @JsonProperty @Builder.Default private final List<Relationship> relationships = new ArrayList<>();
-
-  public TrackerImportParams setUser(User user) {
-    this.user = user;
-
-    if (user != null) {
-      this.userId = user.getUid();
-    }
-
-    return this;
-  }
-
-  @JsonProperty
-  public String getUsername() {
-    return User.username(user);
-  }
-
-  @Override
-  public String toString() {
-    return Optional.ofNullable(this.getJobConfiguration())
-        .map(
-            jobConfiguration ->
-                JobType.TRACKER_IMPORT_JOB + " ( " + jobConfiguration.getUid() + " )")
-        .orElse(JobType.TRACKER_IMPORT_JOB.toString());
-  }
-
-  public String userStartInfo() {
-    return this + " started by " + this.getUsername() + " ( " + this.userId + " )";
-  }
 }

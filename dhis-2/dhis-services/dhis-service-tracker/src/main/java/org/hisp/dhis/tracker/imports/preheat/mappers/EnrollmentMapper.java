@@ -54,7 +54,7 @@ public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
   @Mapping(target = "trackedEntity")
   @Mapping(target = "organisationUnit")
   @Mapping(target = "created")
-  @Mapping(target = "incidentDate")
+  @Mapping(target = "occurredDate")
   @Mapping(target = "enrollmentDate")
   @Mapping(target = "notes")
   @Mapping(target = "deleted")

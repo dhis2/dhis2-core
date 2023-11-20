@@ -1027,7 +1027,7 @@ public class JdbcEventStore implements EventStore {
             .append(" psi.uid as psi_uid, ")
             .append("ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, ")
             .append(
-                "psi.eventid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, ")
+                "psi.eventid as psi_id, psi.status as psi_status, psi.occurreddate as psi_executiondate, ")
             .append(
                 "psi.eventdatavalues as psi_eventdatavalues, psi.scheduleddate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, ")
             .append(
@@ -1052,7 +1052,7 @@ public class JdbcEventStore implements EventStore {
 
     return selectBuilder
         .append(
-            "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, pi.enrollmentdate as pi_enrollmentdate, pi.incidentdate as pi_incidentdate, ")
+            "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, pi.enrollmentdate as pi_enrollmentdate, pi.occurreddate as pi_incidentdate, ")
         .append("p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, ")
         .append(
             "tei.trackedentityid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive ")
@@ -1171,13 +1171,13 @@ public class JdbcEventStore implements EventStore {
           "enrollmentOccurredBefore", params.getEnrollmentOccurredBefore(), Types.TIMESTAMP);
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (pi.incidentdate <= :enrollmentOccurredBefore ) ");
+          .append(" (pi.occurreddate <= :enrollmentOccurredBefore ) ");
     }
 
     if (params.getEnrollmentOccurredAfter() != null) {
       mapSqlParameterSource.addValue(
           "enrollmentOccurredAfter", params.getEnrollmentOccurredAfter(), Types.TIMESTAMP);
-      fromBuilder.append(hlp.whereAnd()).append(" (pi.incidentdate >= :enrollmentOccurredAfter ) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (pi.occurreddate >= :enrollmentOccurredAfter ) ");
     }
 
     if (params.getDueDateStart() != null) {
@@ -1240,9 +1240,9 @@ public class JdbcEventStore implements EventStore {
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (psi.executiondate >= ")
+          .append(" (psi.occurreddate >= ")
           .append(":startDate")
-          .append(" or (psi.executiondate is null and psi.scheduleddate >= ")
+          .append(" or (psi.occurreddate is null and psi.scheduleddate >= ")
           .append(":startDate")
           .append(" )) ");
     }
@@ -1252,9 +1252,9 @@ public class JdbcEventStore implements EventStore {
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (psi.executiondate < ")
+          .append(" (psi.occurreddate < ")
           .append(":endDate")
-          .append(" or (psi.executiondate is null and psi.scheduleddate < ")
+          .append(" or (psi.occurreddate is null and psi.scheduleddate < ")
           .append(":endDate")
           .append(" )) ");
     }
@@ -1529,9 +1529,9 @@ public class JdbcEventStore implements EventStore {
 
       sqlBuilder
           .append(hlp.whereAnd())
-          .append(" (psi.executiondate >= ")
+          .append(" (psi.occurreddate >= ")
           .append(":startDate")
-          .append(" or (psi.executiondate is null and psi.scheduleddate >= ")
+          .append(" or (psi.occurreddate is null and psi.scheduleddate >= ")
           .append(":startDate")
           .append(" )) ");
     }
@@ -1541,9 +1541,9 @@ public class JdbcEventStore implements EventStore {
 
       sqlBuilder
           .append(hlp.whereAnd())
-          .append(" (psi.executiondate < ")
+          .append(" (psi.occurreddate < ")
           .append(":endDate ")
-          .append(" or (psi.executiondate is null and psi.scheduleddate < ")
+          .append(" or (psi.occurreddate is null and psi.scheduleddate < ")
           .append(":endDate")
           .append(" )) ");
     }
@@ -1631,7 +1631,7 @@ public class JdbcEventStore implements EventStore {
             .append(hlp.whereAnd())
             .append(PSI_STATUS_EQ)
             .append(":" + PSI_STATUS)
-            .append(" and psi.executiondate is not null ");
+            .append(" and psi.occurreddate is not null ");
       } else if (params.getEventStatus() == EventStatus.OVERDUE) {
         mapSqlParameterSource.addValue(PSI_STATUS, EventStatus.SCHEDULE.name());
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.commons.jackson.config;
 
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
+import org.hisp.dhis.jsontree.JsonValue;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * @author Jan Bernitt
  */
-@Component
-@RequiredArgsConstructor
-public class TrackerSyncImporter {
+public class JsonValueSerializer extends JsonSerializer<JsonValue> {
 
-  @Nonnull private final TrackerImportService trackerImportService;
-
-  public ImportReport importTracker(TrackerImportParams params) {
-    ImportReport importReport = trackerImportService.importTracker(params);
-
-    return trackerImportService.buildImportReport(importReport, params.getReportMode());
+  @Override
+  public void serialize(JsonValue obj, JsonGenerator generator, SerializerProvider provider)
+      throws IOException {
+    if (obj == null) {
+      generator.writeNull();
+    } else {
+      generator.writeRawValue(obj.node().getDeclaration());
+    }
   }
 }

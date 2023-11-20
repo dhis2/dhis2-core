@@ -32,9 +32,10 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
 import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
+import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
@@ -50,7 +51,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class FollowupValueManager {
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
 
   /** HQL query used to select {@link FollowupValue}s. */
   private static final String FOLLOWUP_VALUE_HQL =
@@ -111,19 +112,17 @@ public class FollowupValueManager {
       User currentUser, FollowupAnalysisRequest request) {
     if (isEmpty(request.getDe()) && !isEmpty(request.getDs())) {
       request.setDe(
-          sessionFactory
-              .getCurrentSession()
+          entityManager
               .createQuery(DATA_ELEMENT_UIDS_BY_DATA_SET_UIDS_HQL, String.class)
               .setParameter("ds_ids", request.getDs())
-              .list());
+              .getResultList());
     }
     if (!isEmpty(request.getDe()) && isEmpty(request.getCoc())) {
       request.setCoc(
-          sessionFactory
-              .getCurrentSession()
+          entityManager
               .createQuery(CATEGORY_OPTION_COMBO_UIDS_BY_DATE_ELEMENT_UIDS_HQL, String.class)
               .setParameter("de_ids", request.getDe())
-              .list());
+              .getResultList());
     }
     if (isEmpty(request.getDe()) || isEmpty(request.getCoc()) || isEmpty(request.getOu())) {
       return emptyList();
@@ -135,15 +134,12 @@ public class FollowupValueManager {
       request.setEndDate(PeriodType.getPeriodFromIsoString(request.getPe()).getEndDate());
     }
 
-    Query<FollowupValue> query =
-        sessionFactory
-            .getCurrentSession()
-            .createQuery(
-                FOLLOWUP_VALUE_HQL.replace(
-                    "<<sharing>>",
-                    generateHqlQueryForSharingCheck(
-                        "de", currentUser, AclService.LIKE_READ_METADATA)),
-                FollowupValue.class);
+    TypedQuery<FollowupValue> query =
+        entityManager.createQuery(
+            FOLLOWUP_VALUE_HQL.replace(
+                "<<sharing>>",
+                generateHqlQueryForSharingCheck("de", currentUser, AclService.LIKE_READ_METADATA)),
+            FollowupValue.class);
 
     query.setParameter("ou_ids", request.getOu());
     query.setParameter("de_ids", request.getDe());
@@ -151,6 +147,6 @@ public class FollowupValueManager {
     query.setParameter("startDate", request.getStartDate());
     query.setParameter("endDate", request.getEndDate());
     query.setMaxResults(request.getMaxResults());
-    return query.setCacheable(false).list();
+    return query.setHint(QueryHints.HINT_CACHEABLE, false).getResultList();
   }
 }

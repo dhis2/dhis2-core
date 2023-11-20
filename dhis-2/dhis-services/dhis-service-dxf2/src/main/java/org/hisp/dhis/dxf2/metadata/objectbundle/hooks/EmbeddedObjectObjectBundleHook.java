@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import java.util.Collection;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
-import org.hibernate.Session;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -191,11 +190,9 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
       return;
     }
 
-    Session session = sessionFactory.getCurrentSession();
-
     Schema propertySchema = schemaService.getDynamicSchema(property.getItemKlass());
 
     analyticalObjectImportHandler.handleAnalyticalObject(
-        session, propertySchema, (BaseAnalyticalObject) identifiableObject, bundle);
+        entityManager, propertySchema, (BaseAnalyticalObject) identifiableObject, bundle);
   }
 }

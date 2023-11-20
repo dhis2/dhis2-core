@@ -32,11 +32,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -70,13 +70,13 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
   private final SchemaService schemaService;
 
   public HibernateMinMaxDataElementStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       QueryParser queryParser,
       QueryPlanner queryPlanner,
       SchemaService schemaService) {
-    super(sessionFactory, jdbcTemplate, publisher, MinMaxDataElement.class, false);
+    super(entityManager, jdbcTemplate, publisher, MinMaxDataElement.class, false);
 
     checkNotNull(queryParser);
     checkNotNull(queryPlanner);

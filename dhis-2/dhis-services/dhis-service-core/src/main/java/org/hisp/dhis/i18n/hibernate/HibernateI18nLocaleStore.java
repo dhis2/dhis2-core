@@ -28,8 +28,8 @@
 package org.hisp.dhis.i18n.hibernate;
 
 import java.util.Locale;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.i18n.I18nLocaleStore;
 import org.hisp.dhis.i18n.locale.I18nLocale;
@@ -43,13 +43,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateI18nLocaleStore extends HibernateIdentifiableObjectStore<I18nLocale>
     implements I18nLocaleStore {
   public HibernateI18nLocaleStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         I18nLocale.class,

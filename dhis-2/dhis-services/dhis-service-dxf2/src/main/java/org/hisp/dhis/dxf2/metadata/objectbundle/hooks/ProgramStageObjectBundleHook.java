@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -91,9 +90,7 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<Progr
 
   @Override
   public void postCreate(ProgramStage programStage, ObjectBundle bundle) {
-    Session session = sessionFactory.getCurrentSession();
-
-    updateProgramStageSections(session, programStage);
+    updateProgramStageSections(programStage);
   }
 
   @Override
@@ -119,7 +116,7 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<Progr
     persistedProgramStage.getProgramStageSections().removeAll(programStageSectionsToDelete);
   }
 
-  private void updateProgramStageSections(Session session, ProgramStage programStage) {
+  private void updateProgramStageSections(ProgramStage programStage) {
     if (programStage.getProgramStageSections().isEmpty()) {
       return;
     }
@@ -132,8 +129,6 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<Progr
                 pss.setProgramStage(programStage);
               }
             });
-
-    session.update(programStage);
   }
 
   private void validateProgramStageDataElementsAcl(

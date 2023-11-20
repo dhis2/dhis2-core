@@ -46,8 +46,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.persistence.EntityManager;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.calendar.DateUnitType;
 import org.hisp.dhis.category.Category;
@@ -85,15 +85,15 @@ class ValidationResultStoreHqlTest {
 
   @BeforeEach
   void setUp() {
-    SessionFactory sessionFactory = mock(SessionFactory.class);
+    EntityManager entityManager = mock(EntityManager.class);
     JdbcTemplate jdbcTemplate = new JdbcTemplate();
+    Session session = mock(Session.class);
     ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
+    when(entityManager.unwrap(Session.class)).thenReturn(session);
     currentUserService = mock(CurrentUserService.class);
     store =
         new HibernateValidationResultStore(
-            sessionFactory, jdbcTemplate, publisher, currentUserService);
-    Session session = mock(Session.class);
-    when(sessionFactory.getCurrentSession()).thenReturn(session);
+            entityManager, jdbcTemplate, publisher, currentUserService);
     when(session.createQuery(anyString()))
         .then(
             createQueryInvocation -> {

@@ -206,6 +206,7 @@ public enum JobType {
         || this == DATAVALUE_IMPORT
         || this == COMPLETE_DATA_SET_REGISTRATION_IMPORT
         || this == METADATA_IMPORT
+        || this == TRACKER_IMPORT_JOB
         || this == GEOJSON_IMPORT;
   }
 
@@ -231,7 +232,7 @@ public enum JobType {
    *     the ready jobs per type is attempted to start in a single loop cycle
    */
   public boolean isUsingContinuousExecution() {
-    return this == METADATA_IMPORT;
+    return this == METADATA_IMPORT || this == TRACKER_IMPORT_JOB;
   }
 
   public boolean hasJobParameters() {

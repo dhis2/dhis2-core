@@ -32,7 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.stream.Stream;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -49,8 +50,7 @@ class LockExceptionStoreTest extends SingleSetupIntegrationTestBase {
   @Autowired private PeriodStore periodStore;
 
   @Autowired private LockExceptionStore store;
-
-  @Autowired private SessionFactory sessionFactory;
+  @PersistenceContext private EntityManager entityManager;
 
   private PeriodType pt;
 
@@ -130,11 +130,10 @@ class LockExceptionStoreTest extends SingleSetupIntegrationTestBase {
    */
   private long getLockExceptionCount(OrganisationUnit target) {
     return (Long)
-        sessionFactory
-            .getCurrentSession()
+        entityManager
             .createQuery(
                 "select count(*) from LockException le where le.organisationUnit = :target")
             .setParameter("target", target)
-            .uniqueResult();
+            .getSingleResult();
   }
 }

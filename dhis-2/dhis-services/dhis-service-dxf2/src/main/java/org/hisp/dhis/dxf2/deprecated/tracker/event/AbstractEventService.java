@@ -800,14 +800,13 @@ public abstract class AbstractEventService
       return;
     }
 
-    Date executionDate = new Date();
+    Date occurreddate = new Date();
 
     if (event.getEventDate() != null) {
-      executionDate = DateUtils.parseDate(event.getEventDate());
+      occurreddate = DateUtils.parseDate(event.getEventDate());
     }
 
-    Date eventDate =
-        executionDate != null ? executionDate : programStageInstance.getScheduledDate();
+    Date eventDate = occurreddate != null ? occurreddate : programStageInstance.getScheduledDate();
 
     validateAttributeOptionComboDate(programStageInstance.getAttributeOptionCombo(), eventDate);
 
@@ -827,7 +826,7 @@ public abstract class AbstractEventService
     }
 
     programStageInstance.setOrganisationUnit(organisationUnit);
-    programStageInstance.setOccurredDate(executionDate);
+    programStageInstance.setOccurredDate(occurreddate);
     eventService.updateEvent(programStageInstance);
   }
 

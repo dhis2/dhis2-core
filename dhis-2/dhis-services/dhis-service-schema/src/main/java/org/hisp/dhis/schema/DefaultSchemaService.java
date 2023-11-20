@@ -40,10 +40,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.MappingException;
-import org.hibernate.SessionFactory;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.SingleTableEntityPersister;
@@ -338,16 +338,17 @@ public class DefaultSchemaService implements SchemaService {
 
   private final PropertyIntrospectorService propertyIntrospectorService;
 
-  private final SessionFactory sessionFactory;
+  private final EntityManagerFactory entityManagerFactory;
 
   @Autowired
   public DefaultSchemaService(
-      PropertyIntrospectorService propertyIntrospectorService, SessionFactory sessionFactory) {
+      PropertyIntrospectorService propertyIntrospectorService,
+      EntityManagerFactory entityManagerFactory) {
     checkNotNull(propertyIntrospectorService);
-    checkNotNull(sessionFactory);
+    checkNotNull(entityManagerFactory);
 
     this.propertyIntrospectorService = propertyIntrospectorService;
-    this.sessionFactory = sessionFactory;
+    this.entityManagerFactory = entityManagerFactory;
     init();
   }
 
@@ -371,7 +372,7 @@ public class DefaultSchemaService implements SchemaService {
       Schema schema = descriptor.getSchema();
 
       MetamodelImplementor metamodelImplementor =
-          (MetamodelImplementor) sessionFactory.getMetamodel();
+          (MetamodelImplementor) entityManagerFactory.getMetamodel();
 
       try {
         EntityPersister entityPersister = metamodelImplementor.entityPersister(schema.getKlass());

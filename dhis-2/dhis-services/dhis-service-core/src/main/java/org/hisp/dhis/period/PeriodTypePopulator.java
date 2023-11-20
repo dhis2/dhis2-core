@@ -30,6 +30,7 @@ package org.hisp.dhis.period;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
@@ -45,7 +46,7 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 public class PeriodTypePopulator extends TransactionContextStartupRoutine {
   private final PeriodStore periodStore;
 
-  private final SessionFactory sessionFactory;
+  private final EntityManagerFactory entityManagerFactory;
 
   // -------------------------------------------------------------------------
   // Execute
@@ -63,7 +64,8 @@ public class PeriodTypePopulator extends TransactionContextStartupRoutine {
     // Populate missing
     // ---------------------------------------------------------------------
 
-    StatelessSession session = sessionFactory.openStatelessSession();
+    StatelessSession session =
+        entityManagerFactory.unwrap(SessionFactory.class).openStatelessSession();
     session.beginTransaction();
     try {
       types.forEach(
