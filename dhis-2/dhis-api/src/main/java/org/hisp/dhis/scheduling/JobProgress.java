@@ -47,6 +47,7 @@ import javax.annotation.Nonnull;
 import lombok.*;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 
 /**
  *
@@ -148,7 +149,24 @@ public interface JobProgress {
   }
 
   default void addError(
+      @Nonnull ValidationCode code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      String... args) {
+    addError(code, uid, type, List.of(args));
+  }
+
+  default void addError(
       @Nonnull ErrorCode code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      @Nonnull List<String> args) {
+    // is overridden by a tracker that collects errors
+    // default is to not collect errors
+  }
+
+  default void addError(
+      @Nonnull ValidationCode code,
       @CheckForNull String uid,
       @Nonnull String type,
       @Nonnull List<String> args) {
@@ -580,7 +598,7 @@ public interface JobProgress {
     @Nonnull
     @JsonProperty
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private final Map<String, Map<ErrorCode, Queue<Error>>> errors;
+    private final Map<String, Map<String, Queue<Error>>> errors;
 
     public Progress() {
       this.sequence = new ConcurrentLinkedDeque<>();
@@ -590,7 +608,7 @@ public interface JobProgress {
     @JsonCreator
     public Progress(
         @Nonnull @JsonProperty("sequence") Deque<Process> sequence,
-        @CheckForNull @JsonProperty("errors") Map<String, Map<ErrorCode, Queue<Error>>> errors) {
+        @CheckForNull @JsonProperty("errors") Map<String, Map<String, Queue<Error>>> errors) {
       this.sequence = sequence;
       this.errors = errors == null ? Map.of() : errors;
     }
@@ -609,7 +627,7 @@ public interface JobProgress {
       return !errors.isEmpty();
     }
 
-    public Set<ErrorCode> getErrorCodes() {
+    public Set<String> getErrorCodes() {
       return errors.values().stream()
           .flatMap(e -> e.keySet().stream())
           .collect(toUnmodifiableSet());
@@ -620,7 +638,7 @@ public interface JobProgress {
   @Accessors(chain = true)
   final class Error {
 
-    @Nonnull @JsonProperty private final ErrorCode code;
+    @Nonnull @JsonProperty private final String code;
 
     /** The object that has the error */
     @Nonnull @JsonProperty private final String id;
@@ -641,7 +659,7 @@ public interface JobProgress {
 
     @JsonCreator
     public Error(
-        @Nonnull @JsonProperty("code") ErrorCode code,
+        @Nonnull @JsonProperty("code") String code,
         @Nonnull @JsonProperty("id") String id,
         @Nonnull @JsonProperty("type") String type,
         @Nonnull @JsonProperty("args") List<String> args) {
