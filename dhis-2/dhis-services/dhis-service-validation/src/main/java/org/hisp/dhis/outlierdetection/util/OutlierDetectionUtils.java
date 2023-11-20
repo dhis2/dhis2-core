@@ -29,8 +29,8 @@ package org.hisp.dhis.outlierdetection.util;
 
 import static org.hisp.dhis.feedback.ErrorCode.E2208;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
+import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -41,6 +41,7 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.util.SqlExceptionUtils;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -50,11 +51,6 @@ import org.springframework.jdbc.BadSqlGrammarException;
  */
 @Slf4j
 public class OutlierDetectionUtils {
-
-  public static final String ERR_MSG_TABLE_NOT_EXISTING =
-      "Query failed, likely because the requested analytics table does not exist: ";
-  public static final String ERR_MSG_SILENT_FALLBACK =
-      "An exception occurred - silently fallback since it's multiple analytics query: ";
 
   /**
    * Returns an organisation unit 'path' "like" clause for the given list of {@link
@@ -84,10 +80,10 @@ public class OutlierDetectionUtils {
       return Optional.ofNullable(supplier.get());
     } catch (BadSqlGrammarException ex) {
       if (relationDoesNotExist(ex.getSQLException())) {
-        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+        log.info(SqlExceptionUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
         throw ex;
       }
-      log.info(ERR_MSG_SILENT_FALLBACK, ex);
+      log.info(SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK, ex);
     } catch (QueryRuntimeException ex) {
       log.error("Internal runtime exception", ex);
       throw ex;
@@ -100,13 +96,5 @@ public class OutlierDetectionUtils {
     }
 
     return Optional.empty();
-  }
-
-  private static boolean relationDoesNotExist(SQLException ex) {
-    if (ex != null) {
-      return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
-    }
-
-    return false;
   }
 }
