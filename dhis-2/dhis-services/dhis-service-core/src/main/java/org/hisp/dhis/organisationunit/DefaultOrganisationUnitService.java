@@ -452,7 +452,13 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
       return false;
     }
 
-    return organisationUnit.isDescendant(user.getOrganisationUnits());
+    OrganisationUnit unit = organisationUnitStore.getByUid(organisationUnit.getUid());
+
+    if (unit == null) {
+      return false;
+    }
+
+    return unit.isDescendant(user.getOrganisationUnits());
   }
 
   @Override
