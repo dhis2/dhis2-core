@@ -575,8 +575,12 @@ class OrganisationUnitServiceTest extends SingleSetupIntegrationTestBase {
     assertTrue(unit1.isDescendant(unit1));
     assertTrue(unit2.isDescendant(unit1));
     assertTrue(unit3.isDescendant(unit1));
+    assertTrue(unit3.isDescendant(unit2));
     assertFalse(unit2.isDescendant(unit3));
+    assertFalse(unit1.isDescendant(unit2));
+    assertFalse(unit1.isDescendant(unit3));
     assertFalse(unit4.isDescendant(unit1));
+    assertFalse(unit1.isDescendant(unit4));
   }
 
   @Test
