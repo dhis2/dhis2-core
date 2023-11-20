@@ -71,6 +71,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
 
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @GetMapping("/errors")
   public List<JsonObject> getJobRunErrors(JobRunErrorsParams params) {
     return jobConfigurationService.findJobRunErrors(params);
@@ -78,16 +79,13 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
 
   @GetMapping("{uid}/errors")
   public JsonObject getJobRunErrors(
-      @PathVariable("uid") @OpenApi.Param({UID.class, JobConfiguration.class}) UID uid)
-      throws NotFoundException {
+      @PathVariable("uid") @OpenApi.Param({UID.class, JobConfiguration.class}) UID uid,
+      @CurrentUser User currentUser)
+      throws NotFoundException, ForbiddenException {
+    checkExecutingUserOrAdmin(uid, currentUser);
     List<JsonObject> errors =
         jobConfigurationService.findJobRunErrors(new JobRunErrorsParams().setJob(uid));
-    if (errors.isEmpty()) {
-      JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid.getValue());
-      if (obj == null) throw new NotFoundException(JobConfiguration.class, uid.getValue());
-      return JsonMixed.of("{}");
-    }
-    return errors.get(0);
+    return errors.isEmpty() ? JsonMixed.of("{}") : errors.get(0);
   }
 
   @GetMapping("/due")
@@ -128,25 +126,19 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
 
   @PostMapping("{uid}/cancel")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void cancelExecution(@PathVariable("uid") String uid, @CurrentUser User currentUser)
+  public void cancelExecution(@PathVariable("uid") UID uid, @CurrentUser User currentUser)
       throws NotFoundException, ForbiddenException {
-    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
-    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid);
-    boolean canCancel =
-        currentUser.isSuper()
-            || currentUser.isAuthorized("F_PERFORM_MAINTENANCE")
-            || currentUser.getUid().equals(obj.getExecutedBy());
-    if (!canCancel) throw new ForbiddenException(JobConfiguration.class, obj.getUid());
-    jobSchedulerService.requestCancel(uid);
+    checkExecutingUserOrAdmin(uid, currentUser);
+    jobSchedulerService.requestCancel(uid.getValue());
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @GetMapping("{uid}/progress")
-  public Progress getProgress(@PathVariable("uid") String uid) {
-    return jobSchedulerService.getProgress(uid);
+  public Progress getProgress(@PathVariable("uid") UID uid, @CurrentUser User currentUser)
+      throws ForbiddenException, NotFoundException {
+    checkExecutingUserOrAdmin(uid, currentUser);
+    return jobSchedulerService.getProgress(uid.getValue());
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @GetMapping("{uid}/progress/errors")
   public List<JobProgress.Error> getErrors(@PathVariable("uid") String uid) {
     return jobSchedulerService.getErrors(uid);
@@ -161,9 +153,9 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
 
   @PostMapping("{uid}/enable")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void enable(@PathVariable("uid") String uid) throws NotFoundException, ConflictException {
-    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
-    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid);
+  public void enable(@PathVariable("uid") UID uid) throws NotFoundException, ConflictException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid.getValue());
+    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid.getValue());
     checkModifiable(obj, "Job %s is a system job that cannot be modified.");
     if (!obj.isEnabled()) {
       obj.setEnabled(true);
@@ -173,9 +165,9 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
 
   @PostMapping("{uid}/disable")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void disable(@PathVariable("uid") String uid) throws NotFoundException, ConflictException {
-    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
-    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid);
+  public void disable(@PathVariable("uid") UID uid) throws NotFoundException, ConflictException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid.getValue());
+    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid.getValue());
     checkModifiable(obj, "Job %s is a system job that cannot be modified.");
     if (obj.isEnabled()) {
       obj.setEnabled(false);
@@ -215,5 +207,16 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
       }
       throw new ConflictException(String.format(message, identifier));
     }
+  }
+
+  private void checkExecutingUserOrAdmin(UID uid, User currentUser)
+      throws NotFoundException, ForbiddenException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid.getValue());
+    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid.getValue());
+    boolean canCancel =
+        currentUser.isSuper()
+            || currentUser.isAuthorized("F_PERFORM_MAINTENANCE")
+            || currentUser.getUid().equals(obj.getExecutedBy());
+    if (!canCancel) throw new ForbiddenException(JobConfiguration.class, obj.getUid());
   }
 }

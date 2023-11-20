@@ -42,6 +42,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 
@@ -147,6 +148,15 @@ public class RecordingJobProgress implements JobProgress {
   @Override
   public void addError(
       @Nonnull ErrorCode code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      @Nonnull List<String> args) {
+    addError(code.name(), uid, type, args);
+  }
+
+  @Override
+  public void addError(
+      @Nonnull ValidationCode code,
       @CheckForNull String uid,
       @Nonnull String type,
       @Nonnull List<String> args) {

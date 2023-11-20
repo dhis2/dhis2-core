@@ -33,6 +33,7 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.hisp.dhis.common.OpenApi;
 
@@ -45,7 +46,7 @@ public class Error {
   @Nonnull @JsonProperty String errorCode;
   @Nonnull @JsonProperty String trackerType;
   @Nonnull @JsonProperty String uid;
-  @Nonnull @JsonProperty List<String> args;
+  @EqualsAndHashCode.Exclude @Nonnull @JsonProperty List<String> args;
 
   @JsonCreator
   public Error(

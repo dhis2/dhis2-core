@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +56,7 @@ public class TrackerImportJob implements Job {
   private final TrackerImportService trackerImportService;
   private final FileResourceService fileResourceService;
   private final Notifier notifier;
+  private final ObjectMapper jsonMapper;
 
   @Override
   public JobType getJobType() {
@@ -109,9 +110,7 @@ public class TrackerImportJob implements Job {
     }
   }
 
-  private TrackerObjects toTrackerObjects(InputStream input)
-      throws IOException, ClassNotFoundException {
-    ObjectInputStream ois = new ObjectInputStream(input);
-    return (TrackerObjects) ois.readObject();
+  private TrackerObjects toTrackerObjects(InputStream input) throws IOException {
+    return jsonMapper.readValue(input, TrackerObjects.class);
   }
 }
