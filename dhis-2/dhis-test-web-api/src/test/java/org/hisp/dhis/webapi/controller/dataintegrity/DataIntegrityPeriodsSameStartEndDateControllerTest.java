@@ -29,7 +29,10 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
-import org.hisp.dhis.period.*;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

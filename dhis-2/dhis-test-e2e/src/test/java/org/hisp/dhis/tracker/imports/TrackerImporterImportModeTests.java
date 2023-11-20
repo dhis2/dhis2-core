@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.tracker.imports;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 
 import java.io.File;
 import org.hisp.dhis.dto.ApiResponse;

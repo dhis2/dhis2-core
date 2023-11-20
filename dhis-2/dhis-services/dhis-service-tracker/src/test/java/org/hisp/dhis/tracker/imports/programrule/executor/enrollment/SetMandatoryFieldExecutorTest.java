@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.imports.programrule.executor.enrollment;
 
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.*;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1306;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
