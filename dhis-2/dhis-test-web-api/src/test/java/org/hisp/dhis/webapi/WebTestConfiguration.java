@@ -66,7 +66,6 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.core.session.SessionRegistry;
@@ -182,17 +181,6 @@ public class WebTestConfiguration {
   @Bean
   public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
     return (dirContextOperations, s) -> null;
-  }
-
-  @Bean("oAuth2AuthenticationManager")
-  public AuthenticationManager oAuth2AuthenticationManager() {
-    return authentication -> null;
-  }
-
-  @Bean("authenticationManager")
-  @Primary
-  public AuthenticationManager authenticationManager() {
-    return authentication -> null;
   }
 
   @Bean
