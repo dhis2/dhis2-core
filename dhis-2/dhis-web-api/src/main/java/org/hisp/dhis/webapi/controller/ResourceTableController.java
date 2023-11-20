@@ -93,8 +93,7 @@ public class ResourceTableController {
       @RequestParam(defaultValue = "false") Boolean skipAggregate,
       @RequestParam(defaultValue = "false") Boolean skipEvents,
       @RequestParam(defaultValue = "false") Boolean skipEnrollment,
-      // STILL EXPERIMENTAL: to export TEIs, FE needs to set this to "false" explicitly
-      @RequestParam(defaultValue = "true") Boolean skipTrackedEntities,
+      @RequestParam(defaultValue = "false") Boolean skipTrackedEntities,
       @RequestParam(defaultValue = "false") Boolean skipOrgUnitOwnership,
       @RequestParam(required = false) Integer lastYears)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
