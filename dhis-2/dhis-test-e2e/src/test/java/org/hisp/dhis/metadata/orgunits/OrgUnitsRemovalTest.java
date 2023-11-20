@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.metadata.orgunits;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 
 import java.io.File;
 import org.hamcrest.Matchers;

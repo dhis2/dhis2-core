@@ -75,10 +75,11 @@ public class ValidationReport {
         .map(
             e ->
                 Error.builder()
-                    .errorMessage(e.getMessage())
+                    .message(e.getMessage())
                     .errorCode(e.getCode())
                     .trackerType(e.getType())
                     .uid(e.getUid())
+                    .args(e.getArgs())
                     .build())
         .collect(Collectors.toList());
   }
