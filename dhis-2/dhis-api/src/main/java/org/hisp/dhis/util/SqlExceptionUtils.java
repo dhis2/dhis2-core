@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.util;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
 import java.sql.SQLException;
 import java.util.Optional;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SqlExceptionUtils {
