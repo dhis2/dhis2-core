@@ -39,13 +39,11 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutliersSqlParamName;
 import org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 
 @Component
-@Qualifier("AnalyticsZScoreSqlProcessor")
 public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatementProcessor {
 
   @Override

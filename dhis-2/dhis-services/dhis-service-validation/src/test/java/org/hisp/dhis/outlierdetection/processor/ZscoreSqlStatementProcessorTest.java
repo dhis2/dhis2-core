@@ -44,7 +44,7 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ZScoreSqlStatementProcessorTest {
+class ZscoreSqlStatementProcessorTest {
   private OutlierSqlStatementProcessor subject;
 
   // -------------------------------------------------------------------------
@@ -63,7 +63,7 @@ class ZScoreSqlStatementProcessorTest {
 
   @BeforeEach
   public void setUp() {
-    subject = new ZScoreSqlStatementProcessor();
+    subject = new ZscoreSqlStatementProcessor();
 
     deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM);

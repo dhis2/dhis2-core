@@ -46,7 +46,8 @@ import org.springframework.stereotype.Repository;
 public class MinMaxOutlierDetectionManager extends AbstractOutlierDetectionManager {
   protected MinMaxOutlierDetectionManager(
       NamedParameterJdbcTemplate jdbcTemplate,
-      @Qualifier("MinMaxSqlProcessor") OutlierSqlStatementProcessor sqlStatementProcessor) {
+      @Qualifier("minMaxSqlStatementProcessor")
+          OutlierSqlStatementProcessor sqlStatementProcessor) {
     super(jdbcTemplate, sqlStatementProcessor);
   }
 

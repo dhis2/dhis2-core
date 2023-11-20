@@ -331,7 +331,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     String sql = "insert into " + partition.getTempTableName() + " (";
 
-    List<AnalyticsTableColumn> columns = getDimensionColumns(partition.getYear());
+    List<AnalyticsTableColumn> columns = getDimensionColumns(partition.getYear(), params);
     List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
 
     validateDimensionColumns(columns);
@@ -370,25 +370,14 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             + "inner join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid "
             + "inner join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid "
             + "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid "
-            + "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid "
-            + "left join (select dv1.dataelementid as dataelementid,"
-            + "                  dv1.sourceid as sourceid,"
-            + "                  dv1.categoryoptioncomboid as categoryoptioncomboid,"
-            + "                  dv1.attributeoptioncomboid as attributeoptioncomboid,"
-            + "                  avg(dv1.value::double precision) as avg_middle_value,"
-            + "                  percentile_cont(0.5)"
-            + "                            within group (order by dv1.value::double precision) as percentile_middle_value,"
-            + "                            stddev_pop(dv1.value::double precision) as std_dev"
-            + "           from datavalue dv1"
-            + "           inner join period pe on dv1.periodid = pe.periodid"
-            + "           inner join organisationunit ou on dv1.sourceid = ou.organisationunitid"
-            + "           where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$'"
-            + "           group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid,"
-            + "                    dv1.attributeoptioncomboid) as stats "
-            + "on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid"
-            + "   and dv.categoryoptioncomboid = stats.categoryoptioncomboid"
-            + "   and dv.attributeoptioncomboid = stats.attributeoptioncomboid "
-            + approvalClause
+            + "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid ";
+
+    if (!skipOutliers(params)) {
+      sql += getOutliersJoinStatement();
+    }
+
+    sql +=
+        approvalClause
             + "where de.valuetype in ("
             + valTypes
             + ") "
@@ -444,10 +433,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   private List<AnalyticsTableColumn> getDimensionColumns() {
-    return getDimensionColumns(null);
+    return getDimensionColumns(null, null);
   }
 
-  private List<AnalyticsTableColumn> getDimensionColumns(Integer year) {
+  private List<AnalyticsTableColumn> getDimensionColumns(
+      Integer year, AnalyticsTableUpdateParams params) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String idColAlias =
@@ -533,7 +523,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     columns.add(new AnalyticsTableColumn(quote("approvallevel"), INTEGER, approvalCol));
     columns.addAll(getFixedColumns());
-    columns.addAll(getOutlierStatsColumns());
+    if (!skipOutliers(params)) {
+      columns.addAll(getOutlierStatsColumns());
+    }
 
     return filterDimensionColumns(columns);
   }
@@ -662,5 +654,29 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     } else {
       return setting && levels;
     }
+  }
+
+  private String getOutliersJoinStatement() {
+    return "left join (select dv1.dataelementid as dataelementid,"
+        + "                  dv1.sourceid as sourceid,"
+        + "                  dv1.categoryoptioncomboid as categoryoptioncomboid,"
+        + "                  dv1.attributeoptioncomboid as attributeoptioncomboid,"
+        + "                  avg(dv1.value::double precision) as avg_middle_value,"
+        + "                  percentile_cont(0.5)"
+        + "                            within group (order by dv1.value::double precision) as percentile_middle_value,"
+        + "                            stddev_pop(dv1.value::double precision) as std_dev"
+        + "           from datavalue dv1"
+        + "           inner join period pe on dv1.periodid = pe.periodid"
+        + "           inner join organisationunit ou on dv1.sourceid = ou.organisationunitid"
+        + "           where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$'"
+        + "           group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid,"
+        + "                    dv1.attributeoptioncomboid) as stats "
+        + "on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid"
+        + "   and dv.categoryoptioncomboid = stats.categoryoptioncomboid"
+        + "   and dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
+  }
+
+  private boolean skipOutliers(AnalyticsTableUpdateParams params) {
+    return params != null && params.isSkipOutliers();
   }
 }

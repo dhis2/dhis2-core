@@ -41,6 +41,7 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
 import org.hisp.dhis.outlierdetection.service.DefaultOutlierDetectionService;
+import org.hisp.dhis.validation.outlierdetection.ValidationOutlierDetectionRequest;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -63,6 +64,7 @@ public class OutlierDetectionController {
   private final DefaultOutlierDetectionService outlierService;
   private final ContextUtils contextUtils;
   private final OutlierDetectionQueryParser queryParser;
+  private final ValidationOutlierDetectionRequest validator;
 
   @GetMapping(value = "/outlierDetection", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody OutlierDetectionResponse getOutliersJson(OutlierDetectionQuery query) {
@@ -82,6 +84,9 @@ public class OutlierDetectionController {
   }
 
   private OutlierDetectionRequest getFromQuery(OutlierDetectionQuery query) {
-    return queryParser.getFromQuery(query, false);
+    OutlierDetectionRequest request = queryParser.getFromQuery(query);
+    validator.validate(request, false);
+
+    return request;
   }
 }

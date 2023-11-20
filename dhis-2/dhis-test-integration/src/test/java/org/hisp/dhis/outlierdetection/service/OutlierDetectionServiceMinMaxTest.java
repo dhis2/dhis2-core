@@ -123,7 +123,7 @@ class OutlierDetectionServiceMinMaxTest extends IntegrationTestBase {
     query.setOu(Lists.newArrayList("ouabcdefghA", "ouabcdefghB"));
     query.setAlgorithm(OutlierDetectionAlgorithm.MIN_MAX);
     query.setMaxResults(200);
-    OutlierDetectionRequest request = parser.getFromQuery(query, false);
+    OutlierDetectionRequest request = parser.getFromQuery(query);
     assertEquals(2, request.getDataElements().size());
     assertEquals(2, request.getOrgUnits().size());
     assertEquals(getDate(2020, 1, 1), request.getStartDate());

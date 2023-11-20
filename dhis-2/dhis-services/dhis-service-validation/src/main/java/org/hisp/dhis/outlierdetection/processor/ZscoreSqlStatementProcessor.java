@@ -41,14 +41,12 @@ import org.hisp.dhis.outlierdetection.Order;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 
 @Component
-@Qualifier("ZScoreSqlProcessor")
-public class ZScoreSqlStatementProcessor implements OutlierSqlStatementProcessor {
+public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor {
 
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {

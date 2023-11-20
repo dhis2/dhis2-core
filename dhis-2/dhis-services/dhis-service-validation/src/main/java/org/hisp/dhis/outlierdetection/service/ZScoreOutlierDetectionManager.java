@@ -53,7 +53,8 @@ public class ZScoreOutlierDetectionManager extends AbstractOutlierDetectionManag
 
   protected ZScoreOutlierDetectionManager(
       NamedParameterJdbcTemplate jdbcTemplate,
-      @Qualifier("ZScoreSqlProcessor") OutlierSqlStatementProcessor sqlStatementProcessor) {
+      @Qualifier("zscoreSqlStatementProcessor")
+          OutlierSqlStatementProcessor sqlStatementProcessor) {
     super(jdbcTemplate, sqlStatementProcessor);
   }
 

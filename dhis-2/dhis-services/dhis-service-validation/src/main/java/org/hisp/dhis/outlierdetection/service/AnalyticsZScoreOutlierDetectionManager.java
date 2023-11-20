@@ -50,7 +50,7 @@ import org.springframework.stereotype.Repository;
 public class AnalyticsZScoreOutlierDetectionManager extends AbstractOutlierDetectionManager {
   protected AnalyticsZScoreOutlierDetectionManager(
       NamedParameterJdbcTemplate jdbcTemplate,
-      @Qualifier("AnalyticsZScoreSqlProcessor")
+      @Qualifier("analyticsZScoreSqlStatementProcessor")
           OutlierSqlStatementProcessor sqlStatementProcessor) {
     super(jdbcTemplate, sqlStatementProcessor);
   }

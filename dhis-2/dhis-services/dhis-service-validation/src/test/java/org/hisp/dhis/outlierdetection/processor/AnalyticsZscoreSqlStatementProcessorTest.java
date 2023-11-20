@@ -44,7 +44,7 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class AnalyticsZScoreSqlStatementProcessorTest {
+class AnalyticsZscoreSqlStatementProcessorTest {
   private OutlierSqlStatementProcessor subject;
 
   // -------------------------------------------------------------------------

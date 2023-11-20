@@ -127,7 +127,7 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
     query.setAlgorithm(OutlierDetectionAlgorithm.MOD_Z_SCORE);
     query.setThreshold(2.5);
     query.setMaxResults(100);
-    OutlierDetectionRequest request = parser.getFromQuery(query, false);
+    OutlierDetectionRequest request = parser.getFromQuery(query);
     assertEquals(2, request.getDataElements().size());
     assertEquals(2, request.getOrgUnits().size());
     assertEquals(getDate(2020, 1, 1), request.getStartDate());

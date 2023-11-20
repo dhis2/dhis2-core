@@ -44,6 +44,7 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
 import org.hisp.dhis.outlierdetection.service.AnalyticsOutlierDetectionService;
+import org.hisp.dhis.validation.outlierdetection.ValidationOutlierDetectionRequest;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -65,6 +66,7 @@ public class AnalyticsOutlierDetectionController {
   private final AnalyticsOutlierDetectionService outlierService;
   private final ContextUtils contextUtils;
   private final OutlierDetectionQueryParser queryParser;
+  private final ValidationOutlierDetectionRequest validator;
 
   @GetMapping(value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE)
   public Grid getOutliersJson(OutlierDetectionQuery query) {
@@ -122,6 +124,9 @@ public class AnalyticsOutlierDetectionController {
   }
 
   private OutlierDetectionRequest getFromQuery(OutlierDetectionQuery query) {
-    return queryParser.getFromQuery(query, true);
+    OutlierDetectionRequest request = queryParser.getFromQuery(query);
+    validator.validate(request, true);
+
+    return request;
   }
 }

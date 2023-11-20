@@ -37,7 +37,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.validation.outlierdetection.ValidationOutlierDetectionRequest;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -45,7 +44,6 @@ import org.springframework.stereotype.Component;
 public class OutlierDetectionQueryParser {
 
   private final IdentifiableObjectManager idObjectManager;
-  private final ValidationOutlierDetectionRequest validator;
 
   /**
    * Creates a {@link OutlierDetectionRequest} from the given query.
@@ -53,8 +51,7 @@ public class OutlierDetectionQueryParser {
    * @param query the {@link OutlierDetectionQuery}.
    * @return a {@link OutlierDetectionRequest}.
    */
-  public OutlierDetectionRequest getFromQuery(
-      OutlierDetectionQuery query, boolean isAnalyticsRequest) {
+  public OutlierDetectionRequest getFromQuery(OutlierDetectionQuery query) {
     OutlierDetectionRequest.Builder request = new OutlierDetectionRequest.Builder();
 
     List<DataSet> dataSets = idObjectManager.getByUid(DataSet.class, query.getDs());
@@ -98,9 +95,6 @@ public class OutlierDetectionQueryParser {
       request.withMaxResults(query.getMaxResults());
     }
 
-    OutlierDetectionRequest outlierDetectionRequest = request.build();
-    validator.validate(outlierDetectionRequest, isAnalyticsRequest);
-
-    return outlierDetectionRequest;
+    return request.build();
   }
 }
