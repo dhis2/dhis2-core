@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.metadata;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.aMapWithSize;
+import static org.hamcrest.Matchers.anEmptyMap;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

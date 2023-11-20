@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.db.migration.v36;
 
-import java.sql.*;
-import org.flywaydb.core.api.migration.*;
-import org.slf4j.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class V2_36_11__Migrate_sharings_to_jsonb extends BaseJavaMigration {
   private static final Logger log =

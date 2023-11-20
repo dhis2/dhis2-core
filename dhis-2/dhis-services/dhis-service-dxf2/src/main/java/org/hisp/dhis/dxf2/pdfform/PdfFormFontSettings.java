@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.pdfform;
 import com.lowagie.text.Font;
 import com.lowagie.text.FontFactory;
 import com.lowagie.text.pdf.BaseFont;
-import java.awt.*;
+import java.awt.Color;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;

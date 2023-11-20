@@ -29,7 +29,9 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.joinWith;
