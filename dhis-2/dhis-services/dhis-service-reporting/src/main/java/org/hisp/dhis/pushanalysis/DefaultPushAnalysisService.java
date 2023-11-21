@@ -441,7 +441,7 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
 
     fileResource.setAssigned(true);
 
-    String fileResourceUid = fileResourceService.saveFileResource(fileResource, bytes);
+    String fileResourceUid = fileResourceService.asyncSaveFileResource(fileResource, bytes);
 
     externalFileResource.setFileResource(fileResourceService.getFileResource(fileResourceUid));
 
