@@ -38,7 +38,6 @@ import static org.hisp.dhis.tracker.imports.validation.Users.USER_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
-import java.util.HashSet;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.AtomicMode;
@@ -126,15 +125,9 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
     assertEquals(3, importReport.getStats().getCreated());
-    // For some reason teiSearchOrgunits is not created properly from
-    // metadata
-    // Redoing the update here for the time being.
-    User user = userService.getUser(USER_8);
-    user.setTeiSearchOrganisationUnits(new HashSet<>(user.getDataViewOrganisationUnits()));
-    userService.updateUser(user);
-    dbmsManager.clearSession();
+
     trackerObjects = fromJson("tracker/validations/te-data_with_different_ou.json");
-    user = userService.getUser(USER_8);
+    User user = userService.getUser(USER_8);
     params.setUserId(user.getUid());
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     params.setAtomicMode(AtomicMode.OBJECT);

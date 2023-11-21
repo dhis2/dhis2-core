@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.tracker.deduplication.merge;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.both;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.everyItem;
 
 import java.util.Arrays;
 import org.hamcrest.Matchers;

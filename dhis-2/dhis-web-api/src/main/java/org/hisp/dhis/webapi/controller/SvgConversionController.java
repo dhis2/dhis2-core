@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.system.util.GeoUtils.replaceUnsafeSvgText;
 import static org.hisp.dhis.system.util.SvgUtils.replaceUnicodeZeroWidthSpace;
 
-import java.awt.*;
+import java.awt.Color;
 import java.io.OutputStream;
 import java.io.StringReader;
 import javax.servlet.http.HttpServletResponse;
