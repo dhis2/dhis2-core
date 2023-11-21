@@ -72,4 +72,6 @@ public class JobRunErrorsParams {
 
   /** The {@link JobType} with errors to select, any match combined */
   @CheckForNull private List<JobType> type;
+
+  boolean includeInput = false;
 }

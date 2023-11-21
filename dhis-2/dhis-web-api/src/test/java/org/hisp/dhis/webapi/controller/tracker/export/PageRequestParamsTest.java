@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import lombok.Data;
 import org.junit.jupiter.api.Test;

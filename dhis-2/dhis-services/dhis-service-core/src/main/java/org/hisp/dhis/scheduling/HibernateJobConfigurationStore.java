@@ -252,6 +252,7 @@ public class HibernateJobConfigurationStore
     'created', c.created,
     'executed', c.lastexecuted,
     'finished', c.lastfinished,
+    'file', fr.uid,
     'filesize', fr.contentlength,
     'filetype', fr.contenttype,
     'errors', c.progress -> 'errors') #>> '{}'
