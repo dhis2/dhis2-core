@@ -97,7 +97,7 @@ class TrackedEntityRequestParamsMapperTest {
   }
 
   @Test
-  void testMapping() throws BadRequestException {
+  void shouldMapCorrectlyWhenProgramAndSpecificUpdateDatesSupplied() throws BadRequestException {
     requestParams.setOuMode(CAPTURE);
     requestParams.setProgramStatus(ProgramStatus.ACTIVE);
     requestParams.setProgram(UID.of(PROGRAM_UID));
@@ -105,10 +105,8 @@ class TrackedEntityRequestParamsMapperTest {
     requestParams.setFollowUp(true);
     requestParams.setUpdatedAfter(getDate(2019, 1, 1));
     requestParams.setUpdatedBefore(getDate(2020, 1, 1));
-    requestParams.setUpdatedWithin("20");
     requestParams.setEnrollmentOccurredAfter(getDate(2019, 5, 5));
     requestParams.setEnrollmentOccurredBefore(getDate(2020, 5, 5));
-    requestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
     requestParams.setEventStatus(EventStatus.COMPLETED);
     requestParams.setEventOccurredAfter(getDate(2019, 7, 7));
     requestParams.setEventOccurredBefore(getDate(2020, 7, 7));
@@ -118,9 +116,34 @@ class TrackedEntityRequestParamsMapperTest {
 
     assertThat(params.getProgramUid(), is(PROGRAM_UID));
     assertThat(params.getProgramStageUid(), is(PROGRAM_STAGE_UID));
-    assertThat(params.getTrackedEntityTypeUid(), is(TRACKED_ENTITY_TYPE_UID));
-    assertThat(params.getProgramStatus(), is(ProgramStatus.ACTIVE));
     assertThat(params.getFollowUp(), is(true));
+    assertThat(params.getLastUpdatedStartDate(), is(requestParams.getUpdatedAfter()));
+    assertThat(params.getLastUpdatedEndDate(), is(requestParams.getUpdatedBefore()));
+    assertThat(
+        params.getProgramIncidentStartDate(), is(requestParams.getEnrollmentOccurredAfter()));
+    assertThat(params.getProgramIncidentEndDate(), is(requestParams.getEnrollmentOccurredBefore()));
+    assertThat(params.getEventStatus(), is(EventStatus.COMPLETED));
+    assertThat(params.getEventStartDate(), is(requestParams.getEventOccurredAfter()));
+    assertThat(params.getEventEndDate(), is(requestParams.getEventOccurredBefore()));
+    assertThat(
+        params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
+    assertThat(params.isIncludeDeleted(), is(true));
+  }
+
+  @Test
+  void shouldMapCorrectlyWhenTrackedEntityAndSpecificUpdatedRangeSupplied()
+      throws BadRequestException {
+    requestParams.setOuMode(CAPTURE);
+    requestParams.setUpdatedWithin("20h");
+    requestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
+    requestParams.setEventStatus(EventStatus.COMPLETED);
+    requestParams.setEventOccurredAfter(getDate(2019, 7, 7));
+    requestParams.setEventOccurredBefore(getDate(2020, 7, 7));
+    requestParams.setIncludeDeleted(true);
+
+    final TrackedEntityOperationParams params = mapper.map(requestParams, user);
+
+    assertThat(params.getTrackedEntityTypeUid(), is(TRACKED_ENTITY_TYPE_UID));
     assertThat(params.getLastUpdatedStartDate(), is(requestParams.getUpdatedAfter()));
     assertThat(params.getLastUpdatedEndDate(), is(requestParams.getUpdatedBefore()));
     assertThat(
@@ -179,6 +202,7 @@ class TrackedEntityRequestParamsMapperTest {
   void testMappingProgramEnrollmentStartDate() throws BadRequestException {
     Date date = parseDate("2022-12-13");
     requestParams.setEnrollmentEnrolledAfter(date);
+    requestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(requestParams, user);
 
