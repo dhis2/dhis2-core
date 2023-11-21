@@ -666,9 +666,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     boolean inUserHierarchy =
         mdCaches
             .getOrgUnitInHierarchyMap()
-            .get(
-                mdProps.orgUnit.getUid(),
-                () -> organisationUnitService.isDescendant(mdProps.orgUnit, userOrgUnits));
+            .get(mdProps.orgUnit.getUid(), () -> mdProps.orgUnit.isDescendant(userOrgUnits));
 
     if (!inUserHierarchy) {
       throw new ImportConflictException(
@@ -726,8 +724,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 aocOrgUnitKey,
                 () -> {
                   Set<OrganisationUnit> aocOrgUnits = aoc.getOrganisationUnits();
-                  return aocOrgUnits == null
-                      || organisationUnitService.isDescendant(mdProps.orgUnit, aocOrgUnits);
+                  return aocOrgUnits == null || mdProps.orgUnit.isDescendant(aocOrgUnits);
                 });
 
     if (!isOrgUnitValidForAoc) {

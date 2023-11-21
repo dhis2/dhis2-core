@@ -564,7 +564,21 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     return ancestors.stream()
         .filter(Objects::nonNull)
         .map(OrganisationUnit::getUid)
-        .anyMatch(uid -> StringUtils.contains(path, uid));
+        .anyMatch(uid -> StringUtils.contains(this.getPath(), uid));
+  }
+
+  /**
+   * Indicates whether this org unit is a descendant of the given ancestor org unit.
+   *
+   * @param ancestor the ancestor org unit.
+   * @return true if this org unit is a descendant of the ancestor.
+   */
+  public boolean isDescendant(OrganisationUnit ancestor) {
+    if (ancestor == null) {
+      return false;
+    }
+
+    return StringUtils.contains(this.getPath(), ancestor.getUid());
   }
 
   public Set<OrganisationUnit> getChildrenThisIfEmpty() {
