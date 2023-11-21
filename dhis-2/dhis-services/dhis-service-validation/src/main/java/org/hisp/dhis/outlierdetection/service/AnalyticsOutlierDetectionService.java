@@ -37,6 +37,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -54,9 +55,9 @@ public class AnalyticsOutlierDetectionService {
     List<OutlierValue> outlierValues = zScoreOutlierDetection.getOutlierValues(request);
 
     Grid grid = new ListGrid();
-    setHeaders(grid);
+    setHeaders(grid, request);
     setMetaData(grid, request, outlierValues);
-    setRows(grid, outlierValues);
+    setRows(grid, outlierValues, request);
 
     return grid;
   }
@@ -86,7 +87,7 @@ public class AnalyticsOutlierDetectionService {
     GridUtils.toHtmlCss(getOutlierValues(request), writer);
   }
 
-  private void setHeaders(Grid grid) {
+  private void setHeaders(Grid grid, OutlierDetectionRequest request) {
     grid.addHeader(new GridHeader("data element", ValueType.TEXT));
     grid.addHeader(new GridHeader("data element name", ValueType.TEXT));
     grid.addHeader(new GridHeader("period", ValueType.TEXT));
@@ -97,7 +98,10 @@ public class AnalyticsOutlierDetectionService {
     grid.addHeader(new GridHeader("attribute option", ValueType.TEXT));
     grid.addHeader(new GridHeader("attribute option name", ValueType.TEXT));
     grid.addHeader(new GridHeader("value", ValueType.NUMBER));
-    grid.addHeader(new GridHeader("mean", ValueType.NUMBER));
+    grid.addHeader(
+        new GridHeader(
+            request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE ? "median" : "mean",
+            ValueType.NUMBER));
     grid.addHeader(new GridHeader("stdDev", ValueType.NUMBER));
     grid.addHeader(new GridHeader("absDev", ValueType.NUMBER));
     grid.addHeader(new GridHeader("zScore", ValueType.NUMBER));
@@ -114,7 +118,8 @@ public class AnalyticsOutlierDetectionService {
     grid.addMetaData("count", outlierValues.size());
   }
 
-  private void setRows(Grid grid, List<OutlierValue> outlierValues) {
+  private void setRows(
+      Grid grid, List<OutlierValue> outlierValues, OutlierDetectionRequest request) {
     outlierValues.forEach(
         v -> {
           grid.addRow();
@@ -128,7 +133,10 @@ public class AnalyticsOutlierDetectionService {
           grid.addValue(v.getAoc());
           grid.addValue(v.getAocName());
           grid.addValue(v.getValue());
-          grid.addValue(v.getMean());
+          grid.addValue(
+              request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE
+                  ? v.getMedian()
+                  : v.getMean());
           grid.addValue(v.getStdDev());
           grid.addValue(v.getAbsDev());
           grid.addValue(v.getZScore());
