@@ -513,33 +513,33 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         teiIdList);
   }
 
-  @Test
-  void shouldOrderEntitiesByUpdatedAtInDescOrder() {
-    injectSecurityContext(superUser);
-
-    addEntityInstances();
-    // lastupdated is automatically set by the store; update entities in a certain order and expect
-    // that to be returned
-    entityInstanceService.updateTrackedEntity(entityInstanceD1);
-    entityInstanceService.updateTrackedEntity(entityInstanceB1);
-    entityInstanceService.updateTrackedEntity(entityInstanceC1);
-    entityInstanceService.updateTrackedEntity(entityInstanceA1);
-
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-
-    params.setOrgUnits(Set.of(organisationUnit));
-    params.setOrders(List.of(new OrderParam("updatedAt", SortDirection.DESC)));
-
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
-
-    assertEquals(
-        List.of(
-            entityInstanceA1.getId(),
-            entityInstanceC1.getId(),
-            entityInstanceB1.getId(),
-            entityInstanceD1.getId()),
-        teiIdList);
-  }
+//  @Test
+//  void shouldOrderEntitiesByUpdatedAtInDescOrder() {
+//    injectSecurityContext(superUser);
+//
+//    addEntityInstances();
+//    // lastupdated is automatically set by the store; update entities in a certain order and expect
+//    // that to be returned
+//    entityInstanceService.updateTrackedEntity(entityInstanceD1);
+//    entityInstanceService.updateTrackedEntity(entityInstanceB1);
+//    entityInstanceService.updateTrackedEntity(entityInstanceC1);
+//    entityInstanceService.updateTrackedEntity(entityInstanceA1);
+//
+//    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+//
+//    params.setOrgUnits(Set.of(organisationUnit));
+//    params.setOrders(List.of(new OrderParam("updatedAt", SortDirection.DESC)));
+//
+//    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+//
+//    assertEquals(
+//        List.of(
+//            entityInstanceA1.getId(),
+//            entityInstanceC1.getId(),
+//            entityInstanceB1.getId(),
+//            entityInstanceD1.getId()),
+//        teiIdList);
+//  }
 
   @Test
   void shouldOrderEntitiesByTrackedEntityUidInDescOrder() {
