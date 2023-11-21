@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.time.Duration;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -90,9 +89,31 @@ public interface FileResourceService {
    */
   List<FileResourceOwner> findOwnersByStorageKey(@CheckForNull String storageKey);
 
-  void saveFileResource(FileResource fileResource, File file);
+  /**
+   * Creates the provided file resource and stores the file content asynchronously.
+   *
+   * @param fileResource the resource to create
+   * @param file the content stored asynchronously
+   */
+  void asyncSaveFileResource(FileResource fileResource, File file);
 
-  String saveFileResource(FileResource fileResource, byte[] bytes);
+  /**
+   * Creates the provided file resource and stores the content asynchronously.
+   *
+   * @param fileResource the resource to create
+   * @param bytes the content stored asynchronously
+   * @return the UID of the created file resource
+   */
+  String asyncSaveFileResource(FileResource fileResource, byte[] bytes);
+
+  /**
+   * Creates the provided file resource and stores the content synchronously.
+   *
+   * @param fileResource the resource to create
+   * @param bytes the content stored asynchronously
+   * @return the UID of the created file resource
+   */
+  String syncSaveFileResource(FileResource fileResource, byte[] bytes) throws ConflictException;
 
   void deleteFileResource(String uid);
 
@@ -100,10 +121,6 @@ public interface FileResourceService {
 
   @Nonnull
   InputStream getFileResourceContent(FileResource fileResource) throws ConflictException;
-
-  @Nonnull
-  InputStream getFileResourceContent(FileResource fileResource, Duration timeout)
-      throws ConflictException;
 
   /** Copy fileResource content to outputStream and Return File content length */
   void copyFileResourceContent(FileResource fileResource, OutputStream outputStream)

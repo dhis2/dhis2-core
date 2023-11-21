@@ -129,7 +129,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
               FileResourceDomain.JOB_DATA);
       fr.setUid(uid);
       fr.setAssigned(true);
-      fileResourceService.saveFileResource(fr, data);
+      fileResourceService.syncSaveFileResource(fr, data);
     } catch (IOException ex) {
       throw new ConflictException("Failed to create job data file resource: " + ex.getMessage());
     }
