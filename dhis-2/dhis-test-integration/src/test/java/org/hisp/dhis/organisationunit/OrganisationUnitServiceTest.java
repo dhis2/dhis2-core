@@ -1020,7 +1020,7 @@ class OrganisationUnitServiceTest extends SingleSetupIntegrationTestBase {
     fileResource.setAssigned(false);
     fileResource.setCreated(new Date());
     fileResource.setAutoFields();
-    fileResourceService.saveFileResource(fileResource, content);
+    fileResourceService.asyncSaveFileResource(fileResource, content);
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     orgUnit.setImage(fileResource);
     organisationUnitService.addOrganisationUnit(orgUnit);
