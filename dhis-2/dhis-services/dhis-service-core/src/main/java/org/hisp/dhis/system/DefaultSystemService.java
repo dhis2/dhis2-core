@@ -110,6 +110,7 @@ public class DefaultSystemService implements SystemService, InitializingBean {
     Date now = new Date();
 
     return systemInfo.toBuilder()
+        .databaseInfo(databaseInfoProvider.getDatabaseInfo())
         .calendar(calendarService.getSystemCalendar().name())
         .dateFormat(calendarService.getSystemDateFormat().getJs())
         .serverDate(now)
