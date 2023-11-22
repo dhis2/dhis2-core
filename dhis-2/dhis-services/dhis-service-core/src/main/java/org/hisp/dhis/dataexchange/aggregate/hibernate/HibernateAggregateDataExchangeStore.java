@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataexchange.aggregate.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeStore;
@@ -42,13 +42,13 @@ public class HibernateAggregateDataExchangeStore
     extends HibernateIdentifiableObjectStore<AggregateDataExchange>
     implements AggregateDataExchangeStore {
   public HibernateAggregateDataExchangeStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         AggregateDataExchange.class,

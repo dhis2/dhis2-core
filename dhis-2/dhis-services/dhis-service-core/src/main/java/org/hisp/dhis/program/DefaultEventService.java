@@ -160,7 +160,7 @@ public class DefaultEventService implements EventService {
       Enrollment enrollment,
       ProgramStage programStage,
       Date enrollmentDate,
-      Date incidentDate,
+      Date occurredDate,
       OrganisationUnit organisationUnit) {
     Event event = null;
     Date currentDate = new Date();
@@ -169,7 +169,7 @@ public class DefaultEventService implements EventService {
     if (programStage.getGeneratedByEnrollmentDate()) {
       dateCreatedEvent = enrollmentDate;
     } else {
-      dateCreatedEvent = incidentDate;
+      dateCreatedEvent = occurredDate;
     }
 
     Date dueDate = DateUtils.addDays(dateCreatedEvent, programStage.getMinDaysFromStart());

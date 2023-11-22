@@ -59,12 +59,12 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javax.persistence.EntityManagerFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.AsyncTaskExecutor;
@@ -196,7 +196,7 @@ public class EventController {
 
   private final DhisConfigurationProvider dhisConfig;
 
-  private final SessionFactory sessionFactory;
+  private final EntityManagerFactory entityManagerFactory;
 
   private Schema schema;
 
@@ -1199,7 +1199,7 @@ public class EventController {
         new JobConfiguration(
             "inMemoryEventImport", EVENT_IMPORT, currentUserService.getCurrentUser().getUid());
     taskExecutor.executeTask(
-        new ImportEventsTask(events, eventService, importOptions, jobId, sessionFactory));
+        new ImportEventsTask(events, eventService, importOptions, jobId, entityManagerFactory));
 
     return jobConfigurationReport(jobId);
   }

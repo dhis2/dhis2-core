@@ -29,13 +29,15 @@ package org.hisp.dhis.scheduling;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.text.MessageFormat;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.springframework.stereotype.Service;
@@ -84,6 +86,12 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       // run "execute now" request directly when scheduling is not active (tests)
       jobRunner.runDueJob(job);
+    } else {
+      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
+      if (job.getJobType().isUsingContinuousExecution()) {
+        jobRunner.runIfDue(job);
+      }
     }
   }
 
@@ -121,15 +129,11 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
     if (json == null) return List.of();
     Progress progress = mapToProgress("{\"sequence\":[],\"errors\":" + json + "}");
     if (progress == null) return List.of();
-    Map<String, Map<ErrorCode, Queue<JobProgress.Error>>> map = progress.getErrors();
+    Map<String, Map<String, Queue<JobProgress.Error>>> map = progress.getErrors();
     if (map.isEmpty()) return List.of();
-    List<JobProgress.Error> errors =
-        map.values().stream()
-            .flatMap(e -> e.values().stream().flatMap(Collection::stream))
-            .toList();
-    errors.forEach(
-        e -> e.setMessage(MessageFormat.format(e.getCode().getMessage(), e.getArgs().toArray())));
-    return errors;
+    return map.values().stream()
+        .flatMap(e -> e.values().stream().flatMap(Collection::stream))
+        .toList();
   }
 
   @Override

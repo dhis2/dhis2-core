@@ -319,12 +319,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             .add(
                 "psi",
                 "ps",
-                "executiondate",
+                "occurreddate",
                 "storedby",
                 "createdbydisplayname",
                 "lastupdatedbydisplayname",
                 "lastupdated",
-                "duedate");
+                "scheduleddate");
 
     if (params.getProgram().isRegistration()) {
       cols.add("enrollmentdate", "incidentdate", "tei", "pi");

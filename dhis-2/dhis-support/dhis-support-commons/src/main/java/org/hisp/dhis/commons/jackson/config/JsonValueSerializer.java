@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.commons.jackson.config;
 
-import org.hisp.dhis.security.SecurityContextRunnable;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
+import org.hisp.dhis.jsontree.JsonValue;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
-@Component
-@Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class TrackerImportThread extends SecurityContextRunnable {
-  private final TrackerImportService trackerImportService;
-
-  private TrackerImportParams trackerImportParams;
-
-  public TrackerImportThread(TrackerImportService trackerImportService) {
-    this.trackerImportService = trackerImportService;
-  }
+public class JsonValueSerializer extends JsonSerializer<JsonValue> {
 
   @Override
-  public void call() {
-    Assert.notNull(trackerImportParams, "Field trackerImportParams can not be null. ");
-
-    trackerImportService.importTracker(trackerImportParams); // discard returned report
-  }
-
-  public void setTrackerImportParams(TrackerImportParams trackerImportParams) {
-    this.trackerImportParams = trackerImportParams;
+  public void serialize(JsonValue obj, JsonGenerator generator, SerializerProvider provider)
+      throws IOException {
+    if (obj == null) {
+      generator.writeNull();
+    } else {
+      generator.writeRawValue(obj.node().getDeclaration());
+    }
   }
 }

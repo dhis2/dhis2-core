@@ -29,9 +29,9 @@ package org.hisp.dhis.category.hibernate;
 
 import java.util.List;
 import java.util.Set;
+import javax.persistence.EntityManager;
 import org.hibernate.NonUniqueResultException;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -56,14 +56,14 @@ public class HibernateCategoryOptionComboStore
   private final DbmsManager dbmsManager;
 
   public HibernateCategoryOptionComboStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService,
       DbmsManager dbmsManager) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         CategoryOptionCombo.class,

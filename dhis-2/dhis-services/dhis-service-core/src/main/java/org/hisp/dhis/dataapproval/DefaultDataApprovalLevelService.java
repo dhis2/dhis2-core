@@ -381,7 +381,7 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
     OrganisationUnit organisationUnit = null;
 
     for (OrganisationUnit unit : user.getOrganisationUnits()) {
-      if (organisationUnitService.isDescendant(orgUnit, unit)) {
+      if (orgUnit.isDescendant(unit)) {
         organisationUnit = unit;
         break;
       }

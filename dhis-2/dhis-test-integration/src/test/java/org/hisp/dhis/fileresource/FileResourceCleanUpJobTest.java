@@ -182,12 +182,12 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
     content = "filecontentA".getBytes(StandardCharsets.UTF_8);
     FileResource fileResourceA = createFileResource('A', content);
     fileResourceA.setCreated(DateTime.now().minus(Days.ONE).toDate());
-    String uidA = fileResourceService.saveFileResource(fileResourceA, content);
+    String uidA = fileResourceService.asyncSaveFileResource(fileResourceA, content);
 
     content = "filecontentB".getBytes(StandardCharsets.UTF_8);
     FileResource fileResourceB = createFileResource('A', content);
     fileResourceB.setCreated(DateTime.now().minus(Days.ONE).toDate());
-    String uidB = fileResourceService.saveFileResource(fileResourceB, content);
+    String uidB = fileResourceService.asyncSaveFileResource(fileResourceB, content);
 
     User userB = makeUser("B");
     userB.setAvatar(fileResourceB);
@@ -259,7 +259,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
     organisationUnitService.addOrganisationUnit(orgUnit);
 
     FileResource fileResource = createFileResource(uniqueChar, content);
-    String uid = fileResourceService.saveFileResource(fileResource, content);
+    String uid = fileResourceService.asyncSaveFileResource(fileResource, content);
 
     DataValue dataValue = createDataValue(fileElement, period, orgUnit, uid, null);
     fileResource.setAssigned(true);
@@ -275,7 +275,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
   private ExternalFileResource createExternal(char uniqueChar, byte[] content) {
     ExternalFileResource externalFileResource = createExternalFileResource(uniqueChar, content);
 
-    fileResourceService.saveFileResource(externalFileResource.getFileResource(), content);
+    fileResourceService.asyncSaveFileResource(externalFileResource.getFileResource(), content);
     externalFileResourceService.saveExternalFileResource(externalFileResource);
 
     FileResource fileResource = externalFileResource.getFileResource();

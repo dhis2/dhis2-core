@@ -97,7 +97,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest {
 
     enrollment = new Enrollment();
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setProgram(program);
     enrollment.setStatus(ProgramStatus.ACTIVE);
     enrollment.setStoredBy("test");

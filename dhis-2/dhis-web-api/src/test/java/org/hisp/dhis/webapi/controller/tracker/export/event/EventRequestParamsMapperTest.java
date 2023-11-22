@@ -34,6 +34,7 @@ import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldsParamMapper.FIELD_RELATIONSHIPS;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -55,6 +56,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -68,6 +71,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
+import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
@@ -112,6 +116,8 @@ class EventRequestParamsMapperTest {
   @Mock private TrackedEntityAttributeService attributeService;
 
   @Mock private DataElementService dataElementService;
+
+  @Mock EventFieldsParamMapper eventFieldsParamMapper;
 
   @InjectMocks private EventRequestParamsMapper mapper;
 
@@ -588,5 +594,29 @@ class EventRequestParamsMapperTest {
     assertStartsWith(
         "At least one org unit is required for orgUnitMode: " + orgUnitMode,
         exception.getMessage());
+  }
+
+  @Test
+  void shouldMapEventParamsTrueWhenFieldPathIncludeRelationships() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    List<FieldPath> fieldPaths = FieldFilterParser.parse(FIELD_RELATIONSHIPS);
+
+    requestParams.setFields(fieldPaths);
+    when(eventFieldsParamMapper.map(fieldPaths)).thenReturn(EventParams.TRUE);
+
+    EventOperationParams eventOperationParams = mapper.map(requestParams);
+    assertEquals(EventParams.TRUE, eventOperationParams.getEventParams());
+  }
+
+  @Test
+  void shouldMapEventParamsFalseWhenFieldPathIncludeRelationships() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    List<FieldPath> fieldPaths = FieldFilterParser.parse(FIELD_RELATIONSHIPS);
+
+    requestParams.setFields(fieldPaths);
+    when(eventFieldsParamMapper.map(fieldPaths)).thenReturn(EventParams.FALSE);
+
+    EventOperationParams eventOperationParams = mapper.map(requestParams);
+    assertEquals(EventParams.FALSE, eventOperationParams.getEventParams());
   }
 }

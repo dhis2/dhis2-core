@@ -40,6 +40,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -50,8 +51,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.StatelessSession;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.query.NativeQuery;
@@ -76,7 +75,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
 
   protected static final int OBJECT_FETCH_SIZE = 2000;
 
-  protected SessionFactory sessionFactory;
+  protected EntityManager entityManager;
 
   protected JdbcTemplate jdbcTemplate;
 
@@ -87,17 +86,17 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   protected boolean cacheable;
 
   public HibernateGenericStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       Class<T> clazz,
       boolean cacheable) {
-    checkNotNull(sessionFactory);
+    checkNotNull(entityManager);
     checkNotNull(jdbcTemplate);
     checkNotNull(publisher);
     checkNotNull(clazz);
 
-    this.sessionFactory = sessionFactory;
+    this.entityManager = entityManager;
     this.jdbcTemplate = jdbcTemplate;
     this.publisher = publisher;
     this.clazz = clazz;
@@ -131,11 +130,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
    * @return the current session.
    */
   protected final Session getSession() {
-    return sessionFactory.getCurrentSession();
-  }
-
-  protected final StatelessSession getStatelessSession() {
-    return sessionFactory.openStatelessSession();
+    return entityManager.unwrap(Session.class);
   }
 
   /**
@@ -178,7 +173,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   protected void preProcessDetachedCriteria(DetachedCriteria detachedCriteria) {}
 
   public CriteriaBuilder getCriteriaBuilder() {
-    return sessionFactory.getCriteriaBuilder();
+    return entityManager.getCriteriaBuilder();
   }
 
   // ------------------------------------------------------------------------------------------
@@ -191,10 +186,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
    * @return executable TypedQuery
    */
   private TypedQuery<T> getExecutableTypedQuery(CriteriaQuery<T> criteriaQuery) {
-    return getSession()
-        .createQuery(criteriaQuery)
-        .setCacheable(cacheable)
-        .setHint(QueryHints.CACHEABLE, cacheable);
+    return entityManager.createQuery(criteriaQuery).setHint(QueryHints.CACHEABLE, cacheable);
   }
 
   /** Method for adding additional Predicates into where clause */
@@ -382,7 +374,6 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   @Override
   public void save(@Nonnull T object) {
     AuditLogUtil.infoWrapper(log, object, AuditLogUtil.ACTION_CREATE);
-
     getSession().save(object);
   }
 

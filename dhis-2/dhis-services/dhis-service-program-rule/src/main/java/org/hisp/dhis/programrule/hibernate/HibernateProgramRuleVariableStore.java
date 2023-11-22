@@ -28,8 +28,8 @@
 package org.hisp.dhis.programrule.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
@@ -50,13 +50,13 @@ public class HibernateProgramRuleVariableStore
     extends HibernateIdentifiableObjectStore<ProgramRuleVariable>
     implements ProgramRuleVariableStore {
   public HibernateProgramRuleVariableStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         ProgramRuleVariable.class,

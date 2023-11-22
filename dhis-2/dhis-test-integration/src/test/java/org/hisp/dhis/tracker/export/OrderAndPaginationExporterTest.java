@@ -68,11 +68,13 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
+import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
@@ -109,9 +111,9 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
     importUser = userService.getUser("M5zQapPyTZI");
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     assertNoErrors(
-        trackerImportService.importTracker(
-            fromJson("tracker/event_and_enrollment.json", importUser.getUid())));
+        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
     trackedEntityType = get(TrackedEntityType.class, "ja8NY4PW7Xm");
@@ -125,7 +127,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     // expect to be run by admin
     injectAdminUser();
 
-    eventParamsBuilder = EventOperationParams.builder();
+    eventParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
     eventParamsBuilder.orgUnitMode(SELECTED);
   }
 
@@ -756,7 +758,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .toList();
 
     EventOperationParams params =
-        EventOperationParams.builder()
+        eventParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .events(Set.of("pTzf9KYMk72", "QRYjLTiJTrA"))
             .orderBy("enrollment.program.uid", SortDirection.ASC)

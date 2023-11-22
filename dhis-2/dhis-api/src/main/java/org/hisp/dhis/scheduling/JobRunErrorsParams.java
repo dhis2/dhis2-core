@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.scheduling;
 
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.springframework.stereotype.Component;
+import java.util.Date;
+import java.util.List;
+import javax.annotation.CheckForNull;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.user.User;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * Query params when searching for {@link JobConfiguration}s with errors.
+ *
+ * <p>A match has to satisfy all filters (AND logic) but only one of the given codes or object
+ * {@link UID} (OR logic).
+ *
+ * <p>If any of the criteria is not defined it has no filter effect.
+ *
+ * @author Jan Bernitt
  */
-@Component
-@RequiredArgsConstructor
-public class TrackerSyncImporter {
+@Data
+@Accessors(chain = true)
+public class JobRunErrorsParams {
 
-  @Nonnull private final TrackerImportService trackerImportService;
+  @OpenApi.Ignore @CheckForNull private UID job;
 
-  public ImportReport importTracker(TrackerImportParams params) {
-    ImportReport importReport = trackerImportService.importTracker(params);
+  /** The user that ran the job */
+  @OpenApi.Property({UID.class, User.class})
+  @CheckForNull
+  private UID user;
 
-    return trackerImportService.buildImportReport(importReport, params.getReportMode());
-  }
+  /** The earliest date the job ran that should be included */
+  @CheckForNull private Date from;
+
+  /** The latest date the job ran that should be included */
+  @CheckForNull private Date to;
+
+  /** The codes to select, any match combined */
+  @CheckForNull private List<ErrorCode> code;
+
+  /** The object with errors to select, any match combined */
+  @CheckForNull private List<UID> object;
+
+  /** The {@link JobType} with errors to select, any match combined */
+  @CheckForNull private List<JobType> type;
+
+  boolean includeInput = false;
 }

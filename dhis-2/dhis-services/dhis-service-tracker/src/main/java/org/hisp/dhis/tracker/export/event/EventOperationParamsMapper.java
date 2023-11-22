@@ -146,7 +146,7 @@ class EventOperationParamsMapper {
         .setEvents(operationParams.getEvents())
         .setEnrollments(operationParams.getEnrollments())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
-        .setIncludeRelationships(operationParams.isIncludeRelationships());
+        .setIncludeRelationships(operationParams.getEventParams().isIncludeRelationships());
   }
 
   private Program validateProgram(String programUid) throws BadRequestException {

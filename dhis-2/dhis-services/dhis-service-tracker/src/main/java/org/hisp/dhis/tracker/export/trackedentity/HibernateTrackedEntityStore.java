@@ -44,12 +44,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -96,9 +96,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private static final String ENROLLMENT_DATE_KEY = "enrollment.enrollmentDate";
 
-  private static final String EV_EXECUTIONDATE = "EV.executiondate";
+  private static final String EV_OCCURREDDATE = "EV.occurreddate";
 
-  private static final String EV_DUEDATE = "EV.duedate";
+  private static final String EV_SCHEDULEDDATE = "EV.scheduleddate";
 
   private static final String IS_NULL = "IS NULL";
 
@@ -135,7 +135,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private final SystemSettingManager systemSettingManager;
 
   public HibernateTrackedEntityStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
@@ -144,7 +144,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       OrganisationUnitStore organisationUnitStore,
       SystemSettingManager systemSettingManager) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         TrackedEntity.class,
@@ -278,7 +278,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * the program_constraint, we also have a sub-query to deal with any event-related constraints.
    * These can either be constraints on any static properties, or user assignment. For user
    * assignment, we also join with the userinfo table. For events, we have an index (status,
-   * executiondate) which speeds up the lookup significantly order: Order is used both in the
+   * occurreddate) which speeds up the lookup significantly order: Order is used both in the
    * sub-query and the main query. The sort depends on the params (see more info on the related
    * method). We order the sub-query to make sure we get correct results before we limit. We order
    * the main query since the aggregation mixes up the order, so to return a consistent order, we
@@ -645,27 +645,67 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
-      SqlHelper orHlp = new SqlHelper(true);
-
-      orgUnits.append("AND (");
-
-      for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
-
-        OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
-        if (ou != null) {
-          orgUnits.append(orHlp.or()).append("OU.path LIKE '").append(ou.getPath()).append("%'");
-        }
-      }
-
-      orgUnits.append(") ");
-    } else if (!params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ALL)) {
-      orgUnits
-          .append("AND OU.organisationunitid IN (")
-          .append(getCommaDelimitedString(getIdentifiers(params.getOrgUnits())))
-          .append(") ");
+      orgUnits.append(getDescendantsQuery(params));
+    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
+      orgUnits.append(getChildrenQuery(params));
+    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
+      orgUnits.append(getSelectedQuery(params));
     }
 
     return orgUnits.toString();
+  }
+
+  private String getDescendantsQuery(TrackedEntityQueryParams params) {
+    StringBuilder orgUnits = new StringBuilder();
+    SqlHelper orHlp = new SqlHelper(true);
+
+    orgUnits.append("AND (");
+
+    for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
+
+      OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
+      if (ou != null) {
+        orgUnits.append(orHlp.or()).append("OU.path LIKE '").append(ou.getPath()).append("%'");
+      }
+    }
+
+    orgUnits.append(") ");
+
+    return orgUnits.toString();
+  }
+
+  private String getChildrenQuery(TrackedEntityQueryParams params) {
+    StringBuilder orgUnits = new StringBuilder();
+    SqlHelper orHlp = new SqlHelper(true);
+
+    orgUnits.append("AND (");
+
+    for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
+
+      OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
+      if (ou != null) {
+        orgUnits
+            .append(orHlp.or())
+            .append(" OU.path LIKE '")
+            .append(ou.getPath())
+            .append("%'")
+            .append(" AND (ou.hierarchylevel = ")
+            .append(ou.getHierarchyLevel())
+            .append(" OR ou.hierarchylevel = ")
+            .append((ou.getHierarchyLevel() + 1))
+            .append(")");
+      }
+    }
+
+    orgUnits.append(") ");
+
+    return orgUnits.toString();
+  }
+
+  private String getSelectedQuery(TrackedEntityQueryParams params) {
+    return "AND OU.organisationunitid IN ("
+        + getCommaDelimitedString(getIdentifiers(params.getOrgUnits()))
+        + ") ";
   }
 
   /**
@@ -746,14 +786,14 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     if (params.hasProgramIncidentStartDate()) {
       program
-          .append("AND EN.incidentdate >= '")
+          .append("AND EN.occurreddate >= '")
           .append(getLongDateString(params.getProgramIncidentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentEndDate()) {
       program
-          .append("AND EN.incidentdate <= '")
+          .append("AND EN.occurreddate <= '")
           .append(getLongDateString(params.getProgramIncidentEndDate()))
           .append("' ");
     }
@@ -796,7 +836,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
       if (params.isEventStatus(EventStatus.COMPLETED)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, EV_EXECUTIONDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_OCCURREDDATE, start, end))
             .append(whereHlp.whereAnd())
             .append(EV_STATUS)
             .append(EQUALS)
@@ -807,7 +847,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       } else if (params.isEventStatus(EventStatus.VISITED)
           || params.isEventStatus(EventStatus.ACTIVE)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, EV_EXECUTIONDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_OCCURREDDATE, start, end))
             .append(whereHlp.whereAnd())
             .append(EV_STATUS)
             .append(EQUALS)
@@ -817,33 +857,33 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(SPACE);
       } else if (params.isEventStatus(EventStatus.SCHEDULE)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, EV_DUEDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_SCHEDULEDDATE, start, end))
             .append(whereHlp.whereAnd())
             .append(EV_STATUS)
             .append(SPACE)
             .append(IS_NOT_NULL)
             .append(whereHlp.whereAnd())
-            .append(EV_EXECUTIONDATE)
+            .append(EV_OCCURREDDATE)
             .append(SPACE)
             .append(IS_NULL)
             .append(whereHlp.whereAnd())
-            .append("date(now()) <= date(EV.duedate) ");
+            .append("date(now()) <= date(EV.scheduleddate) ");
       } else if (params.isEventStatus(EventStatus.OVERDUE)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, EV_DUEDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_SCHEDULEDDATE, start, end))
             .append(whereHlp.whereAnd())
             .append(EV_STATUS)
             .append(SPACE)
             .append(IS_NOT_NULL)
             .append(whereHlp.whereAnd())
-            .append(EV_EXECUTIONDATE)
+            .append(EV_OCCURREDDATE)
             .append(SPACE)
             .append(IS_NULL)
             .append(whereHlp.whereAnd())
-            .append("date(now()) > date(EV.duedate) ");
+            .append("date(now()) > date(EV.scheduleddate) ");
       } else if (params.isEventStatus(EventStatus.SKIPPED)) {
         events
-            .append(getQueryDateConditionBetween(whereHlp, EV_DUEDATE, start, end))
+            .append(getQueryDateConditionBetween(whereHlp, EV_SCHEDULEDDATE, start, end))
             .append(whereHlp.whereAnd())
             .append(EV_STATUS)
             .append(EQUALS)

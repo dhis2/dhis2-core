@@ -39,8 +39,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.Map;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
@@ -65,15 +64,13 @@ class FileResourceServiceTest {
 
   @Mock private PeriodService periodService;
 
-  @Mock private SessionFactory sessionFactory;
-
   @Mock private FileResourceContentStore fileResourceContentStore;
 
   @Mock private ImageProcessingService imageProcessingService;
 
   @Mock private ApplicationEventPublisher fileEventPublisher;
 
-  @Mock private Session session;
+  @Mock private EntityManager entityManager;
 
   @Captor private ArgumentCaptor<FileSavedEvent> fileSavedEventCaptor;
 
@@ -89,10 +86,10 @@ class FileResourceServiceTest {
         new DefaultFileResourceService(
             fileResourceStore,
             periodService,
-            sessionFactory,
             fileResourceContentStore,
             imageProcessingService,
-            fileEventPublisher);
+            fileEventPublisher,
+            entityManager);
   }
 
   @Test
@@ -105,12 +102,10 @@ class FileResourceServiceTest {
 
     File file = new File("");
 
-    when(sessionFactory.getCurrentSession()).thenReturn(session);
-
-    subject.saveFileResource(fileResource, file);
+    subject.asyncSaveFileResource(fileResource, file);
 
     verify(fileResourceStore).save(fileResource);
-    verify(session).flush();
+    verify(entityManager).flush();
 
     verify(fileEventPublisher, times(1)).publishEvent(fileSavedEventCaptor.capture());
 
@@ -127,7 +122,8 @@ class FileResourceServiceTest {
             "very_evil_script.html", "text/html", 1024, "md5", FileResourceDomain.USER_AVATAR);
 
     File file = new File("very_evil_script.html");
-    assertThrows(IllegalQueryException.class, () -> subject.saveFileResource(fileResource, file));
+    assertThrows(
+        IllegalQueryException.class, () -> subject.asyncSaveFileResource(fileResource, file));
   }
 
   @Test
@@ -141,7 +137,8 @@ class FileResourceServiceTest {
             FileResourceDomain.MESSAGE_ATTACHMENT);
 
     File file = new File("suspicious_program.rpm");
-    assertThrows(IllegalQueryException.class, () -> subject.saveFileResource(fileResource, file));
+    assertThrows(
+        IllegalQueryException.class, () -> subject.asyncSaveFileResource(fileResource, file));
   }
 
   @Test
@@ -160,14 +157,12 @@ class FileResourceServiceTest {
 
     when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
 
-    when(sessionFactory.getCurrentSession()).thenReturn(session);
-
     fileResource.setUid("imageUid1");
 
-    subject.saveFileResource(fileResource, file);
+    subject.asyncSaveFileResource(fileResource, file);
 
     verify(fileResourceStore).save(fileResource);
-    verify(session).flush();
+    verify(entityManager).flush();
 
     verify(fileEventPublisher, times(1)).publishEvent(imageFileSavedEventCaptor.capture());
 
@@ -216,14 +211,12 @@ class FileResourceServiceTest {
 
     when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
 
-    when(sessionFactory.getCurrentSession()).thenReturn(session);
-
     fileResource.setUid("imageUid1");
 
-    subject.saveFileResource(fileResource, file);
+    subject.asyncSaveFileResource(fileResource, file);
 
     verify(fileResourceStore).save(fileResource);
-    verify(session).flush();
+    verify(entityManager).flush();
 
     verify(fileEventPublisher, times(1)).publishEvent(imageFileSavedEventCaptor.capture());
 

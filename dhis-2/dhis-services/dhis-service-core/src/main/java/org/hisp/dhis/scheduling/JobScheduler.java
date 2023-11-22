@@ -34,8 +34,15 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
@@ -137,20 +144,27 @@ public class JobScheduler implements Runnable, JobRunner {
     }
   }
 
+  @Override
+  public void runIfDue(JobConfiguration job) {
+    runIfDue(Instant.now().truncatedTo(ChronoUnit.SECONDS), job.getJobType(), List.of(job));
+  }
+
   private void runIfDue(Instant now, JobType type, List<JobConfiguration> jobs) {
     if (!type.isUsingContinuousExecution()) {
       runIfDue(now, jobs.get(0));
       return;
     }
-    Queue<String> jobIds =
-        continuousJobsByType.computeIfAbsent(type, key -> new ConcurrentLinkedQueue<>());
-    // add a worker either if no worker is on it (empty new queue) or if there are many jobs
-    boolean spawnWorker = jobIds.isEmpty();
+    Queue<String> jobIds = continuousJobsByType.get(type);
+    boolean spawnWorker = false;
+    if (jobIds == null) {
+      Queue<String> localQueue = new ConcurrentLinkedQueue<>();
+      Queue<String> sharedQueue = continuousJobsByType.putIfAbsent(type, localQueue);
+      spawnWorker = sharedQueue == null; // no previous queue => this thread put the queue
+      jobIds = continuousJobsByType.get(type);
+    }
     // add those IDs to the queue that are not yet in it
-    jobs.stream()
-        .map(JobConfiguration::getUid)
-        .filter(jobId -> !jobIds.contains(jobId))
-        .forEach(jobIds::add);
+    jobs.stream().map(JobConfiguration::getUid).forEach(jobIds::add);
+
     if (spawnWorker) {
       // we want to prevent starting more than one worker per job type
       // but if this does happen it is no issue as both will be pulling

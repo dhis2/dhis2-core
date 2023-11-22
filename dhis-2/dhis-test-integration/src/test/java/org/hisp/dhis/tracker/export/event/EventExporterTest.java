@@ -72,6 +72,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -108,9 +109,9 @@ class EventExporterTest extends TrackerTest {
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
     importUser = userService.getUser("M5zQapPyTZI");
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     assertNoErrors(
-        trackerImportService.importTracker(
-            fromJson("tracker/event_and_enrollment.json", importUser.getUid())));
+        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
     program = programStage.getProgram();
@@ -130,7 +131,7 @@ class EventExporterTest extends TrackerTest {
     // expect to be run by admin
     injectAdminUser();
 
-    operationParamsBuilder = EventOperationParams.builder();
+    operationParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
     operationParamsBuilder.orgUnitUid(orgUnit.getUid()).orgUnitMode(SELECTED);
   }
 
@@ -152,7 +153,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWithRelationships() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        operationParamsBuilder.events(Set.of("pTzf9KYMk72")).includeRelationships(true).build();
+        operationParamsBuilder.events(Set.of("pTzf9KYMk72")).eventParams(EventParams.TRUE).build();
 
     List<Event> events = eventService.getEvents(params);
 
@@ -262,10 +263,7 @@ class EventExporterTest extends TrackerTest {
   void testExportEventsWithDatesIncludingTimeStamp()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .events(Set.of("pTzf9KYMk72"))
-            .build();
+        operationParamsBuilder.orgUnitMode(ACCESSIBLE).events(Set.of("pTzf9KYMk72")).build();
 
     List<Event> events = eventService.getEvents(params);
 
@@ -414,7 +412,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsGivenCategoryOptionCombo() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .attributeCategoryCombo("O4VaNks6tta")
@@ -450,7 +448,7 @@ class EventExporterTest extends TrackerTest {
     IdSchemes idSchemes = new IdSchemes();
     idSchemes.setCategoryOptionComboIdScheme("ATTRIBUTE:GOLswS44mh8");
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)
@@ -472,7 +470,7 @@ class EventExporterTest extends TrackerTest {
     idSchemes.setCategoryOptionComboIdScheme("code");
 
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)
@@ -523,7 +521,7 @@ class EventExporterTest extends TrackerTest {
     idSchemes.setOrgUnitIdScheme("ATTRIBUTE:j45AR9cBQKc");
     idSchemes.setCategoryOptionComboIdScheme("ATTRIBUTE:j45AR9cBQKc");
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)

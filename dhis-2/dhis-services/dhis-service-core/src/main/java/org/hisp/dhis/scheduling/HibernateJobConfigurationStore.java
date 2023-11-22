@@ -29,22 +29,29 @@ package org.hisp.dhis.scheduling;
 
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.toSet;
+import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
+import com.vladmihalcea.hibernate.type.array.StringArrayType;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
+import org.hibernate.query.Query;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jan Bernitt
@@ -55,13 +62,13 @@ public class HibernateJobConfigurationStore
     extends HibernateIdentifiableObjectStore<JobConfiguration> implements JobConfigurationStore {
 
   public HibernateJobConfigurationStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         JobConfiguration.class,
@@ -241,7 +248,68 @@ public class HibernateJobConfigurationStore
         .stream();
   }
 
+  @Nonnull
   @Override
+  public Stream<String> findJobRunErrors(@Nonnull JobRunErrorsParams params) {
+    // language=SQL
+    String sql =
+        """
+    select jsonb_build_object(
+    'id', c.uid,
+    'type', c.jobType,
+    'user', c.executedby,
+    'created', c.created,
+    'executed', c.lastexecuted,
+    'finished', c.lastfinished,
+    'file', fr.uid,
+    'filesize', fr.contentlength,
+    'filetype', fr.contenttype,
+    'errors', c.progress -> 'errors') #>> '{}'
+    from jobconfiguration c left join fileresource fr on c.uid = fr.uid
+    where c.errorcodes is not null and c.errorcodes != ''
+      and (:skipUid or c.uid = :uid)
+      and (:skipUser or c.executedby = :user)
+      and (:skipStart or c.lastexecuted >= :start)
+      and (:skipEnd or c.lastexecuted <= :end)
+      and (:skipObjects or jsonb_exists_any(c.progress -> 'errors', :objects ))
+      and (:skipCodes or string_to_array(c.errorcodes, ' ') && :codes)
+      and (:skipTypes or c.jobtype = any (:types))
+    order by c.lastexecuted desc;
+    """;
+    List<UID> objectList = params.getObject();
+    List<String> errors =
+        objectList == null ? List.of() : objectList.stream().map(UID::getValue).toList();
+    List<ErrorCode> codeList = params.getCode();
+    List<String> codes =
+        codeList == null ? List.of() : codeList.stream().map(ErrorCode::name).toList();
+    List<JobType> typeList = params.getType();
+    List<String> types =
+        typeList == null ? List.of() : typeList.stream().map(JobType::name).toList();
+    Date start = params.getFrom();
+    Date end = params.getTo();
+    UID user = params.getUser();
+    UID job = params.getJob();
+    return getResultStream(
+        nativeQuery(sql)
+            .setParameter("skipUid", job == null)
+            .setParameter("uid", job == null ? "" : job.getValue())
+            .setParameter("skipUser", user == null)
+            .setParameter("user", user == null ? "" : user.getValue())
+            .setParameter("skipStart", start == null)
+            .setParameter("start", start == null ? new Date() : start)
+            .setParameter("skipEnd", end == null)
+            .setParameter("end", end == null ? new Date() : end)
+            .setParameter("skipObjects", errors.isEmpty())
+            .setParameter("objects", errors.toArray(String[]::new), StringArrayType.INSTANCE)
+            .setParameter("skipCodes", codes.isEmpty())
+            .setParameter("codes", codes.toArray(String[]::new), StringArrayType.INSTANCE)
+            .setParameter("skipTypes", types.isEmpty())
+            .setParameter("types", types.toArray(String[]::new), StringArrayType.INSTANCE),
+        Object::toString);
+  }
+
+  @Override
+  @Transactional(propagation = REQUIRES_NEW)
   public boolean tryExecuteNow(@Nonnull String jobId) {
     // language=SQL
     String sql =
@@ -465,8 +533,14 @@ public class HibernateJobConfigurationStore
   }
 
   @SuppressWarnings("unchecked")
-  private static <T> Set<T> getResultSet(NativeQuery<?> query, Function<String, T> mapper) {
+  private static <T> Set<T> getResultSet(Query<?> query, Function<String, T> mapper) {
     Stream<String> stream = (Stream<String>) query.stream();
     return stream.map(mapper).collect(toSet());
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T> Stream<T> getResultStream(Query<?> query, Function<String, T> mapper) {
+    Stream<String> stream = (Stream<String>) query.stream();
+    return stream.map(mapper);
   }
 }

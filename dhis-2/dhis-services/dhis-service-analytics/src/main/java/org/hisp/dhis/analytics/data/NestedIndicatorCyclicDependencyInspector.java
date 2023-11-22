@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.lang.String.format;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
@@ -40,7 +40,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.CyclicReferenceException;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.springframework.stereotype.Component;

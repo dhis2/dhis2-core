@@ -42,7 +42,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
 import java.util.List;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.Enrollment;
@@ -76,8 +75,6 @@ class ProgramObjectBundleHookTest {
   @Mock private ProgramStageService programStageService;
 
   @Mock private AclService aclService;
-
-  @Mock private SessionFactory sessionFactory;
 
   private Program programA;
 
@@ -113,7 +110,7 @@ class ProgramObjectBundleHookTest {
     verify(enrollmentService).addEnrollment(argument.capture());
 
     assertThat(argument.getValue().getEnrollmentDate(), is(notNullValue()));
-    assertThat(argument.getValue().getIncidentDate(), is(notNullValue()));
+    assertThat(argument.getValue().getOccurredDate(), is(notNullValue()));
     assertThat(argument.getValue().getProgram(), is(programA));
     assertThat(argument.getValue().getStatus(), is(ProgramStatus.ACTIVE));
     assertThat(argument.getValue().getStoredBy(), is("system-process"));

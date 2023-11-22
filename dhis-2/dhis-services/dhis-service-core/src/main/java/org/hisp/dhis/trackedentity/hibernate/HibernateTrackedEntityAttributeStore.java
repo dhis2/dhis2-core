@@ -36,9 +36,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -68,14 +68,14 @@ public class HibernateTrackedEntityAttributeStore
   private final StatementBuilder statementBuilder;
 
   public HibernateTrackedEntityAttributeStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService,
       StatementBuilder statementBuilder) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         TrackedEntityAttribute.class,
@@ -169,9 +169,7 @@ public class HibernateTrackedEntityAttributeStore
   @SuppressWarnings({"unchecked", "rawtypes"})
   public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes() {
     Query query =
-        sessionFactory
-            .getCurrentSession()
-            .createQuery("select trackedEntityTypeAttributes from TrackedEntityType");
+        getSession().createQuery("select trackedEntityTypeAttributes from TrackedEntityType");
 
     Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new HashSet<>(query.list());
 
@@ -186,19 +184,15 @@ public class HibernateTrackedEntityAttributeStore
     Set<TrackedEntityAttribute> result = new HashSet<>();
 
     Query<TrackedEntityAttribute> programTeaQuery =
-        sessionFactory
-            .getCurrentSession()
+        getSession()
             .createQuery(
                 "select attribute from ProgramTrackedEntityAttribute ptea where ptea.searchable=true and ptea.attribute.valueType in ('TEXT','LONG_TEXT','PHONE_NUMBER','EMAIL','USERNAME','URL')");
     Query<TrackedEntityAttribute> tetypeAttributeQuery =
-        sessionFactory
-            .getCurrentSession()
+        getSession()
             .createQuery(
                 "select trackedEntityAttribute from TrackedEntityTypeAttribute teta where teta.searchable=true and teta.trackedEntityAttribute.valueType in ('TEXT','LONG_TEXT','PHONE_NUMBER','EMAIL','USERNAME','URL')");
     Query<TrackedEntityAttribute> uniqueAttributeQuery =
-        sessionFactory
-            .getCurrentSession()
-            .createQuery("from TrackedEntityAttribute tea where tea.unique=true");
+        getSession().createQuery("from TrackedEntityAttribute tea where tea.unique=true");
 
     List<TrackedEntityAttribute> programSearchableTrackedEntityAttributes = programTeaQuery.list();
     List<TrackedEntityAttribute> trackedEntityTypeSearchableAttributes =
@@ -217,8 +211,7 @@ public class HibernateTrackedEntityAttributeStore
   public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram() {
     Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
 
-    Query query =
-        sessionFactory.getCurrentSession().createQuery("select p.programAttributes from Program p");
+    Query query = getSession().createQuery("select p.programAttributes from Program p");
 
     List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.list();
 

@@ -107,11 +107,11 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       List.of(
           new AnalyticsTableColumn(quote("pi"), CHARACTER_11, NOT_NULL, "pi.uid"),
           new AnalyticsTableColumn(quote("enrollmentdate"), TIMESTAMP, "pi.enrollmentdate"),
-          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.incidentdate"),
+          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.occurreddate"),
           new AnalyticsTableColumn(
               quote("completeddate"),
               TIMESTAMP,
-              "case pi.status when 'COMPLETED' then pi.enddate end"),
+              "case pi.status when 'COMPLETED' then pi.completeddate end"),
           new AnalyticsTableColumn(quote("lastupdated"), TIMESTAMP, "pi.lastupdated"),
           new AnalyticsTableColumn(quote("storedby"), VARCHAR_255, "pi.storedby"),
           new AnalyticsTableColumn(
@@ -228,7 +228,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             + "and pi.lastupdated <= '"
             + getLongDateString(params.getStartTime())
             + "' "
-            + "and pi.incidentdate is not null "
+            + "and pi.occurreddate is not null "
             + "and pi.deleted is false ";
 
     populateTableInternal(partition, getDimensionColumns(program), fromClause);

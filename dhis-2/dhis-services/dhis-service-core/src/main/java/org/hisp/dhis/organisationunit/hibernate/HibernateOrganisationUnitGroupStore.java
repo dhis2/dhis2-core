@@ -29,7 +29,7 @@ package org.hisp.dhis.organisationunit.hibernate;
 
 import java.util.List;
 import java.util.Set;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -48,13 +48,13 @@ public class HibernateOrganisationUnitGroupStore
     extends HibernateIdentifiableObjectStore<OrganisationUnitGroup>
     implements OrganisationUnitGroupStore {
   public HibernateOrganisationUnitGroupStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         OrganisationUnitGroup.class,

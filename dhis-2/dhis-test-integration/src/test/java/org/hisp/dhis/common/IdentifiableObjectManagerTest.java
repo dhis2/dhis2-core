@@ -43,7 +43,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -77,7 +78,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class IdentifiableObjectManagerTest extends TransactionalIntegrationTest {
   private Attribute atA;
 
-  @Autowired private SessionFactory sessionFactory;
+  @PersistenceContext private EntityManager entityManager;
 
   @Autowired private AttributeService attributeService;
 
@@ -404,7 +405,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest {
     idObjectManager.save(dataElement);
     dataElement.setOwner(user.getUid());
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
-    sessionFactory.getCurrentSession().update(dataElement);
+    entityManager.merge(dataElement);
     assertThrows(DeleteAccessDeniedException.class, () -> idObjectManager.delete(dataElement));
   }
 
@@ -432,7 +433,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest {
     for (DataElement dataElement : dataElements) {
       dataElement.setOwner(user.getUid());
       dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
-      sessionFactory.getCurrentSession().update(dataElement);
+      entityManager.merge(dataElement);
     }
     assertEquals(0, idObjectManager.getCount(DataElement.class));
     assertEquals(0, idObjectManager.getAll(DataElement.class).size());

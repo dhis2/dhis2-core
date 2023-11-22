@@ -244,9 +244,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   private ImportSummary saveCompleteDataSetRegistrations(
       ImportOptions importOptions,
       Callable<CompleteDataSetRegistrations> deserializeRegistrations) {
-    BatchHandler<CompleteDataSetRegistration> batchHandler =
-        batchHandlerFactory.createBatchHandler(CompleteDataSetRegistrationBatchHandler.class);
-    try {
+
+    try (BatchHandler<CompleteDataSetRegistration> batchHandler =
+        batchHandlerFactory.createBatchHandler(CompleteDataSetRegistrationBatchHandler.class)) {
       CompleteDataSetRegistrations completeDataSetRegistrations = deserializeRegistrations.call();
       ImportSummary summary =
           saveCompleteDataSetRegistrations(
@@ -256,7 +256,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
       return summary;
     } catch (Exception ex) {
-      batchHandler.flush();
+      log.error("Complete data set registrations could not be saved.");
       return handleImportError(ex);
     }
   }
@@ -666,9 +666,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     boolean inUserHierarchy =
         mdCaches
             .getOrgUnitInHierarchyMap()
-            .get(
-                mdProps.orgUnit.getUid(),
-                () -> organisationUnitService.isDescendant(mdProps.orgUnit, userOrgUnits));
+            .get(mdProps.orgUnit.getUid(), () -> mdProps.orgUnit.isDescendant(userOrgUnits));
 
     if (!inUserHierarchy) {
       throw new ImportConflictException(
@@ -726,8 +724,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 aocOrgUnitKey,
                 () -> {
                   Set<OrganisationUnit> aocOrgUnits = aoc.getOrganisationUnits();
-                  return aocOrgUnits == null
-                      || organisationUnitService.isDescendant(mdProps.orgUnit, aocOrgUnits);
+                  return aocOrgUnits == null || mdProps.orgUnit.isDescendant(aocOrgUnits);
                 });
 
     if (!isOrgUnitValidForAoc) {

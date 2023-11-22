@@ -113,7 +113,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
     if (getProgramInstancesCount(program) == 0 && program.isWithoutRegistration()) {
       Enrollment pi = new Enrollment();
       pi.setEnrollmentDate(new Date());
-      pi.setIncidentDate(new Date());
+      pi.setOccurredDate(new Date());
       pi.setProgram(program);
       pi.setStatus(ProgramStatus.ACTIVE);
       pi.setStoredBy("system-process");

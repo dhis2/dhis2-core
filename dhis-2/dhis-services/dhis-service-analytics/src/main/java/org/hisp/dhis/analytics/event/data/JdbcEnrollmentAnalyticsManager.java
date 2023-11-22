@@ -91,7 +91,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private static final String ANALYTICS_EVENT = "analytics_event_";
 
-  private static final String ORDER_BY_EXECUTION_DATE = "order by executiondate ";
+  private static final String ORDER_BY_EXECUTION_DATE = "order by occurreddate ";
 
   private static final String LIMIT_1 = "limit 1";
 
@@ -553,7 +553,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           && !item.getRepeatableStageParams().simpleStageValueExpected()) {
         return "(select json_agg(t1) from (select "
             + colName
-            + ", incidentdate, duedate, executiondate "
+            + ", incidentdate, scheduleddate, occurreddate "
             + " from "
             + eventTableName
             + " where "
@@ -640,14 +640,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     StringBuilder sb = new StringBuilder();
 
     if (startDate != null) {
-      sb.append(" and executiondate >= ");
+      sb.append(" and occurreddate >= ");
 
       sb.append(
           String.format("%s ", SqlUtils.singleQuote(DateUtils.getMediumDateString(startDate))));
     }
 
     if (endDate != null) {
-      sb.append(" and executiondate <= ");
+      sb.append(" and occurreddate <= ");
 
       sb.append(String.format("%s ", SqlUtils.singleQuote(DateUtils.getMediumDateString(endDate))));
     }

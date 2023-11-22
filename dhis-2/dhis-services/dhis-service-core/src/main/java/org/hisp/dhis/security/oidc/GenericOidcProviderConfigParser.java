@@ -27,7 +27,32 @@
  */
 package org.hisp.dhis.security.oidc;
 
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.*;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.AUTHORIZATION_GRANT_TYPE;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.AUTHORIZATION_URI;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_AUTHENTICATION_METHOD;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_SECRET;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.DISPLAY_ALIAS;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.ENABLE_LOGOUT;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.ENABLE_PKCE;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.END_SESSION_ENDPOINT;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.EXTERNAL_CLIENT_PREFIX;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.EXTRA_REQUEST_PARAMETERS;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.ISSUER_URI;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.JWK_SET_URL;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.JWK_URI;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.JWT_PRIVATE_KEY_ALIAS;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.JWT_PRIVATE_KEY_KEYSTORE_PASSWORD;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.JWT_PRIVATE_KEY_KEYSTORE_PATH;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.JWT_PRIVATE_KEY_PASSWORD;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.LOGIN_IMAGE;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.LOGIN_IMAGE_PADDING;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.MAPPING_CLAIM;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.PROVIDER_ID;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.REDIRECT_URL;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.SCOPES;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.TOKEN_URI;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.USERINFO_URI;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
