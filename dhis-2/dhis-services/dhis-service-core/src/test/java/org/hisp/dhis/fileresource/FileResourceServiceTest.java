@@ -102,7 +102,7 @@ class FileResourceServiceTest {
 
     File file = new File("");
 
-    subject.saveFileResource(fileResource, file);
+    subject.asyncSaveFileResource(fileResource, file);
 
     verify(fileResourceStore).save(fileResource);
     verify(entityManager).flush();
@@ -122,7 +122,8 @@ class FileResourceServiceTest {
             "very_evil_script.html", "text/html", 1024, "md5", FileResourceDomain.USER_AVATAR);
 
     File file = new File("very_evil_script.html");
-    assertThrows(IllegalQueryException.class, () -> subject.saveFileResource(fileResource, file));
+    assertThrows(
+        IllegalQueryException.class, () -> subject.asyncSaveFileResource(fileResource, file));
   }
 
   @Test
@@ -136,7 +137,8 @@ class FileResourceServiceTest {
             FileResourceDomain.MESSAGE_ATTACHMENT);
 
     File file = new File("suspicious_program.rpm");
-    assertThrows(IllegalQueryException.class, () -> subject.saveFileResource(fileResource, file));
+    assertThrows(
+        IllegalQueryException.class, () -> subject.asyncSaveFileResource(fileResource, file));
   }
 
   @Test
@@ -157,7 +159,7 @@ class FileResourceServiceTest {
 
     fileResource.setUid("imageUid1");
 
-    subject.saveFileResource(fileResource, file);
+    subject.asyncSaveFileResource(fileResource, file);
 
     verify(fileResourceStore).save(fileResource);
     verify(entityManager).flush();
@@ -211,7 +213,7 @@ class FileResourceServiceTest {
 
     fileResource.setUid("imageUid1");
 
-    subject.saveFileResource(fileResource, file);
+    subject.asyncSaveFileResource(fileResource, file);
 
     verify(fileResourceStore).save(fileResource);
     verify(entityManager).flush();
