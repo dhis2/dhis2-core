@@ -28,6 +28,9 @@
 package org.hisp.dhis.datastore;
 
 import static org.hisp.dhis.datastore.DatastoreKeysTest.newEntry;
+import static org.hisp.dhis.datastore.DatastoreKeysTest.sharingNoPublicAccess;
+import static org.hisp.dhis.datastore.DatastoreKeysTest.sharingUserAccess;
+import static org.hisp.dhis.datastore.DatastoreKeysTest.sharingUserGroupAccess;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.ApiTest;
@@ -35,6 +38,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -73,17 +77,245 @@ class DatastoreEntriesTest extends ApiTest {
   }
 
   @Test
-  @DisplayName("Basic user can read a datastore entry with default sharing")
+  @DisplayName("User can read a datastore entry with default public sharing")
   void testDatastoreSharing_DefaultPublicAccess_BasicUser() {
-    // add 2 entries as admin
+    // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
     datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
 
-    // make call with fields query param as basic user and check can see 2 entries
+    // make call as basic user and check can see entry
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse =
         datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(200);
+    assertEquals("{\"name\": \"arsenal\", \"league\": \"prem\"}", getResponse.getAsString());
+  }
+
+  @Test
+  @DisplayName("Superuser can read a datastore entry when public sharing set to none")
+  void testDatastoreSharing_NoPublicAccess_SuperUser() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+
+    // get ids of entries
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+
+    // set sharing public access to '--------'
+    QueryParamsBuilder sharingParams =
+        new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingNoPublicAccess(), sharingParams).validateStatus(200);
+
+    // make call as superuser and check can see entry
+    loginActions.loginAsSuperUser();
+    ApiResponse getResponse =
+        datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(200);
+    assertEquals("{\"name\": \"arsenal\", \"league\": \"prem\"}", getResponse.getAsString());
+  }
+
+  @Test
+  @DisplayName("User can't read a datastore entry when public sharing set to none")
+  void testDatastoreUserSharing_NoPublicAccess_UserNoAccess() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+
+    // get id of entry
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+
+    // set sharing public access to '--------'
+    QueryParamsBuilder sharingParams1 =
+        new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingNoPublicAccess(), sharingParams1).validateStatus(200);
+
+    // make call as basic user with no access and check can't see entry
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+    ApiResponse getResponse =
+        datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(401);
+    assertEquals("test", getResponse.getAsString());
+  }
+
+  @Test
+  @DisplayName(
+      "User can read a datastore entry when public sharing set to none and user has sharing access")
+  void testDatastoreUserSharing_NoPublicAccess_UserHasAccess() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+
+    // get ids of entry
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+
+    // share entry with user and set public access to '--------'
+    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingUserAccess(basicUserId), params).validateStatus(200);
+
+    // make call as user with access and check can see entry
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE + "/" + key1);
+    assertEquals("{\"name\": \"arsenal\", \"league\": \"prem\"}", getResponse.getAsString());
+  }
+
+  @Test
+  @DisplayName(
+      "User can read a datastore entry when public sharing set to none and user has user group sharing access")
+  void testDatastoreUserGroupSharing_NoPublicAccess_UserHasAccess() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+
+    // get ids of entry
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+
+    // add user to user group
+    userActions.post(basicUserId + "/userGroups/" + userGroupId, "").validateStatus(200);
+
+    // share entries with user group and set public access to '--------'
+    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingUserGroupAccess(userGroupId), params).validateStatus(200);
+
+    // make call as user with access and check can see entry
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+    ApiResponse getResponse =
+        datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(200);
+    assertEquals("{\"name\": \"arsenal\", \"league\": \"prem\"}", getResponse.getAsString());
+  }
+
+  @Test
+  @DisplayName("User can read datastore entry metadata with default public sharing")
+  void testDatastoreSharing_DefaultPublicAccess_UserHasAccess_MetadataEndpoint() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+
+    // make call as owner and check can see entries
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+    ApiResponse getResponse =
+        datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
+
+    assertEquals("[\"arsenal\",\"spurs\"]", getResponse.getAsString());
+  }
+
+  // metadata endpoints
+  @Test
+  @DisplayName("User can read a datastore entry metadata with default public sharing")
+  void testDatastoreMetadataSharing_DefaultPublicAccess_BasicUser() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+
+    // make call as user and check can see entry
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+    ApiResponse getResponse =
+        datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
+    assertEquals("{\"name\": \"arsenal\", \"league\": \"prem\"}", getResponse.getAsString());
+  }
+
+  @Test
+  @DisplayName("Superuser can read a datastore entry metadata when public sharing set to none")
+  void testDatastoreMetadataSharing_NoPublicAccess_SuperUser() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+
+    // get ids of entries
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+
+    // set sharing public access to '--------'
+    QueryParamsBuilder sharingParams =
+        new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingNoPublicAccess(), sharingParams).validateStatus(200);
+
+    // make call as superuser and check can see entry
+    loginActions.loginAsSuperUser();
+    ApiResponse getResponse =
+        datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
+    assertEquals("{\"name\": \"arsenal\", \"league\": \"prem\"}", getResponse.getAsString());
+  }
+
+  @Test
+  @DisplayName("User can't read a datastore entry metadata when public sharing set to none")
+  void testDatastoreMetadataUserSharing_NoPublicAccess_UserNoAccess() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+
+    // get id of entry
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+
+    // set sharing public access to '--------'
+    QueryParamsBuilder sharingParams1 =
+        new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingNoPublicAccess(), sharingParams1).validateStatus(200);
+
+    // make call as basic user with no access and check can't see entry
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+    ApiResponse getResponse =
+        datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(401);
+    assertEquals("test", getResponse.getAsString());
+  }
+
+  @Test
+  @DisplayName(
+      "User can read a datastore entry metadata when public sharing set to none and user has sharing access")
+  void testDatastoreMetadataUserSharing_NoPublicAccess_UserHasAccess() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+
+    // get ids of entry
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+
+    // share entry with user and set public access to '--------'
+    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingUserAccess(basicUserId), params).validateStatus(200);
+
+    // make call as user with access and check can see entry
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    assertEquals("{\"name\": \"arsenal\", \"league\": \"prem\"}", getResponse.getAsString());
+  }
+
+  @Test
+  @DisplayName(
+      "User can read a datastore entry metadata when public sharing set to none and user has user group sharing access")
+  void testDatastoreMetadataUserGroupSharing_NoPublicAccess_UserHasAccess() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+
+    // get ids of entry
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+
+    // add user to user group
+    userActions.post(basicUserId + "/userGroups/" + userGroupId, "").validateStatus(200);
+
+    // share entries with user group and set public access to '--------'
+    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingUserGroupAccess(userGroupId), params).validateStatus(200);
+
+    // make call as user with access and check can see entry
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+    ApiResponse getResponse =
+        datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
     assertEquals("{\"name\": \"arsenal\", \"league\": \"prem\"}", getResponse.getAsString());
   }
 }
