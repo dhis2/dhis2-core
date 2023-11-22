@@ -208,7 +208,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
   @Bean("systemService")
   public SystemService systemService() {
     SystemService systemService = Mockito.mock(SystemService.class);
-    Mockito.when(systemService.getSystemInfo()).thenReturn(new SystemInfo());
+    Mockito.when(systemService.getSystemInfo()).thenReturn(SystemInfo.builder().build());
     return systemService;
   }
 
