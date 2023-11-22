@@ -5,16 +5,23 @@
   <artifactId>dhis</artifactId>
   <version>2.41-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>DHIS 2</name>
+  <name>DHIS2</name>
 
-  <description>The District Health Information System 2 deals with
-    aggregating and reporting statistical health data. The goal is to allow users to analyze
-    and use this data to guide local action. The system is based around goals of empowering
-    users, by allowing them to decide what to register and report data for.</description>
-  <url>http://dhis2.org</url>
+  <description>DHIS2 is a free and open-source software platform for collecting, managing, analyzing, and sharing data.
+    It supports online and offline data capture via web and mobile devices, and includes built-in features for data validation and visualization.
+    The generic DHIS2 data model supports both routine aggregate/statistical data collection and individual/event data, a
+    nd can be applied to use cases in any sector, allowing decentralized access to data throughout an organizational hierarchy.
+    DHIS2 is fully customizable through the user interface without the need for coding skills,
+    and can be extended with custom applications, scripts, and integrations.
+    Each DHIS2 instance and the data stored within it are locally owned and managed.
+
+    DHIS2 is designed and developed by the HISP Centre at University of Oslo,
+    with the goal of strengthening governance systems in low- and middle-income countries.
+    It is shared as a Digital Public Good.</description>
+  <url>https://dhis2.org</url>
 
   <organization>
-    <name>UiO</name>
+    <name>University of Oslo</name>
     <url>https://dhis2.org</url>
   </organization>
 
