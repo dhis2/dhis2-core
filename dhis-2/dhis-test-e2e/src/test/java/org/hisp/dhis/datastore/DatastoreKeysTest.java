@@ -365,13 +365,13 @@ class DatastoreKeysTest extends ApiTest {
     assertEquals("[\"arsenal\",\"spurs\"]", entries);
   }
 
-  static String newEntry(String team) {
+  protected static String newEntry(String team) {
     return """
       {"name": "%s","league": "prem"}
     """.strip().formatted(team);
   }
 
-  static String sharingUserAccess(String userId) {
+  protected static String sharingUserAccess(String userId) {
     return """
     {
         "object": {
@@ -392,7 +392,7 @@ class DatastoreKeysTest extends ApiTest {
         .strip();
   }
 
-  static String sharingUserGroupAccess(String userGroupId) {
+  protected static String sharingUserGroupAccess(String userGroupId) {
     return """
     {
         "object": {
@@ -413,7 +413,7 @@ class DatastoreKeysTest extends ApiTest {
         .strip();
   }
 
-  static String sharingNoPublicAccess() {
+  protected static String sharingNoPublicAccess() {
     return """
     {
         "object": {
