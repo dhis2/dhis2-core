@@ -44,8 +44,6 @@ import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.system.SystemInfo;
-import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.user.CurrentUserService;
@@ -62,7 +60,6 @@ import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConvert
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -202,14 +199,6 @@ public class MvcTestConfig implements WebMvcConfigurer {
   @Bean
   public DatabaseInfoProvider databaseInfoProvider() {
     return () -> DatabaseInfo.builder().build();
-  }
-
-  @Primary
-  @Bean("systemService")
-  public SystemService systemService() {
-    SystemService systemService = Mockito.mock(SystemService.class);
-    Mockito.when(systemService.getSystemInfo()).thenReturn(SystemInfo.builder().build());
-    return systemService;
   }
 
   @Override
