@@ -30,7 +30,6 @@ package org.hisp.dhis.dataset.notifications;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.springframework.stereotype.Service;
 
 /** Created by zubair@dhis2.org on 20.07.17. */
@@ -57,7 +56,8 @@ public class DefaultDataSetNotificationTemplateService
   }
 
   @Override
-  public List<DataSetNotificationTemplate> getScheduledNotifications(NotificationTrigger trigger) {
+  public List<DataSetNotificationTemplate> getScheduledNotifications(
+      DataSetNotificationTrigger trigger) {
     return store.getScheduledNotifications(trigger);
   }
 
