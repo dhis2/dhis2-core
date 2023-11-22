@@ -150,6 +150,11 @@ public class HibernateDatabaseInfoProvider implements DatabaseInfoProvider {
     return info.toBuilder().time(now()).build();
   }
 
+  @Override
+  public boolean isInMemory() {
+    return info.getUrl() != null && info.getUrl().contains(":mem:");
+  }
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------

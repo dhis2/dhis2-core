@@ -34,4 +34,8 @@ package org.hisp.dhis.system.database;
 public interface DatabaseInfoProvider {
 
   DatabaseInfo getDatabaseInfo();
+
+  default boolean isInMemory() {
+    return true;
+  }
 }
