@@ -566,7 +566,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         new AnalyticsTableColumn(quote("avg_middle_value"), DOUBLE, "stats.avg_middle_value"),
         new AnalyticsTableColumn(
             quote("percentile_middle_value"), DOUBLE, "stats.percentile_middle_value"),
-        new AnalyticsTableColumn(quote("median_absolute_deviation"), DOUBLE, "stats.mad"),
         new AnalyticsTableColumn(quote("std_dev"), DOUBLE, "stats.std_dev"));
   }
 
@@ -658,56 +657,23 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   private String getOutliersJoinStatement() {
-
-    return "left join (select t3.dataelementid, "
-        + "                           t3.sourceid, "
-        + "                           t3.categoryoptioncomboid, "
-        + "                           t3.attributeoptioncomboid, "
-        + "                           percentile_cont(0.5) "
-        + "                           within group (order by abs(t3.value::double precision - t3.percentile_middle_value)) as MAD, "
-        + "                           avg(t3.value::double precision)                                                 as avg_middle_value, "
-        + "                           percentile_cont(0.5) "
-        + "                           within group (order by t3.value::double precision)                              as percentile_middle_value, "
-        + "                           stddev_pop(t3.value::double precision)                                          as std_dev "
-        + "                    from (select t1.dataelementid, "
-        + "                                 t1.sourceid, "
-        + "                                 t1.categoryoptioncomboid, "
-        + "                                 t1.attributeoptioncomboid, "
-        + "                                 t1.percentile_middle_value, "
-        + "                                 t2.value "
-        + "                          from (select dv1.dataelementid                                   as dataelementid, "
-        + "                                       dv1.sourceid                                        as sourceid, "
-        + "                                       dv1.categoryoptioncomboid                           as categoryoptioncomboid, "
-        + "                                       dv1.attributeoptioncomboid                          as attributeoptioncomboid, "
-        + "                                       percentile_cont(0.5) "
-        + "                                       within group (order by dv1.value::double precision) as percentile_middle_value "
-        + "                                from datavalue dv1 "
-        + "                                         inner join period pe on dv1.periodid = pe.periodid "
-        + "                                         inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
-        + "                                where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
-        + "                                group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
-        + "                                         dv1.attributeoptioncomboid) t1 "
-        + "                                   join "
-        + "                               (select dv1.dataelementid          as dataelementid, "
-        + "                                       dv1.sourceid               as sourceid, "
-        + "                                       dv1.categoryoptioncomboid  as categoryoptioncomboid, "
-        + "                                       dv1.attributeoptioncomboid as attributeoptioncomboid, "
-        + "                                       dv1.value "
-        + "                                from datavalue dv1 "
-        + "                                         inner join period pe on dv1.periodid = pe.periodid "
-        + "                                         inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
-        + "                                where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
-        + "                                group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
-        + "                                         dv1.attributeoptioncomboid, dv1.value) t2 "
-        + "                               on t1.sourceid = t2.sourceid "
-        + "                                   and t1.categoryoptioncomboid = t2.categoryoptioncomboid "
-        + "                                   and t1.attributeoptioncomboid = t2.attributeoptioncomboid "
-        + "                                   and t1.dataelementid = t2.dataelementid) as t3 "
-        + "                    group by t3.dataelementid, t3.sourceid, t3.categoryoptioncomboid, "
-        + "                             t3.attributeoptioncomboid) as stats "
-        + "                   on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid and "
-        + "                      dv.categoryoptioncomboid = stats.categoryoptioncomboid and "
-        + "                      dv.attributeoptioncomboid = stats.attributeoptioncomboid";
+    return "left join (select dv1.dataelementid as dataelementid,"
+        + "                  dv1.sourceid as sourceid,"
+        + "                  dv1.categoryoptioncomboid as categoryoptioncomboid,"
+        + "                  dv1.attributeoptioncomboid as attributeoptioncomboid,"
+        + "                  avg(dv1.value::double precision) as avg_middle_value,"
+        + "                  percentile_cont(0.5)"
+        + "                            within group (order by dv1.value::double precision) as percentile_middle_value,"
+        + "                            stddev_pop(dv1.value::double precision) as std_dev"
+        + "           from datavalue dv1"
+        + "           inner join period pe on dv1.periodid = pe.periodid"
+        + "           inner join organisationunit ou on dv1.sourceid = ou.organisationunitid"
+        + "           where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$'"
+        + "           group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid,"
+        + "                    dv1.attributeoptioncomboid) as stats "
+        + "on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid"
+        + "   and dv.categoryoptioncomboid = stats.categoryoptioncomboid"
+        + "   and dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
   }
 
   private boolean skipOutliers(AnalyticsTableUpdateParams params) {
