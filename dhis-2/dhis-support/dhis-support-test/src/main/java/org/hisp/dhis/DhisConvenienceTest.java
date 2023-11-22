@@ -2123,16 +2123,19 @@ public abstract class DhisConvenienceTest {
       DataSetNotificationTrigger dataSetNotificationTrigger,
       Integer relativeScheduledDays,
       SendStrategy sendStrategy) {
-    return new DataSetNotificationTemplate(
-        Sets.newHashSet(),
-        Sets.newHashSet(),
-        "Message",
-        notificationRecipient,
-        dataSetNotificationTrigger,
-        "Subject",
-        null,
-        relativeScheduledDays,
-        sendStrategy);
+    DataSetNotificationTemplate dst =
+        new DataSetNotificationTemplate(
+            newHashSet(),
+            newHashSet(),
+            "Message",
+            notificationRecipient,
+            dataSetNotificationTrigger,
+            "Subject",
+            null,
+            relativeScheduledDays,
+            sendStrategy);
+    dst.setName(name);
+    return dst;
   }
 
   public static ValidationNotificationTemplate createValidationNotificationTemplate(String name) {

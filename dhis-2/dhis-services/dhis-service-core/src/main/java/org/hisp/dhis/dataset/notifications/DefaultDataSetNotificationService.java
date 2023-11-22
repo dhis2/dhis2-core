@@ -188,7 +188,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
     List<MessageBatch> batches = new ArrayList<>();
 
     List<DataSetNotificationTemplate> scheduledTemplates =
-        dsntService.getScheduledNotifications(NotificationTrigger.SCHEDULED_DAYS_DUE_DATE);
+        dsntService.getScheduledNotifications(DataSetNotificationTrigger.SCHEDULED_DAYS);
 
     if (scheduledTemplates == null || scheduledTemplates.isEmpty()) {
       return;
