@@ -185,10 +185,6 @@ class JdbcEventAnalyticsTableManagerTest {
             jdbcTemplate,
             analyticsExportSettings,
             periodDataProvider);
-  }
-
-  @Test
-  void verifyTableType() {
     assertThat(subject.getAnalyticsTableType(), is(AnalyticsTableType.EVENT));
   }
 
