@@ -64,60 +64,74 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
             : request.getOrderBy().getKey();
     String thresholdParam = OutliersSqlParamName.THRESHOLD.getKey();
 
-    return "select * from (select "
-        + "ax.dataelementid, "
-        + "ax.de_uid, "
-        + "ax.ou_uid, "
-        + "ax.coc_uid, "
-        + "ax.aoc_uid, "
-        + "ax.de_name, "
-        + "ax.ou_name, "
-        + "ax.coc_name, "
-        + "ax.aoc_name, "
-        + "ax.value, "
-        + "ax.pestartdate as pe_start_date, "
-        + "ax.pt_name, "
-        + middleValue
-        + " as middle_value, "
-        + "ax.std_dev as std_dev, "
-        + "abs(ax.value::double precision - "
-        + middleValue
-        + ") as middle_value_abs_dev, "
-        + "(case when ax.std_dev = 0 then 0 "
-        + "      else abs(ax.value::double precision - "
-        + middleValue
-        + " ) / ax.std_dev "
-        + "       end) as z_score, "
-        + middleValue
-        + " - (ax.std_dev * :"
-        + thresholdParam
-        + ") as lower_bound, "
-        + middleValue
-        + " + (ax.std_dev * :"
-        + thresholdParam
-        + ") as upper_bound "
-        + "from analytics ax "
-        + "where dataelementid in  (:"
-        + DATA_ELEMENT_IDS.getKey()
-        + ") "
-        + "and "
-        + ouPathClause
-        + " "
-        + "and ax.pestartdate >= :"
-        + START_DATE.getKey()
-        + " "
-        + "and ax.peenddate <= :"
-        + END_DATE.getKey()
-        + ") t1 "
-        + "where t1.z_score > :"
-        + thresholdParam
-        + " "
-        + "order by "
-        + order
-        + " desc "
-        + "limit :"
-        + MAX_RESULTS.getKey()
-        + " ";
+    String sql =
+        "select * from (select "
+            + "ax.dataelementid, "
+            + "ax.de_uid, "
+            + "ax.ou_uid, "
+            + "ax.coc_uid, "
+            + "ax.aoc_uid, "
+            + "ax.de_name, "
+            + "ax.ou_name, "
+            + "ax.coc_name, "
+            + "ax.aoc_name, "
+            + "ax.value, "
+            + "ax.pestartdate as pe_start_date, "
+            + "ax.pt_name, "
+            + middleValue
+            + " as middle_value, "
+            + "ax.std_dev as std_dev, "
+            + "abs(ax.value::double precision - "
+            + middleValue
+            + ") as middle_value_abs_dev, ";
+    if (modifiedZ) {
+      sql +=
+          "(case when ax.median_absolute_deviation = 0 then 0 "
+              + "      else (0.6745 * abs(ax.value::double precision - "
+              + middleValue
+              + " )) / ax.median_absolute_deviation "
+              + "       end) as z_score, ";
+    } else {
+      sql +=
+          "(case when ax.std_dev = 0 then 0 "
+              + "      else abs(ax.value::double precision - "
+              + middleValue
+              + " ) / ax.std_dev "
+              + "       end) as z_score, ";
+    }
+    sql +=
+        middleValue
+            + " - (ax.std_dev * :"
+            + thresholdParam
+            + ") as lower_bound, "
+            + middleValue
+            + " + (ax.std_dev * :"
+            + thresholdParam
+            + ") as upper_bound "
+            + "from analytics ax "
+            + "where dataelementid in  (:"
+            + DATA_ELEMENT_IDS.getKey()
+            + ") "
+            + "and "
+            + ouPathClause
+            + " "
+            + "and ax.pestartdate >= :"
+            + START_DATE.getKey()
+            + " "
+            + "and ax.peenddate <= :"
+            + END_DATE.getKey()
+            + ") t1 "
+            + "where t1.z_score > :"
+            + thresholdParam
+            + " "
+            + "order by "
+            + order
+            + " desc "
+            + "limit :"
+            + MAX_RESULTS.getKey()
+            + " ";
+
+    return sql;
   }
 
   @Override
