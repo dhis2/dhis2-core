@@ -65,7 +65,7 @@ public class ContextInterceptor implements Interceptor {
   public String intercept(ActionInvocation invocation) throws Exception {
     Map<String, Object> map = new HashMap<>();
 
-    map.put(KEY_IN_MEMORY_DATABASE, databaseInfoProvider.isInMemory());
+    map.put(KEY_IN_MEMORY_DATABASE, databaseInfoProvider.getDatabaseInfo().isInMemory());
     map.put(KEY_TEXT_UTILS, TextUtils.INSTANCE);
     map.put(KEY_CURRENT_PAGE, getCookieValue(ServletActionContext.getRequest(), "currentPage"));
     map.put(KEY_CURRENT_KEY, getCookieValue(ServletActionContext.getRequest(), "currentKey"));

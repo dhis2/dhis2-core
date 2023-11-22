@@ -162,7 +162,7 @@ public class HibernateDatabaseInfoProvider implements DatabaseInfoProvider {
     try {
       final InternalDatabaseInfo internalDatabaseInfo =
           jdbcTemplate.queryForObject(
-              "select version(),current_catalog,current_user, now()",
+              "select version(),current_catalog,current_user",
               (rs, rowNum) -> {
                 String version = rs.getString(1);
                 final Matcher versionMatcher = POSTGRES_VERSION_PATTERN.matcher(version);
