@@ -168,7 +168,8 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
         builder,
         newJpaParameters()
             .addPredicate(root -> builder.equal(root.get("namespace"), namespace))
-            .addPredicate(root -> builder.equal(root.get("key"), key)));
+            .addPredicate(root -> builder.equal(root.get("key"), key))
+            .addPredicates(getSharingPredicates(builder)));
   }
 
   @Override

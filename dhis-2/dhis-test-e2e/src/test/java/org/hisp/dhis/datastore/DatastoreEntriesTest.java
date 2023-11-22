@@ -33,6 +33,7 @@ import static org.hisp.dhis.datastore.DatastoreKeysTest.sharingUserAccess;
 import static org.hisp.dhis.datastore.DatastoreKeysTest.sharingUserGroupAccess;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
@@ -135,8 +136,8 @@ class DatastoreEntriesTest extends ApiTest {
     // make call as basic user with no access and check can't see entry
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse =
-        datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(401);
-    assertEquals("test", getResponse.getAsString());
+        datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(404);
+    //    assertEquals("test", getResponse.getAsString());
   }
 
   @Test
@@ -197,15 +198,17 @@ class DatastoreEntriesTest extends ApiTest {
     String key1 = "arsenal";
     datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
 
-    // make call as owner and check can see entries
+    // make call as owner and check can see entry metadata
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse =
         datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
 
-    assertEquals("[\"arsenal\",\"spurs\"]", getResponse.getAsString());
+    JsonObject createdBy = getResponse.getBody().getAsJsonObject("createdBy");
+    assertEquals(
+        "{\"id\":\"PQD6wXJ2r5k\",\"code\":null,\"name\":\"TA Admin\",\"displayName\":\"TA Admin\",\"username\":\"taadmin\"}",
+        createdBy.toString());
   }
 
-  // metadata endpoints
   @Test
   @DisplayName("User can read a datastore entry metadata with default public sharing")
   void testDatastoreMetadataSharing_DefaultPublicAccess_BasicUser() {
@@ -218,7 +221,10 @@ class DatastoreEntriesTest extends ApiTest {
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse =
         datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
-    assertEquals("{\"name\": \"arsenal\", \"league\": \"prem\"}", getResponse.getAsString());
+    JsonObject createdBy = getResponse.getBody().getAsJsonObject("createdBy");
+    assertEquals(
+        "{\"id\":\"PQD6wXJ2r5k\",\"code\":null,\"name\":\"TA Admin\",\"displayName\":\"TA Admin\",\"username\":\"taadmin\"}",
+        createdBy.toString());
   }
 
   @Test
@@ -242,7 +248,10 @@ class DatastoreEntriesTest extends ApiTest {
     loginActions.loginAsSuperUser();
     ApiResponse getResponse =
         datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
-    assertEquals("{\"name\": \"arsenal\", \"league\": \"prem\"}", getResponse.getAsString());
+    JsonObject createdBy = getResponse.getBody().getAsJsonObject("createdBy");
+    assertEquals(
+        "{\"id\":\"PQD6wXJ2r5k\",\"code\":null,\"name\":\"TA Admin\",\"displayName\":\"TA Admin\",\"username\":\"taadmin\"}",
+        createdBy.toString());
   }
 
   @Test
@@ -265,8 +274,7 @@ class DatastoreEntriesTest extends ApiTest {
     // make call as basic user with no access and check can't see entry
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse =
-        datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(401);
-    assertEquals("test", getResponse.getAsString());
+        datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(404);
   }
 
   @Test
@@ -289,7 +297,10 @@ class DatastoreEntriesTest extends ApiTest {
     // make call as user with access and check can see entry
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
-    assertEquals("{\"name\": \"arsenal\", \"league\": \"prem\"}", getResponse.getAsString());
+    JsonObject createdBy = getResponse.getBody().getAsJsonObject("createdBy");
+    assertEquals(
+        "{\"id\":\"PQD6wXJ2r5k\",\"code\":null,\"name\":\"TA Admin\",\"displayName\":\"TA Admin\",\"username\":\"taadmin\"}",
+        createdBy.toString());
   }
 
   @Test
@@ -316,6 +327,9 @@ class DatastoreEntriesTest extends ApiTest {
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse =
         datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
-    assertEquals("{\"name\": \"arsenal\", \"league\": \"prem\"}", getResponse.getAsString());
+    JsonObject createdBy = getResponse.getBody().getAsJsonObject("createdBy");
+    assertEquals(
+        "{\"id\":\"PQD6wXJ2r5k\",\"code\":null,\"name\":\"TA Admin\",\"displayName\":\"TA Admin\",\"username\":\"taadmin\"}",
+        createdBy.toString());
   }
 }
