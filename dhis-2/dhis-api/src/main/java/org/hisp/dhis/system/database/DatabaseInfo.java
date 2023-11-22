@@ -27,36 +27,33 @@
  */
 package org.hisp.dhis.system.database;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Lars Helge Overland
  */
-@Component
-public class DatabaseInfoFactoryBean implements FactoryBean<DatabaseInfo> {
-  private final DatabaseInfoProvider databaseInfoProvider;
+@Getter
+@Setter
+@Builder(toBuilder = true)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
+public class DatabaseInfo {
 
-  public DatabaseInfoFactoryBean(DatabaseInfoProvider databaseInfoProvider) {
-    checkNotNull(databaseInfoProvider);
+  @JsonProperty private final String name;
+  @JsonProperty private final String user;
+  @JsonProperty private final String url;
+  @JsonProperty private final String databaseVersion;
+  @JsonProperty private final boolean spatialSupport;
+  @JsonProperty private final Date time;
 
-    this.databaseInfoProvider = databaseInfoProvider;
-  }
-
-  @Override
-  public DatabaseInfo getObject() {
-    return databaseInfoProvider.getDatabaseInfo();
-  }
-
-  @Override
-  public Class<?> getObjectType() {
-    return DatabaseInfo.class;
-  }
-
-  @Override
-  public boolean isSingleton() {
-    return true;
+  public DatabaseInfo withoutSensitiveInfo() {
+    return toBuilder().name(null).user(null).url(null).databaseVersion(null).build();
   }
 }

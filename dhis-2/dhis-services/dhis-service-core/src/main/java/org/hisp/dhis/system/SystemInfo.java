@@ -150,7 +150,7 @@ public class SystemInfo {
     SystemInfo info = new SystemInfo();
     BeanUtils.copyProperties(this, info);
     // clear sensitive info may reset the data
-    info.setDatabaseInfo(databaseInfo == null ? null : databaseInfo.instance());
+    info.setDatabaseInfo(databaseInfo);
     return info;
   }
 
@@ -186,7 +186,7 @@ public class SystemInfo {
     this.clusterHostname = null;
 
     if (this.databaseInfo != null) {
-      this.databaseInfo.clearSensitiveInfo();
+      this.databaseInfo = databaseInfo.withoutSensitiveInfo();
     }
   }
 }

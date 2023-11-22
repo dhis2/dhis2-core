@@ -47,6 +47,7 @@ import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
@@ -198,9 +199,9 @@ public class MvcTestConfig implements WebMvcConfigurer {
     return new DefaultNodeService();
   }
 
-  @Bean("databaseInfo")
-  public DatabaseInfo databaseInfo() {
-    return new DatabaseInfo();
+  @Bean
+  public DatabaseInfoProvider databaseInfoProvider() {
+    return () -> DatabaseInfo.builder().build();
   }
 
   @Primary

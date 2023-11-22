@@ -29,10 +29,13 @@ package org.hisp.dhis.system.database;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -126,14 +129,16 @@ public class HibernateDatabaseInfoProvider implements DatabaseInfoProvider {
 
     String url = config.getProperty(ConfigurationKey.CONNECTION_URL);
     String user = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
-    InternalDatabaseInfo internalDatabaseInfo = getInternalDatabaseInfo();
+    InternalDatabaseInfo internalInfo = getInternalDatabaseInfo();
 
-    info = new DatabaseInfo();
-    info.setName(internalDatabaseInfo.getDatabase());
-    info.setUser(StringUtils.defaultIfEmpty(internalDatabaseInfo.getUser(), user));
-    info.setUrl(url);
-    info.setSpatialSupport(spatialSupport);
-    info.setDatabaseVersion(internalDatabaseInfo.getVersion());
+    info =
+        DatabaseInfo.builder()
+            .name(internalInfo.getDatabase())
+            .user(StringUtils.defaultIfEmpty(internalInfo.getUser(), user))
+            .url(url)
+            .spatialSupport(spatialSupport)
+            .databaseVersion(internalInfo.getVersion())
+            .build();
   }
 
   // -------------------------------------------------------------------------
@@ -142,14 +147,7 @@ public class HibernateDatabaseInfoProvider implements DatabaseInfoProvider {
 
   @Override
   public DatabaseInfo getDatabaseInfo() {
-    // parts of returned object may be reset due to security reasons
-    // (clone must be created to preserve original values)
-    return info == null ? null : info.instance();
-  }
-
-  @Override
-  public boolean isInMemory() {
-    return info.getUrl() != null && info.getUrl().contains(":mem:");
+    return info.toBuilder().time(now()).build();
   }
 
   // -------------------------------------------------------------------------
@@ -160,33 +158,36 @@ public class HibernateDatabaseInfoProvider implements DatabaseInfoProvider {
   private InternalDatabaseInfo getInternalDatabaseInfo() {
     if (SystemUtils.isH2(environment.getActiveProfiles())) {
       return new InternalDatabaseInfo();
-    } else {
-      try {
-        final InternalDatabaseInfo internalDatabaseInfo =
-            jdbcTemplate.queryForObject(
-                "select version(),current_catalog,current_user",
-                (rs, rowNum) -> {
-                  String version = rs.getString(1);
-                  final Matcher versionMatcher = POSTGRES_VERSION_PATTERN.matcher(version);
+    }
+    try {
+      final InternalDatabaseInfo internalDatabaseInfo =
+          jdbcTemplate.queryForObject(
+              "select version(),current_catalog,current_user, now()",
+              (rs, rowNum) -> {
+                String version = rs.getString(1);
+                final Matcher versionMatcher = POSTGRES_VERSION_PATTERN.matcher(version);
 
-                  if (versionMatcher.find()) {
-                    version = versionMatcher.group(1);
-                  }
+                if (versionMatcher.find()) {
+                  version = versionMatcher.group(1);
+                }
 
-                  return new InternalDatabaseInfo(version, rs.getString(2), rs.getString(3));
-                });
+                return new InternalDatabaseInfo(version, rs.getString(2), rs.getString(3));
+              });
 
-        return internalDatabaseInfo == null ? new InternalDatabaseInfo() : internalDatabaseInfo;
-      } catch (Exception ex) {
-        log.error("An error occurred when retrieving database info.", ex);
+      return internalDatabaseInfo == null ? new InternalDatabaseInfo() : internalDatabaseInfo;
+    } catch (Exception ex) {
+      log.error("An error occurred when retrieving database info.", ex);
 
-        return new InternalDatabaseInfo();
-      }
+      return new InternalDatabaseInfo();
     }
   }
 
   private void checkDatabaseConnectivity() {
     jdbcTemplate.queryForObject("select 'checking db connection';", String.class);
+  }
+
+  private Date now() {
+    return jdbcTemplate.queryForObject("select now()", Date.class);
   }
 
   /**
@@ -253,33 +254,16 @@ public class HibernateDatabaseInfoProvider implements DatabaseInfoProvider {
     }
   }
 
+  @Getter
+  @RequiredArgsConstructor
   protected static class InternalDatabaseInfo {
+
     private final String version;
-
     private final String database;
-
     private final String user;
 
     public InternalDatabaseInfo() {
-      this(StringUtils.EMPTY, StringUtils.EMPTY, StringUtils.EMPTY);
-    }
-
-    public InternalDatabaseInfo(String version, String database, String user) {
-      this.version = version;
-      this.database = database;
-      this.user = user;
-    }
-
-    public String getVersion() {
-      return version;
-    }
-
-    public String getDatabase() {
-      return database;
-    }
-
-    public String getUser() {
-      return user;
+      this("", "", "");
     }
   }
 }

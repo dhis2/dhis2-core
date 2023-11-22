@@ -48,7 +48,7 @@ import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -65,16 +65,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.system.SystemService")
 public class DefaultSystemService implements SystemService, InitializingBean {
+
   private final LocationManager locationManager;
-
-  private final DatabaseInfo databaseInfo;
-
+  private final DatabaseInfoProvider databaseInfoProvider;
   private final ConfigurationService configurationService;
-
   private final DhisConfigurationProvider dhisConfig;
-
   private final CalendarService calendarService;
-
   private final SystemSettingManager systemSettingManager;
 
   /** Variable holding fixed system info state. */
@@ -192,7 +188,7 @@ public class DefaultSystemService implements SystemService, InitializingBean {
     // Database
     // ---------------------------------------------------------------------
 
-    info.setDatabaseInfo(databaseInfo.instance());
+    info.setDatabaseInfo(databaseInfoProvider.getDatabaseInfo());
     info.setReadReplicaCount(
         Integer.valueOf(dhisConfig.getProperty(ConfigurationKey.ACTIVE_READ_REPLICAS)));
 

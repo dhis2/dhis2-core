@@ -100,7 +100,7 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -129,7 +129,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Mock private SystemSettingManager systemSettingManager;
 
-  @Mock private DatabaseInfo databaseInfo;
+  @Mock private DatabaseInfoProvider databaseInfoProvider;
 
   @Mock private JdbcTemplate jdbcTemplate;
 
@@ -179,7 +179,7 @@ class JdbcEventAnalyticsTableManagerTest {
             mock(AnalyticsTableHookService.class),
             statementBuilder,
             mock(PartitionManager.class),
-            databaseInfo,
+            databaseInfoProvider,
             jdbcTemplate,
             analyticsExportSettings,
             periodDataProvider);
@@ -365,7 +365,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetTableWithDataElements() {
-    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(databaseInfoProvider.isSpatialSupport()).thenReturn(true);
     Program program = createProgram('A');
 
     DataElement d1 = createDataElement('Z', ValueType.TEXT, AggregationType.SUM);
@@ -480,7 +480,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetTableWithTrackedEntityAttribute() {
-    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(databaseInfoProvider.isSpatialSupport()).thenReturn(true);
     Program program = createProgram('A');
 
     TrackedEntityAttribute tea1 = rnd.nextObject(TrackedEntityAttribute.class);
@@ -550,7 +550,7 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyDataElementTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(databaseInfoProvider.isSpatialSupport()).thenReturn(true);
     Program programA = createProgram('A');
 
     DataElement d5 = createDataElement('G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
@@ -598,7 +598,7 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(databaseInfoProvider.isSpatialSupport()).thenReturn(true);
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -646,7 +646,7 @@ class JdbcEventAnalyticsTableManagerTest {
   void verifyOrgUnitOwnershipJoinsWhenPopulatingEventAnalyticsTable() {
     // Given fixtures/expectations
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(databaseInfoProvider.isSpatialSupport()).thenReturn(true);
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -871,7 +871,7 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyTeaTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(databaseInfoProvider.isSpatialSupport()).thenReturn(true);
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);

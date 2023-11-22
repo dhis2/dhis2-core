@@ -54,6 +54,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +72,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class JdbcEnrollmentAnalyticsTableManagerTest {
   @Mock private IdentifiableObjectManager idObjectManager;
 
-  @Mock private DatabaseInfo databaseInfo;
+  @Mock private DatabaseInfoProvider databaseInfoProvider;
 
   @Mock private JdbcTemplate jdbcTemplate;
 
@@ -96,7 +97,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
             mock(AnalyticsTableHookService.class),
             new PostgreSQLStatementBuilder(),
             mock(PartitionManager.class),
-            databaseInfo,
+            databaseInfoProvider,
             jdbcTemplate,
             analyticsExportSettings,
             periodDataProvider);
@@ -105,7 +106,8 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
   @Test
   void verifyTeiTypeOrgUnitFetchesOuUidWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(databaseInfoProvider.getDatabaseInfo())
+        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program p1 = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);

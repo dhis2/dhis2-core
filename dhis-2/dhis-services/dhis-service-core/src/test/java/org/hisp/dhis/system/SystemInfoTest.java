@@ -45,7 +45,7 @@ class SystemInfoTest {
 
   @BeforeEach
   void setUp() {
-    databaseInfo = new DatabaseInfo();
+    databaseInfo = DatabaseInfo.builder().build();
     systemInfo = new SystemInfo();
     systemInfo.setDatabaseInfo(databaseInfo);
   }
