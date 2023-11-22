@@ -86,6 +86,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
   @BeforeEach
   public void setUp() {
+    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
     subject =
         new JdbcEnrollmentAnalyticsTableManager(
             idObjectManager,

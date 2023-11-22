@@ -169,6 +169,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     today = Date.from(LocalDate.of(2019, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
+    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
     subject =
         new JdbcEventAnalyticsTableManager(
             idObjectManager,
