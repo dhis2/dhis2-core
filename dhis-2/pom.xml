@@ -27,8 +27,8 @@
 
   <licenses>
     <license>
-      <name>BSD</name>
-      <url>https://opensource.org/license/bsd-2-clause</url>
+      <name>BSD-3</name>
+      <url>https://github.com/dhis2/dhis2-core/blob/master/LICENSE</url>
     </license>
   </licenses>
 
