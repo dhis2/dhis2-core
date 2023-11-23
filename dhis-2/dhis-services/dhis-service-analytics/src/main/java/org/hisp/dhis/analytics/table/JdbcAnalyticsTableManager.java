@@ -566,7 +566,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         new AnalyticsTableColumn(quote("avg_middle_value"), DOUBLE, "stats.avg_middle_value"),
         new AnalyticsTableColumn(
             quote("percentile_middle_value"), DOUBLE, "stats.percentile_middle_value"),
-        new AnalyticsTableColumn(quote("median_absolute_deviation"), DOUBLE, "stats.mad"),
+        new AnalyticsTableColumn(quote("mad"), DOUBLE, "stats.mad"),
         new AnalyticsTableColumn(quote("std_dev"), DOUBLE, "stats.std_dev"));
   }
 
@@ -658,7 +658,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   private String getOutliersJoinStatement() {
-
     return "left join (select t3.dataelementid, "
         + "                           t3.sourceid, "
         + "                           t3.categoryoptioncomboid, "
@@ -692,13 +691,14 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "                                       dv1.sourceid               as sourceid, "
         + "                                       dv1.categoryoptioncomboid  as categoryoptioncomboid, "
         + "                                       dv1.attributeoptioncomboid as attributeoptioncomboid, "
-        + "                                       dv1.value "
+        + "                                       dv1.value, "
+        + "                                       dv1.periodid "
         + "                                from datavalue dv1 "
         + "                                         inner join period pe on dv1.periodid = pe.periodid "
         + "                                         inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
         + "                                where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
         + "                                group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
-        + "                                         dv1.attributeoptioncomboid, dv1.value) t2 "
+        + "                                         dv1.attributeoptioncomboid, dv1.value, dv1.periodid) t2 "
         + "                               on t1.sourceid = t2.sourceid "
         + "                                   and t1.categoryoptioncomboid = t2.categoryoptioncomboid "
         + "                                   and t1.attributeoptioncomboid = t2.attributeoptioncomboid "
@@ -707,7 +707,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "                             t3.attributeoptioncomboid) as stats "
         + "                   on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid and "
         + "                      dv.categoryoptioncomboid = stats.categoryoptioncomboid and "
-        + "                      dv.attributeoptioncomboid = stats.attributeoptioncomboid";
+        + "                      dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
   }
 
   private boolean skipOutliers(AnalyticsTableUpdateParams params) {

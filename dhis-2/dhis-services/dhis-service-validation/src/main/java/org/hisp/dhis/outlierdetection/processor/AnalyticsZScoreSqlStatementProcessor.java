@@ -86,10 +86,10 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
             + ") as middle_value_abs_dev, ";
     if (modifiedZ) {
       sql +=
-          "(case when ax.median_absolute_deviation = 0 then 0 "
-              + "      else (0.6745 * abs(ax.value::double precision - "
+          "(case when ax.mad = 0 then 0 "
+              + "      else 0.6745 * abs(ax.value::double precision - "
               + middleValue
-              + " )) / ax.median_absolute_deviation "
+              + " ) / ax.mad "
               + "       end) as z_score, ";
     } else {
       sql +=
