@@ -479,10 +479,13 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Test
   void testMappingOrgUnitsNotFound() {
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of("NeU85luyD4w"))
             .programUid(program.getUid())
+            .user(user)
             .build();
 
     BadRequestException e =
@@ -546,6 +549,7 @@ class TrackedEntityOperationParamsMapperTest {
     when(organisationUnitService.isInUserHierarchy(
             orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(false);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
 
     User user = createUser(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
 
