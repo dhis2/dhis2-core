@@ -89,7 +89,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings(strictness = Strictness.LENIENT) // common setup
 @ExtendWith(MockitoExtension.class)
-class EventTrackerImportRequestParamsMapperTest {
+class EventImportRequestParamsMapperTest {
 
   private static final String DE_1_UID = "OBzmpRP6YUh";
 

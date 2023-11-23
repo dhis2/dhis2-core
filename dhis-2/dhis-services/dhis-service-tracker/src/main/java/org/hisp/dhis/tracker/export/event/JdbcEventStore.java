@@ -338,7 +338,8 @@ class JdbcEventStore implements EventStore {
                   EventUtils.jsonToUserInfo(
                       resultSet.getString(COLUMN_EVENT_CREATED_BY), jsonMapper));
               event.setLastUpdated(resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED));
-              event.setLastUpdatedAtClient(resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT));
+              event.setLastUpdatedAtClient(
+                  resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT));
               event.setLastUpdatedByUserInfo(
                   EventUtils.jsonToUserInfo(
                       resultSet.getString(COLUMN_EVENT_LAST_UPDATED_BY), jsonMapper));

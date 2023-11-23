@@ -66,7 +66,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class TrackedEntityTrackerImportRequestParamsMapperTest {
+class TrackedEntityImportRequestParamsMapperTest {
   public static final String TEA_1_UID = "TvjwTPToKHO";
 
   public static final String TEA_2_UID = "cy2oRh2sNr6";
