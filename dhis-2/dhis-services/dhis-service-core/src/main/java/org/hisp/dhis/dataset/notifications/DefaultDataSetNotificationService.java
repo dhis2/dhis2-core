@@ -60,7 +60,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
-import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.util.DateUtils;
@@ -188,7 +187,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
     List<MessageBatch> batches = new ArrayList<>();
 
     List<DataSetNotificationTemplate> scheduledTemplates =
-        dsntService.getScheduledNotifications(NotificationTrigger.SCHEDULED_DAYS_DUE_DATE);
+        dsntService.getScheduledNotifications(DataSetNotificationTrigger.SCHEDULED_DAYS);
 
     if (scheduledTemplates == null || scheduledTemplates.isEmpty()) {
       return;
