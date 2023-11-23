@@ -22,7 +22,7 @@
     <json-tree.version>0.10.3</json-tree.version>
     <epam-reportportal.version>5.1.8</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
-    <opencsv.version>5.8</opencsv.version>
+    <opencsv.version>5.9</opencsv.version>
     <owner.version>1.0.12</owner.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-lang3.version>3.13.0</commons-lang3.version>
