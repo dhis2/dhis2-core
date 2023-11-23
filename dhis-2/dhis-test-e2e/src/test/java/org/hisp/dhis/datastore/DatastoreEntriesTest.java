@@ -133,11 +133,13 @@ class DatastoreEntriesTest extends ApiTest {
         new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
     sharingActions.post("", sharingNoPublicAccess(), sharingParams1).validateStatus(200);
 
-    // make call as basic user with no access and check can't see entry
+    // make call as user with no access and check can't see entry
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse =
-        datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(404);
-    //    assertEquals("test", getResponse.getAsString());
+        datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(403);
+    assertEquals(
+        "{\"httpStatus\":\"Forbidden\",\"httpStatusCode\":403,\"status\":\"ERROR\",\"message\":\"Access denied for key 'arsenal' in namespace 'football'\"}",
+        getResponse.getAsString());
   }
 
   @Test
@@ -255,7 +257,7 @@ class DatastoreEntriesTest extends ApiTest {
   }
 
   @Test
-  @DisplayName("User can't read a datastore entry metadata when public sharing set to none")
+  @DisplayName("User can't read datastore entry metadata when public sharing set to none")
   void testDatastoreMetadataUserSharing_NoPublicAccess_UserNoAccess() {
     // add entry as admin
     loginActions.loginAsAdmin();
@@ -274,12 +276,15 @@ class DatastoreEntriesTest extends ApiTest {
     // make call as basic user with no access and check can't see entry
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse =
-        datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(404);
+        datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(403);
+    assertEquals(
+        "{\"httpStatus\":\"Forbidden\",\"httpStatusCode\":403,\"status\":\"ERROR\",\"message\":\"Access denied for key 'arsenal' in namespace 'football'\"}",
+        getResponse.getAsString());
   }
 
   @Test
   @DisplayName(
-      "User can read a datastore entry metadata when public sharing set to none and user has sharing access")
+      "User can read datastore entry metadata when public sharing set to none and user has user sharing access")
   void testDatastoreMetadataUserSharing_NoPublicAccess_UserHasAccess() {
     // add entry as admin
     loginActions.loginAsAdmin();
@@ -305,7 +310,7 @@ class DatastoreEntriesTest extends ApiTest {
 
   @Test
   @DisplayName(
-      "User can read a datastore entry metadata when public sharing set to none and user has user group sharing access")
+      "User can read datastore entry metadata when public sharing set to none and user has user group sharing access")
   void testDatastoreMetadataUserGroupSharing_NoPublicAccess_UserHasAccess() {
     // add entry as admin
     loginActions.loginAsAdmin();

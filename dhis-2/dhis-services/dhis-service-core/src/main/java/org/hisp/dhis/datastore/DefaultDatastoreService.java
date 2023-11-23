@@ -171,11 +171,10 @@ public class DefaultDatastoreService implements DatastoreService {
 
   private <T> T readProtectedIn(String namespace, T whenHidden, Supplier<T> read) {
     DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
-    if (protection == null
-        || protection.getReads() == ProtectionType.NONE
-        || currentUserHasAuthority(protection.getAuthorities())) {
+    if (userHasNamespaceReadAccess(protection)) {
       T res = read.get();
-      if (res instanceof DatastoreEntry && protection != null && protection.isSharingRespected()) {
+      if (isDatastoreEntryAndProtectionSharingRespected(res, protection)
+          || (isDatastoreEntryWithNoProtection(res, protection))) {
         DatastoreEntry entry = (DatastoreEntry) res;
         if (!aclService.canRead(currentUserService.getCurrentUser(), entry)) {
           throw new AccessDeniedException(
@@ -188,6 +187,23 @@ public class DefaultDatastoreService implements DatastoreService {
       throw accessDeniedTo(namespace);
     }
     return whenHidden;
+  }
+
+  private <T> boolean isDatastoreEntryWithNoProtection(
+      T res, DatastoreNamespaceProtection protection) {
+    return (res instanceof DatastoreEntry) && (protection == null);
+  }
+
+  private <T> boolean isDatastoreEntryAndProtectionSharingRespected(
+      T res, DatastoreNamespaceProtection protection) {
+    return (res instanceof DatastoreEntry)
+        && (protection != null && protection.isSharingRespected());
+  }
+
+  private boolean userHasNamespaceReadAccess(DatastoreNamespaceProtection protection) {
+    return protection == null
+        || protection.getReads() == ProtectionType.NONE
+        || currentUserHasAuthority(protection.getAuthorities());
   }
 
   private void writeProtectedIn(
