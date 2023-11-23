@@ -98,12 +98,14 @@ public abstract class AbstractOutlierDetectionManager {
       OutlierValue outlierValue, ResultSet rs, boolean modifiedZ) throws SQLException {
     if (modifiedZ) {
       outlierValue.setMedian(rs.getDouble("middle_value"));
+      outlierValue.setStdDev(rs.getDouble("mad"));
     } else {
       outlierValue.setMean(rs.getDouble("middle_value"));
+      outlierValue.setStdDev(rs.getDouble("std_dev"));
     }
-    outlierValue.setStdDev(rs.getDouble("std_dev"));
+
     outlierValue.setAbsDev(rs.getDouble("middle_value_abs_dev"));
-    outlierValue.setZScore(rs.getDouble("z_score"));
+    outlierValue.setZScore(outlierValue.getStdDev() == 0 ? Double.NaN : rs.getDouble("z_score"));
     outlierValue.setLowerBound(rs.getDouble("lower_bound"));
     outlierValue.setUpperBound(rs.getDouble("upper_bound"));
   }

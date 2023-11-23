@@ -81,6 +81,7 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
             + middleValue
             + " as middle_value, "
             + "ax.std_dev as std_dev, "
+            + "ax.mad as mad, "
             + "abs(ax.value::double precision - "
             + middleValue
             + ") as middle_value_abs_dev, ";
