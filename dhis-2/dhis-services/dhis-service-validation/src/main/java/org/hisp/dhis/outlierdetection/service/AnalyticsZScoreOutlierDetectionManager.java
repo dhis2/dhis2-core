@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.outlierdetection.service;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
@@ -63,5 +65,17 @@ public class AnalyticsZScoreOutlierDetectionManager extends AbstractOutlierDetec
 
       return outlierValue;
     };
+  }
+
+  @Override
+  protected void addZScoreBasedParamsToOutlierValue(
+      OutlierValue outlierValue, ResultSet rs, boolean modifiedZ) throws SQLException {
+    if (modifiedZ) {
+      outlierValue.setStdDev(rs.getDouble("mad"));
+    } else {
+      outlierValue.setStdDev(rs.getDouble("std_dev"));
+    }
+
+    super.addZScoreBasedParamsToOutlierValue(outlierValue, rs, modifiedZ);
   }
 }
