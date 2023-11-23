@@ -2125,8 +2125,8 @@ public abstract class DhisConvenienceTest {
       SendStrategy sendStrategy) {
     DataSetNotificationTemplate dst =
         new DataSetNotificationTemplate(
-            newHashSet(),
-            newHashSet(),
+            Set.of(),
+            Set.of(),
             "Message",
             notificationRecipient,
             dataSetNotificationTrigger,
