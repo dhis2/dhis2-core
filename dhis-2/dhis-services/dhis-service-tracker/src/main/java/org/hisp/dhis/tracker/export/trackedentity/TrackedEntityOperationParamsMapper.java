@@ -75,10 +75,11 @@ class TrackedEntityOperationParamsMapper {
   @Transactional(readOnly = true)
   public TrackedEntityQueryParams map(TrackedEntityOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
-    Program program = validateProgram(operationParams.getProgramUid());
+    User user = operationParams.getUser();
+
+    Program program = validateProgram(operationParams.getProgramUid(), user);
     ProgramStage programStage = validateProgramStage(operationParams, program);
 
-    User user = operationParams.getUser();
     TrackedEntityType trackedEntityType =
         validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
     List<TrackedEntityType> trackedEntityTypes =
@@ -86,7 +87,6 @@ class TrackedEntityOperationParamsMapper {
 
     Set<OrganisationUnit> orgUnits = validateOrgUnits(user, operationParams.getOrganisationUnits());
     validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
-    validateUser(user, program);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     mapAttributeFilters(params, operationParams.getFilters());
@@ -184,33 +184,8 @@ class TrackedEntityOperationParamsMapper {
     return orgUnits;
   }
 
-  private void validateUser(User user, Program program) throws ForbiddenException {
-
-    if (user == null || user.isSuper()) {
-      return;
-    }
-
-    if (program != null) {
-      if (!aclService.canDataRead(user, program)) {
-        // TODO Add this to the release notes. It throws ForbiddenException instead of
-        // IllegalQueryException
-        throw new ForbiddenException(
-            "Current user is not authorized to read data from selected program:  "
-                + program.getUid());
-      }
-
-      if (program.getTrackedEntityType() != null
-          && !aclService.canDataRead(user, program.getTrackedEntityType())) {
-        // TODO Add this to the release notes. It throws ForbiddenException instead of
-        // IllegalQueryException
-        throw new ForbiddenException(
-            "Current user is not authorized to read data from selected program's tracked entity type:  "
-                + program.getTrackedEntityType().getUid());
-      }
-    }
-  }
-
-  private Program validateProgram(String uid) throws BadRequestException {
+  private Program validateProgram(String uid, User user)
+      throws BadRequestException, ForbiddenException {
     if (uid == null) {
       return null;
     }
@@ -218,6 +193,19 @@ class TrackedEntityOperationParamsMapper {
     Program program = programService.getProgram(uid);
     if (program == null) {
       throw new BadRequestException("Program is specified but does not exist: " + uid);
+    }
+
+    if (!aclService.canDataRead(user, program)) {
+      throw new ForbiddenException(
+          "Current user is not authorized to read data from selected program:  "
+              + program.getUid());
+    }
+
+    if (program.getTrackedEntityType() != null
+        && !aclService.canDataRead(user, program.getTrackedEntityType())) {
+      throw new ForbiddenException(
+          "Current user is not authorized to read data from selected program's tracked entity type:  "
+              + program.getTrackedEntityType().getUid());
     }
 
     return program;
@@ -235,8 +223,6 @@ class TrackedEntityOperationParamsMapper {
     }
 
     if (!aclService.canDataRead(user, trackedEntityType)) {
-      // TODO Add this to the release notes. It throws ForbiddenException instead of
-      // IllegalQueryException
       throw new ForbiddenException(
           "Current user is not authorized to read data from selected tracked entity type:  "
               + trackedEntityType.getUid());
