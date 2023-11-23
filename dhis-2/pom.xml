@@ -121,7 +121,7 @@
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.9.5.5</c3p0.version>
     <HikariCP.version>5.1.0</HikariCP.version>
-    <postgresql-driver.version>42.6.0</postgresql-driver.version>
+    <postgresql-driver.version>42.7.0</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.9</datasource-proxy.version>
 
@@ -166,7 +166,7 @@
     <!-- Apache Artemis -->
     <artemis.version>2.31.2</artemis.version>
     <netty-all.version>4.1.101.Final</netty-all.version>
-    <classgraph.version>4.8.164</classgraph.version>
+    <classgraph.version>4.8.165</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
@@ -206,7 +206,7 @@
     <micrometer.version>1.12.0</micrometer.version>
 
     <!-- Logging -->
-    <log4j.version>2.21.1</log4j.version>
+    <log4j.version>2.22.0</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
@@ -218,7 +218,7 @@
     <testcontainers.version>1.19.2</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
-    <swagger.version>2.1.18</swagger.version>
+    <swagger.version>2.1.19</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.2.224</h2.version>

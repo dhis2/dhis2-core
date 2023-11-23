@@ -76,7 +76,7 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.StatementDialect;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,7 +114,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   @Mock private PartitionManager partitionManager;
 
-  @Mock private DatabaseInfo databaseInfo;
+  @Mock private DatabaseInfoProvider databaseInfoProvider;
 
   @Mock private JdbcTemplate jdbcTemplate;
 
@@ -157,7 +157,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             tableHookService,
             statementBuilder,
             partitionManager,
-            databaseInfo,
+            databaseInfoProvider,
             jdbcTemplate,
             jdbcConfiguration,
             analyticsExportSettings,

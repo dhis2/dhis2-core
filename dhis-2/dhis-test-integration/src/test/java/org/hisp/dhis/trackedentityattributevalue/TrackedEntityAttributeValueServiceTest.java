@@ -198,10 +198,10 @@ class TrackedEntityAttributeValueServiceTest extends TransactionalIntegrationTes
     content = "filecontentA".getBytes();
     fileResourceA = createFileResource('A', content);
     fileResourceA.setContentType("image/jpg");
-    fileResourceService.saveFileResource(fileResourceA, content);
+    fileResourceService.asyncSaveFileResource(fileResourceA, content);
     content = "filecontentB".getBytes();
     fileResourceB = createFileResource('B', content);
-    fileResourceService.saveFileResource(fileResourceB, content);
+    fileResourceService.asyncSaveFileResource(fileResourceB, content);
     attributeValueA = createTrackedEntityAttributeValue('A', entityInstanceA, attributeA);
     attributeValueB = createTrackedEntityAttributeValue('B', entityInstanceB, attributeB);
     attributeValueA.setValue(fileResourceA.getUid());

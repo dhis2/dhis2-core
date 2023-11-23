@@ -339,6 +339,8 @@ public enum ErrorCode {
   /* File resource */
   E6100("Filename not present"),
   E6101("File type not allowed"),
+  E6102("File content could not be stored"),
+  E6103("File resource appears to have no content"),
 
   /* Users */
   E6200("Feedback message recipients user group not defined"),

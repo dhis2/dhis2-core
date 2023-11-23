@@ -576,7 +576,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     for (OrganisationUnit ou : searchOrgUnits) {
-      if (!organisationUnitService.isDescendant(ou, localOrgUnits)) {
+      if (!ou.isDescendant(localOrgUnits)) {
         return false;
       }
     }
