@@ -144,7 +144,7 @@ class DatastoreEntriesTest extends ApiTest {
 
   @Test
   @DisplayName(
-      "User can read a datastore entry when public sharing set to none and user has sharing access")
+      "User can read a datastore entry when public sharing set to none and user has user sharing access")
   void testDatastoreUserSharing_NoPublicAccess_UserHasAccess() {
     // add entry as admin
     loginActions.loginAsAdmin();
@@ -194,32 +194,13 @@ class DatastoreEntriesTest extends ApiTest {
 
   @Test
   @DisplayName("User can read datastore entry metadata with default public sharing")
-  void testDatastoreSharing_DefaultPublicAccess_UserHasAccess_MetadataEndpoint() {
-    // add entry as admin
-    loginActions.loginAsAdmin();
-    String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-
-    // make call as owner and check can see entry metadata
-    loginActions.loginAsUser(BASIC_USER, "Test1234!");
-    ApiResponse getResponse =
-        datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
-
-    JsonObject createdBy = getResponse.getBody().getAsJsonObject("createdBy");
-    assertEquals(
-        "{\"id\":\"PQD6wXJ2r5k\",\"code\":null,\"name\":\"TA Admin\",\"displayName\":\"TA Admin\",\"username\":\"taadmin\"}",
-        createdBy.toString());
-  }
-
-  @Test
-  @DisplayName("User can read a datastore entry metadata with default public sharing")
   void testDatastoreMetadataSharing_DefaultPublicAccess_BasicUser() {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
     datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
 
-    // make call as user and check can see entry
+    // make call as user and check can see entry metadata
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse =
         datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
@@ -230,7 +211,7 @@ class DatastoreEntriesTest extends ApiTest {
   }
 
   @Test
-  @DisplayName("Superuser can read a datastore entry metadata when public sharing set to none")
+  @DisplayName("Superuser can read datastore entry metadata when public sharing set to none")
   void testDatastoreMetadataSharing_NoPublicAccess_SuperUser() {
     // add entry as admin
     loginActions.loginAsAdmin();
@@ -246,7 +227,7 @@ class DatastoreEntriesTest extends ApiTest {
         new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
     sharingActions.post("", sharingNoPublicAccess(), sharingParams).validateStatus(200);
 
-    // make call as superuser and check can see entry
+    // make call as superuser and check can see entry metadata
     loginActions.loginAsSuperUser();
     ApiResponse getResponse =
         datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
@@ -273,7 +254,7 @@ class DatastoreEntriesTest extends ApiTest {
         new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
     sharingActions.post("", sharingNoPublicAccess(), sharingParams1).validateStatus(200);
 
-    // make call as basic user with no access and check can't see entry
+    // make call as basic user with no access and check can't see entry metadata
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse =
         datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(403);
@@ -299,7 +280,7 @@ class DatastoreEntriesTest extends ApiTest {
     QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
     sharingActions.post("", sharingUserAccess(basicUserId), params).validateStatus(200);
 
-    // make call as user with access and check can see entry
+    // make call as user with access and check can see entry metadata
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
     JsonObject createdBy = getResponse.getBody().getAsJsonObject("createdBy");
@@ -328,7 +309,7 @@ class DatastoreEntriesTest extends ApiTest {
     QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
     sharingActions.post("", sharingUserGroupAccess(userGroupId), params).validateStatus(200);
 
-    // make call as user with access and check can see entry
+    // make call as user with access and check can see entry metadata
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse =
         datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
