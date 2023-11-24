@@ -119,7 +119,7 @@ class ValidationResultStoreHqlTest {
 
   private void setUpUser(String orgUnitUid, Category category, CategoryOptionGroupSet groupSet) {
     User user = new User();
-    when(getCurrentUser()).thenReturn(user);
+    when(userService.getUserByUsername(anyString())).thenReturn(user);
     user.setGroups(emptySet());
     OrganisationUnit unit = new OrganisationUnit();
     unit.setUid(orgUnitUid);

@@ -86,6 +86,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -152,6 +153,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   @Mock private Environment environment;
 
   @Mock private AclService aclService;
+  @Mock private UserService userService;
 
   private User user;
 
@@ -191,7 +193,8 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
             notificationPublisher,
             messageService,
             JacksonObjectMapperConfig.staticJsonMapper(),
-            orgUnitService);
+            orgUnitService,
+            userService);
 
     DEFAULT_COC = new CategoryOptionCombo();
   }

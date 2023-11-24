@@ -45,6 +45,7 @@ import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.TestCache;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,6 +71,7 @@ class JdbcOrgUnitAssociationsStoreTest {
   @Mock private Array orgUnitArray;
 
   @Mock private ResultSet resultSet;
+  @Mock private UserService userService;
 
   @Captor private ArgumentCaptor<ResultSetExtractor<?>> resultSetExtractorArgumentCaptor;
 
@@ -84,7 +86,8 @@ class JdbcOrgUnitAssociationsStoreTest {
   @BeforeEach
   void setUpTest() {
     jdbcOrgUnitAssociationsStore =
-        new JdbcOrgUnitAssociationsStore(jdbcTemplate, queryBuilder, programToOrgUnitCache);
+        new JdbcOrgUnitAssociationsStore(
+            jdbcTemplate, queryBuilder, programToOrgUnitCache, userService);
   }
 
   @Test

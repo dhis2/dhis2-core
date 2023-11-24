@@ -121,9 +121,9 @@ class BulkPatchManagerTest extends TransactionalIntegrationTest {
     List<IdentifiableObject> patchedObjects =
         patchManager.applyPatch(bulkJsonPatch, patchParameters);
     assertEquals(2, patchedObjects.size());
-    assertTrue(aclService.canRead(userA, patchedObjects.get(0)));
-    assertTrue(aclService.canRead(userA, patchedObjects.get(1)));
-    assertFalse(aclService.canRead(userC, patchedObjects.get(0)));
+    assertTrue(aclService.canRead(userA.getUsername(), patchedObjects.get(0)));
+    assertTrue(aclService.canRead(userA.getUsername(), patchedObjects.get(1)));
+    assertFalse(aclService.canRead(userC.getUsername(), patchedObjects.get(0)));
   }
 
   @Test
@@ -150,8 +150,8 @@ class BulkPatchManagerTest extends TransactionalIntegrationTest {
     assertEquals(1, patchedObjects.size());
     assertEquals(1, patchParameters.getErrorReportsCount());
     assertEquals(1, patchParameters.getErrorReportsCount(ErrorCode.E4014));
-    assertTrue(aclService.canRead(userA, patchedObjects.get(0)));
-    assertFalse(aclService.canRead(userC, patchedObjects.get(0)));
+    assertTrue(aclService.canRead(userA.getUsername(), patchedObjects.get(0)));
+    assertFalse(aclService.canRead(userC.getUsername(), patchedObjects.get(0)));
   }
 
   @Test
@@ -190,8 +190,8 @@ class BulkPatchManagerTest extends TransactionalIntegrationTest {
     List<IdentifiableObject> patchedObjects =
         patchManager.applyPatches(bulkJsonPatch, patchParameters);
     assertEquals(3, patchedObjects.size());
-    assertFalse(aclService.canRead(userA, dataSetA));
-    assertFalse(aclService.canRead(userB, dataSetA));
+    assertFalse(aclService.canRead(userA.getUsername(), dataSetA));
+    assertFalse(aclService.canRead(userB.getUsername(), dataSetA));
     IdentifiableObject patchedDataElementA =
         patchedObjects.stream()
             .filter(de -> de.getUid().equals(dataElementA.getUid()))
@@ -207,12 +207,12 @@ class BulkPatchManagerTest extends TransactionalIntegrationTest {
             .filter(de -> de.getUid().equals(dataSetA.getUid()))
             .findFirst()
             .get();
-    assertTrue(aclService.canRead(userA, patchedDataElementA));
-    assertTrue(aclService.canRead(userB, patchedDataElementB));
-    assertTrue(aclService.canRead(userA, patchedDataSetA));
-    assertTrue(aclService.canRead(userB, patchedDataSetA));
-    assertFalse(aclService.canRead(userC, patchedDataElementA));
-    assertFalse(aclService.canRead(userC, patchedDataSetA));
+    assertTrue(aclService.canRead(userA.getUsername(), patchedDataElementA));
+    assertTrue(aclService.canRead(userB.getUsername(), patchedDataElementB));
+    assertTrue(aclService.canRead(userA.getUsername(), patchedDataSetA));
+    assertTrue(aclService.canRead(userB.getUsername(), patchedDataSetA));
+    assertFalse(aclService.canRead(userC.getUsername(), patchedDataElementA));
+    assertFalse(aclService.canRead(userC.getUsername(), patchedDataSetA));
   }
 
   private <T> T loadPatch(String fileName, Class<T> klass) throws IOException {

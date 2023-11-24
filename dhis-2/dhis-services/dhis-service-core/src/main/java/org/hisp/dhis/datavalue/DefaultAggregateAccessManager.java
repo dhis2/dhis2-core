@@ -42,6 +42,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 /**
@@ -64,6 +65,10 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   // ---------------------------------------------------------------------
   // AggregateAccessManager implementation
   // ---------------------------------------------------------------------
+
+  public List<String> canRead(User user, DataValue dataValue) {
+    return canRead(user.getUsername(), dataValue);
+  }
 
   @Override
   public List<String> canRead(String username, DataValue dataValue) {

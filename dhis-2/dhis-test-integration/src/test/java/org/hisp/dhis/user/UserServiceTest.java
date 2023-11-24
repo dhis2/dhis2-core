@@ -189,7 +189,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
     idObjectManager.save(dataElement);
 
     dataElement.setDescription("Updated");
-    idObjectManager.update(dataElement, userA);
+    idObjectManager.update(dataElement);
 
     assertThrows(DeleteNotAllowedException.class, () -> userService.deleteUser(userA));
   }

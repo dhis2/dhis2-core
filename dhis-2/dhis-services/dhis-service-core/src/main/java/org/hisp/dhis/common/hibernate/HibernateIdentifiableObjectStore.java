@@ -908,7 +908,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
    * @return TRUE of objects found. FALSE otherwise.
    */
   @Override
-  public boolean existsByUser(@Nonnull CurrentUserDetails user, final Set<String> checkProperties) {
+  public boolean existsByUser(@Nonnull User user, final Set<String> checkProperties) {
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaQuery<Integer> query = builder.createQuery(Integer.class);
     Root<T> root = query.from(getClazz());

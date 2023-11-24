@@ -415,8 +415,8 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * Look up list objects which have property createdBy or lastUpdatedBy linked to given {@link
    * User}
    *
-   * @param userDetails the {@link User} for filtering
+   * @param user the {@link User} for filtering
    * @return TRUE if objects exist. FALSE otherwise.
    */
-  boolean existsByUser(@Nonnull CurrentUserDetails userDetails, final Set<String> checkProperties);
+  boolean existsByUser(@Nonnull User user, final Set<String> checkProperties);
 }

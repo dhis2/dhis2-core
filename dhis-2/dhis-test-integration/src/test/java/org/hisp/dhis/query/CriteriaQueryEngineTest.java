@@ -544,7 +544,7 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest {
     assertEquals(userB.getUid(), de.getSharing().getOwner());
     Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
     query.add(Restrictions.eq("id", de.getUid()));
-    query.setUser(userA);
+    query.setUsername(userA.getUsername());
     injectSecurityContext(userA);
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
     assertEquals(0, objects.size());
@@ -563,7 +563,7 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest {
     assertEquals(AccessStringHelper.DEFAULT, de.getSharing().getPublicAccess());
     assertEquals(userB.getUid(), de.getSharing().getOwner());
     Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    query.setUser(userB);
+    query.setUsername(userB.getUsername());
     injectSecurityContext(userB);
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
     // UserB is the owner so DEA is in the result list
@@ -571,7 +571,7 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest {
         objects.stream().filter(d -> d.getUid().equalsIgnoreCase("deabcdefghA")).findFirst();
     assertTrue(notPublicDe.isPresent());
     query = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    query.setUser(userA);
+    query.setUsername(userA.getUsername());
     injectSecurityContext(userA);
     objects = queryEngine.query(query);
     // UserA isn't the owner and DEA is not public so it doesn't present in

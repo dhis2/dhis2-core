@@ -1263,7 +1263,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     if (schema.getPersistedProperty(BaseIdentifiableObject_.LAST_UPDATED_BY) != null) {
       checkProperties.add(BaseIdentifiableObject_.LAST_UPDATED_BY);
     }
-    CurrentUserDetails currentUserDetails = CurrentUserDetailsImpl.fromUser(user);
-    return store.existsByUser(currentUserDetails, checkProperties.build());
+    return store.existsByUser(user, checkProperties.build());
   }
 }

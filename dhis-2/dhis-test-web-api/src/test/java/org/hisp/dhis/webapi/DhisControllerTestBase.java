@@ -64,7 +64,7 @@ public class DhisControllerTestBase extends DhisMockMvcControllerTest {
     return superUser.getUid();
   }
 
-  protected final User getCurrentUser() {
+  public final User getCurrentUser() {
     return currentUser;
   }
 

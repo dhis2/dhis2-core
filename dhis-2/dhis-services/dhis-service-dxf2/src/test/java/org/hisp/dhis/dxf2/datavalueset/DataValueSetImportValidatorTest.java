@@ -905,6 +905,7 @@ class DataValueSetImportValidatorTest {
   }
 
   private void setupUserCanWriteCategoryOptions(boolean canWrite) {
-    when(aclService.canDataWrite(any(User.class), any(CategoryOption.class))).thenReturn(canWrite);
+    when(aclService.canDataWrite(any(String.class), any(CategoryOption.class)))
+        .thenReturn(canWrite);
   }
 }

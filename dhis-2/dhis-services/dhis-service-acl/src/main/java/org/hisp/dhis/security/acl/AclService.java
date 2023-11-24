@@ -30,6 +30,7 @@ package org.hisp.dhis.security.acl;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -114,6 +115,8 @@ public interface AclService {
    */
   boolean canRead(String username, IdentifiableObject object);
 
+  boolean canRead(User user, IdentifiableObject object);
+
   /**
    * Same as {@link #canRead(String, IdentifiableObject)} except that it allows to pass superclasses
    * as object that can be validated as if they are of a certain object type.
@@ -161,6 +164,8 @@ public interface AclService {
    */
   boolean canWrite(String username, IdentifiableObject object);
 
+  boolean canWrite(User user, IdentifiableObject object);
+
   /**
    * Can user write data to this object (create)
    *
@@ -169,6 +174,8 @@ public interface AclService {
    * @return Result of test
    */
   boolean canDataWrite(String username, IdentifiableObject object);
+
+  boolean canDataWrite(User user, IdentifiableObject object);
 
   /**
    * Can user update this object
@@ -180,6 +187,8 @@ public interface AclService {
    * @return Result of test
    */
   boolean canUpdate(String username, IdentifiableObject object);
+
+  boolean canUpdate(User user, IdentifiableObject object);
 
   /**
    * Can user delete this object

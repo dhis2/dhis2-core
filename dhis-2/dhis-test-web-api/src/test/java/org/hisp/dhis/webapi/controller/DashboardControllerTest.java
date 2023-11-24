@@ -70,8 +70,8 @@ class DashboardControllerTest extends DhisControllerIntegrationTest {
 
     switchContextToUser(userA);
     // UserA can't read visualization but can update Dashboard.
-    assertTrue(aclService.canUpdate(userA, dashboard));
-    assertFalse(aclService.canRead(userA, visualization));
+    assertTrue(aclService.canUpdate(userA.getUsername(), dashboard));
+    assertFalse(aclService.canRead(userA.getUsername(), visualization));
 
     // Add one more DashboardItem to the created Dashboard
     JsonMixed response =
@@ -101,8 +101,8 @@ class DashboardControllerTest extends DhisControllerIntegrationTest {
             .getVisualization();
     assertNotNull(visualization);
 
-    assertTrue(aclService.canUpdate(userA, dashboard));
-    assertTrue(aclService.canRead(userA, visualization));
+    assertTrue(aclService.canUpdate(userA.getUsername(), dashboard));
+    assertTrue(aclService.canRead(userA.getUsername(), visualization));
     switchContextToUser(userA);
 
     // Add one more DashboardItem to the created Dashboard

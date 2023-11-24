@@ -33,10 +33,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.annotations.QueryHints;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -52,6 +49,7 @@ import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRetrievalStore;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -66,11 +64,17 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.security.acl.AclService")
 public class DefaultAclService implements AclService {
 
-  //  public static final String INPUT_OBJECT_CAN_T_BE_OF_TYPE_CLASS =
-  //      "Input object can't be of type Class!";
-
   private final SchemaService schemaService;
-  private final EntityManager entityManager;
+  private final UserRetrievalStore userRetrievalStore;
+
+  private CurrentUserDetails getCurrentUserImpl(String username) {
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    if (currentUsername != null && !currentUsername.equals(username)) {
+      User currentUser = userRetrievalStore.getUserByUsername(username);
+      return CurrentUserDetailsImpl.fromUser(currentUser);
+    }
+    return CurrentUserUtil.getCurrentUserDetails();
+  }
 
   @Override
   public boolean isSupported(String type) {
@@ -112,44 +116,14 @@ public class DefaultAclService implements AclService {
     return schema != null && schema.isDataShareable();
   }
 
+  public boolean canRead(User user, IdentifiableObject object) {
+    return canRead(user.getUsername(), object);
+  }
+
   @Override
   @SuppressWarnings("unchecked")
   public boolean canRead(String username, IdentifiableObject object) {
     return object == null || canRead(username, object, HibernateProxyUtils.getRealClass(object));
-  }
-
-  private CurrentUserDetails getCurrentUserImpl(String username) {
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-    if (currentUsername != null && !currentUsername.equals(username)) {
-      User currentUser = getUserByUsername(username, false);
-      return CurrentUserDetailsImpl.fromUser(currentUser);
-    }
-    return CurrentUserUtil.getCurrentUserDetails();
-  }
-
-  public User getUserByUsername(String username, boolean ignoreCase) {
-    if (username == null) {
-      return null;
-    }
-    String hql =
-        ignoreCase
-            ? "from User u where lower(u.username) = lower(:username)"
-            : "from User u where u.username = :username";
-
-    TypedQuery<User> typedQuery = entityManager.createQuery(hql, User.class);
-    typedQuery.setParameter("username", username);
-    typedQuery.setHint(QueryHints.CACHEABLE, true);
-
-    return getSingleResult(typedQuery);
-  }
-
-  public static <T> T getSingleResult(TypedQuery<T> query) {
-    query.setMaxResults(1);
-    List<T> list = query.getResultList();
-    if (list == null || list.isEmpty()) {
-      return null;
-    }
-    return list.get(0);
   }
 
   @Override
@@ -220,6 +194,10 @@ public class DefaultAclService implements AclService {
     return schema.isDataShareable() ? canDataRead(username, object) : canRead(username, object);
   }
 
+  public boolean canWrite(User user, IdentifiableObject object) {
+    return canWrite(user.getUsername(), object);
+  }
+
   @Override
   @SuppressWarnings("unchecked")
   public boolean canWrite(String username, IdentifiableObject object) {
@@ -249,6 +227,10 @@ public class DefaultAclService implements AclService {
       return writeCommonCheck(schema, username, object, objType);
     } else
       return schema.isImplicitPrivateAuthority() && checkSharingAccess(username, object, objType);
+  }
+
+  public boolean canDataWrite(User user, IdentifiableObject object) {
+    return canDataWrite(user.getUsername(), object);
   }
 
   @Override
@@ -283,6 +265,10 @@ public class DefaultAclService implements AclService {
     }
 
     return false;
+  }
+
+  public boolean canUpdate(User user, IdentifiableObject object) {
+    return canUpdate(user.getUsername(), object);
   }
 
   @Override

@@ -31,6 +31,7 @@ import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -44,6 +45,8 @@ public interface AggregateAccessManager {
    * @return List of errors
    */
   List<String> canRead(String username, DataValue dataValue);
+
+  List<String> canRead(User user, DataValue dataValue);
 
   /**
    * Check if given user has DATA_WRITE
