@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.util;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.Getter;
+import java.sql.SQLException;
+import java.util.Optional;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.scheduling.JobParameters;
 
-/**
- * @author Lars Helge Overland
- */
-@Getter
-@Setter
-@NoArgsConstructor
-public class ContinuousAnalyticsJobParameters implements JobParameters {
-  /** The hour of day at which the full analytics table update will be invoked. */
-  @JsonProperty private Integer fullUpdateHourOfDay = 0;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class SqlExceptionUtils {
+  public static final String ERR_MSG_TABLE_NOT_EXISTING =
+      "Query failed, likely because the requested analytics table does not exist: ";
 
-  /** The number of last years of data to include in the full analytics table update. */
-  @JsonProperty private Integer lastYears;
+  public static final String ERR_MSG_SQL_SYNTAX_ERROR =
+      "An error occurred during the execution of an analytics query: ";
 
-  /** The types of analytics tables for which to skip update. */
-  @JsonProperty private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
+  public static final String ERR_MSG_SILENT_FALLBACK =
+      "An exception occurred - silently fallback since it's multiple analytics query: ";
 
-  /** Outliers statistics columns of Analytics tables will be skipped. */
-  @JsonProperty private Boolean skipOutliers = false;
+  /**
+   * Utility method to detect if the {@link SQLException} refers to a missing relation in the
+   * database.
+   *
+   * @param ex a {@link SQLException} to analyze
+   * @return true if the error is a missing relation error, false otherwise
+   */
+  public static boolean relationDoesNotExist(SQLException ex) {
+    if (ex != null) {
+      return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
+    }
 
-  public ContinuousAnalyticsJobParameters(
-      Integer fullUpdateHourOfDay,
-      Integer lastYears,
-      Set<AnalyticsTableType> skipTableTypes,
-      Boolean skipOutliers) {
-    this.fullUpdateHourOfDay = fullUpdateHourOfDay;
-    this.lastYears = lastYears;
-    this.skipTableTypes = skipTableTypes;
-    this.skipOutliers = skipOutliers;
+    return false;
   }
 }

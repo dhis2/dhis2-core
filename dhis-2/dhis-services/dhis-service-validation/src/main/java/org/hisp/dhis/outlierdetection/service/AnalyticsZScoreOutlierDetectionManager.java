@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.outlierdetection.service;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.outlierdetection.processor.OutlierSqlStatementProcessor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,16 +40,20 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * Manager for database queries related to outlier data detection based on min-max values.
+ * Manager for database queries related to outlier data detection based on z-score and modified
+ * z-score.
  *
- * @author Lars Helge Overland
+ * <p>This both implements the {@link OutlierDetectionAlgorithm#Z_SCORE} and {@link
+ * OutlierDetectionAlgorithm#MOD_Z_SCORE}. Usual z-score uses the mean as middle value whereas the
+ * modified z-score uses the median as middle value or more mathematically correct as the
+ * <em>measure of central tendency</em>.
  */
 @Slf4j
 @Repository
-public class MinMaxOutlierDetectionManager extends AbstractOutlierDetectionManager {
-  protected MinMaxOutlierDetectionManager(
+public class AnalyticsZScoreOutlierDetectionManager extends AbstractOutlierDetectionManager {
+  protected AnalyticsZScoreOutlierDetectionManager(
       NamedParameterJdbcTemplate jdbcTemplate,
-      @Qualifier("minMaxSqlStatementProcessor")
+      @Qualifier("analyticsZScoreSqlStatementProcessor")
           OutlierSqlStatementProcessor sqlStatementProcessor) {
     super(jdbcTemplate, sqlStatementProcessor);
   }
@@ -56,12 +63,22 @@ public class MinMaxOutlierDetectionManager extends AbstractOutlierDetectionManag
   protected RowMapper<OutlierValue> getRowMapper(Calendar calendar, boolean modifiedZ) {
     return (rs, rowNum) -> {
       OutlierValue outlierValue = getOutlierValue(calendar, rs);
-      outlierValue.setAbsDev(rs.getDouble("bound_abs_dev"));
-      outlierValue.setLowerBound(rs.getDouble("lower_bound"));
-      outlierValue.setUpperBound(rs.getDouble("upper_bound"));
-      outlierValue.setFollowup(rs.getBoolean("follow_up"));
+      addZScoreBasedParamsToOutlierValue(outlierValue, rs, modifiedZ);
 
       return outlierValue;
     };
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  protected void addZScoreBasedParamsToOutlierValue(
+      OutlierValue outlierValue, ResultSet rs, boolean modifiedZ) throws SQLException {
+    if (modifiedZ) {
+      outlierValue.setStdDev(rs.getDouble("mad"));
+    } else {
+      outlierValue.setStdDev(rs.getDouble("std_dev"));
+    }
+
+    super.addZScoreBasedParamsToOutlierValue(outlierValue, rs, modifiedZ);
   }
 }

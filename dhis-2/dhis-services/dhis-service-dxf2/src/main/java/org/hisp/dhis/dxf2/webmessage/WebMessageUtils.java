@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.dxf2.webmessage;
 
+import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
+
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -272,20 +273,5 @@ public final class WebMessageUtils {
       return ErrorCode.E7144;
     }
     return ErrorCode.E7145;
-  }
-
-  /**
-   * Utility method to detect if the {@link SQLException} refers to a missing relation in the
-   * database.
-   *
-   * @param ex a {@link SQLException} to analyze
-   * @return true if the error is a missing relation error, false otherwise
-   */
-  public static boolean relationDoesNotExist(SQLException ex) {
-    if (ex != null) {
-      return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
-    }
-
-    return false;
   }
 }
