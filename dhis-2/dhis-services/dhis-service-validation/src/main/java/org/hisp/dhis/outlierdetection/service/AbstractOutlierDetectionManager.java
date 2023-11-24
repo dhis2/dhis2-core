@@ -113,6 +113,8 @@ public abstract class AbstractOutlierDetectionManager {
   }
 
   /**
+   * The values for outlier identification are added to OutlierValue instance.
+   *
    * @param outlierValue the {@link OutlierValue}
    * @param rs the {@link ResultSet}
    * @param modifiedZ boolean flag (false means z-score to be applied)
