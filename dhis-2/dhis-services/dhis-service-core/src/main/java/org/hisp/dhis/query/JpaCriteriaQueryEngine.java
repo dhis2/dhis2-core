@@ -136,7 +136,11 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
       typedQuery.setFirstResult(query.getFirstResult());
       typedQuery.setMaxResults(query.getMaxResults());
 
-      return typedQuery.getResultList();
+      try {
+        return typedQuery.getResultList();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     }
 
     Predicate predicate = buildPredicates(builder, root, query);
@@ -209,14 +213,17 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
 
     Predicate predicate = buildPredicates(builder, root, query);
 
-    CurrentUserDetails currentUserDetails =
-        userService.createUserDetails(userService.getUserByUsername(query.getUsername()));
-    predicate
-        .getExpressions()
-        .addAll(
-            store.getSharingPredicates(builder, currentUserDetails).stream()
-                .map(t -> t.apply(root))
-                .toList());
+    boolean shareable = schema.isShareable();
+    if (shareable && !query.isSkipSharing()) {
+      CurrentUserDetails currentUserDetails =
+          userService.createUserDetails(userService.getUserByUsername(query.getUsername()));
+      predicate
+          .getExpressions()
+          .addAll(
+              store.getSharingPredicates(builder, currentUserDetails).stream()
+                  .map(t -> t.apply(root))
+                  .toList());
+    }
 
     criteriaQuery.where(predicate);
 
