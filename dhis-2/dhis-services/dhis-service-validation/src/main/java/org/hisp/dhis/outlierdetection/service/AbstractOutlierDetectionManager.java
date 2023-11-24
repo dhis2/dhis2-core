@@ -44,6 +44,10 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
+/**
+ * Manager for database queries related to outlier data detection (Z-Score, modified Z-Score,
+ * Min-Max values).
+ */
 @Slf4j
 public abstract class AbstractOutlierDetectionManager {
   private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -55,6 +59,12 @@ public abstract class AbstractOutlierDetectionManager {
     this.sqlStatementProcessor = sqlStatementProcessor;
   }
 
+  /**
+   * Retrieves all outliers.
+   *
+   * @param request the {@link OutlierDetectionRequest}.
+   * @return list of the OutlierValue instances for api response
+   */
   public List<OutlierValue> getOutlierValues(OutlierDetectionRequest request) {
     String sql = sqlStatementProcessor.getSqlStatement(request);
     SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);
@@ -75,6 +85,14 @@ public abstract class AbstractOutlierDetectionManager {
   protected abstract RowMapper<OutlierValue> getRowMapper(
       final Calendar calendar, boolean modifiedZ);
 
+  /**
+   * Maps incoming database set into the api response element.
+   *
+   * @param calendar the {@link Calendar}.
+   * @param rs the {@link ResultSet}.
+   * @return single OutlierValue instance
+   * @throws SQLException
+   */
   protected OutlierValue getOutlierValue(Calendar calendar, ResultSet rs) throws SQLException {
     OutlierValue outlier = new OutlierValue();
 
@@ -94,6 +112,12 @@ public abstract class AbstractOutlierDetectionManager {
     return outlier;
   }
 
+  /**
+   * @param outlierValue the {@link OutlierValue}
+   * @param rs the {@link ResultSet}
+   * @param modifiedZ boolean flag (false means z-score to be applied)
+   * @throws SQLException
+   */
   protected void addZScoreBasedParamsToOutlierValue(
       OutlierValue outlierValue, ResultSet rs, boolean modifiedZ) throws SQLException {
     if (modifiedZ) {

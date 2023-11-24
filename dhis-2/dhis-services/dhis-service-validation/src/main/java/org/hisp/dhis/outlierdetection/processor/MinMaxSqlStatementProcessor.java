@@ -42,6 +42,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class MinMaxSqlStatementProcessor implements OutlierSqlStatementProcessor {
 
+  /**
+   * The function retries the sql statement for inspection of outliers. Min and max values are
+   * inspected.
+   *
+   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @return sql statement for the outlier detection and related data
+   */
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
     if (request == null) {
@@ -85,6 +92,13 @@ public class MinMaxSqlStatementProcessor implements OutlierSqlStatementProcessor
         + "limit :max_results;";
   }
 
+  /**
+   * To avoid the sql injection and decrease the load of the database engine (query plan caching)
+   * the named params are in use.
+   *
+   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @return named params for parametrized sql query
+   */
   @Override
   public SqlParameterSource getSqlParameterSource(OutlierDetectionRequest request) {
     return new MapSqlParameterSource()

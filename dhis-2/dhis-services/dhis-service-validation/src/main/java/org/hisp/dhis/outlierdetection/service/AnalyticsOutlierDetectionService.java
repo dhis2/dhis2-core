@@ -39,6 +39,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -51,6 +52,12 @@ public class AnalyticsOutlierDetectionService {
 
   private final AnalyticsZScoreOutlierDetectionManager zScoreOutlierDetection;
 
+  /**
+   * Transform the incoming request into api response (json).
+   *
+   * @param request the {@link OutlierDetectionRequest}.
+   * @return the {@link OutlierDetectionResponse}.
+   */
   public Grid getOutlierValues(OutlierDetectionRequest request) throws IllegalQueryException {
     List<OutlierValue> outlierValues = zScoreOutlierDetection.getOutlierValues(request);
 
@@ -62,26 +69,56 @@ public class AnalyticsOutlierDetectionService {
     return grid;
   }
 
+  /**
+   * Transform the incoming request into api response (csv download).
+   *
+   * @param request the {@link OutlierDetectionRequest}.
+   * @return the {@link OutlierDetectionResponse}.
+   */
   public void getOutlierValuesAsCsv(OutlierDetectionRequest request, Writer writer)
       throws IllegalQueryException, IOException {
     GridUtils.toCsv(getOutlierValues(request), writer);
   }
 
+  /**
+   * Transform the incoming request into api response (xml).
+   *
+   * @param request the {@link OutlierDetectionRequest}.
+   * @return the {@link OutlierDetectionResponse}.
+   */
   public void getOutlierValuesAsXml(OutlierDetectionRequest request, OutputStream outputStream)
       throws IllegalQueryException {
     GridUtils.toXml(getOutlierValues(request), outputStream);
   }
 
+  /**
+   * Transform the incoming request into api response (xls download).
+   *
+   * @param request the {@link OutlierDetectionRequest}.
+   * @return the {@link OutlierDetectionResponse}.
+   */
   public void getOutlierValuesAsXls(OutlierDetectionRequest request, OutputStream outputStream)
       throws IllegalQueryException, IOException {
     GridUtils.toXls(getOutlierValues(request), outputStream);
   }
 
+  /**
+   * Transform the incoming request into api response (html).
+   *
+   * @param request the {@link OutlierDetectionRequest}.
+   * @return the {@link OutlierDetectionResponse}.
+   */
   public void getOutlierValuesAsHtml(OutlierDetectionRequest request, Writer writer)
       throws IllegalQueryException {
     GridUtils.toHtml(getOutlierValues(request), writer);
   }
 
+  /**
+   * Transform the incoming request into api response (html with css).
+   *
+   * @param request the {@link OutlierDetectionRequest}.
+   * @return the {@link OutlierDetectionResponse}.
+   */
   public void getOutlierValuesAsHtmlCss(OutlierDetectionRequest request, Writer writer)
       throws IllegalQueryException {
     GridUtils.toHtmlCss(getOutlierValues(request), writer);

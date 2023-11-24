@@ -60,6 +60,7 @@ public class ZScoreOutlierDetectionManager extends AbstractOutlierDetectionManag
     super(jdbcTemplate, sqlStatementProcessor);
   }
 
+  /** {@inheritDoc} */
   @Override
   protected RowMapper<OutlierValue> getRowMapper(Calendar calendar, boolean modifiedZ) {
     return (rs, rowNum) -> {
@@ -71,6 +72,7 @@ public class ZScoreOutlierDetectionManager extends AbstractOutlierDetectionManag
     };
   }
 
+  /** {@inheritDoc} */
   @Override
   protected void addZScoreBasedParamsToOutlierValue(
       OutlierValue outlierValue, ResultSet rs, boolean modifiedZ) throws SQLException {

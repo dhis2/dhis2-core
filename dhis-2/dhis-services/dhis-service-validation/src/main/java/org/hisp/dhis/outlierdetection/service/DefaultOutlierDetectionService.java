@@ -51,6 +51,12 @@ public class DefaultOutlierDetectionService {
   private final ZScoreOutlierDetectionManager zScoreOutlierDetection;
   private final MinMaxOutlierDetectionManager minMaxOutlierDetection;
 
+  /**
+   * Transform the incoming request into api response (json).
+   *
+   * @param request the {@link OutlierDetectionRequest}.
+   * @return the {@link OutlierDetectionResponse}.
+   */
   public OutlierDetectionResponse getOutlierValues(OutlierDetectionRequest request)
       throws IllegalQueryException {
     final OutlierDetectionResponse response = new OutlierDetectionResponse();
@@ -59,6 +65,12 @@ public class DefaultOutlierDetectionService {
     return response;
   }
 
+  /**
+   * Transform the incoming request into api response (csv download).
+   *
+   * @param request the {@link OutlierDetectionRequest}.
+   * @return the {@link OutlierDetectionResponse}.
+   */
   public void getOutlierValuesAsCsv(OutlierDetectionRequest request, Writer writer)
       throws IllegalQueryException, IOException {
     JacksonCsvUtils.toCsv(getOutlierValues(request).getOutlierValues(), OutlierValue.class, writer);

@@ -40,7 +40,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * Manager for database queries related to outlier data detection based on z-score.
+ * Manager for database queries related to outlier data detection based on z-score and modified
+ * z-score.
  *
  * <p>This both implements the {@link OutlierDetectionAlgorithm#Z_SCORE} and {@link
  * OutlierDetectionAlgorithm#MOD_Z_SCORE}. Usual z-score uses the mean as middle value whereas the
@@ -57,6 +58,7 @@ public class AnalyticsZScoreOutlierDetectionManager extends AbstractOutlierDetec
     super(jdbcTemplate, sqlStatementProcessor);
   }
 
+  /** {@inheritDoc} */
   @Override
   protected RowMapper<OutlierValue> getRowMapper(Calendar calendar, boolean modifiedZ) {
     return (rs, rowNum) -> {
@@ -67,6 +69,7 @@ public class AnalyticsZScoreOutlierDetectionManager extends AbstractOutlierDetec
     };
   }
 
+  /** {@inheritDoc} */
   @Override
   protected void addZScoreBasedParamsToOutlierValue(
       OutlierValue outlierValue, ResultSet rs, boolean modifiedZ) throws SQLException {

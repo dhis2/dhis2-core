@@ -51,6 +51,7 @@ public class MinMaxOutlierDetectionManager extends AbstractOutlierDetectionManag
     super(jdbcTemplate, sqlStatementProcessor);
   }
 
+  /** {@inheritDoc} */
   @Override
   protected RowMapper<OutlierValue> getRowMapper(Calendar calendar, boolean modifiedZ) {
     return (rs, rowNum) -> {

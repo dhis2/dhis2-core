@@ -43,9 +43,31 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 
+/**
+ * The class is related to outlier data detection based on z-score and modified z-score. The
+ * analytics tables are used for it.
+ *
+ * <p>This both implements the {@link OutlierDetectionAlgorithm#Z_SCORE} and {@link
+ * OutlierDetectionAlgorithm#MOD_Z_SCORE}. Usual z-score uses the mean as middle value whereas the
+ * modified z-score uses the median as middle value or more mathematically correct as the
+ * <em>measure of central tendency</em>.
+ */
 @Component
 public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatementProcessor {
 
+  /**
+   * The function retries the sql statement for inspection of outliers. Following scores are in use:
+   *
+   * <p>Z-Score abs(xi – μ) / σ where: xi: A single data value μ: The mean of the dataset σ: The
+   * standard deviation of the dataset
+   *
+   * <p>Modified z-score = 0.6745 * abs(xi – x̃) / MAD where: xi: A single data value x̃: The median
+   * of the dataset MAD: The median absolute deviation of the dataset 0.6745: conversion factor
+   * (0.75 percentiles) *
+   *
+   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @return sql statement for the outlier detection and related data
+   */
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
     if (request == null) {
@@ -135,6 +157,13 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
     return sql;
   }
 
+  /**
+   * To avoid the sql injection and decrease the load of the database engine (query plan caching)
+   * the named params are in use.
+   *
+   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @return named params for parametrized sql query
+   */
   @Override
   public SqlParameterSource getSqlParameterSource(OutlierDetectionRequest request) {
     return new MapSqlParameterSource()
