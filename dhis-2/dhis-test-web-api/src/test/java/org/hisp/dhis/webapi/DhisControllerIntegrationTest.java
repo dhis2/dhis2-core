@@ -37,7 +37,6 @@ import org.hisp.dhis.config.IntegrationTestConfig;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +70,7 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
   @Autowired private UserService _userService;
 
-  @Autowired protected CurrentUserService currentUserService;
+  //  @Autowired protected CurrentUserService currentUserService;
 
   @Autowired protected IdentifiableObjectManager manager;
 

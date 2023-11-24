@@ -30,6 +30,7 @@ package org.hisp.dhis.commons.action;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -80,7 +81,7 @@ public class GetDataElementGroupAction extends BaseAction implements Action {
       memberCount = dataElementGroup.getMembers().size();
     }
 
-    canReadInstance(dataElementGroup, currentUserService.getCurrentUser());
+    canReadInstance(dataElementGroup, CurrentUserUtil.getCurrentUsername());
 
     return SUCCESS;
   }

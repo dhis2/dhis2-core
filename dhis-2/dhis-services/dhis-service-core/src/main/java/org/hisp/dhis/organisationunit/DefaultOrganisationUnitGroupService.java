@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.filter.FilterUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,8 +52,6 @@ public class DefaultOrganisationUnitGroupService implements OrganisationUnitGrou
   private final OrganisationUnitGroupStore organisationUnitGroupStore;
 
   private final OrganisationUnitGroupSetStore organisationUnitGroupSetStore;
-
-  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -200,10 +198,9 @@ public class DefaultOrganisationUnitGroupService implements OrganisationUnitGrou
 
     Set<OrganisationUnit> userOrganisationUnits = new HashSet<>();
 
-    for (OrganisationUnit organisationUnit :
-        currentUserService.getCurrentUser().getOrganisationUnits()) {
+    for (String orgUnitId : CurrentUserUtil.getCurrentUserDetails().getUserGroupIds()) {
       userOrganisationUnits.addAll(
-          organisationUnitService.getOrganisationUnitWithChildren(organisationUnit.getUid()));
+          organisationUnitService.getOrganisationUnitWithChildren(orgUnitId));
     }
 
     organisationUnits.removeAll(userOrganisationUnits);

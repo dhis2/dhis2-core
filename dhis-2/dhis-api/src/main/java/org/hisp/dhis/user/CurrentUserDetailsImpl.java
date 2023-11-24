@@ -29,12 +29,15 @@ package org.hisp.dhis.user;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.springframework.security.core.GrantedAuthority;
 
 @AllArgsConstructor
@@ -43,26 +46,79 @@ import org.springframework.security.core.GrantedAuthority;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class CurrentUserDetailsImpl implements CurrentUserDetails {
   private final String uid;
-
+  private final Long id;
+  private final String code;
   @EqualsAndHashCode.Include private final String username;
-
+  private final String firstName;
+  private final String surname;
   private final String password;
-
   private final boolean enabled;
-
   private final boolean accountNonExpired;
-
   private final boolean accountNonLocked;
-
   private final boolean credentialsNonExpired;
-
   private final Collection<GrantedAuthority> authorities;
-
   private final Map<String, Serializable> userSettings;
-
   private final Set<String> userGroupIds;
-
+  private final Set<String> userOrgUnitIds;
   private final boolean isSuper;
+  private final Set<String> userRoleIds;
 
-  private final CurrentUserGroupInfo currentUserGroupInfo;
+  public Set<String> getAllAuthorities() {
+    return authorities == null
+        ? Set.of()
+        : authorities.stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.toUnmodifiableSet());
+  }
+
+  public boolean hasAnyAuthority(Collection<String> auths) {
+    return getAllAuthorities().stream().anyMatch(auths::contains);
+  }
+
+  public boolean isAuthorized(String auth) {
+    if (auth == null) {
+      return false;
+    }
+    final Set<String> auths = getAllAuthorities();
+    return auths.contains(UserRole.AUTHORITY_ALL) || auths.contains(auth);
+  }
+
+  public static CurrentUserDetailsImpl fromUser(User user) {
+    return createUserDetails(user, true, true);
+  }
+
+  public static CurrentUserDetailsImpl createUserDetails(
+      User user, boolean accountNonLocked, boolean credentialsNonExpired) {
+
+    return CurrentUserDetailsImpl.builder()
+        .id(user.getId())
+        .uid(user.getUid())
+        .code(user.getCode())
+        .firstName(user.getFirstName())
+        .surname(user.getSurname())
+        .username(user.getUsername())
+        .password(user.getPassword())
+        .enabled(user.isEnabled())
+        .accountNonExpired(user.isAccountNonExpired())
+        .accountNonLocked(accountNonLocked)
+        .credentialsNonExpired(credentialsNonExpired)
+        .authorities(user.getAuthorities())
+        .userSettings(new HashMap<>())
+        .userGroupIds(
+            user.getUid() == null
+                ? Set.of()
+                : user.getGroups().stream()
+                    .map(BaseIdentifiableObject::getUid)
+                    .collect(Collectors.toSet()))
+        .isSuper(user.isSuper())
+        .userOrgUnitIds(
+            user.getOrganisationUnits().stream()
+                .map(BaseIdentifiableObject::getUid)
+                .collect(Collectors.toSet()))
+        .userRoleIds(
+            user.getUserRoles().stream()
+                .map(BaseIdentifiableObject::getUid)
+                .collect(Collectors.toSet()))
+        .build();
+  }
 }

@@ -33,7 +33,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.config.ConfigProviderConfiguration;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
@@ -66,7 +65,7 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
 
   @Autowired private UserService _userService;
 
-  @Autowired protected CurrentUserService currentUserService;
+  //  @Autowired protected CurrentUserService currentUserService;
 
   @Autowired protected IdentifiableObjectManager manager;
 

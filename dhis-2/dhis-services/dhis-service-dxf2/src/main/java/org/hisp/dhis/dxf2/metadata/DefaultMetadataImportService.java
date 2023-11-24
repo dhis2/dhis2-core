@@ -59,7 +59,7 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
@@ -72,7 +72,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service
 public class DefaultMetadataImportService implements MetadataImportService {
-  private final CurrentUserService currentUserService;
 
   private final ObjectBundleService objectBundleService;
   private final ObjectBundleValidationService objectBundleValidationService;
@@ -208,6 +207,8 @@ public class DefaultMetadataImportService implements MetadataImportService {
   // -----------------------------------------------------------------------------------
 
   public ObjectBundleParams toObjectBundleParams(MetadataImportParams importParams) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     ObjectBundleParams params = new ObjectBundleParams();
     params.setUserOverrideMode(importParams.getUserOverrideMode());
     params.setSkipSharing(importParams.isSkipSharing());
@@ -224,14 +225,14 @@ public class DefaultMetadataImportService implements MetadataImportService {
     params.setMetadataSyncImport(importParams.isMetadataSyncImport());
     params.setUser(
         importParams.getUser() == null
-            ? currentUserService.getCurrentUser()
+            ? currentUser
             : userService.getUser(importParams.getUser().getValue()));
     params.setOverrideUser(
         importParams.getOverrideUser() == null
             ? null
             : userService.getUser(importParams.getOverrideUser().getValue()));
     if (params.getUserOverrideMode() == UserOverrideMode.CURRENT) {
-      params.setOverrideUser(currentUserService.getCurrentUser());
+      params.setOverrideUser(currentUser);
     }
     return params;
   }
@@ -273,7 +274,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
 
   private void preCreateBundleObject(BaseIdentifiableObject object, ObjectBundleParams params) {
     if (StringUtils.isEmpty(object.getSharing().getPublicAccess())) {
-      aclService.resetSharing(object, params.getUser());
+      aclService.resetSharing(object, params.getUser().getUsername());
     }
 
     object.setLastUpdatedBy(params.getUser());

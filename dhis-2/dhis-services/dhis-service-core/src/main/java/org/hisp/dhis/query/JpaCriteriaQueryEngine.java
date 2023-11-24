@@ -48,7 +48,9 @@ import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,8 +58,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements QueryEngine<T> {
-  private final CurrentUserService currentUserService;
-
   private final QueryPlanner queryPlanner;
 
   private final List<IdentifiableObjectStore<T>> hibernateGenericStores;
@@ -66,24 +66,26 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
 
   private final QueryCacheManager queryCacheManager;
 
+  private final UserService userService;
+
   private Map<Class<?>, IdentifiableObjectStore<T>> stores = new HashMap<>();
 
   public JpaCriteriaQueryEngine(
-      CurrentUserService currentUserService,
+      UserService userService,
       QueryPlanner queryPlanner,
       List<IdentifiableObjectStore<T>> hibernateGenericStores,
       QueryCacheManager queryCacheManager,
       EntityManager entityManager) {
-    checkNotNull(currentUserService);
     checkNotNull(queryPlanner);
     checkNotNull(hibernateGenericStores);
     checkNotNull(entityManager);
+    checkNotNull(userService);
 
-    this.currentUserService = currentUserService;
     this.queryPlanner = queryPlanner;
     this.hibernateGenericStores = hibernateGenericStores;
     this.queryCacheManager = queryCacheManager;
     this.entityManager = entityManager;
+    this.userService = userService;
   }
 
   @Override
@@ -98,8 +100,9 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
       return new ArrayList<>();
     }
 
-    if (query.getUser() == null) {
-      query.setUser(currentUserService.getCurrentUser());
+    if (query.getUsername() == null) {
+      String currentUsername = CurrentUserUtil.getCurrentUsername();
+      query.setUsername(currentUsername);
     }
 
     if (!query.isPlannedQuery()) {
@@ -113,12 +116,16 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
     Root<T> root = criteriaQuery.from(klass);
 
     if (query.isEmpty()) {
+      CurrentUserDetails userDetails =
+          userService.createUserDetails(userService.getUserByUsername(query.getUsername()));
+
       Predicate predicate = builder.conjunction();
-      if (!query.isSkipSharing()) {
+      boolean shareable = schema.isShareable();
+      if (shareable && !query.isSkipSharing()) {
         predicate
             .getExpressions()
             .addAll(
-                store.getSharingPredicates(builder, query.getUser()).stream()
+                store.getSharingPredicates(builder, userDetails).stream()
                     .map(t -> t.apply(root))
                     .collect(Collectors.toList()));
       }
@@ -133,11 +140,14 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
     }
 
     Predicate predicate = buildPredicates(builder, root, query);
-    if (!query.isSkipSharing()) {
+    boolean shareable = schema.isShareable();
+    if (shareable && !query.isSkipSharing()) {
+      CurrentUserDetails userDetails =
+          userService.createUserDetails(userService.getUserByUsername(query.getUsername()));
       predicate
           .getExpressions()
           .addAll(
-              store.getSharingPredicates(builder, query.getUser()).stream()
+              store.getSharingPredicates(builder, userDetails).stream()
                   .map(t -> t.apply(root))
                   .collect(Collectors.toList()));
     }
@@ -181,8 +191,8 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
       return 0;
     }
 
-    if (query.getUser() == null) {
-      query.setUser(currentUserService.getCurrentUser());
+    if (query.getUsername() == null) {
+      query.setUsername(CurrentUserUtil.getCurrentUsername());
     }
 
     if (!query.isPlannedQuery()) {
@@ -199,12 +209,14 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
 
     Predicate predicate = buildPredicates(builder, root, query);
 
+    CurrentUserDetails currentUserDetails =
+        userService.createUserDetails(userService.getUserByUsername(query.getUsername()));
     predicate
         .getExpressions()
         .addAll(
-            store.getSharingPredicates(builder, query.getUser()).stream()
+            store.getSharingPredicates(builder, currentUserDetails).stream()
                 .map(t -> t.apply(root))
-                .collect(Collectors.toList()));
+                .toList());
 
     criteriaQuery.where(predicate);
 

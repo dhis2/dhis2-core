@@ -44,8 +44,9 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,7 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class DefaultEventService implements EventService {
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final EventStore eventStore;
 
@@ -83,8 +84,8 @@ class DefaultEventService implements EventService {
 
   @Override
   public Event getEvent(@Nonnull Event event, EventParams eventParams) throws ForbiddenException {
-    List<String> errors =
-        trackerAccessManager.canRead(currentUserService.getCurrentUser(), event, false);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
     }
@@ -141,14 +142,13 @@ class DefaultEventService implements EventService {
 
     result.getNotes().addAll(event.getNotes());
 
-    User user = currentUserService.getCurrentUser();
     if (eventParams.isIncludeRelationships()) {
       Set<RelationshipItem> relationshipItems = new HashSet<>();
 
       for (RelationshipItem relationshipItem : event.getRelationshipItems()) {
         org.hisp.dhis.relationship.Relationship daoRelationship =
             relationshipItem.getRelationship();
-        if (trackerAccessManager.canRead(user, daoRelationship).isEmpty()
+        if (trackerAccessManager.canRead(currentUser, daoRelationship).isEmpty()
             && (!daoRelationship.isDeleted())) {
           relationshipItems.add(relationshipItem);
         }

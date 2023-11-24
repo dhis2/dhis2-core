@@ -67,7 +67,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
@@ -97,6 +99,8 @@ public class DataValidator {
   private final CalendarService calendarService;
 
   private final AggregateAccessManager accessManager;
+
+  private final UserService userService;
 
   /**
    * Retrieves and verifies a data set.
@@ -239,7 +243,9 @@ public class DataValidator {
     OrganisationUnit organisationUnit =
         idObjectManager.load(OrganisationUnit.class, ErrorCode.E1102, uid);
 
-    boolean isInHierarchy = organisationUnitService.isInUserHierarchyCached(organisationUnit);
+    boolean isInHierarchy =
+        organisationUnitService.isInUserHierarchyCached(
+            userService.getUserByUsername(CurrentUserUtil.getCurrentUsername()), organisationUnit);
 
     if (!isInHierarchy) {
       throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2020, uid));
@@ -553,7 +559,7 @@ public class DataValidator {
    */
   public void checkCategoryOptionComboAccess(User user, CategoryOptionCombo categoryOptionCombo) {
     final List<String> categoryOptionComboErrors =
-        accessManager.canWriteCached(user, categoryOptionCombo);
+        accessManager.canWriteCached(user.getUsername(), categoryOptionCombo);
 
     if (!categoryOptionComboErrors.isEmpty()) {
       String arg = String.format("%s %s", categoryOptionCombo.getUid(), categoryOptionComboErrors);
@@ -570,7 +576,7 @@ public class DataValidator {
    * @throws WebMessageException if the validation fails.
    */
   public void checkDataValueSharing(User user, DataValue dataValue) throws WebMessageException {
-    final List<String> errors = accessManager.canRead(user, dataValue);
+    final List<String> errors = accessManager.canRead(user.getUsername(), dataValue);
 
     if (!errors.isEmpty()) {
       throw new WebMessageException(forbidden(errors.toString()));

@@ -39,7 +39,9 @@ import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -57,7 +59,7 @@ public class GridAdaptor {
 
   private final SchemeIdResponseMapper schemeIdResponseMapper;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   /**
    * Based on the given headers and result map, this method takes care of the logic needed to create
@@ -85,9 +87,10 @@ public class GridAdaptor {
     // Adding rows.
     sqlQueryResult.ifPresent(queryResult -> grid.addNamedRows(queryResult.result()));
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     // Adding metadata info.
-    metadataParamsHandler.handle(
-        grid, teiQueryParams.getCommonParams(), currentUserService.getCurrentUser(), rowsCount);
+    metadataParamsHandler.handle(grid, teiQueryParams.getCommonParams(), currentUser, rowsCount);
 
     schemeIdResponseMapper.applyCustomIdScheme(teiQueryParams.getCommonParams(), grid);
     schemeIdResponseMapper.applyOptionAndLegendSetMapping(

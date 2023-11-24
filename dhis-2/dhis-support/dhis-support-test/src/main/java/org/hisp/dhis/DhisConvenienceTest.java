@@ -190,6 +190,7 @@ import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
@@ -293,6 +294,25 @@ public abstract class DhisConvenienceTest {
   // -------------------------------------------------------------------------
   // Convenience methods
   // -------------------------------------------------------------------------
+  public User getCurrentUser() {
+    return userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+  }
+
+  //  public long addOrganisationUnit(OrganisationUnitService service, OrganisationUnit
+  // organisationUnit) {
+  //    service.save(organisationUnit);
+  //
+  //    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+  //
+  //    if (organisationUnit.getParent() == null && currentUser != null) {
+  //      // Adding a new root node, add this node to the current user
+  //      currentUser.getOrganisationUnits().add(organisationUnit);
+  //      // TODO: MAS: Should we not update the user here?
+  //      userService.updateUser(currentUser);
+  //    }
+  //
+  //    return organisationUnit.getId();
+  //  }
 
   /**
    * Creates a date.

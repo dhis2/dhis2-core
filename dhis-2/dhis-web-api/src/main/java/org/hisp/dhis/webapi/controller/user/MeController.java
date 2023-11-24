@@ -80,6 +80,7 @@ import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
@@ -162,8 +163,9 @@ public class MeController {
   public @ResponseBody ResponseEntity<JsonNode> getCurrentUser(
       @CurrentUser(required = true) User user,
       @RequestParam(defaultValue = "*") List<String> fields) {
+
     if (fieldsContains("access", fields)) {
-      Access access = aclService.getAccess(user, user);
+      Access access = aclService.getAccess(user, user.getUsername());
       user.setAccess(access);
     }
 
@@ -173,8 +175,11 @@ public class MeController {
     List<String> programs =
         programService.getCurrentUserPrograms().stream().map(IdentifiableObject::getUid).toList();
 
+    CurrentUserDetails userDetails = userService.createUserDetails(user);
     List<String> dataSets =
-        dataSetService.getUserDataRead(user).stream().map(IdentifiableObject::getUid).toList();
+        dataSetService.getUserDataRead(userDetails).stream()
+            .map(IdentifiableObject::getUid)
+            .toList();
 
     List<ApiToken> patTokens = apiTokenService.getAllOwning(user);
 
@@ -313,7 +318,8 @@ public class MeController {
       throw new ConflictException("Key is not supported: " + key);
     }
 
-    Serializable value = userSettingService.getUserSetting(keyEnum.get(), currentUser);
+    Serializable value =
+        userSettingService.getUserSetting(keyEnum.get(), currentUser.getUsername());
 
     if (value == null) {
       throw new NotFoundException("User setting not found for key: " + key);

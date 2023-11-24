@@ -37,12 +37,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
-import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserSettingService;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -55,18 +50,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultMessageServiceTest {
-
-  @Mock private MessageConversationStore messageConversationStore;
-
-  @Mock private CurrentUserService currentUserService;
-
-  @Mock private ConfigurationService configurationService;
-
-  @Mock private UserSettingService userSettingService;
-
-  @Mock private I18nManager i18nManager;
-
-  @Mock private SystemSettingManager systemSettingManager;
 
   @Mock private DhisConfigurationProvider configurationProvider;
 

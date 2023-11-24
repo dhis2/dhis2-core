@@ -51,8 +51,10 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.ValidationResultsDeletionRequest;
@@ -69,16 +71,17 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.validation.ValidationResultStore")
 public class HibernateValidationResultStore extends HibernateGenericStore<ValidationResult>
     implements ValidationResultStore {
-  private final CurrentUserService currentUserService;
+
+  private final UserService userService;
 
   public HibernateValidationResultStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService) {
+      UserService userService) {
     super(entityManager, jdbcTemplate, publisher, ValidationResult.class, true);
-    checkNotNull(currentUserService);
-    this.currentUserService = currentUserService;
+    checkNotNull(userService);
+    this.userService = userService;
   }
 
   @Override
@@ -287,9 +290,8 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
    * @return String to add restrictions to the HQL query.
    */
   private String getUserRestrictions(SqlHelper sqlHelper) {
-    final User user = currentUserService.getCurrentUser();
-
-    if (user == null || currentUserService.currentUserIsSuper()) {
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    if (currentUserDetails == null || currentUserDetails.isSuper()) {
       return "";
     }
 
@@ -299,6 +301,7 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
     // Restrict by the user's organisation unit sub-trees, if any
     // ---------------------------------------------------------------------
 
+    User user = userService.getUserByUsername(currentUserDetails.getUsername());
     Set<OrganisationUnit> userOrgUnits = user.getDataViewOrganisationUnitsWithFallback();
 
     if (!userOrgUnits.isEmpty()) {

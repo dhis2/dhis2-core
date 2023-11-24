@@ -61,12 +61,25 @@ public interface CurrentUserDetails extends UserDetails {
 
   String getUid();
 
-  /**
-   * Set of UserGroup UID which current User belongs to.
-   *
-   * @return
-   */
+  Long getId();
+
+  String getCode();
+
+  String getFirstName();
+
+  String getSurname();
+
   Set<String> getUserGroupIds();
 
+  Set<String> getAllAuthorities();
+
+  Set<String> getUserOrgUnitIds();
+
+  boolean hasAnyAuthority(Collection<String> auths);
+
+  boolean isAuthorized(String auth);
+
   Map<String, Serializable> getUserSettings();
+
+  Set<String> getUserRoleIds();
 }

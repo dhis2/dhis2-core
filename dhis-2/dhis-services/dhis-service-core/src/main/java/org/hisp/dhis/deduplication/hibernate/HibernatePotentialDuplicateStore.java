@@ -74,6 +74,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditStore;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -291,7 +292,8 @@ public class HibernatePotentialDuplicateStore
         e -> {
           e.setTrackedEntity(original);
           e.setLastUpdatedBy(getCurrentUser());
-          e.setLastUpdatedByUserInfo(UserInfoSnapshot.from(getCurrentUser()));
+          e.setLastUpdatedByUserInfo(
+              UserInfoSnapshot.from(CurrentUserDetailsImpl.fromUser(getCurrentUser())));
           e.setLastUpdated(new Date());
           getSession().update(e);
         });

@@ -30,6 +30,7 @@ package org.hisp.dhis.commons.action;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Lars Helge Overland
@@ -77,7 +78,7 @@ public class GetIndicatorAction extends BaseAction implements Action {
       indicator = indicatorService.getIndicator(id);
     }
 
-    canReadInstance(indicator, currentUserService.getCurrentUser());
+    canReadInstance(indicator, CurrentUserUtil.getCurrentUsername());
 
     return SUCCESS;
   }

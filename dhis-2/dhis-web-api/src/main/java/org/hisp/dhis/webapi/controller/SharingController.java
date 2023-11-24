@@ -60,7 +60,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -96,8 +96,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class SharingController {
   public static final String RESOURCE_PATH = "/sharing";
 
-  @Autowired private CurrentUserService currentUserService;
-
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private UserGroupService userGroupService;
@@ -129,16 +127,16 @@ public class SharingController {
           notFound("Object of type " + type + " with ID " + id + " was not found."));
     }
 
-    User user = currentUserService.getCurrentUser();
+    String username = CurrentUserUtil.getCurrentUsername();
 
-    if (!aclService.canRead(user, object)) {
+    if (!aclService.canRead(username, object)) {
       throw new AccessDeniedException("You do not have manage access to this object.");
     }
 
     Sharing sharing = new Sharing();
 
-    sharing.getMeta().setAllowPublicAccess(aclService.canMakePublic(user, object));
-    sharing.getMeta().setAllowExternalAccess(aclService.canMakeExternal(user, object));
+    sharing.getMeta().setAllowPublicAccess(aclService.canMakePublic(username, object));
+    sharing.getMeta().setAllowExternalAccess(aclService.canMakeExternal(username, object));
 
     sharing.getObject().setId(object.getUid());
     sharing.getObject().setName(object.getDisplayName());
@@ -148,7 +146,7 @@ public class SharingController {
     if (object.getSharing().getPublicAccess() == null) {
       String access;
 
-      if (aclService.canMakeClassPublic(user, klass)) {
+      if (aclService.canMakeClassPublic(username, klass)) {
         access =
             AccessStringHelper.newInstance()
                 .enable(AccessStringHelper.Permission.READ)
@@ -236,9 +234,9 @@ public class SharingController {
               + " cannot be modified.");
     }
 
-    User user = currentUserService.getCurrentUser();
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
 
-    if (!aclService.canManage(user, object)) {
+    if (!aclService.canManage(currentUsername, object)) {
       throw new AccessDeniedException("You do not have manage access to this object.");
     }
 
@@ -252,7 +250,7 @@ public class SharingController {
     // Ignore externalAccess if user is not allowed to make objects external
     // ---------------------------------------------------------------------
 
-    if (aclService.canMakeExternal(user, object)) {
+    if (aclService.canMakeExternal(currentUsername, object)) {
       object.getSharing().setExternal(sharing.getObject().hasExternalAccess());
     }
 
@@ -262,7 +260,7 @@ public class SharingController {
 
     Schema schema = schemaService.getDynamicSchema(sharingClass);
 
-    if (aclService.canMakePublic(user, object)) {
+    if (aclService.canMakePublic(currentUsername, object)) {
       object.getSharing().setPublicAccess(sharing.getObject().getPublicAccess());
     }
 
@@ -276,7 +274,8 @@ public class SharingController {
     }
 
     if (object.getCreatedBy() == null) {
-      object.setCreatedBy(user);
+      // TODO: CREATEDBYUSERREF
+      //      object.setCreatedBy(user);
     }
 
     object.getSharing().getUserGroups().clear();
@@ -343,7 +342,7 @@ public class SharingController {
           sharing.getObject().getUserGroupAccesses());
     }
 
-    log.info(SharingUtils.sharingToString(object, currentUserService.getCurrentUsername()));
+    log.info(SharingUtils.sharingToString(object, currentUsername));
 
     return ok("Access control set");
   }

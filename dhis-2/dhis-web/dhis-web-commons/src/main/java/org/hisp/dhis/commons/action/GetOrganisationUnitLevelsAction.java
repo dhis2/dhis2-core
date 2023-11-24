@@ -32,7 +32,7 @@ import java.util.List;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Tran Thanh Tri
@@ -69,8 +69,8 @@ public class GetOrganisationUnitLevelsAction extends ActionPagingSupport<Organis
 
     organisationUnitLevels = new ArrayList<>(organisationUnitService.getOrganisationUnitLevels());
 
-    User currentUser = currentUserService.getCurrentUser();
-    organisationUnitLevels.forEach(instance -> canReadInstance(instance, currentUser));
+    organisationUnitLevels.forEach(
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
 
     if (usePaging) {
       this.paging = createPaging(organisationUnitLevels.size());

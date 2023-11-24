@@ -55,15 +55,9 @@ public interface IdentifiableObjectManager {
 
   void update(@Nonnull IdentifiableObject object);
 
-  void update(@Nonnull IdentifiableObject object, @CheckForNull User user);
-
   void update(@Nonnull List<IdentifiableObject> objects);
 
-  void update(@Nonnull List<IdentifiableObject> objects, @CheckForNull User user);
-
   void delete(@Nonnull IdentifiableObject object);
-
-  void delete(@Nonnull IdentifiableObject object, @CheckForNull User user);
 
   /**
    * Lookup objects of unknown type.

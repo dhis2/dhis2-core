@@ -63,7 +63,6 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -99,7 +98,6 @@ public class DataValueSMSListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       EventService eventService,
       UserService userService,
-      CurrentUserService currentUserService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       CompleteDataSetRegistrationService registrationService,
@@ -113,7 +111,6 @@ public class DataValueSMSListener extends CommandSMSListener {
         dataElementCategoryService,
         eventService,
         userService,
-        currentUserService,
         incomingSmsService,
         smsSender);
 

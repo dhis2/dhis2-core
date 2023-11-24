@@ -52,7 +52,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.util.DateUtils;
@@ -78,8 +77,6 @@ public class PdfFormController {
   // -------------------------------------------------------------------------
   // Dependencies
   // -------------------------------------------------------------------------
-
-  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private Notifier notifier;
 
@@ -147,7 +144,7 @@ public class PdfFormController {
         new JobConfiguration(
             "inMemoryDataValueImport",
             JobType.DATAVALUE_IMPORT,
-            currentUserService.getCurrentUser().getUid());
+            CurrentUserUtil.getCurrentUserDetails().getUid());
 
     notifier.clear(jobId);
 

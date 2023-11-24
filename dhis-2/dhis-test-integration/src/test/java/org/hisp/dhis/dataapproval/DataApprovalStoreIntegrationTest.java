@@ -53,7 +53,6 @@ import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -63,7 +62,6 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,7 +107,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
   @Autowired private SystemSettingManager systemSettingManager;
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
 
   // -------------------------------------------------------------------------
   // Supporting data
@@ -165,11 +163,11 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
             cacheProvider,
             periodService,
             periodStore,
-            currentUserService,
             categoryService,
             systemSettingManager,
             new PostgreSQLStatementBuilder(),
-            organisationUnitService);
+            organisationUnitService,
+            userService);
 
     // ---------------------------------------------------------------------
     // Add supporting data
@@ -271,7 +269,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
           dataApprovalLevelService.addDataApprovalLevel(level1);
 
-          Mockito.when(currentUserService.getCurrentUser()).thenReturn(userA);
+          Mockito.when(getCurrentUser()).thenReturn(userA);
 
           assertEquals(
               1,
@@ -493,7 +491,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
     dataApprovalLevelService.addDataApprovalLevel(level1);
 
-    Mockito.when(currentUserService.getCurrentUser()).thenReturn(userA);
+    Mockito.when(getCurrentUser()).thenReturn(userA);
 
     assertEquals(
         expectedApprovalCount,

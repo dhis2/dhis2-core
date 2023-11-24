@@ -29,10 +29,10 @@ package org.hisp.dhis.webapi.mvc;
 
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -49,7 +49,8 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 @Component
 @AllArgsConstructor
 public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
-  private final @Lazy CurrentUserService currentUserService;
+
+  private final UserService userService;
 
   @Override
   public boolean supportsParameter(MethodParameter parameter) {
@@ -67,15 +68,15 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
       throws Exception {
     Class<?> type = parameter.getParameterType();
     if (type == String.class) {
-      return currentUserService.getCurrentUsername();
+      return CurrentUserUtil.getCurrentUsername();
     }
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     CurrentUser annotation = parameter.getParameterAnnotation(CurrentUser.class);
-    if (user == null && annotation != null && annotation.required()) {
+    if (currentUser == null && annotation != null && annotation.required()) {
       throw new NotAuthenticatedException();
     }
     if (User.class.isAssignableFrom(type)) {
-      return user;
+      return currentUser;
     }
     throw new UnsupportedOperationException("Not yet supported @CurrentUser type: " + type);
   }

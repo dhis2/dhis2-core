@@ -57,7 +57,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -91,13 +91,13 @@ class AbstractAnalyticsServiceTest {
 
   @Mock private SchemeIdResponseMapper schemeIdResponseMapper;
 
-  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @BeforeEach
   public void setUp() {
     dummyAnalyticsService =
         new DummyAnalyticsService(
-            securityManager, eventQueryValidator, schemeIdResponseMapper, currentUserService);
+            securityManager, eventQueryValidator, schemeIdResponseMapper, userService);
 
     peA = MonthlyPeriodType.getPeriodFromIsoString("201701");
     ouA = createOrganisationUnit('A');
@@ -254,8 +254,8 @@ class DummyAnalyticsService extends AbstractAnalyticsService {
       AnalyticsSecurityManager securityManager,
       EventQueryValidator queryValidator,
       SchemeIdResponseMapper schemeIdResponseMapper,
-      CurrentUserService currentUserService) {
-    super(securityManager, queryValidator, schemeIdResponseMapper, currentUserService);
+      UserService userService) {
+    super(securityManager, queryValidator, schemeIdResponseMapper, userService);
   }
 
   @Override

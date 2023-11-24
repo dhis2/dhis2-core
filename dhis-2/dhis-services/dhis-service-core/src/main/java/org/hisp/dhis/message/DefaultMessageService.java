@@ -53,9 +53,10 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.velocity.VelocityManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
@@ -85,7 +86,7 @@ public class DefaultMessageService implements MessageService {
 
   private final MessageConversationStore messageConversationStore;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final ConfigurationService configurationService;
 
@@ -106,7 +107,7 @@ public class DefaultMessageService implements MessageService {
   @Override
   @Transactional
   public long sendTicketMessage(String subject, String text, String metaData) {
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     MessageConversationParams params =
         new MessageConversationParams.Builder()
@@ -130,7 +131,7 @@ public class DefaultMessageService implements MessageService {
       String text,
       String metaData,
       Set<FileResource> attachments) {
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     MessageConversationParams params =
         new MessageConversationParams.Builder()
@@ -245,7 +246,7 @@ public class DefaultMessageService implements MessageService {
       String metaData,
       boolean internal,
       Set<FileResource> attachments) {
-    User sender = currentUserService.getCurrentUser();
+    User sender = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     Message message = new Message(text, metaData, sender, internal);
 
@@ -279,7 +280,7 @@ public class DefaultMessageService implements MessageService {
 
     UserGroup userGroup = dataSet.getNotificationRecipients();
 
-    User sender = currentUserService.getCurrentUser();
+    User sender = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     // data set completed through sms
     if (sender == null) {
@@ -351,10 +352,10 @@ public class DefaultMessageService implements MessageService {
       return null;
     }
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    mc.setFollowUp(mc.isFollowUp(user));
-    mc.setRead(mc.isRead(user));
+    mc.setFollowUp(mc.isFollowUp(currentUser));
+    mc.setRead(mc.isRead(currentUser));
 
     return messageConversationStore.getByUid(uid);
   }
@@ -362,8 +363,8 @@ public class DefaultMessageService implements MessageService {
   @Override
   @Transactional(readOnly = true)
   public long getUnreadMessageConversationCount() {
-    return messageConversationStore.getUnreadUserMessageConversationCount(
-        currentUserService.getCurrentUser());
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    return messageConversationStore.getUnreadUserMessageConversationCount(currentUser);
   }
 
   @Override
@@ -375,15 +376,17 @@ public class DefaultMessageService implements MessageService {
   @Override
   @Transactional(readOnly = true)
   public List<MessageConversation> getMessageConversations() {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return messageConversationStore.getMessageConversations(
-        currentUserService.getCurrentUser(), null, false, false, null, null);
+        currentUser, null, false, false, null, null);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<MessageConversation> getMessageConversations(int first, int max) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return messageConversationStore.getMessageConversations(
-        currentUserService.getCurrentUser(), null, false, false, first, max);
+        currentUser, null, false, false, first, max);
   }
 
   @Override
@@ -419,15 +422,15 @@ public class DefaultMessageService implements MessageService {
   @Override
   @Transactional(readOnly = true)
   public List<UserMessage> getLastRecipients(int first, int max) {
-    return messageConversationStore.getLastRecipients(
-        currentUserService.getCurrentUser(), first, max);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    return messageConversationStore.getLastRecipients(currentUser, first, max);
   }
 
   @Override
   @Transactional(readOnly = true)
   public boolean hasAccessToManageFeedbackMessages(User user) {
-    user = (user == null ? currentUserService.getCurrentUser() : user);
-
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    user = (user == null ? currentUser : user);
     return configurationService.isUserInFeedbackRecipientUserGroup(user)
         || user.isAuthorized("ALL");
   }
@@ -483,7 +486,7 @@ public class DefaultMessageService implements MessageService {
     Locale locale =
         (Locale)
             userSettingService.getUserSetting(
-                UserSettingKey.UI_LOCALE, conversation.getCreatedBy());
+                UserSettingKey.UI_LOCALE, conversation.getCreatedBy().getUsername());
 
     locale = ObjectUtils.firstNonNull(locale, LocaleManager.DEFAULT_LOCALE);
 

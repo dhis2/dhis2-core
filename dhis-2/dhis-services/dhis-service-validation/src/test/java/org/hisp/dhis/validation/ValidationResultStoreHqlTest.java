@@ -55,8 +55,8 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.hisp.dhis.validation.hibernate.HibernateValidationResultStore;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,7 +81,7 @@ class ValidationResultStoreHqlTest {
 
   private ValidationResultStore store;
 
-  private CurrentUserService currentUserService;
+  private UserService userService;
 
   @BeforeEach
   void setUp() {
@@ -90,10 +90,8 @@ class ValidationResultStoreHqlTest {
     Session session = mock(Session.class);
     ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
     when(entityManager.unwrap(Session.class)).thenReturn(session);
-    currentUserService = mock(CurrentUserService.class);
-    store =
-        new HibernateValidationResultStore(
-            entityManager, jdbcTemplate, publisher, currentUserService);
+    userService = mock(UserService.class);
+    store = new HibernateValidationResultStore(entityManager, jdbcTemplate, publisher, userService);
     when(session.createQuery(anyString()))
         .then(
             createQueryInvocation -> {
@@ -121,7 +119,7 @@ class ValidationResultStoreHqlTest {
 
   private void setUpUser(String orgUnitUid, Category category, CategoryOptionGroupSet groupSet) {
     User user = new User();
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(getCurrentUser()).thenReturn(user);
     user.setGroups(emptySet());
     OrganisationUnit unit = new OrganisationUnit();
     unit.setUid(orgUnitUid);

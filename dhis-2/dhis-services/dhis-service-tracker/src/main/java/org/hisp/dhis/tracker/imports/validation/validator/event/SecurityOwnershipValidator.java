@@ -276,7 +276,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     checkNotNull(program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL);
     checkNotNull(trackedEntity, TRACKED_ENTITY_CANT_BE_NULL);
 
-    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+    if (!aclService.canDataRead(user.getUsername(), program.getTrackedEntityType())) {
       reporter.addError(dto, ValidationCode.E1104, user, program, program.getTrackedEntityType());
     }
 
@@ -343,7 +343,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(program, PROGRAM_CANT_BE_NULL);
 
-    if (!aclService.canDataRead(user, program)) {
+    if (!aclService.canDataRead(user.getUsername(), program)) {
       reporter.addError(dto, ValidationCode.E1096, user, program);
     }
   }
@@ -353,7 +353,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(programStage, PROGRAM_STAGE_CANT_BE_NULL);
 
-    if (!aclService.canDataWrite(user, programStage)) {
+    if (!aclService.canDataWrite(user.getUsername(), programStage)) {
       reporter.addError(dto, ValidationCode.E1095, user, programStage);
     }
   }
@@ -363,7 +363,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(program, PROGRAM_CANT_BE_NULL);
 
-    if (!aclService.canDataWrite(user, program)) {
+    if (!aclService.canDataWrite(user.getUsername(), program)) {
       reporter.addError(dto, ValidationCode.E1091, user, program);
     }
   }
@@ -375,7 +375,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
         categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL);
 
     for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
-      if (!aclService.canDataWrite(user, categoryOption)) {
+      if (!aclService.canDataWrite(user.getUsername(), categoryOption)) {
         reporter.addError(dto, ValidationCode.E1099, user, categoryOption);
       }
     }

@@ -76,10 +76,11 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserService;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
@@ -99,8 +100,6 @@ public class DefaultPreheatService implements PreheatService {
 
   private final IdentifiableObjectManager manager;
 
-  private final CurrentUserService currentUserService;
-
   private final PeriodStore periodStore;
 
   private final PeriodService periodService;
@@ -110,6 +109,8 @@ public class DefaultPreheatService implements PreheatService {
   private final MergeService mergeService;
 
   private final SchemaToDataFetcher schemaToDataFetcher;
+
+  private final UserService userService;
 
   @Override
   @Transactional(readOnly = true)
@@ -121,7 +122,8 @@ public class DefaultPreheatService implements PreheatService {
     preheat.setDefaults(manager.getDefaults());
 
     if (preheat.getUser() == null) {
-      preheat.setUser(currentUserService.getCurrentUser());
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+      preheat.setUser(currentUser);
     }
 
     preheat.put(PreheatIdentifier.UID, preheat.getUser());
@@ -149,7 +151,7 @@ public class DefaultPreheatService implements PreheatService {
         if (!identifiers.isEmpty()) {
           for (List<String> ids : identifiers) {
             Query query = Query.from(schemaService.getDynamicSchema(klass));
-            query.setUser(preheat.getUser());
+            query.setUsername(preheat.getUsername());
             query.setSkipSharing(true);
             query.add(Restrictions.in("id", ids));
             List<? extends IdentifiableObject> objects = queryService.query(query);
@@ -167,7 +169,7 @@ public class DefaultPreheatService implements PreheatService {
         if (!identifiers.isEmpty()) {
           for (List<String> ids : identifiers) {
             Query query = Query.from(schemaService.getDynamicSchema(klass));
-            query.setUser(preheat.getUser());
+            query.setUsername(preheat.getUsername());
             query.add(Restrictions.in("code", ids));
             List<? extends IdentifiableObject> objects = queryService.query(query);
             preheat.put(PreheatIdentifier.CODE, objects);
@@ -181,7 +183,7 @@ public class DefaultPreheatService implements PreheatService {
 
         for (List<String> ids : identifiers) {
           Query query = Query.from(schemaService.getDynamicSchema(User.class));
-          query.setUser(preheat.getUser());
+          query.setUsername(preheat.getUsername());
           query.add(Restrictions.in("id", ids));
           List<? extends IdentifiableObject> objects = queryService.query(query);
           preheat.put(PreheatIdentifier.UID, objects);
@@ -194,7 +196,7 @@ public class DefaultPreheatService implements PreheatService {
 
         for (List<String> ids : identifiers) {
           Query query = Query.from(schemaService.getDynamicSchema(UserRole.class));
-          query.setUser(preheat.getUser());
+          query.setUsername(preheat.getUsername());
           query.add(Restrictions.in("id", ids));
           List<? extends IdentifiableObject> objects = queryService.query(query);
           preheat.put(PreheatIdentifier.UID, objects);
@@ -863,7 +865,8 @@ public class DefaultPreheatService implements PreheatService {
   @Transactional(readOnly = true)
   public void refresh(IdentifiableObject object) {
     PreheatParams preheatParams = new PreheatParams();
-    preheatParams.setUser(currentUserService.getCurrentUser());
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    preheatParams.setUser(currentUser);
     preheatParams.addObject(object);
 
     Preheat preheat = preheat(preheatParams);

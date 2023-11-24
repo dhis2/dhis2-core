@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.security.config;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.appmanager.AppManager;
@@ -35,7 +36,6 @@ import org.hisp.dhis.oust.manager.DefaultSelectionTreeManager;
 import org.hisp.dhis.ouwt.manager.DefaultOrganisationUnitSelectionManager;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.SpringSecurityActionAccessResolver;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.security.action.RestrictOrganisationUnitsAction;
@@ -51,7 +51,12 @@ import org.hisp.dhis.security.authority.SimpleSystemAuthoritiesProvider;
 import org.hisp.dhis.security.intercept.LoginInterceptor;
 import org.hisp.dhis.security.intercept.XWorkSecurityInterceptor;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.security.vote.ActionAccessVoter;
+import org.hisp.dhis.security.vote.ModuleAccessVoter;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.security.ExternalAccessVoter;
+import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
+import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
 import org.hisp.dhis.webportal.module.ModuleManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -60,6 +65,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.vote.AuthenticatedVoter;
+import org.springframework.security.access.vote.UnanimousBased;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.access.expression.WebExpressionVoter;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -68,27 +77,76 @@ import org.springframework.security.access.AccessDecisionManager;
 @Order(3200)
 public class AuthoritiesProviderConfig {
 
-  @Autowired private SecurityService securityService;
-
   @Autowired private ModuleManager moduleManager;
 
   @Autowired private SchemaService schemaService;
 
   @Autowired private AppManager appManager;
 
-  @Autowired
-  @Qualifier("org.hisp.dhis.user.CurrentUserService")
-  public CurrentUserService currentUserService;
-
-  @Autowired
-  @Qualifier("accessDecisionManager")
-  public AccessDecisionManager accessDecisionManager;
+  @Autowired private UserService userService;
 
   @Autowired public TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
   @Autowired
   @Qualifier("org.hisp.dhis.organisationunit.OrganisationUnitService")
   public OrganisationUnitService organisationUnitService;
+
+  @Autowired private ExternalAccessVoter externalAccessVoter;
+
+  @Bean
+  public ActionAccessVoter actionAccessVoter() {
+    ActionAccessVoter voter = new ActionAccessVoter();
+    voter.setAttributePrefix("F_");
+    voter.setRequiredAuthoritiesKey("requiredAuthorities");
+    voter.setAnyAuthoritiesKey("anyAuthorities");
+    return voter;
+  }
+
+  @Bean
+  public ModuleAccessVoter moduleAccessVoter() {
+    ModuleAccessVoter voter = new ModuleAccessVoter();
+    voter.setAttributePrefix("M_");
+    voter.setAlwaysAccessible(
+        Set.of(
+            "dhis-web-commons-menu",
+            "dhis-web-commons-oust",
+            "dhis-web-commons-ouwt",
+            "dhis-web-commons-security",
+            "dhis-web-commons-i18n",
+            "dhis-web-commons-ajax",
+            "dhis-web-commons-ajax-json",
+            "dhis-web-commons-ajax-html",
+            "dhis-web-commons-stream",
+            "dhis-web-commons-help",
+            "dhis-web-commons-about",
+            "dhis-web-menu-management",
+            "dhis-web-apps",
+            "dhis-web-api-mobile",
+            "dhis-web-portal",
+            "dhis-web-uaa"));
+    return voter;
+  }
+
+  @Bean
+  public WebExpressionVoter webExpressionVoter() {
+    DefaultWebSecurityExpressionHandler h = new DefaultWebSecurityExpressionHandler();
+    h.setDefaultRolePrefix("");
+    WebExpressionVoter voter = new WebExpressionVoter();
+    voter.setExpressionHandler(h);
+    return voter;
+  }
+
+  @Bean("accessDecisionManager")
+  public LogicalOrAccessDecisionManager accessDecisionManager() {
+    List<AccessDecisionManager> decisionVoters =
+        Arrays.asList(
+            new UnanimousBased(List.of(new SimpleAccessVoter("ALL"))),
+            new UnanimousBased(List.of(actionAccessVoter(), moduleAccessVoter())),
+            new UnanimousBased(List.of(webExpressionVoter())),
+            new UnanimousBased(List.of(externalAccessVoter)),
+            new UnanimousBased(List.of(new AuthenticatedVoter())));
+    return new LogicalOrAccessDecisionManager(decisionVoters);
+  }
 
   @Primary
   @Bean("org.hisp.dhis.security.SystemAuthoritiesProvider")
@@ -155,21 +213,22 @@ public class AuthoritiesProviderConfig {
 
   @Bean("org.hisp.dhis.security.intercept.XWorkSecurityInterceptor")
   public XWorkSecurityInterceptor xWorkSecurityInterceptor() throws Exception {
+    LogicalOrAccessDecisionManager accessDecisionManager = accessDecisionManager();
+
     DefaultRequiredAuthoritiesProvider provider = new DefaultRequiredAuthoritiesProvider();
     provider.setRequiredAuthoritiesKey("requiredAuthorities");
     provider.setAnyAuthoritiesKey("anyAuthorities");
     provider.setGlobalAttributes(Set.of("M_MODULE_ACCESS_VOTER_ENABLED"));
 
     SpringSecurityActionAccessResolver resolver = new SpringSecurityActionAccessResolver();
-    resolver.setRequiredAuthoritiesProvider(provider);
-    resolver.setAccessDecisionManager(accessDecisionManager);
+    //    resolver.setRequiredAuthoritiesProvider(provider);
+    //    resolver.setAccessDecisionManager(accessDecisionManager);
 
     XWorkSecurityInterceptor interceptor = new XWorkSecurityInterceptor();
     interceptor.setAccessDecisionManager(accessDecisionManager);
     interceptor.setValidateConfigAttributes(false);
     interceptor.setRequiredAuthoritiesProvider(provider);
     interceptor.setActionAccessResolver(resolver);
-    interceptor.setSecurityService(securityService);
 
     return interceptor;
   }
@@ -177,7 +236,8 @@ public class AuthoritiesProviderConfig {
   @Bean("org.hisp.dhis.security.intercept.LoginInterceptor")
   public LoginInterceptor loginInterceptor() {
     RestrictOrganisationUnitsAction unitsAction = new RestrictOrganisationUnitsAction();
-    unitsAction.setCurrentUserService(currentUserService);
+    unitsAction.setUserService(userService);
+
     DefaultOrganisationUnitSelectionManager selectionManager =
         new DefaultOrganisationUnitSelectionManager();
     selectionManager.setOrganisationUnitService(organisationUnitService);

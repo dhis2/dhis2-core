@@ -41,8 +41,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,8 +56,6 @@ public class DefaultProgramService implements ProgramService {
   private final ProgramStore programStore;
 
   private final IdentifiableObjectManager idObjectManager;
-
-  private final CurrentUserService currentUserService;
 
   @Qualifier("jdbcProgramOrgUnitAssociationsStore")
   private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
@@ -130,12 +128,13 @@ public class DefaultProgramService implements ProgramService {
   @Override
   @Transactional(readOnly = true)
   public List<Program> getCurrentUserPrograms() {
-    User user = currentUserService.getCurrentUser();
-    if (user == null || user.isSuper()) {
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+
+    if (currentUserDetails == null || currentUserDetails.isSuper()) {
       return getAllPrograms();
     }
 
-    return programStore.getDataReadAll(user);
+    return programStore.getDataReadAll(currentUserDetails);
   }
 
   // -------------------------------------------------------------------------

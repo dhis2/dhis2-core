@@ -50,8 +50,9 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,7 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class EnrollmentCriteriaMapper {
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final OrganisationUnitService organisationUnitService;
 
@@ -114,10 +115,10 @@ public class EnrollmentCriteriaMapper {
 
     Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (user != null) {
-      possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+    if (currentUser != null) {
+      possibleSearchOrgUnits = currentUser.getTeiSearchOrganisationUnitsWithFallback();
     }
 
     if (ou != null) {
@@ -135,8 +136,8 @@ public class EnrollmentCriteriaMapper {
           throw new IllegalQueryException("Organisation unit does not exist: " + orgUnit);
         }
 
-        if (user != null
-            && !user.isSuper()
+        if (currentUser != null
+            && !currentUser.isSuper()
             && !organisationUnitService.isInUserHierarchy(
                 organisationUnit.getUid(), possibleSearchOrgUnits)) {
           throw new IllegalQueryException(
@@ -148,9 +149,9 @@ public class EnrollmentCriteriaMapper {
     }
 
     if (ouMode == ALL
-        && (user != null
-            && !user.isSuper()
-            && !user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS))) {
+        && (currentUser != null
+            && !currentUser.isSuper()
+            && !currentUser.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS))) {
       throw new IllegalQueryException(
           "Current user is not authorized to query across all organisation units");
     }
@@ -195,7 +196,7 @@ public class EnrollmentCriteriaMapper {
     params.setTotalPages(totalPages);
     params.setSkipPaging(skipPaging);
     params.setIncludeDeleted(includeDeleted);
-    params.setUser(user);
+    params.setUser(currentUser);
     params.setOrder(toOrderParams(orderCriteria));
 
     return params;

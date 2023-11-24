@@ -59,8 +59,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,7 +71,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component("org.hisp.dhis.webapi.controller.deprecated.tracker.TrackedEntityInstanceCriteriaMapper")
 public class TrackedEntityInstanceCriteriaMapper {
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final OrganisationUnitService organisationUnitService;
 
@@ -81,18 +82,18 @@ public class TrackedEntityInstanceCriteriaMapper {
   private final TrackedEntityAttributeService attributeService;
 
   public TrackedEntityInstanceCriteriaMapper(
-      CurrentUserService currentUserService,
+      UserService userService,
       OrganisationUnitService organisationUnitService,
       ProgramService programService,
       TrackedEntityAttributeService attributeService,
       TrackedEntityTypeService trackedEntityTypeService) {
-    checkNotNull(currentUserService);
+    checkNotNull(userService);
     checkNotNull(organisationUnitService);
     checkNotNull(programService);
     checkNotNull(attributeService);
     checkNotNull(trackedEntityTypeService);
 
-    this.currentUserService = currentUserService;
+    this.userService = userService;
     this.organisationUnitService = organisationUnitService;
     this.programService = programService;
     this.attributeService = attributeService;
@@ -113,10 +114,9 @@ public class TrackedEntityInstanceCriteriaMapper {
 
     Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
 
-    User user = currentUserService.getCurrentUser();
-
-    if (user != null) {
-      possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (currentUser != null) {
+      possibleSearchOrgUnits = currentUser.getTeiSearchOrganisationUnitsWithFallback();
     }
 
     Map<String, TrackedEntityAttribute> attributes =
@@ -148,8 +148,8 @@ public class TrackedEntityInstanceCriteriaMapper {
         throw new IllegalQueryException("Organisation unit does not exist: " + orgUnit);
       }
 
-      if (user != null
-          && !user.isSuper()
+      if (currentUser != null
+          && !currentUser.isSuper()
           && !organisationUnitService.isInUserHierarchy(
               organisationUnit.getUid(), possibleSearchOrgUnits)) {
         throw new IllegalQueryException(
@@ -159,8 +159,8 @@ public class TrackedEntityInstanceCriteriaMapper {
       params.getOrgUnits().add(organisationUnit);
     }
 
-    if (criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null) {
-      params.getOrgUnits().addAll(user.getOrganisationUnits());
+    if (criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && currentUser != null) {
+      params.getOrgUnits().addAll(currentUser.getOrganisationUnits());
     }
 
     Program program = validateProgram(criteria);
@@ -187,7 +187,8 @@ public class TrackedEntityInstanceCriteriaMapper {
         .setEventStatus(criteria.getEventStatus())
         .setEventStartDate(criteria.getEventStartDate())
         .setEventEndDate(criteria.getEventEndDate())
-        .setUserWithAssignedUsers(criteria.getAssignedUserMode(), user, criteria.getAssignedUsers())
+        .setUserWithAssignedUsers(
+            criteria.getAssignedUserMode(), currentUser, criteria.getAssignedUsers())
         .setTrackedEntityUids(criteria.getTrackedEntityInstances())
         .setSkipMeta(criteria.isSkipMeta())
         .setPage(criteria.getPage())

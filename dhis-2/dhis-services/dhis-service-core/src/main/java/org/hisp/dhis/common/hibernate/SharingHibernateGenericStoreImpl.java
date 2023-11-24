@@ -73,7 +73,7 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
       CriteriaBuilder builder, CurrentUserDetails user, String access) {
-    if (!sharingEnabled(user) || user == null) {
+    if (!sharingEnabled(user == null || user.isSuper()) || user == null) {
       return new ArrayList<>();
     }
 

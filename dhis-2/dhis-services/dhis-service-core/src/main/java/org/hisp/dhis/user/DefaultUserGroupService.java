@@ -50,8 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultUserGroupService implements UserGroupService {
   private final UserGroupStore userGroupStore;
 
-  private final CurrentUserService currentUserService;
-
   private final AclService aclService;
 
   private final HibernateCacheManager cacheManager;
@@ -62,17 +60,14 @@ public class DefaultUserGroupService implements UserGroupService {
       UserGroupStore userGroupStore,
       AclService aclService,
       HibernateCacheManager cacheManager,
-      CurrentUserService currentUserService,
       CacheProvider cacheProvider) {
     checkNotNull(userGroupStore);
-    checkNotNull(currentUserService);
     checkNotNull(aclService);
     checkNotNull(cacheManager);
 
     this.userGroupStore = userGroupStore;
     this.aclService = aclService;
     this.cacheManager = cacheManager;
-    this.currentUserService = currentUserService;
 
     userGroupNameCache = cacheProvider.createUserGroupNameCache();
   }
@@ -126,7 +121,8 @@ public class DefaultUserGroupService implements UserGroupService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrRemoveMember(String uid) {
-    return canAddOrRemoveMember(uid, currentUserService.getCurrentUser());
+    //    return canAddOrRemoveMember(uid, getCurrentUser());
+    return false;
   }
 
   @Override
@@ -138,7 +134,7 @@ public class DefaultUserGroupService implements UserGroupService {
       return false;
     }
 
-    boolean canUpdate = aclService.canUpdate(currentUser, userGroup);
+    boolean canUpdate = aclService.canUpdate(currentUser.getUsername(), userGroup);
     boolean canAddMember =
         currentUser.isAuthorized(Authorities.F_USER_GROUPS_READ_ONLY_ADD_MEMBERS);
 

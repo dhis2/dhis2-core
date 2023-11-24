@@ -36,6 +36,7 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
 
 /**
@@ -122,7 +123,7 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
    * @param user the user to query for data set list.
    * @return a list of data sets which the given user has data read access to.
    */
-  List<DataSet> getUserDataRead(User user);
+  List<DataSet> getUserDataRead(CurrentUserDetails user);
 
   /**
    * Returns the data sets which current user have WRITE access. If the current user has the ALL
@@ -131,7 +132,7 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
    * @param user the user to query for data set list.
    * @return a list of data sets which given user has data write access to.
    */
-  List<DataSet> getUserDataWrite(User user);
+  List<DataSet> getUserDataWrite(CurrentUserDetails user);
 
   // -------------------------------------------------------------------------
   // DataSet LockExceptions

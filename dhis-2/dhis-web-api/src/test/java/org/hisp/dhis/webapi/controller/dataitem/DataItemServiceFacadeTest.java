@@ -57,8 +57,8 @@ import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,7 +75,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 @ExtendWith(MockitoExtension.class)
 class DataItemServiceFacadeTest {
 
-  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private QueryExecutor queryExecutor;
 
@@ -83,7 +83,7 @@ class DataItemServiceFacadeTest {
 
   @BeforeEach
   public void setUp() {
-    dataItemServiceFacade = new DataItemServiceFacade(currentUserService, queryExecutor);
+    dataItemServiceFacade = new DataItemServiceFacade(userService, queryExecutor);
   }
 
   @Test
@@ -99,9 +99,11 @@ class DataItemServiceFacadeTest {
     final Set<String> anyOrdering = new HashSet<>(asList("name:desc"));
     final OrderParams anyOrderParams = new OrderParams(anyOrdering);
     final User currentUser = new User();
+    currentUser.setUsername("anyUser");
 
     // When
-    when(currentUserService.getCurrentUser()).thenReturn(currentUser);
+    when(userService.getUserByUsername(currentUser.getUsername())).thenReturn(currentUser);
+
     when(queryExecutor.find(anySet(), any(MapSqlParameterSource.class)))
         .thenReturn(expectedItemsFound);
     final List<DataItem> actualDimensionalItems =

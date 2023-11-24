@@ -119,8 +119,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -140,7 +141,7 @@ public class DefaultDimensionService implements DimensionService {
 
   private final AclService aclService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final MergeService mergeService;
 
@@ -159,9 +160,7 @@ public class DefaultDimensionService implements DimensionService {
     List<DimensionalItemObject> items = new ArrayList<>();
 
     if (dimension != null && dimension.hasItems()) {
-      User user = currentUserService.getCurrentUser();
-
-      items.addAll(getCanReadObjects(user, dimension.getItems()));
+      items.addAll(getCanReadObjects(CurrentUserUtil.getCurrentUsername(), dimension.getItems()));
     }
 
     return items;
@@ -170,17 +169,16 @@ public class DefaultDimensionService implements DimensionService {
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getCanReadObjects(List<T> objects) {
-    User user = currentUserService.getCurrentUser();
-
-    return getCanReadObjects(user, objects);
+    return getCanReadObjects(CurrentUserUtil.getCurrentUsername(), objects);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getCanReadObjects(User user, List<T> objects) {
+  public <T extends IdentifiableObject> List<T> getCanReadObjects(
+      String username, List<T> objects) {
     List<T> list = new ArrayList<>(objects);
 
-    list.removeIf(object -> !aclService.canRead(user, object));
+    list.removeIf(object -> !aclService.canRead(username, object));
 
     return list;
   }
@@ -257,9 +255,7 @@ public class DefaultDimensionService implements DimensionService {
     dimensions.addAll(degs);
     dimensions.addAll(ougs);
 
-    User user = currentUserService.getCurrentUser();
-
-    return getCanReadObjects(user, dimensions);
+    return getCanReadObjects(CurrentUserUtil.getCurrentUsername(), dimensions);
   }
 
   @Override
@@ -286,7 +282,8 @@ public class DefaultDimensionService implements DimensionService {
       if (object.getCreatedBy() != null) {
         object.setCreatedBy(idObjectManager.get(User.class, object.getCreatedBy().getUid()));
       } else {
-        object.setCreatedBy(currentUserService.getCurrentUser());
+        User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+        object.setCreatedBy(currentUser);
       }
 
       mergeDimensionalObjects(object, object.getColumns());
@@ -331,8 +328,8 @@ public class DefaultDimensionService implements DimensionService {
     BaseDimensionalObject copy = mergeService.clone(dimension);
 
     if (filterCanRead) {
-      User user = currentUserService.getCurrentUser();
-      List<DimensionalItemObject> items = getCanReadObjects(user, dimension.getItems());
+      List<DimensionalItemObject> items =
+          getCanReadObjects(CurrentUserUtil.getCurrentUsername(), dimension.getItems());
       copy.setItems(items);
     }
 

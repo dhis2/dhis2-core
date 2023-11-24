@@ -77,8 +77,9 @@ import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -110,7 +111,7 @@ public class MetadataImportExportController {
   private final CsvImportService csvImportService;
   private final GmlImportService gmlImportService;
   private final MetadataExportService metadataExportService;
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
   private final UserSettingService userSettingService;
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
@@ -232,8 +233,9 @@ public class MetadataImportExportController {
 
     MetadataImportParams importParams = getMetadataImportParams();
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     importParams
-        .setUser(UID.of(currentUserService.getCurrentUser()))
+        .setUser(UID.of(currentUser))
         .setImportStrategy(ImportStrategy.UPDATE)
         .setAtomicMode(atomic ? AtomicMode.ALL : AtomicMode.NONE);
 
@@ -262,7 +264,8 @@ public class MetadataImportExportController {
       MetadataImportParams params, MimeType contentType, HttpServletRequest request)
       throws IOException, ConflictException, NotFoundException {
     JobConfiguration config = new JobConfiguration(JobType.METADATA_IMPORT);
-    config.setExecutedBy(currentUserService.getCurrentUser().getUid());
+
+    config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
     config.setJobParameters(params);
     jobSchedulerService.executeNow(
         jobConfigurationService.create(config, contentType, request.getInputStream()));

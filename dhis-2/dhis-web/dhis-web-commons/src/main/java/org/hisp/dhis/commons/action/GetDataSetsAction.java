@@ -35,8 +35,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.ContextUtils;
 
 /**
@@ -57,12 +57,6 @@ public class GetDataSetsAction extends ActionPagingSupport<DataSet> {
 
   public void setPeriodService(PeriodService periodService) {
     this.periodService = periodService;
-  }
-
-  private CurrentUserService currentUserService;
-
-  public void setCurrentUserService(CurrentUserService currentUserService) {
-    this.currentUserService = currentUserService;
   }
 
   // -------------------------------------------------------------------------
@@ -113,16 +107,12 @@ public class GetDataSetsAction extends ActionPagingSupport<DataSet> {
           ServletActionContext.getRequest(), ServletActionContext.getResponse(), dataSets);
     }
 
-    if (!currentUserService.currentUserIsSuper()) {
-      User user = currentUserService.getCurrentUser();
-
-      if (user != null) {
-        dataSets.retainAll(dataSetService.getUserDataWrite(user));
-      }
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    if (!currentUserDetails.isSuper()) {
+      dataSets.retainAll(dataSetService.getUserDataWrite(currentUserDetails));
     }
 
-    User currentUser = currentUserService.getCurrentUser();
-    dataSets.forEach(instance -> canReadInstance(instance, currentUser));
+    dataSets.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
 
     Collections.sort(dataSets);
 

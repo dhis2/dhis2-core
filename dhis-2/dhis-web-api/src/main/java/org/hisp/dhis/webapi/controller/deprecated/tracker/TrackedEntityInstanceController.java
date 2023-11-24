@@ -92,8 +92,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.deprecated.tracker.imports.TrackedEntityInstanceStrategyHandler;
 import org.hisp.dhis.webapi.controller.deprecated.tracker.imports.request.TrackerEntityInstanceRequest;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -142,8 +143,6 @@ public class TrackedEntityInstanceController {
 
   private final ContextService contextService;
 
-  private final CurrentUserService currentUserService;
-
   private final FileResourceService fileResourceService;
 
   private final TrackerAccessManager trackerAccessManager;
@@ -153,6 +152,8 @@ public class TrackedEntityInstanceController {
   private final TrackedEntityInstanceCriteriaMapper criteriaMapper;
 
   private final TrackedEntityInstanceStrategyHandler trackedEntityInstanceStrategyHandler;
+
+  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // READ
@@ -207,11 +208,11 @@ public class TrackedEntityInstanceController {
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletResponse response)
       throws WebMessageException, ConflictException {
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     TrackedEntity trackedEntity = instanceService.getTrackedEntity(teiId);
 
-    List<String> trackerAccessErrors = trackerAccessManager.canRead(user, trackedEntity);
+    List<String> trackerAccessErrors = trackerAccessManager.canRead(currentUser, trackedEntity);
 
     List<TrackedEntityAttributeValue> attributes =
         trackedEntity.getTrackedEntityAttributeValues().stream()
@@ -279,8 +280,7 @@ public class TrackedEntityInstanceController {
       @PathVariable("attributeId") String attributeId,
       HttpServletResponse response)
       throws WebMessageException {
-    User currentUser = currentUserService.getCurrentUser();
-
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     TrackedEntity tei =
         Optional.ofNullable(instanceService.getTrackedEntity(teiId))
             .orElseThrow(
@@ -432,7 +432,7 @@ public class TrackedEntityInstanceController {
     // For in memory Jobs
     JobConfiguration jobId =
         new JobConfiguration(
-            "inMemoryEventImport", TEI_IMPORT, currentUserService.getCurrentUser().getUid());
+            "inMemoryEventImport", TEI_IMPORT, CurrentUserUtil.getCurrentUserDetails().getUid());
 
     TrackerEntityInstanceRequest trackerEntityInstanceRequest =
         TrackerEntityInstanceRequest.builder()

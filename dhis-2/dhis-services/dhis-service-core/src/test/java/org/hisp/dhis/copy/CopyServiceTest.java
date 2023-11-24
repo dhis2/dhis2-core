@@ -77,7 +77,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.BeforeEach;
@@ -107,8 +106,6 @@ class CopyServiceTest extends DhisConvenienceTest {
 
   @Mock private EnrollmentService enrollmentService;
 
-  @Mock private CurrentUserService currentUserService;
-
   @Mock private AclService aclService;
 
   @InjectMocks private CopyService copyService;
@@ -134,8 +131,8 @@ class CopyServiceTest extends DhisConvenienceTest {
     List<Enrollment> originalEnrollments =
         List.of(createEnrollment(original, createTrackedEntity(orgUnit), orgUnit));
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(aclService.canWrite(user, original)).thenReturn(true);
+    //    when(getCurrentUser()).thenReturn(user);
+    when(aclService.canWrite(user.getUsername(), original)).thenReturn(true);
     when(enrollmentService.getEnrollments(original)).thenReturn(originalEnrollments);
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
@@ -167,8 +164,8 @@ class CopyServiceTest extends DhisConvenienceTest {
     original.setProgramRuleVariables(Set.of(ruleVariable1, ruleVariable2));
 
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(aclService.canWrite(user, original)).thenReturn(true);
+    //    when(getCurrentUser()).thenReturn(user);
+    when(aclService.canWrite(user.getUsername(), original)).thenReturn(true);
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
 
@@ -190,8 +187,8 @@ class CopyServiceTest extends DhisConvenienceTest {
     ProgramStageDataElement psdeOriginal =
         new ArrayList<>(stageOriginal.getProgramStageDataElements()).get(0);
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(aclService.canWrite(user, original)).thenReturn(true);
+    //    when(getCurrentUser()).thenReturn(user);
+    when(aclService.canWrite(user.getUsername(), original)).thenReturn(true);
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramStage stageCopy = new ArrayList<>(programCopy.getProgramStages()).get(0);
@@ -235,8 +232,8 @@ class CopyServiceTest extends DhisConvenienceTest {
   void testCopyProgramFromUidCheckProgramSections() throws NotFoundException, ForbiddenException {
     ProgramSection sectionOriginal = new ArrayList<>(original.getProgramSections()).get(0);
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(aclService.canWrite(user, original)).thenReturn(true);
+    //    when(getCurrentUser()).thenReturn(user);
+    when(aclService.canWrite(user.getUsername(), original)).thenReturn(true);
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramSection sectionCopy = new ArrayList<>(programCopy.getProgramSections()).get(0);
@@ -250,8 +247,8 @@ class CopyServiceTest extends DhisConvenienceTest {
   void testCopyProgramFromUidCheckProgramAttributes() throws NotFoundException, ForbiddenException {
     ProgramTrackedEntityAttribute pteaOriginal = original.getProgramAttributes().get(0);
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(aclService.canWrite(user, original)).thenReturn(true);
+    //    when(getCurrentUser()).thenReturn(user);
+    when(aclService.canWrite(user.getUsername(), original)).thenReturn(true);
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramTrackedEntityAttribute pteaCopy = programCopy.getProgramAttributes().get(0);
@@ -266,8 +263,8 @@ class CopyServiceTest extends DhisConvenienceTest {
       throws NotFoundException, ForbiddenException {
     ProgramRuleVariable prvOriginal = new ArrayList<>(original.getProgramRuleVariables()).get(0);
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(aclService.canWrite(user, original)).thenReturn(true);
+    //    when(getCurrentUser()).thenReturn(user);
+    when(aclService.canWrite(user.getUsername(), original)).thenReturn(true);
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramRuleVariable prvCopy = new ArrayList<>(programCopy.getProgramRuleVariables()).get(0);
@@ -281,8 +278,8 @@ class CopyServiceTest extends DhisConvenienceTest {
   void testCopyProgramFromUidCheckProgramIndicators() throws NotFoundException, ForbiddenException {
     ProgramIndicator indicatorOrig = new ArrayList<>(original.getProgramIndicators()).get(0);
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(aclService.canWrite(user, original)).thenReturn(true);
+    //    when(getCurrentUser()).thenReturn(user);
+    when(aclService.canWrite(user.getUsername(), original)).thenReturn(true);
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramIndicator indicatorCopy = new ArrayList<>(programCopy.getProgramIndicators()).get(0);
@@ -297,8 +294,8 @@ class CopyServiceTest extends DhisConvenienceTest {
       throws NotFoundException, ForbiddenException {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
     when(enrollmentService.getEnrollments(original)).thenReturn(null);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(aclService.canWrite(user, original)).thenReturn(true);
+    //    when(getCurrentUser()).thenReturn(user);
+    when(aclService.canWrite(user.getUsername(), original)).thenReturn(true);
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
 
@@ -310,8 +307,8 @@ class CopyServiceTest extends DhisConvenienceTest {
   @Test
   void testCopyProgramWhenNoWritePermission() {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(aclService.canWrite(user, original)).thenReturn(false);
+    //    when(getCurrentUser()).thenReturn(user);
+    when(aclService.canWrite(user.getUsername(), original)).thenReturn(false);
 
     ForbiddenException forbiddenException =
         assertThrows(
@@ -338,8 +335,8 @@ class CopyServiceTest extends DhisConvenienceTest {
         new DataIntegrityViolationException("DB ERROR", new Throwable("DB ERROR"));
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
     when(programService.addProgram(any(Program.class))).thenThrow(error);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(aclService.canWrite(user, original)).thenReturn(true);
+    //    when(getCurrentUser()).thenReturn(user);
+    when(aclService.canWrite(user.getUsername(), original)).thenReturn(true);
 
     assertThrows(
         DataIntegrityViolationException.class,

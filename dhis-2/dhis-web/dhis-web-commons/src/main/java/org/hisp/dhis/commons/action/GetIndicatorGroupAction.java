@@ -30,6 +30,7 @@ package org.hisp.dhis.commons.action;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorService;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -80,7 +81,7 @@ public class GetIndicatorGroupAction extends BaseAction implements Action {
       memberCount = indicatorGroup.getMembers().size();
     }
 
-    canReadInstance(indicatorGroup, currentUserService.getCurrentUser());
+    canReadInstance(indicatorGroup, CurrentUserUtil.getCurrentUsername());
 
     return SUCCESS;
   }

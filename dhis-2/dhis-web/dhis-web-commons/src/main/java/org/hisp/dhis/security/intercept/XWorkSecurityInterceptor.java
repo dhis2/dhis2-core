@@ -33,7 +33,6 @@ import com.opensymphony.xwork2.interceptor.Interceptor;
 import java.util.HashMap;
 import java.util.Map;
 import org.hisp.dhis.security.ActionAccessResolver;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.authority.RequiredAuthoritiesProvider;
 import org.springframework.security.access.SecurityMetadataSource;
 import org.springframework.security.access.intercept.AbstractSecurityInterceptor;
@@ -48,8 +47,6 @@ public class XWorkSecurityInterceptor extends AbstractSecurityInterceptor implem
   private static final long serialVersionUID = -3734961911452433836L;
 
   private static final String KEY_ACTION_ACCESS_RESOLVER = "auth";
-
-  private static final String KEY_SECURITY_SERVICE = "security";
 
   private final ThreadLocal<SecurityMetadataSource> definitionSourceTag = new ThreadLocal<>();
 
@@ -68,12 +65,6 @@ public class XWorkSecurityInterceptor extends AbstractSecurityInterceptor implem
 
   public void setActionAccessResolver(ActionAccessResolver actionAccessResolver) {
     this.actionAccessResolver = actionAccessResolver;
-  }
-
-  private SecurityService securityService;
-
-  public void setSecurityService(SecurityService securityService) {
-    this.securityService = securityService;
   }
 
   // -------------------------------------------------------------------------
@@ -144,7 +135,7 @@ public class XWorkSecurityInterceptor extends AbstractSecurityInterceptor implem
     Map<String, Object> accessResolverMap = new HashMap<>(1);
 
     accessResolverMap.put(KEY_ACTION_ACCESS_RESOLVER, actionAccessResolver);
-    accessResolverMap.put(KEY_SECURITY_SERVICE, securityService);
+    //    accessResolverMap.put(KEY_SECURITY_SERVICE, securityService);
 
     invocation.getStack().push(accessResolverMap);
   }

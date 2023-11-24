@@ -30,12 +30,12 @@ package org.hisp.dhis.security.spring2fa;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -53,14 +53,15 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
-  @Autowired private UserService userService;
-
-  @Autowired private SecurityService securityService;
+  private UserService userService;
 
   @Autowired
   public TwoFactorAuthenticationProvider(
       @Qualifier("userDetailsService") UserDetailsService detailsService,
-      PasswordEncoder passwordEncoder) {
+      PasswordEncoder passwordEncoder,
+      @Lazy UserService userService) {
+
+    this.userService = userService;
     setUserDetailsService(detailsService);
     setPasswordEncoder(passwordEncoder);
   }
@@ -78,7 +79,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     log.debug(String.format("Login attempt: %s", username));
 
     // If enabled, temporarily block user with too many failed attempts
-    if (securityService.isLocked(username)) {
+    if (userService.isLocked(username)) {
       log.debug(String.format("Temporary lockout for user: %s and IP: %s", username, ip));
       throw new LockedException(String.format("IP is temporarily locked: %s", ip));
     }

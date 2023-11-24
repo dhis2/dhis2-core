@@ -265,7 +265,9 @@ public class SystemSettingController {
         return Optional.of(locale);
       } else if (currentUser != null) {
         Locale userLocale =
-            (Locale) userSettingService.getUserSetting(UserSettingKey.UI_LOCALE, currentUser);
+            (Locale)
+                userSettingService.getUserSetting(
+                    UserSettingKey.UI_LOCALE, currentUser.getUsername());
 
         if (userLocale != null) {
           return Optional.of(userLocale.getLanguage());

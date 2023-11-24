@@ -41,7 +41,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -185,5 +184,5 @@ public interface EventService {
 
   ImportSummaries deleteEvents(List<String> uids, boolean clearSession);
 
-  void validate(EventSearchParams params, User user);
+  void validate(EventSearchParams params);
 }

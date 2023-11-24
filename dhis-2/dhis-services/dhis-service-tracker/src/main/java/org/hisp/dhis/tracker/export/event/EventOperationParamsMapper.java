@@ -54,8 +54,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,7 +80,7 @@ class EventOperationParamsMapper {
 
   private final CategoryOptionComboService categoryOptionComboService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -88,15 +89,16 @@ class EventOperationParamsMapper {
   @Transactional(readOnly = true)
   public EventQueryParams map(EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
-    User user = currentUserService.getCurrentUser();
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     Program program = validateProgram(operationParams.getProgramUid());
     ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid());
 
     OrganisationUnit orgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
-    validateUser(user, program, programStage, orgUnit);
+    validateUser(currentUser, program, programStage, orgUnit);
 
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), currentUser, program);
 
     TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
 
@@ -108,7 +110,7 @@ class EventOperationParamsMapper {
             operationParams.getAttributeCategoryOptions(),
             true);
 
-    validateAttributeOptionCombo(attributeOptionCombo, user);
+    validateAttributeOptionCombo(attributeOptionCombo, currentUser);
 
     EventQueryParams queryParams = new EventQueryParams();
 
@@ -126,7 +128,9 @@ class EventOperationParamsMapper {
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
-                operationParams.getAssignedUserMode(), user, operationParams.getAssignedUsers()))
+                operationParams.getAssignedUserMode(),
+                currentUser,
+                operationParams.getAssignedUsers()))
         .setOccurredStartDate(operationParams.getOccurredAfter())
         .setOccurredEndDate(operationParams.getOccurredBefore())
         .setScheduledStartDate(operationParams.getScheduledAfter())
@@ -196,11 +200,11 @@ class EventOperationParamsMapper {
         || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
       return;
     }
-    if (program != null && !aclService.canDataRead(user, program)) {
+    if (program != null && !aclService.canDataRead(user.getUsername(), program)) {
       throw new ForbiddenException("User has no access to program: " + program.getUid());
     }
 
-    if (programStage != null && !aclService.canDataRead(user, programStage)) {
+    if (programStage != null && !aclService.canDataRead(user.getUsername(), programStage)) {
       throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
     }
 
@@ -230,7 +234,7 @@ class EventOperationParamsMapper {
       throws ForbiddenException {
     if (attributeOptionCombo != null
         && (user != null && !user.isSuper())
-        && !aclService.canDataRead(user, attributeOptionCombo)) {
+        && !aclService.canDataRead(user.getUsername(), attributeOptionCombo)) {
       throw new ForbiddenException(
           "User has no access to attribute category option combo: "
               + attributeOptionCombo.getUid());

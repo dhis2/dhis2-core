@@ -64,8 +64,9 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -103,13 +104,11 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
 
   @Autowired private AclService aclService;
 
-  @Autowired private CurrentUserService userService;
+  @Autowired private UserService userService;
 
   @Autowired private FieldFilterService fieldFilterService;
 
   @Autowired private I18nManager i18nManager;
-
-  @Autowired private CurrentUserService currentUserService;
 
   // -------------------------------------------------------------------------
   // Resources
@@ -207,7 +206,6 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
       @RequestParam("pe") String pe,
       @RequestParam("ds") String ds)
       throws ForbiddenException {
-    User user = userService.getCurrentUser();
 
     DataSet dataSet = dataSetService.getDataSet(ds);
 
@@ -217,7 +215,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
       return conflict(" DataSet or Period is invalid");
     }
 
-    if (!aclService.canUpdate(user, dataSet)) {
+    if (!aclService.canUpdate(CurrentUserUtil.getCurrentUsername(), dataSet)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object");
     }
 
@@ -275,8 +273,6 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
       HttpServletRequest request,
       HttpServletResponse response)
       throws WebMessageException {
-    User user = userService.getCurrentUser();
-
     DataSet dataSet = dataSetService.getDataSet(dataSetId);
 
     Period period = periodService.reloadPeriod(PeriodType.getPeriodFromIsoString(periodId));
@@ -292,7 +288,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
                   + periodId));
     }
 
-    if (!aclService.canDelete(user, dataSet)) {
+    if (!aclService.canDelete(CurrentUserUtil.getCurrentUsername(), dataSet)) {
       throw new ReadAccessDeniedException(
           "You don't have the proper permissions to delete this object.");
     }
@@ -305,8 +301,9 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
   }
 
   private boolean canCapture(OrganisationUnit captureTarget) {
-    return currentUserService.currentUserIsSuper()
-        || currentUserService.getCurrentUserOrganisationUnits().stream()
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    return currentUser.isSuper()
+        || currentUser.getOrganisationUnits().stream()
             .anyMatch(ou -> captureTarget.getPath().startsWith(ou.getPath()));
   }
 }

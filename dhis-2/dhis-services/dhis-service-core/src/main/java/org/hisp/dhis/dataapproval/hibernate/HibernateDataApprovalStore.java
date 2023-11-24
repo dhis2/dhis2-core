@@ -70,8 +70,9 @@ import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -102,7 +103,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
   private final PeriodStore periodStore;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final CategoryService categoryService;
 
@@ -119,17 +120,17 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
       CacheProvider cacheProvider,
       PeriodService periodService,
       PeriodStore periodStore,
-      CurrentUserService currentUserService,
       CategoryService categoryService,
       SystemSettingManager systemSettingManager,
       StatementBuilder statementBuilder,
-      OrganisationUnitService organisationUnitService) {
+      OrganisationUnitService organisationUnitService,
+      UserService userService) {
     super(entityManager, jdbcTemplate, publisher, DataApproval.class, false);
 
     checkNotNull(cacheProvider);
     checkNotNull(periodService);
     checkNotNull(periodStore);
-    checkNotNull(currentUserService);
+    checkNotNull(userService);
     checkNotNull(categoryService);
     checkNotNull(systemSettingManager);
     checkNotNull(statementBuilder);
@@ -137,7 +138,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
     this.periodService = periodService;
     this.periodStore = periodStore;
-    this.currentUserService = currentUserService;
+    this.userService = userService;
     this.categoryService = categoryService;
     this.systemSettingManager = systemSettingManager;
     this.statementBuilder = statementBuilder;
@@ -290,14 +291,14 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     // Get validation criteria
     // ---------------------------------------------------------------------
 
-    final User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     final String strArrayUserGroups =
-        CollectionUtils.isEmpty(user.getGroups())
+        CollectionUtils.isEmpty(currentUser.getGroups())
             ? null
             : "{"
                 + String.join(
                     ",",
-                    user.getGroups().stream()
+                    currentUser.getGroups().stream()
                         .map(group -> group.getUid())
                         .collect(Collectors.toList()))
                 + "}";
@@ -318,7 +319,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
     List<DataApprovalLevel> approvalLevels = workflow.getSortedLevels();
 
-    Set<OrganisationUnit> userOrgUnits = user.getDataViewOrganisationUnitsWithFallback();
+    Set<OrganisationUnit> userOrgUnits = currentUser.getDataViewOrganisationUnitsWithFallback();
 
     boolean isDefaultCombo =
         attributeOptionCombos != null
@@ -328,8 +329,8 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
                 .equals(attributeOptionCombos.toArray()[0]);
 
     boolean maySeeDefaultCategoryCombo =
-        (CollectionUtils.isEmpty(user.getCogsDimensionConstraints())
-            && CollectionUtils.isEmpty(user.getCatDimensionConstraints()));
+        (CollectionUtils.isEmpty(currentUser.getCogsDimensionConstraints())
+            && CollectionUtils.isEmpty(currentUser.getCatDimensionConstraints()));
 
     // ---------------------------------------------------------------------
     // Validate
@@ -338,7 +339,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     if (isDefaultCombo && !maySeeDefaultCategoryCombo) {
       log.warn(
           "DefaultCategoryCombo selected but user "
-              + user.getUsername()
+              + currentUser.getUsername()
               + " lacks permission to see it.");
 
       return new ArrayList<>(); // Unapprovable.
@@ -353,7 +354,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     if (CollectionUtils.isEmpty(userApprovalLevels)) {
       log.warn(
           "No user approval levels for user "
-              + user.getUsername()
+              + currentUser.getUsername()
               + ", workflow "
               + workflow.getName());
 
@@ -363,7 +364,8 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     if (orgUnits != null) {
       for (OrganisationUnit orgUnit : orgUnits) {
         if (!organisationUnitService.isDescendant(orgUnit, userOrgUnits)) {
-          log.debug("User " + user.getUsername() + " can't see orgUnit " + orgUnit.getName());
+          log.debug(
+              "User " + currentUser.getUsername() + " can't see orgUnit " + orgUnit.getName());
 
           return new ArrayList<>(); // Unapprovable.
         }
@@ -377,7 +379,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     boolean acceptanceRequiredForApproval =
         systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);
 
-    final boolean isSuperUser = currentUserService.currentUserIsSuper();
+    final boolean isSuperUser = CurrentUserUtil.getCurrentUserDetails().isSuper();
 
     final String startDate = DateUtils.getMediumDateString(period.getStartDate());
     final String endDate = DateUtils.getMediumDateString(period.getEndDate());
@@ -687,16 +689,16 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
                 : // Filter out COs the user doesn't have permission to see:
                 "or ( ( co.sharing->>'public' is null or left(co.sharing->>'public', 1) != 'r' )"
                     + " and ( co.sharing->>'owner' is null or co.sharing->>'owner' != '"
-                    + user.getUid()
+                    + CurrentUserUtil.getCurrentUserDetails().getUid()
                     + "' )"
                     + " and ( not "
                     + JsonbFunctions.HAS_USER_ID
                     + "( co.sharing, '"
-                    + user.getUid()
+                    + CurrentUserUtil.getCurrentUserDetails().getUid()
                     + "') or not "
                     + JsonbFunctions.CHECK_USER_ACCESS
                     + "( co.sharing, '"
-                    + user.getUid()
+                    + CurrentUserUtil.getCurrentUserDetails().getUid()
                     + "', '"
                     + AclService.LIKE_READ_METADATA
                     + "') )"
@@ -731,7 +733,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
     log.debug(
         "User "
-            + user.getUsername()
+            + CurrentUserUtil.getCurrentUserDetails()
             + " superuser "
             + isSuperUser
             + " workflow "

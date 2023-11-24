@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.apache.struts2.ServletActionContext;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.ContextUtils;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
@@ -71,8 +71,8 @@ public class GetValidationRulesAction extends BaseAction implements Action {
 
     validationRules = new ArrayList<>(validationRuleService.getAllValidationRules());
 
-    User currentUser = currentUserService.getCurrentUser();
-    validationRules.forEach(instance -> canReadInstance(instance, currentUser));
+    validationRules.forEach(
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
 
     ContextUtils.clearIfNotModified(
         ServletActionContext.getRequest(), ServletActionContext.getResponse(), validationRules);

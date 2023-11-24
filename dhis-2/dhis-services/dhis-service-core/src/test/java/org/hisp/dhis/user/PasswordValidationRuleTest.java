@@ -68,7 +68,7 @@ class PasswordValidationRuleTest {
 
   @Mock private SystemSettingManager systemSettingManager;
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
 
   @Mock private UserService userService;
 
@@ -100,8 +100,7 @@ class PasswordValidationRuleTest {
     lengthValidationRule = new PasswordLengthValidationRule(systemSettingManager);
     upperCasePatternValidationRule = new UpperCasePatternValidationRule();
     parameterValidationRule = new UserParameterValidationRule();
-    historyValidationRule =
-        new PasswordHistoryValidationRule(passwordEncoder, userService, currentUserService);
+    historyValidationRule = new PasswordHistoryValidationRule(passwordEncoder, userService);
     mandatoryValidationRule = new PasswordMandatoryValidationRule();
   }
 

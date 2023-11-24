@@ -38,8 +38,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup> {
-  private final UserService userService;
-
   @Override
   protected void registerHandler() {
     whenDeleting(User.class, this::deleteUser);
@@ -48,7 +46,6 @@ public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup>
 
   private void deleteUser(User user) {
     Set<UserGroup> userGroups = user.getGroups();
-
     for (UserGroup group : userGroups) {
       group.getMembers().remove(user);
       idObjectManager.updateNoAcl(group);
@@ -57,12 +54,9 @@ public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup>
 
   private void deleteUserGroup(UserGroup userGroup) {
     Set<UserGroup> userGroups = userGroup.getManagedByGroups();
-
     for (UserGroup group : userGroups) {
       group.getManagedGroups().remove(userGroup);
       idObjectManager.updateNoAcl(group);
     }
-
-    userGroup.getMembers().forEach(member -> userService.invalidateUserGroupCache(member.getUid()));
   }
 }

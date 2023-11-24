@@ -29,46 +29,29 @@ package org.hisp.dhis.security.config;
 
 import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.setHttpHeaders;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.MappedRedirectStrategy;
 import org.hisp.dhis.security.authtentication.CustomAuthFailureHandler;
-import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
-import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
-import org.hisp.dhis.security.vote.ActionAccessVoter;
-import org.hisp.dhis.security.vote.ModuleAccessVoter;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
-import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
-import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
-import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.annotation.Order;
 import org.springframework.mobile.device.DeviceResolver;
 import org.springframework.mobile.device.LiteDeviceResolver;
-import org.springframework.security.access.AccessDecisionManager;
-import org.springframework.security.access.vote.AuthenticatedVoter;
-import org.springframework.security.access.vote.UnanimousBased;
-import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
-import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.header.HeaderWriterFilter;
@@ -100,56 +83,21 @@ public class DhisWebCommonsWebSecurityConfig {
           "/dhis-web-commons-stream/ping.action", "/",
           "/api/files/style/external", "/");
 
-  /**
-   * This configuration class is responsible for setting up the form login and everything related to
-   * the web pages.
-   */
-  //  @Configuration
-  //  @Order(2200)
-  //  public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
-  // {
-
   @Autowired
   private TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource;
 
   @Autowired private DhisConfigurationProvider dhisConfig;
 
-  @Autowired private ExternalAccessVoter externalAccessVoter;
-
-  @Autowired TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
-
   @Autowired private DhisOidcLogoutSuccessHandler dhisOidcLogoutSuccessHandler;
-
-  @Autowired
-  @Qualifier("customLdapAuthenticationProvider")
-  private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
 
   @Autowired private CustomAuthFailureHandler customAuthFailureHandler;
 
-  @Autowired private DefaultAuthenticationEventPublisher authenticationEventPublisher;
-
   @Autowired private ConfigurationService configurationService;
-
-  //    @Override
-  //    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-  //      auth.authenticationProvider(customLdapAuthenticationProvider);
-  //      auth.authenticationProvider(twoFactorAuthenticationProvider);
-  //      auth.authenticationEventPublisher(authenticationEventPublisher);
-  //    }
-
-  //    @Override
-  //    public void configure(WebSecurity web) {
-  //      web.ignoring().antMatchers("/api/ping");
-  //    }
-
-  //    @Override
-  //    protected void configure(HttpSecurity http) throws Exception {
 
   @Bean
   protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
     http.authorizeHttpRequests()
-        //          .accessDecisionManager(accessDecisionManager())
         .requestMatchers(analyticsPluginResources())
         .permitAll()
         .requestMatchers(new AntPathRequestMatcher("/impersonate"))
@@ -316,7 +264,6 @@ public class DhisWebCommonsWebSecurityConfig {
     MappedRedirectStrategy mappedRedirectStrategy = new MappedRedirectStrategy();
     mappedRedirectStrategy.setRedirectMap(IGNORED_REDIRECTS_AFTER_LOGIN_MAP);
     mappedRedirectStrategy.setDeviceResolver(deviceResolver());
-
     return mappedRedirectStrategy;
   }
 
@@ -333,60 +280,4 @@ public class DhisWebCommonsWebSecurityConfig {
 
     return new org.springframework.security.web.util.matcher.RegexRequestMatcher(pattern, "GET");
   }
-
-  @Bean
-  public ModuleAccessVoter moduleAccessVoter() {
-    ModuleAccessVoter voter = new ModuleAccessVoter();
-    voter.setAttributePrefix("M_");
-    voter.setAlwaysAccessible(
-        Set.of(
-            "dhis-web-commons-menu",
-            "dhis-web-commons-oust",
-            "dhis-web-commons-ouwt",
-            "dhis-web-commons-security",
-            "dhis-web-commons-i18n",
-            "dhis-web-commons-ajax",
-            "dhis-web-commons-ajax-json",
-            "dhis-web-commons-ajax-html",
-            "dhis-web-commons-stream",
-            "dhis-web-commons-help",
-            "dhis-web-commons-about",
-            "dhis-web-menu-management",
-            "dhis-web-apps",
-            "dhis-web-api-mobile",
-            "dhis-web-portal",
-            "dhis-web-uaa"));
-    return voter;
-  }
-
-  @Bean
-  public ActionAccessVoter actionAccessVoter() {
-    ActionAccessVoter voter = new ActionAccessVoter();
-    voter.setAttributePrefix("F_");
-    voter.setRequiredAuthoritiesKey("requiredAuthorities");
-    voter.setAnyAuthoritiesKey("anyAuthorities");
-    return voter;
-  }
-
-  @Bean
-  public WebExpressionVoter webExpressionVoter() {
-    DefaultWebSecurityExpressionHandler h = new DefaultWebSecurityExpressionHandler();
-    h.setDefaultRolePrefix("");
-    WebExpressionVoter voter = new WebExpressionVoter();
-    voter.setExpressionHandler(h);
-    return voter;
-  }
-
-  @Bean("accessDecisionManager")
-  public LogicalOrAccessDecisionManager accessDecisionManager() {
-    List<AccessDecisionManager> decisionVoters =
-        Arrays.asList(
-            new UnanimousBased(List.of(new SimpleAccessVoter("ALL"))),
-            new UnanimousBased(List.of(actionAccessVoter(), moduleAccessVoter())),
-            new UnanimousBased(List.of(webExpressionVoter())),
-            new UnanimousBased(List.of(externalAccessVoter)),
-            new UnanimousBased(List.of(new AuthenticatedVoter())));
-    return new LogicalOrAccessDecisionManager(decisionVoters);
-  }
-  //  }
 }

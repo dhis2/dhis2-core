@@ -83,14 +83,6 @@ public class DefaultEventService implements EventService {
 
   @Override
   @Transactional
-  public long addEvent(Event event, User user) {
-    event.setAutoFields();
-    eventStore.save(event, user);
-    return event.getId();
-  }
-
-  @Override
-  @Transactional
   public void deleteEvent(Event event) {
     eventStore.delete(event);
   }

@@ -32,6 +32,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Lars Helge Overland
@@ -90,12 +91,12 @@ public class GetDataElementNameAction extends BaseAction implements Action {
     if (dataElementId != null && categoryOptionComboId != null) {
       DataElement dataElement = dataElementService.getDataElement(dataElementId);
 
-      canReadInstance(dataElement, currentUserService.getCurrentUser());
+      canReadInstance(dataElement, CurrentUserUtil.getCurrentUsername());
 
       CategoryOptionCombo categoryOptionCombo =
           categoryService.getCategoryOptionCombo(categoryOptionComboId);
 
-      canReadInstance(categoryOptionCombo, currentUserService.getCurrentUser());
+      canReadInstance(categoryOptionCombo, CurrentUserUtil.getCurrentUsername());
 
       name = dataElement.getName() + " " + categoryOptionCombo.getName();
     }

@@ -34,7 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.notification.template.snapshot.IdentifiableObjectSnapshot;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetails;
 
 /**
  * Data structure to hold user information during save/update of events, enrollments and comments
@@ -87,11 +87,11 @@ public class UserInfoSnapshot extends IdentifiableObjectSnapshot {
     this.surname = surname;
   }
 
-  public static UserInfoSnapshot from(User user) {
+  public static UserInfoSnapshot from(CurrentUserDetails user) {
     return Optional.ofNullable(user).map(UserInfoSnapshot::toUserInfoSnapshot).orElse(null);
   }
 
-  private static UserInfoSnapshot toUserInfoSnapshot(User user) {
+  private static UserInfoSnapshot toUserInfoSnapshot(CurrentUserDetails user) {
     UserInfoSnapshot eventUserInfo =
         new UserInfoSnapshot(user.getUsername(), user.getFirstName(), user.getSurname());
     eventUserInfo.setId(user.getId());

@@ -45,8 +45,9 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.GeoFeature;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,8 +64,9 @@ class GeoFeatureServiceMockTest {
 
   @Mock private DefaultDataQueryService dataQueryService;
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
 
+  @Mock private UserService userService;
   @Mock private AttributeService attributeService;
 
   private static final String POINT =
@@ -92,7 +94,10 @@ class GeoFeatureServiceMockTest {
         DataQueryParams.newBuilder().withOrganisationUnits(getList(ouA, ouB, ouC, ouD)).build();
 
     when(dataQueryService.getFromRequest(any())).thenReturn(params);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
+
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+
     HttpServletRequest request = mock(HttpServletRequest.class);
     HttpServletResponse response = mock(HttpServletResponse.class);
 
@@ -122,7 +127,8 @@ class GeoFeatureServiceMockTest {
         DataQueryParams.newBuilder().withOrganisationUnits(getList(ouA)).build();
 
     when(dataQueryService.getFromRequest(any())).thenReturn(params);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
     HttpServletRequest request = mock(HttpServletRequest.class);
     HttpServletResponse response = mock(HttpServletResponse.class);
 

@@ -31,18 +31,24 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
 public class EventImporterUserService {
 
-  @Nonnull @Delegate private final CurrentUserService currentUserService;
+  @Nonnull @Delegate private final UserService userService;
 
   @Nonnull private final UsernameSupplier usernameSupplier;
 
   public String getAuditUsername() {
     return usernameSupplier.get();
+  }
+
+  public User getCurrentUser() {
+    return userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
   }
 }

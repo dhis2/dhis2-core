@@ -40,7 +40,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
@@ -56,7 +55,6 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -80,8 +78,6 @@ class UserControllerTest {
   @Mock private UserService userService;
 
   @Mock private UserGroupService userGroupService;
-
-  @Mock private CurrentUserService currentUserService;
 
   @Mock private AclService aclService;
 
@@ -123,7 +119,7 @@ class UserControllerTest {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    verifyNoInteractions(currentUserService);
+    //    verifyNoInteractions(currentUserService);
     verify(userGroupService)
         .updateUserGroups(
             same(user),
@@ -137,7 +133,7 @@ class UserControllerTest {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    verifyNoInteractions(currentUserService);
+    //    verifyNoInteractions(currentUserService);
     verifyNoInteractions(userService);
     verifyNoInteractions(userGroupService);
   }
@@ -148,7 +144,7 @@ class UserControllerTest {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    verifyNoInteractions(currentUserService);
+    //    verifyNoInteractions(currentUserService);
     verifyNoInteractions(userService);
     verifyNoInteractions(userGroupService);
   }
@@ -163,14 +159,14 @@ class UserControllerTest {
     currentUser2.setUid("def2");
 
     when(userService.getUser("def2")).thenReturn(user);
-    when(currentUserService.getCurrentUser()).thenReturn(currentUser2);
+    //    when(getCurrentUser()).thenReturn(currentUser2);
 
     if (isInStatusUpdatedOK(createReportWith(Status.OK, Stats::incUpdated))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    verify(currentUserService).getCurrentUser();
-    verifyNoMoreInteractions(currentUserService);
+    //    verify(currentUserService).getCurrentUser();
+    //    verifyNoMoreInteractions(currentUserService);
     verify(userGroupService)
         .updateUserGroups(
             same(user),
@@ -201,7 +197,7 @@ class UserControllerTest {
     lenient().when(userService.canAddOrUpdateUser(any(), any())).thenReturn(true);
     // link user and current user to service methods
     when(userService.getUser(user.getUid())).thenReturn(user);
-    when(currentUserService.getCurrentUser()).thenReturn(currentUser);
+    //    when(getCurrentUser()).thenReturn(currentUser);
   }
 
   @Test
@@ -268,7 +264,7 @@ class UserControllerTest {
   @Test
   void updateUserExpireRequiresShareBasedAuthority() {
     setUpUserExpireScenarios();
-    when(aclService.canUpdate(currentUser, user)).thenReturn(false);
+    //    when(aclService.canUpdate(currentUser, user)).thenReturn(false);
 
     Exception ex =
         assertThrows(

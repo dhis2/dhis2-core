@@ -72,6 +72,7 @@ import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.indicator.Indicator;
@@ -104,8 +105,10 @@ import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
@@ -124,8 +127,6 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   private final FieldFilterService fieldFilterService;
 
-  private final CurrentUserService currentUserService;
-
   private final ProgramRuleService programRuleService;
 
   private final ProgramRuleVariableService programRuleVariableService;
@@ -136,6 +137,8 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   private final ObjectMapper objectMapper;
 
+  private final UserService userService;
+
   @Override
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true)
@@ -145,8 +148,8 @@ public class DefaultMetadataExportService implements MetadataExportService {
     Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata =
         new HashMap<>();
 
-    if (params.getUser() == null) {
-      params.setUser(currentUserService.getCurrentUser());
+    if (params.getUsername() == null) {
+      params.setUsername(CurrentUserUtil.getCurrentUsername());
     }
 
     if (params.getClasses().isEmpty()) {
@@ -174,8 +177,8 @@ public class DefaultMetadataExportService implements MetadataExportService {
                 orderParams.getOrders(schemaService.getDynamicSchema(klass)));
       }
 
-      if (query.getUser() == null) {
-        query.setUser(params.getUser());
+      if (query.getUsername() == null) {
+        query.setUsername(params.getUsername());
       }
 
       query.setDefaultOrder();
@@ -250,7 +253,6 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
     Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata =
         getMetadata(params);
-    User currentUser = currentUserService.getCurrentUser();
 
     try (JsonGenerator generator = objectMapper.getFactory().createGenerator(outputStream)) {
       generator.writeStartObject();
@@ -269,6 +271,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
           continue;
         }
 
+        User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
         FieldFilterParams<?> fieldFilterParams =
             FieldFilterParams.builder()
                 .objects(objects)
@@ -364,23 +367,30 @@ public class DefaultMetadataExportService implements MetadataExportService {
   @Override
   @Transactional(readOnly = true)
   public void validate(MetadataExportParams params) {
-    if (params.getUser() == null) {
-      params.setUser(currentUserService.getCurrentUser());
+    if (params.getUsername() == null) {
+      params.setUsername(CurrentUserUtil.getCurrentUsername());
     }
 
-    User user = params.getUser();
+    CurrentUserDetails userDetails;
+    try {
+      userDetails = userService.createUserDetails(params.getUsername());
+    } catch (NotFoundException e) {
+      throw new RuntimeException(e);
+    }
 
     if (params.getClasses().isEmpty()
-        && !(user == null || user.isSuper() || user.isAuthorized(Authorities.F_METADATA_EXPORT))) {
+        && !(userDetails == null
+            || userDetails.isSuper()
+            || userDetails.isAuthorized(Authorities.F_METADATA_EXPORT.name()))) {
       throw new MetadataExportException(
           "Unfiltered access to metadata export requires super user or 'F_METADATA_EXPORT' authority.");
     }
 
     if (params.getClasses().contains(User.class)
-        && !(user == null
-            || user.isSuper()
-            || user.isAuthorized(Authorities.F_USER_VIEW)
-            || user.isAuthorized(Authorities.F_METADATA_EXPORT))) {
+        && !(userDetails == null
+            || userDetails.isSuper()
+            || userDetails.isAuthorized(Authorities.F_USER_VIEW.name())
+            || userDetails.isAuthorized(Authorities.F_METADATA_EXPORT.name()))) {
       throw new MetadataExportException(
           "Exporting user metadata requires the 'F_USER_VIEW' authority.");
     }

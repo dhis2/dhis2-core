@@ -98,7 +98,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
     }
     @SuppressWarnings("unchecked")
     Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
-    return aclService.canRead(currentUser, ioType);
+    return aclService.canRead(currentUser.getUsername(), ioType);
   }
 
   @Override
@@ -109,7 +109,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
     @SuppressWarnings("unchecked")
     Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
     if (!aclService.isClassShareable(ioType)) {
-      return aclService.canRead(currentUser, ioType);
+      return aclService.canRead(currentUser.getUsername(), ioType);
     }
     List<?> res =
         gistService.gist(
@@ -122,7 +122,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
     Sharing sharing = res.isEmpty() ? new Sharing() : (Sharing) res.get(0);
     BaseIdentifiableObject object = new BaseIdentifiableObject();
     object.setSharing(sharing);
-    return aclService.canRead(currentUser, object, ioType);
+    return aclService.canRead(currentUser.getUsername(), object, ioType);
   }
 
   @Override
@@ -137,20 +137,21 @@ public class DefaultGistAccessControl implements GistAccessControl {
 
     @SuppressWarnings("unchecked")
     Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
-    return PUBLIC_PROPERTY_PATHS.contains(path) || aclService.canRead(currentUser, ioType);
+    return PUBLIC_PROPERTY_PATHS.contains(path)
+        || aclService.canRead(currentUser.getUsername(), ioType);
   }
 
   @Override
   public boolean canFilterByAccessOfUser(String userUid) {
     User user = getCurrentUserUid().equals(userUid) ? currentUser : userService.getUser(userUid);
-    return user != null && aclService.canRead(currentUser, user);
+    return user != null && aclService.canRead(currentUser.getUsername(), user);
   }
 
   @Override
   public Access asAccess(Class<? extends IdentifiableObject> type, Sharing value) {
     BaseIdentifiableObject object = new BaseIdentifiableObject();
     object.setSharing(value);
-    return aclService.getAccess(object, currentUser, type);
+    return aclService.getAccess(object, currentUser.getUsername(), type);
   }
 
   @Override

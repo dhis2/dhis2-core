@@ -52,8 +52,9 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.OrganisationUnitWithCoordinatesFilter;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -76,7 +77,7 @@ public class GeoToolsMapGenerationService implements MapGenerationService {
 
   private final AnalyticsService analyticsService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final SystemSettingManager systemSettingManager;
 
@@ -103,8 +104,8 @@ public class GeoToolsMapGenerationService implements MapGenerationService {
   @Override
   public BufferedImage generateMapImage(
       Map map, Date date, OrganisationUnit unit, Integer width, Integer height) {
-    return generateMapImageForUser(
-        map, date, unit, width, height, currentUserService.getCurrentUser());
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    return generateMapImageForUser(map, date, unit, width, height, currentUser);
   }
 
   @Override

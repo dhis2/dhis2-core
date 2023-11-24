@@ -43,8 +43,9 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,9 +64,9 @@ public class DefaultTrackedEntityAttributeValueService
 
   private final ReservedValueService reservedValueService;
 
-  private final CurrentUserService currentUserService;
-
   private final DhisConfigurationProvider config;
+
+  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // Implementation methods
@@ -78,7 +79,7 @@ public class DefaultTrackedEntityAttributeValueService
         new TrackedEntityAttributeValueAudit(
             attributeValue,
             attributeValue.getAuditValue(),
-            currentUserService.getCurrentUsername(),
+            CurrentUserUtil.getCurrentUsername(),
             AuditType.DELETE);
 
     if (config.isEnabled(CHANGELOG_TRACKER)) {
@@ -162,7 +163,8 @@ public class DefaultTrackedEntityAttributeValueService
   @Override
   @Transactional
   public void updateTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    updateTrackedEntityAttributeValue(attributeValue, currentUserService.getCurrentUser());
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    updateTrackedEntityAttributeValue(attributeValue, currentUser);
   }
 
   @Override

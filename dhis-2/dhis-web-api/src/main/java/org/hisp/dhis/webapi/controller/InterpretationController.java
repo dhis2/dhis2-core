@@ -64,6 +64,7 @@ import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
@@ -171,9 +172,10 @@ public class InterpretationController extends AbstractCrudController<Interpretat
       return conflict("EventVisualization does not exist or is not accessible: " + uid);
     }
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     final OrganisationUnit orgUnit =
-        getUserOrganisationUnit(
-            orgUnitUid, eventVisualization, currentUserService.getCurrentUser());
+        getUserOrganisationUnit(orgUnitUid, eventVisualization, currentUser);
 
     /*
      * This is needed until the deprecated entities (EventChart and
@@ -339,8 +341,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
       return notFound("Interpretation does not exist: " + uid);
     }
 
-    if (!currentUserService.getCurrentUser().equals(interpretation.getCreatedBy())
-        && !currentUserService.currentUserIsSuper()) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (!currentUser.equals(interpretation.getCreatedBy()) && !currentUser.isSuper()) {
       throw new AccessDeniedException("You are not allowed to update this interpretation.");
     }
 
@@ -361,8 +363,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
       return notFound("Interpretation does not exist: " + uid);
     }
 
-    if (!currentUserService.getCurrentUser().equals(interpretation.getCreatedBy())
-        && !currentUserService.currentUserIsSuper()) {
+    if (!currentUser.equals(interpretation.getCreatedBy()) && !currentUser.isSuper()) {
       throw new AccessDeniedException("You are not allowed to delete this interpretation.");
     }
 
@@ -410,10 +411,11 @@ public class InterpretationController extends AbstractCrudController<Interpretat
       return conflict("Interpretation does not exist: " + uid);
     }
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     for (InterpretationComment comment : interpretation.getComments()) {
       if (comment.getUid().equals(cuid)) {
-        if (!currentUserService.getCurrentUser().equals(comment.getCreatedBy())
-            && !currentUserService.currentUserIsSuper()) {
+        if (!currentUser.equals(comment.getCreatedBy()) && !currentUser.isSuper()) {
           throw new AccessDeniedException("You are not allowed to update this comment.");
         }
 
@@ -439,12 +441,12 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     Iterator<InterpretationComment> iterator = interpretation.getComments().iterator();
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     while (iterator.hasNext()) {
       InterpretationComment comment = iterator.next();
-
       if (comment.getUid().equals(cuid)) {
-        if (!currentUserService.getCurrentUser().equals(comment.getCreatedBy())
-            && !currentUserService.currentUserIsSuper()) {
+        if (!currentUser.equals(comment.getCreatedBy()) && !currentUser.isSuper()) {
           throw new AccessDeniedException("You are not allowed to delete this comment.");
         }
 

@@ -59,7 +59,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,7 +81,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
 
   private final AclService aclService;
 
-  private final CurrentUserService currentUserService;
+  private final org.hisp.dhis.user.UserService userService;
 
   // -------------------------------------------------------------------------
   // AnalyticsSecurityManager implementation
@@ -90,7 +90,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
   @Override
   @Transactional(readOnly = true)
   public void decideAccess(DataQueryParams params) {
-    User user = currentUserService.getCurrentUser();
+    User user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     decideAccessDataViewOrganisationUnits(params, user);
     decideAccessDataReadObjects(params, user);
@@ -100,7 +100,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
   @Transactional(readOnly = true)
   public void decideAccess(
       List<OrganisationUnit> queryOrgUnits, Set<IdentifiableObject> readObjects) {
-    User user = currentUserService.getCurrentUser();
+    User user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     decideAccessDataViewOrganisationUnits(queryOrgUnits, user);
     decideAccessDataReadObjects(readObjects, user);
@@ -186,7 +186,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
   public void decideAccessDataReadObjects(Set<IdentifiableObject> objects, User user)
       throws IllegalQueryException {
     for (IdentifiableObject object : objects) {
-      if (!aclService.canDataRead(user, object)) {
+      if (!aclService.canDataRead(user.getUsername(), object)) {
         throwIllegalQueryEx(
             ErrorCode.E7121,
             user.getUsername(),
@@ -211,11 +211,12 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
   @Override
   @Transactional(readOnly = true)
   public void decideAccessEventAnalyticsAuthority() {
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    boolean notAuthorized = user != null && !user.isAuthorized(AUTH_VIEW_EVENT_ANALYTICS);
+    boolean notAuthorized =
+        currentUser != null && !currentUser.isAuthorized(AUTH_VIEW_EVENT_ANALYTICS);
 
-    String username = user != null ? user.getUsername() : "[None]";
+    String username = currentUser != null ? currentUser.getUsername() : "[None]";
 
     if (notAuthorized) {
       throwIllegalQueryEx(ErrorCode.E7217, username);
@@ -227,7 +228,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
   public User getCurrentUser(DataQueryParams params) {
     return params != null && params.hasCurrentUser()
         ? params.getCurrentUser()
-        : currentUserService.getCurrentUser();
+        : userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
   }
 
   @Override
@@ -235,14 +236,14 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
   public DataQueryParams withDataApprovalConstraints(DataQueryParams params) {
     DataQueryParams.Builder paramsBuilder = DataQueryParams.newBuilder(params);
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
 
     boolean canViewUnapprovedData =
-        user == null || user.isAuthorized(DataApproval.AUTH_VIEW_UNAPPROVED_DATA);
+        currentUser == null || currentUser.isAuthorized(DataApproval.AUTH_VIEW_UNAPPROVED_DATA);
 
-    if (hideUnapprovedData && user != null) {
+    if (hideUnapprovedData && currentUser != null) {
       Map<OrganisationUnit, Integer> approvalLevels = null;
 
       if (params.hasApprovalLevel()) {
@@ -268,7 +269,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
         log.debug(
             String.format(
                 "User: '%s' constrained by data approval levels: '%s'",
-                user.getUsername(), approvalLevels.values()));
+                currentUser.getUsername(), approvalLevels.values()));
       }
     }
 
@@ -304,13 +305,13 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
    * @param params the data query parameters.
    */
   private void applyOrganisationUnitConstraint(QueryParamsBuilder builder, DataQueryParams params) {
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     // ---------------------------------------------------------------------
     // Check if current user has data view organisation units
     // ---------------------------------------------------------------------
 
-    if (params == null || user == null || !user.hasDataViewOrganisationUnit()) {
+    if (params == null || currentUser == null || !currentUser.hasDataViewOrganisationUnit()) {
       return;
     }
 
@@ -328,7 +329,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
 
     builder.removeDimensionOrFilter(DimensionalObject.ORGUNIT_DIM_ID);
 
-    List<OrganisationUnit> orgUnits = new ArrayList<>(user.getDataViewOrganisationUnits());
+    List<OrganisationUnit> orgUnits = new ArrayList<>(currentUser.getDataViewOrganisationUnits());
 
     DimensionalObject constraint =
         new BaseDimensionalObject(
@@ -338,7 +339,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
 
     log.debug(
         String.format(
-            "User: '%s' constrained by data view organisation units", user.getUsername()));
+            "User: '%s' constrained by data view organisation units", currentUser.getUsername()));
   }
 
   /**
@@ -348,13 +349,13 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
    * @param params the data query parameters.
    */
   private void applyDimensionConstraints(QueryParamsBuilder builder, DataQueryParams params) {
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     // ---------------------------------------------------------------------
     // Check if current user has dimension constraints
     // ---------------------------------------------------------------------
 
-    if (params == null || user == null) {
+    if (params == null || currentUser == null) {
       return;
     }
 
@@ -365,13 +366,13 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
 
     // Categories the user is constrained to.
     List<Category> categories =
-        currentUserService.currentUserIsSuper()
+        currentUser.isSuper()
             ? List.of()
             : getConstrainedCategories(params.getProgram(), dimensionalObjects);
 
     // Union of user and category constraints.
     Set<DimensionalObject> dimensionConstraints =
-        Stream.concat(user.getDimensionConstraints().stream(), categories.stream())
+        Stream.concat(currentUser.getDimensionConstraints().stream(), categories.stream())
             .collect(Collectors.toSet());
 
     if (dimensionConstraints.isEmpty()) // if no constraints
@@ -418,7 +419,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
       log.debug(
           String.format(
               "User: '%s' constrained by dimension: '%s'",
-              user.getUsername(), constraint.getDimension()));
+              currentUser.getUsername(), constraint.getDimension()));
     }
   }
 }

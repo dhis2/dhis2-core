@@ -50,7 +50,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -71,8 +71,6 @@ public class DefaultInterpretationService implements InterpretationService {
 
   private final InterpretationStore interpretationStore;
 
-  private final CurrentUserService currentUserService;
-
   private final UserService userService;
 
   private final PeriodService periodService;
@@ -91,10 +89,9 @@ public class DefaultInterpretationService implements InterpretationService {
 
   @Override
   public long saveInterpretation(Interpretation interpretation) {
-    User user = currentUserService.getCurrentUser();
-
-    if (user != null) {
-      interpretation.setCreatedBy(user);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (currentUser != null) {
+      interpretation.setCreatedBy(currentUser);
     }
 
     if (interpretation.getPeriod() != null) {
@@ -192,7 +189,7 @@ public class DefaultInterpretationService implements InterpretationService {
       InterpretationComment comment,
       NotificationType notificationType) {
     I18n i18n = i18nManager.getI18n();
-    String currentUsername = currentUserService.getCurrentUsername();
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
     String interpretableName = interpretation.getObject().getName();
     String actionString;
     String details;
@@ -257,7 +254,9 @@ public class DefaultInterpretationService implements InterpretationService {
 
       if (isNotEmpty(subscribersUid)) {
         Set<User> subscribers = new HashSet<>(userService.getUsers(subscribersUid));
-        subscribers.remove(currentUserService.getCurrentUser());
+
+        User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+        subscribers.remove(currentUser);
 
         if (!subscribers.isEmpty()) {
           sendNotificationMessage(subscribers, interpretation, comment, notificationType);
@@ -290,9 +289,9 @@ public class DefaultInterpretationService implements InterpretationService {
     }
     messageContent.append("\n\n").append(i18n.getString("go_to")).append(" ").append(link);
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     StringBuilder subjectContent =
-        new StringBuilder(user.getDisplayName())
+        new StringBuilder(currentUser.getDisplayName())
             .append(" ")
             .append(i18n.getString("mentioned_you_in_dhis2"));
 
@@ -351,7 +350,7 @@ public class DefaultInterpretationService implements InterpretationService {
     IdentifiableObject interpretationObject = interpretation.getObject();
 
     for (User user : users) {
-      if (!aclService.canRead(user, interpretationObject)) {
+      if (!aclService.canRead(user.getUsername(), interpretationObject)) {
         interpretationObject
             .getSharing()
             .addUserAccess(new UserAccess(user, AccessStringHelper.READ));
@@ -365,7 +364,7 @@ public class DefaultInterpretationService implements InterpretationService {
   @Override
   public InterpretationComment addInterpretationComment(String uid, String text) {
     Interpretation interpretation = getInterpretation(uid);
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     InterpretationComment comment = new InterpretationComment(text);
     comment.setLastUpdated(new Date());
@@ -375,8 +374,8 @@ public class DefaultInterpretationService implements InterpretationService {
     comment.setMentionsFromUsers(users);
     updateSharingForMentions(interpretation, users);
 
-    if (user != null) {
-      comment.setCreatedBy(user);
+    if (currentUser != null) {
+      comment.setCreatedBy(currentUser);
     }
 
     interpretation.addComment(comment);
@@ -390,21 +389,19 @@ public class DefaultInterpretationService implements InterpretationService {
 
   @Override
   public void updateCurrentUserLastChecked() {
-    User user = currentUserService.getCurrentUser();
-
-    user.setLastCheckedInterpretations(new Date());
-
-    userService.updateUser(user);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    currentUser.setLastCheckedInterpretations(new Date());
+    userService.updateUser(currentUser);
   }
 
   @Override
   public long getNewInterpretationCount() {
-    User user = currentUserService.getCurrentUser();
-
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     long count;
 
-    if (user != null && user.getLastCheckedInterpretations() != null) {
-      count = interpretationStore.getCountGeLastUpdated(user.getLastCheckedInterpretations());
+    if (currentUser != null && currentUser.getLastCheckedInterpretations() != null) {
+      count =
+          interpretationStore.getCountGeLastUpdated(currentUser.getLastCheckedInterpretations());
     } else {
       count = interpretationStore.getCount();
     }
@@ -421,13 +418,13 @@ public class DefaultInterpretationService implements InterpretationService {
       return false;
     }
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (user == null) {
+    if (currentUser == null) {
       return false;
     }
 
-    boolean userLike = interpretation.like(user);
+    boolean userLike = interpretation.like(currentUser);
     notifySubscribers(interpretation, null, NotificationType.INTERPRETATION_LIKE);
 
     return userLike;
@@ -442,12 +439,12 @@ public class DefaultInterpretationService implements InterpretationService {
       return false;
     }
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (user == null) {
+    if (currentUser == null) {
       return false;
     }
 
-    return interpretation.unlike(user);
+    return interpretation.unlike(currentUser);
   }
 }

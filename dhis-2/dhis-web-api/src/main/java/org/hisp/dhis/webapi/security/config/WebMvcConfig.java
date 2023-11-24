@@ -43,7 +43,6 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserInfoHandlerMethodArgumentResolver;
@@ -120,8 +119,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   public CurrentUserInfoHandlerMethodArgumentResolver currentUserInfoHandlerMethodArgumentResolver;
 
   @Autowired public DefaultRequestInfoService requestInfoService;
-
-  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private UserSettingService userSettingService;
 
@@ -248,7 +245,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(new UserContextInterceptor(currentUserService, userSettingService));
+    registry.addInterceptor(new UserContextInterceptor(userSettingService));
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
   }
 

@@ -53,7 +53,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
@@ -80,7 +79,7 @@ class EnrollmentOperationParamsMapperTest {
 
   private static final String TRACKED_ENTITY_UID = "DGbr8GHG4li";
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
 
   @Mock private OrganisationUnitService organisationUnitService;
 
@@ -109,7 +108,7 @@ class EnrollmentOperationParamsMapperTest {
   @BeforeEach
   void setUp() {
     user = new User();
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
 
     orgUnit1 = new OrganisationUnit("orgUnit1");
     orgUnit1.setUid(ORG_UNIT_1_UID);
@@ -211,7 +210,7 @@ class EnrollmentOperationParamsMapperTest {
   void shouldMapParamsWhenOrgUnitNotInScopeButUserIsSuperuser()
       throws ForbiddenException, BadRequestException {
     User superuser = createUser("ALL");
-    when(currentUserService.getCurrentUser()).thenReturn(superuser);
+    //    when(getCurrentUser()).thenReturn(superuser);
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
@@ -234,7 +233,7 @@ class EnrollmentOperationParamsMapperTest {
 
     User user = createUser(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit2));
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()

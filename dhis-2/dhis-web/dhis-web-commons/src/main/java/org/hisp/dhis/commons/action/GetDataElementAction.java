@@ -30,6 +30,7 @@ package org.hisp.dhis.commons.action;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Lars Helge Overland
@@ -77,7 +78,7 @@ public class GetDataElementAction extends BaseAction implements Action {
       dataElement = dataElementService.getDataElement(id);
     }
 
-    canReadInstance(dataElement, currentUserService.getCurrentUser());
+    canReadInstance(dataElement, CurrentUserUtil.getCurrentUsername());
 
     return SUCCESS;
   }

@@ -43,7 +43,9 @@ import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -72,7 +74,7 @@ public class EmailController {
 
   @Autowired private EmailService emailService;
 
-  @Autowired private CurrentUserService currentUserService;
+  @Autowired private UserService userService;
 
   @Autowired private SystemSettingManager systemSettingManager;
 
@@ -81,7 +83,8 @@ public class EmailController {
   public WebMessage sendTestEmail() throws WebMessageException {
     checkEmailSettings();
 
-    if (!currentUserService.getCurrentUser().hasEmail()) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (!currentUser.hasEmail()) {
       return conflict("Could not send test email, no email configured for current user");
     }
 

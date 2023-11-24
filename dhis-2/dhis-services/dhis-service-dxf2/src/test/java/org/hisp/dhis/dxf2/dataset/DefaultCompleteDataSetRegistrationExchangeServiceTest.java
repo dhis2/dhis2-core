@@ -85,7 +85,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
@@ -120,7 +119,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
 
   @Mock private PeriodService periodService;
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
 
   @Mock private CompleteDataSetRegistrationService registrationService;
 
@@ -186,7 +185,6 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
             systemSettingManager,
             categoryService,
             periodService,
-            currentUserService,
             registrationService,
             inputUtils,
             aggregateAccessManager,
@@ -225,7 +223,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
               when(mock.getOrgUnitInHierarchyMap()).thenReturn(orgUnitInHierarchyCache);
               when(mock.getAttrOptComboOrgUnitMap()).thenReturn(attrOptComboOrgUnitCache);
             })) {
-      when(currentUserService.getCurrentUser()).thenReturn(user);
+      //      when(getCurrentUser()).thenReturn(user);
       when(batchHandler.init()).thenReturn(batchHandler);
       when(idObjManager.get(CategoryCombo.class, categoryCombo.getUid())).thenReturn(categoryCombo);
       when(idObjManager.getObject(CategoryOption.class, IdScheme.UID, categoryOptionA.getUid()))
@@ -251,9 +249,9 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
           .thenReturn(categoryOptionCombo);
 
       // force error on access check for Category Option Combo
-      when(aclService.canDataWrite(user, dataSetA)).thenReturn(true);
-      when(aclService.canDataWrite(user, categoryOptionA)).thenReturn(false);
-      when(aclService.canDataWrite(user, categoryOptionB)).thenReturn(true);
+      when(aclService.canDataWrite(user.getUsername(), dataSetA)).thenReturn(true);
+      when(aclService.canDataWrite(user.getUsername(), categoryOptionA)).thenReturn(false);
+      when(aclService.canDataWrite(user.getUsername(), categoryOptionB)).thenReturn(true);
 
       when(systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_PERIODS))
           .thenReturn(false);
@@ -266,8 +264,10 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
               SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO))
           .thenReturn(false);
 
-      when(currentUserService.getCurrentUserOrganisationUnits())
+      // TODO: MAS: why use getCurrentUserOrganisationUnits() here?
+      when(user.getOrganisationUnits())
           .thenReturn(Collections.singleton(createOrganisationUnit('A')));
+
       when(i18nManager.getI18n()).thenReturn(i18n);
 
       when(categoryService.getDefaultCategoryOptionCombo()).thenReturn(DEFAULT_COC);

@@ -45,8 +45,8 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,8 +62,6 @@ public class DefaultDatastoreService implements DatastoreService {
       new ConcurrentHashMap<>();
 
   private final DatastoreStore store;
-
-  private final CurrentUserService currentUserService;
 
   private final AclService aclService;
 
@@ -177,7 +175,7 @@ public class DefaultDatastoreService implements DatastoreService {
       T res = read.get();
       if (res instanceof DatastoreEntry && protection != null && protection.isSharingRespected()) {
         DatastoreEntry entry = (DatastoreEntry) res;
-        if (!aclService.canRead(currentUserService.getCurrentUser(), entry)) {
+        if (!aclService.canRead(CurrentUserUtil.getCurrentUsername(), entry)) {
           throw new AccessDeniedException(
               String.format(
                   "Access denied for key '%s' in namespace '%s'", entry.getKey(), namespace));
@@ -199,7 +197,7 @@ public class DefaultDatastoreService implements DatastoreService {
       // might also need to check sharing
       if (protection.isSharingRespected()) {
         for (DatastoreEntry entry : whenSharing.get()) {
-          if (!aclService.canWrite(currentUserService.getCurrentUser(), entry)) {
+          if (!aclService.canWrite(CurrentUserUtil.getCurrentUsername(), entry)) {
             throw accessDeniedTo(namespace, entry.getKey());
           }
         }
@@ -229,12 +227,12 @@ public class DefaultDatastoreService implements DatastoreService {
   }
 
   private boolean currentUserHasAuthority(Set<String> authorities) {
-    User currentUser = currentUserService.getCurrentUser();
-    if (currentUser == null) {
+    if (CurrentUserUtil.getCurrentUsername() == null) {
       return false;
     }
-    return currentUser.isSuper()
-        || !authorities.isEmpty() && currentUser.hasAnyAuthority(authorities);
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    return currentUserDetails.isSuper()
+        || !authorities.isEmpty() && currentUserDetails.hasAnyAuthority(authorities);
   }
 
   private void validateEntry(DatastoreEntry entry) throws BadRequestException {

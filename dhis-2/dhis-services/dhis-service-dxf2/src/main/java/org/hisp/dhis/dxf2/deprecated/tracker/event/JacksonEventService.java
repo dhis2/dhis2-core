@@ -60,7 +60,6 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -96,7 +95,6 @@ public class JacksonEventService extends AbstractEventService {
       EnrollmentService enrollmentService,
       EventService eventService,
       OrganisationUnitService organisationUnitService,
-      CurrentUserService currentUserService,
       TrackedEntityService entityInstanceService,
       NoteService commentService,
       EventStore eventStore,
@@ -123,7 +121,6 @@ public class JacksonEventService extends AbstractEventService {
     checkNotNull(enrollmentService);
     checkNotNull(eventService);
     checkNotNull(organisationUnitService);
-    checkNotNull(currentUserService);
     checkNotNull(entityInstanceService);
     checkNotNull(commentService);
     checkNotNull(eventStore);
@@ -149,7 +146,6 @@ public class JacksonEventService extends AbstractEventService {
     this.enrollmentService = enrollmentService;
     this.eventService = eventService;
     this.organisationUnitService = organisationUnitService;
-    this.currentUserService = currentUserService;
     this.entityInstanceService = entityInstanceService;
     this.commentService = commentService;
     this.eventStore = eventStore;

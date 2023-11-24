@@ -59,7 +59,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -89,8 +89,6 @@ public class DefaultCategoryService implements CategoryService {
   private final CategoryOptionGroupSetStore categoryOptionGroupSetStore;
 
   private final IdentifiableObjectManager idObjectManager;
-
-  private final CurrentUserService currentUserService;
 
   private final AclService aclService;
 
@@ -575,10 +573,8 @@ public class DefaultCategoryService implements CategoryService {
     CategoryOptionCombo coc = idObjectManager.getObject(CategoryOptionCombo.class, idScheme, id);
 
     if (coc != null) {
-      User user = currentUserService.getCurrentUser();
-
       for (CategoryOption categoryOption : coc.getCategoryOptions()) {
-        if (!aclService.canDataWrite(user, categoryOption)) {
+        if (!aclService.canDataWrite(CurrentUserUtil.getCurrentUsername(), categoryOption)) {
           return null;
         }
       }

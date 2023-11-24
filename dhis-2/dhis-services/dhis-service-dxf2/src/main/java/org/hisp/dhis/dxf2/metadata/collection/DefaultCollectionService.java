@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -52,7 +51,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,13 +63,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultCollectionService implements CollectionService {
   private final IdentifiableObjectManager manager;
 
-  private final DbmsManager dbmsManager;
-
   private final AclService aclService;
 
   private final SchemaService schemaService;
-
-  private final CurrentUserService currentUserService;
 
   private final SchemaValidator schemaValidator;
 
@@ -263,7 +258,7 @@ public class DefaultCollectionService implements CollectionService {
       throws ForbiddenException, NotFoundException, ConflictException {
     Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
 
-    if (!aclService.canUpdate(currentUserService.getCurrentUser(), object)) {
+    if (!aclService.canUpdate(CurrentUserUtil.getCurrentUsername(), object)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 

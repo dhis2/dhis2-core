@@ -63,7 +63,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,7 +83,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
 
   @Autowired private TrackerOwnershipManager trackerOwnershipManager;
 
-  @Autowired private CurrentUserService currentUserService;
+  //  @Autowired private CurrentUserService currentUserService;
 
   private Program programB;
 
@@ -205,7 +204,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
   private void populatePrerequisites(boolean removeOwnership) {
     doInTransaction(
         () -> {
-          User currentUser = currentUserService.getCurrentUser();
+          User currentUser = getCurrentUser();
 
           ProgramStage programStageA = createProgramStage(programB, true);
           ProgramStage programStageB = createProgramStage(programB, true);

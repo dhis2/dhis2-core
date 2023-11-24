@@ -78,7 +78,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
@@ -119,7 +118,7 @@ class EventOperationParamsMapperTest {
 
   @Mock private CategoryOptionComboService categoryOptionComboService;
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
 
   @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -150,7 +149,7 @@ class EventOperationParamsMapperTest {
 
     user = new User();
     user.setOrganisationUnits(Set.of(orgUnit));
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
 
     // By default set to ACCESSIBLE for tests that don't set an orgUnit. The orgUnitMode needs to be
     // set because its validation is in the EventRequestParamsMapper.
@@ -167,7 +166,7 @@ class EventOperationParamsMapperTest {
     EventOperationParams eventOperationParams =
         eventBuilder.programStageUid(programStage.getUid()).build();
 
-    when(aclService.canDataRead(user, programStage)).thenReturn(false);
+    when(aclService.canDataRead(user.getUsername(), programStage)).thenReturn(false);
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
 
     Exception exception =
@@ -184,7 +183,7 @@ class EventOperationParamsMapperTest {
         eventBuilder.programStageUid(programStage.getUid()).trackedEntityUid("qnR1RK4cTIZ").build();
 
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
-    when(aclService.canDataRead(user, programStage)).thenReturn(true);
+    when(aclService.canDataRead(user.getUsername(), programStage)).thenReturn(true);
     when(trackedEntityService.getTrackedEntity("qnR1RK4cTIZ")).thenReturn(null);
 
     Exception exception =
@@ -202,7 +201,7 @@ class EventOperationParamsMapperTest {
     EventOperationParams eventOperationParams = eventBuilder.programUid(program.getUid()).build();
 
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user, program)).thenReturn(false);
+    when(aclService.canDataRead(user.getUsername(), program)).thenReturn(false);
 
     Exception exception =
         assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams));
@@ -255,7 +254,8 @@ class EventOperationParamsMapperTest {
     when(categoryOptionComboService.getAttributeOptionCombo(
             "NeU85luyD4w", Set.of("tqrzUqNMHib", "bT6OSf4qnnk"), true))
         .thenReturn(combo);
-    when(aclService.canDataRead(any(User.class), any(CategoryOptionCombo.class))).thenReturn(false);
+    when(aclService.canDataRead(any(String.class), any(CategoryOptionCombo.class)))
+        .thenReturn(false);
 
     Exception exception =
         assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams));
@@ -278,7 +278,8 @@ class EventOperationParamsMapperTest {
     when(categoryOptionComboService.getAttributeOptionCombo(
             "NeU85luyD4w", Set.of("tqrzUqNMHib", "bT6OSf4qnnk"), true))
         .thenReturn(combo);
-    when(aclService.canDataRead(any(User.class), any(CategoryOptionCombo.class))).thenReturn(true);
+    when(aclService.canDataRead(any(String.class), any(CategoryOptionCombo.class)))
+        .thenReturn(true);
 
     EventQueryParams queryParams = mapper.map(operationParams);
 
@@ -492,7 +493,7 @@ class EventOperationParamsMapperTest {
     user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit", "uid")));
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
     when(organisationUnitService.isInUserHierarchy(
@@ -528,7 +529,7 @@ class EventOperationParamsMapperTest {
     userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
     user.setUserRoles(Set.of(userRole));
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
 
@@ -566,7 +567,7 @@ class EventOperationParamsMapperTest {
   @ValueSource(strings = {"admin", "superuser"})
   void shouldMapOrgUnitAndModeWhenModeAllAndUserIsAuthorized(String userName)
       throws ForbiddenException, BadRequestException {
-    when(currentUserService.getCurrentUser()).thenReturn(userMap.get(userName));
+    //    when(getCurrentUser()).thenReturn(userMap.get(userName));
 
     EventOperationParams operationParams = eventBuilder.orgUnitMode(ALL).build();
 
@@ -578,7 +579,7 @@ class EventOperationParamsMapperTest {
   @Test
   void shouldIncludeRelationshipsWhenFieldPathIncludeRelationships()
       throws BadRequestException, ForbiddenException {
-    when(currentUserService.getCurrentUser()).thenReturn(userMap.get("admin"));
+    //    when(getCurrentUser()).thenReturn(userMap.get("admin"));
 
     EventOperationParams operationParams =
         eventBuilder.orgUnitMode(ALL).eventParams(EventParams.TRUE).build();
@@ -589,7 +590,7 @@ class EventOperationParamsMapperTest {
   @Test
   void shouldNotIncludeRelationshipsWhenFieldPathDoNotIncludeRelationships()
       throws BadRequestException, ForbiddenException {
-    when(currentUserService.getCurrentUser()).thenReturn(userMap.get("admin"));
+    //    when(getCurrentUser()).thenReturn(userMap.get("admin"));
 
     EventOperationParams operationParams =
         eventBuilder.orgUnitMode(ALL).eventParams(EventParams.FALSE).build();

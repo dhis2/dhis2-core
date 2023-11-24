@@ -49,8 +49,8 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,9 +65,11 @@ class VisualizationGridServiceTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
 
   @Mock private I18nManager i18nManager;
+
+  @Mock private UserService userService;
 
   private VisualizationGridService visualizationGridService;
 
@@ -78,8 +80,8 @@ class VisualizationGridServiceTest {
             visualizationService,
             analyticsService,
             organisationUnitService,
-            currentUserService,
-            i18nManager);
+            i18nManager,
+            userService);
   }
 
   @Test

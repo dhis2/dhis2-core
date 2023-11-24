@@ -42,7 +42,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,8 +56,6 @@ class IconServiceTest {
 
   @Mock private FileResourceService fileResourceService;
 
-  @Mock private CurrentUserService currentUserService;
-
   @Spy @InjectMocks private DefaultIconService iconService;
 
   @Test
@@ -71,7 +68,7 @@ class IconServiceTest {
         .thenReturn(Optional.of(new FileResource()));
     User user = new User();
     user.setId(1234);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
 
     iconService.addCustomIcon(
         new CustomIcon(

@@ -199,11 +199,11 @@ public class DefaultGeoJsonService implements GeoJsonService {
       GeoJsonImportJobParams params, @Nonnull Set<String> ouIdentifiers) {
     switch (params.getIdType()) {
       case CODE:
-        return organisationUnitStore.getByCode(ouIdentifiers, params.getUser());
+        return organisationUnitStore.getByCode(ouIdentifiers);
       case NAME:
-        return organisationUnitStore.getByName(ouIdentifiers, params.getUser());
+        return organisationUnitStore.getByName(ouIdentifiers);
       default:
-        return organisationUnitStore.getByUid(ouIdentifiers, params.getUser());
+        return organisationUnitStore.getByUid(ouIdentifiers);
     }
   }
 
@@ -240,7 +240,7 @@ public class DefaultGeoJsonService implements GeoJsonService {
       report.addConflict(createConflict(index, GeoJsonImportConflict.ORG_UNIT_NOT_FOUND));
       return false;
     }
-    if (!aclService.canUpdate(params.getUser(), target)) {
+    if (!aclService.canUpdate(params.getUser().getUsername(), target)) {
       report.addConflict(createConflict(index, GeoJsonImportConflict.ORG_UNIT_NOT_ACCESSIBLE));
       return false;
     }

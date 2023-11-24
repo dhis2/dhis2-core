@@ -72,8 +72,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,7 +102,8 @@ class EventRequestParamsMapperTest {
 
   private static final String PROGRAM_UID = "PlZSBEN7iZd";
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private ProgramService programService;
 
@@ -128,21 +130,22 @@ class EventRequestParamsMapperTest {
   @BeforeEach
   public void setUp() {
     User user = new User();
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
     program = new Program();
     program.setUid(PROGRAM_UID);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user.getUsername(), program)).thenReturn(true);
 
     ProgramStage programStage = new ProgramStage();
     programStage.setUid("PlZSBEN7iZd");
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
-    when(aclService.canDataRead(user, programStage)).thenReturn(true);
+    when(aclService.canDataRead(user.getUsername(), programStage)).thenReturn(true);
 
     orgUnit = new OrganisationUnit();
     when(organisationUnitService.getOrganisationUnit(any())).thenReturn(orgUnit);
-    when(organisationUnitService.isInUserHierarchy(orgUnit)).thenReturn(true);
+    when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(true);
 
     TrackedEntity trackedEntity = new TrackedEntity();
     when(entityInstanceService.getTrackedEntity("qnR1RK4cTIZ")).thenReturn(trackedEntity);

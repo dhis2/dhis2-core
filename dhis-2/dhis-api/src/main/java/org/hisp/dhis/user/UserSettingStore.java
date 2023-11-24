@@ -49,28 +49,28 @@ public interface UserSettingStore {
    *
    * <p>Note: This method invocation will occur within a transaction.
    *
-   * @param user the User.
+   * @param username the User.
    * @param name the name of the UserSetting.
    * @return the UserSetting.
    */
-  UserSetting getUserSettingTx(User user, String name);
+  UserSetting getUserSettingTx(String username, String name);
 
   /**
    * Retrieves the UserSetting associated with the given User for the given UserSetting name.
    *
-   * @param user the User.
+   * @param username the User.
    * @param name the name of the UserSetting.
    * @return the UserSetting.
    */
-  UserSetting getUserSetting(User user, String name);
+  UserSetting getUserSetting(String username, String name);
 
   /**
    * Retrieves all UserSettings for the given User.
    *
-   * @param user the User.
+   * @param username the User.
    * @return a List of UserSettings.
    */
-  List<UserSetting> getAllUserSettings(User user);
+  List<UserSetting> getAllUserSettings(String username);
 
   /**
    * Deletes a UserSetting.
@@ -79,10 +79,10 @@ public interface UserSettingStore {
    */
   void deleteUserSetting(UserSetting userSetting);
 
-  /**
-   * Removes all user settings associated with the given user.
-   *
-   * @param user the user.
-   */
-  void removeUserSettings(User user);
+  //  /**
+  //   * Removes all user settings associated with the given user.
+  //   *
+  //   * @param username the user.
+  //   */
+  //  void removeUserSettings(String username);
 }

@@ -130,7 +130,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
@@ -181,8 +181,6 @@ public abstract class AbstractEventService
   protected EventService eventService;
 
   protected OrganisationUnitService organisationUnitService;
-
-  protected CurrentUserService currentUserService;
 
   protected TrackedEntityService entityInstanceService;
 
@@ -298,9 +296,8 @@ public abstract class AbstractEventService
   @Transactional(readOnly = true)
   @Override
   public Events getEvents(EventSearchParams params) {
-    User user = currentUserService.getCurrentUser();
 
-    validate(params, user);
+    validate(params);
 
     if (!params.isPaging() && !params.isSkipPaging()) {
       params.setDefaultPaging();
@@ -365,9 +362,7 @@ public abstract class AbstractEventService
   @Transactional(readOnly = true)
   @Override
   public Grid getEventsGrid(EventSearchParams params) {
-    User user = currentUserService.getCurrentUser();
-
-    validate(params, user);
+    validate(params);
 
     if (params.getProgramStage() == null || params.getProgramStage().getProgram() == null) {
       throw new IllegalQueryException("Program stage can not be null");
@@ -532,8 +527,6 @@ public abstract class AbstractEventService
   @Transactional(readOnly = true)
   @Override
   public EventRows getEventRows(EventSearchParams params) {
-    User user = currentUserService.getCurrentUser();
-
     EventRows eventRows = new EventRows();
 
     List<EventRow> eventRowList = eventStore.getEventRows(params);
@@ -555,8 +548,9 @@ public abstract class AbstractEventService
                   () ->
                       organisationUnitService.getOrganisationUnit(trackedEntityOuInfo.orgUnitId()));
 
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
       if (trackerOwnershipAccessManager.hasAccess(
-          user, trackedEntityOuInfo.trackedEntityUid(), ou, program)) {
+          currentUser, trackedEntityOuInfo.trackedEntityUid(), ou, program)) {
         eventRows.getEventRows().add(eventRow);
       }
     }
@@ -618,11 +612,11 @@ public abstract class AbstractEventService
       event.setAssignedUserSurname(programStageInstance.getAssignedUser().getSurname());
     }
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     OrganisationUnit ou = programStageInstance.getOrganisationUnit();
 
     List<String> errors =
-        trackerAccessManager.canRead(user, programStageInstance, skipOwnershipCheck);
+        trackerAccessManager.canRead(currentUser, programStageInstance, skipOwnershipCheck);
 
     if (!errors.isEmpty()) {
       throw new IllegalQueryException(errors.toString());
@@ -670,7 +664,8 @@ public abstract class AbstractEventService
     }
 
     for (EventDataValue dataValue : dataValues) {
-      if (getDataElement(user.getUid(), dataValue.getDataElement())) {
+      if (getDataElement(
+          CurrentUserUtil.getCurrentUserDetails().getUid(), dataValue.getDataElement())) {
         DataValue value = new DataValue();
         value.setCreated(DateUtils.getIso8601NoTz(dataValue.getCreated()));
         value.setCreatedByUserInfo(dataValue.getCreatedByUserInfo());
@@ -696,7 +691,7 @@ public abstract class AbstractEventService
               .map(
                   r ->
                       relationshipService.findRelationship(
-                          r.getRelationship(), RelationshipParams.FALSE, user))
+                          r.getRelationship(), RelationshipParams.FALSE, currentUser))
               .filter(Optional::isPresent)
               .map(Optional::get)
               .collect(Collectors.toSet()));
@@ -769,8 +764,7 @@ public abstract class AbstractEventService
       return;
     }
 
-    User currentUser = currentUserService.getCurrentUser();
-
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     saveTrackedEntityComment(
         programStageInstance,
         event,
@@ -792,9 +786,8 @@ public abstract class AbstractEventService
       return;
     }
 
-    List<String> errors =
-        trackerAccessManager.canUpdate(
-            currentUserService.getCurrentUser(), programStageInstance, false);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    List<String> errors = trackerAccessManager.canUpdate(currentUser, programStageInstance, false);
 
     if (!errors.isEmpty()) {
       return;
@@ -848,8 +841,8 @@ public abstract class AbstractEventService
     if (existsEvent) {
       Event event = eventService.getEvent(uid);
 
-      List<String> errors =
-          trackerAccessManager.canDelete(currentUserService.getCurrentUser(), event, false);
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+      List<String> errors = trackerAccessManager.canDelete(currentUser, event, false);
 
       if (!errors.isEmpty()) {
         return new ImportSummary(ImportStatus.ERROR, errors.toString()).incrementIgnored();
@@ -956,7 +949,7 @@ public abstract class AbstractEventService
   }
 
   @Override
-  public void validate(EventSearchParams params, User user) throws IllegalQueryException {
+  public void validate(EventSearchParams params) throws IllegalQueryException {
     String violation = null;
 
     if (params.hasLastUpdatedDuration()
@@ -1014,7 +1007,7 @@ public abstract class AbstractEventService
   }
 
   private void updateEntities(User user) {
-    trackedEntityInstancesToUpdate.forEach(tei -> manager.update(tei, user));
+    trackedEntityInstancesToUpdate.forEach(tei -> manager.update(tei));
     trackedEntityInstancesToUpdate.clear();
   }
 
@@ -1027,7 +1020,7 @@ public abstract class AbstractEventService
       if (event.getEnrollment() != null) {
         if (!bulkUpdate) {
           if (event.getEnrollment().getTrackedEntity() != null) {
-            manager.update(event.getEnrollment().getTrackedEntity(), user);
+            manager.update(event.getEnrollment().getTrackedEntity());
           }
         } else {
           if (event.getEnrollment().getTrackedEntity() != null) {
@@ -1043,8 +1036,9 @@ public abstract class AbstractEventService
       importOptions = new ImportOptions();
     }
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (importOptions.getUser() == null) {
-      importOptions.setUser(currentUserService.getCurrentUser());
+      importOptions.setUser(currentUser);
     }
 
     return importOptions;

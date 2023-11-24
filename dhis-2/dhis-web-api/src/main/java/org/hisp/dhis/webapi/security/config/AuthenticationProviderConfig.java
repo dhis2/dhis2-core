@@ -33,7 +33,6 @@ import java.util.Map;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.AuthenticationLoggerListener;
-import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.ldap.authentication.DhisBindAuthenticator;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
@@ -105,7 +104,7 @@ public class AuthenticationProviderConfig {
   @Bean
   public RoleHierarchyImpl roleHierarchy() {
     final RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
-    roleHierarchy.setHierarchy("ROLE_ADMIN > ROLE_STAFF > ROLE_USER > ROLE_GUEST");
+    roleHierarchy.setHierarchy("ALL > ROLE_STAFF > ROLE_USER > ROLE_GUEST");
     return roleHierarchy;
   }
 
@@ -122,13 +121,13 @@ public class AuthenticationProviderConfig {
     return new TwoFactorWebAuthenticationDetailsSource();
   }
 
-  @Bean(name = "customLdapAuthenticationProvider")
-  CustomLdapAuthenticationProvider customLdapAuthenticationProvider() {
-    return new CustomLdapAuthenticationProvider(
-        dhisBindAuthenticator(),
-        userDetailsServiceLdapAuthoritiesPopulator(ldapUserDetailsService),
-        configurationProvider);
-  }
+  //  @Bean(name = "customLdapAuthenticationProvider")
+  //  CustomLdapAuthenticationProvider customLdapAuthenticationProvider() {
+  //    return new CustomLdapAuthenticationProvider(
+  //        dhisBindAuthenticator(),
+  //        userDetailsServiceLdapAuthoritiesPopulator(ldapUserDetailsService),
+  //        configurationProvider);
+  //  }
 
   @Bean
   public DefaultSpringSecurityContextSource defaultSpringSecurityContextSource() {

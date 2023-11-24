@@ -61,12 +61,10 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.security.RestoreType;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
@@ -94,13 +92,9 @@ import org.springframework.security.core.session.SessionRegistry;
 class UserControllerTest extends DhisControllerConvenienceTest {
   @Autowired private MessageSender messageSender;
 
-  @Autowired private SecurityService securityService;
-
   @Autowired private SystemSettingManager systemSettingManager;
 
   @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private SessionRegistry sessionRegistry;
 
@@ -1086,17 +1080,17 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   /**
-   * Unfortunately this is not yet a spring endpoint so we have to do it directly instead of using
+   * Unfortunately this is not yet a spring endpoint, so we have to do it directly instead of using
    * the REST API.
    */
   private void assertValidToken(String token) {
-    String[] idAndRestoreToken = securityService.decodeEncodedTokens(token);
+    String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
     String idToken = idAndRestoreToken[0];
     String restoreToken = idAndRestoreToken[1];
     User user = userService.getUserByIdToken(idToken);
     assertNotNull(user);
     ErrorCode errorCode =
-        securityService.validateRestoreToken(user, restoreToken, RestoreType.RECOVER_PASSWORD);
+        userService.validateRestoreToken(user, restoreToken, RestoreType.RECOVER_PASSWORD);
     assertNull(errorCode);
   }
 

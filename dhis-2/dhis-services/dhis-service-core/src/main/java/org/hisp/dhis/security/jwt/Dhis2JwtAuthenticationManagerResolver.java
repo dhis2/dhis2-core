@@ -40,8 +40,9 @@ import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -80,8 +81,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class Dhis2JwtAuthenticationManagerResolver
     implements AuthenticationManagerResolver<HttpServletRequest> {
-  @Autowired private UserService userService;
+  //  @Autowired private UserService userService;
 
+  @Autowired private UserStore userStore;
   @Autowired private DhisOidcProviderRepository clientRegistrationRepository;
 
   private final Map<String, AuthenticationManager> authenticationManagers =
@@ -162,7 +164,7 @@ public class Dhis2JwtAuthenticationManagerResolver
       String mappingClaimKey = clientRegistration.getMappingClaimKey();
       String mappingValue = jwt.getClaim(mappingClaimKey);
 
-      User user = userService.getUserByOpenId(mappingValue);
+      User user = userStore.getUserByOpenId(mappingValue);
       if (user == null) {
         throw new InvalidBearerTokenException(
             String.format(
@@ -170,7 +172,8 @@ public class Dhis2JwtAuthenticationManagerResolver
                 mappingClaimKey, mappingValue));
       }
 
-      CurrentUserDetails currentUserDetails = userService.createUserDetails(user);
+      //      CurrentUserDetails currentUserDetails = userService.createUserDetails(user);
+      CurrentUserDetails currentUserDetails = CurrentUserDetailsImpl.fromUser(user);
 
       Collection<GrantedAuthority> grantedAuthorities = user.getAuthorities();
 

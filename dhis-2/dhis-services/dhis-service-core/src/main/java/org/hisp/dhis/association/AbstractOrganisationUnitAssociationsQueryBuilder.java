@@ -140,11 +140,8 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
   }
 
   private String getSharingConditions(String access) {
-    //    CurrentUserGroupInfo currentUserGroupInfo = userService.getCurrentUserGroupsInfo();
-
     CurrentUserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     Set<String> userGroupIds = currentUser.getUserGroupIds();
-
     return String.join(
         " or ",
         getOwnerCondition(currentUser.getUid()),

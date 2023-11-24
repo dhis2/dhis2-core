@@ -74,7 +74,7 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
   @Override
   protected void initTest() throws IOException {
     setUpMetadata("tracker/identifier_metadata.json");
-    user = currentUserService.getCurrentUser();
+    user = getCurrentUser();
   }
 
   @Test

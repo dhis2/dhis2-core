@@ -110,8 +110,9 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.quick.BatchHandler;
@@ -146,8 +147,6 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
   private final CompleteDataSetRegistrationService registrationService;
 
-  private final CurrentUserService currentUserService;
-
   private final DataValueSetStore dataValueSetStore;
 
   private final SystemSettingManager systemSettingManager;
@@ -173,6 +172,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
   private final DataValueSetImportValidator importValidator;
 
   private final SchemaService schemaService;
+
+  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // DataValueSet implementation
@@ -329,12 +330,10 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
   @Override
   public void decideAccess(DataExportParams params) {
-    User user = currentUserService.getCurrentUser();
-
     // Verify data set read sharing
 
     for (DataSet dataSet : params.getDataSets()) {
-      if (!aclService.canDataRead(user, dataSet)) {
+      if (!aclService.canDataRead(CurrentUserUtil.getCurrentUsername(), dataSet)) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2010, dataSet.getUid()));
       }
     }
@@ -342,15 +341,17 @@ public class DefaultDataValueSetService implements DataValueSetService {
     // Verify attribute option combination data read sharing
 
     for (CategoryOptionCombo optionCombo : params.getAttributeOptionCombos()) {
-      if (!aclService.canDataRead(user, optionCombo)) {
+      if (!aclService.canDataRead(CurrentUserUtil.getCurrentUsername(), optionCombo)) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2011, optionCombo.getUid()));
       }
     }
 
     // Verify org unit being located within user data capture hierarchy
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     for (OrganisationUnit unit : params.getOrganisationUnits()) {
-      if (!organisationUnitService.isInUserDataViewHierarchy(unit)) {
+      if (!organisationUnitService.isInUserDataViewHierarchy(currentUser, unit)) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2012, unit.getUid()));
       }
     }
@@ -1033,7 +1034,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
       DataValueSet data,
       BatchHandler<DataValue> dataValueBatchHandler,
       BatchHandler<DataValueAudit> auditBatchHandler) {
-    final User currentUser = currentUserService.getCurrentUser();
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     boolean auditEnabled = config.isEnabled(CHANGELOG_AGGREGATE);
     boolean hasSkipAuditAuth =
@@ -1054,6 +1056,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
             IdSchemes::getCategoryOptionComboIdScheme);
     IdScheme dataSetIdScheme =
         createIdScheme(data.getDataSetIdSchemeProperty(), options, IdSchemes::getDataSetIdScheme);
+
     return ImportContext.builder()
         .importOptions(options)
         .summary(new ImportSummary().setImportOptions(options))
@@ -1061,7 +1064,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
         .skipLockExceptionCheck(!lockExceptionStore.anyExists())
         .i18n(i18nManager.getI18n())
         .currentUser(currentUser)
-        .currentOrgUnits(currentUserService.getCurrentUserOrganisationUnits())
+        .currentOrgUnits(currentUser.getOrganisationUnits())
         .hasSkipAuditAuth(hasSkipAuditAuth)
         .skipAudit(skipAudit)
         .idScheme(createIdScheme(data.getIdSchemeProperty(), options, IdSchemes::getIdScheme))

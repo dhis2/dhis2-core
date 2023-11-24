@@ -62,7 +62,9 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,7 +76,7 @@ public class MetadataHandler {
 
   private final SchemeIdResponseMapper schemeIdResponseMapper;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   /**
    * Adds meta data values to the given grid based on the given data query parameters.
@@ -94,8 +96,9 @@ public class MetadataHandler {
 
       Map<String, Object> items = new HashMap<>(getDimensionMetadataItemMap(params, grid));
 
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
       AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems(
-              currentUserService.getCurrentUser(), params.getUserOrganisationUnitsCriteria())
+              currentUser, params.getUserOrganisationUnitsCriteria())
           .forEach(items::putAll);
 
       metaData.put(ITEMS.getKey(), items);

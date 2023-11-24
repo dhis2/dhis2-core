@@ -62,8 +62,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -79,13 +80,12 @@ public class TrackedEntityInstanceAggregate extends AbstractAggregate {
 
   @Nonnull private final EnrollmentAggregate enrollmentAggregate;
 
-  @Nonnull private final CurrentUserService currentUserService;
-
   @Nonnull private final AclStore aclStore;
 
   @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
 
   @Nonnull private final CacheProvider cacheProvider;
+  @Nonnull private final UserService userService;
 
   private Cache<Set<TrackedEntityAttribute>> teiAttributesCache;
 
@@ -112,7 +112,9 @@ public class TrackedEntityInstanceAggregate extends AbstractAggregate {
    */
   public List<TrackedEntityInstance> find(
       List<Long> ids, TrackedEntityInstanceParams params, TrackedEntityQueryParams queryParams) {
-    final Optional<User> user = Optional.ofNullable(currentUserService.getCurrentUser());
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    final Optional<User> user = Optional.ofNullable(currentUser);
 
     user.ifPresent(
         u -> {
@@ -120,9 +122,7 @@ public class TrackedEntityInstanceAggregate extends AbstractAggregate {
               && !CollectionUtils.isEmpty(user.get().getGroups())) {
             userGroupUIDCache.put(
                 user.get().getUid(),
-                user.get().getGroups().stream()
-                    .map(IdentifiableObject::getUid)
-                    .collect(Collectors.toList()));
+                user.get().getGroups().stream().map(IdentifiableObject::getUid).toList());
           }
         });
 

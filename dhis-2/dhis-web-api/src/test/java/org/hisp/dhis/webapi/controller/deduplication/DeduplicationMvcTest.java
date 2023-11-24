@@ -59,8 +59,9 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,7 +87,8 @@ class DeduplicationMvcTest {
 
   @Mock private TrackerAccessManager trackerAccessManager;
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private FieldFilterService fieldFilterService;
 
@@ -125,7 +127,9 @@ class DeduplicationMvcTest {
   void shouldPostPotentialDuplicateWhenTeisExistAndUserHasAccess() throws Exception {
     when(trackerAccessManager.canRead(any(User.class), any(TrackedEntity.class)))
         .thenReturn(Collections.emptyList());
-    when(currentUserService.getCurrentUser()).thenReturn(new User());
+
+    User user = new User();
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
     when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
     when(trackedEntityService.getTrackedEntity(duplicate)).thenReturn(trackedEntityB);
 
@@ -145,7 +149,9 @@ class DeduplicationMvcTest {
   void shouldThrowForbiddenExceptionExceptionWhenPostAndUserHasNoTeiAccess() throws Exception {
     when(trackerAccessManager.canRead(any(User.class), any(TrackedEntity.class)))
         .thenReturn(List.of("error"));
-    when(currentUserService.getCurrentUser()).thenReturn(new User());
+
+    User user = new User();
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
     when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
 
     PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);

@@ -36,8 +36,9 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 
 /**
  * This package private class holds the context for deciding on data approval permissions. The
@@ -88,14 +89,13 @@ class DataApprovalPermissionsEvaluator {
    * Allocates and populates the context for determining user permissions on one or more
    * DataApproval objects.
    *
-   * @param currentUserService Current user service
-   * @param organisationUnitService OrganisationUnit service
+   * @param userService user service
    * @param systemSettingManager System setting manager
    * @param dataApprovalLevelService Data approval level service
    * @return context for determining user permissions
    */
   public static DataApprovalPermissionsEvaluator makePermissionsEvaluator(
-      CurrentUserService currentUserService,
+      UserService userService,
       IdentifiableObjectManager idObjectManager,
       SystemSettingManager systemSettingManager,
       DataApprovalLevelService dataApprovalLevelService) {
@@ -104,7 +104,7 @@ class DataApprovalPermissionsEvaluator {
     ev.idObjectManager = idObjectManager;
     ev.dataApprovalLevelService = dataApprovalLevelService;
 
-    ev.user = currentUserService.getCurrentUser();
+    ev.user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     ev.acceptanceRequiredForApproval =
         systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);

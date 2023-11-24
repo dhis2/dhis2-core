@@ -51,7 +51,9 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.config.MessageSendingCallback;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,7 +78,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   private final OutboundMessageBatchService messageBatchService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final List<DeliveryChannelStrategy> strategies;
 
@@ -240,8 +242,8 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
     programs = new HashSet<>(programService.getCurrentUserPrograms());
 
-    if (currentUserService.getCurrentUser() != null
-        && !programs.contains(enrollment.getProgram())) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (currentUser != null && !programs.contains(enrollment.getProgram())) {
       throw new IllegalQueryException("User does not have access to the required program");
     }
   }
@@ -315,7 +317,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     }
 
     if (object != null) {
-      isAuthorized = aclService.canDataWrite(currentUserService.getCurrentUser(), object);
+      isAuthorized = aclService.canDataWrite(CurrentUserUtil.getCurrentUsername(), object);
 
       if (!isAuthorized) {
         log.error(

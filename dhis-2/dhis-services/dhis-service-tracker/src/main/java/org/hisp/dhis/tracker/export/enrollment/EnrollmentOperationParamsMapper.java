@@ -42,8 +42,9 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,7 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 class EnrollmentOperationParamsMapper {
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final OrganisationUnitService organisationUnitService;
 
@@ -72,9 +73,10 @@ class EnrollmentOperationParamsMapper {
         validateTrackedEntityType(operationParams.getTrackedEntityTypeUid());
     TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
 
-    User user = currentUserService.getCurrentUser();
-    Set<OrganisationUnit> orgUnits = validateOrgUnits(operationParams.getOrgUnitUids(), user);
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    Set<OrganisationUnit> orgUnits =
+        validateOrgUnits(operationParams.getOrgUnitUids(), currentUser);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), currentUser, program);
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
     params.setProgram(program);
@@ -89,7 +91,7 @@ class EnrollmentOperationParamsMapper {
     params.addOrganisationUnits(orgUnits);
     params.setOrganisationUnitMode(operationParams.getOrgUnitMode());
     params.setIncludeDeleted(operationParams.isIncludeDeleted());
-    params.setUser(user);
+    params.setUser(currentUser);
     params.setOrder(operationParams.getOrder());
     params.setEnrollmentUids(operationParams.getEnrollmentUids());
 

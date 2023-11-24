@@ -55,7 +55,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,7 +93,7 @@ class DefaultEventAnalyticsServiceTest {
 
   @Mock private SchemeIdResponseMapper schemeIdResponseMapper;
 
-  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @BeforeEach
   public void setUp() {
@@ -110,7 +110,7 @@ class DefaultEventAnalyticsServiceTest {
             analyticsCache,
             enrollmentAnalyticsManager,
             schemeIdResponseMapper,
-            currentUserService);
+            userService);
   }
 
   @Test

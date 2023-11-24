@@ -28,7 +28,6 @@
 package org.hisp.dhis.user;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
@@ -143,9 +142,9 @@ public enum UserSettingKey {
   // Getters
   // -------------------------------------------------------------------------
 
-  public static Map<String, Serializable> getDefaultUserSettingsMap() {
-    return new HashMap<>(DEFAULT_USER_SETTINGS_MAP);
-  }
+  //  public static Map<String, Serializable> getDefaultUserSettingsMap() {
+  //    return new HashMap<>(DEFAULT_USER_SETTINGS_MAP);
+  //  }
 
   public static Set<UserSetting> getDefaultUserSettings(User user) {
     Set<UserSetting> defaultUserSettings = new HashSet<>();

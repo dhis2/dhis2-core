@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.webapi.mvc;
 
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -41,10 +42,10 @@ import org.springframework.web.method.support.ModelAndViewContainer;
  */
 @Component
 public class CurrentUserInfoHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
-  public CurrentUserInfoHandlerMethodArgumentResolver(CurrentUserService currentUserService) {
-    this.currentUserService = currentUserService;
+  public CurrentUserInfoHandlerMethodArgumentResolver(UserService userService) {
+    this.userService = userService;
   }
 
   @Override
@@ -60,6 +61,6 @@ public class CurrentUserInfoHandlerMethodArgumentResolver implements HandlerMeth
       NativeWebRequest webRequest,
       WebDataBinderFactory binderFactory)
       throws Exception {
-    return currentUserService.getCurrentUser();
+    return userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
   }
 }

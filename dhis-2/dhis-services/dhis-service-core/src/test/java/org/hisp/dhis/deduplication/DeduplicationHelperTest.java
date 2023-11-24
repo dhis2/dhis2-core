@@ -53,7 +53,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,9 +67,6 @@ import org.mockito.quality.Strictness;
 @ExtendWith({MockitoExtension.class})
 class DeduplicationHelperTest extends DhisConvenienceTest {
   @InjectMocks private DeduplicationHelper deduplicationHelper;
-
-  @Mock private CurrentUserService currentUserService;
-
   @Mock private AclService aclService;
 
   @Mock private RelationshipService relationshipService;
@@ -123,11 +119,11 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
     relationshipType.setBidirectional(false);
     relationshipTypeBidirectional.setBidirectional(true);
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-    when(aclService.canDataWrite(user, trackedEntityTypeA)).thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityTypeB)).thenReturn(true);
-    when(aclService.canDataWrite(user, relationshipType)).thenReturn(true);
-    when(aclService.canDataWrite(user, enrollment.getProgram())).thenReturn(true);
+    //    when(getCurrentUser()).thenReturn(user);
+    when(aclService.canDataWrite(user.getUsername(), trackedEntityTypeA)).thenReturn(true);
+    when(aclService.canDataWrite(user.getUsername(), trackedEntityTypeB)).thenReturn(true);
+    when(aclService.canDataWrite(user.getUsername(), relationshipType)).thenReturn(true);
+    when(aclService.canDataWrite(user.getUsername(), enrollment.getProgram())).thenReturn(true);
     when(relationshipService.getRelationships(relationshipUids)).thenReturn(getRelationships());
     when(enrollmentService.getEnrollments(enrollmentUids)).thenReturn(getEnrollments());
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnitA)).thenReturn(true);
@@ -144,7 +140,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
 
   @Test
   void shouldNotHasUserAccessWhenUserIsNull() {
-    when(currentUserService.getCurrentUser()).thenReturn(null);
+    //    when(getCurrentUser()).thenReturn(null);
 
     String hasUserAccess =
         deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);
@@ -155,7 +151,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
 
   @Test
   void shouldNotHasUserAccessWhenUserHasNoMergeRoles() {
-    when(currentUserService.getCurrentUser()).thenReturn(getNoMergeAuthsUser());
+    //    when(getCurrentUser()).thenReturn(getNoMergeAuthsUser());
 
     String hasUserAccess =
         deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);
@@ -166,7 +162,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
 
   @Test
   void shouldNotHasUserAccessWhenUserHasNoAccessToOriginalTEIType() {
-    when(aclService.canDataWrite(user, trackedEntityTypeA)).thenReturn(false);
+    when(aclService.canDataWrite(user.getUsername(), trackedEntityTypeA)).thenReturn(false);
 
     String hasUserAccess =
         deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);
@@ -177,7 +173,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
 
   @Test
   void shouldNotHasUserAccessWhenUserHasNoAccessToDuplicateTEIType() {
-    when(aclService.canDataWrite(user, trackedEntityTypeB)).thenReturn(false);
+    when(aclService.canDataWrite(user.getUsername(), trackedEntityTypeB)).thenReturn(false);
 
     String hasUserAccess =
         deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);
@@ -188,7 +184,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
 
   @Test
   void shouldNotHasUserAccessWhenUserHasNoAccessToRelationshipType() {
-    when(aclService.canDataWrite(user, relationshipType)).thenReturn(false);
+    when(aclService.canDataWrite(user.getUsername(), relationshipType)).thenReturn(false);
 
     String hasUserAccess =
         deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);
@@ -199,7 +195,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
 
   @Test
   void shouldNotHasUserAccessWhenUserHasNoAccessToEnrollment() {
-    when(aclService.canDataWrite(user, enrollment.getProgram())).thenReturn(false);
+    when(aclService.canDataWrite(user.getUsername(), enrollment.getProgram())).thenReturn(false);
 
     String hasUserAccess =
         deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);

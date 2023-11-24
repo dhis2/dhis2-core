@@ -33,8 +33,9 @@ import java.util.List;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -49,7 +50,7 @@ public class GetOrganisationUnitsByNameAction implements Action {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private CurrentUserService currentUserService;
+  @Autowired private UserService userService;
 
   // -------------------------------------------------------------------------
   // Input
@@ -79,12 +80,11 @@ public class GetOrganisationUnitsByNameAction implements Action {
   public String execute() throws Exception {
     term = term.toLowerCase();
 
-    User user = currentUserService.getCurrentUser();
-
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
 
-    if (user != null && user.hasOrganisationUnit()) {
-      params.setParents(user.getOrganisationUnits());
+    if (currentUser != null && currentUser.hasOrganisationUnit()) {
+      params.setParents(currentUser.getOrganisationUnits());
     }
 
     params.setQuery(term);

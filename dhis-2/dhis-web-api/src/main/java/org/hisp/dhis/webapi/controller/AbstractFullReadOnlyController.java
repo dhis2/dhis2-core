@@ -85,7 +85,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
@@ -122,8 +121,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   protected static final WebOptions NO_WEB_OPTIONS = new WebOptions(new HashMap<>());
 
   @Autowired protected IdentifiableObjectManager manager;
-
-  @Autowired protected CurrentUserService currentUserService;
 
   @Autowired protected UserSettingService userSettingService;
 
@@ -230,7 +227,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     WebOptions options = new WebOptions(rpParameters);
     WebMetadata metadata = new WebMetadata();
 
-    if (!aclService.canRead(currentUser, getEntityClass())) {
+    if (!aclService.canRead(currentUser.getUsername(), getEntityClass())) {
       throw new ForbiddenException(
           "You don't have the proper permissions to read objects of this type.");
     }
@@ -302,7 +299,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
           "Not a metadata object type: " + getEntityClass().getSimpleName());
     }
 
-    if (!aclService.canRead(currentUser, getEntityClass())) {
+    if (!aclService.canRead(currentUser.getUsername(), getEntityClass())) {
       throw new ForbiddenException(
           "You don't have the proper permissions to read objects of this type.");
     }
@@ -433,7 +430,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
-    if (!aclService.canRead(currentUser, getEntityClass())) {
+    if (!aclService.canRead(currentUser.getUsername(), getEntityClass())) {
       throw new ForbiddenException(
           "You don't have the proper permissions to read objects of this type.");
     }
@@ -458,7 +455,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             new ArrayList<>(),
             getPaginationData(options),
             options.getRootJunction());
-    query.setUser(currentUser);
+    query.setUsername(currentUser.getUsername());
     query.setObjects(List.of(entity));
     query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
 
@@ -488,7 +485,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       setTranslationParams(translateParams);
     }
 
-    if (!aclService.canRead(currentUser, getEntityClass())) {
+    if (!aclService.canRead(currentUser.getUsername(), getEntityClass())) {
       throw new ForbiddenException(
           "You don't have the proper permissions to read objects of this type.");
     }
@@ -532,7 +529,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             new ArrayList<>(),
             getPaginationData(options),
             options.getRootJunction());
-    query.setUser(currentUser);
+    query.setUsername(currentUser.getUsername());
     query.setObjects(List.of(entity));
     query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
 

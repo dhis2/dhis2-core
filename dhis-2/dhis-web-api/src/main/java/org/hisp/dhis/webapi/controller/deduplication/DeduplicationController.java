@@ -55,7 +55,9 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
@@ -82,7 +84,7 @@ public class DeduplicationController {
 
   private final TrackerAccessManager trackerAccessManager;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final FieldFilterService fieldFilterService;
 
@@ -254,9 +256,8 @@ public class DeduplicationController {
   }
 
   private void canReadTei(TrackedEntity trackedEntity) throws ForbiddenException {
-    if (!trackerAccessManager
-        .canRead(currentUserService.getCurrentUser(), trackedEntity)
-        .isEmpty()) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
       throw new ForbiddenException(
           "You don't have read access to '" + trackedEntity.getUid() + "'.");
     }

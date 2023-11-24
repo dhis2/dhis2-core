@@ -71,7 +71,9 @@ import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -98,7 +100,7 @@ public class DataValueSetController {
 
   private final DataValueSetService dataValueSetService;
   private final AdxDataService adxDataService;
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
 
@@ -308,7 +310,8 @@ public class DataValueSetController {
       ImportOptions importOptions, MimeType mimeType, HttpServletRequest request)
       throws ConflictException, IOException, NotFoundException {
     JobConfiguration config = new JobConfiguration(DATAVALUE_IMPORT);
-    config.setExecutedBy(currentUserService.getCurrentUser().getUid());
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    config.setExecutedBy(currentUser.getUid());
     config.setJobParameters(importOptions);
 
     jobSchedulerService.executeNow(

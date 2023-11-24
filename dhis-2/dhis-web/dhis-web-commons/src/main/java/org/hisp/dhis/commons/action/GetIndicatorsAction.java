@@ -38,7 +38,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.ContextUtils;
 
 /**
@@ -128,8 +128,7 @@ public class GetIndicatorsAction extends ActionPagingSupport<Indicator> {
 
     Collections.sort(indicators);
 
-    User currentUser = currentUserService.getCurrentUser();
-    indicators.forEach(instance -> canReadInstance(instance, currentUser));
+    indicators.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
 
     if (usePaging) {
       this.paging = createPaging(indicators.size());

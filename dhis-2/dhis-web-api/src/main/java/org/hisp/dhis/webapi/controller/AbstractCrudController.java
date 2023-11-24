@@ -91,6 +91,7 @@ import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.sharing.SharingService;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -181,7 +182,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     final T persistedObject = getEntity(pvUid, options);
 
-    if (!aclService.canUpdate(currentUser, persistedObject)) {
+    if (!aclService.canUpdate(currentUser.getUsername(), persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
@@ -284,9 +285,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     MetadataImportParams params = importService.getParamsFromMap(parameterValuesMap);
 
-    params
-        .setUser(UID.of(currentUserService.getCurrentUser()))
-        .setImportStrategy(ImportStrategy.UPDATE);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    params.setUser(UID.of(currentUser)).setImportStrategy(ImportStrategy.UPDATE);
 
     ImportReport importReport =
         importService.importMetadata(params, new MetadataObjects().addObjects(patchedObjects));
@@ -333,9 +334,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   }
 
   private WebMessage postObject(T parsed) throws ForbiddenException, ConflictException {
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (!aclService.canCreate(user, getEntityClass())) {
+    if (!aclService.canCreate(currentUser.getUsername(), getEntityClass())) {
       throw new ForbiddenException("You don't have the proper permissions to create this object.");
     }
 
@@ -347,7 +348,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         importService
             .getParamsFromMap(contextService.getParameterValuesMap())
             .setImportReportMode(ImportReportMode.FULL)
-            .setUser(UID.of(user))
+            .setUser(UID.of(currentUser))
             .setImportStrategy(ImportStrategy.CREATE);
 
     return postObject(
@@ -429,7 +430,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
           ConflictException,
           HttpRequestMethodNotSupportedException {
     T persisted = getEntity(pvUid);
-    if (!aclService.canUpdate(currentUser, persisted)) {
+
+    if (!aclService.canUpdate(currentUser.getUsername(), persisted)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
@@ -475,7 +477,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
       HttpServletResponse response)
       throws IOException, ConflictException, NotFoundException, ForbiddenException {
     T persisted = getEntity(pvUid);
-    if (!aclService.canUpdate(currentUser, persisted)) {
+    if (!aclService.canUpdate(currentUser.getUsername(), persisted)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
@@ -519,7 +521,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) getEntity(pvUid, options);
 
-    if (!aclService.canUpdate(currentUser, persistedObject)) {
+    if (!aclService.canUpdate(currentUser.getUsername(), persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
@@ -532,7 +534,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     translationsCheck.run(persistedObject, getEntityClass(), objectReports::add, getSchema(), 0);
 
     if (objectReports.isEmpty()) {
-      manager.update(persistedObject, currentUser);
+      manager.update(persistedObject);
       return null;
     }
 
@@ -556,7 +558,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
           ConflictException,
           HttpRequestMethodNotSupportedException {
     T persistedObject = getEntity(pvUid);
-    if (!aclService.canDelete(currentUser, persistedObject)) {
+    if (!aclService.canDelete(currentUser.getUsername(), persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to delete this object.");
     }
 
@@ -811,7 +813,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
       throw new NotFoundException(getEntityClass(), uid);
     }
 
-    if (!aclService.canUpdate(currentUser, entity)) {
+    if (!aclService.canUpdate(currentUser.getUsername(), entity)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 

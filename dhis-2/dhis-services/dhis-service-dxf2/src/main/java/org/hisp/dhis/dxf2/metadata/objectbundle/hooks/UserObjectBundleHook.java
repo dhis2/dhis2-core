@@ -50,7 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -70,8 +70,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   private final UserService userService;
 
   private final FileResourceService fileResourceService;
-
-  private final CurrentUserService currentUserService;
 
   private final AclService aclService;
 
@@ -138,7 +136,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   public void preCreate(User user, ObjectBundle bundle) {
     if (user == null) return;
 
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     if (currentUser != null) {
       user.getCogsDimensionConstraints().addAll(currentUser.getCogsDimensionConstraints());
@@ -208,7 +206,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     userSettingService.saveUserSettings(persistedUser.getSettings(), persistedUser);
 
     if (Boolean.TRUE.equals(invalidateSessions)) {
-      currentUserService.invalidateUserSessions(persistedUser.getUid());
+      userService.invalidateUserSessions(persistedUser.getUid());
     }
 
     bundle.removeExtras(persistedUser, PRE_UPDATE_USER_KEY);
@@ -289,7 +287,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
                   persistedRole = manager.getNoAcl(UserRole.class, role.getUid());
                 }
 
-                if (!aclService.canRead(bundle.getUser(), persistedRole)) {
+                if (!aclService.canRead(bundle.getUser().getUsername(), persistedRole)) {
                   roles.add(persistedRole);
                 }
               });

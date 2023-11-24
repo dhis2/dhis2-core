@@ -194,7 +194,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
 
   private Query buildQuery(Schema schema, User user, TrackerIdScheme idScheme, List<String> ids) {
     Query query = Query.from(schema);
-    query.setUser(user);
+    query.setUsername(user.getUsername());
     query.add(generateRestrictionFromIdentifiers(idScheme, ids));
     query.setDefaults(Defaults.INCLUDE);
 

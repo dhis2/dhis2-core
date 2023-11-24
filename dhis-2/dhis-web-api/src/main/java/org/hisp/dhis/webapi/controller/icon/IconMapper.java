@@ -39,7 +39,7 @@ import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.stereotype.Component;
 
@@ -47,8 +47,6 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class IconMapper {
   private FileResourceService fileResourceService;
-
-  private CurrentUserService currentUserService;
 
   private ContextService contextService;
 
@@ -83,7 +81,7 @@ public class IconMapper {
         iconDto.getDescription(),
         iconDto.getKeywords(),
         fileResource.get().getUid(),
-        currentUserService.getCurrentUser().getUid());
+        CurrentUserUtil.getCurrentUserDetails().getUid());
   }
 
   private String getCustomIconReference(String fileResourceUid) {

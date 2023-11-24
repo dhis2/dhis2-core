@@ -83,7 +83,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.GeoFeature;
@@ -104,7 +106,7 @@ public class GeoFeatureService {
 
   private final OrganisationUnitGroupService organisationUnitGroupService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final AttributeService attributeService;
 
@@ -197,8 +199,8 @@ public class GeoFeatureService {
             ? organisationUnitGroupService.getAllOrganisationUnitGroupSets()
             : new ArrayList<>();
 
-    Set<OrganisationUnit> roots =
-        currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
 
     for (DimensionalItemObject unit : dimensionalItemObjects) {
       GeoFeature feature = new GeoFeature();

@@ -33,8 +33,9 @@ import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.version.Version;
@@ -44,14 +45,10 @@ import org.hisp.dhis.version.VersionService;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class GetOrganisationUnitTreeAction extends BaseAction implements Action {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+  private UserService userService;
 
-  private CurrentUserService currentUserService;
-
-  public void setCurrentUserService(CurrentUserService currentUserService) {
-    this.currentUserService = currentUserService;
+  public void setUserService(UserService userService) {
+    this.userService = userService;
   }
 
   private OrganisationUnitService organisationUnitService;
@@ -156,22 +153,22 @@ public class GetOrganisationUnitTreeAction extends BaseAction implements Action 
 
     version = getVersionString();
 
-    username = currentUserService.getCurrentUsername();
+    username = CurrentUserUtil.getCurrentUsername();
 
     sortBy =
         SortProperty.fromValue(
             userSettingService.getUserSetting(UserSettingKey.ANALYSIS_DISPLAY_PROPERTY).toString());
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (user != null && user.hasOrganisationUnit()) {
-      rootOrganisationUnits = new ArrayList<>(user.getOrganisationUnits());
-    } else if (currentUserService.currentUserIsSuper() || user == null) {
+    if (currentUser != null && currentUser.hasOrganisationUnit()) {
+      rootOrganisationUnits = new ArrayList<>(currentUser.getOrganisationUnits());
+    } else if (currentUser.isSuper()) {
       rootOrganisationUnits = new ArrayList<>(organisationUnitService.getRootOrganisationUnits());
     }
 
-    User currentUser = currentUserService.getCurrentUser();
-    rootOrganisationUnits.forEach(instance -> canReadInstance(instance, currentUser));
+    rootOrganisationUnits.forEach(
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
 
     if (byName != null) {
       List<OrganisationUnit> organisationUnitByName =
@@ -238,7 +235,8 @@ public class GetOrganisationUnitTreeAction extends BaseAction implements Action 
 
     Collections.sort(rootOrganisationUnits);
 
-    organisationUnits.forEach(instance -> canReadInstance(instance, currentUser));
+    organisationUnits.forEach(
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
 
     return SUCCESS;
   }
@@ -270,10 +268,12 @@ public class GetOrganisationUnitTreeAction extends BaseAction implements Action 
       return null;
     }
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     Integer level =
         offlineLevel != null
             ? offlineLevel
-            : organisationUnitService.getOfflineOrganisationUnitLevels();
+            : organisationUnitService.getOfflineOrganisationUnitLevels(currentUser);
 
     return level == 1 ? 2 : level;
   }

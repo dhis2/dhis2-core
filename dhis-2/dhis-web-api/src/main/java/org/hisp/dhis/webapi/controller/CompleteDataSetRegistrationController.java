@@ -70,8 +70,9 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.CompleteDataSetRegQueryParams;
 import org.springframework.http.HttpStatus;
@@ -105,14 +106,14 @@ public class CompleteDataSetRegistrationController {
 
   private final OrganisationUnitService organisationUnitService;
 
-  private final CurrentUserService currentUserService;
-
   private final InputUtils inputUtils;
 
   private final CompleteDataSetRegistrationExchangeService registrationExchangeService;
 
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
+
+  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // GET
@@ -215,14 +216,14 @@ public class CompleteDataSetRegistrationController {
     // Check locked status
     // ---------------------------------------------------------------------
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     List<String> lockedDataSets = new ArrayList<>();
 
     for (DataSet dataSet : dataSets) {
       if (!dataSetService
           .getLockStatus(
-              dataSet, period, organisationUnit, attributeOptionCombo, user, null, multiOu)
+              dataSet, period, organisationUnit, attributeOptionCombo, currentUser, null, multiOu)
           .isOpen()) {
         lockedDataSets.add(dataSet.getUid());
       }
@@ -258,7 +259,7 @@ public class CompleteDataSetRegistrationController {
     JobConfiguration jobConfig = new JobConfiguration(COMPLETE_DATA_SET_REGISTRATION_IMPORT);
 
     jobConfig.setJobParameters(importOptions);
-    jobConfig.setExecutedBy(currentUserService.getCurrentUser().getUid());
+    jobConfig.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
     jobSchedulerService.executeNow(
         jobConfigurationService.create(jobConfig, mimeType, request.getInputStream()));
 

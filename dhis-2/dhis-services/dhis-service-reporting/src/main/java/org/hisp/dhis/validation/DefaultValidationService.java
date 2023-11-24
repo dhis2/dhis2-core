@@ -70,8 +70,9 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.system.util.Clock;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.notification.ValidationNotificationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,7 +104,7 @@ public class DefaultValidationService implements ValidationService {
 
   private final DataValidationRunner runner;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // ValidationRule business logic
@@ -248,8 +249,7 @@ public class DefaultValidationService implements ValidationService {
    * @return Builder with basic configuration based on input.
    */
   private ValidationRunContext getValidationContext(ValidationAnalysisParams parameters) {
-    User currentUser = currentUserService.getCurrentUser();
-
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     Map<PeriodType, PeriodTypeExtended> periodTypeXMap = getExtendedPeriods(parameters);
 
     ExpressionParams baseExParams =

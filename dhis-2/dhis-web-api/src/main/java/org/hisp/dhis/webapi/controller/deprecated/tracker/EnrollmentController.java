@@ -69,7 +69,7 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -99,8 +99,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class EnrollmentController {
   public static final String RESOURCE_PATH = "/enrollments";
-
-  @Autowired private CurrentUserService currentUserService;
 
   @Autowired
   private org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentService enrollmentService;
@@ -390,7 +388,9 @@ public class EnrollmentController {
   private WebMessage startAsyncImport(ImportOptions importOptions, List<Enrollment> enrollments) {
     JobConfiguration jobId =
         new JobConfiguration(
-            "inMemoryEventImport", ENROLLMENT_IMPORT, currentUserService.getCurrentUser().getUid());
+            "inMemoryEventImport",
+            ENROLLMENT_IMPORT,
+            CurrentUserUtil.getCurrentUserDetails().getUid());
     taskExecutor.executeTask(
         new ImportEnrollmentsTask(enrollments, enrollmentService, importOptions, jobId));
 

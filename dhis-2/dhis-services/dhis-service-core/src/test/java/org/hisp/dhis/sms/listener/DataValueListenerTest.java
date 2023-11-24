@@ -73,7 +73,6 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -124,7 +123,7 @@ class DataValueListenerTest extends DhisConvenienceTest {
 
   @Mock private UserService userService;
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
 
   @Mock private IncomingSmsService incomingSmsService;
 
@@ -208,7 +207,6 @@ class DataValueListenerTest extends DhisConvenienceTest {
             dataElementCategoryService,
             eventService,
             userService,
-            currentUserService,
             incomingSmsService,
             smsSender,
             registrationService,

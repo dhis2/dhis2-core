@@ -71,7 +71,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
@@ -104,7 +103,7 @@ class TrackedEntityOperationParamsMapperTest {
 
   private static final String TRACKED_ENTITY_TYPE_UID = "Dp8baZYrLtr";
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
 
   @Mock private OrganisationUnitService organisationUnitService;
 
@@ -137,7 +136,7 @@ class TrackedEntityOperationParamsMapperTest {
     user = new User();
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
 
     when(organisationUnitService.getOrganisationUnit(orgUnit1.getUid())).thenReturn(orgUnit1);
     when(organisationUnitService.isInUserHierarchy(

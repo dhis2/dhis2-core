@@ -29,8 +29,7 @@ package org.hisp.dhis.useraccount.action;
 
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.security.RestoreType;
-import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Lars Helge Overland
  */
 public class IsRestoreTokenValidAction implements Action {
-  @Autowired private SecurityService securityService;
-
   @Autowired private UserService userService;
 
   // -------------------------------------------------------------------------
@@ -73,7 +70,7 @@ public class IsRestoreTokenValidAction implements Action {
 
   @Override
   public String execute() {
-    String[] idAndRestoreToken = securityService.decodeEncodedTokens(token);
+    String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
     String idToken = idAndRestoreToken[0];
     String restoreToken = idAndRestoreToken[1];
 
@@ -84,7 +81,7 @@ public class IsRestoreTokenValidAction implements Action {
     }
 
     ErrorCode errorCode =
-        securityService.validateRestoreToken(user, restoreToken, RestoreType.RECOVER_PASSWORD);
+        userService.validateRestoreToken(user, restoreToken, RestoreType.RECOVER_PASSWORD);
 
     if (errorCode != null) {
       return ERROR;

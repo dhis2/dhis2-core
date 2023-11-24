@@ -37,6 +37,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.user.RestoreOptions;
+import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -46,8 +48,6 @@ class SecurityServiceTest extends TransactionalIntegrationTest {
   @Autowired private UserService _userService;
 
   @Autowired private PasswordManager passwordManager;
-
-  @Autowired private SecurityService service;
 
   @Autowired private SystemSettingManager systemSettingManager;
 
@@ -66,18 +66,18 @@ class SecurityServiceTest extends TransactionalIntegrationTest {
   void testUserAuthenticationLockout() {
     systemSettingManager.saveSystemSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.TRUE);
     String username = "dr_evil";
-    service.registerFailedLogin(username);
-    assertFalse(service.isLocked(username));
-    service.registerFailedLogin(username);
-    assertFalse(service.isLocked(username));
-    service.registerFailedLogin(username);
-    assertFalse(service.isLocked(username));
-    service.registerFailedLogin(username);
-    assertTrue(service.isLocked(username));
-    service.registerFailedLogin(username);
-    assertTrue(service.isLocked(username));
-    service.registerSuccessfulLogin(username);
-    assertFalse(service.isLocked(username));
+    _userService.registerFailedLogin(username);
+    assertFalse(_userService.isLocked(username));
+    _userService.registerFailedLogin(username);
+    assertFalse(_userService.isLocked(username));
+    _userService.registerFailedLogin(username);
+    assertFalse(_userService.isLocked(username));
+    _userService.registerFailedLogin(username);
+    assertTrue(_userService.isLocked(username));
+    _userService.registerFailedLogin(username);
+    assertTrue(_userService.isLocked(username));
+    _userService.registerSuccessfulLogin(username);
+    assertFalse(_userService.isLocked(username));
     systemSettingManager.saveSystemSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.FALSE);
   }
 
@@ -85,63 +85,65 @@ class SecurityServiceTest extends TransactionalIntegrationTest {
   void testRecoveryAttemptLocked() {
     systemSettingManager.saveSystemSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.TRUE);
     String username = "dr_evil";
-    service.registerRecoveryAttempt(username);
-    assertFalse(service.isRecoveryLocked(username));
-    service.registerRecoveryAttempt(username);
-    assertFalse(service.isRecoveryLocked(username));
-    service.registerRecoveryAttempt(username);
-    assertFalse(service.isRecoveryLocked(username));
-    service.registerRecoveryAttempt(username);
-    assertFalse(service.isRecoveryLocked(username));
-    service.registerRecoveryAttempt(username);
-    assertFalse(service.isRecoveryLocked(username));
-    service.registerRecoveryAttempt(username);
-    assertTrue(service.isRecoveryLocked(username));
+    _userService.registerRecoveryAttempt(username);
+    assertFalse(_userService.isRecoveryLocked(username));
+    _userService.registerRecoveryAttempt(username);
+    assertFalse(_userService.isRecoveryLocked(username));
+    _userService.registerRecoveryAttempt(username);
+    assertFalse(_userService.isRecoveryLocked(username));
+    _userService.registerRecoveryAttempt(username);
+    assertFalse(_userService.isRecoveryLocked(username));
+    _userService.registerRecoveryAttempt(username);
+    assertFalse(_userService.isRecoveryLocked(username));
+    _userService.registerRecoveryAttempt(username);
+    assertTrue(_userService.isRecoveryLocked(username));
     systemSettingManager.saveSystemSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.FALSE);
   }
 
   @Test
   void testRestoreRecoverPassword() {
     String encodedTokens =
-        service.generateAndPersistTokens(userA, RestoreOptions.RECOVER_PASSWORD_OPTION);
+        _userService.generateAndPersistTokens(userA, RestoreOptions.RECOVER_PASSWORD_OPTION);
     assertNotNull(encodedTokens);
     assertNotNull(userA.getRestoreToken());
     assertNotNull(userA.getIdToken());
     assertNotNull(userA.getRestoreExpiry());
-    String[] idAndHashedToken = service.decodeEncodedTokens(encodedTokens);
+    String[] idAndHashedToken = _userService.decodeEncodedTokens(encodedTokens);
     String idToken = idAndHashedToken[0];
     String restoreToken = idAndHashedToken[1];
-    User credentials = userService.getUserByIdToken(idToken);
+    User credentials = _userService.getUserByIdToken(idToken);
     assertNotNull(credentials);
     assertEquals(credentials, userA);
-    RestoreOptions restoreOptions = service.getRestoreOptions(restoreToken);
+    RestoreOptions restoreOptions = _userService.getRestoreOptions(restoreToken);
     assertEquals(RestoreOptions.RECOVER_PASSWORD_OPTION, restoreOptions);
     assertEquals(RestoreType.RECOVER_PASSWORD, restoreOptions.getRestoreType());
     assertFalse(restoreOptions.isUsernameChoice());
 
     // verifyToken()
 
-    assertNotNull(service.validateRestoreToken(userB, restoreToken, RestoreType.RECOVER_PASSWORD));
     assertNotNull(
-        service.validateRestoreToken(credentials, "badToken", RestoreType.RECOVER_PASSWORD));
-    assertNotNull(service.validateRestoreToken(credentials, restoreToken, RestoreType.INVITE));
+        _userService.validateRestoreToken(userB, restoreToken, RestoreType.RECOVER_PASSWORD));
+    assertNotNull(
+        _userService.validateRestoreToken(credentials, "badToken", RestoreType.RECOVER_PASSWORD));
+    assertNotNull(_userService.validateRestoreToken(credentials, restoreToken, RestoreType.INVITE));
     assertNull(
-        service.validateRestoreToken(credentials, restoreToken, RestoreType.RECOVER_PASSWORD));
+        _userService.validateRestoreToken(credentials, restoreToken, RestoreType.RECOVER_PASSWORD));
 
     // canRestoreNow()
 
-    assertFalse(service.canRestore(userB, restoreToken, RestoreType.RECOVER_PASSWORD));
-    assertFalse(service.canRestore(credentials, "badToken", RestoreType.RECOVER_PASSWORD));
-    assertFalse(service.canRestore(credentials, restoreToken, RestoreType.INVITE));
-    assertTrue(service.canRestore(credentials, restoreToken, RestoreType.RECOVER_PASSWORD));
+    assertFalse(_userService.canRestore(userB, restoreToken, RestoreType.RECOVER_PASSWORD));
+    assertFalse(_userService.canRestore(credentials, "badToken", RestoreType.RECOVER_PASSWORD));
+    assertFalse(_userService.canRestore(credentials, restoreToken, RestoreType.INVITE));
+    assertTrue(_userService.canRestore(credentials, restoreToken, RestoreType.RECOVER_PASSWORD));
 
     // restore()
 
     String password = "NewPassword1";
-    assertFalse(service.restore(userB, restoreToken, password, RestoreType.INVITE));
-    assertFalse(service.restore(credentials, "badToken", password, RestoreType.INVITE));
-    assertFalse(service.restore(credentials, restoreToken, password, RestoreType.INVITE));
-    assertTrue(service.restore(credentials, restoreToken, password, RestoreType.RECOVER_PASSWORD));
+    assertFalse(_userService.restore(userB, restoreToken, password, RestoreType.INVITE));
+    assertFalse(_userService.restore(credentials, "badToken", password, RestoreType.INVITE));
+    assertFalse(_userService.restore(credentials, restoreToken, password, RestoreType.INVITE));
+    assertTrue(
+        _userService.restore(credentials, restoreToken, password, RestoreType.RECOVER_PASSWORD));
 
     // check password
 
@@ -151,43 +153,44 @@ class SecurityServiceTest extends TransactionalIntegrationTest {
   @Test
   void testRestoreInvite() {
     String encodedTokens =
-        service.generateAndPersistTokens(userA, RestoreOptions.INVITE_WITH_DEFINED_USERNAME);
+        _userService.generateAndPersistTokens(userA, RestoreOptions.INVITE_WITH_DEFINED_USERNAME);
     assertNotNull(encodedTokens);
     assertNotNull(userA.getRestoreToken());
     assertNotNull(userA.getIdToken());
     assertNotNull(userA.getRestoreExpiry());
-    String[] idAndHashedToken = service.decodeEncodedTokens(encodedTokens);
+    String[] idAndHashedToken = _userService.decodeEncodedTokens(encodedTokens);
     String idToken = idAndHashedToken[0];
     String restoreToken = idAndHashedToken[1];
-    RestoreOptions restoreOptions = service.getRestoreOptions(restoreToken);
+    RestoreOptions restoreOptions = _userService.getRestoreOptions(restoreToken);
     assertEquals(RestoreOptions.INVITE_WITH_DEFINED_USERNAME, restoreOptions);
     assertEquals(RestoreType.INVITE, restoreOptions.getRestoreType());
     assertFalse(restoreOptions.isUsernameChoice());
-    User credentials = userService.getUserByIdToken(idToken);
+    User credentials = _userService.getUserByIdToken(idToken);
     assertNotNull(credentials);
     assertEquals(credentials, userA);
 
     // verifyToken()
 
-    assertNotNull(service.validateRestoreToken(userB, restoreToken, RestoreType.INVITE));
-    assertNotNull(service.validateRestoreToken(userA, "badToken", RestoreType.INVITE));
-    assertNotNull(service.validateRestoreToken(userA, restoreToken, RestoreType.RECOVER_PASSWORD));
-    assertNull(service.validateRestoreToken(userA, restoreToken, RestoreType.INVITE));
+    assertNotNull(_userService.validateRestoreToken(userB, restoreToken, RestoreType.INVITE));
+    assertNotNull(_userService.validateRestoreToken(userA, "badToken", RestoreType.INVITE));
+    assertNotNull(
+        _userService.validateRestoreToken(userA, restoreToken, RestoreType.RECOVER_PASSWORD));
+    assertNull(_userService.validateRestoreToken(userA, restoreToken, RestoreType.INVITE));
 
     // canRestoreNow()
 
-    assertFalse(service.canRestore(userB, restoreToken, RestoreType.INVITE));
-    assertFalse(service.canRestore(userA, "badToken", RestoreType.INVITE));
-    assertFalse(service.canRestore(userA, restoreToken, RestoreType.RECOVER_PASSWORD));
-    assertTrue(service.canRestore(userA, restoreToken, RestoreType.INVITE));
+    assertFalse(_userService.canRestore(userB, restoreToken, RestoreType.INVITE));
+    assertFalse(_userService.canRestore(userA, "badToken", RestoreType.INVITE));
+    assertFalse(_userService.canRestore(userA, restoreToken, RestoreType.RECOVER_PASSWORD));
+    assertTrue(_userService.canRestore(userA, restoreToken, RestoreType.INVITE));
 
     // restore()
 
     String password = "NewPassword1";
-    assertFalse(service.restore(userB, restoreToken, password, RestoreType.INVITE));
-    assertFalse(service.restore(userA, "badToken", password, RestoreType.INVITE));
-    assertFalse(service.restore(userA, restoreToken, password, RestoreType.RECOVER_PASSWORD));
-    assertTrue(service.restore(userA, restoreToken, password, RestoreType.INVITE));
+    assertFalse(_userService.restore(userB, restoreToken, password, RestoreType.INVITE));
+    assertFalse(_userService.restore(userA, "badToken", password, RestoreType.INVITE));
+    assertFalse(_userService.restore(userA, restoreToken, password, RestoreType.RECOVER_PASSWORD));
+    assertTrue(_userService.restore(userA, restoreToken, password, RestoreType.INVITE));
 
     // check password
 
@@ -199,8 +202,8 @@ class SecurityServiceTest extends TransactionalIntegrationTest {
     User user = new User();
     user.setUsername("username");
 
-    assertEquals(ErrorCode.E6201, service.validateRestore(null));
-    assertEquals(ErrorCode.E6202, service.validateRestore(user));
+    assertEquals(ErrorCode.E6201, _userService.validateRestore(null));
+    assertEquals(ErrorCode.E6202, _userService.validateRestore(user));
   }
 
   @Test
@@ -208,8 +211,8 @@ class SecurityServiceTest extends TransactionalIntegrationTest {
     User user = new User();
     user.setUsername("username");
 
-    assertEquals(ErrorCode.E6201, service.validateInvite(null));
-    assertEquals(ErrorCode.E6202, service.validateInvite(user));
+    assertEquals(ErrorCode.E6201, _userService.validateInvite(null));
+    assertEquals(ErrorCode.E6202, _userService.validateInvite(user));
   }
 
   @Test
@@ -217,8 +220,10 @@ class SecurityServiceTest extends TransactionalIntegrationTest {
     User user = new User();
     user.setUsername("username");
 
-    assertEquals(ErrorCode.E6205, service.validateRestoreToken(user, null, RestoreType.INVITE));
-    assertEquals(ErrorCode.E6206, service.validateRestoreToken(user, "XTOKEN", null));
-    assertEquals(ErrorCode.E6207, service.validateRestoreToken(user, "XTOKEN", RestoreType.INVITE));
+    assertEquals(
+        ErrorCode.E6205, _userService.validateRestoreToken(user, null, RestoreType.INVITE));
+    assertEquals(ErrorCode.E6206, _userService.validateRestoreToken(user, "XTOKEN", null));
+    assertEquals(
+        ErrorCode.E6207, _userService.validateRestoreToken(user, "XTOKEN", RestoreType.INVITE));
   }
 }

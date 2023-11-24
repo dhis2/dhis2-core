@@ -201,7 +201,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
   private void handleSkipSharing(IdentifiableObject identifiableObject, ObjectBundle bundle) {
     if (!bundle.isSkipSharing()) return;
 
-    aclService.clearSharing(identifiableObject, bundle.getUser());
+    aclService.clearSharing(identifiableObject, bundle.getUser().getUsername());
   }
 
   private void handleSkipTranslation(IdentifiableObject identifiableObject, ObjectBundle bundle) {

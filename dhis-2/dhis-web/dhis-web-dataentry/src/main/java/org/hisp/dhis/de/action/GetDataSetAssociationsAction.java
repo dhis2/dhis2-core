@@ -40,8 +40,9 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitDataSetAssociationSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,7 @@ public class GetDataSetAssociationsAction implements Action {
 
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
-  @Autowired private CurrentUserService currentUserService;
+  @Autowired private UserService userService;
 
   // -------------------------------------------------------------------------
   // Output
@@ -78,16 +79,16 @@ public class GetDataSetAssociationsAction implements Action {
 
   @Override
   public String execute() {
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    Integer level = organisationUnitService.getOfflineOrganisationUnitLevels();
+    Integer level = organisationUnitService.getOfflineOrganisationUnitLevels(currentUser);
 
     Date lastUpdated =
         DateUtils.max(
             identifiableObjectManager.getLastUpdated(DataSet.class),
             identifiableObjectManager.getLastUpdated(OrganisationUnit.class));
 
-    String tag = ContextUtils.getEtag(lastUpdated, user);
+    String tag = ContextUtils.getEtag(lastUpdated, currentUser);
 
     if (ContextUtils.isNotModified(
         ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag)) {
@@ -95,7 +96,7 @@ public class GetDataSetAssociationsAction implements Action {
     }
 
     OrganisationUnitDataSetAssociationSet organisationUnitSet =
-        organisationUnitService.getOrganisationUnitDataSetAssociationSet(level);
+        organisationUnitService.getOrganisationUnitDataSetAssociationSet(currentUser, level);
 
     dataSetAssociationSets = organisationUnitSet.getDataSetAssociationSets();
 

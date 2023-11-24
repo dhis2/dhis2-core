@@ -47,7 +47,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
@@ -79,8 +79,6 @@ public class UserSettingController {
   @Autowired private UserSettingService userSettingService;
 
   @Autowired private UserService userService;
-
-  @Autowired private CurrentUserService currentUserService;
 
   private static final Set<UserSettingKey> USER_SETTING_KEYS =
       Sets.newHashSet(UserSettingKey.values()).stream().collect(Collectors.toSet());
@@ -177,7 +175,7 @@ public class UserSettingController {
     UserSettingKey userSettingKey = getUserSettingKey(key);
     User user = getUser(userId, username);
 
-    userSettingService.deleteUserSetting(userSettingKey, user);
+    userSettingService.deleteUserSetting(userSettingKey, user.getUsername());
   }
 
   /**
@@ -210,7 +208,7 @@ public class UserSettingController {
    *     have access
    */
   private User getUser(String uid, String username) throws WebMessageException {
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     User user;
 
     if (uid == null && username == null) {

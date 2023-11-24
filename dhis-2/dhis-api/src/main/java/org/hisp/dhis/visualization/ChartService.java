@@ -35,7 +35,6 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.user.User;
 import org.jfree.chart.JFreeChart;
 
 /**
@@ -73,7 +72,7 @@ public interface ChartService {
       Date date,
       OrganisationUnit organisationUnit,
       I18nFormat format,
-      User currentUser);
+      String currentUserName);
 
   JFreeChart getJFreePeriodChart(
       Indicator indicator, OrganisationUnit organisationUnit, boolean title, I18nFormat format);

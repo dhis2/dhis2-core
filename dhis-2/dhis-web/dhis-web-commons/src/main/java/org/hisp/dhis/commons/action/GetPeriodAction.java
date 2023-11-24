@@ -30,6 +30,7 @@ package org.hisp.dhis.commons.action;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Lars Helge Overland
@@ -73,7 +74,7 @@ public class GetPeriodAction extends BaseAction implements Action {
       period = periodService.getPeriod(id);
     }
 
-    canReadInstance(period, currentUserService.getCurrentUser());
+    canReadInstance(period, CurrentUserUtil.getCurrentUsername());
 
     return SUCCESS;
   }

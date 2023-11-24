@@ -31,9 +31,8 @@ import com.opensymphony.xwork2.Action;
 import javax.servlet.http.HttpSession;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.security.RestoreOptions;
-import org.hisp.dhis.security.RestoreType;
-import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.user.RestoreOptions;
+import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Jim Grace
  */
 public class IsInviteTokenValidAction implements Action {
-  @Autowired private SecurityService securityService;
 
   @Autowired private UserService userService;
 
@@ -118,7 +116,7 @@ public class IsInviteTokenValidAction implements Action {
 
   @Override
   public String execute() {
-    String[] idAndRestoreToken = securityService.decodeEncodedTokens(token);
+    String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
     String idToken = idAndRestoreToken[0];
     String restoreToken = idAndRestoreToken[1];
 
@@ -128,8 +126,7 @@ public class IsInviteTokenValidAction implements Action {
       return ERROR;
     }
 
-    ErrorCode errorCode =
-        securityService.validateRestoreToken(user, restoreToken, RestoreType.INVITE);
+    ErrorCode errorCode = userService.validateRestoreToken(user, restoreToken, RestoreType.INVITE);
 
     if (errorCode != null) {
       return ERROR;
@@ -145,7 +142,7 @@ public class IsInviteTokenValidAction implements Action {
     surname = user.getSurname();
     phoneNumber = user.getPhoneNumber();
 
-    RestoreOptions restoreOptions = securityService.getRestoreOptions(restoreToken);
+    RestoreOptions restoreOptions = userService.getRestoreOptions(restoreToken);
 
     if (restoreOptions != null) {
       usernameChoice = Boolean.toString(restoreOptions.isUsernameChoice());

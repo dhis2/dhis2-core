@@ -45,7 +45,6 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +63,7 @@ public abstract class TrackerTest extends SingleSetupIntegrationTestBase {
 
   @Autowired protected UserService _userService;
 
-  @Autowired protected CurrentUserService currentUserService;
+  //  @Autowired protected CurrentUserService currentUserService;
 
   @Autowired private ObjectBundleService objectBundleService;
 

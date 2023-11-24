@@ -53,8 +53,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,7 +77,7 @@ class JdbcEventStoreTest {
 
   @Mock private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private IdentifiableObjectManager manager;
 
@@ -106,14 +106,14 @@ class JdbcEventStoreTest {
             new PostgreSQLStatementBuilder(),
             namedParameterJdbcTemplate,
             objectMapper,
-            currentUserService,
             manager,
             eventStore,
-            skipLockedProvider);
+            skipLockedProvider,
+            userService);
 
     User user = new User();
     user.setTeiSearchOrganisationUnits(Set.of(new OrganisationUnit()));
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
   }
 
   @Test

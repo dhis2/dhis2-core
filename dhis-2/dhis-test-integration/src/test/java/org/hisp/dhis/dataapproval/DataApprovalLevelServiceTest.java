@@ -43,7 +43,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -60,7 +59,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private CurrentUserService currentUserService;
+  //  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private UserService _userService;
 
@@ -536,7 +535,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     injectSecurityContext(cu);
 
     List<DataApprovalLevel> levels =
-        dataApprovalLevelService.getUserDataApprovalLevels(currentUserService.getCurrentUser());
+        dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());
     assertEquals("02 2A 2B 03 3A 3B 04 4A 4B", levelNames(levels));
   }
 
@@ -565,7 +564,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     injectSecurityContext(cu);
 
     List<DataApprovalLevel> levels =
-        dataApprovalLevelService.getUserDataApprovalLevels(currentUserService.getCurrentUser());
+        dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());
     assertEquals("02 2A 2B 03 3A 3B 04 4A 4B", levelNames(levels));
   }
 
@@ -597,7 +596,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     injectSecurityContext(cu);
 
     List<DataApprovalLevel> levels =
-        dataApprovalLevelService.getUserDataApprovalLevels(currentUserService.getCurrentUser());
+        dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());
     assertEquals("02 2A 2B 03 3A 3B 04 4A 4B", levelNames(levels));
   }
 
@@ -625,7 +624,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     injectSecurityContext(cu);
 
     List<DataApprovalLevel> levels =
-        dataApprovalLevelService.getUserDataApprovalLevels(currentUserService.getCurrentUser());
+        dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());
     assertEquals("02 2A 2B 03 3A 3B 04 4A 4B", levelNames(levels));
   }
 
@@ -642,7 +641,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     injectSecurityContext(cu);
 
     List<DataApprovalLevel> levels =
-        dataApprovalLevelService.getUserDataApprovalLevels(currentUserService.getCurrentUser());
+        dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());
     assertEquals("04", levelNames(levels));
   }
 

@@ -52,8 +52,9 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.CsvUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.jdbc.UncategorizedSQLException;
@@ -66,15 +67,14 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 @Repository("org.hisp.dhis.dxf2.datavalueset.DataValueSetStore")
 public class SpringDataValueSetStore implements DataValueSetStore {
-  private final CurrentUserService currentUserService;
-
   private final JdbcTemplate jdbcTemplate;
+  private final UserService userService;
 
-  public SpringDataValueSetStore(CurrentUserService currentUserService, JdbcTemplate jdbcTemplate) {
-    checkNotNull(currentUserService);
+  public SpringDataValueSetStore(UserService userService, JdbcTemplate jdbcTemplate) {
+    checkNotNull(userService);
     checkNotNull(jdbcTemplate);
 
-    this.currentUserService = currentUserService;
+    this.userService = userService;
     this.jdbcTemplate = jdbcTemplate;
   }
 
@@ -190,8 +190,6 @@ public class SpringDataValueSetStore implements DataValueSetStore {
 
   private String getDataValueSql(DataExportParams params) {
     Preconditions.checkArgument(!params.getAllDataElements().isEmpty());
-
-    User user = currentUserService.getCurrentUser();
 
     IdSchemes idScheme =
         params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
@@ -346,8 +344,9 @@ public class SpringDataValueSetStore implements DataValueSetStore {
               + "' ";
     }
 
-    if (user != null && !user.isSuper()) {
-      sql += getAttributeOptionComboClause(user);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (currentUser != null && !currentUser.isSuper()) {
+      sql += getAttributeOptionComboClause(currentUser);
     }
 
     if (params.hasLimit()) {

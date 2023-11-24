@@ -61,7 +61,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -91,7 +90,7 @@ class DataApprovalServiceTest extends IntegrationTestBase {
 
   @Autowired protected UserService _userService;
 
-  @Autowired protected CurrentUserService currentUserService;
+  //  @Autowired protected CurrentUserService currentUserService;
 
   @Autowired protected DataSetService dataSetService;
 

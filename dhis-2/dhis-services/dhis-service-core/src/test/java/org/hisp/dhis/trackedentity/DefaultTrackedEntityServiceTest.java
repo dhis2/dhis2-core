@@ -41,8 +41,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,7 +62,8 @@ class DefaultTrackedEntityServiceTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private AclService aclService;
 
@@ -80,12 +81,12 @@ class DefaultTrackedEntityServiceTest {
   void setup() {
     teiService =
         new DefaultTrackedEntityService(
+            userService,
             trackedEntityStore,
             attributeValueService,
             attributeService,
             trackedEntityTypeService,
             organisationUnitService,
-            currentUserService,
             aclService,
             trackerOwnershipAccessManager,
             trackedEntityAuditService,
@@ -94,7 +95,7 @@ class DefaultTrackedEntityServiceTest {
     User user = new User();
     user.setOrganisationUnits(Set.of(new OrganisationUnit("A")));
     user.setTeiSearchOrganisationUnits(Set.of(new OrganisationUnit("B")));
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
 
     params = new TrackedEntityQueryParams();
     params.setOrgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);

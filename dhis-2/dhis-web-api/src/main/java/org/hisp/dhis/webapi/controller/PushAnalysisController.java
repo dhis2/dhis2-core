@@ -47,7 +47,9 @@ import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.schema.descriptors.PushAnalysisSchemaDescriptor;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
@@ -71,7 +73,7 @@ public class PushAnalysisController extends AbstractCrudController<PushAnalysis>
 
   private final PushAnalysisService pushAnalysisService;
   private final ContextUtils contextUtils;
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
 
@@ -88,12 +90,11 @@ public class PushAnalysisController extends AbstractCrudController<PushAnalysis>
         response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE);
 
     log.info(
-        "User '"
-            + currentUserService.getCurrentUser().getUsername()
-            + "' started PushAnalysis for 'rendering'");
+        "User '" + CurrentUserUtil.getCurrentUsername() + "' started PushAnalysis for 'rendering'");
 
-    String result =
-        pushAnalysisService.generateHtmlReport(pushAnalysis, currentUserService.getCurrentUser());
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    String result = pushAnalysisService.generateHtmlReport(pushAnalysis, currentUser);
     response.getWriter().write(result);
     response.getWriter().close();
   }
@@ -110,7 +111,7 @@ public class PushAnalysisController extends AbstractCrudController<PushAnalysis>
 
     JobConfiguration config = new JobConfiguration(JobType.PUSH_ANALYSIS);
     config.setJobParameters(new PushAnalysisJobParameters(uid));
-    config.setExecutedBy(currentUserService.getCurrentUser().getUid());
+    config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
 
     jobSchedulerService.executeNow(jobConfigurationService.create(config));
   }

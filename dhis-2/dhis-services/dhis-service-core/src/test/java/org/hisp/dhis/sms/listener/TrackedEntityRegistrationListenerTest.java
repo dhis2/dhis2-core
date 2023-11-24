@@ -65,7 +65,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,8 +95,6 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
   @Mock private EventService eventService;
 
   @Mock private UserService userService;
-
-  @Mock private CurrentUserService currentUserService;
 
   @Mock private IncomingSmsService incomingSmsService;
 
@@ -150,7 +147,6 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
             dataElementCategoryService,
             eventService,
             userService,
-            currentUserService,
             incomingSmsService,
             smsSender,
             smsCommandService,

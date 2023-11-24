@@ -31,7 +31,9 @@ import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.Interceptor;
 import java.util.HashMap;
 import java.util.Map;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -40,19 +42,11 @@ public class XWorkPortalUserInterceptor implements Interceptor {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = 2809606672626282043L;
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+  private UserService userService;
 
-  private CurrentUserService currentUserService;
-
-  public void setCurrentUserService(CurrentUserService currentUserService) {
-    this.currentUserService = currentUserService;
+  public void setUserService(UserService userService) {
+    this.userService = userService;
   }
-
-  // -------------------------------------------------------------------------
-  // Interceptor implementation
-  // -------------------------------------------------------------------------
 
   @Override
   public void destroy() {}
@@ -64,8 +58,10 @@ public class XWorkPortalUserInterceptor implements Interceptor {
   public String intercept(ActionInvocation invocation) throws Exception {
     Map<String, Object> map = new HashMap<>(3);
 
-    map.put("currentUsername", currentUserService.getCurrentUsername());
-    map.put("currentUser", currentUserService.getCurrentUser());
+    map.put("currentUsername", CurrentUserUtil.getCurrentUsername());
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    map.put("currentUser", currentUser);
 
     invocation.getStack().push(map);
 

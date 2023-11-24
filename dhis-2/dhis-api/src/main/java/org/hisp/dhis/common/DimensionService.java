@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Lars Helge Overland
@@ -47,7 +46,7 @@ public interface DimensionService {
 
   <T extends IdentifiableObject> List<T> getCanReadObjects(List<T> objects);
 
-  <T extends IdentifiableObject> List<T> getCanReadObjects(User user, List<T> objects);
+  <T extends IdentifiableObject> List<T> getCanReadObjects(String username, List<T> objects);
 
   DimensionType getDimensionType(String uid);
 

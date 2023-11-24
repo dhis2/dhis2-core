@@ -32,8 +32,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,8 +51,6 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
   private final ProgramService programService;
 
   private final OrganisationUnitService orgUnitService;
-
-  private final CurrentUserService currentUserService;
 
   private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
 
@@ -92,9 +89,9 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     TrackedEntityProgramOwner teProgramOwner =
         new TrackedEntityProgramOwner(entityInstance, program, ou);
     teProgramOwner.updateDates();
-    User user = currentUserService.getCurrentUser();
-    if (user != null) {
-      teProgramOwner.setCreatedBy(user.getUsername());
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    if (currentUsername != null) {
+      teProgramOwner.setCreatedBy(currentUsername);
     }
     return teProgramOwner;
   }
@@ -191,9 +188,9 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
       TrackedEntityProgramOwner teProgramOwner, OrganisationUnit ou) {
     teProgramOwner.setOrganisationUnit(ou);
     teProgramOwner.updateDates();
-    User user = currentUserService.getCurrentUser();
-    if (user != null) {
-      teProgramOwner.setCreatedBy(user.getUsername());
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    if (currentUsername != null) {
+      teProgramOwner.setCreatedBy(currentUsername);
     }
     return teProgramOwner;
   }

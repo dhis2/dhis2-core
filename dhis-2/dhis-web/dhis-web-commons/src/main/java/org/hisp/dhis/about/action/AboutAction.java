@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,8 +45,6 @@ public class AboutAction implements Action {
   // -------------------------------------------------------------------------
 
   @Autowired private SystemService systemService;
-
-  @Autowired private CurrentUserService currentUserService;
 
   // -------------------------------------------------------------------------
   // Output
@@ -82,7 +80,7 @@ public class AboutAction implements Action {
 
     userAgent = request.getHeader(ContextUtils.HEADER_USER_AGENT);
 
-    currentUserIsSuper = currentUserService.currentUserIsSuper();
+    currentUserIsSuper = CurrentUserUtil.getCurrentUserDetails().isSuper();
 
     return SUCCESS;
   }

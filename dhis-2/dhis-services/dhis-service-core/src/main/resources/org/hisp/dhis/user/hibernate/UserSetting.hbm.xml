@@ -13,6 +13,9 @@
       <key-property name="name" column="name" />
     </composite-id>
 
+
+    <property name="userId" column="userinfoid" insert="false" update="false"/>
+
     <property name="value" type="serializable" length="65535" />
 
   </class>

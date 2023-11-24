@@ -82,7 +82,7 @@ class UserDatastoreEntryStoreTest extends SingleSetupIntegrationTestBase {
     userEntryB.setKey("b");
     userEntryB.setCreatedBy(user);
     userDatastoreStore.save(userEntryB);
-    List<String> list = userDatastoreStore.getNamespaces(user);
+    List<String> list = userDatastoreStore.getNamespaces(user.getUsername());
     assertTrue(list.contains("test_a"));
     assertTrue(list.contains("test_b"));
   }
@@ -101,7 +101,8 @@ class UserDatastoreEntryStoreTest extends SingleSetupIntegrationTestBase {
     userEntryB.setKey("test_b");
     userEntryB.setCreatedBy(user);
     userDatastoreStore.save(userEntryB);
-    List<UserDatastoreEntry> list = userDatastoreStore.getEntriesInNamespace(user, "a");
+    List<UserDatastoreEntry> list =
+        userDatastoreStore.getEntriesInNamespace(user.getUsername(), "a");
     assertTrue(list.contains(userEntryA));
     assertTrue(list.contains(userEntryB));
   }

@@ -66,7 +66,6 @@ import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -85,7 +84,7 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest {
 
   @Autowired private UserService _userService;
 
-  @Autowired protected CurrentUserService currentUserService;
+  //  @Autowired protected CurrentUserService currentUserService;
 
   @Autowired private EventService programStageInstanceService;
 
@@ -134,7 +133,7 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest {
         "F_CATEGORY_COMBO_PUBLIC_ADD",
         "F_CATEGORY_COMBO_PRIVATE_ADD",
         "F_CATEGORY_COMBO_DELETE");
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = getCurrentUser();
     UserAccess userAccess1 = new UserAccess(currentUser, "rwrw----");
     UserAccess userAccess2 = new UserAccess(currentUser, "rwrw----");
     UserAccess userAccess3 = new UserAccess(currentUser, "rwrw----");

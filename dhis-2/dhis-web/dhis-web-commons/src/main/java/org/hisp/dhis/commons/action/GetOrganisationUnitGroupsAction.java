@@ -34,7 +34,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Tran Thanh Tri
@@ -86,8 +86,8 @@ public class GetOrganisationUnitGroupsAction extends ActionPagingSupport<Organis
 
     Collections.sort(organisationUnitGroups);
 
-    User currentUser = currentUserService.getCurrentUser();
-    organisationUnitGroups.forEach(instance -> canReadInstance(instance, currentUser));
+    organisationUnitGroups.forEach(
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
 
     if (usePaging) {
       this.paging = createPaging(organisationUnitGroups.size());

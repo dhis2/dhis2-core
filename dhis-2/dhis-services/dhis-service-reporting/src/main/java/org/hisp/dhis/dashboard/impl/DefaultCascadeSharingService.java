@@ -791,7 +791,7 @@ public class DefaultCascadeSharingService implements CascadeSharingService {
    */
   private <T extends IdentifiableObject> boolean canUserUpdate(
       T object, CascadeSharingParameters parameters) {
-    if (!aclService.canUpdate(parameters.getUser(), object)) {
+    if (!aclService.canUpdate(parameters.getUser().getUsername(), object)) {
       parameters
           .getReport()
           .getErrorReports()

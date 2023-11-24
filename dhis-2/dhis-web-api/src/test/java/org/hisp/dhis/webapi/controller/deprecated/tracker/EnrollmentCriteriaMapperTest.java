@@ -53,9 +53,10 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,7 +68,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class EnrollmentCriteriaMapperTest {
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private OrganisationUnitService organisationUnitService;
 
@@ -108,7 +110,9 @@ class EnrollmentCriteriaMapperTest {
     organisationUnit.setUid(ORG_UNIT1);
 
     user = new User();
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    User user = new User();
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
 
     trackedEntityType = new TrackedEntityType();
     trackedEntityType.setUid(ENTITY_TYPE);
@@ -379,7 +383,7 @@ class EnrollmentCriteriaMapperTest {
     userRole.setAuthorities(Sets.newHashSet("ALL"));
     superuser.setUserRoles(Set.of(userRole));
 
-    when(currentUserService.getCurrentUser()).thenReturn(superuser);
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(superuser);
 
     EnrollmentQueryParams enrollmentQueryParams =
         mapper.getFromUrl(
@@ -416,7 +420,7 @@ class EnrollmentCriteriaMapperTest {
     userRole.setAuthorities(Sets.newHashSet("ALL"));
     superuser.setUserRoles(Set.of(userRole));
 
-    when(currentUserService.getCurrentUser()).thenReturn(superuser);
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(superuser);
 
     EnrollmentQueryParams enrollmentQueryParams =
         mapper.getFromUrl(

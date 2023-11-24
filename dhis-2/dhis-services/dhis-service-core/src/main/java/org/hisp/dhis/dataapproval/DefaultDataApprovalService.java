@@ -59,8 +59,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,9 +82,9 @@ public class DefaultDataApprovalService implements DataApprovalService {
 
   private final IdentifiableObjectManager idObjectManager;
 
-  private final CurrentUserService currentUserService;
-
   private final SystemSettingManager systemSettingManager;
+
+  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // Data approval workflow
@@ -136,10 +137,10 @@ public class DefaultDataApprovalService implements DataApprovalService {
   public void approveData(List<DataApproval> dataApprovalList) {
     log.debug("approveData ( " + dataApprovalList.size() + " items )");
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     boolean accepted =
         !systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);
-
-    User currentUser = currentUserService.getCurrentUser();
 
     validateAttributeOptionCombos(dataApprovalList);
 
@@ -252,8 +253,6 @@ public class DefaultDataApprovalService implements DataApprovalService {
   public void unapproveData(List<DataApproval> dataApprovalList) {
     log.debug("unapproveData ( " + dataApprovalList.size() + " items )");
 
-    User currentUser = currentUserService.getCurrentUser();
-
     Map<String, DataApprovalStatus> statusMap = getStatusMap(dataApprovalList);
 
     List<DataApproval> checkedList = new ArrayList<>();
@@ -286,6 +285,8 @@ public class DefaultDataApprovalService implements DataApprovalService {
 
     List<DataApproval> foundApprovals = getPresentApprovals(checkedList, "unapprove");
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     for (DataApproval da : foundApprovals) {
       log.debug("unapproving " + da);
 
@@ -301,8 +302,6 @@ public class DefaultDataApprovalService implements DataApprovalService {
   @Transactional
   public void acceptData(List<DataApproval> dataApprovalList) {
     log.debug("acceptData ( " + dataApprovalList.size() + " items )");
-
-    User currentUser = currentUserService.getCurrentUser();
 
     Map<String, DataApprovalStatus> statusMap = getStatusMap(dataApprovalList);
 
@@ -339,6 +338,8 @@ public class DefaultDataApprovalService implements DataApprovalService {
 
     List<DataApproval> presentApprovals = getPresentApprovals(checkedList, "accept");
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     for (DataApproval da : presentApprovals) {
       log.debug("accepting " + da);
 
@@ -356,8 +357,6 @@ public class DefaultDataApprovalService implements DataApprovalService {
   @Transactional
   public void unacceptData(List<DataApproval> dataApprovalList) {
     log.debug("unacceptData ( " + dataApprovalList.size() + " items )");
-
-    User currentUser = currentUserService.getCurrentUser();
 
     Map<String, DataApprovalStatus> statusMap = getStatusMap(dataApprovalList);
 
@@ -395,6 +394,8 @@ public class DefaultDataApprovalService implements DataApprovalService {
     }
 
     List<DataApproval> presentApprovals = getPresentApprovals(checkedList, "unaccept");
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     for (DataApproval da : presentApprovals) {
       log.debug("unaccepting " + da);
@@ -487,6 +488,8 @@ public class DefaultDataApprovalService implements DataApprovalService {
 
     DataApprovalStatus status;
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     List<DataApprovalStatus> statuses =
         dataApprovalStore.getDataApprovalStatuses(
             workflow,
@@ -496,8 +499,7 @@ public class DefaultDataApprovalService implements DataApprovalService {
             null,
             null,
             attributeOptionCombo == null ? null : Sets.newHashSet(attributeOptionCombo),
-            dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel(
-                currentUserService.getCurrentUser(), workflow),
+            dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel(currentUser, workflow),
             dataApprovalLevelService.getDataApprovalLevelMap());
 
     if (statuses == null || statuses.isEmpty()) {
@@ -543,6 +545,9 @@ public class DefaultDataApprovalService implements DataApprovalService {
       OrganisationUnit orgUnitFilter,
       CategoryCombo attributeCombo,
       Set<CategoryOptionCombo> attributeOptionCombos) {
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     List<DataApprovalStatus> statusList =
         dataApprovalStore.getDataApprovalStatuses(
             workflow,
@@ -552,8 +557,7 @@ public class DefaultDataApprovalService implements DataApprovalService {
             orgUnitFilter,
             attributeCombo,
             attributeOptionCombos,
-            dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel(
-                currentUserService.getCurrentUser(), workflow),
+            dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel(currentUser, workflow),
             dataApprovalLevelService.getDataApprovalLevelMap());
 
     DataApprovalPermissionsEvaluator permissionsEvaluator = makePermissionsEvaluator();
@@ -659,6 +663,8 @@ public class DefaultDataApprovalService implements DataApprovalService {
 
       DataApproval da = dataApprovals.get(0);
 
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
       List<DataApprovalStatus> statuses =
           dataApprovalStore.getDataApprovalStatuses(
               da.getWorkflow(),
@@ -669,7 +675,7 @@ public class DefaultDataApprovalService implements DataApprovalService {
               null,
               getCategoryOptionCombos(dataApprovals),
               dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel(
-                  currentUserService.getCurrentUser(), da.getWorkflow()),
+                  currentUser, da.getWorkflow()),
               dataApprovalLevelService.getDataApprovalLevelMap());
 
       for (DataApprovalStatus status : statuses) {
@@ -815,6 +821,6 @@ public class DefaultDataApprovalService implements DataApprovalService {
   /** Makes a DataApprovalPermissionsEvaluator object for the current user. */
   private DataApprovalPermissionsEvaluator makePermissionsEvaluator() {
     return DataApprovalPermissionsEvaluator.makePermissionsEvaluator(
-        currentUserService, idObjectManager, systemSettingManager, dataApprovalLevelService);
+        userService, idObjectManager, systemSettingManager, dataApprovalLevelService);
   }
 }

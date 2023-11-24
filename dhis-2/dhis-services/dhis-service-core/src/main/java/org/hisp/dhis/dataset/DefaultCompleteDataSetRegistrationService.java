@@ -46,8 +46,7 @@ import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,8 +71,6 @@ public class DefaultCompleteDataSetRegistrationService
 
   private final AggregateAccessManager accessManager;
 
-  private final CurrentUserService currentUserService;
-
   private final MessageService messageService;
 
   // -------------------------------------------------------------------------
@@ -90,7 +87,7 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     if (!registration.hasStoredBy()) {
-      registration.setStoredBy(currentUserService.getCurrentUsername());
+      registration.setStoredBy(CurrentUserUtil.getCurrentUsername());
     }
 
     if (!registration.hasLastUpdated()) {
@@ -98,7 +95,7 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     if (!registration.hasLastUpdatedBy()) {
-      registration.setLastUpdatedBy(currentUserService.getCurrentUsername());
+      registration.setLastUpdatedBy(CurrentUserUtil.getCurrentUsername());
     }
 
     if (registration.getAttributeOptionCombo() == null) {
@@ -119,7 +116,7 @@ public class DefaultCompleteDataSetRegistrationService
   public void updateCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
     registration.setLastUpdated(new Date());
 
-    registration.setLastUpdatedBy(currentUserService.getCurrentUsername());
+    registration.setLastUpdatedBy(CurrentUserUtil.getCurrentUsername());
 
     completeDataSetRegistrationStore.updateCompleteDataSetRegistration(registration);
   }
@@ -192,11 +189,8 @@ public class DefaultCompleteDataSetRegistrationService
             dv.getSourceId(), dv.getDataElementId(), dv.getCategoryOptionComboId(), true);
       }
 
-      User currentUser = currentUserService.getCurrentUser();
-
       for (DataElementOperand deo : dataSet.getCompulsoryDataElementOperands()) {
-        List<String> errors = accessManager.canWrite(currentUser, deo);
-
+        List<String> errors = accessManager.canWrite(CurrentUserUtil.getCurrentUsername(), deo);
         if (!errors.isEmpty()) {
           continue;
         }

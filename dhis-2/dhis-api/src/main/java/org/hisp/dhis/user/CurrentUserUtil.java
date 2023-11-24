@@ -193,4 +193,11 @@ public class CurrentUserUtil {
       }
     }
   }
+
+  public static CurrentUserDetails getByUsername(String username) {
+    if (getCurrentUsername().equals(username)) {
+      return getCurrentUserDetails();
+    }
+    return null;
+  }
 }

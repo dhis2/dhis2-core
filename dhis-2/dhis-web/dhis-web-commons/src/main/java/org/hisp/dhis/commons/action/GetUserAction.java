@@ -28,6 +28,7 @@
 package org.hisp.dhis.commons.action;
 
 import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 
@@ -81,7 +82,7 @@ public class GetUserAction extends BaseAction implements Action {
       user = userService.getUserByUsername(username);
     }
 
-    canReadInstance(user, currentUserService.getCurrentUser());
+    canReadInstance(user, CurrentUserUtil.getCurrentUsername());
 
     return SUCCESS;
   }

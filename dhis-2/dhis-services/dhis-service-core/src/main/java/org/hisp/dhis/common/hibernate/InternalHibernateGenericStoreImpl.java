@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -52,6 +51,7 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
@@ -246,26 +246,33 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, User user) {
-    return user == null
+      CriteriaBuilder builder, CurrentUserDetails userDetails) {
+    return userDetails == null
         ? List.of()
         : getDataSharingPredicates(
-            builder, user, getCurrentUserGroupInfo(user.getUid()), AclService.LIKE_READ_DATA);
+            builder,
+            userDetails,
+            getCurrentUserGroupInfo(userDetails.getUid()),
+            AclService.LIKE_READ_DATA);
   }
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, User user) {
-    return user == null
+      CriteriaBuilder builder, CurrentUserDetails userDetails) {
+    return userDetails == null
         ? List.of()
         : getSharingPredicates(
-            builder, user, getCurrentUserGroupInfo(user.getUid()), AclService.LIKE_READ_METADATA);
+            builder,
+            userDetails,
+            getCurrentUserGroupInfo(userDetails.getUid()),
+            AclService.LIKE_READ_METADATA);
   }
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, User user, String access) {
-    if (user == null || !sharingEnabled(user)) {
+      CriteriaBuilder builder, CurrentUserDetails user, String access) {
+
+    if (user == null || !sharingEnabled(user.isSuper())) {
       return List.of();
     }
 
@@ -276,10 +283,13 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, User user, CurrentUserGroupInfo groupInfo, String access) {
+      CriteriaBuilder builder,
+      CurrentUserDetails user,
+      CurrentUserGroupInfo groupInfo,
+      String access) {
     List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-    if (user == null || !dataSharingEnabled(user) || groupInfo == null) {
+    if (user == null || !dataSharingEnabled(user.isSuper()) || groupInfo == null) {
       return predicates;
     }
 
@@ -289,62 +299,50 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, User user, String access) {
+      CriteriaBuilder builder, CurrentUserDetails userDetails, String access) {
     List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-    if (user == null || !dataSharingEnabled(user)) {
+    if (userDetails == null || !dataSharingEnabled(userDetails.isSuper())) {
       return predicates;
     }
 
-    Set<String> groupIds =
-        user.getGroups().stream().map(g -> g.getUid()).collect(Collectors.toSet());
+    Set<String> groupIds = userDetails.getUserGroupIds();
 
-    return getDataSharingPredicates(builder, user.getUid(), groupIds, access);
+    return getDataSharingPredicates(builder, userDetails.getUid(), groupIds, access);
   }
 
   protected boolean forceAcl() {
     return Dashboard.class.isAssignableFrom(clazz);
   }
 
-  /**
-   * @deprecated use {@link #sharingEnabled( CurrentUserDetails )} instead.
-   */
-  @Deprecated
-  protected boolean sharingEnabled(User user) {
+  protected boolean sharingEnabled(boolean isNullOrSuper) {
     boolean b = forceAcl();
 
     if (b) {
       return b;
     } else {
-      return (aclService.isClassShareable(clazz) && !(user == null || user.isSuper()));
+      return (aclService.isClassShareable(clazz) && !(isNullOrSuper));
     }
   }
 
-  protected boolean sharingEnabled(CurrentUserDetails user) {
-    boolean b = forceAcl();
-
-    if (b) {
-      return b;
-    } else {
-      return (aclService.isClassShareable(clazz) && !(user == null || user.isSuper()));
-    }
-  }
-
-  protected boolean dataSharingEnabled(CurrentUserDetails user) {
-    return aclService.isDataClassShareable(clazz) && !user.isSuper();
+  protected boolean dataSharingEnabled(boolean userIsSuper) {
+    return aclService.isDataClassShareable(clazz) && !userIsSuper;
   }
 
   /**
    * @deprecated use {@link #dataSharingEnabled( CurrentUserDetails )} instead.
    */
   @Deprecated
-  private boolean dataSharingEnabled(User user) {
+  private boolean dataSharingEnabled(CurrentUserDetailsImpl user) {
     return aclService.isDataClassShareable(clazz) && !user.isSuper();
   }
 
   private List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, User user, CurrentUserGroupInfo groupInfo, String access) {
-    if (user == null || groupInfo == null || !sharingEnabled(user)) {
+      CriteriaBuilder builder,
+      CurrentUserDetails userDetails,
+      CurrentUserGroupInfo groupInfo,
+      String access) {
+    if (userDetails == null || groupInfo == null || !sharingEnabled(userDetails.isSuper())) {
       return List.of();
     }
 

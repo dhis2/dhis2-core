@@ -60,7 +60,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -91,7 +90,6 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
       DbmsManager dbmsManager,
       org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentService enrollmentService,
       EnrollmentService programInstanceService,
-      CurrentUserService currentUserService,
       SchemaService schemaService,
       QueryService queryService,
       ReservedValueService reservedValueService,
@@ -116,7 +114,6 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     checkNotNull(dbmsManager);
     checkNotNull(enrollmentService);
     checkNotNull(programInstanceService);
-    checkNotNull(currentUserService);
     checkNotNull(schemaService);
     checkNotNull(queryService);
     checkNotNull(reservedValueService);
@@ -142,7 +139,6 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     this.dbmsManager = dbmsManager;
     this.enrollmentService = enrollmentService;
     this.programInstanceService = programInstanceService;
-    this.currentUserService = currentUserService;
     this.schemaService = schemaService;
     this.queryService = queryService;
     this.reservedValueService = reservedValueService;

@@ -51,7 +51,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,7 +77,7 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
   @Mock private TrackerAccessManager accessManager;
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
 
   @InjectMocks private RelationshipOperationParamsMapper mapper;
 
@@ -105,7 +104,7 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
     user = new User();
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
   }
 
   @Test

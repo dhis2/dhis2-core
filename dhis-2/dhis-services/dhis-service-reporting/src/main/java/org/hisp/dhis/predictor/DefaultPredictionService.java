@@ -81,8 +81,9 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -115,11 +116,11 @@ public class DefaultPredictionService implements PredictionService {
 
   private final AnalyticsService analyticsService;
 
-  private final CurrentUserService currentUserService;
-
   private final PredictionPreprocessor preprocessor;
 
   private final ApplicationContext applicationContext;
+
+  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // Prediction business logic
@@ -270,7 +271,7 @@ public class DefaultPredictionService implements PredictionService {
         generator.getMissingValueStrategy() != NEVER_SKIP
             && !baseExParams.getItemMap().values().isEmpty();
 
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     Set<OrganisationUnit> currentUserOrgUnits =
         (currentUser != null) ? currentUser.getOrganisationUnits() : emptySet();
 

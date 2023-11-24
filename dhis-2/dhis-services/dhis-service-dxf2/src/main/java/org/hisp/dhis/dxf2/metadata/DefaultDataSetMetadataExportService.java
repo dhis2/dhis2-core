@@ -69,8 +69,9 @@ import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -133,11 +134,10 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
 
   private final ExpressionService expressionService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   @Override
   public ObjectNode getDataSetMetadata() {
-    User user = currentUserService.getCurrentUser();
     CategoryCombo defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
     SetValuedMap<String, String> dataSetOrgUnits =
         dataSetService.getDataSetOrganisationUnitsAssociations();
@@ -154,8 +154,10 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
     List<Category> dataSetCategories =
         sortById(flatMapToSet(dataSetCategoryCombos, CategoryCombo::getCategories));
     List<Category> categories = union(dataElementCategories, dataSetCategories);
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<CategoryOption> categoryOptions =
-        sortById(getCategoryOptions(dataElementCategories, dataSetCategories, user));
+        sortById(getCategoryOptions(dataElementCategories, dataSetCategories, currentUser));
     List<OptionSet> optionSets = sortById(getOptionSets(dataElements));
 
     dataSetCategoryCombos.remove(defaultCategoryCombo);

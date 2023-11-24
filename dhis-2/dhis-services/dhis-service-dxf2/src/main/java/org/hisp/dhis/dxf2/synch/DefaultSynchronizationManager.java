@@ -55,8 +55,8 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
@@ -78,8 +78,6 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
 
   private final SchemaService schemaService;
 
-  private final CurrentUserService currentUserService;
-
   private final SystemSettingManager systemSettingManager;
 
   private final RestTemplate restTemplate;
@@ -91,7 +89,6 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
       DataValueService dataValueService,
       MetadataImportService importService,
       SchemaService schemaService,
-      CurrentUserService currentUserService,
       SystemSettingManager systemSettingManager,
       RestTemplate restTemplate,
       ObjectMapper jsonMapper) {
@@ -99,7 +96,6 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
     checkNotNull(dataValueService);
     checkNotNull(importService);
     checkNotNull(schemaService);
-    checkNotNull(currentUserService);
     checkNotNull(systemSettingManager);
     checkNotNull(restTemplate);
     checkNotNull(jsonMapper);
@@ -108,7 +104,6 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
     this.dataValueService = dataValueService;
     this.importService = importService;
     this.schemaService = schemaService;
-    this.currentUserService = currentUserService;
     this.systemSettingManager = systemSettingManager;
     this.restTemplate = restTemplate;
     this.jsonMapper = jsonMapper;
@@ -225,9 +220,8 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
 
   @Override
   public ImportReport executeMetadataPull(String url) {
-    User user = currentUserService.getCurrentUser();
-
-    String userUid = user != null ? user.getUid() : null;
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    String userUid = currentUserDetails != null ? currentUserDetails.getUid() : null;
 
     log.info(String.format("Metadata pull, url: %s, user: %s", url, userUid));
 

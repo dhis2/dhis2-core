@@ -49,15 +49,6 @@ public interface EventService {
    */
   long addEvent(Event event);
 
-  /**
-   * Adds an {@link Event}
-   *
-   * @param event The Event to add.
-   * @param user the current user.
-   * @return A generated unique id of the added {@link Event}.
-   */
-  long addEvent(Event event, User user);
-
   /** Soft deletes an {@link Event}. */
   void deleteEvent(Event event);
 

@@ -78,7 +78,7 @@ public class DashboardItemController extends AbstractCrudController<DashboardIte
 
     Dashboard dashboard = dashboardService.getDashboardFromDashboardItem(item);
 
-    if (!aclService.canUpdate(currentUser, dashboard)) {
+    if (!aclService.canUpdate(currentUser.getUsername(), dashboard)) {
       throw new UpdateAccessDeniedException(
           "You don't have the proper permissions to update this dashboard.");
     }

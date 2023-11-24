@@ -42,8 +42,9 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.deprecated.tracker.imports.impl.TrackedEntityInstanceAsyncStrategyImpl;
 import org.hisp.dhis.webapi.controller.deprecated.tracker.imports.impl.TrackedEntityInstanceStrategyImpl;
 import org.hisp.dhis.webapi.controller.deprecated.tracker.imports.impl.TrackedEntityInstanceSyncStrategyImpl;
@@ -64,7 +65,8 @@ class TrackedEntityControllerTest {
 
   private MockMvc mockMvc;
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;
 
@@ -89,16 +91,17 @@ class TrackedEntityControllerTest {
             null,
             null,
             null,
-            currentUserService,
             null,
             trackerAccessManager,
             null,
             null,
             new TrackedEntityInstanceStrategyImpl(
-                trackedEntityInstanceSyncStrategy, trackedEntityInstanceAsyncStrategy));
+                trackedEntityInstanceSyncStrategy, trackedEntityInstanceAsyncStrategy),
+            userService);
 
     mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
     when(user.getUid()).thenReturn("userId");
   }
 

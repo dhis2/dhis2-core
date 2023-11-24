@@ -178,7 +178,8 @@ public class DataValueSetImportValidator {
   private void validateDataSetIsAccessibleByUser(
       DataValueSet dataValueSet, ImportContext context, DataSetContext dataSetContext) {
     DataSet dataSet = dataSetContext.getDataSet();
-    if (dataSet != null && !aclService.canDataWrite(context.getCurrentUser(), dataSet)) {
+    if (dataSet != null
+        && !aclService.canDataWrite(context.getCurrentUser().getUsername(), dataSet)) {
       context
           .error()
           .addConflict(
@@ -291,7 +292,7 @@ public class DataValueSetImportValidator {
       DataValueContext valueContext) {
     if (valueContext.getCategoryOptionCombo() != null) {
       for (CategoryOption option : valueContext.getCategoryOptionCombo().getCategoryOptions()) {
-        if (!aclService.canDataWrite(context.getCurrentUser(), option)) {
+        if (!aclService.canDataWrite(context.getCurrentUser().getUsername(), option)) {
           context.addConflict(
               valueContext.getIndex(),
               DataValueImportConflict.CATEGORY_OPTION_COMBO_NOT_ACCESSIBLE,
@@ -323,7 +324,7 @@ public class DataValueSetImportValidator {
       DataValueContext valueContext) {
     if (valueContext.getAttrOptionCombo() != null) {
       for (CategoryOption option : valueContext.getAttrOptionCombo().getCategoryOptions()) {
-        if (!aclService.canDataWrite(context.getCurrentUser(), option)) {
+        if (!aclService.canDataWrite(context.getCurrentUser().getUsername(), option)) {
           context.addConflict(
               valueContext.getIndex(),
               DataValueImportConflict.ATTR_OPTION_COMBO_NOT_ACCESSIBLE,

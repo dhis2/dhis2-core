@@ -81,8 +81,9 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
@@ -123,8 +124,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
   private final PeriodService periodService;
 
-  private final CurrentUserService currentUserService;
-
   private final CompleteDataSetRegistrationService registrationService;
 
   private final InputUtils inputUtils;
@@ -138,6 +137,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   private final ObjectMapper jsonMapper;
 
   private final OrganisationUnitService organisationUnitService;
+
+  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // CompleteDataSetRegistrationService implementation
@@ -358,8 +359,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   private void decideAccess(ExportParams params) throws IllegalQueryException {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     for (OrganisationUnit ou : params.getOrganisationUnits()) {
-      if (!orgUnitService.isInUserHierarchy(ou)) {
+      if (!orgUnitService.isInUserHierarchy(currentUser, ou)) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2012, ou.getUid()));
       }
     }
@@ -437,9 +439,10 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       MetadataCallables mdCallables,
       MetadataCaches mdCaches,
       BatchHandler<CompleteDataSetRegistration> batchHandler) {
-    final User currentUser = currentUserService.getCurrentUser();
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     final String currentUserName = currentUser.getUsername();
-    final Set<OrganisationUnit> userOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
+    final Set<OrganisationUnit> userOrgUnits = currentUser.getOrganisationUnits();
     final I18n i18n = i18nManager.getI18n();
 
     batchHandler.init();
@@ -652,8 +655,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
    * @param metaDataProperties {@see MetaDataProperties} containing the objects to check
    */
   private List<String> validateDataAccess(User user, MetadataProperties metaDataProperties) {
-    List<String> errors = accessManager.canWrite(user, metaDataProperties.dataSet);
-    errors.addAll(accessManager.canWrite(user, metaDataProperties.attrOptCombo));
+    List<String> errors = accessManager.canWrite(user.getUsername(), metaDataProperties.dataSet);
+    errors.addAll(accessManager.canWrite(user.getUsername(), metaDataProperties.attrOptCombo));
     return errors;
   }
 

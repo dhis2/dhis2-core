@@ -173,7 +173,7 @@ public class DataItemQueryController {
       User currentUser, Set<Class<? extends BaseIdentifiableObject>> entities) {
     if (isNotEmpty(entities)) {
       for (Class<? extends BaseIdentifiableObject> entity : entities) {
-        if (!aclService.canRead(currentUser, entity)) {
+        if (!aclService.canRead(currentUser.getUsername(), entity)) {
           throw new IllegalQueryException(
               new ErrorMessage(E3012, currentUser.getUsername(), entity.getSimpleName()));
         }

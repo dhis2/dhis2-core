@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 
 /**
@@ -47,8 +47,6 @@ public class DefaultTrackedEntityAttributeValueAuditService
   private final TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
-
-  private final CurrentUserService currentUserService;
 
   @Override
   public void addTrackedEntityAttributeValueAudit(
@@ -73,7 +71,7 @@ public class DefaultTrackedEntityAttributeValueAuditService
 
     Set<String> allUserReadableTrackedEntityAttributes =
         trackedEntityAttributeService
-            .getAllUserReadableTrackedEntityAttributes(currentUserService.getCurrentUser())
+            .getAllUserReadableTrackedEntityAttributes(CurrentUserUtil.getCurrentUsername())
             .stream()
             .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
@@ -81,7 +79,7 @@ public class DefaultTrackedEntityAttributeValueAuditService
     return trackedEntityAttributeValueAudits.stream()
         .filter(
             audit -> allUserReadableTrackedEntityAttributes.contains(audit.getAttribute().getUid()))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @Override

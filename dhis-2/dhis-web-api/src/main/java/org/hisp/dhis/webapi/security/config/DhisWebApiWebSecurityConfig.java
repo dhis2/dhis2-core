@@ -35,20 +35,19 @@ import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.jwt.Dhis2JwtAuthenticationManagerResolver;
 import org.hisp.dhis.security.jwt.DhisBearerJwtTokenAuthenticationEntryPoint;
-import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
+// import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oidc.DhisAuthorizationCodeTokenResponseClient;
 import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
-import org.hisp.dhis.user.UserService;
+// import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
@@ -174,9 +173,9 @@ public class DhisWebApiWebSecurityConfig {
 
   @Autowired private TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
-  @Autowired
-  @Qualifier("customLdapAuthenticationProvider")
-  private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
+  //  @Autowired
+  //  @Qualifier("customLdapAuthenticationProvider")
+  //  private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
 
   @Autowired private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
@@ -188,11 +187,9 @@ public class DhisWebApiWebSecurityConfig {
 
   @Autowired private ApiTokenService apiTokenService;
 
-  @Autowired private UserService userService;
+  //  @Autowired private UserService userService;
 
   @Autowired private CacheProvider cacheProvider;
-
-  @Autowired private SecurityService securityService;
 
   @Autowired
   private TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource;
@@ -222,9 +219,9 @@ public class DhisWebApiWebSecurityConfig {
   @Bean
   @Primary
   protected AuthenticationManager authenticationManagers() {
+    //    customLdapAuthenticationProvider,
     ProviderManager providerManager =
-        new ProviderManager(
-            Arrays.asList(customLdapAuthenticationProvider, twoFactorAuthenticationProvider));
+        new ProviderManager(Arrays.asList(twoFactorAuthenticationProvider));
     providerManager.setAuthenticationEventPublisher(authenticationEventPublisher);
     return providerManager;
   }

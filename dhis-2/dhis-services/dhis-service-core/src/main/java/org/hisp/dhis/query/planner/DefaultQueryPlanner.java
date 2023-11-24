@@ -81,9 +81,10 @@ public class DefaultQueryPlanner implements QueryPlanner {
           .build();
     }
 
-    Query npQuery = Query.from(query).setUser(query.getUser()).setPlannedQuery(true);
+    Query npQuery = Query.from(query).setUsername(query.getUsername()).setPlannedQuery(true);
 
-    Query pQuery = getQuery(npQuery, persistedOnly).setUser(query.getUser()).setPlannedQuery(true);
+    Query pQuery =
+        getQuery(npQuery, persistedOnly).setUsername(query.getUsername()).setPlannedQuery(true);
 
     // if there are any non persisted criterions left, we leave the paging
     // to the in-memory engine

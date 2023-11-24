@@ -55,6 +55,8 @@ import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -196,15 +198,16 @@ public class EventTrackerConverterService
 
     Date now = new Date();
 
+    CurrentUserDetails preheatUser = CurrentUserDetailsImpl.fromUser(preheat.getUser());
     if (isNewEntity(result)) {
       result = new Event();
       result.setUid(!StringUtils.isEmpty(event.getEvent()) ? event.getEvent() : event.getUid());
       result.setCreated(now);
       result.setStoredBy(event.getStoredBy());
-      result.setCreatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
+      result.setCreatedByUserInfo(UserInfoSnapshot.from(preheatUser));
       result.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
     }
-    result.setLastUpdatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
+    result.setLastUpdatedByUserInfo(UserInfoSnapshot.from(preheatUser));
     result.setLastUpdated(now);
     result.setDeleted(false);
     result.setLastUpdatedAtClient(DateUtils.fromInstant(event.getUpdatedAtClient()));
@@ -256,8 +259,8 @@ public class EventTrackerConverterService
       // dataElementIdSchemes are supported
       DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
       eventDataValue.setDataElement(dataElement.getUid());
-      eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
-      eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
+      eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(preheatUser));
+      eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(preheatUser));
 
       result.getEventDataValues().add(eventDataValue);
     }

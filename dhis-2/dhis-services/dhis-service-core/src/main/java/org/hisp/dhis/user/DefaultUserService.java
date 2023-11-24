@@ -35,11 +35,15 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -62,7 +66,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AuditLogUtil;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.PasswordGenerator;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
@@ -70,22 +76,33 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
+import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * @author Chau Thu Tran
@@ -95,56 +112,71 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.user.UserService")
 public class DefaultUserService implements UserService {
   private final UserStore userStore;
-
   private final UserGroupService userGroupService;
-
   private final UserRoleStore userRoleStore;
-
   private final SystemSettingManager systemSettingManager;
-
   private final PasswordManager passwordManager;
-
-  private final SecurityService securityService;
+  private final AclService aclService;
+  private final OrganisationUnitService organisationUnitService;
+  private final SessionRegistry sessionRegistry;
+  private final UserSettingService userSettingService;
+  private final RestTemplate restTemplate;
+  private final MessageSender emailMessageSender;
+  private final I18nManager i18nManager;
+  private final ObjectMapper jsonMapper;
 
   private final Cache<String> userDisplayNameCache;
-
-  private final AclService aclService;
-
-  private final OrganisationUnitService organisationUnitService;
-
-  private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
+  private final Cache<Integer> userFailedLoginAttemptCache;
+  private final Cache<Integer> userAccountRecoverAttemptCache;
 
   public DefaultUserService(
-      @Lazy UserStore userStore,
-      @Lazy UserGroupService userGroupService,
-      @Lazy UserRoleStore userRoleStore,
-      //      CurrentUserService currentUserService,
+      UserSettingService userSettingService,
+      RestTemplate restTemplate,
+      MessageSender emailMessageSender,
+      I18nManager i18nManager,
+      ObjectMapper jsonMapper,
+      UserStore userStore,
+      UserGroupService userGroupService,
+      UserRoleStore userRoleStore,
       SystemSettingManager systemSettingManager,
       CacheProvider cacheProvider,
-      @Lazy PasswordManager passwordManager,
-      SecurityService securityService,
+      PasswordManager passwordManager,
       AclService aclService,
-      @Lazy OrganisationUnitService organisationUnitService) {
+      OrganisationUnitService organisationUnitService,
+      SessionRegistry sessionRegistry) {
+
     checkNotNull(userStore);
     checkNotNull(userGroupService);
     checkNotNull(userRoleStore);
     checkNotNull(systemSettingManager);
     checkNotNull(passwordManager);
-    checkNotNull(securityService);
     checkNotNull(aclService);
     checkNotNull(organisationUnitService);
+    checkNotNull(sessionRegistry);
+    checkNotNull(userSettingService);
+    checkNotNull(restTemplate);
+    checkNotNull(cacheProvider);
+    checkNotNull(emailMessageSender);
+    checkNotNull(i18nManager);
+    checkNotNull(jsonMapper);
 
     this.userStore = userStore;
     this.userGroupService = userGroupService;
     this.userRoleStore = userRoleStore;
-    //    this.currentUserService = currentUserService;
     this.systemSettingManager = systemSettingManager;
     this.passwordManager = passwordManager;
-    this.securityService = securityService;
     this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
     this.aclService = aclService;
     this.organisationUnitService = organisationUnitService;
-    this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
+    this.sessionRegistry = sessionRegistry;
+
+    this.userSettingService = userSettingService;
+    this.restTemplate = restTemplate;
+    this.emailMessageSender = emailMessageSender;
+    this.i18nManager = i18nManager;
+    this.jsonMapper = jsonMapper;
+    this.userFailedLoginAttemptCache = cacheProvider.createUserFailedLoginAttemptCache(0);
+    this.userAccountRecoverAttemptCache = cacheProvider.createUserAccountRecoverAttemptCache(0);
   }
 
   @Override
@@ -849,7 +881,7 @@ public class DefaultUserService implements UserService {
     String username = user.getUsername();
     boolean enabled = !user.isDisabled();
     boolean credentialsNonExpired = userNonExpired(user);
-    boolean accountNonLocked = !securityService.isLocked(user.getUsername());
+    boolean accountNonLocked = !isLocked(user.getUsername());
     boolean accountNonExpired = !isAccountExpired(user);
 
     if (ObjectUtils.anyIsFalse(
@@ -860,36 +892,50 @@ public class DefaultUserService implements UserService {
               username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked));
     }
 
-    return createUserDetails(user, accountNonLocked, credentialsNonExpired);
+    return CurrentUserDetailsImpl.createUserDetails(user, accountNonLocked, credentialsNonExpired);
   }
 
-  @Override
-  @Transactional
-  public CurrentUserDetailsImpl createUserDetails(
-      User user, boolean accountNonLocked, boolean credentialsNonExpired) {
-    return CurrentUserDetailsImpl.builder()
-        .uid(user.getUid())
-        .username(user.getUsername())
-        .password(user.getPassword())
-        .enabled(user.isEnabled())
-        .accountNonExpired(user.isAccountNonExpired())
-        .accountNonLocked(accountNonLocked)
-        .credentialsNonExpired(credentialsNonExpired)
-        .authorities(user.getAuthorities())
-        .userSettings(new HashMap<>())
-        .userGroupIds(
-            user.getUid() == null
-                ? Set.of()
-                : getCurrentUserGroupInfo(user.getUid()).getUserGroupUIDs())
-        .isSuper(user.isSuper())
-        .build();
-  }
+  //  @Override
+  //  @Transactional
+  //  public CurrentUserDetailsImpl createUserDetails(
+  //      User user, boolean accountNonLocked, boolean credentialsNonExpired) {
+  //
+  //    return CurrentUserDetailsImpl.builder()
+  //        .id(user.getId())
+  //        .uid(user.getUid())
+  //        .code(user.getCode())
+  //        .firstName(user.getFirstName())
+  //        .surname(user.getSurname())
+  //        .username(user.getUsername())
+  //        .password(user.getPassword())
+  //        .enabled(user.isEnabled())
+  //        .accountNonExpired(user.isAccountNonExpired())
+  //        .accountNonLocked(accountNonLocked)
+  //        .credentialsNonExpired(credentialsNonExpired)
+  //        .authorities(user.getAuthorities())
+  //        .userSettings(new HashMap<>())
+  //        .userGroupIds(
+  //            user.getUid() == null
+  //                ? Set.of()
+  //                : userStore.getCurrentUserGroupInfo(user.getUid()).getUserGroupUIDs())
+  ////                : userStore.getCurrentUserGroupInfo(user.getUid()).getUserGroupUIDs())
+  //        .isSuper(user.isSuper())
+  //        .userOrgUnitIds(
+  //            user.getOrganisationUnits().stream()
+  //                .map(BaseIdentifiableObject::getUid)
+  //                .collect(Collectors.toSet()))
+  //        .userRoleIds(
+  //            user.getUserRoles().stream()
+  //                .map(BaseIdentifiableObject::getUid)
+  //                .collect(Collectors.toSet()))
+  //        .build();
+  //  }
 
   @Override
   @Transactional(readOnly = true)
   public boolean canCurrentUserCanModify(
       User currentUser, User userToModify, Consumer<ErrorReport> errors) {
-    if (!aclService.canUpdate(currentUser, userToModify)) {
+    if (!aclService.canUpdate(currentUser.getUsername(), userToModify)) {
       errors.accept(
           new ErrorReport(
               UserRole.class, ErrorCode.E3001, currentUser.getUsername(), userToModify.getName()));
@@ -940,6 +986,7 @@ public class DefaultUserService implements UserService {
     }
 
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+
     if (currentUserDetails == null) {
       throw new UpdateAccessDeniedException("No current user in session, can not update user.");
     }
@@ -952,7 +999,7 @@ public class DefaultUserService implements UserService {
 
     // If current user has access to manage this user, they can disable 2FA.
     User currentUser = getUser(currentUserDetails.getUid());
-    if (!aclService.canUpdate(currentUser, userToModify)) {
+    if (!aclService.canUpdate(currentUser.getUsername(), userToModify)) {
       throw new UpdateAccessDeniedException(
           String.format(
               "User `%s` is not allowed to update object `%s`.",
@@ -990,21 +1037,449 @@ public class DefaultUserService implements UserService {
     }
   }
 
-  private CurrentUserGroupInfo getCurrentUserGroupsInfo() {
-    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
-    return user == null ? null : getCurrentUserGroupInfo(user.getUid());
-  }
-
-  private CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
-    return currentUserGroupInfoCache.get(userUID, userStore::getCurrentUserGroupInfo);
-  }
-
-  @Transactional(readOnly = true)
-  public void invalidateUserGroupCache(String userUID) {
-    try {
-      currentUserGroupInfoCache.invalidate(userUID);
-    } catch (NullPointerException exception) {
-      // Ignore if key doesn't exist
+  public void invalidateUserSessions(String uid) {
+    CurrentUserDetailsImpl principal = getCurrentUserPrincipal(uid);
+    if (principal != null) {
+      List<SessionInformation> allSessions = sessionRegistry.getAllSessions(principal, false);
+      allSessions.forEach(SessionInformation::expireNow);
     }
+  }
+
+  private CurrentUserDetailsImpl getCurrentUserPrincipal(String uid) {
+    return sessionRegistry.getAllPrincipals().stream()
+        .map(CurrentUserDetailsImpl.class::cast)
+        .filter(principal -> principal.getUid().equals(uid))
+        .findFirst()
+        .orElse(null);
+  }
+
+  @Override
+  public ErrorCode validateInvite(User user) {
+    if (user == null) {
+      return ErrorCode.E6201;
+    }
+
+    if (user.getUsername() != null && getUserByUsername(user.getUsername()) != null) {
+      log.warn("Could not send invite message as username is already taken: " + user);
+      return ErrorCode.E6204;
+    }
+
+    if (user.getEmail() == null || !ValidationUtils.emailIsValid(user.getEmail())) {
+      log.warn("Could not send restore/invite message as user has no email or email is invalid");
+      return ErrorCode.E6202;
+    }
+
+    if (!emailMessageSender.isConfigured()) {
+      log.warn("Could not send restore/invite message as email is not configured");
+      return ErrorCode.E6203;
+    }
+
+    return null;
+  }
+
+  @Override
+  @Transactional
+  public boolean sendRestoreOrInviteMessage(
+      User user, String rootPath, RestoreOptions restoreOptions) {
+    User persistedUser = getUser(user.getUid());
+
+    String encodedTokens = generateAndPersistTokens(persistedUser, restoreOptions);
+
+    RestoreType restoreType = restoreOptions.getRestoreType();
+
+    String applicationTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+
+    if (applicationTitle == null || applicationTitle.isEmpty()) {
+      applicationTitle = DEFAULT_APPLICATION_TITLE;
+    }
+
+    Map<String, Object> vars = new HashMap<>();
+    vars.put("applicationTitle", applicationTitle);
+    vars.put("restorePath", rootPath + RESTORE_PATH + restoreType.getAction());
+    vars.put("token", encodedTokens);
+    vars.put("welcomeMessage", persistedUser.getWelcomeMessage());
+
+    I18n i18n =
+        i18nManager.getI18n(
+            ObjectUtils.firstNonNull(
+                (Locale)
+                    userSettingService.getUserSetting(
+                        UserSettingKey.UI_LOCALE, persistedUser.getUsername()),
+                LocaleManager.DEFAULT_LOCALE));
+
+    vars.put("i18n", i18n);
+
+    rootPath = rootPath.replace("http://", "").replace("https://", "");
+
+    // -------------------------------------------------------------------------
+    // Render emails
+    // -------------------------------------------------------------------------
+
+    VelocityManager vm = new VelocityManager();
+
+    String messageBody = vm.render(vars, restoreType.getEmailTemplate() + "1");
+
+    String messageSubject = i18n.getString(restoreType.getEmailSubject()) + " " + rootPath;
+
+    // -------------------------------------------------------------------------
+    // Send emails
+    // -------------------------------------------------------------------------
+    emailMessageSender.sendMessage(
+        messageSubject, messageBody, null, null, Set.of(persistedUser), true);
+
+    return true;
+  }
+
+  @Override
+  public String generateAndPersistTokens(User user, RestoreOptions restoreOptions) {
+    RestoreType restoreType = restoreOptions.getRestoreType();
+
+    String restoreToken = restoreOptions.getTokenPrefix() + CodeGenerator.getRandomSecureToken();
+
+    String hashedRestoreToken = passwordManager.encode(restoreToken);
+
+    String idToken = CodeGenerator.getRandomSecureToken();
+
+    Date expiry =
+        new Cal()
+            .now()
+            .add(restoreType.getExpiryIntervalType(), restoreType.getExpiryIntervalCount())
+            .time();
+
+    // The id token is not hashed since we use it for lookup.
+    user.setIdToken(idToken);
+    user.setRestoreToken(hashedRestoreToken);
+    user.setRestoreExpiry(expiry);
+
+    updateUser(user);
+
+    return Base64.getUrlEncoder()
+        .withoutPadding()
+        .encodeToString((idToken + ":" + restoreToken).getBytes());
+  }
+
+  @Override
+  public String[] decodeEncodedTokens(String encodedTokens) {
+    String decodedEmailToken =
+        new String(Base64.getUrlDecoder().decode(encodedTokens), StandardCharsets.UTF_8);
+
+    return decodedEmailToken.split(":");
+  }
+
+  @Override
+  public RestoreOptions getRestoreOptions(String token) {
+    return RestoreOptions.getRestoreOptions(token);
+  }
+
+  @Override
+  public boolean restore(User user, String token, String newPassword, RestoreType restoreType) {
+    if (user == null
+        || token == null
+        || newPassword == null
+        || !canRestore(user, token, restoreType)) {
+      return false;
+    }
+
+    user.setRestoreToken(null);
+    user.setRestoreExpiry(null);
+    user.setIdToken(null);
+    user.setInvitation(false);
+
+    encodeAndSetPassword(user, newPassword);
+    updateUser(user);
+
+    return true;
+  }
+
+  @Override
+  public void registerRecoveryAttempt(String username) {
+    if (!isBlockFailedLogins() || username == null) {
+      return;
+    }
+
+    Integer attempts = userAccountRecoverAttemptCache.get(username).orElse(0);
+
+    userAccountRecoverAttemptCache.put(username, ++attempts);
+  }
+
+  @Override
+  public boolean isRecoveryLocked(String username) {
+    if (!isBlockFailedLogins() || username == null) {
+      return false;
+    }
+
+    return userAccountRecoverAttemptCache.get(username).orElse(0) > RECOVER_MAX_ATTEMPTS;
+  }
+
+  @Override
+  public void registerFailedLogin(String username) {
+    if (!isBlockFailedLogins() || username == null) {
+      return;
+    }
+
+    Integer attempts = userFailedLoginAttemptCache.get(username).orElse(0);
+
+    attempts++;
+
+    userFailedLoginAttemptCache.put(username, attempts);
+  }
+
+  @Override
+  public void registerSuccessfulLogin(String username) {
+    if (!isBlockFailedLogins() || username == null) {
+      return;
+    }
+
+    userFailedLoginAttemptCache.invalidate(username);
+  }
+
+  @Override
+  public boolean isLocked(String username) {
+    if (!isBlockFailedLogins() || username == null) {
+      return false;
+    }
+    return userFailedLoginAttemptCache.get(username).orElse(0) >= LOGIN_MAX_FAILED_ATTEMPTS;
+  }
+
+  private boolean isBlockFailedLogins() {
+    return systemSettingManager.getBoolSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS);
+  }
+
+  @Override
+  public void prepareUserForInvite(User user) {
+    Objects.requireNonNull(user, "User object can't be null");
+
+    if (user.getUsername() == null || user.getUsername().isEmpty()) {
+      String username = "invite" + CodeGenerator.generateUid().toLowerCase();
+
+      user.setUsername(username);
+    }
+
+    int minPasswordLength = systemSettingManager.getIntSetting(SettingKey.MIN_PASSWORD_LENGTH);
+    char[] plaintextPassword = PasswordGenerator.generateValidPassword(minPasswordLength);
+
+    user.setSurname(StringUtils.isEmpty(user.getSurname()) ? TBD_NAME : user.getSurname());
+    user.setFirstName(StringUtils.isEmpty(user.getFirstName()) ? TBD_NAME : user.getFirstName());
+    user.setInvitation(true);
+
+    user.setPassword(new String(plaintextPassword));
+  }
+
+  @Override
+  public ErrorCode validateRestore(User user) {
+    if (user == null) {
+      log.warn("Could not send restore/invite message as user is null");
+      return ErrorCode.E6201;
+    }
+
+    if (user.getEmail() == null || !ValidationUtils.emailIsValid(user.getEmail())) {
+      log.warn("Could not send restore/invite message as user has no email or email is invalid");
+      return ErrorCode.E6202;
+    }
+
+    if (!emailMessageSender.isConfigured()) {
+      log.warn("Could not send restore/invite message as email is not configured");
+      return ErrorCode.E6203;
+    }
+
+    return null;
+  }
+
+  @Override
+  public boolean canRestore(User user, String token, RestoreType restoreType) {
+    ErrorCode code = validateRestore(user, token, restoreType);
+
+    log.info("User account restore outcome: {}", code);
+
+    return code == null;
+  }
+
+  /**
+   * Verifies all parameters needed for account restore and checks validity of the user supplied
+   * token and code. If the restore cannot be verified a descriptive error string is returned.
+   *
+   * @param user the user.
+   * @param token the user supplied token.
+   * @param restoreType the restore type.
+   * @return null if restore is valid, a descriptive error string otherwise.
+   */
+  private ErrorCode validateRestore(User user, String token, RestoreType restoreType) {
+    if (user.getRestoreToken() == null) {
+      return ErrorCode.E6209;
+    }
+
+    if (user.getRestoreExpiry() == null) {
+      return ErrorCode.E6210;
+    }
+
+    if (new Date().after(user.getRestoreExpiry())) {
+      return ErrorCode.E6211;
+    }
+
+    return validateRestoreToken(user, token, restoreType);
+  }
+
+  @Override
+  public ErrorCode validateRestoreToken(User user, String restoreToken, RestoreType restoreType) {
+    if (user == null) {
+      return ErrorCode.E6201;
+    }
+
+    if (restoreToken == null) {
+      log.warn(
+          "Could not send verify restore token; error=token_parameter_is_null; username: {}",
+          user.getUsername());
+      return ErrorCode.E6205;
+    }
+
+    if (restoreType == null) {
+      log.warn(
+          "Could not send verify restore token; error=restore_type_parameter_is_null; username: {}",
+          user.getUsername());
+      return ErrorCode.E6206;
+    }
+
+    RestoreOptions restoreOptions = RestoreOptions.getRestoreOptions(restoreToken);
+
+    if (restoreOptions == null) {
+      log.warn(
+          "Could not send verify restore token; error=cannot_parse_restore_options; username: {}",
+          user.getUsername());
+      return ErrorCode.E6207;
+    }
+
+    if (restoreType != restoreOptions.getRestoreType()) {
+      log.warn(
+          "Could not send verify restore token; error=wrong_prefix_for_restore_type; username: {}",
+          user.getUsername());
+      return ErrorCode.E6207;
+    }
+
+    String hashedRestoreToken = user.getRestoreToken();
+
+    if (hashedRestoreToken == null) {
+      log.warn(
+          "Could not send verify restore token; error=could_not_verify_token; username: {}",
+          user.getUsername());
+      return ErrorCode.E6208;
+    }
+
+    boolean validToken = passwordManager.matches(restoreToken, hashedRestoreToken);
+
+    if (!validToken) {
+      log.warn(
+          "Could not verify restore token; error=restore_token_does_not_match_supplied_token; username: {}",
+          user.getUsername());
+      return ErrorCode.E6208;
+    }
+
+    return null;
+  }
+
+  @Override
+  public boolean canCreatePublic(IdentifiableObject identifiableObject) {
+    return !aclService.isShareable(identifiableObject)
+        || aclService.canMakePublic(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+  }
+
+  @Override
+  public boolean canCreatePublic(String type) {
+    Class<? extends IdentifiableObject> klass = aclService.classForType(type);
+
+    return !aclService.isClassShareable(klass)
+        || aclService.canMakeClassPublic(CurrentUserUtil.getCurrentUsername(), klass);
+  }
+
+  @Override
+  public boolean canCreatePrivate(IdentifiableObject identifiableObject) {
+    return !aclService.isShareable(identifiableObject)
+        || aclService.canMakePrivate(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+  }
+
+  @Override
+  public boolean canView(String type) {
+    boolean requireAddToView = systemSettingManager.getBoolSetting(SettingKey.REQUIRE_ADD_TO_VIEW);
+
+    return !requireAddToView || (canCreatePrivate(type) || canCreatePublic(type));
+  }
+
+  @Override
+  public boolean canCreatePrivate(String type) {
+    Class<? extends IdentifiableObject> klass = aclService.classForType(type);
+
+    return !aclService.isClassShareable(klass)
+        || aclService.canMakeClassPrivate(CurrentUserUtil.getCurrentUsername(), klass);
+  }
+
+  @Override
+  public boolean canRead(IdentifiableObject identifiableObject) {
+    return !aclService.isSupported(identifiableObject)
+        || aclService.canRead(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+  }
+
+  @Override
+  public boolean canWrite(IdentifiableObject identifiableObject) {
+    return !aclService.isSupported(identifiableObject)
+        || aclService.canWrite(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+  }
+
+  @Override
+  public boolean canUpdate(IdentifiableObject identifiableObject) {
+    return !aclService.isSupported(identifiableObject)
+        || aclService.canUpdate(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+  }
+
+  @Override
+  public boolean canDelete(IdentifiableObject identifiableObject) {
+    return !aclService.isSupported(identifiableObject)
+        || aclService.canDelete(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+  }
+
+  @Override
+  public boolean canManage(IdentifiableObject identifiableObject) {
+    return !aclService.isShareable(identifiableObject)
+        || aclService.canManage(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+  }
+
+  @Override
+  public boolean hasAnyAuthority(String... authorities) {
+    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+
+    if (user != null) {
+      for (String authority : authorities) {
+        if (user.isAuthorized(authority)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  @Override
+  public RecaptchaResponse verifyRecaptcha(String key, String remoteIp) throws IOException {
+    MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+
+    params.add("secret", systemSettingManager.getStringSetting(SettingKey.RECAPTCHA_SECRET));
+    params.add("response", key);
+    params.add("remoteip", remoteIp);
+
+    String result = restTemplate.postForObject(RECAPTCHA_VERIFY_URL, params, String.class);
+
+    log.info("Recaptcha result: " + result);
+
+    return result != null ? jsonMapper.readValue(result, RecaptchaResponse.class) : null;
+  }
+
+  @Override
+  public boolean canDataWrite(IdentifiableObject identifiableObject) {
+    return !aclService.isSupported(identifiableObject)
+        || aclService.canDataWrite(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+  }
+
+  @Override
+  public boolean canDataRead(IdentifiableObject identifiableObject) {
+    return !aclService.isSupported(identifiableObject)
+        || aclService.canDataRead(CurrentUserUtil.getCurrentUsername(), identifiableObject);
   }
 }

@@ -57,7 +57,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -85,7 +84,6 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       EventService eventService,
       UserService userService,
-      CurrentUserService currentUserService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       TrackedEntityService trackedEntityService,
@@ -96,7 +94,6 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
         dataElementCategoryService,
         eventService,
         userService,
-        currentUserService,
         incomingSmsService,
         smsSender);
 

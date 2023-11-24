@@ -41,7 +41,6 @@ public class DefaultPasswordValidationService implements PasswordValidationServi
   public DefaultPasswordValidationService(
       PasswordEncoder passwordEncoder,
       UserService userService,
-      CurrentUserService currentUserService,
       SystemSettingManager systemSettings) {
     this(
         new PasswordMandatoryValidationRule()
@@ -51,9 +50,7 @@ public class DefaultPasswordValidationService implements PasswordValidationServi
             .then(new SpecialCharacterValidationRule())
             .then(new PasswordDictionaryValidationRule())
             .then(new UserParameterValidationRule())
-            .then(
-                new PasswordHistoryValidationRule(
-                    passwordEncoder, userService, currentUserService)));
+            .then(new PasswordHistoryValidationRule(passwordEncoder, userService)));
   }
 
   public DefaultPasswordValidationService(PasswordValidationRule rule) {

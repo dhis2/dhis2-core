@@ -35,7 +35,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 public class GetSectionIndicatorsAction extends ActionPagingSupport<Indicator> {
   // -------------------------------------------------------------------------
@@ -80,8 +80,7 @@ public class GetSectionIndicatorsAction extends ActionPagingSupport<Indicator> {
 
     indicators = new ArrayList<>(dataSet.getIndicators());
 
-    User currentUser = currentUserService.getCurrentUser();
-    indicators.forEach(instance -> canReadInstance(instance, currentUser));
+    indicators.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
 
     for (Section section : dataSet.getSections()) {
       indicators.removeAll(section.getIndicators());

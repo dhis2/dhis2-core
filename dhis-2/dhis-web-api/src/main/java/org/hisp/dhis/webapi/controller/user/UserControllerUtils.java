@@ -76,7 +76,7 @@ public class UserControllerUtils {
     ArrayNode arrayNode = objectNode.putArray("dataApprovalWorkflows");
 
     for (DataApprovalWorkflow workflow : dataApprovalService.getAllWorkflows()) {
-      if (!aclService.canRead(user, workflow)) {
+      if (!aclService.canRead(user.getUsername(), workflow)) {
         continue;
       }
 

@@ -80,7 +80,8 @@ public class RouteController extends AbstractCrudController<Route> {
       throw new NotFoundException(String.format("Route %s not found", id));
     }
 
-    if (!aclService.canRead(user, route) && !user.hasAnyAuthority(route.getAuthorities())) {
+    if (!aclService.canRead(user.getUsername(), route)
+        && !user.hasAnyAuthority(route.getAuthorities())) {
       throw new ForbiddenException("User not authorized");
     }
 

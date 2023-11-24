@@ -33,7 +33,7 @@ import java.util.List;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author mortenoh
@@ -88,8 +88,8 @@ public class GetDataElementCategoriesAction extends ActionPagingSupport<Category
           new ArrayList<>(dataElementCategoryService.getDisaggregationCategories());
     }
 
-    User currentUser = currentUserService.getCurrentUser();
-    dataElementCategories.forEach(instance -> canReadInstance(instance, currentUser));
+    dataElementCategories.forEach(
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
 
     Collections.sort(dataElementCategories);
 

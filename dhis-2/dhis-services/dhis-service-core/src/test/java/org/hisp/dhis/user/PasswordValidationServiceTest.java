@@ -72,13 +72,11 @@ class PasswordValidationServiceTest {
 
     when(userService.getUserByUsername(anyString())).thenReturn(user);
 
-    CurrentUserService currentUserService = mock(CurrentUserService.class);
     SystemSettingManager systemSettings = mock(SystemSettingManager.class);
     when(systemSettings.getIntSetting(SettingKey.MIN_PASSWORD_LENGTH)).thenReturn(8);
     when(systemSettings.getIntSetting(SettingKey.MAX_PASSWORD_LENGTH)).thenReturn(16);
-    validation =
-        new DefaultPasswordValidationService(
-            encoder, userService, currentUserService, systemSettings);
+
+    validation = new DefaultPasswordValidationService(encoder, userService, systemSettings);
   }
 
   @Test

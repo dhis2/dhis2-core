@@ -41,6 +41,8 @@ public class UserSetting implements Serializable {
   /** Required. Unique together with name. */
   private User user;
 
+  private Long userId;
+
   /** Required. Unique together with user. */
   private String name;
 
@@ -133,5 +135,13 @@ public class UserSetting implements Serializable {
 
   public void setValue(Serializable value) {
     this.value = value;
+  }
+
+  public Long getUserId() {
+    return userId;
+  }
+
+  public void setUserId(Long userId) {
+    this.userId = userId;
   }
 }

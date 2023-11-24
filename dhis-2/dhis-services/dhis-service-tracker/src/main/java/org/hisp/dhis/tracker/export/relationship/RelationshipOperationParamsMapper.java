@@ -39,8 +39,9 @@ import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,19 +61,19 @@ class RelationshipOperationParamsMapper {
 
   private final TrackerAccessManager accessManager;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   @Transactional(readOnly = true)
   public RelationshipQueryParams map(RelationshipOperationParams params)
       throws NotFoundException, ForbiddenException {
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     IdentifiableObject entity =
         switch (params.getType()) {
-          case TRACKED_ENTITY -> validateTrackedEntity(user, params.getIdentifier());
-          case ENROLLMENT -> validateEnrollment(user, params.getIdentifier());
-          case EVENT -> validateEvent(user, params.getIdentifier());
+          case TRACKED_ENTITY -> validateTrackedEntity(currentUser, params.getIdentifier());
+          case ENROLLMENT -> validateEnrollment(currentUser, params.getIdentifier());
+          case EVENT -> validateEvent(currentUser, params.getIdentifier());
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
 

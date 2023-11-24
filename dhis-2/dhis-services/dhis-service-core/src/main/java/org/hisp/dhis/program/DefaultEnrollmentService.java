@@ -51,8 +51,9 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -69,7 +70,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
 
   private final EventStore eventStore;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final TrackedEntityService trackedEntityService;
 
@@ -170,13 +171,14 @@ public class DefaultEnrollmentService implements EnrollmentService {
     decideAccess(params);
     validate(params);
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (user != null && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      params.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
+    if (currentUser != null
+        && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
+      params.setOrganisationUnits(currentUser.getTeiSearchOrganisationUnitsWithFallback());
       params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (user != null && params.isOrganisationUnitMode(CAPTURE)) {
-      params.setOrganisationUnits(user.getOrganisationUnits());
+    } else if (currentUser != null && params.isOrganisationUnitMode(CAPTURE)) {
+      params.setOrganisationUnits(currentUser.getOrganisationUnits());
       params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (params.isOrganisationUnitMode(CHILDREN)) {
       Set<OrganisationUnit> organisationUnits = new HashSet<>(params.getOrganisationUnits());
@@ -197,10 +199,11 @@ public class DefaultEnrollmentService implements EnrollmentService {
     decideAccess(params);
     validate(params);
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (user != null && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      params.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
+    if (currentUser != null
+        && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
+      params.setOrganisationUnits(currentUser.getTeiSearchOrganisationUnitsWithFallback());
       params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (params.isOrganisationUnitMode(CHILDREN)) {
       Set<OrganisationUnit> organisationUnits = new HashSet<>();
@@ -222,7 +225,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
   @Transactional(readOnly = true)
   public void decideAccess(EnrollmentQueryParams params) {
     if (params.hasProgram()) {
-      if (!aclService.canDataRead(params.getUser(), params.getProgram())) {
+      if (!aclService.canDataRead(params.getUser().getUsername(), params.getProgram())) {
         throw new IllegalQueryException(
             "Current user is not authorized to read data from selected program:  "
                 + params.getProgram().getUid());
@@ -230,7 +233,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
 
       if (params.getProgram().getTrackedEntityType() != null
           && !aclService.canDataRead(
-              params.getUser(), params.getProgram().getTrackedEntityType())) {
+              params.getUser().getUsername(), params.getProgram().getTrackedEntityType())) {
         throw new IllegalQueryException(
             "Current user is not authorized to read data from selected program's tracked entity type:  "
                 + params.getProgram().getTrackedEntityType().getUid());
@@ -238,7 +241,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     }
 
     if (params.hasTrackedEntityType()
-        && !aclService.canDataRead(params.getUser(), params.getTrackedEntityType())) {
+        && !aclService.canDataRead(params.getUser().getUsername(), params.getTrackedEntityType())) {
       throw new IllegalQueryException(
           "Current user is not authorized to read data from selected tracked entity type:  "
               + params.getTrackedEntityType().getUid());

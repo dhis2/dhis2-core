@@ -102,7 +102,7 @@ class DataItemQueryControllerTest {
 
     // When
     when(dataItemServiceFacade.extractTargetEntities(anySet())).thenReturn(targetEntities);
-    when(aclService.canRead(anyUser, Indicator.class)).thenReturn(true);
+    when(aclService.canRead(anyUser.getUsername(), Indicator.class)).thenReturn(true);
     when(dataItemServiceFacade.retrieveDataItemEntities(
             anySet(), anySet(), any(WebOptions.class), any(OrderParams.class)))
         .thenReturn(itemsFound);
@@ -130,7 +130,7 @@ class DataItemQueryControllerTest {
 
     // When
     when(dataItemServiceFacade.extractTargetEntities(anySet())).thenReturn(targetEntities);
-    when(aclService.canRead(anyUser, Indicator.class)).thenReturn(true);
+    when(aclService.canRead(anyUser.getUsername(), Indicator.class)).thenReturn(true);
     when(dataItemServiceFacade.retrieveDataItemEntities(
             anySet(), anySet(), any(WebOptions.class), any(OrderParams.class)))
         .thenReturn(itemsFound);
@@ -157,7 +157,7 @@ class DataItemQueryControllerTest {
 
     // When
     when(dataItemServiceFacade.extractTargetEntities(anySet())).thenReturn(targetEntities);
-    when(aclService.canRead(anyUser, Indicator.class)).thenReturn(invalidAcl);
+    when(aclService.canRead(anyUser.getUsername(), Indicator.class)).thenReturn(invalidAcl);
 
     final IllegalQueryException ex =
         assertThrows(

@@ -46,6 +46,8 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -121,6 +123,7 @@ public class EnrollmentTrackerConverterService
 
     Date now = new Date();
 
+    CurrentUserDetails preheatUser = CurrentUserDetailsImpl.fromUser(preheat.getUser());
     if (isNewEntity(dbEnrollment)) {
       dbEnrollment = new Enrollment();
       dbEnrollment.setUid(
@@ -129,11 +132,11 @@ public class EnrollmentTrackerConverterService
               : enrollment.getUid());
       dbEnrollment.setCreated(now);
       dbEnrollment.setStoredBy(enrollment.getStoredBy());
-      dbEnrollment.setCreatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
+      dbEnrollment.setCreatedByUserInfo(UserInfoSnapshot.from(preheatUser));
     }
 
     dbEnrollment.setLastUpdated(now);
-    dbEnrollment.setLastUpdatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
+    dbEnrollment.setLastUpdatedByUserInfo(UserInfoSnapshot.from(preheatUser));
     dbEnrollment.setDeleted(false);
     dbEnrollment.setCreatedAtClient(DateUtils.fromInstant(enrollment.getCreatedAtClient()));
     dbEnrollment.setLastUpdatedAtClient(DateUtils.fromInstant(enrollment.getUpdatedAtClient()));

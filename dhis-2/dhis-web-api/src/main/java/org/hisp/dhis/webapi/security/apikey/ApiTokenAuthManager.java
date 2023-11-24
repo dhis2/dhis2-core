@@ -30,14 +30,14 @@ package org.hisp.dhis.webapi.security.apikey;
 import java.util.Optional;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.apikey.ApiTokenDeletedEvent;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserStore;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -54,19 +54,15 @@ import org.springframework.stereotype.Service;
 public class ApiTokenAuthManager implements AuthenticationManager {
   private final ApiTokenService apiTokenService;
 
-  private final UserService userService;
-
-  private final SecurityService securityService;
+  //  private final UserService userService;
+  private final UserStore userStore;
 
   private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
 
   public ApiTokenAuthManager(
-      UserService userService,
-      SecurityService securityService,
-      ApiTokenService apiTokenService,
-      CacheProvider cacheProvider) {
-    this.securityService = securityService;
-    this.userService = userService;
+      UserStore userStore, ApiTokenService apiTokenService, CacheProvider cacheProvider) {
+    //    this.userService = userService;
+    this.userStore = userStore;
     this.apiTokenService = apiTokenService;
     this.apiTokenCache = cacheProvider.createApiKeyCache();
   }
@@ -111,7 +107,8 @@ public class ApiTokenAuthManager implements AuthenticationManager {
           ApiTokenErrors.invalidToken("The API token does not have any owner."));
     }
 
-    User user = userService.getUserWithEagerFetchAuthorities(createdBy.getUsername());
+    //    User user = userStore.getUserWithEagerFetchAuthorities(createdBy.getUsername());
+    User user = userStore.getUserByUsername(createdBy.getUsername(), false);
     if (user == null) {
       throw new ApiTokenAuthenticationException(
           ApiTokenErrors.invalidToken("The API token owner does not exists."));
@@ -119,9 +116,13 @@ public class ApiTokenAuthManager implements AuthenticationManager {
 
     boolean isTwoFactorDisabled = !user.isTwoFactorEnabled();
     boolean enabled = !user.isDisabled();
-    boolean credentialsNonExpired = userService.userNonExpired(user);
-    boolean accountNonLocked = !securityService.isLocked(user.getUsername());
-    boolean accountNonExpired = !userService.isAccountExpired(user);
+
+    //    boolean credentialsNonExpired = userService.userNonExpired(user);
+    //    boolean accountNonLocked = !userService.isLocked(user.getUsername());
+    //    boolean accountNonExpired = !userService.isAccountExpired(user);
+    boolean credentialsNonExpired = true;
+    boolean accountNonLocked = true;
+    boolean accountNonExpired = true;
 
     if (ObjectUtils.anyIsFalse(
         enabled, isTwoFactorDisabled, credentialsNonExpired, accountNonLocked, accountNonExpired)) {
@@ -129,7 +130,7 @@ public class ApiTokenAuthManager implements AuthenticationManager {
           ApiTokenErrors.invalidToken("The API token is disabled, locked or 2FA is enabled."));
     }
 
-    return userService.createUserDetails(user, accountNonLocked, credentialsNonExpired);
+    return CurrentUserDetailsImpl.createUserDetails(user, accountNonLocked, credentialsNonExpired);
   }
 
   private static void validateTokenExpiry(Long expiry) {

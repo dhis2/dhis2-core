@@ -55,7 +55,6 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -106,7 +105,7 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private DataApprovalService approvalService;
 
-  @Autowired private CurrentUserService currentUserService;
+  //  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private DataApprovalService dataApprovalService;
 
@@ -324,7 +323,7 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
     dataSetB.addDataSetElement(dataElementA);
     dataSetService.addDataSet(dataSetA);
     dataSetService.addDataSet(dataSetB);
-    User user = currentUserService.getCurrentUser();
+    User user = getCurrentUser();
     // ---------------------------------------------------------------------
     // Expiry days
     // ---------------------------------------------------------------------
@@ -508,7 +507,7 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
     userAccess.setUser(user);
     userAccess.setAccess(AccessStringHelper.DATA_READ_WRITE);
     dataSet.getSharing().addUserAccess(userAccess);
-    Access access = aclService.getAccess(dataSet, user);
+    Access access = aclService.getAccess(dataSet, user.getUsername());
     assertTrue(access.getData().isRead());
     assertTrue(access.getData().isWrite());
   }

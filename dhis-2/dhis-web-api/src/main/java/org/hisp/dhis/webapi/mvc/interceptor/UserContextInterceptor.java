@@ -34,9 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.dxf2.common.TranslateParams;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -55,8 +53,6 @@ public class UserContextInterceptor extends HandlerInterceptorAdapter implements
   private static final String PARAM_TRANSLATE = "translate";
 
   private static final String PARAM_LOCALE = "locale";
-
-  private final CurrentUserService currentUserService;
 
   private final UserSettingService userSettingService;
 
@@ -77,20 +73,21 @@ public class UserContextInterceptor extends HandlerInterceptorAdapter implements
 
     String locale = request.getParameter(PARAM_LOCALE);
 
-    User user = currentUserService.getCurrentUser();
-
-    if (user != null) {
-      final Locale dbLocale = getLocaleWithDefault(new TranslateParams(translate, locale), user);
+    String username = CurrentUserUtil.getCurrentUsername();
+    if (username != null) {
+      final Locale dbLocale =
+          getLocaleWithDefault(new TranslateParams(translate, locale), username);
       CurrentUserUtil.setUserSetting(DB_LOCALE, dbLocale);
     }
 
     return true;
   }
 
-  private Locale getLocaleWithDefault(final TranslateParams translateParams, final User user) {
+  private Locale getLocaleWithDefault(
+      final TranslateParams translateParams, final String username) {
     return translateParams.isTranslate()
         ? translateParams.getLocaleWithDefault(
-            (Locale) userSettingService.getUserSetting(DB_LOCALE, user))
+            (Locale) userSettingService.getUserSetting(DB_LOCALE, username))
         : null;
   }
 }

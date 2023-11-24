@@ -53,6 +53,6 @@ public class NoteStrategy implements ClassBasedSupplierStrategy {
             preheat.putNotes(
                 DetachUtils.detach(
                     this.getClass().getAnnotation(StrategyFor.class).mapper(),
-                    noteStore.getByUid(ids, preheat.getUser()))));
+                    noteStore.getByUid(ids))));
   }
 }

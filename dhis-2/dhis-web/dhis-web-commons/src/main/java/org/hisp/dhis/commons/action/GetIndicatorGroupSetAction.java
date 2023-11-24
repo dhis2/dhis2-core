@@ -30,6 +30,7 @@ package org.hisp.dhis.commons.action;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorService;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Tran Thanh Tri
@@ -74,7 +75,7 @@ public class GetIndicatorGroupSetAction extends BaseAction implements Action {
       indicatorGroupSet = indicatorService.getIndicatorGroupSet(id);
     }
 
-    canReadInstance(indicatorGroupSet, currentUserService.getCurrentUser());
+    canReadInstance(indicatorGroupSet, CurrentUserUtil.getCurrentUsername());
 
     return SUCCESS;
   }

@@ -95,13 +95,13 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
-import org.hisp.dhis.security.RestoreOptions;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
+import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
@@ -144,8 +144,6 @@ public class UserController extends AbstractCrudController<User> {
   @Autowired private UserGroupService userGroupService;
 
   @Autowired private UserControllerUtils userControllerUtils;
-
-  @Autowired private SecurityService securityService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -272,7 +270,7 @@ public class UserController extends AbstractCrudController<User> {
       throw new NotFoundException("User not found: " + pvUid);
     }
 
-    if (!aclService.canRead(currentUser, user)) {
+    if (!aclService.canRead(currentUser.getUsername(), user)) {
       throw new CreateAccessDeniedException(
           "You don't have the proper permissions to access this user.");
     }
@@ -304,8 +302,7 @@ public class UserController extends AbstractCrudController<User> {
     // TODO: To remove when we remove old UserCredentials compatibility
     populateUserCredentialsDtoFields(user);
 
-    User currentUser = currentUserService.getCurrentUser();
-
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     validateCreateUser(user, currentUser);
 
     return postObject(getObjectReport(createUser(user, currentUser)));
@@ -334,7 +331,7 @@ public class UserController extends AbstractCrudController<User> {
     // TODO: To remove when we remove old UserCredentials compatibility
     populateUserCredentialsDtoFields(user);
 
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     validateInviteUser(user, currentUser);
 
@@ -359,8 +356,8 @@ public class UserController extends AbstractCrudController<User> {
 
   private void postInvites(HttpServletRequest request, Users users)
       throws ForbiddenException, ConflictException {
-    User currentUser = currentUserService.getCurrentUser();
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     // TODO: To remove when we remove old UserCredentials compatibility
     for (User user : users.getUsers()) {
       populateUserCredentialsDtoFields(user);
@@ -388,15 +385,15 @@ public class UserController extends AbstractCrudController<User> {
       throw new ConflictException("User account is not an invitation: " + id);
     }
 
-    ErrorCode errorCode = securityService.validateRestore(user);
+    ErrorCode errorCode = userService.validateRestore(user);
     if (errorCode != null) {
       throw new ConflictException(errorCode);
     }
 
-    if (!securityService.sendRestoreOrInviteMessage(
+    if (!userService.sendRestoreOrInviteMessage(
         user,
         ContextUtils.getContextPath(request),
-        securityService.getRestoreOptions(user.getRestoreToken()))) {
+        userService.getRestoreOptions(user.getRestoreToken()))) {
       throw new WebMessageException(error("Failed to send invite message"));
     }
   }
@@ -409,12 +406,12 @@ public class UserController extends AbstractCrudController<User> {
     if (user == null) {
       throw new NotFoundException(User.class, id);
     }
-    ErrorCode errorCode = securityService.validateRestore(user);
+    ErrorCode errorCode = userService.validateRestore(user);
     if (errorCode != null) {
       throw new ConflictException(errorCode);
     }
-    User currentUser = currentUserService.getCurrentUser();
-    if (!aclService.canUpdate(currentUser, user)) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (!aclService.canUpdate(currentUser.getUsername(), user)) {
       throw new ForbiddenException("You don't have the proper permissions to update this user.");
     }
     if (!userService.canAddOrUpdateUser(getUids(user.getGroups()), currentUser)) {
@@ -422,8 +419,8 @@ public class UserController extends AbstractCrudController<User> {
           "You must have permissions manage at least one user group for the user.");
     }
 
-    securityService.prepareUserForInvite(user);
-    securityService.sendRestoreOrInviteMessage(
+    userService.prepareUserForInvite(user);
+    userService.sendRestoreOrInviteMessage(
         user, ContextUtils.getContextPath(request), RestoreOptions.RECOVER_PASSWORD_OPTION);
   }
 
@@ -439,8 +436,7 @@ public class UserController extends AbstractCrudController<User> {
       return conflict("User not found: " + uid);
     }
 
-    User currentUser = currentUserService.getCurrentUser();
-
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     validateCreateUser(existingUser, currentUser);
 
     Map<String, String> auth = renderService.fromJson(request.getInputStream(), Map.class);
@@ -603,9 +599,9 @@ public class UserController extends AbstractCrudController<User> {
       throws ConflictException, ForbiddenException, NotFoundException {
     User user = getEntity(userUid);
 
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (!aclService.canUpdate(currentUser, user)) {
+    if (!aclService.canUpdate(currentUser.getUsername(), user)) {
       throw new ForbiddenException("You don't have the proper permissions to update this user.");
     }
 
@@ -656,7 +652,7 @@ public class UserController extends AbstractCrudController<User> {
     User user = userService.getUser(userUid);
 
     if (currentUser != null && currentUser.getId() == user.getId()) {
-      currentUser = currentUserService.getCurrentUser();
+      currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     }
 
     List<String> uids = getUids(parsed.getGroups());
@@ -691,7 +687,7 @@ public class UserController extends AbstractCrudController<User> {
 
   @Override
   protected void preDeleteEntity(User entity) throws ConflictException {
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     if (!userService.canAddOrUpdateUser(getUids(entity.getGroups()), currentUser)
         || !currentUser.canModifyUser(entity)) {
@@ -715,7 +711,7 @@ public class UserController extends AbstractCrudController<User> {
    */
   private void validateCreateUser(User user, User currentUser)
       throws ForbiddenException, ConflictException {
-    if (!aclService.canCreate(currentUser, getEntityClass())) {
+    if (!aclService.canCreate(currentUser.getUsername(), getEntityClass())) {
       throw new ForbiddenException("You don't have the proper permissions to create this object.");
     }
 
@@ -767,7 +763,7 @@ public class UserController extends AbstractCrudController<User> {
 
     validateCreateUser(user, currentUser);
 
-    ErrorCode errorCode = securityService.validateInvite(user);
+    ErrorCode errorCode = userService.validateInvite(user);
 
     if (errorCode != null) {
       throw new IllegalQueryException(errorCode);
@@ -780,7 +776,7 @@ public class UserController extends AbstractCrudController<User> {
             ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
             : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
 
-    securityService.prepareUserForInvite(user);
+    userService.prepareUserForInvite(user);
 
     ImportReport importReport = createUser(user, currentUser);
     ObjectReport objectReport = getObjectReport(importReport);
@@ -788,7 +784,7 @@ public class UserController extends AbstractCrudController<User> {
     if (importReport.getStatus() == Status.OK
         && importReport.getStats().getCreated() == 1
         && objectReport != null) {
-      securityService.sendRestoreOrInviteMessage(
+      userService.sendRestoreOrInviteMessage(
           user, ContextUtils.getContextPath(request), restoreOptions);
 
       log.info(String.format("An invite email was successfully sent to: %s", user.getEmail()));
@@ -867,9 +863,9 @@ public class UserController extends AbstractCrudController<User> {
   }
 
   private void checkCurrentUserCanModify(User userToModify) throws WebMessageException {
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (!aclService.canUpdate(currentUser, userToModify)) {
+    if (!aclService.canUpdate(currentUser.getUsername(), userToModify)) {
       throw new UpdateAccessDeniedException(
           "You don't have the proper permissions to update this object.");
     }
@@ -915,7 +911,9 @@ public class UserController extends AbstractCrudController<User> {
             .getValue()
             .elements()
             .forEachRemaining(node -> groupIds.add(node.get("id").asText()));
-        userGroupService.updateUserGroups(user, groupIds, currentUserService.getCurrentUser());
+
+        User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+        userGroupService.updateUserGroups(user, groupIds, currentUser);
       }
     }
   }

@@ -96,7 +96,7 @@ public class UserRoleController extends AbstractCrudController<UserRole> {
       throw new NotFoundException("User does not exist: " + pvUserId);
     }
 
-    if (!aclService.canUpdate(currentUser, userRole)) {
+    if (!aclService.canUpdate(currentUser.getUsername(), userRole)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
@@ -126,7 +126,7 @@ public class UserRoleController extends AbstractCrudController<UserRole> {
       throw new NotFoundException("User does not exist: " + pvUserId);
     }
 
-    if (!aclService.canUpdate(currentUser, userRole)) {
+    if (!aclService.canUpdate(currentUser.getUsername(), userRole)) {
       throw new ForbiddenException("You don't have the proper permissions to delete this object.");
     }
 

@@ -36,7 +36,9 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,7 +49,7 @@ public class DefaultDeduplicationService implements DeduplicationService {
 
   private final DeduplicationHelper deduplicationHelper;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   @Override
   @Transactional(readOnly = true)
@@ -195,9 +197,11 @@ public class DefaultDeduplicationService implements DeduplicationService {
   }
 
   private void updateOriginalTei(TrackedEntity original) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     original.setLastUpdated(new Date());
-    original.setLastUpdatedBy(currentUserService.getCurrentUser());
-    original.setLastUpdatedByUserInfo(UserInfoSnapshot.from(currentUserService.getCurrentUser()));
+    original.setLastUpdatedBy(currentUser);
+    original.setLastUpdatedByUserInfo(
+        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
   }
 
   private boolean sameAttributesAreEquals(
@@ -235,9 +239,8 @@ public class DefaultDeduplicationService implements DeduplicationService {
 
   private void setPotentialDuplicateUserNameInfo(PotentialDuplicate potentialDuplicate) {
     if (potentialDuplicate.getCreatedByUserName() == null) {
-      potentialDuplicate.setCreatedByUserName(currentUserService.getCurrentUsername());
+      potentialDuplicate.setCreatedByUserName(CurrentUserUtil.getCurrentUsername());
     }
-
-    potentialDuplicate.setLastUpdatedByUserName(currentUserService.getCurrentUsername());
+    potentialDuplicate.setLastUpdatedByUserName(CurrentUserUtil.getCurrentUsername());
   }
 }

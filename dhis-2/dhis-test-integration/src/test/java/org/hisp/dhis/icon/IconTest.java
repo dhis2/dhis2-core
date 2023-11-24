@@ -53,7 +53,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -62,7 +61,7 @@ import org.springframework.util.MimeTypeUtils;
 class IconTest extends TrackerTest {
   @Autowired private FileResourceService fileResourceService;
 
-  @Autowired private CurrentUserService currentUserService;
+  //  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private IconService iconService;
 
@@ -74,11 +73,7 @@ class IconTest extends TrackerTest {
     FileResource fileResource = createAndPersistFileResource('A');
     iconService.addCustomIcon(
         new CustomIcon(
-            "iconKey",
-            "description",
-            keywords,
-            fileResource.getUid(),
-            currentUserService.getCurrentUser().getUid()));
+            "iconKey", "description", keywords, fileResource.getUid(), getCurrentUser().getUid()));
   }
 
   @Test
@@ -136,7 +131,7 @@ class IconTest extends TrackerTest {
             "description",
             new String[] {keyword},
             fileResourceD.getUid(),
-            currentUserService.getCurrentUser().getUid()));
+            getCurrentUser().getUid()));
 
     assertGreaterOrEqual(2, iconService.getIcons(new String[] {keyword}).size());
   }
@@ -152,7 +147,7 @@ class IconTest extends TrackerTest {
             "description",
             new String[] {"k4", "k5", "k6"},
             fileResourceB.getUid(),
-            currentUserService.getCurrentUser().getUid());
+            getCurrentUser().getUid());
     iconService.addCustomIcon(iconB);
     FileResource fileResourceC = createAndPersistFileResource('C');
     CustomIcon iconC =
@@ -161,7 +156,7 @@ class IconTest extends TrackerTest {
             "description",
             new String[] {"k6", "k7", "k8"},
             fileResourceC.getUid(),
-            currentUserService.getCurrentUser().getUid());
+            getCurrentUser().getUid());
     iconService.addCustomIcon(iconC);
 
     assertContainsOnly(List.of(iconB), iconService.getIcons(new String[] {"k4", "k5", "k6"}));

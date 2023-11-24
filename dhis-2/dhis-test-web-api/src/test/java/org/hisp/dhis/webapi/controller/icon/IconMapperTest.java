@@ -39,8 +39,8 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconResponse;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,8 @@ class IconMapperTest {
 
   @Mock private FileResourceService fileResourceService;
 
-  @Mock private CurrentUserService currentUserService;
+  //  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private ContextService contextService;
 
@@ -70,7 +71,7 @@ class IconMapperTest {
   @BeforeEach
   void setUp() {
     fileResource.setUid("file resource uid");
-    iconMapper = new IconMapper(fileResourceService, currentUserService, contextService);
+    iconMapper = new IconMapper(fileResourceService, contextService);
   }
 
   @Test
@@ -80,7 +81,7 @@ class IconMapperTest {
         .thenReturn(Optional.of(fileResource));
     User user = new User();
     user.setUid("user uid");
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(userService.getUserByUsername(user.getUsername())).thenReturn(user);
 
     CustomIcon customIcon = iconMapper.to(iconDto);
 
@@ -88,7 +89,9 @@ class IconMapperTest {
     assertEquals(DESCRIPTION, customIcon.getDescription());
     assertEquals(KEYWORDS, customIcon.getKeywords());
     assertEquals(fileResource.getUid(), customIcon.getFileResourceUid());
-    assertEquals(currentUserService.getCurrentUser().getUid(), customIcon.getCreatedByUserUid());
+
+    User currentUser = userService.getUserByUsername(user.getUsername());
+    assertEquals(currentUser.getUid(), customIcon.getCreatedByUserUid());
   }
 
   @Test
@@ -105,15 +108,11 @@ class IconMapperTest {
   void shouldReturnIconResponseFromIcon() {
     User user = new User();
     user.setUid("user uid");
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(userService.getUserByUsername(user.getUsername())).thenReturn(user);
 
+    User currentUser = userService.getUserByUsername(user.getUsername());
     Icon icon =
-        new CustomIcon(
-            KEY,
-            DESCRIPTION,
-            KEYWORDS,
-            fileResource.getUid(),
-            currentUserService.getCurrentUser().getUid());
+        new CustomIcon(KEY, DESCRIPTION, KEYWORDS, fileResource.getUid(), currentUser.getUid());
 
     IconResponse iconResponse = iconMapper.from(icon);
 
@@ -121,6 +120,7 @@ class IconMapperTest {
     assertEquals(DESCRIPTION, iconResponse.getDescription());
     assertEquals(KEYWORDS, iconResponse.getKeywords());
     assertEquals(fileResource.getUid(), iconResponse.getFileResourceUid());
-    assertEquals(currentUserService.getCurrentUser().getUid(), iconResponse.getUserUid());
+
+    assertEquals(currentUser.getUid(), iconResponse.getUserUid());
   }
 }

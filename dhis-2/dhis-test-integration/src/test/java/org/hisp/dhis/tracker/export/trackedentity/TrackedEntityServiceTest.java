@@ -101,7 +101,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Disabled;
@@ -127,7 +126,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Autowired private TrackerOwnershipManager trackerOwnershipManager;
 
-  @Autowired private CurrentUserService currentUserService;
+  //  @Autowired private CurrentUserService currentUserService;
 
   private User user;
 
@@ -286,7 +285,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     programA.getProgramAttributes().add(programTrackedEntityAttribute);
     manager.update(programA);
 
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = getCurrentUser();
 
     programB = createProgram('B', new HashSet<>(), orgUnitA);
     programB.setProgramType(ProgramType.WITH_REGISTRATION);

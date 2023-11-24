@@ -17,8 +17,8 @@
   </bean>
 
   <bean id="org.hisp.dhis.security.ActionAccessResolver" class="org.hisp.dhis.security.SpringSecurityActionAccessResolver">
-    <property name="requiredAuthoritiesProvider" ref="org.hisp.dhis.security.authority.RequiredAuthoritiesProvider" />
-    <property name="accessDecisionManager" ref="accessDecisionManager" />
+<!--    <property name="requiredAuthoritiesProvider" ref="org.hisp.dhis.security.authority.RequiredAuthoritiesProvider" />-->
+<!--    <property name="accessDecisionManager" ref="accessDecisionManager" />-->
   </bean>
 
   <bean id="org.hisp.dhis.webportal.module.ModuleManager" class="org.hisp.dhis.webportal.module.DefaultModuleManager">
@@ -84,7 +84,9 @@
 
   <bean id="org.hisp.dhis.webportal.interceptor.XWorkPortalUserInterceptor"
     class="org.hisp.dhis.webportal.interceptor.XWorkPortalUserInterceptor">
-    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+<!--    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />-->
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+
   </bean>
 
   <bean id="org.springframework.mobile.device.DeviceResolver" class="org.springframework.mobile.device.LiteDeviceResolver" />
@@ -337,7 +339,8 @@
     scope="prototype">
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+<!--    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />-->
+<!--    <property name="userService" ref="org.hisp.dhis.user.UserService" />-->
   </bean>
 
   <bean id="org.hisp.dhis.commons.action.GetIndicatorAction" class="org.hisp.dhis.commons.action.GetIndicatorAction"
@@ -413,7 +416,8 @@
 
   <bean id="org.hisp.dhis.commons.action.GetOrganisationUnitTreeAction" class="org.hisp.dhis.commons.action.GetOrganisationUnitTreeAction"
     scope="prototype">
-    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+<!--    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />-->
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
     <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />

@@ -70,8 +70,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -121,7 +122,7 @@ public class DataApprovalController {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private CurrentUserService currentUserService;
+  @Autowired private UserService userService;
 
   @Autowired private PeriodService periodService;
 
@@ -413,8 +414,7 @@ public class DataApprovalController {
     DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel(organisationUnit);
     CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo(aoc);
 
-    User user = currentUserService.getCurrentUser();
-
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<DataApproval> dataApprovalList =
         getApprovalsAsList(
             dataApprovalLevel,
@@ -424,7 +424,7 @@ public class DataApprovalController {
             optionCombo,
             false,
             new Date(),
-            user);
+            currentUser);
 
     dataApprovalService.approveData(dataApprovalList);
   }
@@ -463,8 +463,7 @@ public class DataApprovalController {
     DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel(organisationUnit);
     CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo(aoc);
 
-    User user = currentUserService.getCurrentUser();
-
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<DataApproval> dataApprovalList =
         getApprovalsAsList(
             dataApprovalLevel,
@@ -474,7 +473,7 @@ public class DataApprovalController {
             optionCombo,
             false,
             new Date(),
-            user);
+            currentUser);
 
     dataApprovalService.acceptData(dataApprovalList);
   }
@@ -516,8 +515,7 @@ public class DataApprovalController {
     DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel(organisationUnit);
     CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo(aoc);
 
-    User user = currentUserService.getCurrentUser();
-
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<DataApproval> dataApprovalList = new ArrayList<>();
 
     for (DataApprovalWorkflow workflow : workflows) {
@@ -530,7 +528,7 @@ public class DataApprovalController {
               optionCombo,
               false,
               new Date(),
-              user));
+              currentUser));
     }
 
     dataApprovalService.unapproveData(dataApprovalList);
@@ -554,8 +552,7 @@ public class DataApprovalController {
     DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel(organisationUnit);
     CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo(aoc);
 
-    User user = currentUserService.getCurrentUser();
-
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<DataApproval> dataApprovalList =
         getApprovalsAsList(
             dataApprovalLevel,
@@ -565,7 +562,7 @@ public class DataApprovalController {
             optionCombo,
             false,
             new Date(),
-            user);
+            currentUser);
 
     dataApprovalService.unacceptData(dataApprovalList);
   }
@@ -624,8 +621,7 @@ public class DataApprovalController {
     if (periods.isEmpty()) {
       throw new WebMessageException(conflict("Approvals must have periods"));
     }
-
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     CategoryOptionCombo defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     Date date = new Date();
 
@@ -652,7 +648,7 @@ public class DataApprovalController {
         for (Period period : periods) {
           dataApprovals.add(
               new DataApproval(
-                  null, workflow, period, unit, atributeOptionCombo, false, date, user));
+                  null, workflow, period, unit, atributeOptionCombo, false, date, currentUser));
         }
       }
     }

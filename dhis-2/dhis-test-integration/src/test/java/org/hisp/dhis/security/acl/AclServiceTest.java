@@ -49,7 +49,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
@@ -75,8 +74,6 @@ class AclServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private CurrentUserService currentUserService;
-
   @Autowired private JdbcTemplate jdbcTemplate;
 
   @Override
@@ -89,7 +86,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     User user = createAndAddAdminUser("F_OPTIONSET_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertFalse(aclService.canUpdate(user, dataElement));
+    assertFalse(aclService.canUpdate(user.getUsername(), dataElement));
   }
 
   @Test
@@ -97,7 +94,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     User user = createAndAddAdminUser("F_OPTIONSET_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.WRITE);
-    assertFalse(aclService.canUpdate(user, dataElement));
+    assertFalse(aclService.canUpdate(user.getUsername(), dataElement));
   }
 
   @Test
@@ -105,7 +102,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     User user = createAndAddAdminUser("F_OPTIONSET_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ);
-    assertFalse(aclService.canUpdate(user, dataElement));
+    assertFalse(aclService.canUpdate(user.getUsername(), dataElement));
   }
 
   @Test
@@ -115,7 +112,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dataElement.setCreatedBy(user);
     dataElement.getSharing().setOwner(user);
     dataElement.setPublicAccess(AccessStringHelper.READ);
-    assertTrue(aclService.canUpdate(user, dataElement));
+    assertTrue(aclService.canUpdate(user.getUsername(), dataElement));
   }
 
   @Test
@@ -123,7 +120,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     User user = createAndAddAdminUser("F_DATAELEMENT_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertTrue(aclService.canUpdate(user, dataElement));
+    assertTrue(aclService.canUpdate(user.getUsername(), dataElement));
   }
 
   @Test
@@ -133,7 +130,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dataElement.setCreatedBy(user);
     dataElement.getSharing().setOwner(user);
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertFalse(aclService.canUpdate(user, dataElement));
+    assertFalse(aclService.canUpdate(user.getUsername(), dataElement));
   }
 
   @Test
@@ -141,14 +138,14 @@ class AclServiceTest extends TransactionalIntegrationTest {
     User user = createAndAddAdminUser("F_DATAELEMENT_PRIVATE_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertFalse(aclService.canUpdate(user, dataElement));
+    assertFalse(aclService.canUpdate(user.getUsername(), dataElement));
   }
 
   @Test
   void testCanCreatePrivatePublicDashboard() {
     User user = createAndAddAdminUser("F_DATAELEMENT_PRIVATE_ADD");
-    assertFalse(aclService.canMakeClassPublic(user, Dashboard.class));
-    assertTrue(aclService.canMakeClassPrivate(user, Dashboard.class));
+    assertFalse(aclService.canMakeClassPublic(user.getUsername(), Dashboard.class));
+    assertTrue(aclService.canMakeClassPrivate(user.getUsername(), Dashboard.class));
   }
 
   @Test
@@ -159,14 +156,14 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dashboard.setCreatedBy(user);
     dashboard.getSharing().setOwner(user);
     dashboard.setPublicAccess(AccessStringHelper.DEFAULT);
-    assertTrue(aclService.canUpdate(user, dashboard));
+    assertTrue(aclService.canUpdate(user.getUsername(), dashboard));
   }
 
   @Test
   void testCanCreatePrivatePublicVisualization() {
     User user = createAndAddAdminUser("F_DATAELEMENT_PRIVATE_ADD");
-    assertFalse(aclService.canMakeClassPublic(user, Visualization.class));
-    assertTrue(aclService.canMakeClassPrivate(user, Visualization.class));
+    assertFalse(aclService.canMakeClassPublic(user.getUsername(), Visualization.class));
+    assertTrue(aclService.canMakeClassPrivate(user.getUsername(), Visualization.class));
   }
 
   @Test
@@ -178,7 +175,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     visualization.getSharing().setOwner(user);
     visualization.setType(VisualizationType.COLUMN);
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
-    assertTrue(aclService.canUpdate(user, visualization));
+    assertTrue(aclService.canUpdate(user.getUsername(), visualization));
   }
 
   @Test
@@ -186,8 +183,8 @@ class AclServiceTest extends TransactionalIntegrationTest {
     // Given
     User user = createAndAddAdminUser("F_DATAELEMENT_PRIVATE_ADD");
     // Then
-    assertFalse(aclService.canMakeClassPublic(user, EventVisualization.class));
-    assertTrue(aclService.canMakeClassPrivate(user, EventVisualization.class));
+    assertFalse(aclService.canMakeClassPublic(user.getUsername(), EventVisualization.class));
+    assertTrue(aclService.canMakeClassPrivate(user.getUsername(), EventVisualization.class));
   }
 
   @Test
@@ -201,14 +198,14 @@ class AclServiceTest extends TransactionalIntegrationTest {
     eventVisualization.setType(EventVisualizationType.COLUMN);
     eventVisualization.setPublicAccess(AccessStringHelper.DEFAULT);
     // Then
-    assertTrue(aclService.canUpdate(user, eventVisualization));
+    assertTrue(aclService.canUpdate(user.getUsername(), eventVisualization));
   }
 
   @Test
   void testCanCreatePrivatePublicMap() {
     User user = createAndAddAdminUser("F_DATAELEMENT_PRIVATE_ADD");
-    assertFalse(aclService.canMakeClassPublic(user, Map.class));
-    assertTrue(aclService.canMakeClassPrivate(user, Map.class));
+    assertFalse(aclService.canMakeClassPublic(user.getUsername(), Map.class));
+    assertTrue(aclService.canMakeClassPrivate(user.getUsername(), Map.class));
   }
 
   @Test
@@ -219,14 +216,14 @@ class AclServiceTest extends TransactionalIntegrationTest {
     map.setCreatedBy(user);
     map.getSharing().setOwner(user);
     map.setPublicAccess(AccessStringHelper.DEFAULT);
-    assertTrue(aclService.canUpdate(user, map));
+    assertTrue(aclService.canUpdate(user.getUsername(), map));
   }
 
   @Test
   void testCanCreatePrivatePublicLegendSet() {
     User user = createAndAddAdminUser("F_LEGEND_SET_PRIVATE_ADD");
-    assertFalse(aclService.canMakeClassPublic(user, LegendSet.class));
-    assertTrue(aclService.canMakeClassPrivate(user, LegendSet.class));
+    assertFalse(aclService.canMakeClassPublic(user.getUsername(), LegendSet.class));
+    assertTrue(aclService.canMakeClassPrivate(user.getUsername(), LegendSet.class));
   }
 
   @Test
@@ -237,7 +234,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     legendSet.setCreatedBy(user);
     legendSet.getSharing().setOwner(user);
     legendSet.setPublicAccess(AccessStringHelper.DEFAULT);
-    assertTrue(aclService.canUpdate(user, legendSet));
+    assertTrue(aclService.canUpdate(user.getUsername(), legendSet));
   }
 
   @Test
@@ -245,7 +242,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     User user = createAndAddAdminUser("F_DATAELEMENT_PRIVATE_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertFalse(aclService.verifySharing(dataElement, user).isEmpty());
+    assertFalse(aclService.verifySharing(dataElement, user.getUsername()).isEmpty());
   }
 
   @Test
@@ -253,7 +250,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     User user = createAndAddAdminUser("F_DATAELEMENT_PRIVATE_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
-    assertTrue(aclService.verifySharing(dataElement, user).isEmpty());
+    assertTrue(aclService.verifySharing(dataElement, user.getUsername()).isEmpty());
   }
 
   @Test
@@ -261,7 +258,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     User user = createAndAddAdminUser("F_DATAELEMENT_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertTrue(aclService.verifySharing(dataElement, user).isEmpty());
+    assertTrue(aclService.verifySharing(dataElement, user.getUsername()).isEmpty());
   }
 
   @Test
@@ -269,7 +266,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     User user = createAndAddAdminUser("F_DATAELEMENT_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
-    assertTrue(aclService.verifySharing(dataElement, user).isEmpty());
+    assertTrue(aclService.verifySharing(dataElement, user.getUsername()).isEmpty());
   }
 
   @Test
@@ -280,7 +277,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
     visualization.setExternalAccess(true);
     visualization.setType(VisualizationType.COLUMN);
-    assertFalse(aclService.verifySharing(visualization, user).isEmpty());
+    assertFalse(aclService.verifySharing(visualization, user.getUsername()).isEmpty());
   }
 
   @Test
@@ -293,7 +290,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     eventVisualization.setExternalAccess(true);
     eventVisualization.setType(EventVisualizationType.COLUMN);
     // Then
-    assertFalse(aclService.verifySharing(eventVisualization, user).isEmpty());
+    assertFalse(aclService.verifySharing(eventVisualization, user.getUsername()).isEmpty());
   }
 
   @Test
@@ -304,8 +301,8 @@ class AclServiceTest extends TransactionalIntegrationTest {
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
     visualization.setExternalAccess(true);
     visualization.setType(VisualizationType.COLUMN);
-    assertFalse(aclService.verifySharing(visualization, user).isEmpty());
-    aclService.resetSharing(visualization, user);
+    assertFalse(aclService.verifySharing(visualization, user.getUsername()).isEmpty());
+    aclService.resetSharing(visualization, user.getUsername());
     assertTrue(AccessStringHelper.DEFAULT.equals(visualization.getPublicAccess()));
     assertFalse(visualization.getSharing().isExternal());
     assertTrue(visualization.getSharing().getUsers().isEmpty());
@@ -321,9 +318,9 @@ class AclServiceTest extends TransactionalIntegrationTest {
     eventVisualization.setPublicAccess(AccessStringHelper.DEFAULT);
     eventVisualization.setExternalAccess(true);
     eventVisualization.setType(EventVisualizationType.COLUMN);
-    assertFalse(aclService.verifySharing(eventVisualization, user).isEmpty());
+    assertFalse(aclService.verifySharing(eventVisualization, user.getUsername()).isEmpty());
     // When
-    aclService.resetSharing(eventVisualization, user);
+    aclService.resetSharing(eventVisualization, user.getUsername());
     // Then
     assertEquals(AccessStringHelper.DEFAULT, eventVisualization.getPublicAccess());
     assertFalse(eventVisualization.getSharing().isExternal());
@@ -339,8 +336,8 @@ class AclServiceTest extends TransactionalIntegrationTest {
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
     visualization.setExternalAccess(true);
     visualization.setType(VisualizationType.COLUMN);
-    assertFalse(aclService.verifySharing(visualization, user).isEmpty());
-    aclService.resetSharing(visualization, user);
+    assertFalse(aclService.verifySharing(visualization, user.getUsername()).isEmpty());
+    aclService.resetSharing(visualization, user.getUsername());
     assertTrue(AccessStringHelper.READ_WRITE.equals(visualization.getPublicAccess()));
     assertFalse(visualization.getSharing().isExternal());
     assertTrue(visualization.getSharing().getUsers().isEmpty());
@@ -356,9 +353,9 @@ class AclServiceTest extends TransactionalIntegrationTest {
     eventVisualization.setPublicAccess(AccessStringHelper.DEFAULT);
     eventVisualization.setExternalAccess(true);
     eventVisualization.setType(EventVisualizationType.COLUMN);
-    assertFalse(aclService.verifySharing(eventVisualization, user).isEmpty());
+    assertFalse(aclService.verifySharing(eventVisualization, user.getUsername()).isEmpty());
     // When
-    aclService.resetSharing(eventVisualization, user);
+    aclService.resetSharing(eventVisualization, user.getUsername());
     // Then
     assertEquals(AccessStringHelper.READ_WRITE, eventVisualization.getPublicAccess());
     assertFalse(eventVisualization.getSharing().isExternal());
@@ -369,14 +366,14 @@ class AclServiceTest extends TransactionalIntegrationTest {
   @Test
   void testCreateNoSharingObject() {
     User user = createAndAddAdminUser();
-    assertFalse(aclService.canCreate(user, OrganisationUnit.class));
+    assertFalse(aclService.canCreate(user.getUsername(), OrganisationUnit.class));
   }
 
   @Test
   void testUpdateNoSharingObject() {
     User user = createAndAddAdminUser();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    assertFalse(aclService.canUpdate(user, organisationUnit));
+    assertFalse(aclService.canUpdate(user.getUsername(), organisationUnit));
   }
 
   @Test
@@ -387,7 +384,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dataElement.setCreatedBy(user1);
     dataElement.getSharing().setOwner(user1);
     manager.save(dataElement);
-    assertFalse(aclService.canUpdate(user2, dataElement));
+    assertFalse(aclService.canUpdate(user2.getUsername(), dataElement));
     assertEquals(AccessStringHelper.DEFAULT, dataElement.getPublicAccess());
     UserGroup userGroup = createUserGroup('A', new HashSet<>());
     userGroup.getMembers().add(user1);
@@ -397,7 +394,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     user2.getGroups().add(userGroup);
     dataElement.getSharing().addUserGroupAccess(new UserGroupAccess(userGroup, "rw------"));
     manager.update(dataElement);
-    assertTrue(aclService.canUpdate(user2, dataElement));
+    assertTrue(aclService.canUpdate(user2.getUsername(), dataElement));
   }
 
   @Test
@@ -408,7 +405,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     categoryOption.setCreatedBy(user1);
     categoryOption.getSharing().setOwner(user1);
     manager.save(categoryOption);
-    assertFalse(aclService.canUpdate(user2, categoryOption));
+    assertFalse(aclService.canUpdate(user2.getUsername(), categoryOption));
     assertEquals(AccessStringHelper.DEFAULT, categoryOption.getPublicAccess());
     UserGroup userGroup = createUserGroup('A', new HashSet<>());
     userGroup.getMembers().add(user1);
@@ -418,7 +415,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     user1.getGroups().add(userGroup);
     categoryOption.getSharing().addUserGroupAccess(new UserGroupAccess(userGroup, "rw------"));
     manager.update(categoryOption);
-    assertTrue(aclService.canUpdate(user2, categoryOption));
+    assertTrue(aclService.canUpdate(user2.getUsername(), categoryOption));
   }
 
   @Test
@@ -432,14 +429,14 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dashboard.getSharing().setOwner(user1);
     dashboard.setAutoFields();
     manager.save(dashboard);
-    assertTrue(aclService.canRead(user1, dashboard));
-    assertTrue(aclService.canUpdate(user1, dashboard));
-    assertTrue(aclService.canDelete(user1, dashboard));
-    assertTrue(aclService.canManage(user1, dashboard));
-    assertFalse(aclService.canRead(user2, dashboard));
-    assertFalse(aclService.canUpdate(user2, dashboard));
-    assertFalse(aclService.canDelete(user2, dashboard));
-    assertFalse(aclService.canManage(user2, dashboard));
+    assertTrue(aclService.canRead(user1.getUsername(), dashboard));
+    assertTrue(aclService.canUpdate(user1.getUsername(), dashboard));
+    assertTrue(aclService.canDelete(user1.getUsername(), dashboard));
+    assertTrue(aclService.canManage(user1.getUsername(), dashboard));
+    assertFalse(aclService.canRead(user2.getUsername(), dashboard));
+    assertFalse(aclService.canUpdate(user2.getUsername(), dashboard));
+    assertFalse(aclService.canDelete(user2.getUsername(), dashboard));
+    assertFalse(aclService.canManage(user2.getUsername(), dashboard));
   }
 
   @Test
@@ -453,18 +450,18 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dashboard.getSharing().setOwner(user1);
     dashboard.setAutoFields();
     manager.save(dashboard);
-    assertTrue(aclService.canRead(user1, dashboard));
-    assertTrue(aclService.canUpdate(user1, dashboard));
-    assertTrue(aclService.canDelete(user1, dashboard));
-    assertTrue(aclService.canManage(user1, dashboard));
+    assertTrue(aclService.canRead(user1.getUsername(), dashboard));
+    assertTrue(aclService.canUpdate(user1.getUsername(), dashboard));
+    assertTrue(aclService.canDelete(user1.getUsername(), dashboard));
+    assertTrue(aclService.canManage(user1.getUsername(), dashboard));
     UserAccess userAccess = new UserAccess();
     userAccess.setUser(user2);
     userAccess.setAccess(AccessStringHelper.READ_WRITE);
     dashboard.getSharing().addUserAccess(userAccess);
-    assertTrue(aclService.canRead(user2, dashboard));
-    assertTrue(aclService.canUpdate(user2, dashboard));
-    assertTrue(aclService.canDelete(user2, dashboard));
-    assertTrue(aclService.canManage(user2, dashboard));
+    assertTrue(aclService.canRead(user2.getUsername(), dashboard));
+    assertTrue(aclService.canUpdate(user2.getUsername(), dashboard));
+    assertTrue(aclService.canDelete(user2.getUsername(), dashboard));
+    assertTrue(aclService.canManage(user2.getUsername(), dashboard));
   }
 
   @Test
@@ -478,18 +475,18 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dashboard.getSharing().setOwner(user1);
     dashboard.setAutoFields();
     manager.save(dashboard);
-    assertTrue(aclService.canRead(user1, dashboard));
-    assertTrue(aclService.canUpdate(user1, dashboard));
-    assertTrue(aclService.canDelete(user1, dashboard));
-    assertTrue(aclService.canManage(user1, dashboard));
+    assertTrue(aclService.canRead(user1.getUsername(), dashboard));
+    assertTrue(aclService.canUpdate(user1.getUsername(), dashboard));
+    assertTrue(aclService.canDelete(user1.getUsername(), dashboard));
+    assertTrue(aclService.canManage(user1.getUsername(), dashboard));
     UserAccess userAccess = new UserAccess();
     userAccess.setUser(user2);
     userAccess.setAccess(AccessStringHelper.READ);
     dashboard.getSharing().addUserAccess(userAccess);
-    assertTrue(aclService.canRead(user2, dashboard));
-    assertFalse(aclService.canUpdate(user2, dashboard));
-    assertFalse(aclService.canDelete(user2, dashboard));
-    assertFalse(aclService.canManage(user2, dashboard));
+    assertTrue(aclService.canRead(user2.getUsername(), dashboard));
+    assertFalse(aclService.canUpdate(user2.getUsername(), dashboard));
+    assertFalse(aclService.canDelete(user2.getUsername(), dashboard));
+    assertFalse(aclService.canManage(user2.getUsername(), dashboard));
   }
 
   @Test
@@ -503,14 +500,14 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dashboard.getSharing().setOwner(user1);
     dashboard.setAutoFields();
     manager.save(dashboard);
-    assertTrue(aclService.canRead(user1, dashboard));
-    assertTrue(aclService.canUpdate(user1, dashboard));
-    assertTrue(aclService.canDelete(user1, dashboard));
-    assertTrue(aclService.canManage(user1, dashboard));
-    assertFalse(aclService.canRead(user2, dashboard));
-    assertFalse(aclService.canUpdate(user2, dashboard));
-    assertFalse(aclService.canDelete(user2, dashboard));
-    assertFalse(aclService.canManage(user2, dashboard));
+    assertTrue(aclService.canRead(user1.getUsername(), dashboard));
+    assertTrue(aclService.canUpdate(user1.getUsername(), dashboard));
+    assertTrue(aclService.canDelete(user1.getUsername(), dashboard));
+    assertTrue(aclService.canManage(user1.getUsername(), dashboard));
+    assertFalse(aclService.canRead(user2.getUsername(), dashboard));
+    assertFalse(aclService.canUpdate(user2.getUsername(), dashboard));
+    assertFalse(aclService.canDelete(user2.getUsername(), dashboard));
+    assertFalse(aclService.canManage(user2.getUsername(), dashboard));
   }
 
   @Test
@@ -530,19 +527,19 @@ class AclServiceTest extends TransactionalIntegrationTest {
     UserGroupAccess userGroupAccess = new UserGroupAccess(userGroup, AccessStringHelper.READ);
     dashboard.getSharing().addUserGroupAccess(userGroupAccess);
     manager.save(dashboard, false);
-    assertTrue(aclService.canRead(user1, dashboard));
-    assertTrue(aclService.canUpdate(user1, dashboard));
-    assertTrue(aclService.canDelete(user1, dashboard));
-    assertTrue(aclService.canManage(user1, dashboard));
-    Access access = aclService.getAccess(dashboard, user2);
+    assertTrue(aclService.canRead(user1.getUsername(), dashboard));
+    assertTrue(aclService.canUpdate(user1.getUsername(), dashboard));
+    assertTrue(aclService.canDelete(user1.getUsername(), dashboard));
+    assertTrue(aclService.canManage(user1.getUsername(), dashboard));
+    Access access = aclService.getAccess(dashboard, user2.getUsername());
     assertTrue(access.isRead());
     assertFalse(access.isUpdate());
     assertFalse(access.isDelete());
     assertFalse(access.isManage());
-    assertTrue(aclService.canRead(user2, dashboard));
-    assertFalse(aclService.canUpdate(user2, dashboard));
-    assertFalse(aclService.canDelete(user2, dashboard));
-    assertFalse(aclService.canManage(user2, dashboard));
+    assertTrue(aclService.canRead(user2.getUsername(), dashboard));
+    assertFalse(aclService.canUpdate(user2.getUsername(), dashboard));
+    assertFalse(aclService.canDelete(user2.getUsername(), dashboard));
+    assertFalse(aclService.canManage(user2.getUsername(), dashboard));
   }
 
   @Test
@@ -562,22 +559,22 @@ class AclServiceTest extends TransactionalIntegrationTest {
     UserGroupAccess userGroupAccess = new UserGroupAccess(userGroup, AccessStringHelper.READ);
     dataElement.getSharing().addUserGroupAccess(userGroupAccess);
     manager.save(dataElement, false);
-    assertTrue(aclService.canWrite(user1, dataElement));
-    assertTrue(aclService.canUpdate(user1, dataElement));
-    assertTrue(aclService.canRead(user1, dataElement));
-    assertFalse(aclService.canDelete(user1, dataElement));
-    assertTrue(aclService.canManage(user1, dataElement));
-    Access access = aclService.getAccess(dataElement, user2);
+    assertTrue(aclService.canWrite(user1.getUsername(), dataElement));
+    assertTrue(aclService.canUpdate(user1.getUsername(), dataElement));
+    assertTrue(aclService.canRead(user1.getUsername(), dataElement));
+    assertFalse(aclService.canDelete(user1.getUsername(), dataElement));
+    assertTrue(aclService.canManage(user1.getUsername(), dataElement));
+    Access access = aclService.getAccess(dataElement, user2.getUsername());
     assertTrue(access.isRead());
     assertFalse(access.isWrite());
     assertFalse(access.isUpdate());
     assertFalse(access.isDelete());
     assertFalse(access.isManage());
-    assertTrue(aclService.canRead(user2, dataElement));
-    assertFalse(aclService.canWrite(user2, dataElement));
-    assertFalse(aclService.canUpdate(user2, dataElement));
-    assertFalse(aclService.canDelete(user2, dataElement));
-    assertFalse(aclService.canManage(user2, dataElement));
+    assertTrue(aclService.canRead(user2.getUsername(), dataElement));
+    assertFalse(aclService.canWrite(user2.getUsername(), dataElement));
+    assertFalse(aclService.canUpdate(user2.getUsername(), dataElement));
+    assertFalse(aclService.canDelete(user2.getUsername(), dataElement));
+    assertFalse(aclService.canManage(user2.getUsername(), dataElement));
   }
 
   @Test
@@ -597,21 +594,21 @@ class AclServiceTest extends TransactionalIntegrationTest {
     UserGroupAccess userGroupAccess = new UserGroupAccess(userGroup, AccessStringHelper.READ_WRITE);
     dataElement.getSharing().addUserGroupAccess(userGroupAccess);
     manager.save(dataElement, false);
-    assertTrue(aclService.canRead(user1, dataElement));
-    assertTrue(aclService.canUpdate(user1, dataElement));
-    assertFalse(aclService.canDelete(user1, dataElement));
-    assertTrue(aclService.canManage(user1, dataElement));
-    Access access = aclService.getAccess(dataElement, user2);
+    assertTrue(aclService.canRead(user1.getUsername(), dataElement));
+    assertTrue(aclService.canUpdate(user1.getUsername(), dataElement));
+    assertFalse(aclService.canDelete(user1.getUsername(), dataElement));
+    assertTrue(aclService.canManage(user1.getUsername(), dataElement));
+    Access access = aclService.getAccess(dataElement, user2.getUsername());
     assertTrue(access.isRead());
     assertTrue(access.isWrite());
     assertTrue(access.isUpdate());
     assertFalse(access.isDelete());
     assertTrue(access.isManage());
-    assertTrue(aclService.canRead(user2, dataElement));
-    assertTrue(aclService.canWrite(user2, dataElement));
-    assertTrue(aclService.canUpdate(user2, dataElement));
-    assertFalse(aclService.canDelete(user2, dataElement));
-    assertTrue(aclService.canManage(user2, dataElement));
+    assertTrue(aclService.canRead(user2.getUsername(), dataElement));
+    assertTrue(aclService.canWrite(user2.getUsername(), dataElement));
+    assertTrue(aclService.canUpdate(user2.getUsername(), dataElement));
+    assertFalse(aclService.canDelete(user2.getUsername(), dataElement));
+    assertTrue(aclService.canManage(user2.getUsername(), dataElement));
   }
 
   @Test
@@ -622,10 +619,10 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
     dataElement.setCreatedBy(user1);
     dataElement.getSharing().setOwner(user1);
-    assertTrue(aclService.canWrite(user1, dataElement));
+    assertTrue(aclService.canWrite(user1.getUsername(), dataElement));
     manager.save(dataElement, false);
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertFalse(aclService.canUpdate(user1, dataElement));
+    assertFalse(aclService.canUpdate(user1.getUsername(), dataElement));
   }
 
   @Test
@@ -638,10 +635,10 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
     dataElement.setCreatedBy(user1);
     dataElement.getSharing().setOwner(user1);
-    assertTrue(aclService.canWrite(user1, dataElement));
+    assertTrue(aclService.canWrite(user1.getUsername(), dataElement));
     manager.save(dataElement, false);
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertTrue(aclService.canUpdate(user2, dataElement));
+    assertTrue(aclService.canUpdate(user2.getUsername(), dataElement));
   }
 
   @Test
@@ -652,19 +649,19 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
     dataElement.setCreatedBy(user1);
     dataElement.getSharing().setOwner(user1);
-    Access access = aclService.getAccess(dataElement, user1);
+    Access access = aclService.getAccess(dataElement, user1.getUsername());
     assertTrue(access.isRead());
     assertTrue(access.isWrite());
     assertTrue(access.isUpdate());
     assertFalse(access.isDelete());
     manager.save(dataElement, false);
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    access = aclService.getAccess(dataElement, user1);
+    access = aclService.getAccess(dataElement, user1.getUsername());
     assertTrue(access.isRead());
     assertTrue(access.isWrite());
     assertTrue(access.isUpdate());
     assertFalse(access.isDelete());
-    assertTrue(aclService.canUpdate(user1, dataElement));
+    assertTrue(aclService.canUpdate(user1.getUsername(), dataElement));
   }
 
   @Test
@@ -675,10 +672,10 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dashboard.setPublicAccess(AccessStringHelper.DEFAULT);
     dashboard.setCreatedBy(user1);
     dashboard.getSharing().setOwner(user1);
-    aclService.canWrite(user1, dashboard);
+    aclService.canWrite(user1.getUsername(), dashboard);
     manager.save(dashboard, false);
     dashboard.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertFalse(aclService.canUpdate(user1, dashboard));
+    assertFalse(aclService.canUpdate(user1.getUsername(), dashboard));
     manager.update(dashboard);
   }
 
@@ -690,10 +687,10 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dashboard.setPublicAccess(AccessStringHelper.DEFAULT);
     dashboard.setCreatedBy(user1);
     dashboard.getSharing().setOwner(user1);
-    aclService.canWrite(user1, dashboard);
+    aclService.canWrite(user1.getUsername(), dashboard);
     manager.save(dashboard, false);
     dashboard.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertTrue(aclService.canUpdate(user1, dashboard));
+    assertTrue(aclService.canUpdate(user1.getUsername(), dashboard));
     manager.update(dashboard);
   }
 
@@ -713,33 +710,33 @@ class AclServiceTest extends TransactionalIntegrationTest {
     UserGroupAccess userGroupAccess = new UserGroupAccess(userGroup, AccessStringHelper.READ_WRITE);
     dataElement.getSharing().addUserGroupAccess(userGroupAccess);
     manager.save(dataElement, false);
-    assertTrue(aclService.canRead(user1, dataElement));
-    assertTrue(aclService.canUpdate(user1, dataElement));
-    assertFalse(aclService.canDelete(user1, dataElement));
-    assertTrue(aclService.canManage(user1, dataElement));
-    assertTrue(aclService.canDataOrMetadataRead(user1, dataElement));
-    Access access = aclService.getAccess(dataElement, user2);
+    assertTrue(aclService.canRead(user1.getUsername(), dataElement));
+    assertTrue(aclService.canUpdate(user1.getUsername(), dataElement));
+    assertFalse(aclService.canDelete(user1.getUsername(), dataElement));
+    assertTrue(aclService.canManage(user1.getUsername(), dataElement));
+    assertTrue(aclService.canDataOrMetadataRead(user1.getUsername(), dataElement));
+    Access access = aclService.getAccess(dataElement, user2.getUsername());
     assertTrue(access.isRead());
     assertTrue(access.isWrite());
     assertTrue(access.isUpdate());
     assertFalse(access.isDelete());
     assertTrue(access.isManage());
-    assertTrue(aclService.canRead(user2, dataElement));
-    assertTrue(aclService.canWrite(user2, dataElement));
-    assertTrue(aclService.canUpdate(user2, dataElement));
-    assertFalse(aclService.canDelete(user2, dataElement));
-    assertTrue(aclService.canManage(user2, dataElement));
-    access = aclService.getAccess(dataElement, user3);
+    assertTrue(aclService.canRead(user2.getUsername(), dataElement));
+    assertTrue(aclService.canWrite(user2.getUsername(), dataElement));
+    assertTrue(aclService.canUpdate(user2.getUsername(), dataElement));
+    assertFalse(aclService.canDelete(user2.getUsername(), dataElement));
+    assertTrue(aclService.canManage(user2.getUsername(), dataElement));
+    access = aclService.getAccess(dataElement, user3.getUsername());
     assertTrue(access.isRead());
     assertTrue(access.isWrite());
     assertTrue(access.isUpdate());
     assertTrue(access.isDelete());
     assertTrue(access.isManage());
-    assertTrue(aclService.canRead(user3, dataElement));
-    assertTrue(aclService.canWrite(user3, dataElement));
-    assertTrue(aclService.canUpdate(user3, dataElement));
-    assertTrue(aclService.canDelete(user3, dataElement));
-    assertTrue(aclService.canManage(user3, dataElement));
+    assertTrue(aclService.canRead(user3.getUsername(), dataElement));
+    assertTrue(aclService.canWrite(user3.getUsername(), dataElement));
+    assertTrue(aclService.canUpdate(user3.getUsername(), dataElement));
+    assertTrue(aclService.canDelete(user3.getUsername(), dataElement));
+    assertTrue(aclService.canManage(user3.getUsername(), dataElement));
   }
 
   @Test
@@ -750,13 +747,13 @@ class AclServiceTest extends TransactionalIntegrationTest {
     program.getSharing().setOwner(user);
     program.setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(program);
-    Access access = aclService.getAccess(program, user);
+    Access access = aclService.getAccess(program, user.getUsername());
     assertTrue(access.isRead());
     assertTrue(access.isWrite());
     assertTrue(access.isUpdate());
     assertFalse(access.isDelete());
     assertTrue(access.isManage());
-    List<ErrorReport> errorReports = aclService.verifySharing(program, user);
+    List<ErrorReport> errorReports = aclService.verifySharing(program, user.getUsername());
     assertTrue(errorReports.isEmpty());
     manager.update(program);
   }
@@ -764,7 +761,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
   @Test
   void testShouldBlockUpdatesForNoAuthorityUser() {
     User adminUser = createAndInjectAdminUser();
-    assertEquals(adminUser, currentUserService.getCurrentUser());
+    assertEquals(adminUser, getCurrentUser());
     User userNoAuthorities = createUserWithAuth("user1A2");
     manager.save(userNoAuthorities);
     Visualization visualization = new Visualization();
@@ -777,19 +774,20 @@ class AclServiceTest extends TransactionalIntegrationTest {
     visualization.setType(VisualizationType.COLUMN);
     manager.save(visualization);
     injectSecurityContext(userNoAuthorities);
-    assertEquals(userNoAuthorities, currentUserService.getCurrentUser());
-    List<ErrorReport> errorReports = aclService.verifySharing(visualization, userNoAuthorities);
+    assertEquals(userNoAuthorities, getCurrentUser());
+    List<ErrorReport> errorReports =
+        aclService.verifySharing(visualization, userNoAuthorities.getUsername());
     assertFalse(errorReports.isEmpty());
   }
 
   @Test
   void testShouldBlockUpdatesForNoAuthorityUserEvenWithNonPublicObject() {
     User adminUser = createAndInjectAdminUser();
-    assertEquals(adminUser, currentUserService.getCurrentUser());
+    assertEquals(adminUser, getCurrentUser());
     User user1 = createUserWithAuth("user1A3");
     User user2 = createUserWithAuth("user2A3");
     injectSecurityContext(user1);
-    assertEquals(user1, currentUserService.getCurrentUser());
+    assertEquals(user1, getCurrentUser());
     Visualization visualization = new Visualization();
     visualization.setName("RT");
     visualization.setCreatedBy(user1);
@@ -801,18 +799,18 @@ class AclServiceTest extends TransactionalIntegrationTest {
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
     manager.update(visualization);
     injectSecurityContext(user2);
-    assertEquals(user2, currentUserService.getCurrentUser());
-    List<ErrorReport> errorReports = aclService.verifySharing(visualization, user2);
+    assertEquals(user2, getCurrentUser());
+    List<ErrorReport> errorReports = aclService.verifySharing(visualization, user2.getUsername());
     assertFalse(errorReports.isEmpty());
   }
 
   @Test
   void testNotShouldBlockAdminUpdatesForNoAuthorityUserEvenWithNonPublicObject() {
     User adminUser = createAndInjectAdminUser();
-    assertEquals(adminUser, currentUserService.getCurrentUser());
+    assertEquals(adminUser, getCurrentUser());
     User user1 = createUserWithAuth("user1A4");
     injectSecurityContext(user1);
-    assertEquals(user1, currentUserService.getCurrentUser());
+    assertEquals(user1, getCurrentUser());
     Visualization visualization = new Visualization();
     visualization.setName("RT");
     visualization.setCreatedBy(user1);
@@ -824,8 +822,9 @@ class AclServiceTest extends TransactionalIntegrationTest {
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
     manager.update(visualization);
     injectSecurityContext(adminUser);
-    assertEquals(adminUser, currentUserService.getCurrentUser());
-    List<ErrorReport> errorReports = aclService.verifySharing(visualization, adminUser);
+    assertEquals(adminUser, getCurrentUser());
+    List<ErrorReport> errorReports =
+        aclService.verifySharing(visualization, adminUser.getUsername());
     assertTrue(errorReports.isEmpty());
   }
 
@@ -837,23 +836,23 @@ class AclServiceTest extends TransactionalIntegrationTest {
     DataElement dataElement = createDataElement('A');
     dataElement.setCreatedBy(user1);
     dataElement.getSharing().setOwner(user1);
-    Access access = aclService.getAccess(dataElement, user1);
+    Access access = aclService.getAccess(dataElement, user1.getUsername());
     assertTrue(access.isRead());
     assertTrue(access.isWrite());
     assertTrue(access.isUpdate());
     assertFalse(access.isDelete());
-    assertTrue(aclService.canUpdate(user1, dataElement));
+    assertTrue(aclService.canUpdate(user1.getUsername(), dataElement));
     manager.save(dataElement);
     dataElement.setPublicAccess(null);
     manager.update(dataElement);
     injectSecurityContext(user2);
-    access = aclService.getAccess(dataElement, user2);
+    access = aclService.getAccess(dataElement, user2.getUsername());
     assertTrue(access.isRead());
     assertTrue(access.isWrite());
     assertTrue(access.isUpdate());
     assertFalse(access.isDelete());
-    assertTrue(aclService.canUpdate(user2, dataElement));
-    List<ErrorReport> errorReports = aclService.verifySharing(dataElement, user2);
+    assertTrue(aclService.canUpdate(user2.getUsername(), dataElement));
+    List<ErrorReport> errorReports = aclService.verifySharing(dataElement, user2.getUsername());
     assertTrue(errorReports.isEmpty());
   }
 
@@ -866,7 +865,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dataElement.setCreatedBy(user1);
     dataElement.getSharing().setOwner(user1);
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
-    Access access = aclService.getAccess(dataElement, user1);
+    Access access = aclService.getAccess(dataElement, user1.getUsername());
     assertTrue(access.isRead());
     assertTrue(access.isWrite());
     assertTrue(access.isUpdate());
@@ -875,13 +874,13 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
     manager.update(dataElement);
     injectSecurityContext(user2);
-    access = aclService.getAccess(dataElement, user2);
+    access = aclService.getAccess(dataElement, user2.getUsername());
     assertFalse(access.isRead());
     assertFalse(access.isWrite());
     assertFalse(access.isUpdate());
     assertFalse(access.isDelete());
-    assertFalse(aclService.canUpdate(user2, dataElement));
-    List<ErrorReport> errorReports = aclService.verifySharing(dataElement, user2);
+    assertFalse(aclService.canUpdate(user2.getUsername(), dataElement));
+    List<ErrorReport> errorReports = aclService.verifySharing(dataElement, user2.getUsername());
     assertTrue(errorReports.isEmpty());
   }
 
@@ -893,7 +892,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     DataElement dataElement = createDataElement('A');
     dataElement.setCreatedBy(user1);
     dataElement.getSharing().setOwner(user1);
-    Access access = aclService.getAccess(dataElement, user1);
+    Access access = aclService.getAccess(dataElement, user1.getUsername());
     assertTrue(access.isRead());
     assertTrue(access.isWrite());
     assertTrue(access.isUpdate());
@@ -902,13 +901,13 @@ class AclServiceTest extends TransactionalIntegrationTest {
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
     manager.update(dataElement);
     injectSecurityContext(user2);
-    access = aclService.getAccess(dataElement, user2);
+    access = aclService.getAccess(dataElement, user2.getUsername());
     assertFalse(access.isRead());
     assertFalse(access.isWrite());
     assertFalse(access.isUpdate());
     assertFalse(access.isDelete());
-    assertFalse(aclService.canUpdate(user2, dataElement));
-    List<ErrorReport> errorReports = aclService.verifySharing(dataElement, user2);
+    assertFalse(aclService.canUpdate(user2.getUsername(), dataElement));
+    List<ErrorReport> errorReports = aclService.verifySharing(dataElement, user2.getUsername());
     assertTrue(errorReports.isEmpty());
   }
 
@@ -923,7 +922,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     visualization.getSharing().setOwner(userA);
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
     visualization.setType(VisualizationType.COLUMN);
-    assertTrue(aclService.canUpdate(userA, visualization));
+    assertTrue(aclService.canUpdate(userA.getUsername(), visualization));
     manager.save(visualization);
     UserRole userRole = new UserRole();
     userRole.setAutoFields();
@@ -935,7 +934,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     manager.save(userB);
     visualization.getSharing().addUserAccess(new UserAccess(userB, AccessStringHelper.FULL));
     manager.update(visualization);
-    assertTrue(aclService.canUpdate(userB, visualization));
+    assertTrue(aclService.canUpdate(userB.getUsername(), visualization));
   }
 
   @Test
@@ -953,7 +952,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     eventVisualization.setPublicAccess(AccessStringHelper.DEFAULT);
     eventVisualization.setType(EventVisualizationType.COLUMN);
     eventVisualization.setProgram(program);
-    assertTrue(aclService.canUpdate(userA, eventVisualization));
+    assertTrue(aclService.canUpdate(userA.getUsername(), eventVisualization));
     manager.save(eventVisualization);
     // Then
     UserRole userRole = new UserRole();
@@ -966,7 +965,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     manager.save(userB);
     eventVisualization.getSharing().addUserAccess(new UserAccess(userB, AccessStringHelper.FULL));
     manager.update(eventVisualization);
-    assertTrue(aclService.canUpdate(userB, eventVisualization));
+    assertTrue(aclService.canUpdate(userB.getUsername(), eventVisualization));
   }
 
   @Test
@@ -980,7 +979,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     visualization.getSharing().setOwner(userA);
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
     visualization.setType(VisualizationType.COLUMN);
-    assertTrue(aclService.canUpdate(userA, visualization));
+    assertTrue(aclService.canUpdate(userA.getUsername(), visualization));
     manager.save(visualization);
     UserRole userRole = new UserRole();
     userRole.setAutoFields();
@@ -991,7 +990,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     userB.getUserRoles().add(userRole);
     manager.save(userB);
     manager.update(visualization);
-    assertFalse(aclService.canUpdate(userB, visualization));
+    assertFalse(aclService.canUpdate(userB.getUsername(), visualization));
   }
 
   @Test
@@ -1009,7 +1008,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     eventVisualization.setPublicAccess(AccessStringHelper.DEFAULT);
     eventVisualization.setType(EventVisualizationType.COLUMN);
     eventVisualization.setProgram(program);
-    assertTrue(aclService.canUpdate(userA, eventVisualization));
+    assertTrue(aclService.canUpdate(userA.getUsername(), eventVisualization));
     manager.save(eventVisualization);
     // Then
     UserRole userRole = new UserRole();
@@ -1021,7 +1020,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     userB.getUserRoles().add(userRole);
     manager.save(userB);
     manager.update(eventVisualization);
-    assertFalse(aclService.canUpdate(userB, eventVisualization));
+    assertFalse(aclService.canUpdate(userB.getUsername(), eventVisualization));
   }
 
   @Test
@@ -1035,13 +1034,13 @@ class AclServiceTest extends TransactionalIntegrationTest {
     visualization.getSharing().setOwner(userA);
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
     visualization.setType(VisualizationType.COLUMN);
-    assertTrue(aclService.canUpdate(userA, visualization));
+    assertTrue(aclService.canUpdate(userA.getUsername(), visualization));
     manager.save(visualization);
     User userB = makeUser("B");
     manager.save(userB);
     visualization.getSharing().addUserAccess(new UserAccess(userB, AccessStringHelper.FULL));
     manager.update(visualization);
-    assertTrue(aclService.canUpdate(userB, visualization));
+    assertTrue(aclService.canUpdate(userB.getUsername(), visualization));
   }
 
   @Test
@@ -1059,14 +1058,14 @@ class AclServiceTest extends TransactionalIntegrationTest {
     eventVisualization.setPublicAccess(AccessStringHelper.DEFAULT);
     eventVisualization.setType(EventVisualizationType.COLUMN);
     eventVisualization.setProgram(program);
-    assertTrue(aclService.canUpdate(userA, eventVisualization));
+    assertTrue(aclService.canUpdate(userA.getUsername(), eventVisualization));
     manager.save(eventVisualization);
     // Then
     User userB = makeUser("B");
     manager.save(userB);
     eventVisualization.getSharing().addUserAccess(new UserAccess(userB, AccessStringHelper.FULL));
     manager.update(eventVisualization);
-    assertTrue(aclService.canUpdate(userB, eventVisualization));
+    assertTrue(aclService.canUpdate(userB.getUsername(), eventVisualization));
   }
 
   @Test
@@ -1079,7 +1078,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     categoryOptionGroupSet.setName("cogA");
     categoryOptionGroupSet.setShortName("cogA");
     manager.save(categoryOptionGroupSet);
-    assertTrue(aclService.canDataOrMetadataRead(user1, categoryOptionGroupSet));
+    assertTrue(aclService.canDataOrMetadataRead(user1.getUsername(), categoryOptionGroupSet));
     // data shareable object //
     CategoryOption categoryOption = new CategoryOption();
     categoryOption.setAutoFields();
@@ -1090,7 +1089,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     categoryOption.getSharing().setOwner(user1);
     categoryOption.setPublicAccess("rwrw----");
     manager.save(categoryOption, false);
-    assertTrue(aclService.canDataOrMetadataRead(user1, categoryOption));
+    assertTrue(aclService.canDataOrMetadataRead(user1.getUsername(), categoryOption));
   }
 
   @Test
@@ -1107,7 +1106,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     assertEquals(AccessStringHelper.DEFAULT, de.getPublicAccess());
     assertEquals(null, de.getSharing().getOwner());
     assertTrue(MapUtils.isEmpty(de.getSharing().getUsers()));
-    assertTrue(aclService.canRead(userA, de));
+    assertTrue(aclService.canRead(userA.getUsername(), de));
     String sql =
         "select uid as uid from dataelement where "
             + JpaQueryUtils.generateSQlQueryForSharingCheck(
@@ -1126,7 +1125,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     categoryOption.getSharing().setOwner(userA);
     manager.save(categoryOption);
 
-    assertFalse(aclService.canDataRead(userA, categoryOption));
+    assertFalse(aclService.canDataRead(userA.getUsername(), categoryOption));
   }
 
   @Test
@@ -1139,7 +1138,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     User userA = makeUser("A");
     manager.save(userA);
 
-    assertFalse(aclService.canDataRead(userA, categoryOption));
+    assertFalse(aclService.canDataRead(userA.getUsername(), categoryOption));
   }
 
   @Test
@@ -1151,7 +1150,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     categoryOption.getSharing().setOwner(userA);
     manager.save(categoryOption);
 
-    assertTrue(aclService.canRead(userA, categoryOption));
+    assertTrue(aclService.canRead(userA.getUsername(), categoryOption));
   }
 
   @Test
@@ -1164,6 +1163,6 @@ class AclServiceTest extends TransactionalIntegrationTest {
     User userA = makeUser("A");
     manager.save(userA);
 
-    assertFalse(aclService.canRead(userA, categoryOption));
+    assertFalse(aclService.canRead(userA.getUsername(), categoryOption));
   }
 }

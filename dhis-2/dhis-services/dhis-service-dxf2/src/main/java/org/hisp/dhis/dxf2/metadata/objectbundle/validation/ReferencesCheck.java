@@ -199,7 +199,7 @@ public class ReferencesCheck implements ValidationCheck {
 
     if (ref != null
         && ctx.getAclService().isShareable(ref)
-        && !ctx.getAclService().canRead(bundle.getUser(), ref)) {
+        && !ctx.getAclService().canRead(bundle.getUser().getUsername(), ref)) {
       preheatErrorReports.add(
           createError(bundle.getPreheatIdentifier(), ErrorCode.E5008, object, refObject, property));
     }
@@ -232,7 +232,7 @@ public class ReferencesCheck implements ValidationCheck {
                 bundle.getPreheatIdentifier(), ErrorCode.E5002, object, refObject, property));
       } else if (refObject != null
           && isShareable
-          && !ctx.getAclService().canRead(bundle.getUser(), ref)) {
+          && !ctx.getAclService().canRead(bundle.getUser().getUsername(), ref)) {
         preheatErrorReports.add(
             createError(
                 bundle.getPreheatIdentifier(), ErrorCode.E5008, object, refObject, property));

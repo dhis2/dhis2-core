@@ -64,7 +64,9 @@ import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.CodeList;
@@ -90,8 +92,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SystemController {
   public static final String RESOURCE_PATH = "/system";
-
-  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private SystemService systemService;
 
@@ -232,19 +232,21 @@ public class SystemController {
   public @ResponseBody ResponseEntity<ObjectNode> getSystemInfo(
       @RequestParam(defaultValue = "*") List<String> fields,
       HttpServletRequest request,
-      HttpServletResponse response) {
+      HttpServletResponse response,
+      @CurrentUser User currentUser) {
     SystemInfo info = systemService.getSystemInfo();
 
     info.setContextPath(ContextUtils.getContextPath(request));
     info.setUserAgent(request.getHeader(ContextUtils.HEADER_USER_AGENT));
 
-    if (!currentUserService.currentUserIsSuper()) {
+    if (!CurrentUserUtil.getCurrentUserDetails().isSuper()) {
       info.clearSensitiveInfo();
     }
 
     setNoStore(response);
 
     FieldFilterParams<SystemInfo> params = FieldFilterParams.of(info, fields);
+    params.setUser(currentUser);
     List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(params);
 
     return ResponseEntity.ok(objectNodes.get(0));

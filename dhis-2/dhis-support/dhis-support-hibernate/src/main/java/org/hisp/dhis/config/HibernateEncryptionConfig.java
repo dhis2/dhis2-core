@@ -40,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 
 /**
  * @author Luciano Fiandesio
@@ -51,7 +50,7 @@ public class HibernateEncryptionConfig {
 
   public static final String AES_128_STRING_ENCRYPTOR = "aes128StringEncryptor";
 
-  @Autowired @Lazy private HibernateConfigurationProvider hibernateConfigurationProvider;
+  @Autowired private HibernateConfigurationProvider hibernateConfigurationProvider;
 
   private String password;
 

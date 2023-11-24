@@ -47,8 +47,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,7 +66,7 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
 
   private final CategoryService categoryService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final AclService aclService;
 
@@ -112,8 +113,9 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
 
     int levelAboveOrgUnitLevel = 0;
 
-    List<DataApprovalLevel> userApprovalLevels =
-        getUserDataApprovalLevels(currentUserService.getCurrentUser());
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    List<DataApprovalLevel> userApprovalLevels = getUserDataApprovalLevels(currentUser);
 
     for (DataApprovalLevel level : userApprovalLevels) {
       log.debug("Get highest data approval level: " + level.getName());
@@ -397,7 +399,7 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
   public Map<OrganisationUnit, Integer> getUserReadApprovalLevels() {
     Map<OrganisationUnit, Integer> map = new HashMap<>();
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     List<DataApprovalLevel> approvalLevels = getAllDataApprovalLevels();
 
@@ -405,13 +407,13 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
     // Add user organisation units if authorized to approve at lower levels
     // ---------------------------------------------------------------------
 
-    if (user.isAuthorized(DataApproval.AUTH_APPROVE_LOWER_LEVELS)) {
-      for (OrganisationUnit orgUnit : user.getOrganisationUnits()) {
+    if (currentUser.isAuthorized(DataApproval.AUTH_APPROVE_LOWER_LEVELS)) {
+      for (OrganisationUnit orgUnit : currentUser.getOrganisationUnits()) {
         map.put(orgUnit, APPROVAL_LEVEL_UNAPPROVED);
       }
     } else {
-      for (OrganisationUnit orgUnit : user.getOrganisationUnits()) {
-        int level = requiredApprovalLevel(orgUnit, user, approvalLevels);
+      for (OrganisationUnit orgUnit : currentUser.getOrganisationUnits()) {
+        int level = requiredApprovalLevel(orgUnit, currentUser, approvalLevels);
 
         map.put(orgUnit, level);
       }
@@ -421,7 +423,7 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
     // Add data view organisation units with approval levels
     // ---------------------------------------------------------------------
 
-    Collection<OrganisationUnit> dataViewOrgUnits = user.getDataViewOrganisationUnits();
+    Collection<OrganisationUnit> dataViewOrgUnits = currentUser.getDataViewOrganisationUnits();
 
     if (dataViewOrgUnits == null || dataViewOrgUnits.isEmpty()) {
       dataViewOrgUnits = organisationUnitService.getRootOrganisationUnits();
@@ -429,7 +431,7 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
 
     for (OrganisationUnit orgUnit : dataViewOrgUnits) {
       if (!map.containsKey(orgUnit)) {
-        int level = requiredApprovalLevel(orgUnit, user, approvalLevels);
+        int level = requiredApprovalLevel(orgUnit, currentUser, approvalLevels);
 
         map.put(orgUnit, level);
       }
@@ -443,9 +445,9 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
   public Map<OrganisationUnit, Integer> getUserReadApprovalLevels(DataApprovalLevel approvalLevel) {
     Map<OrganisationUnit, Integer> map = new HashMap<>();
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    Collection<OrganisationUnit> orgUnits = user.getDataViewOrganisationUnits();
+    Collection<OrganisationUnit> orgUnits = currentUser.getDataViewOrganisationUnits();
 
     if (orgUnits == null || orgUnits.isEmpty()) {
       orgUnits = organisationUnitService.getRootOrganisationUnits();
@@ -469,7 +471,9 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
   private int getCurrentUsersLowestNumberOrgUnitLevel() {
     int level = APPROVAL_LEVEL_UNAPPROVED;
 
-    Set<OrganisationUnit> userOrgUnits = currentUserService.getCurrentUser().getOrganisationUnits();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    Set<OrganisationUnit> userOrgUnits = currentUser.getOrganisationUnits();
 
     for (OrganisationUnit orgUnit : userOrgUnits) {
       if (orgUnit.getLevel() < level) {
@@ -601,7 +605,7 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
 
     for (DataApprovalLevel level : approvalLevels) {
       if (level.getOrgUnitLevel() >= userOrgUnitLevel
-          && aclService.canRead(user, level)
+          && aclService.canRead(user.getUsername(), level)
           && canReadCOGS(user, level.getCategoryOptionGroupSet())) {
         userLevel = level;
         break;
@@ -657,9 +661,9 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
         CategoryOptionGroupSet cogs = approvalLevel.getCategoryOptionGroupSet();
 
         addLevel =
-            aclService.canRead(user, approvalLevel) && cogs == null
+            aclService.canRead(user.getUsername(), approvalLevel) && cogs == null
                 ? canSeeAllDimensions
-                : (aclService.canRead(user, cogs)
+                : (aclService.canRead(user.getUsername(), cogs)
                     && !CollectionUtils.isEmpty(categoryService.getCategoryOptionGroups(cogs)));
       }
 

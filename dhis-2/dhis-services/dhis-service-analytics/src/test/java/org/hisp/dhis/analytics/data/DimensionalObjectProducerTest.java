@@ -91,7 +91,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -119,8 +118,6 @@ class DimensionalObjectProducerTest {
 
   @Mock private AclService aclService;
 
-  @Mock private CurrentUserService currentUserService;
-
   @Mock private I18nManager i18nManager;
 
   @Mock private I18n i18n;
@@ -136,8 +133,7 @@ class DimensionalObjectProducerTest {
             systemSettingManager,
             i18nManager,
             dimensionService,
-            aclService,
-            currentUserService);
+            aclService);
   }
 
   @Test

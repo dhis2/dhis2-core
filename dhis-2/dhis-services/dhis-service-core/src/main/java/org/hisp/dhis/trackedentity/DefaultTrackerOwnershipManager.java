@@ -48,8 +48,9 @@ import org.hisp.dhis.program.ProgramTempOwnerService;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.core.env.Environment;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -67,8 +68,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private final CurrentUserService currentUserService;
-
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private final ProgramTempOwnershipAuditService programTempOwnershipAuditService;
@@ -83,8 +82,10 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
   private final DhisConfigurationProvider config;
 
+  private final UserService userService;
+
   public DefaultTrackerOwnershipManager(
-      CurrentUserService currentUserService,
+      UserService userService,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
       CacheProvider cacheProvider,
       ProgramTempOwnershipAuditService programTempOwnershipAuditService,
@@ -94,7 +95,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       OrganisationUnitService organisationUnitService,
       DhisConfigurationProvider config,
       Environment env) {
-    checkNotNull(currentUserService);
+    checkNotNull(userService);
     checkNotNull(trackedEntityProgramOwnerService);
     checkNotNull(cacheProvider);
     checkNotNull(programTempOwnershipAuditService);
@@ -104,7 +105,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     checkNotNull(config);
     checkNotNull(env);
 
-    this.currentUserService = currentUserService;
+    this.userService = userService;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
     this.programTempOwnershipAuditService = programTempOwnershipAuditService;
     this.programOwnershipHistoryService = programOwnershipHistoryService;
@@ -138,8 +139,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       return;
     }
 
-    if (hasAccess(currentUserService.getCurrentUser(), entityInstance, program)
-        || skipAccessValidation) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    if (hasAccess(currentUser, entityInstance, program) || skipAccessValidation) {
       TrackedEntityProgramOwner teProgramOwner =
           trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
               entityInstance.getId(), program.getId());
@@ -182,8 +184,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       return;
     }
 
-    if (hasAccess(currentUserService.getCurrentUser(), entityInstance, program)
-        || skipAccessValidation) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    if (hasAccess(currentUser, entityInstance, program) || skipAccessValidation) {
       TrackedEntityProgramOwner teProgramOwner =
           trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
               entityInstance.getId(), program.getId());

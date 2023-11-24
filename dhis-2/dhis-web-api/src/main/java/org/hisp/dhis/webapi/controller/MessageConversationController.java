@@ -79,6 +79,7 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -135,8 +136,8 @@ public class MessageConversationController
       org.hisp.dhis.message.MessageConversation entity,
       WebOptions options,
       Map<String, String> parameters) {
-    User currentUser = currentUserService.getCurrentUser();
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (!messageService.hasAccessToManageFeedbackMessages(currentUser)) {
       entity.setMessages(
           entity.getMessages().stream()

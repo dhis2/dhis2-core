@@ -48,8 +48,10 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,7 +71,7 @@ public class DefaultDataSetService implements DataSetService {
   @Qualifier("jdbcDataSetOrgUnitAssociationsStore")
   private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // DataSet
@@ -132,7 +134,7 @@ public class DefaultDataSetService implements DataSetService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataSet> getUserDataRead(User user) {
+  public List<DataSet> getUserDataRead(CurrentUserDetails user) {
     if (user == null) {
       return Lists.newArrayList();
     }
@@ -142,7 +144,7 @@ public class DefaultDataSetService implements DataSetService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataSet> getUserDataWrite(User user) {
+  public List<DataSet> getUserDataWrite(CurrentUserDetails user) {
     if (user == null) {
       return Lists.newArrayList();
     }
@@ -216,9 +218,9 @@ public class DefaultDataSetService implements DataSetService {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo) {
-    User user = currentUserService.getCurrentUser();
-
-    return getLockStatus(dataSet, period, organisationUnit, attributeOptionCombo, user, new Date());
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    return getLockStatus(
+        dataSet, period, organisationUnit, attributeOptionCombo, currentUser, new Date());
   }
 
   @Override
@@ -369,8 +371,10 @@ public class DefaultDataSetService implements DataSetService {
   @Override
   @Transactional(readOnly = true)
   public SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations() {
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+
     Set<String> uids =
-        getUserDataWrite(currentUserService.getCurrentUser()).stream()
+        getUserDataWrite(currentUserDetails).stream()
             .map(DataSet::getUid)
             .collect(Collectors.toSet());
 

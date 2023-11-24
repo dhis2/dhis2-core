@@ -35,12 +35,10 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.beans.factory.annotation.Autowired;
 
 abstract class AbstractDataValueControllerTest extends DhisControllerConvenienceTest {
   protected String dataElementId;
@@ -51,7 +49,7 @@ abstract class AbstractDataValueControllerTest extends DhisControllerConvenience
 
   protected String categoryOptionComboId;
 
-  @Autowired protected CurrentUserService currentUserService;
+  //  @Autowired protected CurrentUserService currentUserService;
 
   @BeforeEach
   void setUp() {

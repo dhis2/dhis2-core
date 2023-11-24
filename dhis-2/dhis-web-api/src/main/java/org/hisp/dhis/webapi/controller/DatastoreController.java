@@ -182,7 +182,7 @@ public class DatastoreController extends AbstractDatastoreController {
     metaData.setValue(null);
     metaData.setJbPlainValue(null);
     metaData.setEncryptedValue(null);
-    metaData.setAccess(aclService.getAccess(entry, currentUser));
+    metaData.setAccess(aclService.getAccess(entry, currentUser.getUsername()));
     return metaData;
   }
 

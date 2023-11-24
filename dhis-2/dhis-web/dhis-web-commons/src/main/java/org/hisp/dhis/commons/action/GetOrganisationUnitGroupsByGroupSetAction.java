@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Jan Henrik Overland
@@ -85,8 +85,8 @@ public class GetOrganisationUnitGroupsByGroupSetAction extends BaseAction implem
                   .getOrganisationUnitGroups());
     }
 
-    User currentUser = currentUserService.getCurrentUser();
-    organisationUnitGroups.forEach(instance -> canReadInstance(instance, currentUser));
+    organisationUnitGroups.forEach(
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
 
     return SUCCESS;
   }

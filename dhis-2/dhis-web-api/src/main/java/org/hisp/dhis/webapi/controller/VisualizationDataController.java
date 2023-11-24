@@ -56,7 +56,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.util.ObjectUtils;
@@ -98,8 +97,6 @@ public class VisualizationDataController {
   @Nonnull private final IndicatorService indicatorService;
 
   @Nonnull private final I18nManager i18nManager;
-
-  @Nonnull private final CurrentUserService currentUserService;
 
   @Nonnull private final RenderService renderService;
 
@@ -238,7 +235,7 @@ public class VisualizationDataController {
               date,
               unit,
               i18nManager.getI18nFormat(),
-              currentUserService.getCurrentUser());
+              CurrentUserUtil.getCurrentUsername());
 
       String filename = CodecUtils.filenameEncode(visualization.getName()) + ".png";
 

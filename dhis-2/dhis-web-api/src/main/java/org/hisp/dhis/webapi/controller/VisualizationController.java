@@ -50,6 +50,8 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Controller;
@@ -124,8 +126,10 @@ public class VisualizationController extends AbstractCrudController<Visualizatio
   public void postProcessResponseEntities(
       List<Visualization> entityList, WebOptions options, Map<String, String> parameters) {
     if (CollectionUtils.isEmpty(entityList)) return;
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     Set<OrganisationUnit> organisationUnits =
-        currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
+        currentUser.getDataViewOrganisationUnitsWithFallback();
     I18nFormat i18nFormat = i18nManager.getI18nFormat();
     entityList.forEach(
         visualization -> {
@@ -153,8 +157,9 @@ public class VisualizationController extends AbstractCrudController<Visualizatio
     if (visualization != null) {
       visualization.populateAnalyticalProperties();
 
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
       Set<OrganisationUnit> organisationUnits =
-          currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
+          currentUser.getDataViewOrganisationUnitsWithFallback();
 
       for (OrganisationUnit organisationUnit : visualization.getOrganisationUnits()) {
         visualization

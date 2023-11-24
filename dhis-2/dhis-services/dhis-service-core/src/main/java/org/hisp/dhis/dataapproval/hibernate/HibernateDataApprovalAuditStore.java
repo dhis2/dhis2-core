@@ -43,7 +43,9 @@ import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
 import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -58,18 +60,18 @@ public class HibernateDataApprovalAuditStore extends HibernateGenericStore<DataA
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   public HibernateDataApprovalAuditStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService) {
+      UserService userService) {
     super(entityManager, jdbcTemplate, publisher, DataApprovalAudit.class, false);
 
-    checkNotNull(currentUserService);
+    checkNotNull(userService);
 
-    this.currentUserService = currentUserService;
+    this.userService = userService;
   }
 
   // -------------------------------------------------------------------------
@@ -137,7 +139,8 @@ public class HibernateDataApprovalAuditStore extends HibernateGenericStore<DataA
               + "' ";
     }
 
-    Set<OrganisationUnit> userOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    Set<OrganisationUnit> userOrgUnits = currentUser.getOrganisationUnits();
 
     if (!CollectionUtils.isEmpty(userOrgUnits)) {
       hql += hlp.whereAnd() + " (";
