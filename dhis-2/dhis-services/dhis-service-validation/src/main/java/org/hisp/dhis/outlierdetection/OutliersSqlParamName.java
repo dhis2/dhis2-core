@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.outlierdetection;
 
-/**
- * Enum for named params of parametrized sql query
- */
+/** Enum for named params of parametrized sql query */
 public enum OutliersSqlParamName {
   // ZScore (modified ZScore) factor.
   // For example the threshold=3 means all data lying outside 3 sigma (3 * standard deviation)
@@ -38,9 +36,11 @@ public enum OutliersSqlParamName {
   DATA_ELEMENT_IDS("data_element_ids"),
   START_DATE("start_date"),
   END_DATE("end_date"),
-  // start date criteria of statistic data collection (the stats will be based on data starting on this date)
+  // start date criteria of statistic data collection (the stats will be based on data starting on
+  // this date)
   DATA_START_DATE("data_start_date"),
-  // start date criteria of statistic data collection (the stats will be based on data ending on this date)
+  // start date criteria of statistic data collection (the stats will be based on data ending on
+  // this date)
   DATA_END_DATE("data_end_date"),
   MAX_RESULTS("max_results");
   private final String key;
