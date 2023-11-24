@@ -75,7 +75,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -129,7 +129,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final PartitionManager partitionManager;
 
-  protected final DatabaseInfo databaseInfo;
+  private final DatabaseInfoProvider databaseInfoProvider;
+
+  protected Boolean spatialSupport;
 
   protected final JdbcTemplate jdbcTemplate;
 
@@ -138,6 +140,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected final PeriodDataProvider periodDataProvider;
 
   private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
+
+  protected boolean isSpatialSupport() {
+    if (spatialSupport == null)
+      spatialSupport = databaseInfoProvider.getDatabaseInfo().isSpatialSupport();
+    return spatialSupport;
+  }
 
   // -------------------------------------------------------------------------
   // Implementation

@@ -54,6 +54,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,7 +88,7 @@ class DefaultEventAnalyticsServiceTest {
 
   @Mock private EventQueryPlanner queryPlanner;
 
-  @Mock private DatabaseInfo databaseInfo;
+  @Mock private DatabaseInfoProvider databaseInfoProvider;
 
   @Mock private AnalyticsCache analyticsCache;
 
@@ -97,6 +98,7 @@ class DefaultEventAnalyticsServiceTest {
 
   @BeforeEach
   public void setUp() {
+    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
     defaultEventAnalyticsService =
         new DefaultEventAnalyticsService(
             dataElementService,
@@ -106,7 +108,7 @@ class DefaultEventAnalyticsServiceTest {
             securityManager,
             queryPlanner,
             eventQueryValidator,
-            databaseInfo,
+            databaseInfoProvider,
             analyticsCache,
             enrollmentAnalyticsManager,
             schemeIdResponseMapper,

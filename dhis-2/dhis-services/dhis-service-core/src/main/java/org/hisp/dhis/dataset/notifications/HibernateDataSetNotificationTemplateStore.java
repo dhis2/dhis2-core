@@ -32,7 +32,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -70,7 +69,8 @@ public class HibernateDataSetNotificationTemplateStore
   }
 
   @Override
-  public List<DataSetNotificationTemplate> getScheduledNotifications(NotificationTrigger trigger) {
+  public List<DataSetNotificationTemplate> getScheduledNotifications(
+      DataSetNotificationTrigger trigger) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     return getList(

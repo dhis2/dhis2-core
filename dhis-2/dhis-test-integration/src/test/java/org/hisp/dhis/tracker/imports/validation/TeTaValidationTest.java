@@ -79,7 +79,7 @@ class TeTaValidationTest extends TrackerTest {
             FileResourceDomain.DOCUMENT);
     fileResource.setUid("Jzf6hHNP7jx");
     File file = File.createTempFile("file-resource", "test");
-    fileResourceService.saveFileResource(fileResource, file);
+    fileResourceService.asyncSaveFileResource(fileResource, file);
     assertFalse(fileResource.isAssigned());
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_fileresource_data.json");
@@ -105,7 +105,7 @@ class TeTaValidationTest extends TrackerTest {
             FileResourceDomain.DOCUMENT);
     fileResource.setUid("Jzf6hHNP7jx");
     File file = File.createTempFile("file-resource", "test");
-    fileResourceService.saveFileResource(fileResource, file);
+    fileResourceService.asyncSaveFileResource(fileResource, file);
     assertFalse(fileResource.isAssigned());
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_fileresource_data.json");

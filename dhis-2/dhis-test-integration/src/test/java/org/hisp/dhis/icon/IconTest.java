@@ -221,7 +221,7 @@ class IconTest extends TrackerTest {
     fileResource.setCreated(new Date());
     fileResource.setAutoFields();
 
-    String fileResourceUid = fileResourceService.saveFileResource(fileResource, content);
+    String fileResourceUid = fileResourceService.asyncSaveFileResource(fileResource, content);
     return fileResourceService.getFileResource(fileResourceUid);
   }
 

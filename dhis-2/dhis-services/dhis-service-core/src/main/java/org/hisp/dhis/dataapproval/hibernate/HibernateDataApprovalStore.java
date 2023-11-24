@@ -63,7 +63,6 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
@@ -111,8 +110,6 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
   private final StatementBuilder statementBuilder;
 
-  private final OrganisationUnitService organisationUnitService;
-
   public HibernateDataApprovalStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
@@ -122,9 +119,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
       PeriodStore periodStore,
       CategoryService categoryService,
       SystemSettingManager systemSettingManager,
-      StatementBuilder statementBuilder,
-      OrganisationUnitService organisationUnitService,
-      UserService userService) {
+      StatementBuilder statementBuilder) {
     super(entityManager, jdbcTemplate, publisher, DataApproval.class, false);
 
     checkNotNull(cacheProvider);
@@ -134,7 +129,6 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     checkNotNull(categoryService);
     checkNotNull(systemSettingManager);
     checkNotNull(statementBuilder);
-    checkNotNull(organisationUnitService);
 
     this.periodService = periodService;
     this.periodStore = periodStore;
@@ -143,7 +137,6 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     this.systemSettingManager = systemSettingManager;
     this.statementBuilder = statementBuilder;
     this.isApprovedCache = cacheProvider.createIsDataApprovedCache();
-    this.organisationUnitService = organisationUnitService;
   }
 
   // -------------------------------------------------------------------------
@@ -363,7 +356,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
     if (orgUnits != null) {
       for (OrganisationUnit orgUnit : orgUnits) {
-        if (!organisationUnitService.isDescendant(orgUnit, userOrgUnits)) {
+        if (!orgUnit.isDescendant(userOrgUnits)) {
           log.debug(
               "User " + currentUser.getUsername() + " can't see orgUnit " + orgUnit.getName());
 

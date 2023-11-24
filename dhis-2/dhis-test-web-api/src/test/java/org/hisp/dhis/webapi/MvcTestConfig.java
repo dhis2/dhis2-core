@@ -44,10 +44,9 @@ import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.system.SystemInfo;
-import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
@@ -60,7 +59,6 @@ import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConvert
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -195,17 +193,9 @@ public class MvcTestConfig implements WebMvcConfigurer {
     return new DefaultNodeService();
   }
 
-  @Bean("databaseInfo")
-  public DatabaseInfo databaseInfo() {
-    return new DatabaseInfo();
-  }
-
-  @Primary
-  @Bean("systemService")
-  public SystemService systemService() {
-    SystemService systemService = Mockito.mock(SystemService.class);
-    Mockito.when(systemService.getSystemInfo()).thenReturn(new SystemInfo());
-    return systemService;
+  @Bean
+  public DatabaseInfoProvider databaseInfoProvider() {
+    return () -> DatabaseInfo.builder().build();
   }
 
   @Override

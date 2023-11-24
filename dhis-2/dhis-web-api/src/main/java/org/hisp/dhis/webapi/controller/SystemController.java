@@ -234,13 +234,14 @@ public class SystemController {
       HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser User currentUser) {
-    SystemInfo info = systemService.getSystemInfo();
-
-    info.setContextPath(ContextUtils.getContextPath(request));
-    info.setUserAgent(request.getHeader(ContextUtils.HEADER_USER_AGENT));
+    SystemInfo info =
+        systemService.getSystemInfo().toBuilder()
+            .contextPath(ContextUtils.getContextPath(request))
+            .userAgent(request.getHeader(ContextUtils.HEADER_USER_AGENT))
+            .build();
 
     if (!CurrentUserUtil.getCurrentUserDetails().isSuper()) {
-      info.clearSensitiveInfo();
+      info = info.withoutSensitiveInfo();
     }
 
     setNoStore(response);
