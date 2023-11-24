@@ -266,10 +266,10 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
     String function = programIndicatorQueryParts.function();
     String expression = programIndicatorQueryParts.expression();
 
-    String condition = "1=1";
+    String whereCondition = "";
 
     if (StringUtils.isNotBlank(filter)) {
-      condition = condition + " and " + filter;
+      whereCondition = " where " + filter;
     }
     return "select innermost_evt.programinstanceuid, "
         + function
@@ -283,8 +283,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
         + program.getElement().getUid()
         + " as "
         + SUBQUERY_TABLE_ALIAS
-        + " where "
-        + condition
+        + whereCondition
         + ") innermost_evt group by innermost_evt.programinstanceuid";
   }
 
