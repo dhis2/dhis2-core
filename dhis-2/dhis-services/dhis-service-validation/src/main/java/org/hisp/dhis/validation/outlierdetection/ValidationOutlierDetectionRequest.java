@@ -38,6 +38,9 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
+/**
+ * OutlierDetectionRequest validator.
+ */
 @Component
 @AllArgsConstructor
 @Slf4j

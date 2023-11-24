@@ -39,6 +39,9 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.springframework.stereotype.Component;
 
+/**
+ * Parse and transform the incoming query params into the OutlierDetectionRequest.
+ */
 @Component
 @AllArgsConstructor
 public class OutlierDetectionQueryParser {
