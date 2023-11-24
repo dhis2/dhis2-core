@@ -28,7 +28,10 @@
 package org.hisp.dhis.tracker.imports.events;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.Constants;

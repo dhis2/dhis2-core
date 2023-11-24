@@ -27,14 +27,33 @@
  */
 package org.hisp.dhis.system.database;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
-public interface DatabaseInfoProvider {
-  String ID = DatabaseInfoProvider.class.getName();
+@Getter
+@Setter
+@Builder(toBuilder = true)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
+public final class DatabaseInfo {
 
-  DatabaseInfo getDatabaseInfo();
+  @JsonProperty private final String name;
+  @JsonProperty private final String user;
+  @JsonProperty private final String url;
+  @JsonProperty private final String databaseVersion;
+  @JsonProperty private final boolean spatialSupport;
+  @JsonProperty private final Date time;
 
-  boolean isInMemory();
+  public DatabaseInfo withoutSensitiveInfo() {
+    return toBuilder().name(null).user(null).url(null).databaseVersion(null).build();
+  }
 }

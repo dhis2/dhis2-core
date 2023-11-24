@@ -44,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.LinkedList;
 import org.hisp.dhis.common.CodeGenerator;
@@ -111,7 +112,8 @@ class TrackerImportControllerTest {
             csvEventService,
             notifier,
             jobSchedulerService,
-            jobConfigurationService);
+            jobConfigurationService,
+            new ObjectMapper());
 
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)

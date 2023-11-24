@@ -72,6 +72,7 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
@@ -109,6 +110,8 @@ class DataElementOperandControllerTest {
 
   @Mock private CategoryService dataElementCategoryService;
 
+  @Mock private SystemSettingManager systemSettingManager;
+
   private QueryService queryService;
 
   @Mock private CurrentUserService currentUserService;
@@ -124,7 +127,7 @@ class DataElementOperandControllerTest {
     QueryService _queryService =
         new DefaultQueryService(
             new DefaultJpaQueryParser(schemaService),
-            new DefaultQueryPlanner(schemaService),
+            new DefaultQueryPlanner(schemaService, systemSettingManager),
             mock(JpaCriteriaQueryEngine.class),
             new InMemoryQueryEngine<>(schemaService, mock(AclService.class), currentUserService));
     // Use "spy" on queryService, because we want a partial mock: we only

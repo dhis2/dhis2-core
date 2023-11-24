@@ -32,11 +32,10 @@ import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
@@ -102,6 +101,8 @@ public class TrackerImportController {
 
   private final JobConfigurationService jobConfigurationService;
 
+  private final ObjectMapper jsonMapper;
+
   @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage asyncPostJsonTracker(
@@ -134,17 +135,11 @@ public class TrackerImportController {
     JobConfiguration config = new JobConfiguration(JobType.TRACKER_IMPORT_JOB);
     config.setExecutedBy(user.getUid());
     config.setJobParameters(params);
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    ObjectOutputStream oos = new ObjectOutputStream(baos);
 
-    oos.writeObject(trackerObjects);
+    byte[] jsonInput = jsonMapper.writeValueAsBytes(trackerObjects);
 
-    oos.flush();
-    oos.close();
-
-    InputStream is = new ByteArrayInputStream(baos.toByteArray());
-
-    jobSchedulerService.executeNow(jobConfigurationService.create(config, contentType, is));
+    jobSchedulerService.executeNow(
+        jobConfigurationService.create(config, contentType, new ByteArrayInputStream(jsonInput)));
     String jobId = config.getUid();
     String location = ContextUtils.getRootPath(request) + "/tracker/jobs/" + jobId;
     return ok(TRACKER_JOB_ADDED)
