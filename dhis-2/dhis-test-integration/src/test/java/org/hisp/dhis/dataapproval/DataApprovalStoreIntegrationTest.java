@@ -166,7 +166,6 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
             categoryService,
             systemSettingManager,
             new PostgreSQLStatementBuilder(),
-            organisationUnitService,
             userService);
 
     // ---------------------------------------------------------------------

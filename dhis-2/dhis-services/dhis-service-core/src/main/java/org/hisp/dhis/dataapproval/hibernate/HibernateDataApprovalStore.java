@@ -119,7 +119,8 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
       PeriodStore periodStore,
       CategoryService categoryService,
       SystemSettingManager systemSettingManager,
-      StatementBuilder statementBuilder) {
+      StatementBuilder statementBuilder,
+      UserService userService) {
     super(entityManager, jdbcTemplate, publisher, DataApproval.class, false);
 
     checkNotNull(cacheProvider);
