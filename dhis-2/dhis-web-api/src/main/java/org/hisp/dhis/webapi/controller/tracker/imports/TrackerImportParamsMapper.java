@@ -58,7 +58,7 @@ public class TrackerImportParamsMapper {
   private TrackerImportParamsMapper() {}
 
   public static TrackerImportParams trackerImportParams(
-      String userId, TrackerImportRequestParams request) {
+      String userId, ImportRequestParams request) {
     TrackerIdSchemeParam defaultIdSchemeParam = request.getIdScheme();
     TrackerIdSchemeParams idSchemeParams =
         TrackerIdSchemeParams.builder()
