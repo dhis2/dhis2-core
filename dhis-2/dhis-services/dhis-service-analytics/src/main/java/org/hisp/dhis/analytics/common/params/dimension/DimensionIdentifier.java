@@ -131,20 +131,6 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
 
   @Override
   public String getKey() {
-    List<String> keys = new ArrayList<>();
-
-    if (program != null && program.isPresent()) {
-      keys.add(program.getElement().getUid());
-    }
-
-    if (programStage != null && programStage.isPresent()) {
-      keys.add(programStage.getElement().getUid());
-    }
-
-    if (dimension != null) {
-      keys.add(dimension.getUid());
-    }
-
-    return keys.stream().collect(joining("."));
+    return toString();
   }
 }

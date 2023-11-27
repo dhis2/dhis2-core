@@ -46,12 +46,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
  * implementers of {@link org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder}.
  */
 @NoArgsConstructor(access = PRIVATE)
-class ContextUtils {
+class SqlQueryHelper {
   static String enrollmentSelect(
       ElementWithOffset<Program> program,
       TrackedEntityType trackedEntityType,
       SqlParameterManager sqlParameterManager) {
-    int offset = program.hasOffset() ? program.getOffset() : 0;
+    int offset = program.getOffsetWithDefault();
 
     return "select innermost_enr.*"
         + " from (select *,"
@@ -76,7 +76,7 @@ class ContextUtils {
       ElementWithOffset<ProgramStage> programStage,
       TrackedEntityType trackedEntityType,
       SqlParameterManager sqlParameterManager) {
-    int offset = programStage.hasOffset() ? programStage.getOffset() : 0;
+    int offset = programStage.getOffsetWithDefault();
 
     return "select innermost_evt.*"
         + " from (select *,"
