@@ -112,7 +112,7 @@ class TrackedEntityImportRequestParamsMapperTest {
     trackedEntityRequestParams.setEventOccurredBefore(getDate(2020, 7, 7));
     trackedEntityRequestParams.setIncludeDeleted(true);
 
-    final TrackedEntityOperationParams params = mapper.map(requestParams, user);
+    final TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
     assertThat(params.getProgramUid(), is(PROGRAM_UID));
     assertThat(params.getProgramStageUid(), is(PROGRAM_STAGE_UID));
@@ -136,25 +136,28 @@ class TrackedEntityImportRequestParamsMapperTest {
   @Test
   void shouldMapCorrectlyWhenTrackedEntityAndSpecificUpdatedRangeSupplied()
       throws BadRequestException {
-    requestParams.setOuMode(CAPTURE);
-    requestParams.setUpdatedWithin("20h");
-    requestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
-    requestParams.setEventStatus(EventStatus.COMPLETED);
-    requestParams.setEventOccurredAfter(getDate(2019, 7, 7));
-    requestParams.setEventOccurredBefore(getDate(2020, 7, 7));
-    requestParams.setIncludeDeleted(true);
+    trackedEntityRequestParams.setOuMode(CAPTURE);
+    trackedEntityRequestParams.setUpdatedWithin("20h");
+    trackedEntityRequestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
+    trackedEntityRequestParams.setEventStatus(EventStatus.COMPLETED);
+    trackedEntityRequestParams.setEventOccurredAfter(getDate(2019, 7, 7));
+    trackedEntityRequestParams.setEventOccurredBefore(getDate(2020, 7, 7));
+    trackedEntityRequestParams.setIncludeDeleted(true);
 
-    final TrackedEntityOperationParams params = mapper.map(requestParams, user);
+    final TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
     assertThat(params.getTrackedEntityTypeUid(), is(TRACKED_ENTITY_TYPE_UID));
-    assertThat(params.getLastUpdatedStartDate(), is(requestParams.getUpdatedAfter()));
-    assertThat(params.getLastUpdatedEndDate(), is(requestParams.getUpdatedBefore()));
+    assertThat(params.getLastUpdatedStartDate(), is(trackedEntityRequestParams.getUpdatedAfter()));
+    assertThat(params.getLastUpdatedEndDate(), is(trackedEntityRequestParams.getUpdatedBefore()));
     assertThat(
-        params.getProgramIncidentStartDate(), is(requestParams.getEnrollmentOccurredAfter()));
-    assertThat(params.getProgramIncidentEndDate(), is(requestParams.getEnrollmentOccurredBefore()));
+        params.getProgramIncidentStartDate(),
+        is(trackedEntityRequestParams.getEnrollmentOccurredAfter()));
+    assertThat(
+        params.getProgramIncidentEndDate(),
+        is(trackedEntityRequestParams.getEnrollmentOccurredBefore()));
     assertThat(params.getEventStatus(), is(EventStatus.COMPLETED));
-    assertThat(params.getEventStartDate(), is(requestParams.getEventOccurredAfter()));
-    assertThat(params.getEventEndDate(), is(requestParams.getEventOccurredBefore()));
+    assertThat(params.getEventStartDate(), is(trackedEntityRequestParams.getEventOccurredAfter()));
+    assertThat(params.getEventEndDate(), is(trackedEntityRequestParams.getEventOccurredBefore()));
     assertThat(
         params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
     assertThat(params.isIncludeDeleted(), is(true));

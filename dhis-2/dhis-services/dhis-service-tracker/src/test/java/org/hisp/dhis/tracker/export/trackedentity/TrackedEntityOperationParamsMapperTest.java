@@ -117,6 +117,8 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Mock private AclService aclService;
 
+  @Mock private HibernateTrackedEntityStore store;
+
   @InjectMocks private TrackedEntityOperationParamsMapper mapper;
 
   private User user;
@@ -138,7 +140,7 @@ class TrackedEntityOperationParamsMapperTest {
     orgUnit2 = new OrganisationUnit("orgUnit2");
     orgUnit2.setUid(ORG_UNIT_2_UID);
     user = new User();
-    user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
+    user.setOrganisationUnits(Set.of(orgUnit1, orgUnit2));
 
     when(currentUserService.getCurrentUser()).thenReturn(user);
 
