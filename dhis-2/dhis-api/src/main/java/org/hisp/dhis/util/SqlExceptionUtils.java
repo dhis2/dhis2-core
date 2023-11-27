@@ -25,44 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.util;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.sql.SQLException;
+import java.util.Optional;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-import lombok.Data;
-import org.junit.jupiter.api.Test;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class SqlExceptionUtils {
+  public static final String ERR_MSG_TABLE_NOT_EXISTING =
+      "Query failed, likely because the requested analytics table does not exist: ";
 
-class PageRequestParamsTest {
+  public static final String ERR_MSG_SQL_SYNTAX_ERROR =
+      "An error occurred during the execution of an analytics query: ";
 
-  @Data
-  private static class PaginationParameters implements PageRequestParams {
-    private Integer page;
-    private Integer pageSize;
-    private Boolean totalPages;
-    private Boolean skipPaging;
-  }
+  public static final String ERR_MSG_SILENT_FALLBACK =
+      "An exception occurred - silently fallback since it's multiple analytics query: ";
 
-  @Test
-  void shouldBePagedIfSkipPagingIsNull() {
-    PaginationParameters parameters = new PaginationParameters();
+  /**
+   * Utility method to detect if the {@link SQLException} refers to a missing relation in the
+   * database.
+   *
+   * @param ex a {@link SQLException} to analyze
+   * @return true if the error is a missing relation error, false otherwise
+   */
+  public static boolean relationDoesNotExist(SQLException ex) {
+    if (ex != null) {
+      return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
+    }
 
-    assertTrue(parameters.isPaged());
-  }
-
-  @Test
-  void shouldBePagedIfSkipPagingIsTrue() {
-    PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(true);
-
-    assertTrue(parameters.isPaged());
-  }
-
-  @Test
-  void shouldBeUnpagedIfSkipPagingIsTrue() {
-    PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(false);
-
-    assertFalse(parameters.isPaged());
+    return false;
   }
 }

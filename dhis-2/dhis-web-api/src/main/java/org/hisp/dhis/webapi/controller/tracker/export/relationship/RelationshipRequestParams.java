@@ -25,98 +25,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
+package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 
-/** Represents query parameters sent to {@link EnrollmentsExportController}. */
-@OpenApi.Shared(name = "EnrollmentRequestParams")
+@OpenApi.Shared(name = "RelationshipRequestParams")
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-class RequestParams implements PageRequestParams {
-  static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
+public class RelationshipRequestParams implements PageRequestParams {
+  static final String DEFAULT_FIELDS_PARAM =
+      "relationship,relationshipType,createdAtClient,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
 
+  @OpenApi.Property(defaultValue = "1")
   private Integer page;
+
+  @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
-  private Boolean totalPages;
-  private Boolean skipPaging;
+
+  @OpenApi.Property(defaultValue = "false")
+  private Boolean totalPages = false;
+
+  private Boolean skipPaging = false;
 
   private List<OrderCriteria> order = new ArrayList<>();
 
   /**
-   * Semicolon-delimited list of organisation unit UIDs.
-   *
-   * @deprecated use {@link #orgUnits} instead which is comma instead of semicolon separated.
+   * @deprecated use {@link #trackedEntity} instead
    */
   @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, OrganisationUnit.class})
-  private String orgUnit;
-
-  @OpenApi.Property({UID[].class, OrganisationUnit.class})
-  private Set<UID> orgUnits = new HashSet<>();
-
-  /**
-   * @deprecated use {@link #orgUnitMode} instead.
-   */
-  @Deprecated(since = "2.41")
-  private OrganisationUnitSelectionMode ouMode;
-
-  private OrganisationUnitSelectionMode orgUnitMode;
-
-  @OpenApi.Property({UID.class, Program.class})
-  private UID program;
-
-  private ProgramStatus programStatus;
-
-  private Boolean followUp;
-
-  private Date updatedAfter;
-
-  private String updatedWithin;
-
-  private Date enrolledAfter;
-
-  private Date enrolledBefore;
-
-  @OpenApi.Property({UID.class, TrackedEntityType.class})
-  private UID trackedEntityType;
+  @OpenApi.Property({UID.class, TrackedEntity.class})
+  private UID tei;
 
   @OpenApi.Property({UID.class, TrackedEntity.class})
   private UID trackedEntity;
 
-  /**
-   * Semicolon-delimited list of enrollment UIDs.
-   *
-   * @deprecated use {@link #enrollments} instead which is comma instead of semicolon separated.
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, Enrollment.class})
-  private String enrollment;
+  @OpenApi.Property({UID.class, Enrollment.class})
+  private UID enrollment;
 
-  @OpenApi.Property({UID[].class, Enrollment.class})
-  private Set<UID> enrollments = new HashSet<>();
-
-  private boolean includeDeleted;
+  @OpenApi.Property({UID.class, Event.class})
+  private UID event;
 
   @OpenApi.Property(value = String[].class)
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);

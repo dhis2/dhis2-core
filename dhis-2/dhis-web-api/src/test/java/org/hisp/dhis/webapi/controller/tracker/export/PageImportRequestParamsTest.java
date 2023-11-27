@@ -27,46 +27,42 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.Objects;
-import org.hisp.dhis.common.OpenApi;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * {@link PageRequestParams} represent the HTTP request parameters that configure whether it is
- * paginated or not. Tracker supports disabling pagination via {@code skipPaging=true} and enabling
- * pagination via {@code skipPaging=false} and any of the other pagination related parameters.
- * Enabling and disabling parameters are mutually exclusive. We can thus not set default values in
- * our {@code RequestParams} classes as we would not be able to discern a user supplied parameter
- * value from a default value.
- *
- * <p>{@code totalPages=true} is only supported on paginated responses.
- */
-public interface PageRequestParams {
-  /** Returns the page number to be returned. */
-  Integer getPage();
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
-  /** Returns the number of items to be returned. */
-  Integer getPageSize();
+class PageImportRequestParamsTest {
 
-  /** Indicates whether to include the total number of items and pages in the paginated response. */
-  Boolean getTotalPages();
-
-  /**
-   * Indicates whether to return all items {@code skipPaging=true} or a page of items {@code
-   * skipPaging=false}.
-   */
-  Boolean getSkipPaging();
-
-  /**
-   * Indicates whether to return a page of items or all items. By default, responses are paginated.
-   */
-  @OpenApi.Ignore
-  default boolean isPaged() {
-    return Objects.requireNonNullElse(getSkipPaging(), true);
+  @Data
+  private static class PaginationParameters implements PageRequestParams {
+    private Integer page;
+    private Integer pageSize;
+    private Boolean totalPages;
+    private Boolean skipPaging;
   }
 
-  /** Indicates whether to include the total number of items and pages in the paginated response. */
-  @OpenApi.Ignore
-  default boolean isPageTotal() {
-    return Boolean.TRUE.equals(getTotalPages());
+  @Test
+  void shouldBePagedIfSkipPagingIsNull() {
+    PaginationParameters parameters = new PaginationParameters();
+
+    assertTrue(parameters.isPaged());
+  }
+
+  @Test
+  void shouldBePagedIfSkipPagingIsTrue() {
+    PaginationParameters parameters = new PaginationParameters();
+    parameters.setSkipPaging(true);
+
+    assertTrue(parameters.isPaged());
+  }
+
+  @Test
+  void shouldBeUnpagedIfSkipPagingIsTrue() {
+    PaginationParameters parameters = new PaginationParameters();
+    parameters.setSkipPaging(false);
+
+    assertFalse(parameters.isPaged());
   }
 }

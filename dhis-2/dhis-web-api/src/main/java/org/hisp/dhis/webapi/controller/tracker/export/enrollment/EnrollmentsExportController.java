@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
-import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.RequestParams.DEFAULT_FIELDS_PARAM;
+import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -97,15 +97,17 @@ class EnrollmentsExportController {
 
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  PagingWrapper<ObjectNode> getEnrollments(RequestParams requestParams)
+  PagingWrapper<ObjectNode> getEnrollments(EnrollmentRequestParams enrollmentRequestParams)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    validatePaginationParameters(requestParams);
-    EnrollmentOperationParams operationParams = paramsMapper.map(requestParams);
+    validatePaginationParameters(enrollmentRequestParams);
+    EnrollmentOperationParams operationParams = paramsMapper.map(enrollmentRequestParams);
 
-    if (requestParams.isPaged()) {
+    if (enrollmentRequestParams.isPaged()) {
       PageParams pageParams =
           new PageParams(
-              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
+              enrollmentRequestParams.getPage(),
+              enrollmentRequestParams.getPageSize(),
+              enrollmentRequestParams.getTotalPages());
 
       Page<org.hisp.dhis.program.Enrollment> enrollmentPage =
           enrollmentService.getEnrollments(operationParams, pageParams);
@@ -115,7 +117,7 @@ class EnrollmentsExportController {
               .page(enrollmentPage.getPager().getPage())
               .pageSize(enrollmentPage.getPager().getPageSize());
 
-      if (requestParams.isPageTotal()) {
+      if (enrollmentRequestParams.isPageTotal()) {
         pagerBuilder
             .pageCount(enrollmentPage.getPager().getPageCount())
             .total(enrollmentPage.getPager().getTotal());
@@ -126,7 +128,7 @@ class EnrollmentsExportController {
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(
               ENROLLMENT_MAPPER.fromCollection(enrollmentPage.getItems()),
-              requestParams.getFields());
+              enrollmentRequestParams.getFields());
       return pagingWrapper.withInstances(objectNodes);
     }
 
@@ -134,7 +136,7 @@ class EnrollmentsExportController {
         enrollmentService.getEnrollments(operationParams);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
-            ENROLLMENT_MAPPER.fromCollection(enrollments), requestParams.getFields());
+            ENROLLMENT_MAPPER.fromCollection(enrollments), enrollmentRequestParams.getFields());
     PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
     return pagingWrapper.withInstances(objectNodes);
   }

@@ -31,7 +31,7 @@ import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
-import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RequestParams.DEFAULT_FIELDS_PARAM;
+import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -96,15 +96,17 @@ class RelationshipsExportController {
 
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping
-  PagingWrapper<ObjectNode> getRelationships(RequestParams requestParams)
+  PagingWrapper<ObjectNode> getRelationships(RelationshipRequestParams relationshipRequestParams)
       throws NotFoundException, BadRequestException, ForbiddenException {
-    validatePaginationParameters(requestParams);
-    RelationshipOperationParams operationParams = mapper.map(requestParams);
+    validatePaginationParameters(relationshipRequestParams);
+    RelationshipOperationParams operationParams = mapper.map(relationshipRequestParams);
 
-    if (requestParams.isPaged()) {
+    if (relationshipRequestParams.isPaged()) {
       PageParams pageParams =
           new PageParams(
-              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
+              relationshipRequestParams.getPage(),
+              relationshipRequestParams.getPageSize(),
+              relationshipRequestParams.getTotalPages());
 
       Page<org.hisp.dhis.relationship.Relationship> relationshipsPage =
           relationshipService.getRelationships(operationParams, pageParams);
@@ -114,7 +116,7 @@ class RelationshipsExportController {
               .page(relationshipsPage.getPager().getPage())
               .pageSize(relationshipsPage.getPager().getPageSize());
 
-      if (requestParams.isPageTotal()) {
+      if (relationshipRequestParams.isPageTotal()) {
         pagerBuilder
             .pageCount(relationshipsPage.getPager().getPageCount())
             .total(relationshipsPage.getPager().getTotal());
@@ -125,7 +127,7 @@ class RelationshipsExportController {
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(
               RELATIONSHIP_MAPPER.fromCollection(relationshipsPage.getItems()),
-              requestParams.getFields());
+              relationshipRequestParams.getFields());
       return pagingWrapper.withInstances(objectNodes);
     }
 
@@ -133,7 +135,8 @@ class RelationshipsExportController {
         relationshipService.getRelationships(operationParams);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
-            RELATIONSHIP_MAPPER.fromCollection(relationships), requestParams.getFields());
+            RELATIONSHIP_MAPPER.fromCollection(relationships),
+            relationshipRequestParams.getFields());
 
     PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
     return pagingWrapper.withInstances(objectNodes);

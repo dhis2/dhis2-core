@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.outlierdetection.processor;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
-/**
- * @author Lars Helge Overland
- */
-@Getter
-@Setter
-@NoArgsConstructor
-public class ContinuousAnalyticsJobParameters implements JobParameters {
-  /** The hour of day at which the full analytics table update will be invoked. */
-  @JsonProperty private Integer fullUpdateHourOfDay = 0;
+public interface OutlierSqlStatementProcessor {
 
-  /** The number of last years of data to include in the full analytics table update. */
-  @JsonProperty private Integer lastYears;
+  /**
+   * Creates a parametrised SQL statement for outliers.
+   *
+   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @return SQL statement as a string.
+   */
+  String getSqlStatement(OutlierDetectionRequest request);
 
-  /** The types of analytics tables for which to skip update. */
-  @JsonProperty private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
-
-  /** Outliers statistics columns of Analytics tables will be skipped. */
-  @JsonProperty private Boolean skipOutliers = false;
-
-  public ContinuousAnalyticsJobParameters(
-      Integer fullUpdateHourOfDay,
-      Integer lastYears,
-      Set<AnalyticsTableType> skipTableTypes,
-      Boolean skipOutliers) {
-    this.fullUpdateHourOfDay = fullUpdateHourOfDay;
-    this.lastYears = lastYears;
-    this.skipTableTypes = skipTableTypes;
-    this.skipOutliers = skipOutliers;
-  }
+  /**
+   * Retrieve SQL parameters for outliers SQL statement
+   *
+   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @return teh instance of {@link SqlParameterSource}.
+   */
+  SqlParameterSource getSqlParameterSource(OutlierDetectionRequest request);
 }
