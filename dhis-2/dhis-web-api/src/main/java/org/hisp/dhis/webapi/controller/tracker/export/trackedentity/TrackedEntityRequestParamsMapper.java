@@ -104,8 +104,7 @@ class TrackedEntityRequestParamsMapper {
             "trackedEntity",
             trackedEntityRequestParams.getTrackedEntity(),
             "trackedEntities",
-
-    trackedEntityRequestParams.getTrackedEntities());
+            trackedEntityRequestParams.getTrackedEntities());
     validateOrderParams(trackedEntityRequestParams.getOrder(), ORDERABLE_FIELD_NAMES, "attribute");
     validateRequestParams(requestParams);
 
