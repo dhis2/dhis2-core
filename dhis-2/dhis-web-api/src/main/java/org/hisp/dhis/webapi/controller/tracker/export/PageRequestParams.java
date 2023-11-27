@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.Objects;
 import org.hisp.dhis.common.OpenApi;
 
 /**
@@ -61,7 +60,7 @@ public interface PageRequestParams {
    */
   @OpenApi.Ignore
   default boolean isPaged() {
-    return Objects.requireNonNullElse(getSkipPaging(), true);
+    return !Boolean.TRUE.equals(getSkipPaging());
   }
 
   /** Indicates whether to include the total number of items and pages in the paginated response. */
