@@ -404,7 +404,7 @@ public class RequestParamsValidator {
 
   public static void validatePaginationParameters(PageRequestParams params)
       throws BadRequestException {
-    if (Boolean.TRUE.equals(params.getSkipPaging())
+    if (!params.isPaged()
         && (ObjectUtils.firstNonNull(params.getPage(), params.getPageSize()) != null
             || Boolean.TRUE.equals(params.getTotalPages()))) {
       throw new BadRequestException(

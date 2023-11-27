@@ -51,9 +51,9 @@ class PageImportRequestParamsTest {
   }
 
   @Test
-  void shouldBePagedIfSkipPagingIsTrue() {
+  void shouldBePagedIfSkipPagingIsFalse() {
     PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(true);
+    parameters.setSkipPaging(false);
 
     assertTrue(parameters.isPaged());
   }
@@ -61,7 +61,7 @@ class PageImportRequestParamsTest {
   @Test
   void shouldBeUnpagedIfSkipPagingIsTrue() {
     PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(false);
+    parameters.setSkipPaging(true);
 
     assertFalse(parameters.isPaged());
   }
