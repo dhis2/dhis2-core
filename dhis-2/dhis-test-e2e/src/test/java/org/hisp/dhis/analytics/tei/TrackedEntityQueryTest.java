@@ -2695,4 +2695,60 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "",
             "COMPLETED"));
   }
+
+  @Test
+  public void queryProgramIndicator() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("program=IpHINAT79UW")
+            .add(
+                "dimension=IpHINAT79UW.GxdhnY5wmHq,w75KJ2mc4zz:eq:Justin,zDhUuAYrxNC:eq:Hayes,ou:eqPIdr5yD1Q")
+            .add("desc=IpHINAT79UW.GxdhnY5wmHq")
+            .add("lastUpdated=LAST_YEAR")
+            .add("relativePeriodDate=2016-01-01");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
+        .body("width", equalTo(17))
+        .body("headerWidth", equalTo(17))
+        .body("headers", hasSize(equalTo(17)))
+        .body("metaData.pager.page", equalTo(1))
+        .body("metaData.pager.pageSize", equalTo(50))
+        .body("metaData.pager.isLastPage", is(true))
+        .body("metaData.pager", not(hasKey("total")))
+        .body("metaData.pager", not(hasKey("pageCount")))
+        .body("metaData.dimensions", hasKey("pe"));
+
+    // Validate the first row, as samples.
+
+    validateRow(
+        response,
+        0,
+        List.of(
+            "a04hYxjC8lM",
+            "2015-08-06 21:20:52.547",
+            "",
+            "2015-08-06 21:20:52.547",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Rokolon MCHP",
+            "OU_707826",
+            "Sierra Leone / Moyamba / Ribbi / Rokolon MCHP",
+            "Justin",
+            "Hayes",
+            "Male",
+            "",
+            "2994.5"));
+  }
 }
