@@ -31,7 +31,7 @@ import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
-import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.RequestParams.DEFAULT_FIELDS_PARAM;
+import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_ZIP;
@@ -132,14 +132,17 @@ class TrackedEntitiesExportController {
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   PagingWrapper<ObjectNode> getTrackedEntities(
-      RequestParams requestParams, @CurrentUser User currentUser)
+      TrackedEntityRequestParams trackedEntityRequestParams, @CurrentUser User currentUser)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    validatePaginationParameters(requestParams);
-    TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
-    if (requestParams.isPaged()) {
+    validatePaginationParameters(trackedEntityRequestParams);
+    TrackedEntityOperationParams operationParams =
+        paramsMapper.map(trackedEntityRequestParams, currentUser);
+    if (trackedEntityRequestParams.isPaged()) {
       PageParams pageParams =
           new PageParams(
-              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
+              trackedEntityRequestParams.getPage(),
+              trackedEntityRequestParams.getPageSize(),
+              trackedEntityRequestParams.getTotalPages());
 
       Page<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntityPage =
           trackedEntityService.getTrackedEntities(operationParams, pageParams);
@@ -149,7 +152,7 @@ class TrackedEntitiesExportController {
               .page(trackedEntityPage.getPager().getPage())
               .pageSize(trackedEntityPage.getPager().getPageSize());
 
-      if (requestParams.isPageTotal()) {
+      if (trackedEntityRequestParams.isPageTotal()) {
         pagerBuilder
             .pageCount(trackedEntityPage.getPager().getPageCount())
             .total(trackedEntityPage.getPager().getTotal());
@@ -160,7 +163,7 @@ class TrackedEntitiesExportController {
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(
               TRACKED_ENTITY_MAPPER.fromCollection(trackedEntityPage.getItems()),
-              requestParams.getFields());
+              trackedEntityRequestParams.getFields());
       return pagingWrapper.withInstances(objectNodes);
     }
 
@@ -168,7 +171,8 @@ class TrackedEntitiesExportController {
         trackedEntityService.getTrackedEntities(operationParams);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
-            TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities), requestParams.getFields());
+            TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities),
+            trackedEntityRequestParams.getFields());
     PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
     return pagingWrapper.withInstances(objectNodes);
   }
@@ -181,14 +185,14 @@ class TrackedEntitiesExportController {
         CONTENT_TYPE_TEXT_CSV
       })
   void getTrackedEntitiesAsCsv(
-      RequestParams requestParams,
+      TrackedEntityRequestParams trackedEntityRequestParams,
       HttpServletResponse response,
       HttpServletRequest request,
       @CurrentUser User user,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
       throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams operationParams =
-        paramsMapper.map(requestParams, user, CSV_FIELDS);
+        paramsMapper.map(trackedEntityRequestParams, user, CSV_FIELDS);
 
     List<TrackedEntity> trackedEntities =
         TRACKED_ENTITY_MAPPER.fromCollection(

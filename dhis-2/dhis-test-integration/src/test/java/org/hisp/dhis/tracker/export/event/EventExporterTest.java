@@ -76,6 +76,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -177,6 +178,62 @@ class EventExporterTest extends TrackerTest {
     assertAll(
         () -> assertNote(importUser, "comment value", notes.get(0)),
         () -> assertNote(importUser, "comment value", notes.get(1)));
+  }
+
+  @Test
+  void shouldOrderEventsByCreatedAtClientInAscOrder()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .programStageUid(programStage.getUid())
+            .orderBy("createdAtClient", SortDirection.ASC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByCreatedAtClientInDescOrder()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .programStageUid(programStage.getUid())
+            .orderBy("createdAtClient", SortDirection.DESC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByUpdatedAtClientInAscOrder()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .programStageUid(programStage.getUid())
+            .orderBy("lastUpdatedAtClient", SortDirection.ASC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByUpdatedAtClientInDescOrder()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .programStageUid(programStage.getUid())
+            .orderBy("lastUpdatedAtClient", SortDirection.DESC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
   @Test
