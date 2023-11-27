@@ -221,7 +221,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     eventToEventType.getSharing().setOwner(user);
     manager.save(eventToEventType, false);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   @Test

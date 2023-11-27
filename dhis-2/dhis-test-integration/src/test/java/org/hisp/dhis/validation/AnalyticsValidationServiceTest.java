@@ -281,7 +281,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
     runner.setAnalyticsService(mockAnalyticsSerivce);
 
     User user = createAndAddUser(Sets.newHashSet(orgUnitA), null);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   @Override

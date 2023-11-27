@@ -29,12 +29,13 @@ package org.hisp.dhis.fieldfilter;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.hisp.dhis.user.CurrentUserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public final class FieldFilterParams {
-  private String username;
+  private CurrentUserDetails userDetails;
 
   /** List of object(s) to filter through. If more than one, a wrapper is required. */
   private List<?> objects = new ArrayList<>();
@@ -66,12 +67,12 @@ public final class FieldFilterParams {
     this.skipSharing = skipSharing;
   }
 
-  public String getUsername() {
-    return username;
+  public CurrentUserDetails getUserDetails() {
+    return userDetails;
   }
 
-  public void setUsername(String username) {
-    this.username = username;
+  public void setUserDetails(CurrentUserDetails userDetails) {
+    this.userDetails = userDetails;
   }
 
   public List<?> getObjects() {

@@ -140,7 +140,8 @@ public class HibernateDataApprovalAuditStore extends HibernateGenericStore<DataA
     }
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    Set<OrganisationUnit> userOrgUnits = currentUser.getOrganisationUnits();
+    Set<OrganisationUnit> userOrgUnits =
+        currentUser != null ? currentUser.getOrganisationUnits() : null;
 
     if (!CollectionUtils.isEmpty(userOrgUnits)) {
       hql += hlp.whereAnd() + " (";

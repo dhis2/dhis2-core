@@ -104,7 +104,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
     doInTransaction(
         () -> {
           superUser = preCreateInjectAdminUser();
-          injectSecurityContext(superUser);
+          injectSecurityContextUser(superUser);
 
           nonSuperUser = createUserWithAuth("testUser2");
           nonSuperUser.addOrganisationUnit(organisationUnitA);
@@ -132,7 +132,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
   @Test
   void testTrackedEntityInstanceIncludeAllAttributesEnrollmentsEventsRelationshipsOwners() {
     populatePrerequisites(true);
-    injectSecurityContext(nonSuperUser);
+    injectSecurityContextUser(nonSuperUser);
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
     queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
@@ -147,7 +147,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
   @Test
   void testTrackedEntityInstanceIncludeAllAttributesInProtectedProgramNoAccess() {
     populatePrerequisites(true);
-    injectSecurityContext(nonSuperUser);
+    injectSecurityContextUser(nonSuperUser);
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
     queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
@@ -161,7 +161,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
   @Test
   void testTrackedEntityInstanceIncludeSpecificProtectedProgram() {
     populatePrerequisites(false);
-    injectSecurityContext(nonSuperUser);
+    injectSecurityContextUser(nonSuperUser);
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
     queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setProgram(programB);
@@ -175,7 +175,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
   @Test
   void testTrackedEntityInstanceIncludeSpecificOpenProgram() {
     populatePrerequisites(false);
-    injectSecurityContext(nonSuperUser);
+    injectSecurityContextUser(nonSuperUser);
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
     queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setProgram(programA);

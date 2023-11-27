@@ -235,7 +235,7 @@ class ValidationServiceTest extends IntegrationTestBase {
   public void setUpTest() throws Exception {
     this.userService = injectUserService;
     User user = createAndAddUser(true, "SUPERUSER", allSources, null);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     ptWeekly = new WeeklyPeriodType();
     ptMonthly = new MonthlyPeriodType();

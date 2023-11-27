@@ -311,7 +311,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase {
 
     userService.addUser(user);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   // -------------------------------------------------------------------------

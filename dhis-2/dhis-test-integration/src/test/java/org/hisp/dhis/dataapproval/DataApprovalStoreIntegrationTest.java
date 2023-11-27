@@ -267,7 +267,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
           dataApprovalLevelService.addDataApprovalLevel(level1);
 
-          injectSecurityContext(userA);
+          injectSecurityContextUser(userA);
 
           //          Mockito.when(getCurrentUser()).thenReturn(userA);
 
@@ -492,6 +492,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
     dataApprovalLevelService.addDataApprovalLevel(level1);
 
     //    Mockito.when(getCurrentUser()).thenReturn(userA);
+    injectSecurityContextUser(userA);
 
     assertEquals(
         expectedApprovalCount,

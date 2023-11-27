@@ -77,7 +77,7 @@ class TrackedEntityAttributesAggregateAclTest extends TrackerTest {
     final String tetUid = CodeGenerator.generateUid();
     doInTransaction(
         () -> {
-          injectSecurityContext(superUser);
+          injectSecurityContextUser(superUser);
           TrackedEntityType trackedEntityTypeZ = createTrackedEntityType('Z');
           trackedEntityTypeZ.setUid(tetUid);
           trackedEntityTypeZ.setName("TrackedEntityTypeZ" + trackedEntityTypeZ.getUid());

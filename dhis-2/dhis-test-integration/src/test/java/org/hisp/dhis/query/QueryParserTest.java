@@ -69,7 +69,7 @@ class QueryParserTest extends IntegrationTestBase {
     user.addOrganisationUnit(orgUnitA);
     userService.updateUser(user);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     queryParser = new DefaultJpaQueryParser(schemaService);
   }

@@ -91,7 +91,7 @@ public abstract class DhisWebSpringTest extends DhisConvenienceTest {
     clearSecurityContext();
 
     User all = createAndAddAdminUser("ALL");
-    injectSecurityContext(all);
+    injectSecurityContextUser(all);
 
     CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
     characterEncodingFilter.setEncoding("UTF-8");

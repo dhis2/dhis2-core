@@ -82,7 +82,7 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
     User user = createUser(new HashSet<>(Collections.singletonList(ou)), UserRole.AUTHORITY_ALL);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
@@ -130,7 +130,7 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
     User user = createAndAddUser(true, "userB", ou, "F_TRACKED_ENTITY_MERGE");
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     Sharing sharing = getUserSharing(user, AccessStringHelper.FULL);
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);

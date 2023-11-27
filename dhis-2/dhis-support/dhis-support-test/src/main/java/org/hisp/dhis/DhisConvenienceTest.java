@@ -2534,7 +2534,7 @@ public abstract class DhisConvenienceTest {
 
     userService.addUser(user);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     return user;
   }
@@ -2616,15 +2616,15 @@ public abstract class DhisConvenienceTest {
 
   protected final User createAndInjectAdminUser(String... authorities) {
     User user = createAndAddAdminUser(authorities);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     return user;
   }
 
   protected void injectAdminUser() {
-    injectSecurityContext(userService.getUser(ADMIN_USER_UID));
+    injectSecurityContextUser(userService.getUser(ADMIN_USER_UID));
   }
 
-  protected void injectSecurityContext(User user) {
+  protected void injectSecurityContextUser(User user) {
     if (user == null) {
       clearSecurityContext();
       return;

@@ -62,7 +62,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
   public void setUpTest() {
     super.userService = this.userService;
     User user = createUserWithAuth("testUser");
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   @Test

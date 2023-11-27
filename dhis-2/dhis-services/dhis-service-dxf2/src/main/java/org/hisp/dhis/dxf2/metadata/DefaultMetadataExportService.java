@@ -179,7 +179,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
                 orderParams.getOrders(schemaService.getDynamicSchema(klass)));
       }
 
-      if (query.getCurrentUserDetails() == null) {
+      if (query.getCurrentUserDetails() == null && params.getCurrentUserDetails() != null) {
         query.setCurrentUserDetails(params.getCurrentUserDetails());
       }
 
@@ -190,21 +190,23 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
       if (!objects.isEmpty()) {
         log.info(
-            "("
-                + params.getCurrentUserDetails().getUsername()
-                + ") Exported "
-                + objects.size()
-                + " objects of type "
-                + klass.getSimpleName());
+            "(" + params.getCurrentUserDetails() == null
+                ? "system-process"
+                : params.getCurrentUserDetails().getUsername()
+                    + ") Exported "
+                    + objects.size()
+                    + " objects of type "
+                    + klass.getSimpleName());
         metadata.put(klass, objects);
       }
     }
 
     log.info(
-        "("
-            + params.getCurrentUserDetails().getUsername()
-            + ") Export:Done took "
-            + timer.toString());
+        "(" + params.getCurrentUserDetails() == null
+            ? "system-process"
+            : params.getCurrentUserDetails().getUsername()
+                + ") Export:Done took "
+                + timer.toString());
 
     return metadata;
   }

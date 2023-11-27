@@ -175,7 +175,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     params.setUserId(user.getUid());
     params.setUserId(user.getUid());
     user.setPassword("user4password");
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
   }

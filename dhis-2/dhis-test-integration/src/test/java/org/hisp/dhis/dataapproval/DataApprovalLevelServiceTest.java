@@ -387,7 +387,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     dataViewOrgUnits.add(organisationUnitB);
 
     User cu = createAndAddUser(assignedOrgUnits, dataViewOrgUnits);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     Map<OrganisationUnit, Integer> readApprovalLevels =
         dataApprovalLevelService.getUserReadApprovalLevels();
@@ -421,7 +421,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     User cu =
         createAndAddUser(
             assignedOrgUnits, dataViewOrgUnits, DataApproval.AUTH_APPROVE_LOWER_LEVELS);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     Map<OrganisationUnit, Integer> readApprovalLevels =
         dataApprovalLevelService.getUserReadApprovalLevels();
@@ -464,7 +464,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     dataViewOrgUnits.add(organisationUnitB);
 
     User cu = createAndAddUser(assignedOrgUnits, dataViewOrgUnits);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     Map<OrganisationUnit, Integer> readApprovalLevels =
         dataApprovalLevelService.getUserReadApprovalLevels();
@@ -500,7 +500,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     dataViewOrgUnits.add(organisationUnitB);
 
     User cu = createAndAddUser(assignedOrgUnits, dataViewOrgUnits);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     Map<OrganisationUnit, Integer> readApprovalLevels =
         dataApprovalLevelService.getUserReadApprovalLevels();
@@ -532,7 +532,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     dataViewOrgUnits.add(organisationUnitB);
 
     User cu = createAndAddUser(assignedOrgUnits, dataViewOrgUnits, DataApproval.AUTH_APPROVE);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     List<DataApprovalLevel> levels =
         dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());
@@ -561,7 +561,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     User cu =
         createAndAddUser(
             assignedOrgUnits, dataViewOrgUnits, DataApproval.AUTH_APPROVE_LOWER_LEVELS);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     List<DataApprovalLevel> levels =
         dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());
@@ -593,7 +593,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
             dataViewOrgUnits,
             DataApproval.AUTH_APPROVE,
             DataApproval.AUTH_APPROVE_LOWER_LEVELS);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     List<DataApprovalLevel> levels =
         dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());
@@ -621,7 +621,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
 
     User cu =
         createAndAddUser(assignedOrgUnits, dataViewOrgUnits, DataApproval.AUTH_ACCEPT_LOWER_LEVELS);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     List<DataApprovalLevel> levels =
         dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());
@@ -638,7 +638,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
 
     User cu =
         createAndAddUser(assignedOrgUnits, dataViewOrgUnits, DataApproval.AUTH_ACCEPT_LOWER_LEVELS);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     List<DataApprovalLevel> levels =
         dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());

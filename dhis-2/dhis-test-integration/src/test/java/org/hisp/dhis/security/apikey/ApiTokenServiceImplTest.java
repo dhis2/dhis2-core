@@ -131,14 +131,14 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase {
   @Test
   void testShouldDeleteTokensWhenUserIsDeleted() {
     User userB = createUserWithAuth("userB");
-    injectSecurityContext(userB);
+    injectSecurityContextUser(userB);
 
     String apiTokenCreator = CurrentUserUtil.getCurrentUsername();
     createAndSaveToken();
     createAndSaveToken();
 
     User adminUser = userService.getUserByUsername("admin_test");
-    injectSecurityContext(adminUser);
+    injectSecurityContextUser(adminUser);
 
     userService.deleteUser(userService.getUserByUsername(apiTokenCreator));
 
@@ -187,7 +187,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase {
 
   private void switchToOtherUser() {
     final User otherUser = createUserWithAuth("otherUser");
-    injectSecurityContext(otherUser);
+    injectSecurityContextUser(otherUser);
   }
 
   @Test

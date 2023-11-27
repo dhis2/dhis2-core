@@ -179,7 +179,7 @@ public abstract class TrackerTest extends IntegrationTestBase {
     manager.update(programA);
 
     user = createUserWithAuth(TEST_USER);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   public TrackedEntity persistTrackedEntity() {

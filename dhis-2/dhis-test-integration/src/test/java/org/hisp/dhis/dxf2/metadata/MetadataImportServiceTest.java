@@ -234,7 +234,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     User userA = makeUser("A");
     userService.addUser(userA);
 
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
 
     Dashboard dashboard = new Dashboard();
     dashboard.setName("DashboardA");
@@ -268,7 +268,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     User user = createUserWithAuth("A", "ALL");
     manager.save(user);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(
@@ -305,7 +305,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     User user = createUserWithAuth("A", "ALL");
     manager.save(user);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(
@@ -340,7 +340,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     User user = createUserWithAuth("A", "ALL");
     manager.save(user);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(
@@ -362,7 +362,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     User user = createUserWithAuth("A", "ALL");
     manager.save(user);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(
@@ -388,7 +388,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     User user = createUserWithAuth("A", "ALL");
     manager.save(user);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(
@@ -426,7 +426,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     User user = createUserWithAuth("A", "ALL");
     manager.save(user);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(
@@ -573,7 +573,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     User user = createUserWithAuth("A", "ALL");
     manager.save(user);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(
@@ -770,7 +770,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     User userA = makeUser("A", Lists.newArrayList("ALL"));
     userService.addUser(userA);
 
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(
@@ -801,7 +801,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     User userA = makeUser("A", Lists.newArrayList("ALL"));
     userService.addUser(userA);
 
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(
@@ -833,7 +833,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     User userF = makeUser("F", Lists.newArrayList("ALL"));
     userService.addUser(userF);
 
-    injectSecurityContext(userF);
+    injectSecurityContextUser(userF);
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(
@@ -952,7 +952,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     User user = createUserWithAuth("A", "ALL");
     manager.save(user);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(

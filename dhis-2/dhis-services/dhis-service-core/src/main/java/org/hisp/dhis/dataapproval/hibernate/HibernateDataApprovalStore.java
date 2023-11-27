@@ -287,7 +287,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     final String strArrayUserGroups =
-        CollectionUtils.isEmpty(currentUser.getGroups())
+        (currentUser == null || CollectionUtils.isEmpty(currentUser.getGroups()))
             ? null
             : "{"
                 + String.join(
@@ -296,6 +296,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
                         .map(group -> group.getUid())
                         .collect(Collectors.toList()))
                 + "}";
+
     final String co_group_sharing_check_query =
         strArrayUserGroups != null
             ? " and (not "
@@ -313,7 +314,8 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
     List<DataApprovalLevel> approvalLevels = workflow.getSortedLevels();
 
-    Set<OrganisationUnit> userOrgUnits = currentUser.getDataViewOrganisationUnitsWithFallback();
+    Set<OrganisationUnit> userOrgUnits =
+        currentUser != null ? currentUser.getDataViewOrganisationUnitsWithFallback() : null;
 
     boolean isDefaultCombo =
         attributeOptionCombos != null
@@ -323,8 +325,9 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
                 .equals(attributeOptionCombos.toArray()[0]);
 
     boolean maySeeDefaultCategoryCombo =
-        (CollectionUtils.isEmpty(currentUser.getCogsDimensionConstraints())
-            && CollectionUtils.isEmpty(currentUser.getCatDimensionConstraints()));
+        currentUser != null
+            && (CollectionUtils.isEmpty(currentUser.getCogsDimensionConstraints())
+                && CollectionUtils.isEmpty(currentUser.getCatDimensionConstraints()));
 
     // ---------------------------------------------------------------------
     // Validate

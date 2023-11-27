@@ -322,7 +322,7 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest {
     };
     User testUser = createUserWithAuth("A", testAuths);
 
-    injectSecurityContext(testUser);
+    injectSecurityContextUser(testUser);
 
     params = new ObjectBundleParams();
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);

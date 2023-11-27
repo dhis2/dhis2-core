@@ -301,7 +301,7 @@ class SqlViewServiceTest extends TransactionalIntegrationTest {
     User userA = makeUser("A", List.of("F_SQLVIEW_PUBLIC_ADD"));
     userService.addUser(userA);
 
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
 
     // but we lack sharing to view the result grid
     assertIllegalQueryEx(

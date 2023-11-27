@@ -55,7 +55,7 @@ class TrackedEntityAggregateUserTest extends TrackerTest {
     doInTransaction(
         () -> {
           superUser = preCreateInjectAdminUser();
-          injectSecurityContext(superUser);
+          injectSecurityContextUser(superUser);
 
           nonSuperUser = createUserWithAuth("testUser2");
           nonSuperUser.addOrganisationUnit(organisationUnitA);

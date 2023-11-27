@@ -145,7 +145,7 @@ class EventSecurityTest extends TransactionalIntegrationTest {
     manager.update(programA);
     manager.update(programStageA);
     User user = createUserWithAuth("user1");
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
         createEvent(programA.getUid(), programStageA.getUid(), organisationUnitA.getUid());
     ImportSummary importSummary =
@@ -165,7 +165,7 @@ class EventSecurityTest extends TransactionalIntegrationTest {
     User user =
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
     userService.addUser(user);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
         createEvent(programA.getUid(), programStageA.getUid(), organisationUnitA.getUid());
     // make sure data is flushed, so event service can access it
@@ -184,7 +184,7 @@ class EventSecurityTest extends TransactionalIntegrationTest {
     manager.update(programStageA);
     User user =
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
         createEvent(programA.getUid(), programStageA.getUid(), organisationUnitA.getUid());
     ImportSummary importSummary =
@@ -201,7 +201,7 @@ class EventSecurityTest extends TransactionalIntegrationTest {
     manager.update(programStageA);
     User user =
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     // make sure data is flushed, so event service can access it
     manager.flush();
     org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
@@ -222,7 +222,7 @@ class EventSecurityTest extends TransactionalIntegrationTest {
     manager.update(programA);
     manager.update(programStageA);
     User user = createUserWithAuth("user1");
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
         createEvent(programA.getUid(), programStageA.getUid(), organisationUnitA.getUid());
     ImportSummary importSummary =
@@ -249,7 +249,7 @@ class EventSecurityTest extends TransactionalIntegrationTest {
     manager.update(programStageA);
     User user =
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     assertTrue(programStageInstanceService.eventExists(event.getEvent()));
     Event programStageInstance = programStageInstanceService.getEvent(event.getUid());
     assertNotNull(programStageInstance);
@@ -278,7 +278,7 @@ class EventSecurityTest extends TransactionalIntegrationTest {
     manager.update(programStageA);
     User user =
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     assertTrue(programStageInstanceService.eventExists(event.getEvent()));
     Event programStageInstance = programStageInstanceService.getEvent(event.getUid());
     assertNotNull(programStageInstance);
@@ -306,7 +306,7 @@ class EventSecurityTest extends TransactionalIntegrationTest {
     manager.update(programA);
     manager.update(programStageA);
     User user = createUserWithAuth("user1");
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     assertTrue(programStageInstanceService.eventExists(event.getEvent()));
     Event programStageInstance = programStageInstanceService.getEvent(event.getUid());
     assertNotNull(programStageInstance);
@@ -333,7 +333,7 @@ class EventSecurityTest extends TransactionalIntegrationTest {
     manager.update(programA);
     manager.update(programStageA);
     User user = createUserWithAuth("user1");
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     assertTrue(programStageInstanceService.eventExists(event.getEvent()));
     Event programStageInstance = programStageInstanceService.getEvent(event.getUid());
     assertNotNull(programStageInstance);
@@ -361,7 +361,7 @@ class EventSecurityTest extends TransactionalIntegrationTest {
     manager.update(programStageA);
     User user =
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     assertTrue(programStageInstanceService.eventExists(event.getEvent()));
     Event programStageInstance = programStageInstanceService.getEvent(event.getUid());
     assertNotNull(programStageInstance);
@@ -389,7 +389,7 @@ class EventSecurityTest extends TransactionalIntegrationTest {
     manager.update(programStageA);
     User user =
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     assertTrue(programStageInstanceService.eventExists(event.getEvent()));
     Event programStageInstance = programStageInstanceService.getEvent(event.getUid());
     assertNotNull(programStageInstance);

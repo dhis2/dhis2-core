@@ -164,7 +164,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentD.setUid("UID-D");
     enrollmentD.setOrganisationUnit(organisationUnitB);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   @Test

@@ -589,7 +589,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     categoryService.updateCategory(caB);
 
     // The user is active
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
 
     // All events in 2017
     EventQueryParams events_2017_params =
@@ -622,7 +622,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     categoryService.updateCategory(caB);
 
     // The user is active
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
 
     // All events in 2017
     EventQueryParams events_2017_params =

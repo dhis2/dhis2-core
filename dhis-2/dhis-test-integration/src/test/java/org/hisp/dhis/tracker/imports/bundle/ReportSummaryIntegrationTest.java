@@ -55,7 +55,7 @@ class ReportSummaryIntegrationTest extends TrackerTest {
     setUpMetadata("tracker/simple_metadata.json");
 
     userA = userService.getUser("M5zQapPyTZI");
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
   }
 
   @Test

@@ -160,7 +160,7 @@ class EventImportTest extends TransactionalIntegrationTest {
   protected void setUpTest() throws Exception {
     userService = _userService;
     superUser = preCreateInjectAdminUser();
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');

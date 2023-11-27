@@ -90,7 +90,7 @@ public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcCont
             .addFilter(springSecurityFilterChain)
             .build();
 
-    injectSecurityContext(adminUser);
+    injectSecurityContextUser(adminUser);
 
     TestUtils.executeStartupRoutines(webApplicationContext);
   }

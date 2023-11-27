@@ -339,7 +339,7 @@ class EventPredictionServiceTest extends IntegrationTestBase {
     ReflectionTestUtils.setField(predictionService, "analyticsService", mockAnalyticsSerivce);
 
     User user = createAndAddUser(true, "mockUser", orgUnitASet, orgUnitASet);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     dataValueService.addDataValue(
         createDataValue(dataElementE, periodMar, orgUnitA, defaultCombo, defaultCombo, "100"));

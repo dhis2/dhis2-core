@@ -95,7 +95,7 @@ public class DhisControllerTestBase extends DhisMockMvcControllerTest {
   }
 
   protected void switchContextToUser(User user) {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     session = new MockHttpSession();
     session.setAttribute(

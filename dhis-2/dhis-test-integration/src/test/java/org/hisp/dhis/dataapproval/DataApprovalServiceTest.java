@@ -633,7 +633,7 @@ class DataApprovalServiceTest extends IntegrationTestBase {
             "approveB", DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS);
     approveUserB.setOrganisationUnits(singleton(organisationUnitA));
     userService.updateUser(approveUserB);
-    injectSecurityContext(approveUserA);
+    injectSecurityContextUser(approveUserA);
     Date now = new Date();
     DataApproval da =
         new DataApproval(
@@ -650,7 +650,7 @@ class DataApprovalServiceTest extends IntegrationTestBase {
     assertEquals(da.getLastUpdatedBy(), approveUserA);
     assertFalse(da.getLastUpdated().before(now));
     dataApprovalService.unapproveData(singletonList(da));
-    injectSecurityContext(approveUserB);
+    injectSecurityContextUser(approveUserB);
     Date later = new Date();
     dataApprovalService.approveData(singletonList(da));
     da = dataApprovalService.getDataApproval(da);

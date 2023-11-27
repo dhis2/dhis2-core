@@ -652,7 +652,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase {
   // -------------------------------------------------------------------------
 
   private void setUser(User user) {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   private String getStatusString(DataApprovalStatus status) {

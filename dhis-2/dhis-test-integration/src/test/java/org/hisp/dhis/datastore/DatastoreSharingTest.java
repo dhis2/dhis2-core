@@ -84,7 +84,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
 
     // when
     // a basic user without explicit access tries to get namespace keys
-    injectSecurityContext(basicUser);
+    injectSecurityContextUser(basicUser);
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("basicUser", currentUserDetails.getUsername());
@@ -115,7 +115,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
 
     // when
     // a superuser without explicit access tries to get namespace keys
-    injectSecurityContext(superuser);
+    injectSecurityContextUser(superuser);
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertTrue(currentUserDetails.isSuper());
     assertEquals("superUser1", currentUserDetails.getUsername());
@@ -135,7 +135,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     // 2 existing namespace entries with sharing set to userWithFullAccess & no public access
     User basicUser = createAndAddUser(false, "basicUser", null);
     User userWithFullAccess = createAndAddUser(false, "userWithFullAccess", null);
-    injectSecurityContext(basicUser);
+    injectSecurityContextUser(basicUser);
 
     String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
     String spurs = jsonMapper.writeValueAsString(club("spurs"));
@@ -151,7 +151,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
 
     // when
     // a user with full access tries to get namespace keys
-    injectSecurityContext(userWithFullAccess);
+    injectSecurityContextUser(userWithFullAccess);
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("userWithFullAccess", currentUserDetails.getUsername());
@@ -171,7 +171,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     // 2 existing namespace entries with sharing set to basicUser only & no public access
     User basicUser = createAndAddUser(false, "basicUser", null);
     User userWithNoAccess = createAndAddUser(false, "userWithNoAccess", null);
-    injectSecurityContext(basicUser);
+    injectSecurityContextUser(basicUser);
 
     String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
     String spurs = jsonMapper.writeValueAsString(club("spurs"));
@@ -187,7 +187,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
 
     // when
     // a user with no explicit access tries to get namespace keys
-    injectSecurityContext(userWithNoAccess);
+    injectSecurityContextUser(userWithNoAccess);
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("userWithNoAccess", currentUserDetails.getUsername());
@@ -206,7 +206,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     // 2 existing namespace entries with sharing set to nonSuperUser2 on 1 entry only
     User basicUser = createAndAddUser(false, "basicUser", null);
     User userWithSomeAccess = createAndAddUser(false, "userWithSomeAccess", null);
-    injectSecurityContext(basicUser);
+    injectSecurityContextUser(basicUser);
 
     String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
     String spurs = jsonMapper.writeValueAsString(club("spurs"));
@@ -221,7 +221,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
 
     // when
     // a user with access to one entry tries to get namespace keys
-    injectSecurityContext(userWithSomeAccess);
+    injectSecurityContextUser(userWithSomeAccess);
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("userWithSomeAccess", currentUserDetails.getUsername());
@@ -245,7 +245,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     injectAdminUser();
     _userService.updateUser(userWithUserGroupAccess);
     userGroupService.addUserGroup(userGroup);
-    injectSecurityContext(basicUser);
+    injectSecurityContextUser(basicUser);
 
     String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
     String spurs = jsonMapper.writeValueAsString(club("spurs"));
@@ -261,7 +261,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
 
     // when
     // a user with user group access tries to get namespace keys
-    injectSecurityContext(userWithUserGroupAccess);
+    injectSecurityContextUser(userWithUserGroupAccess);
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("userWithUserGroupAccess", currentUserDetails.getUsername());
@@ -285,7 +285,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     UserGroup userGroup = createUserGroup('a', Set.of(basicUser));
     injectAdminUser();
     userGroupService.addUserGroup(userGroup);
-    injectSecurityContext(basicUser);
+    injectSecurityContextUser(basicUser);
 
     String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
     String spurs = jsonMapper.writeValueAsString(club("spurs"));
@@ -301,7 +301,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
 
     // when
     // a user with no access tries to get namespace keys
-    injectSecurityContext(userWithNoAccess);
+    injectSecurityContextUser(userWithNoAccess);
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("userWithNoAccess", currentUserDetails.getUsername());
@@ -325,7 +325,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     injectAdminUser();
     _userService.updateUser(userWithSomeAccess);
     userGroupService.addUserGroup(userGroup);
-    injectSecurityContext(basicUser);
+    injectSecurityContextUser(basicUser);
 
     String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
     String spurs = jsonMapper.writeValueAsString(club("spurs"));
@@ -340,7 +340,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
 
     // when
     // a user with group access for one entry tries to get namespace keys
-    injectSecurityContext(userWithSomeAccess);
+    injectSecurityContextUser(userWithSomeAccess);
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("userWithSomeAccess", currentUserDetails.getUsername());

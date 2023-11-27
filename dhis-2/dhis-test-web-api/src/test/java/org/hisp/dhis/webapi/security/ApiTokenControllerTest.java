@@ -72,7 +72,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest {
     userB = createUserWithAuth(USER_B_USERNAME);
 
     // Default user is userA
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
   }
 
   @Test

@@ -153,7 +153,7 @@ class EventXmlImportTest extends TransactionalIntegrationTest {
     User user = createUserWithAuth("A");
     user.addOrganisationUnit(organisationUnitA);
     userService.addUser(user);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     events =
         eventService.getEvents(
             new EventSearchParams()

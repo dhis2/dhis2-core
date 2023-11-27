@@ -257,7 +257,11 @@ public class DefaultEnrollmentService implements EnrollmentService {
       throw new IllegalQueryException("Params cannot be null");
     }
 
-    String username = params.getCurrentUserDetails().getUsername();
+    String username =
+        params.getCurrentUserDetails() != null
+            ? params.getCurrentUserDetails().getUsername()
+            : null;
+
     User user = userService.getUserByUsername(username);
 
     if (!params.hasOrganisationUnits()

@@ -173,7 +173,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/enrollments_te_enrollments-data.json");
     User user = userService.getUser(USER_2);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     TrackerImportParams params = new TrackerImportParams();
     params.setUserId(user.getUid());
     params.setImportStrategy(TrackerImportStrategy.CREATE);
@@ -195,7 +195,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     User user =
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
     userService.addUser(user);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_no-access-tei.json");
     TrackerImportParams params = new TrackerImportParams();
     params.setUserId(user.getUid());
@@ -222,7 +222,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     User user =
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
     userService.addUser(user);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/enrollments_no-access-program.json");
     TrackerImportParams params = new TrackerImportParams();
@@ -246,7 +246,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     User user =
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
     userService.addUser(user);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/enrollments_no-access-program.json");
     TrackerImportParams params = new TrackerImportParams();
@@ -269,7 +269,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     manager.flush();
     User user =
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/enrollments_program-teitype-missmatch.json");
     TrackerImportParams params = new TrackerImportParams();

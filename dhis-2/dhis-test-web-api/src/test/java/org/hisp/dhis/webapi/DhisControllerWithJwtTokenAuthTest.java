@@ -89,7 +89,7 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcCont
             .addFilter(springSecurityFilterChain)
             .build();
 
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     TestUtils.executeStartupRoutines(webApplicationContext);
 

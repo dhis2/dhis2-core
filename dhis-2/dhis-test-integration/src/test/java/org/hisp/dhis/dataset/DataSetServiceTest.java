@@ -146,7 +146,7 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
     superUser =
         createAndAddUser(
             true, "username", newHashSet(unitA), newHashSet(unitA), UserRole.AUTHORITY_ALL);
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
   }
 
   // -------------------------------------------------------------------------
@@ -402,7 +402,7 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
   @Test
   @Disabled("TODO: fix this test 12098")
   void testIsLockedDataSet() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     DataSet dataSetA = createDataSet('A', periodType);
     DataSet dataSetB = createDataSet('B', periodType);
@@ -503,7 +503,7 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
   @Test
   void testDataSharingDataSet() {
     User user = createAndAddUser(false, "usernameA", null);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     DataSet dataSet = createDataSet('A', new MonthlyPeriodType());
     UserAccess userAccess = new UserAccess();
     userAccess.setUser(user);

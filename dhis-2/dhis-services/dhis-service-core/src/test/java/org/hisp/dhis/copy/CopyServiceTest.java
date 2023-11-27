@@ -77,6 +77,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.BeforeEach;
@@ -132,6 +133,7 @@ class CopyServiceTest extends DhisConvenienceTest {
         List.of(createEnrollment(original, createTrackedEntity(orgUnit), orgUnit));
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
     //    when(getCurrentUser()).thenReturn(user);
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
     when(aclService.canWrite(user, original)).thenReturn(true);
     when(enrollmentService.getEnrollments(original)).thenReturn(originalEnrollments);
 

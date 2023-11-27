@@ -92,7 +92,7 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
   void testCopyProgramEnrollments() {
     OrganisationUnit orgUnit = orgUnitService.getOrganisationUnit(ORG_UNIT_UID);
     User user = createAndAddUser(true, "user", Set.of(orgUnit), Set.of(orgUnit));
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     assertStatus(
         HttpStatus.CREATED,

@@ -100,7 +100,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
     doInTransaction(
         () -> {
           superUser = preCreateInjectAdminUser();
-          injectSecurityContext(superUser);
+          injectSecurityContextUser(superUser);
 
           nonSuperUser = createUserWithAuth("testUser2");
           nonSuperUser.addOrganisationUnit(organisationUnitA);
@@ -228,7 +228,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
   @Test
   @Disabled("12098 This test is not working")
   void testFetchTrackedEntityInstancesWithEventFilters() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     doInTransaction(
         () -> {
           this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
@@ -635,7 +635,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
     final String[] teiUid = new String[2];
     doInTransaction(
         () -> {
-          injectSecurityContext(superUser);
+          injectSecurityContextUser(superUser);
           TrackedEntity t1 = this.persistTrackedEntity();
           TrackedEntity t2 = this.persistTrackedEntity();
           this.persistRelationship(t1, t2);

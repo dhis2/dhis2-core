@@ -774,7 +774,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     visualization.setExternalAccess(true);
     visualization.setType(VisualizationType.COLUMN);
     manager.save(visualization);
-    injectSecurityContext(userNoAuthorities);
+    injectSecurityContextUser(userNoAuthorities);
     assertEquals(userNoAuthorities, getCurrentUser());
     List<ErrorReport> errorReports = aclService.verifySharing(visualization, userNoAuthorities);
     assertFalse(errorReports.isEmpty());
@@ -786,7 +786,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     assertEquals(adminUser, getCurrentUser());
     User user1 = createUserWithAuth("user1A3");
     User user2 = createUserWithAuth("user2A3");
-    injectSecurityContext(user1);
+    injectSecurityContextUser(user1);
     assertEquals(user1, getCurrentUser());
     Visualization visualization = new Visualization();
     visualization.setName("RT");
@@ -798,7 +798,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     manager.save(visualization);
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
     manager.update(visualization);
-    injectSecurityContext(user2);
+    injectSecurityContextUser(user2);
     assertEquals(user2, getCurrentUser());
     List<ErrorReport> errorReports = aclService.verifySharing(visualization, user2);
     assertFalse(errorReports.isEmpty());
@@ -809,7 +809,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     User adminUser = createAndInjectAdminUser();
     assertEquals(adminUser, getCurrentUser());
     User user1 = createUserWithAuth("user1A4");
-    injectSecurityContext(user1);
+    injectSecurityContextUser(user1);
     assertEquals(user1, getCurrentUser());
     Visualization visualization = new Visualization();
     visualization.setName("RT");
@@ -821,7 +821,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     manager.save(visualization);
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
     manager.update(visualization);
-    injectSecurityContext(adminUser);
+    injectSecurityContextUser(adminUser);
     assertEquals(adminUser, getCurrentUser());
     List<ErrorReport> errorReports = aclService.verifySharing(visualization, adminUser);
     assertTrue(errorReports.isEmpty());
@@ -831,7 +831,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
   void shouldUseAuthoritiesIfSharingPropsAreNullOrEmptyWithPublicAuth() {
     User user1 = createUserWithAuth("user1A5", "F_DATAELEMENT_PUBLIC_ADD");
     User user2 = createUserWithAuth("user2A5", "F_DATAELEMENT_PUBLIC_ADD");
-    injectSecurityContext(user1);
+    injectSecurityContextUser(user1);
     DataElement dataElement = createDataElement('A');
     dataElement.setCreatedBy(user1);
     dataElement.getSharing().setOwner(user1);
@@ -844,7 +844,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     manager.save(dataElement);
     dataElement.setPublicAccess(null);
     manager.update(dataElement);
-    injectSecurityContext(user2);
+    injectSecurityContextUser(user2);
     access = aclService.getAccess(dataElement, user2);
     assertTrue(access.isRead());
     assertTrue(access.isWrite());
@@ -859,7 +859,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
   void shouldUseAuthoritiesIfSharingPropsAreNullOrEmptyWithPrivateAuth() {
     User user1 = createUserWithAuth("user1A6", "F_DATAELEMENT_PRIVATE_ADD");
     User user2 = createUserWithAuth("user2A6", "F_DATAELEMENT_PRIVATE_ADD");
-    injectSecurityContext(user1);
+    injectSecurityContextUser(user1);
     DataElement dataElement = createDataElement('A');
     dataElement.setCreatedBy(user1);
     dataElement.getSharing().setOwner(user1);
@@ -872,7 +872,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     manager.save(dataElement);
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
     manager.update(dataElement);
-    injectSecurityContext(user2);
+    injectSecurityContextUser(user2);
     access = aclService.getAccess(dataElement, user2);
     assertFalse(access.isRead());
     assertFalse(access.isWrite());
@@ -887,7 +887,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
   void testDefaultShouldBlockReadsFromOtherUsers() {
     User user1 = createUserWithAuth("user1A7", "F_DATAELEMENT_PUBLIC_ADD");
     User user2 = createUserWithAuth("user2A7", "F_DATAELEMENT_PUBLIC_ADD");
-    injectSecurityContext(user1);
+    injectSecurityContextUser(user1);
     DataElement dataElement = createDataElement('A');
     dataElement.setCreatedBy(user1);
     dataElement.getSharing().setOwner(user1);
@@ -899,7 +899,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     manager.save(dataElement);
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
     manager.update(dataElement);
-    injectSecurityContext(user2);
+    injectSecurityContextUser(user2);
     access = aclService.getAccess(dataElement, user2);
     assertFalse(access.isRead());
     assertFalse(access.isWrite());

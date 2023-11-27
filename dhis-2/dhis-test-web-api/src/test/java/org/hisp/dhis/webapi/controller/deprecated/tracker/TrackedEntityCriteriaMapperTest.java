@@ -137,7 +137,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     User user = createUserWithAuth("testUser");
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(organisationUnit));
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   @Test
@@ -280,7 +280,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     clearSecurityContext();
     User mockUser = createUserWithAuth("testUser2");
     mockUser.setOrganisationUnits(Set.of(organisationUnit));
-    injectSecurityContext(mockUser);
+    injectSecurityContextUser(mockUser);
     TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
     programA.setAccessLevel(AccessLevel.PROTECTED);
     criteria.setProgram(programA.getUid());
@@ -299,7 +299,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     clearSecurityContext();
     User mockUser = createUserWithAuth("testUser2");
     mockUser.setTeiSearchOrganisationUnits(Set.of(organisationUnit));
-    injectSecurityContext(mockUser);
+    injectSecurityContextUser(mockUser);
     TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
     programA.setAccessLevel(AccessLevel.OPEN);
     criteria.setProgram(programA.getUid());

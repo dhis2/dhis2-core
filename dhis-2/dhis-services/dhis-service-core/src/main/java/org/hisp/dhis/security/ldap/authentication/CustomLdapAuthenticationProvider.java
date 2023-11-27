@@ -27,37 +27,34 @@
  */
 package org.hisp.dhis.security.ldap.authentication;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
-import org.springframework.security.ldap.authentication.LdapAuthenticator;
-import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Component
-public class CustomLdapAuthenticationProvider extends LdapAuthenticationProvider {
-  private final DhisConfigurationProvider configurationProvider;
+public class CustomLdapAuthenticationProvider {
 
-  public CustomLdapAuthenticationProvider(
-      LdapAuthenticator authenticator,
-      LdapAuthoritiesPopulator authoritiesPopular,
-      DhisConfigurationProvider configurationProvider) {
-    super(authenticator, authoritiesPopular);
+  // } extends LdapAuthenticationProvider {
 
-    checkNotNull(configurationProvider);
-    this.configurationProvider = configurationProvider;
-  }
+  //  private final DhisConfigurationProvider configurationProvider;
 
-  @Override
-  public boolean supports(Class<?> authentication) {
-    if (!configurationProvider.isLdapConfigured()) {
-      return false;
-    }
+  //  public CustomLdapAuthenticationProvider(
+  //      LdapAuthenticator authenticator,
+  //      LdapAuthoritiesPopulator authoritiesPopular,
+  //      DhisConfigurationProvider configurationProvider) {
+  //    super(authenticator, authoritiesPopular);
+  //
+  //    checkNotNull(configurationProvider);
+  //    this.configurationProvider = configurationProvider;
+  //  }
 
-    return super.supports(authentication);
-  }
+  //  @Override
+  //  public boolean supports(Class<?> authentication) {
+  //    if (!configurationProvider.isLdapConfigured()) {
+  //      return false;
+  //    }
+  //
+  //    return super.supports(authentication);
+  //  }
 }

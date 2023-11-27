@@ -65,7 +65,7 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
                     + "'}}"));
 
     User testUser = createAndAddUser("test");
-    injectSecurityContext(testUser);
+    injectSecurityContextUser(testUser);
 
     GET("/dataSets/{id}", id).content(HttpStatus.NOT_FOUND);
   }
@@ -73,7 +73,7 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
   @Test
   void testGetAccessibleObject() {
     User testUser = createAndAddUser("test", null, "F_DATASET_PRIVATE_ADD");
-    injectSecurityContext(testUser);
+    injectSecurityContextUser(testUser);
     String id =
         assertStatus(
             HttpStatus.CREATED,
@@ -95,7 +95,7 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
     setUpTranslation();
     User userA = createAndAddUser("userA", null, "ALL");
     userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.FRENCH, userA);
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
     assertTrue(
         GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets").isEmpty());
     assertFalse(
@@ -113,7 +113,7 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
     setUpTranslation();
     User userA = createAndAddUser("userA", null, "ALL");
     userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.ENGLISH, userA);
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
 
     systemSettingManager.saveSystemSetting(SettingKey.DB_LOCALE, Locale.ENGLISH);
     assertTrue(
@@ -135,7 +135,7 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
   void testSearchTokenWithNullLocale() {
     setUpTranslation();
     User userA = createAndAddUser("userA", null, "ALL");
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
 
     systemSettingManager.saveSystemSetting(SettingKey.DB_LOCALE, Locale.ENGLISH);
     assertTrue(

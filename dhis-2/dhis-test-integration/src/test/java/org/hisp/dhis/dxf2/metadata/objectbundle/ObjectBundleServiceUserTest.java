@@ -230,7 +230,7 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest {
     SecurityContextHolder.clearContext();
     userA.setPassword("passwordUserA");
     manager.update(userA);
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
     params =
         createBundleParams(
             ObjectBundleMode.COMMIT,

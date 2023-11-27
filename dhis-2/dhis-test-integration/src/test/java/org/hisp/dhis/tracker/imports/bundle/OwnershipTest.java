@@ -78,7 +78,7 @@ class OwnershipTest extends TrackerTest {
   protected void initTest() throws IOException {
     setUpMetadata("tracker/ownership_metadata.json");
     superUser = userService.getUser("M5zQapPyTZI");
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     nonSuperUser = userService.getUser("Tu9fv8ezgHl");
     TrackerImportParams params = TrackerImportParams.builder().userId(superUser.getUid()).build();
@@ -114,7 +114,7 @@ class OwnershipTest extends TrackerTest {
   @Test
   void testClientDatesForTeiEnrollmentEvent() throws IOException {
     User nonSuperUser = userService.getUser(this.nonSuperUser.getUid());
-    injectSecurityContext(nonSuperUser);
+    injectSecurityContextUser(nonSuperUser);
     TrackerImportParams params =
         TrackerImportParams.builder().userId(nonSuperUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/ownership_event.json");
@@ -210,7 +210,7 @@ class OwnershipTest extends TrackerTest {
 
   @Test
   void testCreateEnrollmentAfterDeleteEnrollment() throws IOException {
-    injectSecurityContext(userService.getUser(nonSuperUser.getUid()));
+    injectSecurityContextUser(userService.getUser(nonSuperUser.getUid()));
     TrackerImportParams params =
         TrackerImportParams.builder().userId(nonSuperUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/ownership_enrollment.json");
@@ -233,7 +233,7 @@ class OwnershipTest extends TrackerTest {
 
   @Test
   void testCreateEnrollmentWithoutOwnership() throws IOException {
-    injectSecurityContext(userService.getUser(nonSuperUser.getUid()));
+    injectSecurityContextUser(userService.getUser(nonSuperUser.getUid()));
     TrackerImportParams params =
         TrackerImportParams.builder().userId(nonSuperUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/ownership_enrollment.json");

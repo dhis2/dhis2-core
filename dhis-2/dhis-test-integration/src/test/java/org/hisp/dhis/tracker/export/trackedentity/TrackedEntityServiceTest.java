@@ -471,7 +471,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     relationshipC.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationshipC));
     manager.save(relationshipC, false);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   @Test
@@ -1437,7 +1437,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnAllEntitiesWhenSuperuserAndNotInSearchScope()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    injectSecurityContext(admin);
+    injectSecurityContextUser(admin);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -1454,7 +1454,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnAllEntitiesWhenAuthorizedUserAndInSearchScope()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    injectSecurityContext(authorizedUser);
+    injectSecurityContextUser(authorizedUser);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -1477,7 +1477,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldFailWhenModeAllUserCanSearchEverywhereButNotSuperuserAndNoAccessToProgram() {
-    injectSecurityContext(userWithSearchInAllAuthority);
+    injectSecurityContextUser(userWithSearchInAllAuthority);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ALL)
@@ -1554,7 +1554,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnAllEntitiesWhenSuperuserAndModeAll()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    injectSecurityContext(admin);
+    injectSecurityContextUser(admin);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ALL)

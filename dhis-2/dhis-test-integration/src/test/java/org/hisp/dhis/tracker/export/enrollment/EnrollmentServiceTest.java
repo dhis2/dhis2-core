@@ -252,7 +252,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
         programInstanceService.enrollTrackedEntity(
             trackedEntityGrandchildA, programA, new Date(), new Date(), orgUnitGrandchildA);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   @Test
@@ -370,7 +370,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);
 
-    injectSecurityContext(userWithoutOrgUnit);
+    injectSecurityContextUser(userWithoutOrgUnit);
 
     ForbiddenException exception =
         assertThrows(
@@ -386,7 +386,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ_WRITE);
     manager.updateNoAcl(programA);
 
-    injectSecurityContext(userWithoutOrgUnit);
+    injectSecurityContextUser(userWithoutOrgUnit);
 
     ForbiddenException exception =
         assertThrows(
@@ -653,7 +653,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   void shouldReturnAllEnrollmentsWhenModeAllAndUserAuthorizedAndInSearchScope()
       throws ForbiddenException, BadRequestException, NotFoundException {
 
-    injectSecurityContext(authorizedUser);
+    injectSecurityContextUser(authorizedUser);
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
@@ -684,7 +684,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Test
   void shouldReturnAllEnrollmentsWhenOrgUnitModeAllAndUserAuthorized()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    injectSecurityContext(admin);
+    injectSecurityContextUser(admin);
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ALL).build();

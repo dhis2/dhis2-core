@@ -237,7 +237,7 @@ class DataApprovalAuditStoreTest extends SingleSetupIntegrationTestBase {
     assertEquals(auditA, audits.get(0));
 
     User userB = createAndAddUser(newHashSet(sourceB), null);
-    injectSecurityContext(userB);
+    injectSecurityContextUser(userB);
 
     params = new DataApprovalAuditQueryParams();
     audits = dataApprovalAuditStore.getDataApprovalAudits(params);

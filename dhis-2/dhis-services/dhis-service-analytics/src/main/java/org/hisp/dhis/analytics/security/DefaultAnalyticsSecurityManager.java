@@ -189,7 +189,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
       if (!aclService.canDataRead(user, object)) {
         throwIllegalQueryEx(
             ErrorCode.E7121,
-            user.getUsername(),
+            user != null ? user.getUsername() : "[None]",
             TextUtils.getPrettyClassName(object.getClass()),
             object.getUid());
       }

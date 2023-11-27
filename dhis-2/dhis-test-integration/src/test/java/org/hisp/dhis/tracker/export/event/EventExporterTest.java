@@ -629,7 +629,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByDataElementsWithCategoryOptionNotSuperUser()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(
+    injectSecurityContextUser(
         createAndAddUser(false, "user", Set.of(orgUnit), Set.of(orgUnit), "F_EXPORT_DATA"));
     DataElement dataElement = dataElement("DATAEL00002");
 

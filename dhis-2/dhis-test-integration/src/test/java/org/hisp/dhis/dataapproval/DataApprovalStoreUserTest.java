@@ -131,7 +131,7 @@ class DataApprovalStoreUserTest extends IntegrationTestBase {
     organisationUnitService.updateOrganisationUnit(orgUnitD);
 
     currentUser = createAndAddUser(true, "username", newHashSet(orgUnitA), newHashSet(orgUnitA));
-    injectSecurityContext(currentUser);
+    injectSecurityContextUser(currentUser);
   }
 
   // -------------------------------------------------------------------------
