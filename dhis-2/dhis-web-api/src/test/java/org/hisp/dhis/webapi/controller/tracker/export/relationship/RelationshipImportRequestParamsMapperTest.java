@@ -46,27 +46,27 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.Test;
 
-class RelationshipRequestParamsMapperTest {
+class RelationshipImportRequestParamsMapperTest {
 
   private final RelationshipRequestParamsMapper mapper = new RelationshipRequestParamsMapper();
 
   @Test
   void shouldFailToMapIfTeiAndTrackedEntityAreSet() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
-    requestParams.setTei(UID.of("Hq3Kc6HK4OZ"));
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
+    relationshipRequestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
+    relationshipRequestParams.setTei(UID.of("Hq3Kc6HK4OZ"));
 
     BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(relationshipRequestParams));
     assertStartsWith("Only one parameter of 'tei'", exception.getMessage());
   }
 
   @Test
   void getIdentifierParamThrowsIfNoParamsIsSet() {
-    RequestParams requestParams = new RequestParams();
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
 
     BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(relationshipRequestParams));
 
     assertEquals(
         "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.",
@@ -75,13 +75,13 @@ class RelationshipRequestParamsMapperTest {
 
   @Test
   void getIdentifierParamThrowsIfAllParamsAreSet() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
-    requestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
-    requestParams.setEvent(UID.of("Hq3Kc6HK4OZ"));
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
+    relationshipRequestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
+    relationshipRequestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
+    relationshipRequestParams.setEvent(UID.of("Hq3Kc6HK4OZ"));
 
     BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(relationshipRequestParams));
 
     assertEquals(
         "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
@@ -90,12 +90,12 @@ class RelationshipRequestParamsMapperTest {
 
   @Test
   void getIdentifierClassThrowsIfTrackedEntityAndEnrollmentAreSet() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
-    requestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
+    relationshipRequestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
+    relationshipRequestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
 
     BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(relationshipRequestParams));
 
     assertEquals(
         "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
@@ -104,12 +104,12 @@ class RelationshipRequestParamsMapperTest {
 
   @Test
   void getIdentifierClassThrowsIfTeiAndEnrollmentAreSet() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setTei(UID.of("Hq3Kc6HK4OZ"));
-    requestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
+    relationshipRequestParams.setTei(UID.of("Hq3Kc6HK4OZ"));
+    relationshipRequestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
 
     BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(relationshipRequestParams));
 
     assertEquals(
         "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
@@ -118,12 +118,12 @@ class RelationshipRequestParamsMapperTest {
 
   @Test
   void getIdentifierParamThrowsIfEnrollmentAndEventAreSet() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
-    requestParams.setEvent(UID.of("Hq3Kc6HK4OZ"));
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
+    relationshipRequestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
+    relationshipRequestParams.setEvent(UID.of("Hq3Kc6HK4OZ"));
 
     BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(relationshipRequestParams));
 
     assertEquals(
         "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
@@ -132,82 +132,84 @@ class RelationshipRequestParamsMapperTest {
 
   @Test
   void shouldMapCorrectIdentifierWhenTrackedEntityIsSet() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
+    relationshipRequestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
 
-    RelationshipOperationParams operationParams = mapper.map(requestParams);
+    RelationshipOperationParams operationParams = mapper.map(relationshipRequestParams);
 
     assertEquals("Hq3Kc6HK4OZ", operationParams.getIdentifier());
   }
 
   @Test
   void shouldMapCorrectTypeWhenTrackedEntityIsSet() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
+    relationshipRequestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
 
-    RelationshipOperationParams operationParams = mapper.map(requestParams);
+    RelationshipOperationParams operationParams = mapper.map(relationshipRequestParams);
 
     assertEquals(TRACKED_ENTITY, operationParams.getType());
   }
 
   @Test
   void shouldMapCorrectIdentifierWhenEnrollmentIsSet() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
+    relationshipRequestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
 
-    RelationshipOperationParams operationParams = mapper.map(requestParams);
+    RelationshipOperationParams operationParams = mapper.map(relationshipRequestParams);
 
     assertEquals("Hq3Kc6HK4OZ", operationParams.getIdentifier());
   }
 
   @Test
   void shouldMapCorrectTypeWhenEnrollmentIsSet() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
+    relationshipRequestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
 
-    RelationshipOperationParams operationParams = mapper.map(requestParams);
+    RelationshipOperationParams operationParams = mapper.map(relationshipRequestParams);
 
     assertEquals(ENROLLMENT, operationParams.getType());
   }
 
   @Test
   void shouldMapCorrectIdentifierWhenEventIsSet() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setEvent(UID.of("Hq3Kc6HK4OZ"));
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
+    relationshipRequestParams.setEvent(UID.of("Hq3Kc6HK4OZ"));
 
-    RelationshipOperationParams operationParams = mapper.map(requestParams);
+    RelationshipOperationParams operationParams = mapper.map(relationshipRequestParams);
 
     assertEquals("Hq3Kc6HK4OZ", operationParams.getIdentifier());
   }
 
   @Test
   void shouldMapCorrectTypeWhenEventIsSet() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setEvent(UID.of("Hq3Kc6HK4OZ"));
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
+    relationshipRequestParams.setEvent(UID.of("Hq3Kc6HK4OZ"));
 
-    RelationshipOperationParams operationParams = mapper.map(requestParams);
+    RelationshipOperationParams operationParams = mapper.map(relationshipRequestParams);
 
     assertEquals(EVENT, operationParams.getType());
   }
 
   @Test
   void shouldMapOrderParameterInGivenOrderWhenFieldsAreOrderable() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
-    requestParams.setOrder(OrderCriteria.fromOrderString("createdAt:asc"));
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
+    relationshipRequestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
+    relationshipRequestParams.setOrder(OrderCriteria.fromOrderString("createdAt:asc"));
 
-    RelationshipOperationParams operationParams = mapper.map(requestParams);
+    RelationshipOperationParams operationParams = mapper.map(relationshipRequestParams);
 
     assertEquals(List.of(new Order("created", SortDirection.ASC)), operationParams.getOrder());
   }
 
   @Test
   void shouldFailGivenInvalidOrderFieldName() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
-    requestParams.setOrder(OrderCriteria.fromOrderString("unsupportedProperty1:asc,createdAt:asc"));
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
+    relationshipRequestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
+    relationshipRequestParams.setOrder(
+        OrderCriteria.fromOrderString("unsupportedProperty1:asc,createdAt:asc"));
 
-    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(relationshipRequestParams));
     assertAll(
         () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
         () -> assertContains("unsupportedProperty1", exception.getMessage()));
@@ -215,10 +217,10 @@ class RelationshipRequestParamsMapperTest {
 
   @Test
   void testMappingOrderParamsNoOrder() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
+    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
+    relationshipRequestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
 
-    RelationshipOperationParams operationParams = mapper.map(requestParams);
+    RelationshipOperationParams operationParams = mapper.map(relationshipRequestParams);
 
     assertIsEmpty(operationParams.getOrder());
   }

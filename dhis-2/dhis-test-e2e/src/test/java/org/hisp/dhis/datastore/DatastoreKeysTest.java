@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author david mackessy
  */
-class DatastoreTest extends ApiTest {
+class DatastoreKeysTest extends ApiTest {
 
   private RestApiActions datastoreActions;
   private RestApiActions sharingActions;
@@ -365,13 +365,13 @@ class DatastoreTest extends ApiTest {
     assertEquals("[\"arsenal\",\"spurs\"]", entries);
   }
 
-  private String newEntry(String team) {
+  protected static String newEntry(String team) {
     return """
       {"name": "%s","league": "prem"}
     """.strip().formatted(team);
   }
 
-  private String sharingUserAccess(String userId) {
+  protected static String sharingUserAccess(String userId) {
     return """
     {
         "object": {
@@ -392,7 +392,7 @@ class DatastoreTest extends ApiTest {
         .strip();
   }
 
-  private String sharingUserGroupAccess(String userGroupId) {
+  protected static String sharingUserGroupAccess(String userGroupId) {
     return """
     {
         "object": {
@@ -413,7 +413,7 @@ class DatastoreTest extends ApiTest {
         .strip();
   }
 
-  private String sharingNoPublicAccess() {
+  protected static String sharingNoPublicAccess() {
     return """
     {
         "object": {

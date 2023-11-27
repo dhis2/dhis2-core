@@ -171,7 +171,9 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_EVENT_LAST_UPDATED_BY = "ev_lastupdatedbyuserinfo";
   private static final String COLUMN_EVENT_CREATED_BY = "ev_createdbyuserinfo";
   private static final String COLUMN_EVENT_CREATED = "ev_created";
+  private static final String COLUMN_EVENT_CREATED_AT_CLIENT = "ev_createdatclient";
   private static final String COLUMN_EVENT_LAST_UPDATED = "ev_lastupdated";
+  private static final String COLUMN_EVENT_LAST_UPDATED_AT_CLIENT = "ev_lastupdatedatclient";
   private static final String COLUMN_EVENT_COMPLETED_BY = "ev_completedby";
   private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID = "coc_uid";
   private static final String COLUMN_EVENT_COMPLETED_DATE = "ev_completeddate";
@@ -208,7 +210,9 @@ class JdbcEventStore implements EventStore {
           entry("lastUpdatedBy", COLUMN_EVENT_LAST_UPDATED_BY),
           entry("createdBy", COLUMN_EVENT_CREATED_BY),
           entry("created", COLUMN_EVENT_CREATED),
+          entry("createdAtClient", COLUMN_EVENT_CREATED_AT_CLIENT),
           entry("lastUpdated", COLUMN_EVENT_LAST_UPDATED),
+          entry("lastUpdatedAtClient", COLUMN_EVENT_LAST_UPDATED_AT_CLIENT),
           entry("completedBy", COLUMN_EVENT_COMPLETED_BY),
           entry("attributeOptionCombo.uid", COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID),
           entry("completedDate", COLUMN_EVENT_COMPLETED_DATE),
@@ -330,10 +334,13 @@ class JdbcEventStore implements EventStore {
               event.setScheduledDate(resultSet.getTimestamp(COLUMN_EVENT_SCHEDULED_DATE));
               event.setOccurredDate(resultSet.getTimestamp(COLUMN_EVENT_OCCURRED_DATE));
               event.setCreated(resultSet.getTimestamp(COLUMN_EVENT_CREATED));
+              event.setCreatedAtClient(resultSet.getTimestamp(COLUMN_EVENT_CREATED_AT_CLIENT));
               event.setCreatedByUserInfo(
                   EventUtils.jsonToUserInfo(
                       resultSet.getString(COLUMN_EVENT_CREATED_BY), jsonMapper));
               event.setLastUpdated(resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED));
+              event.setLastUpdatedAtClient(
+                  resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT));
               event.setLastUpdatedByUserInfo(
                   EventUtils.jsonToUserInfo(
                       resultSet.getString(COLUMN_EVENT_LAST_UPDATED_BY), jsonMapper));
@@ -746,10 +753,15 @@ class JdbcEventStore implements EventStore {
             .append(", ")
             .append("ev.created as ")
             .append(COLUMN_EVENT_CREATED)
+            .append(", ")
+            .append("ev.createdatclient as ")
+            .append(COLUMN_EVENT_CREATED_AT_CLIENT)
             .append(", ev.createdbyuserinfo as ")
             .append(COLUMN_EVENT_CREATED_BY)
             .append(", ev.lastupdated as ")
             .append(COLUMN_EVENT_LAST_UPDATED)
+            .append(", ev.lastupdatedatclient as ")
+            .append(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT)
             .append(", ev.lastupdatedbyuserinfo as ")
             .append(COLUMN_EVENT_LAST_UPDATED_BY)
             .append(", ")

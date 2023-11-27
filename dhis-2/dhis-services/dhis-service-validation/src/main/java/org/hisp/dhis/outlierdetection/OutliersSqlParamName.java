@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.outlierdetection;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.scheduling.JobParameters;
+/** Enum for named params of parametrized sql query */
+public enum OutliersSqlParamName {
+  // ZScore (modified ZScore) factor.
+  // For example the threshold=3 means all data lying outside 3 sigma (3 * standard deviation)
+  // are considered as the outliers
+  THRESHOLD("threshold"),
+  DATA_ELEMENT_IDS("data_element_ids"),
+  START_DATE("start_date"),
+  END_DATE("end_date"),
+  // start date criteria of statistic data collection (the stats will be based on data starting on
+  // this date)
+  DATA_START_DATE("data_start_date"),
+  // start date criteria of statistic data collection (the stats will be based on data ending on
+  // this date)
+  DATA_END_DATE("data_end_date"),
+  MAX_RESULTS("max_results");
+  private final String key;
 
-/**
- * @author Lars Helge Overland
- */
-@Getter
-@Setter
-@NoArgsConstructor
-public class ContinuousAnalyticsJobParameters implements JobParameters {
-  /** The hour of day at which the full analytics table update will be invoked. */
-  @JsonProperty private Integer fullUpdateHourOfDay = 0;
+  OutliersSqlParamName(String key) {
+    this.key = key;
+  }
 
-  /** The number of last years of data to include in the full analytics table update. */
-  @JsonProperty private Integer lastYears;
-
-  /** The types of analytics tables for which to skip update. */
-  @JsonProperty private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
-
-  /** Outliers statistics columns of Analytics tables will be skipped. */
-  @JsonProperty private Boolean skipOutliers = false;
-
-  public ContinuousAnalyticsJobParameters(
-      Integer fullUpdateHourOfDay,
-      Integer lastYears,
-      Set<AnalyticsTableType> skipTableTypes,
-      Boolean skipOutliers) {
-    this.fullUpdateHourOfDay = fullUpdateHourOfDay;
-    this.lastYears = lastYears;
-    this.skipTableTypes = skipTableTypes;
-    this.skipOutliers = skipOutliers;
+  public String getKey() {
+    return key;
   }
 }
