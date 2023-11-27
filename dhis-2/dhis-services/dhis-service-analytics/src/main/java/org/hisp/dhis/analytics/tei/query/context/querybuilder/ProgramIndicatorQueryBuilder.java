@@ -45,6 +45,7 @@ import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -61,11 +62,11 @@ import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Service;
 
 /**
@@ -158,23 +159,8 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
       ProgramIndicator programIndicator =
           (ProgramIndicator) param.getDimensionIdentifier().getDimension().getQueryItem().getItem();
 
-      String expression =
-          programIndicatorService.getAnalyticsSql(
-              programIndicator.getExpression(),
-              DataType.NUMERIC,
-              programIndicator,
-              null,
-              null,
-              SUBQUERY_TABLE_ALIAS);
-
-      String filter =
-          programIndicatorService.getAnalyticsSql(
-              programIndicator.getFilter(),
-              DataType.BOOLEAN,
-              programIndicator,
-              null,
-              null,
-              SUBQUERY_TABLE_ALIAS);
+      ProgramIndicatorQueryParts programIndicatorQueryParts =
+          getProgramIndicatorQueryParts(programIndicator);
 
       builder.selectField(
           Field.ofUnquoted(
@@ -188,7 +174,9 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
                 () ->
                     "("
                         + enrollmentProgramIndicatorSelect(
-                            param.getDimensionIdentifier().getProgram(), expression, filter, true)
+                            param.getDimensionIdentifier().getProgram(),
+                            programIndicatorQueryParts,
+                            true)
                         + ") as "
                         + assignedAlias,
                 fieldsEqual(TEI_ALIAS, TEI_UID, assignedAlias, TEI_UID)));
@@ -201,8 +189,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
                         "("
                             + enrollmentProgramIndicatorSelect(
                                 param.getDimensionIdentifier().getProgram(),
-                                expression,
-                                filter,
+                                programIndicatorQueryParts,
                                 false)
                             + ") as "
                             + enrollmentAlias,
@@ -213,9 +200,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
                         "("
                             + eventProgramIndicatorSelect(
                                 param.getDimensionIdentifier().getProgram(),
-                                param.getDimensionIdentifier().getProgramStage(),
-                                expression,
-                                filter)
+                                programIndicatorQueryParts)
                             + ") as "
                             + assignedAlias,
                     fieldsEqual(enrollmentAlias, PI_UID, assignedAlias, PI_UID)));
@@ -223,11 +208,40 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
     }
   }
 
+  private record ProgramIndicatorQueryParts(String function, String expression, String filter) {}
+
+  private ProgramIndicatorQueryParts getProgramIndicatorQueryParts(
+      ProgramIndicator programIndicator) {
+
+    return new ProgramIndicatorQueryParts(
+        // function
+        TextUtils.emptyIfEqual(
+            programIndicator.getAggregationTypeFallback().getValue(),
+            AggregationType.CUSTOM.getValue()),
+        // expression
+        programIndicatorService.getAnalyticsSql(
+            programIndicator.getExpression(),
+            DataType.NUMERIC,
+            programIndicator,
+            null,
+            null,
+            SUBQUERY_TABLE_ALIAS),
+        // filter
+        programIndicatorService.getAnalyticsSql(
+            programIndicator.getFilter(),
+            DataType.BOOLEAN,
+            programIndicator,
+            null,
+            null,
+            SUBQUERY_TABLE_ALIAS));
+  }
+
   private static String enrollmentProgramIndicatorSelect(
       ElementWithOffset<Program> program,
-      String expression,
-      String filter,
+      ProgramIndicatorQueryParts programIndicatorQueryParts,
       boolean needsExpressions) {
+    String expression = programIndicatorQueryParts.expression();
+    String filter = programIndicatorQueryParts.filter();
     return "select innermost_enr.*"
         + " from (select tei as "
         + TEI_UID
@@ -246,29 +260,31 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
   }
 
   static String eventProgramIndicatorSelect(
-      ElementWithOffset<Program> program,
-      ElementWithOffset<ProgramStage> programStage,
-      String expression,
-      String filter) {
-    String condition = SUBQUERY_TABLE_ALIAS + ".ps = '" + programStage.getElement().getUid() + "'";
+      ElementWithOffset<Program> program, ProgramIndicatorQueryParts programIndicatorQueryParts) {
+
+    String filter = programIndicatorQueryParts.filter();
+    String function = programIndicatorQueryParts.function();
+    String expression = programIndicatorQueryParts.expression();
+
+    String whereCondition = "";
+
     if (StringUtils.isNotBlank(filter)) {
-      condition = condition + " and " + filter;
+      whereCondition = " where " + filter;
     }
-    return "select innermost_evt.*"
+    return "select innermost_evt.programinstanceuid, "
+        + function
+        + "(innermost_evt.value) as value"
         + " from (select pi as "
         + PI_UID
         + ", "
         + expression
-        + " as value, "
-        + " row_number() over (partition by pi order by occurreddate desc) as rn "
+        + " as value "
         + " from analytics_event_"
         + program.getElement().getUid()
         + " as "
         + SUBQUERY_TABLE_ALIAS
-        + " where "
-        + condition
-        + ") innermost_evt"
-        + " where innermost_evt.rn = 1";
+        + whereCondition
+        + ") innermost_evt group by innermost_evt.programinstanceuid";
   }
 
   @Getter
