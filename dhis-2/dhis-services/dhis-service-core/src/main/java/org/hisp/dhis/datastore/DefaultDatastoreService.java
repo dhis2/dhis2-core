@@ -47,6 +47,7 @@ import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -169,13 +170,33 @@ public class DefaultDatastoreService implements DatastoreService {
     writeProtectedIn(entry.getNamespace(), () -> singletonList(entry), () -> store.delete(entry));
   }
 
+  /**
+   * There are 2 levels of access to be aware of in a Datastore: <br>
+   *
+   * <ol>
+   *   <li>{@link DatastoreNamespaceProtection}
+   *       <ul>
+   *         <li>this is currently only set programmatically
+   *         <li>new namespaces setup through the API will have no {@link
+   *             DatastoreNamespaceProtection}
+   *       </ul>
+   *   <li>standard {@link Sharing}
+   * </ol>
+   *
+   * @param namespace namespace
+   * @param whenHidden value to return when namespace is hidden & no access
+   * @param read data supplier
+   * @return data supplier value or whenHidden value
+   * @throws AccessDeniedException if {@link User} has no {@link Sharing} access to {@link
+   *     DatastoreEntry} or {@link User} has no {@link Sharing} access for restricted namespace
+   *     {@link DatastoreEntry}
+   */
   private <T> T readProtectedIn(String namespace, T whenHidden, Supplier<T> read) {
     DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
-    if (protection == null
-        || protection.getReads() == ProtectionType.NONE
-        || currentUserHasAuthority(protection.getAuthorities())) {
+    if (userHasNamespaceReadAccess(protection)) {
       T res = read.get();
-      if (res instanceof DatastoreEntry && protection != null && protection.isSharingRespected()) {
+      if (isDatastoreEntryAndProtectionSharingRespected(res, protection)
+          || (isDatastoreEntryWithNoProtection(res, protection))) {
         DatastoreEntry entry = (DatastoreEntry) res;
         if (!aclService.canRead(currentUserService.getCurrentUser(), entry)) {
           throw new AccessDeniedException(
@@ -188,6 +209,23 @@ public class DefaultDatastoreService implements DatastoreService {
       throw accessDeniedTo(namespace);
     }
     return whenHidden;
+  }
+
+  private <T> boolean isDatastoreEntryWithNoProtection(
+      T res, DatastoreNamespaceProtection protection) {
+    return (res instanceof DatastoreEntry) && (protection == null);
+  }
+
+  private <T> boolean isDatastoreEntryAndProtectionSharingRespected(
+      T res, DatastoreNamespaceProtection protection) {
+    return (res instanceof DatastoreEntry)
+        && (protection != null && protection.isSharingRespected());
+  }
+
+  private boolean userHasNamespaceReadAccess(DatastoreNamespaceProtection protection) {
+    return protection == null
+        || protection.getReads() == ProtectionType.NONE
+        || currentUserHasAuthority(protection.getAuthorities());
   }
 
   private void writeProtectedIn(
