@@ -1875,6 +1875,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             .add("headers=ouname,w75KJ2mc4zz,zDhUuAYrxNC")
             .add("enrollmentDate=IpHINAT79UW[0].LAST_YEAR")
             .add("program=IpHINAT79UW")
+            .add("desc=lastupdated")
             .add("relativePeriodDate=2023-01-01");
 
     // When
@@ -1905,56 +1906,56 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         response, 2, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
 
     // Assert rows.
-    validateRow(response, 0, List.of("Rokolon MCHP", "Justin", "Hayes"));
-    validateRow(response, 1, List.of("Pejewa CHC", "Nancy", "Jones"));
-    validateRow(response, 2, List.of("Gbangba MCHP", "James", "Jordan"));
-    validateRow(response, 3, List.of("Massabendu CHP", "Jane", "Cox"));
-    validateRow(response, 4, List.of("Mansundu MCHP", "Martha", "Harvey"));
-    validateRow(response, 5, List.of("Ola During Clinic", "Gloria", "Campbell"));
-    validateRow(response, 6, List.of("Hamdalai MCHP", "Nancy", "Garza"));
-    validateRow(response, 7, List.of("SLRCS (Nongowa) clinic", "James", "Jones"));
-    validateRow(response, 8, List.of("Kassama MCHP", "Alan", "Turner"));
-    validateRow(response, 9, List.of("Yoyema MCHP", "Dennis", "Washington"));
-    validateRow(response, 10, List.of("Mbaoma CHP", "Joseph", "Powell"));
-    validateRow(response, 11, List.of("Kamakwie MCHP", "Paul", "Harper"));
-    validateRow(response, 12, List.of("Yakaji MCHP", "Maria", "Hughes"));
-    validateRow(response, 13, List.of("Futa CHC", "Diana", "Montgomery"));
-    validateRow(response, 14, List.of("Njala University Hospital", "Carl", "Robertson"));
-    validateRow(response, 15, List.of("Salima MCHP", "Anne", "Frazier"));
-    validateRow(response, 16, List.of("Magbil MCHP", "Anthony", "Cook"));
-    validateRow(response, 17, List.of("Ginger Hall Health Centre", "Evelyn", "Cook"));
-    validateRow(response, 18, List.of("Kareneh MCHP", "Helen", "Wagner"));
-    validateRow(response, 19, List.of("Gbonkomaria CHP", "Heather", "Fowler"));
-    validateRow(response, 20, List.of("Sengama MCHP", "Andrea", "Tucker"));
-    validateRow(response, 21, List.of("Jojoima CHC", "Diana", "Montgomery"));
-    validateRow(response, 22, List.of("Futa CHC", "Phillip", "Mcdonald"));
-    validateRow(response, 23, List.of("Deima MCHP", "Rachel", "Lopez"));
-    validateRow(response, 24, List.of("Fullah Town (B.Sebora) MCHP", "Samuel", "Palmer"));
-    validateRow(response, 25, List.of("Potoru CHC", "Russell", "Bailey"));
-    validateRow(response, 26, List.of("Mafoimara MCHP", "Amanda", "Gordon"));
-    validateRow(response, 27, List.of("Kamagbewu MCHP", "Lois", "Garcia"));
-    validateRow(response, 28, List.of("St. Joseph's Clinic", "Randy", "Reyes"));
-    validateRow(response, 29, List.of("Rokolon MCHP", "Carol", "Myers"));
-    validateRow(response, 30, List.of("New Maforkie CHP", "Gerald", "Hill"));
-    validateRow(response, 31, List.of("Rogbere CHC", "Daniel", "Turner"));
-    validateRow(response, 32, List.of("Mambiama CHP", "Diana", "Jenkins"));
-    validateRow(response, 33, List.of("Boajibu CHC", "Phillip", "Lewis"));
-    validateRow(response, 34, List.of("Gbeworbu-Gao CHP", "Melissa", "Williamson"));
-    validateRow(response, 35, List.of("Romeni MCHP", "Henry", "Cox"));
-    validateRow(response, 36, List.of("Bathurst MCHP", "Benjamin", "Little"));
-    validateRow(response, 37, List.of("Teko Barracks Clinic", "Ruby", "Dixon"));
-    validateRow(response, 38, List.of("Jormu CHP", "Willie", "Little"));
-    validateRow(response, 39, List.of("Kuranko MCHP", "Shawn", "Lewis"));
-    validateRow(response, 40, List.of("Yorgbofore MCHP", "Ruby", "Burns"));
-    validateRow(response, 41, List.of("Wallehun MCHP", "Patricia", "Grant"));
-    validateRow(response, 42, List.of("Koindukura MCHP", "Catherine", "Parker"));
-    validateRow(response, 43, List.of("Guala MCHP", "Patricia", "West"));
-    validateRow(response, 44, List.of("Levuma Nyomeh CHP", "Angela", "Edwards"));
-    validateRow(response, 45, List.of("Mogbuama MCHP", "Angela", "Roberts"));
-    validateRow(response, 46, List.of("Approved School CHP", "William", "Ross"));
-    validateRow(response, 47, List.of("Fadugu CHC", "Janice", "Ramos"));
-    validateRow(response, 48, List.of("Hamdalai MCHP", "Keith", "Harris"));
-    validateRow(response, 49, List.of("Mattru Jong MCHP", "Amy", "Stanley"));
+    validateRow(response, 0, List.of("Ngelehun CHC", "John", "Kelly"));
+    validateRow(response, 1, List.of("Ngelehun CHC", "Anna", "Jones"));
+    validateRow(response, 2, List.of("Masoko MCHP", "Diane", "Bryant"));
+    validateRow(response, 3, List.of("Kunsho CHP", "Chris", "Mendoza"));
+    validateRow(response, 4, List.of("Govt. Hospital Moyamba", "Randy", "Reyes"));
+    validateRow(response, 5, List.of("Jangalor MCHP", "Antonio", "Ruiz"));
+    validateRow(response, 6, List.of("Makaba MCHP", "Robin", "Kennedy"));
+    validateRow(response, 7, List.of("Sawuria CHP", "Kathleen", "Washington"));
+    validateRow(response, 8, List.of("UFC Nongowa", "Randy", "Andrews"));
+    validateRow(response, 9, List.of("Roktolon MCHP", "Sean", "Washington"));
+    validateRow(response, 10, List.of("Sengema CHP", "Theresa", "Wood"));
+    validateRow(response, 11, List.of("Pejewa MCHP", "Elizabeth", "Harris"));
+    validateRow(response, 12, List.of("Mattru Jong MCHP", "Julia", "Gardner"));
+    validateRow(response, 13, List.of("Ngaiya MCHP", "Beverly", "Hart"));
+    validateRow(response, 14, List.of("PCM Hospital", "Jose", "Daniels"));
+    validateRow(response, 15, List.of("Yekior MCHP", "Albert", "Allen"));
+    validateRow(response, 16, List.of("Kensay MCHP", "Sharon", "Carpenter"));
+    validateRow(response, 17, List.of("Banana Island MCHP", "Stephen", "Stewart"));
+    validateRow(response, 18, List.of("Gbongongor CHP", "Douglas", "Hicks"));
+    validateRow(response, 19, List.of("Njama CHC", "Gary", "Johnston"));
+    validateRow(response, 20, List.of("Bureh MCHP", "Ralph", "Smith"));
+    validateRow(response, 21, List.of("Konta (Gorama M) CHP", "Earl", "Mason"));
+    validateRow(response, 22, List.of("Lowoma CHC", "Debra", "Barnes"));
+    validateRow(response, 23, List.of("Katherie MCHP", "Christine", "Ferguson"));
+    validateRow(response, 24, List.of("Goderich MI Room", "Patrick", "Carr"));
+    validateRow(response, 25, List.of("Weima CHC", "Ruby", "Day"));
+    validateRow(response, 26, List.of("Rotaimbana MCHP", "Phillip", "Ruiz"));
+    validateRow(response, 27, List.of("Konjo (Dama) CHP", "Eric", "Fuller"));
+    validateRow(response, 28, List.of("Kono Bendu CHP", "Charles", "Cruz"));
+    validateRow(response, 29, List.of("Bombordu MCHP", "Theresa", "Medina"));
+    validateRow(response, 30, List.of("Bo Govt. Hosp.", "Eric", "Bradley"));
+    validateRow(response, 31, List.of("Kpolies Clinic", "Mildred", "Ellis"));
+    validateRow(response, 32, List.of("UNIMUS MCHP", "Alan", "Tucker"));
+    validateRow(response, 33, List.of("Fulamansa MCHP", "Patricia", "Washington"));
+    validateRow(response, 34, List.of("Durukoro MCHP", "Eric", "Sullivan"));
+    validateRow(response, 35, List.of("Yakaji MCHP", "Johnny", "Fields"));
+    validateRow(response, 36, List.of("Mokandor CHP", "Jeremy", "Jones"));
+    validateRow(response, 37, List.of("Romeni MCHP", "Nancy", "Wallace"));
+    validateRow(response, 38, List.of("Borongoh Makarankay CHP", "Jesse", "Oliver"));
+    validateRow(response, 39, List.of("Jormu MCHP", "Nicole", "Bishop"));
+    validateRow(response, 40, List.of("Komneh CHP", "Rebecca", "Hernandez"));
+    validateRow(response, 41, List.of("Niayahun CHP", "Rebecca", "Kelly"));
+    validateRow(response, 42, List.of("Magboki Rd. Mile 91 MCHP", "Kimberly", "Gordon"));
+    validateRow(response, 43, List.of("Stella Maries Clinic", "Ryan", "Robinson"));
+    validateRow(response, 44, List.of("Rokupr CHC", "Carl", "Gardner"));
+    validateRow(response, 45, List.of("Mabineh MCHP", "Amanda", "Powell"));
+    validateRow(response, 46, List.of("Kukuna CHP", "Lillian", "Clark"));
+    validateRow(response, 47, List.of("Mokandor CHP", "Janet", "Howard"));
+    validateRow(response, 48, List.of("Waterloo CHC", "Sandra", "Moore"));
+    validateRow(response, 49, List.of("Ngaiya MCHP", "James", "Ward"));
   }
 
   @Test
