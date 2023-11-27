@@ -31,7 +31,7 @@ import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.RequestParams.DEFAULT_FIELDS_PARAM;
+import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -85,103 +85,104 @@ class EnrollmentImportRequestParamsMapperTest {
 
   @Test
   void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
+    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
 
-    mapper.map(requestParams);
+    mapper.map(enrollmentRequestParams);
 
     verify(fieldsParamMapper, times(1)).map(FieldFilterParser.parse(DEFAULT_FIELDS_PARAM));
   }
 
   @Test
   void testMappingOrgUnit() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnit(ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID);
-    requestParams.setProgram(UID.of(PROGRAM_UID));
+    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
+    enrollmentRequestParams.setOrgUnit(ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID);
+    enrollmentRequestParams.setProgram(UID.of(PROGRAM_UID));
 
-    EnrollmentOperationParams params = mapper.map(requestParams);
+    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
     assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnitUids());
   }
 
   @Test
   void testMappingOrgUnits() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID), UID.of(ORG_UNIT_2_UID)));
-    requestParams.setProgram(UID.of(PROGRAM_UID));
+    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
+    enrollmentRequestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID), UID.of(ORG_UNIT_2_UID)));
+    enrollmentRequestParams.setProgram(UID.of(PROGRAM_UID));
 
-    EnrollmentOperationParams params = mapper.map(requestParams);
+    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
     assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnitUids());
   }
 
   @Test
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.CAPTURE);
+    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
+    enrollmentRequestParams.setOrgUnitMode(OrganisationUnitSelectionMode.CAPTURE);
 
-    EnrollmentOperationParams params = mapper.map(requestParams);
+    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
     assertEquals(OrganisationUnitSelectionMode.CAPTURE, params.getOrgUnitMode());
   }
 
   @Test
   void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOuMode(OrganisationUnitSelectionMode.CAPTURE);
+    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
+    enrollmentRequestParams.setOuMode(OrganisationUnitSelectionMode.CAPTURE);
 
-    EnrollmentOperationParams params = mapper.map(requestParams);
+    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
     assertEquals(OrganisationUnitSelectionMode.CAPTURE, params.getOrgUnitMode());
   }
 
   @Test
   void shouldThrowIfDeprecatedAndNewOrgUnitModeParameterIsSet() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
-    requestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
+    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
+    enrollmentRequestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+    enrollmentRequestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
 
     BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(enrollmentRequestParams));
 
     assertStartsWith("Only one parameter of 'ouMode' and 'orgUnitMode'", exception.getMessage());
   }
 
   @Test
   void testMappingProgram() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setProgram(UID.of(PROGRAM_UID));
+    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
+    enrollmentRequestParams.setProgram(UID.of(PROGRAM_UID));
 
-    EnrollmentOperationParams params = mapper.map(requestParams);
+    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
     assertEquals(PROGRAM_UID, params.getProgramUid());
   }
 
   @Test
   void testMappingTrackedEntityType() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
+    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
+    enrollmentRequestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
 
-    EnrollmentOperationParams params = mapper.map(requestParams);
+    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
     assertEquals(TRACKED_ENTITY_TYPE_UID, params.getTrackedEntityTypeUid());
   }
 
   @Test
   void testMappingTrackedEntity() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setTrackedEntity(UID.of(TRACKED_ENTITY_UID));
+    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
+    enrollmentRequestParams.setTrackedEntity(UID.of(TRACKED_ENTITY_UID));
 
-    EnrollmentOperationParams params = mapper.map(requestParams);
+    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
     assertEquals(TRACKED_ENTITY_UID, params.getTrackedEntityUid());
   }
 
   @Test
   void shouldMapOrderParameterInGivenOrderWhenFieldsAreOrderable() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrder(OrderCriteria.fromOrderString("enrolledAt:desc,createdAt:asc"));
+    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
+    enrollmentRequestParams.setOrder(
+        OrderCriteria.fromOrderString("enrolledAt:desc,createdAt:asc"));
 
-    EnrollmentOperationParams params = mapper.map(requestParams);
+    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
     assertEquals(
         List.of(
@@ -192,11 +193,12 @@ class EnrollmentImportRequestParamsMapperTest {
 
   @Test
   void shouldFailGivenInvalidOrderFieldName() {
-    RequestParams requestParams = new RequestParams();
-    requestParams.setOrder(
+    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
+    enrollmentRequestParams.setOrder(
         OrderCriteria.fromOrderString("unsupportedProperty1:asc,enrolledAt:asc"));
 
-    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(enrollmentRequestParams));
     assertAll(
         () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
         () -> assertContains("unsupportedProperty1", exception.getMessage()));
@@ -204,9 +206,9 @@ class EnrollmentImportRequestParamsMapperTest {
 
   @Test
   void testMappingOrderParamsNoOrder() throws BadRequestException {
-    RequestParams requestParams = new RequestParams();
+    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
 
-    EnrollmentOperationParams params = mapper.map(requestParams);
+    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
     assertIsEmpty(params.getOrder());
   }
