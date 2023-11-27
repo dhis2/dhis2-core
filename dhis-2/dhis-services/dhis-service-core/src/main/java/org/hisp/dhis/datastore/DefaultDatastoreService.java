@@ -191,12 +191,10 @@ public class DefaultDatastoreService implements DatastoreService {
     DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
     if (userHasNamespaceReadAccess(protection)) {
       T res = read.get();
-      if (res instanceof DatastoreEntry de) {
-        if (!aclService.canRead(currentUserService.getCurrentUser(), de)) {
-          throw new AccessDeniedException(
-              String.format(
-                  "Access denied for key '%s' in namespace '%s'", de.getKey(), namespace));
-        }
+      if (res instanceof DatastoreEntry de
+          && (!aclService.canRead(currentUserService.getCurrentUser(), de))) {
+        throw new AccessDeniedException(
+            String.format("Access denied for key '%s' in namespace '%s'", de.getKey(), namespace));
       }
       return res;
     } else if (protection.getReads() == ProtectionType.RESTRICTED) {
