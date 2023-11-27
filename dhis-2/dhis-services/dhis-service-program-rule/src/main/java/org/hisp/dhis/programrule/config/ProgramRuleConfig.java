@@ -29,7 +29,12 @@ package org.hisp.dhis.programrule.config;
 
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.programrule.engine.*;
+import org.hisp.dhis.programrule.engine.NotificationImplementableRuleService;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngineListener;
+import org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService;
+import org.hisp.dhis.programrule.engine.ServerSideImplementableRuleService;
+import org.hisp.dhis.programrule.engine.SupplementaryDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

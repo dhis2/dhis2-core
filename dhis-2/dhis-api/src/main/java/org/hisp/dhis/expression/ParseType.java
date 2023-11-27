@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.expression;
 
-import static org.hisp.dhis.analytics.DataType.*;
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 
 import org.hisp.dhis.analytics.DataType;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.outlierdetection.service;
+package org.hisp.dhis.outlierdetection.processor;
 
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.outlierdetection.OutlierDetectionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * @author Lars Helge Overland
- */
-@ExtendWith(MockitoExtension.class)
-class OutlierDetectionServiceValidationTest {
-
-  @Mock private IdentifiableObjectManager idObjectManager;
-
-  @Mock private ZScoreOutlierDetectionManager zScoreOutlierManager;
-
-  @Mock private MinMaxOutlierDetectionManager minMaxOutlierManager;
-
-  private OutlierDetectionService subject;
+class AnalyticsZscoreSqlStatementProcessorTest {
+  private OutlierSqlStatementProcessor subject;
 
   // -------------------------------------------------------------------------
   // Fixture
@@ -80,9 +63,7 @@ class OutlierDetectionServiceValidationTest {
 
   @BeforeEach
   public void setUp() {
-    subject =
-        new DefaultOutlierDetectionService(
-            idObjectManager, zScoreOutlierManager, minMaxOutlierManager);
+    subject = new AnalyticsZScoreSqlStatementProcessor();
 
     deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM);
@@ -93,90 +74,47 @@ class OutlierDetectionServiceValidationTest {
   }
 
   @Test
-  void testSuccessfulValidation() {
+  void testGetSqlStatement() {
     OutlierDetectionRequest request =
         new OutlierDetectionRequest.Builder()
             .withDataElements(Lists.newArrayList(deA, deB, deC))
             .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 3, 1))
             .withOrgUnits(Lists.newArrayList(ouA, ouB))
             .build();
-
-    assertNull(subject.validateForErrorMessage(request));
+    String sql = subject.getSqlStatement(request);
+    String expected =
+        "select * from (select ax.dataelementid, ax.de_uid, ax.ou_uid, ax.coc_uid, ax.aoc_uid, ax.de_name, ax.ou_name, ax.coc_name, ax.aoc_name, ax.value, ax.pestartdate as pe_start_date, ax.pt_name,  ax.avg_middle_value as middle_value, ax.std_dev as std_dev, ax.mad as mad, abs(ax.value::double precision -  ax.avg_middle_value) as middle_value_abs_dev, (case when ax.std_dev = 0 then 0       else abs(ax.value::double precision -  ax.avg_middle_value ) / ax.std_dev        end) as z_score,  ax.avg_middle_value - (ax.std_dev * :threshold) as lower_bound,  ax.avg_middle_value + (ax.std_dev * :threshold) as upper_bound from analytics ax where dataelementid in  (:data_element_ids) and (ax.\"path\" like '/ouabcdefghA%' or ax.\"path\" like '/ouabcdefghB%') and ax.pestartdate >= :start_date and ax.peenddate <= :end_date) t1 where t1.z_score > :threshold order by middle_value_abs_dev desc limit :max_results ";
+    assertEquals(expected, sql);
   }
 
   @Test
-  void testErrorValidation() {
-    OutlierDetectionRequest request =
-        new OutlierDetectionRequest.Builder()
-            .withDataElements(Lists.newArrayList(deA, deB, deC))
-            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 3, 1))
-            .build();
-
-    IllegalQueryException ex =
-        assertThrows(IllegalQueryException.class, () -> subject.validate(request));
-    assertEquals(ErrorCode.E2203, ex.getErrorCode());
-  }
-
-  @Test
-  void testErrorNoDataElements() {
-    OutlierDetectionRequest request =
-        new OutlierDetectionRequest.Builder()
-            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 7, 1))
-            .withOrgUnits(Lists.newArrayList(ouA, ouB))
-            .build();
-
-    assertEquals(ErrorCode.E2200, subject.validateForErrorMessage(request).getErrorCode());
-  }
-
-  @Test
-  void testErrorStartAfterEndDates() {
-    OutlierDetectionRequest request =
-        new OutlierDetectionRequest.Builder()
-            .withDataElements(Lists.newArrayList(deA, deB, deC))
-            .withStartEndDate(getDate(2020, 6, 1), getDate(2020, 3, 1))
-            .withOrgUnits(Lists.newArrayList(ouA, ouB))
-            .build();
-
-    assertEquals(ErrorCode.E2202, subject.validateForErrorMessage(request).getErrorCode());
-  }
-
-  @Test
-  void testErrorNegativeThreshold() {
-    OutlierDetectionRequest request =
-        new OutlierDetectionRequest.Builder()
-            .withDataElements(Lists.newArrayList(deA, deB, deC))
-            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 6, 1))
-            .withOrgUnits(Lists.newArrayList(ouA, ouB))
-            .withThreshold(-23.4)
-            .build();
-
-    assertEquals(ErrorCode.E2204, subject.validateForErrorMessage(request).getErrorCode());
-  }
-
-  @Test
-  void testErrorNegativeMaxResults() {
+  void testGetSqlStatementWithZScore() {
     OutlierDetectionRequest request =
         new OutlierDetectionRequest.Builder()
             .withDataElements(Lists.newArrayList(deA, deB, deC))
             .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 3, 1))
             .withOrgUnits(Lists.newArrayList(ouA, ouB))
-            .withMaxResults(-100)
+            .withAlgorithm(OutlierDetectionAlgorithm.Z_SCORE)
             .build();
-
-    assertEquals(ErrorCode.E2205, subject.validateForErrorMessage(request).getErrorCode());
+    String sql = subject.getSqlStatement(request);
+    assertTrue(sql.contains("avg_middle_value"));
   }
 
   @Test
-  void testErrorDataStartDateAfterDataEndDate() {
+  void testGetSqlStatementWithModifiedZScore() {
     OutlierDetectionRequest request =
         new OutlierDetectionRequest.Builder()
             .withDataElements(Lists.newArrayList(deA, deB, deC))
-            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 6, 1))
+            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 3, 1))
             .withOrgUnits(Lists.newArrayList(ouA, ouB))
-            .withDataStartDate(getDate(2020, 6, 1))
-            .withDataEndDate(getDate(2020, 5, 1))
+            .withAlgorithm(OutlierDetectionAlgorithm.MOD_Z_SCORE)
             .build();
+    String sql = subject.getSqlStatement(request);
+    assertTrue(sql.contains("percentile_middle_value"));
+  }
 
-    assertEquals(ErrorCode.E2207, subject.validateForErrorMessage(request).getErrorCode());
+  @Test
+  void testGetSqlStatementWithNullRequest() {
+    assertEquals(StringUtils.EMPTY, subject.getSqlStatement(null));
   }
 }
