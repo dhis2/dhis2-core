@@ -79,6 +79,7 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -264,7 +265,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
       TrackedEntity trackedEntity, User user) {
     Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(user.getUsername());
+        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
+            CurrentUserDetailsImpl.fromUser(user));
     return trackedEntity.getTrackedEntityAttributeValues().stream()
         .filter(av -> readableAttributes.contains(av.getAttribute()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -371,15 +373,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     User user = params.getUser();
     if (params.hasProgram()) {
-      if (!aclService.canDataRead(user.getUsername(), params.getProgram())) {
+      if (!aclService.canDataRead(user, params.getProgram())) {
         throw new IllegalQueryException(
             "Current user is not authorized to read data from selected program:  "
                 + params.getProgram().getUid());
       }
 
       if (params.getProgram().getTrackedEntityType() != null
-          && !aclService.canDataRead(
-              user.getUsername(), params.getProgram().getTrackedEntityType())) {
+          && !aclService.canDataRead(user, params.getProgram().getTrackedEntityType())) {
         throw new IllegalQueryException(
             "Current user is not authorized to read data from selected program's tracked entity type:  "
                 + params.getProgram().getTrackedEntityType().getUid());
@@ -387,14 +388,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     if (params.hasTrackedEntityType()
-        && !aclService.canDataRead(user.getUsername(), params.getTrackedEntityType())) {
+        && !aclService.canDataRead(user, params.getTrackedEntityType())) {
       throw new IllegalQueryException(
           "Current user is not authorized to read data from selected tracked entity type:  "
               + params.getTrackedEntityType().getUid());
     } else {
       params.setTrackedEntityTypes(
           trackedEntityTypeService.getAllTrackedEntityType().stream()
-              .filter(tet -> aclService.canDataRead(user.getUsername(), tet))
+              .filter(tet -> aclService.canDataRead(user, tet))
               .collect(Collectors.toList()));
     }
   }

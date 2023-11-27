@@ -79,7 +79,7 @@ public class GetUsersAction extends ActionPagingSupport<User> {
 
     users = new ArrayList<>(userService.getAllUsers());
 
-    users.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+    users.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     ContextUtils.clearIfNotModified(
         ServletActionContext.getRequest(), ServletActionContext.getResponse(), users);

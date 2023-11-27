@@ -231,7 +231,7 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo,
-      User user,
+      CurrentUserDetails user,
       Date now);
 
   /**
@@ -252,7 +252,7 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo,
-      User user,
+      CurrentUserDetails user,
       Date now,
       boolean useOrgUnitChildren);
 
@@ -268,6 +268,14 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
    * @param now the base date for deciding locked date, current date if null.
    * @return the {@link LockStatus}.
    */
+  LockStatus getLockStatus(
+      DataElement dataElement,
+      Period period,
+      OrganisationUnit organisationUnit,
+      CategoryOptionCombo attributeOptionCombo,
+      CurrentUserDetails user,
+      Date now);
+
   LockStatus getLockStatus(
       DataElement dataElement,
       Period period,
@@ -323,7 +331,11 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
    * @return true or false indicating whether the system is locked or not.
    */
   boolean isLocked(
-      User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now);
+      CurrentUserDetails user,
+      DataSet dataSet,
+      Period period,
+      OrganisationUnit organisationUnit,
+      Date now);
 
   /**
    * Return a list of LockException with given filter list

@@ -63,7 +63,7 @@ public class GetCategoryOptionsAction extends BaseAction implements Action {
     categoryOptions = new ArrayList<>(categoryService.getAllCategoryOptions());
 
     categoryOptions.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     Collections.sort(categoryOptions);
 

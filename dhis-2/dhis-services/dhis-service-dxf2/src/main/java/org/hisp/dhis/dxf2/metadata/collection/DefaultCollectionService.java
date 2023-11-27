@@ -258,7 +258,7 @@ public class DefaultCollectionService implements CollectionService {
       throws ForbiddenException, NotFoundException, ConflictException {
     Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
 
-    if (!aclService.canUpdate(CurrentUserUtil.getCurrentUsername(), object)) {
+    if (!aclService.canUpdate(CurrentUserUtil.getCurrentUserDetails(), object)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 

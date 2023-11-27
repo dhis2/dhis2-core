@@ -52,6 +52,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
@@ -287,29 +288,32 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   @Override
   @Transactional(readOnly = true)
   public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes() {
-    return getAllUserReadableTrackedEntityAttributes(CurrentUserUtil.getCurrentUsername());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(String username) {
-    List<Program> programs = programService.getAllPrograms();
-    List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
-
-    return getAllUserReadableTrackedEntityAttributes(username, programs, trackedEntityTypes);
+    return getAllUserReadableTrackedEntityAttributes(CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
   @Transactional(readOnly = true)
   public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
-      String username, List<Program> programs, List<TrackedEntityType> trackedEntityTypes) {
+      CurrentUserDetails userDetails) {
+    List<Program> programs = programService.getAllPrograms();
+    List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
+
+    return getAllUserReadableTrackedEntityAttributes(userDetails, programs, trackedEntityTypes);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
+      CurrentUserDetails userDetails,
+      List<Program> programs,
+      List<TrackedEntityType> trackedEntityTypes) {
     Set<TrackedEntityAttribute> attributes = new HashSet<>();
 
     if (programs != null && !programs.isEmpty()) {
       attributes.addAll(
           programAttributeStore.getAttributes(
               programs.stream()
-                  .filter(program -> aclService.canDataRead(username, program))
+                  .filter(program -> aclService.canDataRead(userDetails, program))
                   .collect(Collectors.toList())));
     }
 
@@ -317,7 +321,8 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
       attributes.addAll(
           entityTypeAttributeStore.getAttributes(
               trackedEntityTypes.stream()
-                  .filter(trackedEntityType -> aclService.canDataRead(username, trackedEntityType))
+                  .filter(
+                      trackedEntityType -> aclService.canDataRead(userDetails, trackedEntityType))
                   .collect(Collectors.toList())));
     }
 

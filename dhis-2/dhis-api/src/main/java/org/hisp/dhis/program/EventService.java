@@ -33,7 +33,6 @@ import java.util.Map;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Abyot Asalefew
@@ -59,13 +58,13 @@ public interface EventService {
    */
   void updateEvent(Event event);
 
-  /**
-   * Updates an {@link Event}.
-   *
-   * @param event the Event to update.
-   * @param user the current user.
-   */
-  void updateEvent(Event event, User user);
+  //  /**
+  //   * Updates an {@link Event}.
+  //   *
+  //   * @param event the Event to update.
+  //   * @param user the current user.
+  //   */
+  //  void updateEvent(Event event, User user);
 
   /**
    * Updates a last sync timestamp on specified events

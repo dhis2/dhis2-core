@@ -186,7 +186,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
   public void decideAccessDataReadObjects(Set<IdentifiableObject> objects, User user)
       throws IllegalQueryException {
     for (IdentifiableObject object : objects) {
-      if (!aclService.canDataRead(user.getUsername(), object)) {
+      if (!aclService.canDataRead(user, object)) {
         throwIllegalQueryEx(
             ErrorCode.E7121,
             user.getUsername(),

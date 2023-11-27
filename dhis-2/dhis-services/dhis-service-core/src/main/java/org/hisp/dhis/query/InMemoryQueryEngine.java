@@ -78,8 +78,8 @@ public class InMemoryQueryEngine<T extends IdentifiableObject> implements QueryE
   }
 
   private void validateQuery(Query query) {
-    if (query.getUsername() == null) {
-      query.setUsername(CurrentUserUtil.getCurrentUsername());
+    if (query.getCurrentUserDetails() == null) {
+      query.setCurrentUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
 
     if (query.getSchema() == null) {
@@ -203,7 +203,7 @@ public class InMemoryQueryEngine<T extends IdentifiableObject> implements QueryE
 
     if (path.contains("access") && query.getSchema().isIdentifiableObject()) {
       ((BaseIdentifiableObject) object)
-          .setAccess(aclService.getAccess((T) object, query.getUsername()));
+          .setAccess(aclService.getAccess((T) object, query.getCurrentUserDetails()));
     }
 
     for (int i = 0; i < paths.length; i++) {
@@ -229,11 +229,11 @@ public class InMemoryQueryEngine<T extends IdentifiableObject> implements QueryE
         if (property.isCollection()) {
           for (Object item : ((Collection<?>) object)) {
             ((BaseIdentifiableObject) item)
-                .setAccess(aclService.getAccess((T) item, query.getUsername()));
+                .setAccess(aclService.getAccess((T) item, query.getCurrentUserDetails()));
           }
         } else {
           ((BaseIdentifiableObject) object)
-              .setAccess(aclService.getAccess((T) object, query.getUsername()));
+              .setAccess(aclService.getAccess((T) object, query.getCurrentUserDetails()));
         }
       }
 

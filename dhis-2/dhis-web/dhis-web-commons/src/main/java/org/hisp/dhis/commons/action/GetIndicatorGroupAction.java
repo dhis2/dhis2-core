@@ -81,7 +81,7 @@ public class GetIndicatorGroupAction extends BaseAction implements Action {
       memberCount = indicatorGroup.getMembers().size();
     }
 
-    canReadInstance(indicatorGroup, CurrentUserUtil.getCurrentUsername());
+    canReadInstance(indicatorGroup, CurrentUserUtil.getCurrentUserDetails());
 
     return SUCCESS;
   }

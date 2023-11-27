@@ -98,6 +98,7 @@ import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
@@ -254,7 +255,7 @@ public class UserController extends AbstractCrudController<User> {
       @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
       TranslateParams translateParams,
-      @CurrentUser User currentUser,
+      @CurrentUser CurrentUserDetailsImpl currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
     if (!"dataApprovalWorkflows".equals(pvProperty)) {
@@ -270,7 +271,7 @@ public class UserController extends AbstractCrudController<User> {
       throw new NotFoundException("User not found: " + pvUid);
     }
 
-    if (!aclService.canRead(currentUser.getUsername(), user)) {
+    if (!aclService.canRead(currentUser, user)) {
       throw new CreateAccessDeniedException(
           "You don't have the proper permissions to access this user.");
     }
@@ -411,7 +412,7 @@ public class UserController extends AbstractCrudController<User> {
       throw new ConflictException(errorCode);
     }
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    if (!aclService.canUpdate(currentUser.getUsername(), user)) {
+    if (!aclService.canUpdate(currentUser, user)) {
       throw new ForbiddenException("You don't have the proper permissions to update this user.");
     }
     if (!userService.canAddOrUpdateUser(getUids(user.getGroups()), currentUser)) {
@@ -567,7 +568,7 @@ public class UserController extends AbstractCrudController<User> {
   @ResponseBody
   public WebMessage putXmlObject(
       @PathVariable("uid") String pvUid,
-      @CurrentUser User currentUser,
+      @CurrentUser CurrentUserDetailsImpl currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws IOException, ForbiddenException, ConflictException, NotFoundException {
@@ -583,7 +584,9 @@ public class UserController extends AbstractCrudController<User> {
       produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage putJsonObject(
-      @PathVariable("uid") String pvUid, @CurrentUser User currentUser, HttpServletRequest request)
+      @PathVariable("uid") String pvUid,
+      @CurrentUser CurrentUserDetailsImpl currentUser,
+      HttpServletRequest request)
       throws IOException, ConflictException, ForbiddenException, NotFoundException {
     User inputUser = renderService.fromJson(request.getInputStream(), getEntityClass());
 
@@ -601,7 +604,7 @@ public class UserController extends AbstractCrudController<User> {
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (!aclService.canUpdate(currentUser.getUsername(), user)) {
+    if (!aclService.canUpdate(currentUser, user)) {
       throw new ForbiddenException("You don't have the proper permissions to update this user.");
     }
 
@@ -711,7 +714,7 @@ public class UserController extends AbstractCrudController<User> {
    */
   private void validateCreateUser(User user, User currentUser)
       throws ForbiddenException, ConflictException {
-    if (!aclService.canCreate(currentUser.getUsername(), getEntityClass())) {
+    if (!aclService.canCreate(currentUser, getEntityClass())) {
       throw new ForbiddenException("You don't have the proper permissions to create this object.");
     }
 
@@ -865,7 +868,7 @@ public class UserController extends AbstractCrudController<User> {
   private void checkCurrentUserCanModify(User userToModify) throws WebMessageException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (!aclService.canUpdate(currentUser.getUsername(), userToModify)) {
+    if (!aclService.canUpdate(currentUser, userToModify)) {
       throw new UpdateAccessDeniedException(
           "You don't have the proper permissions to update this object.");
     }

@@ -47,6 +47,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.jfree.data.time.Year;
@@ -544,7 +545,7 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest {
     assertEquals(userB.getUid(), de.getSharing().getOwner());
     Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
     query.add(Restrictions.eq("id", de.getUid()));
-    query.setUsername(userA.getUsername());
+    query.setCurrentUserDetails(CurrentUserDetailsImpl.fromUser(userA));
     injectSecurityContext(userA);
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
     assertEquals(0, objects.size());
@@ -563,7 +564,7 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest {
     assertEquals(AccessStringHelper.DEFAULT, de.getSharing().getPublicAccess());
     assertEquals(userB.getUid(), de.getSharing().getOwner());
     Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    query.setUsername(userB.getUsername());
+    query.setCurrentUserDetails(CurrentUserDetailsImpl.fromUser(userB));
     injectSecurityContext(userB);
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
     // UserB is the owner so DEA is in the result list
@@ -571,7 +572,7 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest {
         objects.stream().filter(d -> d.getUid().equalsIgnoreCase("deabcdefghA")).findFirst();
     assertTrue(notPublicDe.isPresent());
     query = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    query.setUsername(userA.getUsername());
+    query.setCurrentUserDetails(CurrentUserDetailsImpl.fromUser(userA));
     injectSecurityContext(userA);
     objects = queryEngine.query(query);
     // UserA isn't the owner and DEA is not public so it doesn't present in

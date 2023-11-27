@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.query;
 
-import static java.util.stream.Collectors.toList;
-
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -42,11 +41,10 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.springframework.context.i18n.LocaleContextHolder;
 
 /**
@@ -361,7 +359,7 @@ public class JpaQueryUtils {
    * @return SQL query
    */
   public static String generateSQlQueryForSharingCheck(
-      String sharingColumn, User user, String access) {
+      String sharingColumn, CurrentUserDetails user, String access) {
     return generateSQlQueryForSharingCheck(
         sharingColumn, access, user.getUid(), getGroupsIds(user));
   }
@@ -398,7 +396,7 @@ public class JpaQueryUtils {
   }
 
   public static String generateHqlQueryForSharingCheck(
-      String tableAlias, User user, String access) {
+      String tableAlias, CurrentUserDetails user, String access) {
     if (user.isSuper() || user.isAuthorized("Test_skipSharingCheck")) {
       return "1=1";
     }
@@ -419,9 +417,8 @@ public class JpaQueryUtils {
         + ")";
   }
 
-  private static String getGroupsIds(User user) {
-    return getGroupsIds(
-        user.getGroups().stream().map(IdentifiableObject::getUid).collect(toList()));
+  private static String getGroupsIds(CurrentUserDetails user) {
+    return getGroupsIds(new ArrayList<>(user.getUserGroupIds()));
   }
 
   private static String getGroupsIds(List<String> userGroupIds) {

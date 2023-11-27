@@ -86,6 +86,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRetrievalStore;
 import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
@@ -154,6 +155,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
 
   @Mock private AclService aclService;
   @Mock private UserService userService;
+  @Mock private UserRetrievalStore userRetrievalStore;
 
   private User user;
 
@@ -175,7 +177,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
     InputUtils inputUtils = new InputUtils(categoryService, idObjManager, cacheContext);
 
     DefaultAggregateAccessManager aggregateAccessManager =
-        new DefaultAggregateAccessManager(aclService, cacheContext);
+        new DefaultAggregateAccessManager(aclService, cacheContext, userRetrievalStore);
 
     subject =
         new DefaultCompleteDataSetRegistrationExchangeService(
@@ -252,9 +254,9 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
           .thenReturn(categoryOptionCombo);
 
       // force error on access check for Category Option Combo
-      when(aclService.canDataWrite(user.getUsername(), dataSetA)).thenReturn(true);
-      when(aclService.canDataWrite(user.getUsername(), categoryOptionA)).thenReturn(false);
-      when(aclService.canDataWrite(user.getUsername(), categoryOptionB)).thenReturn(true);
+      when(aclService.canDataWrite(user, dataSetA)).thenReturn(true);
+      when(aclService.canDataWrite(user, categoryOptionA)).thenReturn(false);
+      when(aclService.canDataWrite(user, categoryOptionB)).thenReturn(true);
 
       when(systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_PERIODS))
           .thenReturn(false);

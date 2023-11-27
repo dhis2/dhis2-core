@@ -34,6 +34,7 @@ import java.util.Set;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 
@@ -54,6 +55,10 @@ public interface IdentifiableObject
 
   User getLastUpdatedBy();
 
+  void setLastUpdatedById(Long id);
+
+  Long getLastUpdatedById();
+
   Set<AttributeValue> getAttributeValues();
 
   void setAttributeValues(Set<AttributeValue> attributeValues);
@@ -64,9 +69,9 @@ public interface IdentifiableObject
 
   boolean isFavorite();
 
-  boolean setAsFavorite(User user);
+  boolean setAsFavorite(CurrentUserDetailsImpl user);
 
-  boolean removeAsFavorite(User user);
+  boolean removeAsFavorite(CurrentUserDetailsImpl user);
 
   // -----------------------------------------------------------------------------
   // Sharing
@@ -83,6 +88,10 @@ public interface IdentifiableObject
   User getUser();
 
   void setCreatedBy(User createdBy);
+
+  Long getCreatedById();
+
+  void setCreatedById(Long createdById);
 
   /**
    * @deprecated This method is replaced by {@link #setCreatedBy(User)} ()} Currently it is only

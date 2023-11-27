@@ -37,6 +37,7 @@
     </list>
 
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_indicatorgroupset_userid" />
+    <property name="createdById" column="userid" insert="false" update="false" />
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>

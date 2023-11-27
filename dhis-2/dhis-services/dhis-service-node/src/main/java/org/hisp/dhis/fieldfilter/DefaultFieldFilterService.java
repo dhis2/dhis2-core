@@ -75,7 +75,10 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -355,8 +358,10 @@ public class DefaultFieldFilterService implements FieldFilterService {
 
     updateFields(fieldMap, schema.getKlass());
 
+    CurrentUserDetails currentUserDetails = getCurrentUserDetails(username);
+
     if (fieldMap.containsKey("access") && schema.isIdentifiableObject()) {
-      Access access = aclService.getAccess((IdentifiableObject) object, username);
+      Access access = aclService.getAccess((IdentifiableObject) object, currentUserDetails);
 
       ((BaseIdentifiableObject) object).setAccess(access);
     }
@@ -550,6 +555,17 @@ public class DefaultFieldFilterService implements FieldFilterService {
     }
 
     return complexNode;
+  }
+
+  private CurrentUserDetails getCurrentUserDetails(String username) {
+    CurrentUserDetails currentUserDetails;
+    if (CurrentUserUtil.getCurrentUsername().equals(username)) {
+      currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    } else {
+      User user = userService.getUserByUsername(username);
+      currentUserDetails = CurrentUserDetailsImpl.fromUser(user);
+    }
+    return currentUserDetails;
   }
 
   private void updateFields(FieldMap fieldMap, Class<?> klass) {

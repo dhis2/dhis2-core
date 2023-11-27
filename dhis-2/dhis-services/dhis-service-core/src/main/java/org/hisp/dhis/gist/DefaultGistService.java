@@ -50,7 +50,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -194,8 +193,8 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
   }
 
   private GistAccessControl createGistAccessControl() {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    return new DefaultGistAccessControl(currentUser, aclService, userService, this);
+    return new DefaultGistAccessControl(
+        CurrentUserUtil.getCurrentUserDetails(), aclService, userService, this);
   }
 
   private RelativePropertyContext createPropertyContext(GistQuery query) {

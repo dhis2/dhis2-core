@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,6 +54,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,6 +116,7 @@ class JdbcEventStoreTest {
     User user = new User();
     user.setTeiSearchOrganisationUnits(Set.of(new OrganisationUnit()));
     //    when(getCurrentUser()).thenReturn(user);
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
   }
 
   @Test

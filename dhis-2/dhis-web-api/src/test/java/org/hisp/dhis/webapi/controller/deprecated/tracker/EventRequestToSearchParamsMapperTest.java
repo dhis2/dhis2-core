@@ -152,7 +152,7 @@ class EventRequestToSearchParamsMapperTest {
     // when(organisationUnitService.getOrganisationUnit(any())).thenReturn(ou);
 
     when(organisationUnitService.isInUserHierarchy(user, ou)).thenReturn(true);
-    when(aclService.canDataRead(user.getUsername(), program)).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
     when(entityInstanceService.getTrackedEntity(any())).thenReturn(tei);
     when(dataElementService.getDataElement(any())).thenReturn(de);
 
@@ -239,7 +239,7 @@ class EventRequestToSearchParamsMapperTest {
     user.setOrganisationUnits(Set.of(searchScopeOrgUnit));
 
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user.getUsername(), program)).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
 
     user.setUsername("anyUser");
     when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);

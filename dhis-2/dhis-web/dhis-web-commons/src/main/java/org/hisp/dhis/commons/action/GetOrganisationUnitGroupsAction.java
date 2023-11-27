@@ -87,7 +87,7 @@ public class GetOrganisationUnitGroupsAction extends ActionPagingSupport<Organis
     Collections.sort(organisationUnitGroups);
 
     organisationUnitGroups.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     if (usePaging) {
       this.paging = createPaging(organisationUnitGroups.size());

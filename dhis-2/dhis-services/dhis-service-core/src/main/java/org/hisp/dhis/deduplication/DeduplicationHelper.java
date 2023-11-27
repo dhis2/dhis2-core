@@ -258,8 +258,8 @@ public class DeduplicationHelper {
       return "Missing required authority for merging tracked entities.";
     }
 
-    if (!aclService.canDataWrite(currentUsername, original.getTrackedEntityType())
-        || !aclService.canDataWrite(currentUsername, duplicate.getTrackedEntityType())) {
+    if (!aclService.canDataWrite(currentUserDetails, original.getTrackedEntityType())
+        || !aclService.canDataWrite(currentUserDetails, duplicate.getTrackedEntityType())) {
       return "Missing data write access to Tracked Entity Type.";
     }
 
@@ -269,14 +269,15 @@ public class DeduplicationHelper {
             .distinct()
             .collect(Collectors.toList());
 
-    if (relationshipTypes.stream().anyMatch(rt -> !aclService.canDataWrite(currentUsername, rt))) {
+    if (relationshipTypes.stream()
+        .anyMatch(rt -> !aclService.canDataWrite(currentUserDetails, rt))) {
       return "Missing data write access to one or more Relationship Types.";
     }
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(mergeObject.getEnrollments());
 
     if (enrollments.stream()
-        .anyMatch(e -> !aclService.canDataWrite(currentUsername, e.getProgram()))) {
+        .anyMatch(e -> !aclService.canDataWrite(currentUserDetails, e.getProgram()))) {
       return "Missing data write access to one or more Programs.";
     }
 

@@ -71,7 +71,7 @@ public class DefaultTrackedEntityAttributeValueAuditService
 
     Set<String> allUserReadableTrackedEntityAttributes =
         trackedEntityAttributeService
-            .getAllUserReadableTrackedEntityAttributes(CurrentUserUtil.getCurrentUsername())
+            .getAllUserReadableTrackedEntityAttributes(CurrentUserUtil.getCurrentUserDetails())
             .stream()
             .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());

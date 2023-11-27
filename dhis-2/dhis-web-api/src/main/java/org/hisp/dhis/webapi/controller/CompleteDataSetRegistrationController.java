@@ -71,7 +71,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.CompleteDataSetRegQueryParams;
@@ -215,21 +214,24 @@ public class CompleteDataSetRegistrationController {
     // ---------------------------------------------------------------------
     // Check locked status
     // ---------------------------------------------------------------------
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
     List<String> lockedDataSets = new ArrayList<>();
 
     for (DataSet dataSet : dataSets) {
       if (!dataSetService
           .getLockStatus(
-              dataSet, period, organisationUnit, attributeOptionCombo, currentUser, null, multiOu)
+              dataSet,
+              period,
+              organisationUnit,
+              attributeOptionCombo,
+              CurrentUserUtil.getCurrentUserDetails(),
+              null,
+              multiOu)
           .isOpen()) {
         lockedDataSets.add(dataSet.getUid());
       }
     }
 
-    if (lockedDataSets.size() != 0) {
+    if (!lockedDataSets.isEmpty()) {
       throw new WebMessageException(
           conflict("Locked Data set(s) : " + StringUtils.join(lockedDataSets, ", ")));
     }

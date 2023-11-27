@@ -136,12 +136,12 @@ class EventRequestParamsMapperTest {
     program = new Program();
     program.setUid(PROGRAM_UID);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user.getUsername(), program)).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
 
     ProgramStage programStage = new ProgramStage();
     programStage.setUid("PlZSBEN7iZd");
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
-    when(aclService.canDataRead(user.getUsername(), programStage)).thenReturn(true);
+    when(aclService.canDataRead(user, programStage)).thenReturn(true);
 
     orgUnit = new OrganisationUnit();
     when(organisationUnitService.getOrganisationUnit(any())).thenReturn(orgUnit);

@@ -143,13 +143,13 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
       addReports.accept(new ErrorReport(OrganisationUnit.class, ErrorCode.E1520, user.getUid()));
       return;
     }
-    if (!aclService.canWrite(user.getUsername(), unit)) {
+    if (!aclService.canWrite(user, unit)) {
       addReports.accept(
           new ErrorReport(
               OrganisationUnit.class, ErrorCode.E1521, user.getUid(), getUidOrName(unit)));
     }
     if (oldParent != null
-        && (!aclService.canWrite(user.getUsername(), oldParent)
+        && (!aclService.canWrite(user, oldParent)
             || !organisationUnitService.isInUserHierarchy(user, oldParent))) {
       addReports.accept(
           new ErrorReport(
@@ -160,7 +160,7 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
               getUidOrName(oldParent)));
     }
     if (newParent != null
-        && (!aclService.canWrite(user.getUsername(), newParent)
+        && (!aclService.canWrite(user, newParent)
             || !organisationUnitService.isInUserHierarchy(user, newParent))) {
       addReports.accept(
           new ErrorReport(

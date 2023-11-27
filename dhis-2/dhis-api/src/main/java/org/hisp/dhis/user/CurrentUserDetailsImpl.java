@@ -33,35 +33,51 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.springframework.security.core.GrantedAuthority;
 
-@AllArgsConstructor
 @Getter
-@Builder
+@Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Slf4j
 public class CurrentUserDetailsImpl implements CurrentUserDetails {
-  private final String uid;
-  private final Long id;
-  private final String code;
-  @EqualsAndHashCode.Include private final String username;
-  private final String firstName;
-  private final String surname;
-  private final String password;
-  private final boolean enabled;
-  private final boolean accountNonExpired;
-  private final boolean accountNonLocked;
-  private final boolean credentialsNonExpired;
-  private final Collection<GrantedAuthority> authorities;
-  private final Map<String, Serializable> userSettings;
-  private final Set<String> userGroupIds;
-  private final Set<String> userOrgUnitIds;
-  private final boolean isSuper;
-  private final Set<String> userRoleIds;
+
+  private String uid;
+  private Long id;
+  private String code;
+  @EqualsAndHashCode.Include private String username;
+  private String firstName;
+  private String surname;
+  private String password;
+  private boolean enabled;
+  private boolean accountNonExpired;
+  private boolean accountNonLocked;
+  private boolean credentialsNonExpired;
+  private Collection<GrantedAuthority> authorities;
+  private Map<String, Serializable> userSettings;
+  private Set<String> userGroupIds;
+  private Set<String> userOrgUnitIds;
+  private boolean isSuper;
+  private Set<String> userRoleIds;
+
+  //  public CurrentUserDetailsImpl() {}
+
+  public boolean canModifyUser(User other) {
+    if (other == null) {
+      return false;
+    }
+
+    final Set<String> authorities = getAllAuthorities();
+    if (authorities.contains(UserRole.AUTHORITY_ALL)) {
+      return true;
+    }
+
+    return authorities.containsAll(other.getAllAuthorities());
+  }
 
   public Set<String> getAllAuthorities() {
     return authorities == null
@@ -90,35 +106,43 @@ public class CurrentUserDetailsImpl implements CurrentUserDetails {
   public static CurrentUserDetailsImpl createUserDetails(
       User user, boolean accountNonLocked, boolean credentialsNonExpired) {
 
-    return CurrentUserDetailsImpl.builder()
-        .id(user.getId())
-        .uid(user.getUid())
-        .code(user.getCode())
-        .firstName(user.getFirstName())
-        .surname(user.getSurname())
-        .username(user.getUsername())
-        .password(user.getPassword())
-        .enabled(user.isEnabled())
-        .accountNonExpired(user.isAccountNonExpired())
-        .accountNonLocked(accountNonLocked)
-        .credentialsNonExpired(credentialsNonExpired)
-        .authorities(user.getAuthorities())
-        .userSettings(new HashMap<>())
-        .userGroupIds(
-            user.getUid() == null
-                ? Set.of()
-                : user.getGroups().stream()
-                    .map(BaseIdentifiableObject::getUid)
-                    .collect(Collectors.toSet()))
-        .isSuper(user.isSuper())
-        .userOrgUnitIds(
-            user.getOrganisationUnits().stream()
+    if (user == null) {
+      return null;
+    }
+
+    CurrentUserDetailsImpl userDetails = new CurrentUserDetailsImpl();
+    userDetails.setId(user.getId());
+
+    userDetails.setUid(user.getUid());
+    userDetails.setCode(user.getCode());
+    userDetails.setFirstName(user.getFirstName());
+    userDetails.setSurname(user.getSurname());
+
+    userDetails.setUsername(user.getUsername());
+
+    userDetails.setPassword(user.getPassword());
+    userDetails.setEnabled(user.isEnabled());
+    userDetails.setAccountNonExpired(user.isAccountNonExpired());
+    userDetails.setAccountNonLocked(accountNonLocked);
+    userDetails.setCredentialsNonExpired(credentialsNonExpired);
+    userDetails.setAuthorities(user.getAuthorities());
+    userDetails.setUserSettings(new HashMap<>());
+    userDetails.setUserGroupIds(
+        user.getUid() == null
+            ? Set.of()
+            : user.getGroups().stream()
                 .map(BaseIdentifiableObject::getUid)
-                .collect(Collectors.toSet()))
-        .userRoleIds(
-            user.getUserRoles().stream()
-                .map(BaseIdentifiableObject::getUid)
-                .collect(Collectors.toSet()))
-        .build();
+                .collect(Collectors.toSet()));
+    userDetails.setSuper(user.isSuper());
+    userDetails.setUserOrgUnitIds(
+        user.getOrganisationUnits().stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet()));
+    userDetails.setUserRoleIds(
+        user.getUserRoles().stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet()));
+
+    return userDetails;
   }
 }

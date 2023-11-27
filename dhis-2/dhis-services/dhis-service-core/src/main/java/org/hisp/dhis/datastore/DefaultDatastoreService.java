@@ -29,7 +29,6 @@ package org.hisp.dhis.datastore;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 
 import java.util.Date;
 import java.util.List;
@@ -78,7 +77,7 @@ public class DefaultDatastoreService implements DatastoreService {
   @Override
   @Transactional(readOnly = true)
   public List<String> getNamespaces() {
-    return store.getNamespaces().stream().filter(this::isNamespaceVisible).collect(toList());
+    return store.getNamespaces().stream().filter(this::isNamespaceVisible).toList();
   }
 
   @Override
@@ -175,7 +174,7 @@ public class DefaultDatastoreService implements DatastoreService {
       T res = read.get();
       if (res instanceof DatastoreEntry && protection != null && protection.isSharingRespected()) {
         DatastoreEntry entry = (DatastoreEntry) res;
-        if (!aclService.canRead(CurrentUserUtil.getCurrentUsername(), entry)) {
+        if (!aclService.canRead(CurrentUserUtil.getCurrentUserDetails(), entry)) {
           throw new AccessDeniedException(
               String.format(
                   "Access denied for key '%s' in namespace '%s'", entry.getKey(), namespace));
@@ -197,7 +196,7 @@ public class DefaultDatastoreService implements DatastoreService {
       // might also need to check sharing
       if (protection.isSharingRespected()) {
         for (DatastoreEntry entry : whenSharing.get()) {
-          if (!aclService.canWrite(CurrentUserUtil.getCurrentUsername(), entry)) {
+          if (!aclService.canWrite(CurrentUserUtil.getCurrentUserDetails(), entry)) {
             throw accessDeniedTo(namespace, entry.getKey());
           }
         }

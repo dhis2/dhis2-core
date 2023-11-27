@@ -147,6 +147,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
     resolvers.add(dhisApiVersionHandlerMethodArgumentResolver());
+
     resolvers.add(currentUserHandlerMethodArgumentResolver);
     resolvers.add(currentUserInfoHandlerMethodArgumentResolver);
   }

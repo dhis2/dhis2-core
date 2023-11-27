@@ -110,6 +110,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -333,7 +334,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
     // Verify data set read sharing
 
     for (DataSet dataSet : params.getDataSets()) {
-      if (!aclService.canDataRead(CurrentUserUtil.getCurrentUsername(), dataSet)) {
+      if (!aclService.canDataRead(CurrentUserUtil.getCurrentUserDetails(), dataSet)) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2010, dataSet.getUid()));
       }
     }
@@ -341,7 +342,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
     // Verify attribute option combination data read sharing
 
     for (CategoryOptionCombo optionCombo : params.getAttributeOptionCombos()) {
-      if (!aclService.canDataRead(CurrentUserUtil.getCurrentUsername(), optionCombo)) {
+      if (!aclService.canDataRead(CurrentUserUtil.getCurrentUserDetails(), optionCombo)) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2011, optionCombo.getUid()));
       }
     }
@@ -1108,7 +1109,9 @@ public class DefaultDataValueSetService implements DataValueSetService {
         .requireAttrOptionCombo(
             options.isRequireAttributeOptionCombo()
                 || settings.getBoolSetting(SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO))
-        .forceDataInput(inputUtils.canForceDataInput(currentUser, options.isForce()))
+        .forceDataInput(
+            inputUtils.canForceDataInput(
+                CurrentUserDetailsImpl.fromUser(currentUser), options.isForce()))
 
         // data fetching state
         .dataElementCallable(

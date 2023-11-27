@@ -287,7 +287,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
                   persistedRole = manager.getNoAcl(UserRole.class, role.getUid());
                 }
 
-                if (!aclService.canRead(bundle.getUser().getUsername(), persistedRole)) {
+                if (!aclService.canRead(bundle.getUser(), persistedRole)) {
                   roles.add(persistedRole);
                 }
               });

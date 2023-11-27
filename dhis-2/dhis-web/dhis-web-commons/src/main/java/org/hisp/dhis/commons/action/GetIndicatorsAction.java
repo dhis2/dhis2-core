@@ -128,7 +128,8 @@ public class GetIndicatorsAction extends ActionPagingSupport<Indicator> {
 
     Collections.sort(indicators);
 
-    indicators.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+    indicators.forEach(
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     if (usePaging) {
       this.paging = createPaging(indicators.size());

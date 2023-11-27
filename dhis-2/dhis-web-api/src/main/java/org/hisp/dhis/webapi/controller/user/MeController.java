@@ -165,7 +165,7 @@ public class MeController {
       @RequestParam(defaultValue = "*") List<String> fields) {
 
     if (fieldsContains("access", fields)) {
-      Access access = aclService.getAccess(user, user.getUsername());
+      Access access = aclService.getAccess(user, user);
       user.setAccess(access);
     }
 

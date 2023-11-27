@@ -89,7 +89,7 @@ public class GetDataElementCategoriesAction extends ActionPagingSupport<Category
     }
 
     dataElementCategories.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     Collections.sort(dataElementCategories);
 

@@ -103,7 +103,7 @@ public class TrackedEntityInstanceSupplier
           Pair.of(
               tei,
               !importOptions.isSkipLastUpdated()
-                  ? aclService.canUpdate(importOptions.getUser().getUsername(), tei)
+                  ? aclService.canUpdate(importOptions.getUser(), tei)
                   : null));
     }
 

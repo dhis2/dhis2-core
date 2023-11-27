@@ -78,7 +78,7 @@ public class GetDataElementAction extends BaseAction implements Action {
       dataElement = dataElementService.getDataElement(id);
     }
 
-    canReadInstance(dataElement, CurrentUserUtil.getCurrentUsername());
+    canReadInstance(dataElement, CurrentUserUtil.getCurrentUserDetails());
 
     return SUCCESS;
   }

@@ -49,6 +49,9 @@ import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -70,6 +73,8 @@ public class TeiAnalyticsQueryService {
   private final ExecutionPlanStore executionPlanStore;
 
   private final CommonParamsSecurityManager securityManager;
+
+  private final UserService userService;
 
   /**
    * This method will create a query, based on the teiParams, and execute it against the underline
@@ -104,7 +109,8 @@ public class TeiAnalyticsQueryService {
 
     List<Field> fields = queryCreator.getRenderableSqlQuery().getSelectFields();
 
-    return gridAdaptor.createGrid(result, rowsCount, queryParams, fields);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    return gridAdaptor.createGrid(result, rowsCount, queryParams, fields, currentUser);
   }
 
   /**

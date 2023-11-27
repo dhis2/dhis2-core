@@ -89,6 +89,10 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
       CriteriaBuilder builder, CurrentUserDetails user) {
+    if (user == null) {
+      return List.of();
+    }
+
     return getSharingPredicates(
         builder, user.getUid(), user.getUserGroupIds(), AclService.LIKE_READ_METADATA);
   }

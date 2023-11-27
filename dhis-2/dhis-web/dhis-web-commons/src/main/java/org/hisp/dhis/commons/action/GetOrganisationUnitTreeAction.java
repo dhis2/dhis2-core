@@ -168,7 +168,7 @@ public class GetOrganisationUnitTreeAction extends BaseAction implements Action 
     }
 
     rootOrganisationUnits.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     if (byName != null) {
       List<OrganisationUnit> organisationUnitByName =
@@ -236,7 +236,7 @@ public class GetOrganisationUnitTreeAction extends BaseAction implements Action 
     Collections.sort(rootOrganisationUnits);
 
     organisationUnits.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     return SUCCESS;
   }

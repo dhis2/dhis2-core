@@ -199,7 +199,7 @@ public class GetDataElementsAction extends ActionPagingSupport<DataElement> {
     }
 
     dataElements.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     if (usePaging) {
       this.paging = createPaging(dataElements.size());

@@ -83,7 +83,7 @@ public class GetIndicatorGroupSetsAction extends ActionPagingSupport<IndicatorGr
     Collections.sort(indicatorGroupSets);
 
     indicatorGroupSets.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     if (usePaging) {
       this.paging = createPaging(indicatorGroupSets.size());

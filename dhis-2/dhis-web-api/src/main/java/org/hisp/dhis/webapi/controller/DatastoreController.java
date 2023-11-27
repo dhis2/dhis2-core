@@ -53,7 +53,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -173,7 +173,9 @@ public class DatastoreController extends AbstractDatastoreController {
   /** Retrieves the KeyJsonValue represented by the given key from the given namespace. */
   @GetMapping(value = "/{namespace}/{key}/metaData", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody DatastoreEntry getEntryMetaData(
-      @PathVariable String namespace, @PathVariable String key, @CurrentUser User currentUser)
+      @PathVariable String namespace,
+      @PathVariable String key,
+      @CurrentUser CurrentUserDetails currentUserDetails)
       throws NotFoundException, InvocationTargetException, IllegalAccessException {
     DatastoreEntry entry = getExistingEntry(namespace, key);
 
@@ -182,7 +184,7 @@ public class DatastoreController extends AbstractDatastoreController {
     metaData.setValue(null);
     metaData.setJbPlainValue(null);
     metaData.setEncryptedValue(null);
-    metaData.setAccess(aclService.getAccess(entry, currentUser.getUsername()));
+    metaData.setAccess(aclService.getAccess(entry, currentUserDetails));
     return metaData;
   }
 

@@ -88,7 +88,7 @@ public class GetDataSetAssociationsAction implements Action {
             identifiableObjectManager.getLastUpdated(DataSet.class),
             identifiableObjectManager.getLastUpdated(OrganisationUnit.class));
 
-    String tag = ContextUtils.getEtag(lastUpdated, currentUser);
+    String tag = ContextUtils.getEtag(lastUpdated, CurrentUserUtil.getCurrentUserDetails());
 
     if (ContextUtils.isNotModified(
         ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag)) {

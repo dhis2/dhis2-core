@@ -82,7 +82,7 @@ public class GetDataElementGroupsAction extends ActionPagingSupport<DataElementG
     }
 
     dataElementGroups.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     Collections.sort(dataElementGroups);
 

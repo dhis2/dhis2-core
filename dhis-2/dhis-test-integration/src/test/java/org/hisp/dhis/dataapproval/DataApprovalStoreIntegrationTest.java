@@ -61,9 +61,6 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -74,7 +71,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  *
  * @author Jim Grace
  */
-@ExtendWith(MockitoExtension.class)
+// @ExtendWith(MockitoExtension.class)
 class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
   private HibernateDataApprovalStore dataApprovalStore;
@@ -88,8 +85,6 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
   @Autowired private PeriodStore periodStore;
 
   @Autowired private CategoryService categoryService;
-
-  @Autowired private UserService userService;
 
   @Autowired private UserGroupService userGroupService;
 
@@ -106,6 +101,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
   @Autowired private CacheProvider cacheProvider;
 
   @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private UserService _userService;
 
   //  @Mock private CurrentUserService currentUserService;
 
@@ -155,6 +151,8 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
   @Override
   public void setUpTest() throws Exception {
+    this.userService = _userService;
+
     dataApprovalStore =
         new HibernateDataApprovalStore(
             entityManager,
@@ -166,7 +164,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
             categoryService,
             systemSettingManager,
             new PostgreSQLStatementBuilder(),
-            userService);
+            _userService);
 
     // ---------------------------------------------------------------------
     // Add supporting data
@@ -258,6 +256,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
   @Test
   void testGetDataApprovalStatusesWithOpenPeriodsAfterCoEndDate() {
+
     transactionTemplate.execute(
         status -> {
           categoryOptionA.setPublicAccess("r-r-----");
@@ -268,7 +267,9 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
           dataApprovalLevelService.addDataApprovalLevel(level1);
 
-          Mockito.when(getCurrentUser()).thenReturn(userA);
+          injectSecurityContext(userA);
+
+          //          Mockito.when(getCurrentUser()).thenReturn(userA);
 
           assertEquals(
               1,
@@ -490,7 +491,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
     dataApprovalLevelService.addDataApprovalLevel(level1);
 
-    Mockito.when(getCurrentUser()).thenReturn(userA);
+    //    Mockito.when(getCurrentUser()).thenReturn(userA);
 
     assertEquals(
         expectedApprovalCount,

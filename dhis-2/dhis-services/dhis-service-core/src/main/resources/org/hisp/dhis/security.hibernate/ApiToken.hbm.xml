@@ -30,6 +30,7 @@
         <property name="attributes" type="jbApiKeyAttributesList" not-null="false"/>
 
         <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="createdby" foreign-key="fk_apitoken_userid" />
+        <property name="createdById" column="createdby" insert="false" update="false" />
 
         <property name="sharing" type="jsbObjectSharing"/>
     </class>

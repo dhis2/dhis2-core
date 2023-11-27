@@ -36,7 +36,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
 import org.springframework.http.ResponseEntity;
@@ -57,7 +57,7 @@ public class DataSetMetadataController {
 
   @GetMapping("/metadata")
   public ResponseEntity<JsonNode> getMetadata(
-      @CurrentUser User currentUser, HttpServletRequest request) {
+      @CurrentUser CurrentUserDetailsImpl currentUser, HttpServletRequest request) {
     String etag = getEtag(exportService.getDataSetMetadataLastModified(), currentUser);
 
     return ResponseEntityUtils.withEtagCaching(etag, request, exportService::getDataSetMetadata);

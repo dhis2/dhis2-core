@@ -97,7 +97,7 @@ public class GetDataElementsNotInGroupAction extends ActionPagingSupport<DataEle
     }
 
     groupMembers.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     // ---------------------------------------------------------------------
     // Get available elements
@@ -110,7 +110,7 @@ public class GetDataElementsNotInGroupAction extends ActionPagingSupport<DataEle
     Collections.sort(dataElements);
 
     dataElements.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     if (usePaging) {
       this.paging = createPaging(dataElements.size());

@@ -202,7 +202,7 @@ public class GetMetaDataAction implements Action {
                 identifiableObjectManager.getLastUpdated(Category.class),
                 identifiableObjectManager.getLastUpdated(CategoryOption.class)));
 
-    String tag = ContextUtils.getEtag(lastUpdated, currentUser);
+    String tag = ContextUtils.getEtag(lastUpdated, CurrentUserUtil.getCurrentUserDetails());
 
     if (ContextUtils.isNotModified(
         ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag)) {

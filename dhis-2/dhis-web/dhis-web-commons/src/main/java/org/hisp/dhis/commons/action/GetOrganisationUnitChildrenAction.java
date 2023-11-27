@@ -84,7 +84,7 @@ public class GetOrganisationUnitChildrenAction extends ActionPagingSupport<Organ
     Collections.sort(organisationUnits);
 
     organisationUnits.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     if (usePaging) {
       this.paging = createPaging(organisationUnits.size());

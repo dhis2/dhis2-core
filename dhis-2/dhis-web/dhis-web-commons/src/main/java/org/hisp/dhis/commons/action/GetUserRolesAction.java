@@ -71,7 +71,8 @@ public class GetUserRolesAction extends ActionPagingSupport<UserRole> {
 
     userService.canIssueFilter(userRoles);
 
-    userRoles.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+    userRoles.forEach(
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     Collections.sort(userRoles);
 

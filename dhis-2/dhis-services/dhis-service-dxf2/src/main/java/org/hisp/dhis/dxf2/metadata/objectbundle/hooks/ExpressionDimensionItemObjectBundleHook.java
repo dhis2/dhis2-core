@@ -71,7 +71,7 @@ public class ExpressionDimensionItemObjectBundleHook
       Consumer<ErrorReport> addReports) {
     PreheatIdentifier identifier = bundle.getPreheatIdentifier();
 
-    if (!aclService.canRead(bundle.getUser().getUsername(), expressionDimensionItem)) {
+    if (!aclService.canRead(bundle.getUser(), expressionDimensionItem)) {
       addReports.accept(
           new ErrorReport(
               ExpressionDimensionItem.class,

@@ -74,7 +74,8 @@ public class GetAttributesAction extends BaseAction implements Action {
     ContextUtils.clearIfNotModified(
         ServletActionContext.getRequest(), ServletActionContext.getResponse(), attributes);
 
-    attributes.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+    attributes.forEach(
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     Collections.sort(attributes);
 

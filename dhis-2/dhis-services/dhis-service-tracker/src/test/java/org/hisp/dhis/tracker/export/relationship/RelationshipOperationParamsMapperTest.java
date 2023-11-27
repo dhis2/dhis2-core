@@ -52,6 +52,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -78,6 +79,7 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   @Mock private TrackerAccessManager accessManager;
 
   //  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @InjectMocks private RelationshipOperationParamsMapper mapper;
 

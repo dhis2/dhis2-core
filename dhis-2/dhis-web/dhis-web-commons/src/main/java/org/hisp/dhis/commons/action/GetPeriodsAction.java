@@ -98,7 +98,7 @@ public class GetPeriodsAction extends ActionPagingSupport<Period> {
       periods = new ArrayList<>(periodService.getPeriodsByPeriodType(periodType));
     }
 
-    periods.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+    periods.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     for (Period period : periods) {
       period.setName(format.formatPeriod(period));

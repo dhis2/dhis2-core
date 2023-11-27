@@ -45,6 +45,8 @@ import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -68,7 +70,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
   private static final Set<String> PUBLIC_PROPERTY_PATHS =
       unmodifiableSet(new HashSet<>(asList("sharing", "access", "translations")));
 
-  private final User currentUser;
+  private final CurrentUserDetails currentUser;
 
   private final AclService aclService;
 
@@ -98,7 +100,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
     }
     @SuppressWarnings("unchecked")
     Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
-    return aclService.canRead(currentUser.getUsername(), ioType);
+    return aclService.canRead(currentUser, ioType);
   }
 
   @Override
@@ -109,7 +111,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
     @SuppressWarnings("unchecked")
     Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
     if (!aclService.isClassShareable(ioType)) {
-      return aclService.canRead(currentUser.getUsername(), ioType);
+      return aclService.canRead(currentUser, ioType);
     }
     List<?> res =
         gistService.gist(
@@ -122,7 +124,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
     Sharing sharing = res.isEmpty() ? new Sharing() : (Sharing) res.get(0);
     BaseIdentifiableObject object = new BaseIdentifiableObject();
     object.setSharing(sharing);
-    return aclService.canRead(currentUser.getUsername(), object, ioType);
+    return aclService.canRead(currentUser, object, ioType);
   }
 
   @Override
@@ -137,21 +139,23 @@ public class DefaultGistAccessControl implements GistAccessControl {
 
     @SuppressWarnings("unchecked")
     Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
-    return PUBLIC_PROPERTY_PATHS.contains(path)
-        || aclService.canRead(currentUser.getUsername(), ioType);
+    return PUBLIC_PROPERTY_PATHS.contains(path) || aclService.canRead(currentUser, ioType);
   }
 
   @Override
   public boolean canFilterByAccessOfUser(String userUid) {
-    User user = getCurrentUserUid().equals(userUid) ? currentUser : userService.getUser(userUid);
-    return user != null && aclService.canRead(currentUser.getUsername(), user);
+    CurrentUserDetails user =
+        getCurrentUserUid().equals(userUid)
+            ? currentUser
+            : CurrentUserDetailsImpl.fromUser(userService.getUser(userUid));
+    return user != null && aclService.canRead(currentUser, userService.getUser(user.getUid()));
   }
 
   @Override
   public Access asAccess(Class<? extends IdentifiableObject> type, Sharing value) {
     BaseIdentifiableObject object = new BaseIdentifiableObject();
     object.setSharing(value);
-    return aclService.getAccess(object, currentUser.getUsername(), type);
+    return aclService.getAccess(object, currentUser, type);
   }
 
   @Override

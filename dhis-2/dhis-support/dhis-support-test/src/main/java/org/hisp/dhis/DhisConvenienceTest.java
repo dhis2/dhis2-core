@@ -190,6 +190,7 @@ import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -2628,12 +2629,12 @@ public abstract class DhisConvenienceTest {
       clearSecurityContext();
       return;
     }
-
     hibernateService.flushSession();
     user = userService.getUser(user.getUid());
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+  }
 
-    CurrentUserDetails currentUserDetails = userService.createUserDetails(user);
-
+  public static void injectSecurityContext(CurrentUserDetails currentUserDetails) {
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
             currentUserDetails, "", currentUserDetails.getAuthorities());
@@ -2642,12 +2643,11 @@ public abstract class DhisConvenienceTest {
     SecurityContextHolder.setContext(context);
   }
 
-  protected void clearSecurityContext() {
+  public static void clearSecurityContext() {
     SecurityContext context = SecurityContextHolder.getContext();
     if (context != null) {
       SecurityContextHolder.getContext().setAuthentication(null);
     }
-
     SecurityContextHolder.clearContext();
   }
 

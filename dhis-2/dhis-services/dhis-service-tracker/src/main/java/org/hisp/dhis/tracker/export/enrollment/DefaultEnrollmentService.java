@@ -57,6 +57,8 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -143,7 +145,8 @@ class DefaultEnrollmentService
       result
           .getTrackedEntity()
           .setTrackedEntityAttributeValues(
-              getTrackedEntityAttributeValues(currentUser, enrollment));
+              getTrackedEntityAttributeValues(
+                  CurrentUserDetailsImpl.fromUser(currentUser), enrollment));
     }
 
     return result;
@@ -177,10 +180,10 @@ class DefaultEnrollmentService
   }
 
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      User user, Enrollment enrollment) {
+      CurrentUserDetails userDetails, Enrollment enrollment) {
     Set<TrackedEntityAttribute> readableAttributes =
         trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-            user.getUsername(), List.of(enrollment.getProgram()), null);
+            userDetails, List.of(enrollment.getProgram()), null);
     Set<TrackedEntityAttributeValue> attributeValues = new LinkedHashSet<>();
 
     for (TrackedEntityAttributeValue trackedEntityAttributeValue :
@@ -255,7 +258,7 @@ class DefaultEnrollmentService
 
   public void decideAccess(EnrollmentQueryParams params) {
     if (params.hasProgram()) {
-      if (!aclService.canDataRead(params.getUser().getUsername(), params.getProgram())) {
+      if (!aclService.canDataRead(params.getUser(), params.getProgram())) {
         throw new IllegalQueryException(
             "Current user is not authorized to read data from selected program:  "
                 + params.getProgram().getUid());
@@ -263,7 +266,7 @@ class DefaultEnrollmentService
 
       if (params.getProgram().getTrackedEntityType() != null
           && !aclService.canDataRead(
-              params.getUser().getUsername(), params.getProgram().getTrackedEntityType())) {
+              params.getUser(), params.getProgram().getTrackedEntityType())) {
         throw new IllegalQueryException(
             "Current user is not authorized to read data from selected program's tracked entity type:  "
                 + params.getProgram().getTrackedEntityType().getUid());
@@ -271,7 +274,7 @@ class DefaultEnrollmentService
     }
 
     if (params.hasTrackedEntityType()
-        && !aclService.canDataRead(params.getUser().getUsername(), params.getTrackedEntityType())) {
+        && !aclService.canDataRead(params.getUser(), params.getTrackedEntityType())) {
       throw new IllegalQueryException(
           "Current user is not authorized to read data from selected tracked entity type:  "
               + params.getTrackedEntityType().getUid());

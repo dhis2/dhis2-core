@@ -49,6 +49,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -391,7 +392,7 @@ class DataElementStoreTest extends SingleSetupIntegrationTestBase {
     assertFalse(dataElementStore.existsByUser(userB, Set.of("createdBy")));
 
     dataElementA.setDescription("update");
-    dataElementStore.update(dataElementA, userB);
+    dataElementStore.update(dataElementA, CurrentUserDetailsImpl.fromUser(userB));
     assertFalse(dataElementStore.existsByUser(userA, Set.of("lastUpdatedBy")));
     assertTrue(dataElementStore.existsByUser(userB, Set.of("lastUpdatedBy")));
 

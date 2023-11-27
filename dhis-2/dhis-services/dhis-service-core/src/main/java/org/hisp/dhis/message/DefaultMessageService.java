@@ -53,6 +53,8 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.velocity.VelocityManager;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -261,7 +263,8 @@ public class DefaultMessageService implements MessageService {
     if (conversation.getMessageType().equals(MessageType.TICKET) && internal) {
       users =
           users.stream()
-              .filter(this::hasAccessToManageFeedbackMessages)
+              .filter(
+                  user -> hasAccessToManageFeedbackMessages(CurrentUserDetailsImpl.fromUser(user)))
               .collect(Collectors.toSet());
     }
 
@@ -428,11 +431,10 @@ public class DefaultMessageService implements MessageService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean hasAccessToManageFeedbackMessages(User user) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    user = (user == null ? currentUser : user);
-    return configurationService.isUserInFeedbackRecipientUserGroup(user)
-        || user.isAuthorized("ALL");
+  public boolean hasAccessToManageFeedbackMessages(CurrentUserDetails userDetails) {
+    userDetails = (userDetails != null ? userDetails : CurrentUserUtil.getCurrentUserDetails());
+    return configurationService.isUserInFeedbackRecipientUserGroup(userDetails)
+        || userDetails.isAuthorized("ALL");
   }
 
   // -------------------------------------------------------------------------
@@ -486,7 +488,10 @@ public class DefaultMessageService implements MessageService {
     Locale locale =
         (Locale)
             userSettingService.getUserSetting(
-                UserSettingKey.UI_LOCALE, conversation.getCreatedBy().getUsername());
+                UserSettingKey.UI_LOCALE,
+                conversation.getCreatedBy() == null
+                    ? null
+                    : conversation.getCreatedBy().getUsername());
 
     locale = ObjectUtils.firstNonNull(locale, LocaleManager.DEFAULT_LOCALE);
 

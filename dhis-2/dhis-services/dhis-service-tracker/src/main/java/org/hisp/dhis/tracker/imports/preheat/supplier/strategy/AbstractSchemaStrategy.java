@@ -48,6 +48,7 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.imports.preheat.mappers.CopyMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.PreheatMapper;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.mapstruct.factory.Mappers;
 
@@ -194,7 +195,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
 
   private Query buildQuery(Schema schema, User user, TrackerIdScheme idScheme, List<String> ids) {
     Query query = Query.from(schema);
-    query.setUsername(user.getUsername());
+    query.setCurrentUserDetails(user == null ? null : CurrentUserDetailsImpl.fromUser(user));
     query.add(generateRestrictionFromIdentifiers(idScheme, ids));
     query.setDefaults(Defaults.INCLUDE);
 

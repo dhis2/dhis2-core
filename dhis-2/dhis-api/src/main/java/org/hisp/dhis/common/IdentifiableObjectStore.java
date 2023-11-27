@@ -61,9 +61,9 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * Updates the given object instance.
    *
    * @param object the object instance.
-   * @param user User
+   * @param userDetails User
    */
-  void update(@Nonnull T object, @CheckForNull User user);
+  void update(@Nonnull T object, @CheckForNull CurrentUserDetails userDetails);
 
   /**
    * Update object. Bypasses the ACL system.

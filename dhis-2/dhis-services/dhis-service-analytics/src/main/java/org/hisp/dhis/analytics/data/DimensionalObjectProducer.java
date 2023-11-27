@@ -102,6 +102,7 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 
@@ -534,7 +535,7 @@ public class DimensionalObjectProducer {
       List<DimensionalItemObject> dimItems =
           !allItems
               ? asList(idObjectManager.getOrdered(itemClass, inputIdScheme, items))
-              : getReadableItems(CurrentUserUtil.getCurrentUsername(), dimObject);
+              : getReadableItems(CurrentUserUtil.getCurrentUserDetails(), dimObject);
 
       return Optional.of(
           new BaseDimensionalObject(
@@ -552,13 +553,14 @@ public class DimensionalObjectProducer {
   /**
    * Returns only objects for which the user has data or metadata read access.
    *
-   * @param username the user.
+   * @param userDetails the user.
    * @param object the {@link DimensionalObject}.
    * @return a list of {@link DimensionalItemObject}.
    */
-  private List<DimensionalItemObject> getReadableItems(String username, DimensionalObject object) {
+  private List<DimensionalItemObject> getReadableItems(
+      CurrentUserDetails userDetails, DimensionalObject object) {
     return object.getItems().stream()
-        .filter(o -> aclService.canDataOrMetadataRead(username, o))
+        .filter(o -> aclService.canDataOrMetadataRead(userDetails, o))
         .collect(toList());
   }
 }

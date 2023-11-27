@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.mvc;
 
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -50,8 +52,16 @@ public class CurrentUserInfoHandlerMethodArgumentResolver implements HandlerMeth
 
   @Override
   public boolean supportsParameter(MethodParameter parameter) {
-    return "currentUser".equals(parameter.getParameterName())
-        && User.class.isAssignableFrom(parameter.getParameterType());
+
+    Class<?> type = parameter.getParameterType();
+
+    boolean isAssignable =
+        type == String.class
+            || type == CurrentUserDetailsImpl.class
+            || User.class.isAssignableFrom(type);
+
+    CurrentUser parameterAnnotation = parameter.getParameterAnnotation(CurrentUser.class);
+    return parameterAnnotation != null && isAssignable;
   }
 
   @Override
@@ -61,6 +71,16 @@ public class CurrentUserInfoHandlerMethodArgumentResolver implements HandlerMeth
       NativeWebRequest webRequest,
       WebDataBinderFactory binderFactory)
       throws Exception {
+
+    Class<?> type = parameter.getParameterType();
+
+    if (type == String.class) {
+      return CurrentUserUtil.getCurrentUsername();
+    }
+    if (type == CurrentUserDetailsImpl.class) {
+      return CurrentUserUtil.getCurrentUserDetails();
+    }
+
     return userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
   }
 }

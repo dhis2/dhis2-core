@@ -116,70 +116,63 @@ public class DefaultAclService implements AclService {
     return schema != null && schema.isDataShareable();
   }
 
-  public boolean canRead(User user, IdentifiableObject object) {
-    return canRead(user.getUsername(), object);
+  @Override
+  @SuppressWarnings("unchecked")
+  public boolean canRead(CurrentUserDetails userDetails, IdentifiableObject object) {
+    return object == null || canRead(userDetails, object, HibernateProxyUtils.getRealClass(object));
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public boolean canRead(String username, IdentifiableObject object) {
-    return object == null || canRead(username, object, HibernateProxyUtils.getRealClass(object));
+  public boolean canRead(User user, IdentifiableObject object) {
+    return canRead(CurrentUserDetailsImpl.fromUser(user), object);
   }
 
   @Override
   public <T extends IdentifiableObject> boolean canRead(
-      String username, T object, Class<? extends T> objType) {
-    if (readWriteCommonCheck(username, objType)) {
+      CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+    if (readWriteCommonCheck(userDetails, objType)) {
       return true;
     }
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
 
     Schema schema = schemaService.getSchema(objType);
 
-    if (canAccess(
-        currentUserImpl.getAllAuthorities(), schema.getAuthorityByType(AuthorityType.READ))) {
+    if (canAccess(userDetails, schema.getAuthorityByType(AuthorityType.READ))) {
       if (object instanceof CategoryOptionCombo) {
-        return checkOptionComboSharingPermission(username, object, Permission.READ);
+        return checkOptionComboSharingPermission(userDetails, object, Permission.READ);
       }
 
-      if (!schema.isShareable()
+      return !schema.isShareable()
           || object.getSharing().getPublicAccess() == null
-          || checkMetadataSharingPermission(username, object, Permission.READ)) {
-        return true;
-      }
+          || checkMetadataSharingPermission(userDetails, object, Permission.READ);
     } else {
       return false;
     }
-
-    return false;
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public boolean canDataRead(String username, IdentifiableObject object) {
+  public boolean canDataRead(CurrentUserDetails userDetails, IdentifiableObject object) {
     return object == null
-        || canDataRead(username, object, HibernateProxyUtils.getRealClass(object));
+        || canDataRead(userDetails, object, HibernateProxyUtils.getRealClass(object));
   }
 
   private <T extends IdentifiableObject> boolean canDataRead(
-      String username, T object, Class<? extends T> objType) {
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
-    if (readWriteCommonCheck(username, objType)) {
+      CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+    if (readWriteCommonCheck(userDetails, objType)) {
       return true;
     }
 
     Schema schema = schemaService.getSchema(objType);
 
-    if (canAccess(
-        currentUserImpl.getAllAuthorities(), schema.getAuthorityByType(AuthorityType.DATA_READ))) {
+    if (canAccess(userDetails, schema.getAuthorityByType(AuthorityType.DATA_READ))) {
       if (object instanceof CategoryOptionCombo) {
-        return checkOptionComboSharingPermission(username, object, Permission.DATA_READ)
-            || checkOptionComboSharingPermission(username, object, Permission.DATA_WRITE);
+        return checkOptionComboSharingPermission(userDetails, object, Permission.DATA_READ)
+            || checkOptionComboSharingPermission(userDetails, object, Permission.DATA_WRITE);
       }
 
       if (schema.isDataShareable()
-          && (checkSharingPermission(username, object, Permission.DATA_READ)
-              || checkSharingPermission(username, object, Permission.DATA_WRITE))) {
+          && (checkSharingPermission(userDetails, object, Permission.DATA_READ)
+              || checkSharingPermission(userDetails, object, Permission.DATA_WRITE))) {
         return true;
       }
     }
@@ -188,28 +181,36 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  public boolean canDataOrMetadataRead(String username, IdentifiableObject object) {
-    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
-
-    return schema.isDataShareable() ? canDataRead(username, object) : canRead(username, object);
+  public boolean canDataOrMetadataRead(User user, IdentifiableObject object) {
+    return canDataOrMetadataRead(CurrentUserDetailsImpl.fromUser(user), object);
   }
 
+  @Override
+  public boolean canDataOrMetadataRead(CurrentUserDetails userDetails, IdentifiableObject object) {
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
+
+    return schema.isDataShareable()
+        ? canDataRead(userDetails, object)
+        : canRead(userDetails, object);
+  }
+
+  @Override
   public boolean canWrite(User user, IdentifiableObject object) {
-    return canWrite(user.getUsername(), object);
+    return canWrite(CurrentUserDetailsImpl.fromUser(user), object);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public boolean canWrite(String username, IdentifiableObject object) {
-    return object == null || canWrite(username, object, HibernateProxyUtils.getRealClass(object));
+  public boolean canWrite(CurrentUserDetails userDetails, IdentifiableObject object) {
+    return object == null
+        || canWrite(userDetails, object, HibernateProxyUtils.getRealClass(object));
   }
 
   private <T extends IdentifiableObject> boolean canWrite(
-      String username, T object, Class<? extends T> objType) {
-    if (readWriteCommonCheck(username, objType)) {
+      CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+    if (readWriteCommonCheck(userDetails, objType)) {
       return true;
     }
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
 
     Schema schema = schemaService.getSchema(objType);
 
@@ -220,32 +221,33 @@ public class DefaultAclService implements AclService {
       anyAuthorities.addAll(schema.getAuthorityByType(AuthorityType.CREATE_PUBLIC));
     }
 
-    if (canAccess(currentUserImpl.getAllAuthorities(), anyAuthorities)) {
+    if (canAccess(userDetails, anyAuthorities)) {
       if (object instanceof CategoryOptionCombo) {
-        return checkOptionComboSharingPermission(username, object, Permission.WRITE);
+        return checkOptionComboSharingPermission(userDetails, object, Permission.WRITE);
       }
-      return writeCommonCheck(schema, username, object, objType);
+      return writeCommonCheck(schema, userDetails, object, objType);
     } else
-      return schema.isImplicitPrivateAuthority() && checkSharingAccess(username, object, objType);
+      return schema.isImplicitPrivateAuthority()
+          && checkSharingAccess(userDetails, object, objType);
   }
 
+  @Override
   public boolean canDataWrite(User user, IdentifiableObject object) {
-    return canDataWrite(user.getUsername(), object);
+    return canDataWrite(CurrentUserDetailsImpl.fromUser(user), object);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public boolean canDataWrite(String username, IdentifiableObject object) {
+  public boolean canDataWrite(CurrentUserDetails userDetails, IdentifiableObject object) {
     return object == null
-        || canDataWrite(username, object, HibernateProxyUtils.getRealClass(object));
+        || canDataWrite(userDetails, object, HibernateProxyUtils.getRealClass(object));
   }
 
   private <T extends IdentifiableObject> boolean canDataWrite(
-      String username, T object, Class<? extends T> objType) {
-    if (readWriteCommonCheck(username, objType)) {
+      CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+    if (readWriteCommonCheck(userDetails, objType)) {
       return true;
     }
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
 
     Schema schema = schemaService.getSchema(objType);
 
@@ -253,13 +255,13 @@ public class DefaultAclService implements AclService {
     // modified
     List<String> anyAuthorities = schema.getAuthorityByType(AuthorityType.DATA_CREATE);
 
-    if (canAccess(currentUserImpl.getAllAuthorities(), anyAuthorities)) {
+    if (canAccess(userDetails, anyAuthorities)) {
       if (object instanceof CategoryOptionCombo) {
-        return checkOptionComboSharingPermission(username, object, Permission.DATA_WRITE);
+        return checkOptionComboSharingPermission(userDetails, object, Permission.DATA_WRITE);
       }
 
       if (schema.isDataShareable()
-          && checkSharingPermission(username, object, Permission.DATA_WRITE)) {
+          && checkSharingPermission(userDetails, object, Permission.DATA_WRITE)) {
         return true;
       }
     }
@@ -267,23 +269,25 @@ public class DefaultAclService implements AclService {
     return false;
   }
 
+  @Override
+  @SuppressWarnings("unchecked")
   public boolean canUpdate(User user, IdentifiableObject object) {
-    return canUpdate(user.getUsername(), object);
+    return canUpdate(CurrentUserDetailsImpl.fromUser(user), object);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public boolean canUpdate(String username, IdentifiableObject object) {
-    return object == null || canUpdate(username, object, HibernateProxyUtils.getRealClass(object));
+  public boolean canUpdate(CurrentUserDetails userDetails, IdentifiableObject object) {
+    return object == null
+        || canUpdate(userDetails, object, HibernateProxyUtils.getRealClass(object));
   }
 
   private <T extends IdentifiableObject> boolean canUpdate(
-      String username, T object, Class<? extends T> objType) {
-    if (readWriteCommonCheck(username, objType)) {
+      CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+    if (readWriteCommonCheck(userDetails, objType)) {
       return true;
     }
 
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
     Schema schema = schemaService.getSchema(objType);
 
     List<String> anyAuthorities = new ArrayList<>(schema.getAuthorityByType(AuthorityType.UPDATE));
@@ -294,27 +298,32 @@ public class DefaultAclService implements AclService {
       anyAuthorities.addAll(schema.getAuthorityByType(AuthorityType.CREATE_PUBLIC));
     }
 
-    if (canAccess(currentUserImpl.getAllAuthorities(), anyAuthorities)) {
-      return writeCommonCheck(schema, username, object, objType);
+    if (canAccess(userDetails, anyAuthorities)) {
+      return writeCommonCheck(schema, userDetails, object, objType);
     } else
       return schema.isImplicitPrivateAuthority()
-          && checkSharingAccess(username, object, objType)
-          && (checkMetadataSharingPermission(username, object, Permission.WRITE));
+          && checkSharingAccess(userDetails, object, objType)
+          && (checkMetadataSharingPermission(userDetails, object, Permission.WRITE));
+  }
+
+  @Override
+  public boolean canDelete(User user, IdentifiableObject object) {
+    return canDelete(CurrentUserDetailsImpl.fromUser(user), object);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public boolean canDelete(String username, IdentifiableObject object) {
-    return object == null || canDelete(username, object, HibernateProxyUtils.getRealClass(object));
+  public boolean canDelete(CurrentUserDetails userDetails, IdentifiableObject object) {
+    return object == null
+        || canDelete(userDetails, object, HibernateProxyUtils.getRealClass(object));
   }
 
   private <T extends IdentifiableObject> boolean canDelete(
-      String username, T object, Class<? extends T> objType) {
-    if (readWriteCommonCheck(username, objType)) {
+      CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+    if (readWriteCommonCheck(userDetails, objType)) {
       return true;
     }
 
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
     Schema schema = schemaService.getSchema(objType);
 
     List<String> anyAuthorities = new ArrayList<>(schema.getAuthorityByType(AuthorityType.DELETE));
@@ -325,17 +334,17 @@ public class DefaultAclService implements AclService {
       anyAuthorities.addAll(schema.getAuthorityByType(AuthorityType.CREATE_PUBLIC));
     }
 
-    if (canAccess(currentUserImpl.getAllAuthorities(), anyAuthorities)) {
+    if (canAccess(userDetails, anyAuthorities)) {
       if (!schema.isShareable() || object.getSharing().getPublicAccess() == null) {
         return true;
       }
 
-      if (checkSharingAccess(username, object, objType)
-          && (checkMetadataSharingPermission(username, object, Permission.WRITE))) {
+      if (checkSharingAccess(userDetails, object, objType)
+          && (checkMetadataSharingPermission(userDetails, object, Permission.WRITE))) {
         return true;
       }
     } else if (schema.isImplicitPrivateAuthority()
-        && (checkMetadataSharingPermission(username, object, Permission.WRITE))) {
+        && (checkMetadataSharingPermission(userDetails, object, Permission.WRITE))) {
       return true;
     }
 
@@ -343,97 +352,122 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  public boolean canManage(String username, IdentifiableObject object) {
-    return canUpdate(username, object);
+  public boolean canManage(User user, IdentifiableObject object) {
+    return canManage(CurrentUserDetailsImpl.fromUser(user), object);
+  }
+
+  @Override
+  public boolean canManage(CurrentUserDetails userDetails, IdentifiableObject object) {
+    return canUpdate(userDetails, object);
   }
 
   private <T extends IdentifiableObject> boolean canManage(
-      String username, T object, Class<? extends T> objType) {
-    return canUpdate(username, object, objType);
+      CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+    return canUpdate(userDetails, object, objType);
   }
 
   @Override
-  public <T extends IdentifiableObject> boolean canRead(String username, Class<T> klass) {
+  public <T extends IdentifiableObject> boolean canRead(
+      CurrentUserDetails userDetails, Class<T> klass) {
     Schema schema = schemaService.getSchema(klass);
-
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
-
     return schema == null
         || schema.getAuthorityByType(AuthorityType.READ) == null
-        || canAccess(
-            currentUserImpl.getAllAuthorities(), schema.getAuthorityByType(AuthorityType.READ));
+        || canAccess(userDetails, schema.getAuthorityByType(AuthorityType.READ));
   }
 
   @Override
-  public <T extends IdentifiableObject> boolean canCreate(String username, Class<T> klass) {
+  public boolean canDataRead(User user, IdentifiableObject object) {
+    return false;
+  }
+
+  public <T extends IdentifiableObject> boolean canCreate(User user, Class<T> klass) {
+    return canCreate(CurrentUserDetailsImpl.fromUser(user), klass);
+  }
+
+  @Override
+  public <T extends IdentifiableObject> boolean canCreate(
+      CurrentUserDetails userDetails, Class<T> klass) {
     Schema schema = schemaService.getSchema(klass);
 
     if (schema == null) {
       return false;
     }
 
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
-
     if (!schema.isShareable()) {
-      return canAccess(
-          currentUserImpl.getAllAuthorities(), schema.getAuthorityByType(AuthorityType.CREATE));
+      return canAccess(userDetails, schema.getAuthorityByType(AuthorityType.CREATE));
     }
 
-    return canMakeClassPublic(username, klass) || canMakeClassPrivate(username, klass);
+    return canMakeClassPublic(userDetails, klass) || canMakeClassPrivate(userDetails, klass);
+  }
+
+  public <T extends IdentifiableObject> boolean canMakePublic(User user, T object) {
+    return canMakePublic(CurrentUserDetailsImpl.fromUser(user), object);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends IdentifiableObject> boolean canMakePublic(String username, T object) {
-    return canMakeClassPublic(username, HibernateProxyUtils.getRealClass(object));
+  public <T extends IdentifiableObject> boolean canMakePublic(
+      CurrentUserDetails userDetails, T object) {
+    return canMakeClassPublic(userDetails, HibernateProxyUtils.getRealClass(object));
+  }
+
+  @Override
+  public <T extends IdentifiableObject> boolean canMakeClassPublic(User user, Class<T> klass) {
+    return canMakeClassPublic(CurrentUserDetailsImpl.fromUser(user), klass);
   }
 
   @Override
   public <T extends IdentifiableObject> boolean canMakeClassPublic(
-      String username, Class<T> klass) {
+      CurrentUserDetails userDetails, Class<T> klass) {
     Schema schema = schemaService.getSchema(klass);
 
     if (schema == null || !schema.isShareable()) return false;
 
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
-    return canAccess(
-        currentUserImpl.getAllAuthorities(),
-        schema.getAuthorityByType(AuthorityType.CREATE_PUBLIC));
+    return canAccess(userDetails, schema.getAuthorityByType(AuthorityType.CREATE_PUBLIC));
+  }
+
+  public <T extends IdentifiableObject> boolean canMakePrivate(User user, T object) {
+    return canMakePrivate(CurrentUserDetailsImpl.fromUser(user), object);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends IdentifiableObject> boolean canMakePrivate(String username, T object) {
-    return canMakeClassPrivate(username, HibernateProxyUtils.getRealClass(object));
+  public <T extends IdentifiableObject> boolean canMakePrivate(
+      CurrentUserDetails userDetails, T object) {
+    return canMakeClassPrivate(userDetails, HibernateProxyUtils.getRealClass(object));
+  }
+
+  @Override
+  public <T extends IdentifiableObject> boolean canMakeClassPrivate(User user, Class<T> klass) {
+    return canMakeClassPrivate(CurrentUserDetailsImpl.fromUser(user), klass);
   }
 
   @Override
   public <T extends IdentifiableObject> boolean canMakeClassPrivate(
-      String username, Class<T> klass) {
+      CurrentUserDetails userDetails, Class<T> klass) {
     Schema schema = schemaService.getSchema(klass);
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
+
     return !(schema == null || !schema.isShareable())
-        && canAccess(
-            currentUserImpl.getAllAuthorities(),
-            schema.getAuthorityByType(AuthorityType.CREATE_PRIVATE));
+        && canAccess(userDetails, schema.getAuthorityByType(AuthorityType.CREATE_PRIVATE));
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends IdentifiableObject> boolean canMakeExternal(String username, T object) {
-    return canMakeClassExternal(username, HibernateProxyUtils.getRealClass(object));
+  public <T extends IdentifiableObject> boolean canMakeExternal(
+      CurrentUserDetails userDetails, T object) {
+    return canMakeClassExternal(userDetails, HibernateProxyUtils.getRealClass(object));
   }
 
   @Override
   public <T extends IdentifiableObject> boolean canMakeClassExternal(
-      String username, Class<T> klass) {
+      CurrentUserDetails userDetails, Class<T> klass) {
     Schema schema = schemaService.getSchema(klass);
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
+
     return !(schema == null || !schema.isShareable())
         && ((!schema.getAuthorityByType(AuthorityType.EXTERNALIZE).isEmpty()
-                && haveOverrideAuthority(currentUserImpl))
+                && haveOverrideAuthority(userDetails))
             || haveAuthority(
-                currentUserImpl.getAllAuthorities(),
+                userDetails.getAllAuthorities(),
                 schema.getAuthorityByType(AuthorityType.EXTERNALIZE)));
   }
 
@@ -462,18 +496,23 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
+  public <T extends IdentifiableObject> Access getAccess(T object, User user) {
+    return getAccess(object, CurrentUserDetailsImpl.fromUser(user));
+  }
+
+  @Override
   @SuppressWarnings("unchecked")
-  public <T extends IdentifiableObject> Access getAccess(T object, String username) {
+  public <T extends IdentifiableObject> Access getAccess(T object, CurrentUserDetails userDetails) {
     return object == null
         ? new Access(true)
-        : getAccess(object, username, HibernateProxyUtils.getRealClass(object));
+        : getAccess(object, userDetails, HibernateProxyUtils.getRealClass(object));
   }
 
   @Override
   public <T extends IdentifiableObject> Access getAccess(
-      T object, String username, Class<? extends T> objType) {
+      T object, CurrentUserDetails userDetails, Class<? extends T> objType) {
 
-    if (username == null || getCurrentUserImpl(username).isSuper()) {
+    if (userDetails == null || isSuper(userDetails)) {
       Access access = new Access(true);
 
       if (isDataClassShareable(objType)) {
@@ -484,17 +523,18 @@ public class DefaultAclService implements AclService {
     }
 
     Access access = new Access();
-    access.setManage(canManage(username, object, objType));
-    access.setExternalize(canMakeClassExternal(username, objType));
-    access.setWrite(canWrite(username, object, objType));
-    access.setRead(canRead(username, object, objType));
-    access.setUpdate(canUpdate(username, object, objType));
-    access.setDelete(canDelete(username, object, objType));
+    access.setManage(canManage(userDetails, object, objType));
+    access.setExternalize(canMakeClassExternal(userDetails, objType));
+    access.setWrite(canWrite(userDetails, object, objType));
+    access.setRead(canRead(userDetails, object, objType));
+    access.setUpdate(canUpdate(userDetails, object, objType));
+    access.setDelete(canDelete(userDetails, object, objType));
 
     if (isDataClassShareable(objType)) {
       AccessData data =
           new AccessData(
-              canDataRead(username, object, objType), canDataWrite(username, object, objType));
+              canDataRead(userDetails, object, objType),
+              canDataWrite(userDetails, object, objType));
 
       access.setData(data);
     }
@@ -503,22 +543,26 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  public <T extends IdentifiableObject> void resetSharing(T object, String username) {
-    if (object == null || !isShareable(object) || username == null) {
+  public <T extends IdentifiableObject> void resetSharing(T object, User user) {
+    resetSharing(object, CurrentUserDetailsImpl.fromUser(user));
+  }
+
+  @Override
+  public <T extends IdentifiableObject> void resetSharing(
+      T object, CurrentUserDetails userDetails) {
+    if (object == null || !isShareable(object) || userDetails == null) {
       return;
     }
-
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
 
     Sharing sharing = object.getSharing();
     sharing.setPublicAccess(AccessStringHelper.DEFAULT);
     sharing.setExternal(false);
 
     if (object.getSharing().getOwner() == null) {
-      sharing.setOwner(currentUserImpl.getUid());
+      sharing.setOwner(userDetails.getUid());
     }
 
-    if (canMakePublic(username, object) && defaultPublic(object)) {
+    if (canMakePublic(userDetails, object) && defaultPublic(object)) {
       sharing.setPublicAccess(AccessStringHelper.READ_WRITE);
     }
     sharing.resetUserAccesses();
@@ -526,15 +570,13 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  public <T extends IdentifiableObject> void clearSharing(T object, String username) {
-    if (object == null || !isShareable(object) || username == null) {
+  public <T extends IdentifiableObject> void clearSharing(
+      T object, CurrentUserDetails userDetails) {
+    if (object == null || !isShareable(object) || userDetails == null) {
       return;
     }
-
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
-
     Sharing sharing = object.getSharing();
-    sharing.setOwner(currentUserImpl.getUid());
+    sharing.setOwner(userDetails.getUid());
     sharing.setPublicAccess(AccessStringHelper.DEFAULT);
     sharing.setExternal(false);
     sharing.resetUserAccesses();
@@ -542,12 +584,16 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  public <T extends IdentifiableObject> List<ErrorReport> verifySharing(T object, String username) {
+  public <T extends IdentifiableObject> List<ErrorReport> verifySharing(T object, User user) {
+    return verifySharing(object, CurrentUserDetailsImpl.fromUser(user));
+  }
+
+  @Override
+  public <T extends IdentifiableObject> List<ErrorReport> verifySharing(
+      T object, CurrentUserDetails userDetails) {
     List<ErrorReport> errorReports = new ArrayList<>();
 
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
-
-    if (object == null || haveOverrideAuthority(currentUserImpl) || !isShareable(object)) {
+    if (object == null || haveOverrideAuthority(userDetails) || !isShareable(object)) {
       return errorReports;
     }
 
@@ -587,18 +633,18 @@ public class DefaultAclService implements AclService {
       }
     }
 
-    boolean canMakePublic = canMakePublic(username, object);
-    boolean canMakePrivate = canMakePrivate(username, object);
-    boolean canMakeExternal = canMakeExternal(username, object);
+    boolean canMakePublic = canMakePublic(userDetails, object);
+    boolean canMakePrivate = canMakePrivate(userDetails, object);
+    boolean canMakeExternal = canMakeExternal(userDetails, object);
 
     if (object.getSharing().isExternal()) {
       if (!canMakeExternal) {
         errorReports.add(
-            new ErrorReport(object.getClass(), ErrorCode.E3006, username, object.getClass()));
+            new ErrorReport(object.getClass(), ErrorCode.E3006, userDetails, object.getClass()));
       }
     }
 
-    errorReports.addAll(verifyImplicitSharing(username, object));
+    errorReports.addAll(verifyImplicitSharing(userDetails, object));
 
     if (AccessStringHelper.DEFAULT.equals(object.getSharing().getPublicAccess())) {
       if (canMakePublic || canMakePrivate) {
@@ -606,32 +652,32 @@ public class DefaultAclService implements AclService {
       }
 
       errorReports.add(
-          new ErrorReport(object.getClass(), ErrorCode.E3009, username, object.getClass()));
+          new ErrorReport(object.getClass(), ErrorCode.E3009, userDetails, object.getClass()));
     } else {
       if (canMakePublic) {
         return errorReports;
       }
 
       errorReports.add(
-          new ErrorReport(object.getClass(), ErrorCode.E3008, username, object.getClass()));
+          new ErrorReport(object.getClass(), ErrorCode.E3008, userDetails, object.getClass()));
     }
 
     return errorReports;
   }
 
   private <T extends IdentifiableObject> Collection<? extends ErrorReport> verifyImplicitSharing(
-      String username, T object) {
+      CurrentUserDetails userDetails, T object) {
     List<ErrorReport> errorReports = new ArrayList<>();
     Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     if (!schema.isImplicitPrivateAuthority()
-        || checkMetadataSharingPermission(username, object, Permission.WRITE)) {
+        || checkMetadataSharingPermission(userDetails, object, Permission.WRITE)) {
       return errorReports;
     }
 
     if (AccessStringHelper.DEFAULT.equals(object.getSharing().getPublicAccess())) {
       errorReports.add(
-          new ErrorReport(object.getClass(), ErrorCode.E3001, username, object.getClass()));
+          new ErrorReport(object.getClass(), ErrorCode.E3001, userDetails, object.getClass()));
     }
 
     return errorReports;
@@ -641,10 +687,14 @@ public class DefaultAclService implements AclService {
     return user == null || user.isSuper();
   }
 
-  private boolean canAccess(Set<String> userAuthorities, Collection<String> anyAuthorities) {
-    return userAuthorities.contains("ALL")
+  private boolean isSuper(CurrentUserDetails user) {
+    return user == null || user.isSuper();
+  }
+
+  private boolean canAccess(CurrentUserDetails user, Collection<String> anyAuthorities) {
+    return haveOverrideAuthority(user)
         || anyAuthorities.isEmpty()
-        || haveAuthority(userAuthorities, anyAuthorities);
+        || haveAuthority(user.getAllAuthorities(), anyAuthorities);
   }
 
   private boolean haveAuthority(Set<String> userAuthorities, Collection<String> anyAuthorities) {
@@ -654,29 +704,28 @@ public class DefaultAclService implements AclService {
   /**
    * Should user be allowed access to this object as the owner.
    *
-   * @param username to check against
+   * @param userDetails to check against
    * @param object Object to check against
    * @return true/false depending on if access should be allowed
    */
-  private boolean checkOwner(String username, IdentifiableObject object) {
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
-    return username == null
+  private boolean checkOwner(CurrentUserDetails userDetails, IdentifiableObject object) {
+    return userDetails == null
         || object.getSharing().getOwner() == null
-        || currentUserImpl.getUid().equals(object.getSharing().getOwner());
+        || userDetails.getUid().equals(object.getSharing().getOwner());
   }
 
   /**
    * Is the current user allowed to create/update the object given based on its sharing settings.
    *
-   * @param username User to check against
+   * @param userDetails User to check against
    * @param object Object to check against
    * @return true/false depending on if sharing settings are allowed for given user
    */
   private <T extends IdentifiableObject> boolean checkSharingAccess(
-      String username, IdentifiableObject object, Class<T> objType) {
-    boolean canMakePublic = canMakeClassPublic(username, objType);
-    boolean canMakePrivate = canMakeClassPrivate(username, objType);
-    boolean canMakeExternal = canMakeClassExternal(username, objType);
+      CurrentUserDetails userDetails, IdentifiableObject object, Class<T> objType) {
+    boolean canMakePublic = canMakeClassPublic(userDetails, objType);
+    boolean canMakePrivate = canMakeClassPrivate(userDetails, objType);
+    boolean canMakeExternal = canMakeClassExternal(userDetails, objType);
 
     if (AccessStringHelper.DEFAULT.equals(object.getSharing().getPublicAccess())) {
       if (!(canMakePublic || canMakePrivate)) {
@@ -699,41 +748,40 @@ public class DefaultAclService implements AclService {
    * Check if given user allowed to access given object using the permission given. If user is the
    * owner of the given metadata object then user has both READ and WRITE permission by default.
    *
-   * @param username
+   * @param userDetails
    * @param object
    * @param permission
    * @return
    */
   private boolean checkMetadataSharingPermission(
-      String username, IdentifiableObject object, Permission permission) {
-    return checkOwner(username, object) || checkSharingPermission(username, object, permission);
+      CurrentUserDetails userDetails, IdentifiableObject object, Permission permission) {
+    return checkOwner(userDetails, object)
+        || checkSharingPermission(userDetails, object, permission);
   }
 
   /**
    * If the given user allowed to access the given object using the permissions given.
    *
-   * @param username to check against
+   * @param userDetails to check against
    * @param object Object to check against
    * @param permission Permission to check against
    * @return true if user can access object, false otherwise
    */
   private boolean checkSharingPermission(
-      String username, IdentifiableObject object, Permission permission) {
+      CurrentUserDetails userDetails, IdentifiableObject object, Permission permission) {
 
     Sharing sharing = object.getSharing();
     if (AccessStringHelper.isEnabled(sharing.getPublicAccess(), permission)) {
       return true;
     }
 
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
-
     if (sharing.getUserGroups() != null
-        && !CollectionUtils.isEmpty(currentUserImpl.getAllAuthorities())) {
+        && !CollectionUtils.isEmpty(userDetails.getAllAuthorities())) {
       for (UserGroupAccess userGroupAccess : sharing.getUserGroups().values()) {
         // Check if user is allowed to read this object through group
         // access
         if (AccessStringHelper.isEnabled(userGroupAccess.getAccess(), permission)
-            && hasUserGroupAccess(currentUserImpl.getUserGroupIds(), userGroupAccess.getId())) {
+            && hasUserGroupAccess(userDetails.getUserGroupIds(), userGroupAccess.getId())) {
           return true;
         }
       }
@@ -745,7 +793,7 @@ public class DefaultAclService implements AclService {
         // access
 
         if (AccessStringHelper.isEnabled(userAccess.getAccess(), permission)
-            && currentUserImpl.getUid().equals(userAccess.getId())) {
+            && userDetails.getUid().equals(userAccess.getId())) {
           return true;
         }
       }
@@ -755,7 +803,7 @@ public class DefaultAclService implements AclService {
   }
 
   private boolean checkOptionComboSharingPermission(
-      String username, IdentifiableObject object, Permission permission) {
+      CurrentUserDetails userDetails, IdentifiableObject object, Permission permission) {
     CategoryOptionCombo optionCombo = (CategoryOptionCombo) object;
 
     if (optionCombo.isDefault() || optionCombo.getCategoryOptions().isEmpty()) {
@@ -765,7 +813,7 @@ public class DefaultAclService implements AclService {
     List<Long> accessibleOptions = new ArrayList<>();
 
     for (CategoryOption option : optionCombo.getCategoryOptions()) {
-      if (checkSharingPermission(username, option, permission)) {
+      if (checkSharingPermission(userDetails, option, permission)) {
         accessibleOptions.add(option.getId());
       }
     }
@@ -773,9 +821,8 @@ public class DefaultAclService implements AclService {
     return accessibleOptions.size() == optionCombo.getCategoryOptions().size();
   }
 
-  private boolean readWriteCommonCheck(String username, Class<?> objType) {
-    CurrentUserDetails currentUserImpl = getCurrentUserImpl(username);
-    if (haveOverrideAuthority(currentUserImpl)) {
+  private boolean readWriteCommonCheck(CurrentUserDetails userDetails, Class<?> objType) {
+    if (haveOverrideAuthority(userDetails)) {
       return true;
     }
 
@@ -783,13 +830,13 @@ public class DefaultAclService implements AclService {
   }
 
   private <T extends IdentifiableObject> boolean writeCommonCheck(
-      Schema schema, String username, T object, Class<? extends T> objType) {
+      Schema schema, CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
     if (!schema.isShareable()) {
       return true;
     }
 
-    return checkSharingAccess(username, object, objType)
-        && (checkMetadataSharingPermission(username, object, Permission.WRITE));
+    return checkSharingAccess(userDetails, object, objType)
+        && (checkMetadataSharingPermission(userDetails, object, Permission.WRITE));
   }
 
   private boolean hasUserGroupAccess(Set<String> userGroups, String userGroupUid) {

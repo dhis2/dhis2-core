@@ -131,10 +131,7 @@ public class DefaultDataApprovalAuditService implements DataApprovalAuditService
       if (canRead == null) {
         canRead =
             canReadOptionCombo(
-                currentUser.getUsername(),
-                optionCombo,
-                cogDimensionConstraints,
-                catDimensionConstraints);
+                currentUser, optionCombo, cogDimensionConstraints, catDimensionConstraints);
 
         readableOptionCombos.put(optionCombo, canRead);
       }
@@ -159,13 +156,13 @@ public class DefaultDataApprovalAuditService implements DataApprovalAuditService
    * @return whether the user can read the DataApprovalAudit.
    */
   private boolean canReadOptionCombo(
-      String username,
+      User user,
       CategoryOptionCombo optionCombo,
       Set<CategoryOptionGroupSet> cogDimensionConstraints,
       Set<Category> catDimensionConstraints) {
     for (CategoryOption option : optionCombo.getCategoryOptions()) {
-      if (!isOptionCogConstraintReadable(username, option, cogDimensionConstraints)
-          || !isOptionCatConstraintReadable(username, option, catDimensionConstraints)) {
+      if (!isOptionCogConstraintReadable(user, option, cogDimensionConstraints)
+          || !isOptionCatConstraintReadable(user, option, catDimensionConstraints)) {
         return false;
       }
     }
@@ -180,20 +177,20 @@ public class DefaultDataApprovalAuditService implements DataApprovalAuditService
    * <p>If the option belongs to *any* option group that is readable by the user which belongs to a
    * constrained option group set, then the user may see the option.
    *
-   * @param username the user.
+   * @param user the user.
    * @param option the data element category option to test.
    * @param cogDimensionConstraints category option combo group constraints, if any.
    * @return whether the user can read the data element category option.
    */
   private boolean isOptionCogConstraintReadable(
-      String username, CategoryOption option, Set<CategoryOptionGroupSet> cogDimensionConstraints) {
+      User user, CategoryOption option, Set<CategoryOptionGroupSet> cogDimensionConstraints) {
     if (CollectionUtils.isEmpty(cogDimensionConstraints)) {
       return true; // No category option group dimension constraints.
     }
 
     for (CategoryOptionGroupSet groupSet : cogDimensionConstraints) {
       for (CategoryOptionGroup group : groupSet.getMembers()) {
-        if (group.getMembers().contains(option) && aclService.canRead(username, group)) {
+        if (group.getMembers().contains(option) && aclService.canRead(user, group)) {
           return true;
         }
       }
@@ -209,17 +206,17 @@ public class DefaultDataApprovalAuditService implements DataApprovalAuditService
    * <p>If the option belongs to *any* category that is constrained for the user, and the option is
    * readable by the user, return true.
    *
-   * @param username the user.
+   * @param user the user.
    * @param option the data element category option to test.
    * @param catDimensionConstraints category constraints, if any.
    * @return whether the user can read the data element category option.
    */
   private boolean isOptionCatConstraintReadable(
-      String username, CategoryOption option, Set<Category> catDimensionConstraints) {
+      User user, CategoryOption option, Set<Category> catDimensionConstraints) {
     if (CollectionUtils.isEmpty(catDimensionConstraints)) {
       return true; // No category dimension constraints.
     }
     return !CollectionUtils.intersection(catDimensionConstraints, option.getCategories()).isEmpty()
-        && aclService.canRead(username, option);
+        && aclService.canRead(user, option);
   }
 }

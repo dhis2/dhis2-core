@@ -61,6 +61,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -151,7 +152,9 @@ public class TrackerImportController {
       consumes = APPLICATION_JSON_VALUE,
       params = {"async=false"})
   public ResponseEntity<ImportReport> syncPostJsonTracker(
-      RequestParams requestParams, @CurrentUser User currentUser, @RequestBody Body body) {
+      RequestParams requestParams,
+      @CurrentUser CurrentUserDetailsImpl currentUser,
+      @RequestBody Body body) {
     TrackerImportParams params =
         TrackerImportParamsMapper.trackerImportParams(currentUser.getUid(), requestParams);
     TrackerObjects trackerObjects =
@@ -209,7 +212,7 @@ public class TrackerImportController {
       RequestParams importRequest,
       @RequestParam(required = false, defaultValue = "true") boolean skipFirst,
       @RequestParam(defaultValue = "errors", required = false) TrackerBundleReportMode reportMode,
-      @CurrentUser User currentUser)
+      @CurrentUser CurrentUserDetailsImpl currentUser)
       throws IOException, ParseException {
     InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
 

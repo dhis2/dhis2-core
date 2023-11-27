@@ -69,6 +69,7 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
@@ -117,6 +118,8 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   /** User who created this object. This field is immutable and must not be updated. */
   @Immutable protected User createdBy;
 
+  @Immutable protected Long createdById;
+
   /** Access information for this object. Applies to current user. */
   protected transient Access access;
 
@@ -125,6 +128,8 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
 
   /** Last user updated this object. */
   protected User lastUpdatedBy;
+
+  protected Long lastUpdatedById;
 
   /** Object sharing (JSONB). */
   protected Sharing sharing = new Sharing();
@@ -264,6 +269,16 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
+  public void setLastUpdatedById(Long lastUpdatedById) {
+    this.lastUpdatedById = lastUpdatedById;
+  }
+
+  @Override
+  public Long getLastUpdatedById() {
+    return lastUpdatedById;
+  }
+
+  @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   @Description("The date this object was last updated.")
@@ -379,6 +394,16 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
+  public Long getCreatedById() {
+    return createdById;
+  }
+
+  @Override
+  public void setCreatedById(Long createdById) {
+    this.createdById = createdById;
+  }
+
+  @Override
   public void setUser(User user) {
     // TODO remove this after implementing functions for using Owner
     setCreatedBy(createdBy == null ? user : createdBy);
@@ -438,7 +463,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
-  public boolean setAsFavorite(User user) {
+  public boolean setAsFavorite(CurrentUserDetailsImpl user) {
     if (this.favorites == null) {
       this.favorites = new HashSet<>();
     }
@@ -447,7 +472,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
-  public boolean removeAsFavorite(User user) {
+  public boolean removeAsFavorite(CurrentUserDetailsImpl user) {
     if (this.favorites == null) {
       this.favorites = new HashSet<>();
     }

@@ -130,7 +130,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                                 .filter(
                                     pi ->
                                         aclService.canRead(
-                                            CurrentUserUtil.getCurrentUsername(), pi))
+                                            CurrentUserUtil.getCurrentUserDetails(), pi))
                                 .collect(Collectors.toSet())),
                         filterByValueType(QUERY, ofDataElements(programStage)),
                         filterByValueType(

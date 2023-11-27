@@ -62,6 +62,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -322,7 +323,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest {
     EnrollmentQueryParams params = new EnrollmentQueryParams();
     params.setProgram(programA);
     params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);
-    params.setUser(user);
+    params.setCurrentUserDetails(CurrentUserDetailsImpl.fromUser(user));
     Enrollments enrollments = enrollmentService.getEnrollments(params);
     assertNotNull(enrollments);
     assertNotNull(enrollments.getEnrollments());

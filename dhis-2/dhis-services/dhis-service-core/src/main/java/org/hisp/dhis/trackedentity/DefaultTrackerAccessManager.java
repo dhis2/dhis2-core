@@ -78,7 +78,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
-    if (!aclService.canDataRead(user.getUsername(), trackedEntityType)) {
+    if (!aclService.canDataRead(user, trackedEntityType)) {
       errors.add(
           "User has no data read access to tracked entity type: " + trackedEntityType.getUid());
     }
@@ -105,7 +105,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
-    if (!aclService.canDataWrite(user.getUsername(), trackedEntityType)) {
+    if (!aclService.canDataWrite(user, trackedEntityType)) {
       errors.add("User has no data write access to tracked entity: " + trackedEntityType.getUid());
     }
 
@@ -122,13 +122,13 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return errors;
     }
 
-    if (!aclService.canDataRead(user.getUsername(), program)) {
+    if (!aclService.canDataRead(user, program)) {
       errors.add("User has no data read access to program: " + program.getUid());
     }
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
-    if (!aclService.canDataRead(user.getUsername(), trackedEntityType)) {
+    if (!aclService.canDataRead(user, trackedEntityType)) {
       errors.add("User has no data read access to tracked entity: " + trackedEntityType.getUid());
     }
 
@@ -149,13 +149,13 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return errors;
     }
 
-    if (!aclService.canDataWrite(user.getUsername(), program)) {
+    if (!aclService.canDataWrite(user, program)) {
       errors.add("User has no data write access to program: " + program.getUid());
     }
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
-    if (!aclService.canDataWrite(user.getUsername(), trackedEntityType)) {
+    if (!aclService.canDataWrite(user, trackedEntityType)) {
       errors.add("User has no data write access to tracked entity: " + trackedEntityType.getUid());
     }
 
@@ -177,12 +177,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     Program program = enrollment.getProgram();
 
-    if (!aclService.canDataRead(user.getUsername(), program)) {
+    if (!aclService.canDataRead(user, program)) {
       errors.add("User has no data read access to program: " + program.getUid());
     }
 
     if (!program.isWithoutRegistration()) {
-      if (!aclService.canDataRead(user.getUsername(), program.getTrackedEntityType())) {
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
         errors.add(
             "User has no data read access to tracked entity type: "
                 + program.getTrackedEntityType().getUid());
@@ -222,12 +222,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       }
     }
 
-    if (!aclService.canDataWrite(user.getUsername(), program)) {
+    if (!aclService.canDataWrite(user, program)) {
       errors.add("User has no data write access to program: " + program.getUid());
     }
 
     if (!program.isWithoutRegistration()) {
-      if (!aclService.canDataRead(user.getUsername(), program.getTrackedEntityType())) {
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
         errors.add(
             "User has no data read access to tracked entity type: "
                 + program.getTrackedEntityType().getUid());
@@ -253,12 +253,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     Program program = enrollment.getProgram();
 
-    if (!aclService.canDataWrite(user.getUsername(), program)) {
+    if (!aclService.canDataWrite(user, program)) {
       errors.add("User has no data write access to program: " + program.getUid());
     }
 
     if (!program.isWithoutRegistration()) {
-      if (!aclService.canDataRead(user.getUsername(), program.getTrackedEntityType())) {
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
         errors.add(
             "User has no data read access to tracked entity type: "
                 + program.getTrackedEntityType().getUid());
@@ -292,12 +292,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     Program program = enrollment.getProgram();
 
-    if (!aclService.canDataWrite(user.getUsername(), program)) {
+    if (!aclService.canDataWrite(user, program)) {
       errors.add("User has no data write access to program: " + program.getUid());
     }
 
     if (!program.isWithoutRegistration()) {
-      if (!aclService.canDataRead(user.getUsername(), program.getTrackedEntityType())) {
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
         errors.add(
             "User has no data read access to tracked entity type: "
                 + program.getTrackedEntityType().getUid());
@@ -336,16 +336,16 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     Program program = programStage.getProgram();
 
-    if (!aclService.canDataRead(user.getUsername(), program)) {
+    if (!aclService.canDataRead(user, program)) {
       errors.add("User has no data read access to program: " + program.getUid());
     }
 
     if (!program.isWithoutRegistration()) {
-      if (!aclService.canDataRead(user.getUsername(), programStage)) {
+      if (!aclService.canDataRead(user, programStage)) {
         errors.add("User has no data read access to program stage: " + programStage.getUid());
       }
 
-      if (!aclService.canDataRead(user.getUsername(), program.getTrackedEntityType())) {
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
         errors.add(
             "User has no data read access to tracked entity type: "
                 + program.getTrackedEntityType().getUid());
@@ -396,19 +396,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     if (program.isWithoutRegistration()) {
-      if (!aclService.canDataWrite(user.getUsername(), program)) {
+      if (!aclService.canDataWrite(user, program)) {
         errors.add("User has no data write access to program: " + program.getUid());
       }
     } else {
-      if (!aclService.canDataWrite(user.getUsername(), programStage)) {
+      if (!aclService.canDataWrite(user, programStage)) {
         errors.add("User has no data write access to program stage: " + programStage.getUid());
       }
 
-      if (!aclService.canDataRead(user.getUsername(), program)) {
+      if (!aclService.canDataRead(user, program)) {
         errors.add("User has no data read access to program: " + program.getUid());
       }
 
-      if (!aclService.canDataRead(user.getUsername(), program.getTrackedEntityType())) {
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
         errors.add(
             "User has no data read access to tracked entity type: "
                 + program.getTrackedEntityType().getUid());
@@ -444,19 +444,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     Program program = programStage.getProgram();
 
     if (program.isWithoutRegistration()) {
-      if (!aclService.canDataWrite(user.getUsername(), program)) {
+      if (!aclService.canDataWrite(user, program)) {
         errors.add("User has no data write access to program: " + program.getUid());
       }
     } else {
-      if (!aclService.canDataWrite(user.getUsername(), programStage)) {
+      if (!aclService.canDataWrite(user, programStage)) {
         errors.add("User has no data write access to program stage: " + programStage.getUid());
       }
 
-      if (!aclService.canDataRead(user.getUsername(), program)) {
+      if (!aclService.canDataRead(user, program)) {
         errors.add("User has no data read access to program: " + program.getUid());
       }
 
-      if (!aclService.canDataRead(user.getUsername(), program.getTrackedEntityType())) {
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
         errors.add(
             "User has no data read access to tracked entity type: "
                 + program.getTrackedEntityType().getUid());
@@ -506,19 +506,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
         }
       }
 
-      if (!aclService.canDataWrite(user.getUsername(), program)) {
+      if (!aclService.canDataWrite(user, program)) {
         errors.add("User has no data write access to program: " + program.getUid());
       }
     } else {
-      if (!aclService.canDataWrite(user.getUsername(), programStage)) {
+      if (!aclService.canDataWrite(user, programStage)) {
         errors.add("User has no data write access to program stage: " + programStage.getUid());
       }
 
-      if (!aclService.canDataRead(user.getUsername(), program)) {
+      if (!aclService.canDataRead(user, program)) {
         errors.add("User has no data read access to program: " + program.getUid());
       }
 
-      if (!aclService.canDataRead(user.getUsername(), program.getTrackedEntityType())) {
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
         errors.add(
             "User has no data read access to tracked entity type: "
                 + program.getTrackedEntityType().getUid());
@@ -550,7 +550,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     relationshipType = relationship.getRelationshipType();
 
-    if (!aclService.canDataRead(user.getUsername(), relationshipType)) {
+    if (!aclService.canDataRead(user, relationshipType)) {
       errors.add("User has no data read access to relationshipType: " + relationshipType.getUid());
     }
 
@@ -582,7 +582,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     relationshipType = relationship.getRelationshipType();
 
-    if (!aclService.canDataWrite(user.getUsername(), relationshipType)) {
+    if (!aclService.canDataWrite(user, relationshipType)) {
       errors.add("User has no data write access to relationshipType: " + relationshipType.getUid());
     }
 
@@ -611,7 +611,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     errors.addAll(canRead(user, event, skipOwnershipCheck));
 
-    if (!aclService.canRead(user.getUsername(), dataElement)) {
+    if (!aclService.canRead(user, dataElement)) {
       errors.add("User has no read access to data element: " + dataElement.getUid());
     }
 
@@ -629,7 +629,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     errors.addAll(canUpdate(user, event, skipOwnershipCheck));
 
-    if (!aclService.canRead(user.getUsername(), dataElement)) {
+    if (!aclService.canRead(user, dataElement)) {
       errors.add("User has no read access to data element: " + dataElement.getUid());
     }
 
@@ -645,7 +645,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
-      if (!aclService.canDataRead(user.getUsername(), categoryOption)) {
+      if (!aclService.canDataRead(user, categoryOption)) {
         errors.add("User has no read access to category option: " + categoryOption.getUid());
       }
     }
@@ -662,7 +662,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
-      if (!aclService.canDataWrite(user.getUsername(), categoryOption)) {
+      if (!aclService.canDataWrite(user, categoryOption)) {
         errors.add("User has no write access to category option: " + categoryOption.getUid());
       }
     }

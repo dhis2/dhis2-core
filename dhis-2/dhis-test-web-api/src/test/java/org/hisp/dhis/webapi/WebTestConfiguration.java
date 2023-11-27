@@ -70,8 +70,6 @@ import org.springframework.security.authentication.DefaultAuthenticationEventPub
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.ldap.authentication.LdapAuthenticator;
-import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
@@ -173,15 +171,15 @@ public class WebTestConfiguration {
     return new BCryptPasswordEncoder();
   }
 
-  @Bean
-  public LdapAuthenticator ldapAuthenticator() {
-    return authentication -> null;
-  }
+  //  @Bean
+  //  public LdapAuthenticator ldapAuthenticator() {
+  //    return authentication -> null;
+  //  }
 
-  @Bean
-  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
-    return (dirContextOperations, s) -> null;
-  }
+  //  @Bean
+  //  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
+  //    return (dirContextOperations, s) -> null;
+  //  }
 
   @Bean
   public DefaultAuthenticationEventPublisher authenticationEventPublisher() {

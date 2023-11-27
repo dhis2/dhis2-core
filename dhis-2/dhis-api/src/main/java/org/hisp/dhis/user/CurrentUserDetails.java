@@ -82,4 +82,6 @@ public interface CurrentUserDetails extends UserDetails {
   Map<String, Serializable> getUserSettings();
 
   Set<String> getUserRoleIds();
+
+  boolean canModifyUser(User userToModify);
 }

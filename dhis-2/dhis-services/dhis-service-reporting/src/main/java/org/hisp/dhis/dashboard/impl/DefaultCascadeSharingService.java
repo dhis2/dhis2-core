@@ -791,7 +791,7 @@ public class DefaultCascadeSharingService implements CascadeSharingService {
    */
   private <T extends IdentifiableObject> boolean canUserUpdate(
       T object, CascadeSharingParameters parameters) {
-    if (!aclService.canUpdate(parameters.getUser().getUsername(), object)) {
+    if (!aclService.canUpdate(parameters.getUser(), object)) {
       parameters
           .getReport()
           .getErrorReports()
@@ -799,7 +799,7 @@ public class DefaultCascadeSharingService implements CascadeSharingService {
               new ErrorReport(
                   HibernateProxyUtils.getRealClass(object),
                   ErrorCode.E3001,
-                  parameters.getUser().getUsername(),
+                  parameters,
                   object.getUid()));
       return false;
     }

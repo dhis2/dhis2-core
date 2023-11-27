@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
@@ -194,7 +193,7 @@ class UserControllerTest {
     // make current user have ALL authority
     setUpUserAuthority(currentUser, UserRole.AUTHORITY_ALL);
     // allow any change
-    when(aclService.canUpdate(anyString(), any())).thenReturn(true);
+    when(aclService.canUpdate(any(User.class), any())).thenReturn(true);
 
     lenient().when(userService.canAddOrUpdateUser(any(), any())).thenReturn(true);
     // link user and current user to service methods

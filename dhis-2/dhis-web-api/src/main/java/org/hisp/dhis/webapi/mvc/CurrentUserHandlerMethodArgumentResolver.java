@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.mvc;
 
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -54,9 +55,16 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
 
   @Override
   public boolean supportsParameter(MethodParameter parameter) {
+
     Class<?> type = parameter.getParameterType();
-    return parameter.getParameterAnnotation(CurrentUser.class) != null
-        && (type == String.class || User.class.isAssignableFrom(type));
+
+    boolean isAssignable =
+        type == String.class
+            || type == CurrentUserDetailsImpl.class
+            || User.class.isAssignableFrom(type);
+
+    CurrentUser parameterAnnotation = parameter.getParameterAnnotation(CurrentUser.class);
+    return parameterAnnotation != null && isAssignable;
   }
 
   @Override
@@ -70,6 +78,11 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
     if (type == String.class) {
       return CurrentUserUtil.getCurrentUsername();
     }
+
+    if (type == CurrentUserDetailsImpl.class) {
+      return CurrentUserUtil.getCurrentUserDetails();
+    }
+
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     CurrentUser annotation = parameter.getParameterAnnotation(CurrentUser.class);
     if (currentUser == null && annotation != null && annotation.required()) {

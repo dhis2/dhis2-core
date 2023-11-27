@@ -23,6 +23,7 @@
 
         <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
                      foreign-key="fk_eventhook_userid_userinfoid"/>
+        <property name="createdById" column="userid" insert="false" update="false" />
 
         <!-- Translations -->
         <property name="translations" column="translations" type="jblTranslations"/>

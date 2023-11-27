@@ -41,8 +41,11 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRetrievalStore;
 import org.springframework.stereotype.Service;
 
 /**
@@ -54,27 +57,37 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
 
   private final AclService aclService;
 
-  public DefaultAggregateAccessManager(AclService aclService, CacheProvider cacheProvider) {
+  private final UserRetrievalStore userRetrievalStore;
+
+  public DefaultAggregateAccessManager(
+      AclService aclService, CacheProvider cacheProvider, UserRetrievalStore userRetrievalStore) {
     checkNotNull(aclService);
     checkNotNull(cacheProvider);
+    checkNotNull(userRetrievalStore);
 
+    this.userRetrievalStore = userRetrievalStore;
     this.aclService = aclService;
     this.canDataWriteCocCache = cacheProvider.createCanDataWriteCocCache();
+  }
+
+  private CurrentUserDetails getCurrentUserImpl(String username) {
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    if (currentUsername != null && !currentUsername.equals(username)) {
+      User currentUser = userRetrievalStore.getUserByUsername(username);
+      return CurrentUserDetailsImpl.fromUser(currentUser);
+    }
+    return CurrentUserUtil.getCurrentUserDetails();
   }
 
   // ---------------------------------------------------------------------
   // AggregateAccessManager implementation
   // ---------------------------------------------------------------------
 
-  public List<String> canRead(User user, DataValue dataValue) {
-    return canRead(user.getUsername(), dataValue);
-  }
-
   @Override
-  public List<String> canRead(String username, DataValue dataValue) {
+  public List<String> canRead(CurrentUserDetails currentUser, DataValue dataValue) {
     List<String> errors = new ArrayList<>();
 
-    if (username == null || CurrentUserUtil.getCurrentUserDetails().isSuper()) {
+    if (currentUser == null || currentUser.isSuper()) {
       return errors;
     }
 
@@ -94,7 +107,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
 
     options.forEach(
         option -> {
-          if (!aclService.canDataRead(username, option)) {
+          if (!aclService.canDataRead(currentUser, option)) {
             errors.add("User has no data read access for CategoryOption: " + option.getUid());
           }
         });
@@ -103,14 +116,14 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canWrite(String username, DataSet dataSet) {
+  public List<String> canWrite(CurrentUserDetails userDetails, DataSet dataSet) {
     List<String> errors = new ArrayList<>();
 
-    if (username == null || CurrentUserUtil.getCurrentUserDetails().isSuper()) {
+    if (userDetails == null || userDetails.isSuper()) {
       return errors;
     }
 
-    if (!aclService.canDataWrite(username, dataSet)) {
+    if (!aclService.canDataWrite(userDetails, dataSet)) {
       errors.add("User does not have write access for DataSet: " + dataSet.getUid());
     }
 
@@ -118,14 +131,14 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canRead(String username, DataSet dataSet) {
+  public List<String> canRead(CurrentUserDetails currentUser, DataSet dataSet) {
     List<String> errors = new ArrayList<>();
 
-    if (username == null || CurrentUserUtil.getCurrentUserDetails().isSuper()) {
+    if (currentUser == null || currentUser.isSuper()) {
       return errors;
     }
 
-    if (!aclService.canDataRead(username, dataSet)) {
+    if (!aclService.canDataRead(currentUser, dataSet)) {
       errors.add("User does not have read access for DataSet: " + dataSet.getUid());
     }
 
@@ -133,8 +146,8 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canWrite(String username, CategoryOptionCombo optionCombo) {
-    if (username == null || CurrentUserUtil.getCurrentUserDetails().isSuper()) {
+  public List<String> canWrite(CurrentUserDetails userDetails, CategoryOptionCombo optionCombo) {
+    if (userDetails == null || userDetails.isSuper()) {
       return emptyList();
     }
 
@@ -142,7 +155,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
     List<String> errors = new ArrayList<>();
     options.forEach(
         attrOption -> {
-          if (!aclService.canDataWrite(username, attrOption)) {
+          if (!aclService.canDataWrite(userDetails, attrOption)) {
             errors.add("User has no data write access for CategoryOption: " + attrOption.getUid());
           }
         });
@@ -151,17 +164,18 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canWriteCached(String username, CategoryOptionCombo optionCombo) {
+  public List<String> canWriteCached(
+      CurrentUserDetails currentUser, CategoryOptionCombo optionCombo) {
     String cacheKey = CurrentUserUtil.getCurrentUserDetails().getUid() + "-" + optionCombo.getUid();
 
-    return canDataWriteCocCache.get(cacheKey, key -> canWrite(username, optionCombo));
+    return canDataWriteCocCache.get(cacheKey, key -> canWrite(currentUser, optionCombo));
   }
 
   @Override
-  public List<String> canRead(String username, CategoryOptionCombo optionCombo) {
+  public List<String> canRead(CurrentUserDetails currentUser, CategoryOptionCombo optionCombo) {
     List<String> errors = new ArrayList<>();
 
-    if (username == null || CurrentUserUtil.getCurrentUserDetails().isSuper()) {
+    if (currentUser == null || currentUser.isSuper()) {
       return errors;
     }
 
@@ -169,7 +183,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
 
     options.forEach(
         attrOption -> {
-          if (!aclService.canDataRead(username, attrOption)) {
+          if (!aclService.canDataRead(currentUser, attrOption)) {
             errors.add("User has no data read access for CategoryOption: " + attrOption.getUid());
           }
         });
@@ -178,10 +192,11 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canWrite(String username, DataElementOperand dataElementOperand) {
+  public List<String> canWrite(
+      CurrentUserDetails currentUser, DataElementOperand dataElementOperand) {
     List<String> errors = new ArrayList<>();
 
-    if (username == null || CurrentUserUtil.getCurrentUserDetails().isSuper()) {
+    if (currentUser == null || currentUser.isSuper()) {
       return errors;
     }
 
@@ -201,7 +216,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
 
     options.forEach(
         option -> {
-          if (!aclService.canDataWrite(username, option)) {
+          if (!aclService.canDataWrite(currentUser, option)) {
             errors.add("User has no data write access for CategoryOption: " + option.getUid());
           }
         });

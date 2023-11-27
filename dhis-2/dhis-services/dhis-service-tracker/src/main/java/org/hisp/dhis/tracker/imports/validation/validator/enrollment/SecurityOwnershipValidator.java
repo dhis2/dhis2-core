@@ -181,7 +181,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     checkNotNull(program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL);
     checkNotNull(trackedEntity, TRACKED_ENTITY_CANT_BE_NULL);
 
-    if (!aclService.canDataRead(user.getUsername(), program.getTrackedEntityType())) {
+    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
       reporter.addError(dto, ValidationCode.E1104, user, program, program.getTrackedEntityType());
     }
 
@@ -225,7 +225,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(program, PROGRAM_CANT_BE_NULL);
 
-    if (!aclService.canDataWrite(user.getUsername(), program)) {
+    if (!aclService.canDataWrite(user, program)) {
       reporter.addError(dto, ValidationCode.E1091, user, program);
     }
   }

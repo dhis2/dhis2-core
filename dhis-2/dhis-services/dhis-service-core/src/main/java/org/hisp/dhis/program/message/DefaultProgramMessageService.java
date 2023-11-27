@@ -317,7 +317,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     }
 
     if (object != null) {
-      isAuthorized = aclService.canDataWrite(CurrentUserUtil.getCurrentUsername(), object);
+      isAuthorized = aclService.canDataWrite(CurrentUserUtil.getCurrentUserDetails(), object);
 
       if (!isAuthorized) {
         log.error(
@@ -352,7 +352,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     return batchCreators.stream()
         .map(bc -> bc.getMessageBatch(programMessages))
         .filter(bc -> !bc.getMessages().isEmpty())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private Enrollment getEnrollment(ProgramMessage programMessage) {

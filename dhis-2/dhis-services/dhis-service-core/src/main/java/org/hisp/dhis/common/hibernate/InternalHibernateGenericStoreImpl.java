@@ -51,7 +51,6 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
@@ -247,30 +246,37 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
       CriteriaBuilder builder, CurrentUserDetails userDetails) {
-    return userDetails == null
-        ? List.of()
-        : getDataSharingPredicates(
-            builder,
-            userDetails,
-            getCurrentUserGroupInfo(userDetails.getUid()),
-            AclService.LIKE_READ_DATA);
+    if (userDetails == null) {
+      return List.of();
+    }
+    return getDataSharingPredicates(
+        builder,
+        userDetails,
+        getCurrentUserGroupInfo(userDetails.getUid()),
+        AclService.LIKE_READ_DATA);
   }
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
       CriteriaBuilder builder, CurrentUserDetails userDetails) {
-    return userDetails == null
-        ? List.of()
-        : getSharingPredicates(
-            builder,
-            userDetails,
-            getCurrentUserGroupInfo(userDetails.getUid()),
-            AclService.LIKE_READ_METADATA);
+    if (userDetails == null) {
+      return List.of();
+    }
+
+    return getSharingPredicates(
+        builder,
+        userDetails,
+        getCurrentUserGroupInfo(userDetails.getUid()),
+        AclService.LIKE_READ_METADATA);
   }
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
       CriteriaBuilder builder, CurrentUserDetails user, String access) {
+
+    if (user == null) {
+      return List.of();
+    }
 
     if (user == null || !sharingEnabled(user.isSuper())) {
       return List.of();
@@ -329,19 +335,20 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     return aclService.isDataClassShareable(clazz) && !userIsSuper;
   }
 
-  /**
-   * @deprecated use {@link #dataSharingEnabled( CurrentUserDetails )} instead.
-   */
-  @Deprecated
-  private boolean dataSharingEnabled(CurrentUserDetailsImpl user) {
-    return aclService.isDataClassShareable(clazz) && !user.isSuper();
-  }
+  //  /**
+  //   * @deprecated use {@link #dataSharingEnabled( CurrentUserDetails )} instead.
+  //   */
+  //  @Deprecated
+  //  private boolean dataSharingEnabled(CurrentUserDetailsImpl user) {
+  //    return aclService.isDataClassShareable(clazz) && !user.isSuper();
+  //  }
 
   private List<Function<Root<T>, Predicate>> getSharingPredicates(
       CriteriaBuilder builder,
       CurrentUserDetails userDetails,
       CurrentUserGroupInfo groupInfo,
       String access) {
+
     if (userDetails == null || groupInfo == null || !sharingEnabled(userDetails.isSuper())) {
       return List.of();
     }

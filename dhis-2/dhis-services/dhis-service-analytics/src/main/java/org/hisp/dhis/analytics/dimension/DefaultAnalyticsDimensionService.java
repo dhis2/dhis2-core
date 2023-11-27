@@ -64,7 +64,6 @@ public class DefaultAnalyticsDimensionService implements AnalyticsDimensionServi
 
   @Override
   public List<DimensionalObject> getRecommendedDimensions(DataQueryParams params) {
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
     Set<DimensionalObject> dimensions = new HashSet<>();
 
     if (!params.getDataElements().isEmpty()) {
@@ -92,7 +91,7 @@ public class DefaultAnalyticsDimensionService implements AnalyticsDimensionServi
     // TODO Filter org unit group sets
 
     return dimensions.stream()
-        .filter(d -> aclService.canDataOrMetadataRead(currentUsername, d))
+        .filter(d -> aclService.canDataOrMetadataRead(CurrentUserUtil.getCurrentUserDetails(), d))
         .sorted()
         .collect(Collectors.toList());
   }

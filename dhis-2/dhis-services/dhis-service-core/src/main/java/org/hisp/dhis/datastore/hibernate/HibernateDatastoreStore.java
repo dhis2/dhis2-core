@@ -45,7 +45,7 @@ import org.hisp.dhis.datastore.DatastoreFields;
 import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.DatastoreStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -79,9 +79,9 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public List<String> getKeysInNamespace(String namespace, Date lastUpdated) {
-    User currentUser = getCurrentUser();
     String accessFilter =
-        generateHqlQueryForSharingCheck("ds", currentUser, AclService.LIKE_READ_METADATA);
+        generateHqlQueryForSharingCheck(
+            "ds", CurrentUserUtil.getCurrentUserDetails(), AclService.LIKE_READ_METADATA);
 
     String hql =
         "select key from DatastoreEntry ds where namespace = :namespace and " + accessFilter;
@@ -111,9 +111,9 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform) {
-    User currentUser = getCurrentUser();
     String accessFilter =
-        generateHqlQueryForSharingCheck("ds", currentUser, AclService.LIKE_READ_METADATA);
+        generateHqlQueryForSharingCheck(
+            "ds", CurrentUserUtil.getCurrentUserDetails(), AclService.LIKE_READ_METADATA);
     DatastoreQueryBuilder builder =
         new DatastoreQueryBuilder(
             "from DatastoreEntry ds where namespace = :namespace and " + accessFilter, query);

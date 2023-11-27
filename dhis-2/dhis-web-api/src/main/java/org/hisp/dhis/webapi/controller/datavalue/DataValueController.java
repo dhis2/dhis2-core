@@ -71,7 +71,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
@@ -146,7 +147,7 @@ public class DataValueController {
       @RequestParam(required = false) String comment,
       @RequestParam(required = false) Boolean followUp,
       @RequestParam(required = false) boolean force,
-      @CurrentUser User currentUser)
+      @CurrentUser CurrentUserDetailsImpl currentUserDetails)
       throws WebMessageException {
     DataValueCategoryDto attribute = dataValidator.getDataValueCategoryDto(cc, cp);
 
@@ -163,16 +164,16 @@ public class DataValueController {
             .setFollowUp(followUp)
             .setForce(force);
 
-    saveDataValueInternal(dataValue, currentUser);
+    saveDataValueInternal(dataValue, currentUserDetails);
   }
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
   @PostMapping(consumes = "application/json")
   @ResponseStatus(HttpStatus.CREATED)
   public void saveDataValueWithBody(
-      @RequestBody DataValueDto dataValue, @CurrentUser User currentUser)
+      @RequestBody DataValueDto dataValue, @CurrentUser CurrentUserDetailsImpl currentUserDetails)
       throws WebMessageException {
-    saveDataValueInternal(dataValue, currentUser);
+    saveDataValueInternal(dataValue, currentUserDetails);
   }
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
@@ -190,7 +191,7 @@ public class DataValueController {
       @RequestParam(required = false) Boolean followUp,
       @RequestParam(required = false) boolean force,
       @RequestParam(required = false) MultipartFile file,
-      @CurrentUser User currentUser)
+      @CurrentUser CurrentUserDetailsImpl currentUserDetails)
       throws WebMessageException, IOException {
     DataValueCategoryDto attribute = dataValidator.getDataValueCategoryDto(cc, cp);
 
@@ -212,7 +213,7 @@ public class DataValueController {
             .setFollowUp(followUp)
             .setForce(force);
 
-    saveDataValueInternal(dataValue, currentUser);
+    saveDataValueInternal(dataValue, currentUserDetails);
 
     WebMessage webMessage = new WebMessage(Status.OK, HttpStatus.ACCEPTED);
     if (fileResource != null) {
@@ -221,7 +222,7 @@ public class DataValueController {
     return webMessage;
   }
 
-  private void saveDataValueInternal(DataValueDto dataValue, User currentUser)
+  private void saveDataValueInternal(DataValueDto dataValue, CurrentUserDetails currentUserDetails)
       throws WebMessageException {
     String value = dataValue.getValue();
 
@@ -276,9 +277,9 @@ public class DataValueController {
 
     dataValidator.validateOptionSet(value, dataElement.getOptionSet(), dataElement);
 
-    dataValidator.checkCategoryOptionComboAccess(currentUser, categoryOptionCombo);
+    dataValidator.checkCategoryOptionComboAccess(currentUserDetails, categoryOptionCombo);
 
-    dataValidator.checkCategoryOptionComboAccess(currentUser, attributeOptionCombo);
+    dataValidator.checkCategoryOptionComboAccess(currentUserDetails, attributeOptionCombo);
 
     // ---------------------------------------------------------------------
     // Optional constraints
@@ -316,9 +317,9 @@ public class DataValueController {
     // Locking validation
     // ---------------------------------------------------------------------
 
-    if (!inputUtils.canForceDataInput(currentUser, dataValue.isForce())) {
+    if (!inputUtils.canForceDataInput(currentUserDetails, dataValue.isForce())) {
       dataValidator.validateDataSetNotLocked(
-          dataElement, period, dataSet, organisationUnit, attributeOptionCombo, currentUser);
+          dataElement, period, dataSet, organisationUnit, attributeOptionCombo, currentUserDetails);
     }
 
     // ---------------------------------------------------------------------
@@ -331,7 +332,7 @@ public class DataValueController {
     // Assemble and save data value
     // ---------------------------------------------------------------------
 
-    String storedBy = currentUser.getUsername();
+    String storedBy = currentUserDetails.getUsername();
 
     Date now = new Date();
 
@@ -469,7 +470,7 @@ public class DataValueController {
       DataValueQueryParams params,
       @OpenApi.Param({UID.class, DataSet.class}) @RequestParam(required = false) String ds,
       @RequestParam(required = false) boolean force,
-      @CurrentUser User currentUser,
+      @CurrentUser CurrentUserDetailsImpl currentUser,
       HttpServletResponse response)
       throws WebMessageException {
     FileResourceRetentionStrategy retentionStrategy =
@@ -537,7 +538,9 @@ public class DataValueController {
 
   @GetMapping
   public List<String> getDataValue(
-      DataValueQueryParams params, @CurrentUser User currentUser, HttpServletResponse response)
+      DataValueQueryParams params,
+      @CurrentUser CurrentUserDetailsImpl currentUserDetails,
+      HttpServletResponse response)
       throws WebMessageException {
     // ---------------------------------------------------------------------
     // Input validation
@@ -572,7 +575,7 @@ public class DataValueController {
     // Data Sharing check
     // ---------------------------------------------------------------------
 
-    dataValidator.checkDataValueSharing(currentUser, dataValue);
+    dataValidator.checkDataValueSharing(currentUserDetails, dataValue);
 
     List<String> value = new ArrayList<>();
     value.add(dataValue.getValue());

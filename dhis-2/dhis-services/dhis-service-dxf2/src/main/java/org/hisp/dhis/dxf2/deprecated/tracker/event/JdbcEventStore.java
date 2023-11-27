@@ -124,6 +124,7 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -369,7 +370,7 @@ public class JdbcEventStore implements EventStore {
       EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    setAccessiblePrograms(currentUser.isSuper(), params);
+    setAccessiblePrograms(isSuper(currentUser), params);
 
     List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events = new ArrayList<>();
     List<Long> relationshipIds = new ArrayList<>();
@@ -588,7 +589,7 @@ public class JdbcEventStore implements EventStore {
   public List<Map<String, String>> getEventsGrid(EventSearchParams params) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    setAccessiblePrograms(currentUser.isSuper(), params);
+    setAccessiblePrograms(isSuper(currentUser), params);
 
     final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
@@ -624,7 +625,7 @@ public class JdbcEventStore implements EventStore {
   public List<EventRow> getEventRows(EventSearchParams params) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    setAccessiblePrograms(currentUser.isSuper(), params);
+    setAccessiblePrograms(isSuper(currentUser), params);
 
     List<EventRow> eventRows = new ArrayList<>();
 
@@ -831,7 +832,8 @@ public class JdbcEventStore implements EventStore {
   @Override
   public int getEventCount(EventSearchParams params) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    setAccessiblePrograms(currentUser.isSuper(), params);
+
+    setAccessiblePrograms(isSuper(currentUser), params);
 
     String sql;
 
@@ -1745,7 +1747,7 @@ public class JdbcEventStore implements EventStore {
           joinCondition
               + " having bool_and(case when "
               + JpaQueryUtils.generateSQlQueryForSharingCheck(
-                  "co.sharing", user, AclService.LIKE_READ_DATA)
+                  "co.sharing", CurrentUserDetailsImpl.fromUser(user), AclService.LIKE_READ_DATA)
               + " then true else false end) = True ";
     }
 

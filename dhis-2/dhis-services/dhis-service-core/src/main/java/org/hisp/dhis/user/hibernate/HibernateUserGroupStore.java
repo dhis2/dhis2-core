@@ -31,7 +31,6 @@ import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -57,11 +56,11 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
     //        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
   }
 
-  @Override
-  public void update(@Nonnull UserGroup object, User user) {
-    super.update(object, user);
-    //    object
-    //        .getMembers()
-    //        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
-  }
+  //  @Override
+  //  public void update(@Nonnull UserGroup object, User user) {
+  //    super.update(object, user);
+  //    //    object
+  //    //        .getMembers()
+  //    //        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
+  //  }
 }

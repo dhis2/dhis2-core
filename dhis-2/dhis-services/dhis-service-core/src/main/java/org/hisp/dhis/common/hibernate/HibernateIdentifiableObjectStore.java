@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
@@ -45,7 +44,6 @@ import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.QueryHints;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -60,10 +58,10 @@ import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.query.JpaQueryUtils;
-import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,30 +103,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   // -------------------------------------------------------------------------
   // IdentifiableObjectStore implementation
   // -------------------------------------------------------------------------
-  public User getCurrentUser() {
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-    return getUserByUsername(currentUsername, false);
-  }
-
-  private User getUserByUsername(String username, boolean ignoreCase) {
-    if (username == null) {
-      return null;
-    }
-    String hql =
-        ignoreCase
-            ? "from User u where lower(u.username) = lower(:username)"
-            : "from User u where u.username = :username";
-
-    TypedQuery<User> typedQuery = entityManager.createQuery(hql, User.class);
-    typedQuery.setParameter("username", username);
-    typedQuery.setHint(QueryHints.CACHEABLE, true);
-
-    return QueryUtils.getSingleResult(typedQuery);
-  }
-
-  //  private User getCurrentUser() {
-  //    return get(User.class, CurrentUserUtil.getCurrentUsername());
-  //  }
 
   @Override
   public void save(@Nonnull T object) {
@@ -137,19 +111,21 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   public void save(@Nonnull T object, @CheckForNull User user) {
-    save(object, user, true);
+    save(object, CurrentUserDetailsImpl.fromUser(user), true);
   }
 
   @Override
   public void save(@Nonnull T object, boolean clearSharing) {
-    save(object, getCurrentUser(), clearSharing);
+    save(object, CurrentUserUtil.getCurrentUserDetails(), clearSharing);
   }
 
-  private void save(T object, User user, boolean clearSharing) {
-    String username = user != null ? user.getUsername() : "system-process";
+  private void save(T object, CurrentUserDetails userDetails, boolean clearSharing) {
+
+    String username = userDetails != null ? userDetails.getUsername() : "system-process";
 
     object.setAutoFields();
-    object.setLastUpdatedBy(user);
+    //    object.setLastUpdatedBy(user);
+    object.setLastUpdatedById(userDetails != null ? userDetails.getId() : null);
 
     if (clearSharing) {
       object.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
@@ -158,25 +134,28 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     if (object.getCreatedBy() == null) {
-      object.setCreatedBy(user);
+      //      object.setCreatedBy(user);
+      object.setCreatedById(userDetails != null ? userDetails.getId() : null);
     }
 
     if (object.getSharing().getOwner() == null) {
-      object.getSharing().setOwner(object.getCreatedBy());
+      object
+          .getSharing()
+          .setOwner(object.getCreatedBy() != null ? object.getCreatedBy().getUid() : null);
     }
 
-    if (user != null && aclService.isClassShareable(clazz)) {
+    if (userDetails != null && aclService.isClassShareable(clazz)) {
       if (clearSharing) {
-        if (aclService.canMakePublic(user.getUsername(), (BaseIdentifiableObject) object)) {
+        if (aclService.canMakePublic(userDetails, (BaseIdentifiableObject) object)) {
           if (aclService.defaultPublic((BaseIdentifiableObject) object)) {
             object.getSharing().setPublicAccess(AccessStringHelper.READ_WRITE);
           }
-        } else if (aclService.canMakePrivate(user.getUsername(), (BaseIdentifiableObject) object)) {
+        } else if (aclService.canMakePrivate(userDetails, (BaseIdentifiableObject) object)) {
           object.getSharing().setPublicAccess(AccessStringHelper.newInstance().build());
         }
       }
 
-      if (!checkPublicAccess(user.getUsername(), object)) {
+      if (!checkPublicAccess(userDetails, object)) {
         AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_CREATE_DENIED);
         throw new CreateAccessDeniedException(object.toString());
       }
@@ -188,25 +167,28 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   public void update(@Nonnull T object) {
-    update(object, getCurrentUser());
+    update(object, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
-  public void update(@Nonnull T object, @CheckForNull User user) {
-    String username = user != null ? user.getUsername() : "system-process";
+  public void update(@Nonnull T object, @CheckForNull CurrentUserDetails userDetails) {
+    String username = userDetails != null ? userDetails.getUsername() : "system-process";
 
     object.setAutoFields();
-    object.setLastUpdatedBy(user);
+    //    object.setLastUpdatedBy(user);
+    object.setLastUpdatedById(userDetails != null ? userDetails.getId() : null);
 
     if (object.getSharing().getOwner() == null) {
-      object.getSharing().setOwner(user);
+      //      object.getSharing().setOwner(user);
+      object.getSharing().setOwner(userDetails != null ? userDetails.getUid() : null);
     }
 
     if (object.getCreatedBy() == null) {
-      object.setCreatedBy(user);
+      //      object.setCreatedBy(user);
+      object.setCreatedById(userDetails != null ? userDetails.getId() : null);
     }
 
-    if (!isUpdateAllowed(object, username)) {
+    if (!isUpdateAllowed(object, userDetails)) {
       AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE_DENIED);
       throw new UpdateAccessDeniedException(String.valueOf(object));
     }
@@ -217,10 +199,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   public void delete(@Nonnull T object) {
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-    String username = currentUsername != null ? currentUsername : "system-process";
+    CurrentUserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
+    String username = userDetails != null ? userDetails.getUsername() : "system-process";
 
-    if (!isDeleteAllowed(object, currentUsername)) {
+    if (!isDeleteAllowed(object, userDetails)) {
       AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_DELETE_DENIED);
       throw new DeleteAccessDeniedException(object.toString());
     }
@@ -235,7 +217,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   public final T get(long id) {
     T object = getNoPostProcess(id);
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    if (object != null && !isReadAllowed(object, currentUserDetails)) {
+    if (object != null && isReadNotAllowed(object, currentUserDetails)) {
       AuditLogUtil.infoWrapper(
           log, CurrentUserUtil.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
       throw new ReadAccessDeniedException(object.toString());
@@ -343,7 +325,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     T object = list != null && !list.isEmpty() ? list.get(0) : null;
 
     CurrentUserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    if (!isReadAllowed(object, currentUser)) {
+    if (isReadNotAllowed(object, currentUser)) {
       AuditLogUtil.infoWrapper(
           log, CurrentUserUtil.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
       throw new ReadAccessDeniedException(String.valueOf(object));
@@ -534,10 +516,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     param.addPredicate(
         root ->
             builder.and(
-                conjunction.stream()
-                    .map(p -> p.apply(root))
-                    .collect(Collectors.toList())
-                    .toArray(new Predicate[0])));
+                conjunction.stream().map(p -> p.apply(root)).toList().toArray(new Predicate[0])));
 
     return getList(builder, param);
   }
@@ -928,35 +907,37 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   /**
    * Checks whether the given user has public access to the given identifiable object.
    *
-   * @param username the user.
+   * @param userDetails the user.
    * @param identifiableObject the identifiable object.
    * @return true or false.
    */
-  private boolean checkPublicAccess(String username, IdentifiableObject identifiableObject) {
-    boolean b1 = aclService.canMakePublic(username, identifiableObject);
-    boolean b2 = aclService.canMakePrivate(username, identifiableObject);
-    boolean b3 =
+  private boolean checkPublicAccess(
+      CurrentUserDetails userDetails, IdentifiableObject identifiableObject) {
+    boolean canMakePublic = aclService.canMakePublic(userDetails, identifiableObject);
+    boolean canMakePrivate = aclService.canMakePrivate(userDetails, identifiableObject);
+    boolean canReadOrWrite =
         AccessStringHelper.canReadOrWrite(identifiableObject.getSharing().getPublicAccess());
-    return b1 || (b2 && !b3);
+
+    return canMakePublic || (canMakePrivate && !canReadOrWrite);
   }
 
-  private boolean isReadAllowed(T object, CurrentUserDetails user) {
+  private boolean isReadNotAllowed(T object, CurrentUserDetails user) {
     if (sharingEnabled(user == null || user.isSuper())) {
-      return aclService.canRead(user.getUsername(), object);
+      return !aclService.canRead(user, object);
+    }
+    return false;
+  }
+
+  private boolean isUpdateAllowed(T object, CurrentUserDetails userDetails) {
+    if (aclService.isClassShareable(clazz)) {
+      return aclService.canUpdate(userDetails, object);
     }
     return true;
   }
 
-  private boolean isUpdateAllowed(T object, String username) {
+  private boolean isDeleteAllowed(T object, CurrentUserDetails userDetails) {
     if (aclService.isClassShareable(clazz)) {
-      return aclService.canUpdate(username, object);
-    }
-    return true;
-  }
-
-  private boolean isDeleteAllowed(T object, String username) {
-    if (aclService.isClassShareable(clazz)) {
-      return aclService.canDelete(username, object);
+      return aclService.canDelete(userDetails, object);
     }
     return true;
   }

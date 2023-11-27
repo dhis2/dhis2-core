@@ -117,7 +117,7 @@ public class GetCategoryOptionCombosAction extends BaseAction implements Action 
     }
 
     categoryOptionCombos.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     return SUCCESS;
   }

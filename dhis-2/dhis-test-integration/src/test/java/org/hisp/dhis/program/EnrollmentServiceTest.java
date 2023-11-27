@@ -47,6 +47,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
@@ -286,7 +287,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     List<Enrollment> enrollments =
         enrollmentService.getEnrollments(
-            new EnrollmentQueryParams().setUser(user).setOrganisationUnitMode(CAPTURE));
+            new EnrollmentQueryParams()
+                .setCurrentUserDetails(CurrentUserDetailsImpl.fromUser(user))
+                .setOrganisationUnitMode(CAPTURE));
 
     assertEquals(2, enrollments.size());
     assertTrue(enrollments.contains(enrollmentA));

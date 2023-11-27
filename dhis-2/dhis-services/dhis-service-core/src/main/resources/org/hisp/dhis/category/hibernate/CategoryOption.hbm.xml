@@ -62,6 +62,7 @@
     <property name="attributeValues" type="jsbAttributeValues"/>
 
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataelementcategoryoption_userid" />
+    <property name="createdById" column="userid" insert="false" update="false" />
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>

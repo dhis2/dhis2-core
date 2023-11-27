@@ -85,8 +85,9 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.CheckedFunction;
@@ -197,7 +198,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser User currentUser)
+      @CurrentUser CurrentUserDetailsImpl currentUser)
       throws ForbiddenException, BadRequestException {
     return getObjectList(
         rpParameters,
@@ -212,7 +213,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      User currentUser,
+      CurrentUserDetailsImpl currentUser,
       boolean countTotal,
       CheckedFunction<ListParams, List<T>> fetchList)
       throws ForbiddenException, BadRequestException {
@@ -227,7 +228,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     WebOptions options = new WebOptions(rpParameters);
     WebMetadata metadata = new WebMetadata();
 
-    if (!aclService.canRead(currentUser.getUsername(), getEntityClass())) {
+    if (!aclService.canRead(currentUser, getEntityClass())) {
       throw new ForbiddenException(
           "You don't have the proper permissions to read objects of this type.");
     }
@@ -272,7 +273,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   public ResponseEntity<String> getObjectListCsv(
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
-      @CurrentUser User currentUser,
+      @CurrentUser CurrentUserDetailsImpl currentUser,
       @RequestParam(defaultValue = ",") char separator,
       @RequestParam(defaultValue = ";") String arraySeparator,
       @RequestParam(defaultValue = "false") boolean skipHeader,
@@ -299,7 +300,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
           "Not a metadata object type: " + getEntityClass().getSimpleName());
     }
 
-    if (!aclService.canRead(currentUser.getUsername(), getEntityClass())) {
+    if (!aclService.canRead(currentUser, getEntityClass())) {
       throw new ForbiddenException(
           "You don't have the proper permissions to read objects of this type.");
     }
@@ -406,7 +407,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @SuppressWarnings("unchecked")
     Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) value;
 
-    return collection.stream().map(PrimaryKeyObject::getUid).collect(toList());
+    return collection.stream().map(PrimaryKeyObject::getUid).toList();
   }
 
   private static Object getAttributeValue(Object obj, String attrId) {
@@ -426,11 +427,12 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   public @ResponseBody ResponseEntity<?> getObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @RequestParam Map<String, String> rpParameters,
-      @CurrentUser User currentUser,
+      @CurrentUser CurrentUserDetailsImpl currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
-    if (!aclService.canRead(currentUser.getUsername(), getEntityClass())) {
+
+    if (!aclService.canRead(currentUser, getEntityClass())) {
       throw new ForbiddenException(
           "You don't have the proper permissions to read objects of this type.");
     }
@@ -455,7 +457,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             new ArrayList<>(),
             getPaginationData(options),
             options.getRootJunction());
-    query.setUsername(currentUser.getUsername());
+    query.setCurrentUserDetails(currentUser);
     query.setObjects(List.of(entity));
     query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
 
@@ -478,14 +480,15 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
       TranslateParams translateParams,
-      @CurrentUser User currentUser,
+      @CurrentUser CurrentUserDetailsImpl currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
+
     if (!"translations".equals(pvProperty)) {
       setTranslationParams(translateParams);
     }
 
-    if (!aclService.canRead(currentUser.getUsername(), getEntityClass())) {
+    if (!aclService.canRead(currentUser, getEntityClass())) {
       throw new ForbiddenException(
           "You don't have the proper permissions to read objects of this type.");
     }
@@ -517,7 +520,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       Map<String, String> parameters,
       List<String> filters,
       List<String> fields,
-      User currentUser)
+      CurrentUserDetails currentUser)
       throws NotFoundException {
     WebOptions options = new WebOptions(parameters);
     T entity = getEntity(uid, options);
@@ -529,7 +532,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             new ArrayList<>(),
             getPaginationData(options),
             options.getRootJunction());
-    query.setUsername(currentUser.getUsername());
+    query.setCurrentUserDetails(currentUser);
     query.setObjects(List.of(entity));
     query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
 

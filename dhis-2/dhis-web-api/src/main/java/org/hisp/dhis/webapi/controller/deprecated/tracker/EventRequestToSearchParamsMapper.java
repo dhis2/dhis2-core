@@ -260,7 +260,7 @@ class EventRequestToSearchParamsMapper {
 
     if (attributeOptionCombo != null
         && !currentUser.isSuper()
-        && !aclService.canDataRead(currentUser.getUsername(), attributeOptionCombo)) {
+        && !aclService.canDataRead(currentUser, attributeOptionCombo)) {
       throw new IllegalQueryException(
           "User has no access to attribute category option combo: "
               + attributeOptionCombo.getUid());
@@ -470,15 +470,11 @@ class EventRequestToSearchParamsMapper {
       return;
     }
 
-    if (program != null
-        && !user.isSuper()
-        && !aclService.canDataRead(user.getUsername(), program)) {
+    if (program != null && !user.isSuper() && !aclService.canDataRead(user, program)) {
       throw new IllegalQueryException("User has no access to program: " + program.getUid());
     }
 
-    if (programStage != null
-        && !user.isSuper()
-        && !aclService.canDataRead(user.getUsername(), programStage)) {
+    if (programStage != null && !user.isSuper() && !aclService.canDataRead(user, programStage)) {
       throw new IllegalQueryException(
           "User has no access to program stage: " + programStage.getUid());
     }

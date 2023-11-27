@@ -80,6 +80,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -119,6 +120,7 @@ class EventOperationParamsMapperTest {
   @Mock private CategoryOptionComboService categoryOptionComboService;
 
   //  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -166,7 +168,7 @@ class EventOperationParamsMapperTest {
     EventOperationParams eventOperationParams =
         eventBuilder.programStageUid(programStage.getUid()).build();
 
-    when(aclService.canDataRead(user.getUsername(), programStage)).thenReturn(false);
+    when(aclService.canDataRead(user, programStage)).thenReturn(false);
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
 
     Exception exception =
@@ -183,7 +185,7 @@ class EventOperationParamsMapperTest {
         eventBuilder.programStageUid(programStage.getUid()).trackedEntityUid("qnR1RK4cTIZ").build();
 
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
-    when(aclService.canDataRead(user.getUsername(), programStage)).thenReturn(true);
+    when(aclService.canDataRead(user, programStage)).thenReturn(true);
     when(trackedEntityService.getTrackedEntity("qnR1RK4cTIZ")).thenReturn(null);
 
     Exception exception =
@@ -201,7 +203,7 @@ class EventOperationParamsMapperTest {
     EventOperationParams eventOperationParams = eventBuilder.programUid(program.getUid()).build();
 
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user.getUsername(), program)).thenReturn(false);
+    when(aclService.canDataRead(user, program)).thenReturn(false);
 
     Exception exception =
         assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams));
@@ -254,8 +256,7 @@ class EventOperationParamsMapperTest {
     when(categoryOptionComboService.getAttributeOptionCombo(
             "NeU85luyD4w", Set.of("tqrzUqNMHib", "bT6OSf4qnnk"), true))
         .thenReturn(combo);
-    when(aclService.canDataRead(any(String.class), any(CategoryOptionCombo.class)))
-        .thenReturn(false);
+    when(aclService.canDataRead(any(User.class), any(CategoryOptionCombo.class))).thenReturn(false);
 
     Exception exception =
         assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams));
@@ -278,8 +279,7 @@ class EventOperationParamsMapperTest {
     when(categoryOptionComboService.getAttributeOptionCombo(
             "NeU85luyD4w", Set.of("tqrzUqNMHib", "bT6OSf4qnnk"), true))
         .thenReturn(combo);
-    when(aclService.canDataRead(any(String.class), any(CategoryOptionCombo.class)))
-        .thenReturn(true);
+    when(aclService.canDataRead(any(User.class), any(CategoryOptionCombo.class))).thenReturn(true);
 
     EventQueryParams queryParams = mapper.map(operationParams);
 

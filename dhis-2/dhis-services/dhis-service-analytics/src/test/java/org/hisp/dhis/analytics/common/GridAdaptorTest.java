@@ -100,8 +100,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
     metadataDetailsHandler = new MetadataParamsHandler();
     schemeIdResponseMapper = new SchemeIdResponseMapper();
     gridAdaptor =
-        new GridAdaptor(
-            headerParamsHandler, metadataDetailsHandler, schemeIdResponseMapper, userService);
+        new GridAdaptor(headerParamsHandler, metadataDetailsHandler, schemeIdResponseMapper);
     user = makeUser(ADMIN_USER_UID);
   }
 
@@ -132,7 +131,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
     // When
     Grid grid =
-        gridAdaptor.createGrid(Optional.of(mockSqlResult), anyCount, teiQueryParams, fields);
+        gridAdaptor.createGrid(Optional.of(mockSqlResult), anyCount, teiQueryParams, fields, null);
 
     // Then
     assertNotNull(grid, "Should not be null: grid");
@@ -169,7 +168,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
     // When
     Grid grid =
-        gridAdaptor.createGrid(Optional.of(mockSqlResult), anyCount, teiQueryParams, fields);
+        gridAdaptor.createGrid(Optional.of(mockSqlResult), anyCount, teiQueryParams, fields, null);
 
     // Then
     assertNotNull(grid, "Should not be null: grid");
@@ -195,7 +194,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
     long anyCount = 0;
 
     // When
-    Grid grid = gridAdaptor.createGrid(emptySqlResult, anyCount, teiQueryParams, fields);
+    Grid grid = gridAdaptor.createGrid(emptySqlResult, anyCount, teiQueryParams, fields, null);
 
     // Then
     assertTrue(isNotEmpty(grid.getHeaders()));
@@ -214,7 +213,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
     IllegalArgumentException ex =
         assertThrows(
             IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid(anySqlResult, anyCount, nullTeiQueryParams, null),
+            () -> gridAdaptor.createGrid(anySqlResult, anyCount, nullTeiQueryParams, null, null),
             "Expected exception not thrown: createGrid()");
 
     // Then

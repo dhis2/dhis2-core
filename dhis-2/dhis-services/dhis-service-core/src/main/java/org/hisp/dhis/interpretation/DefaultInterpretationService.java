@@ -350,7 +350,7 @@ public class DefaultInterpretationService implements InterpretationService {
     IdentifiableObject interpretationObject = interpretation.getObject();
 
     for (User user : users) {
-      if (!aclService.canRead(user.getUsername(), interpretationObject)) {
+      if (!aclService.canRead(user, interpretationObject)) {
         interpretationObject
             .getSharing()
             .addUserAccess(new UserAccess(user, AccessStringHelper.READ));

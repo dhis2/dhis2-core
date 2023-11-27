@@ -72,7 +72,7 @@ public class GetValidationRulesAction extends BaseAction implements Action {
     validationRules = new ArrayList<>(validationRuleService.getAllValidationRules());
 
     validationRules.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     ContextUtils.clearIfNotModified(
         ServletActionContext.getRequest(), ServletActionContext.getResponse(), validationRules);

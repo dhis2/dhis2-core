@@ -215,7 +215,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
       return conflict(" DataSet or Period is invalid");
     }
 
-    if (!aclService.canUpdate(CurrentUserUtil.getCurrentUsername(), dataSet)) {
+    if (!aclService.canUpdate(CurrentUserUtil.getCurrentUserDetails(), dataSet)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object");
     }
 
@@ -288,7 +288,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
                   + periodId));
     }
 
-    if (!aclService.canDelete(CurrentUserUtil.getCurrentUsername(), dataSet)) {
+    if (!aclService.canDelete(CurrentUserUtil.getCurrentUserDetails(), dataSet)) {
       throw new ReadAccessDeniedException(
           "You don't have the proper permissions to delete this object.");
     }

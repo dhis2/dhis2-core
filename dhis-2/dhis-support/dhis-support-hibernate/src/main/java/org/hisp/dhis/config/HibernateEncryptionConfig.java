@@ -64,7 +64,8 @@ public class HibernateEncryptionConfig {
   public PooledPBEStringEncryptor tripleDesStringEncryptor() {
     PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
     encryptor.setAlgorithm("PBEWithSHA1AndDESede");
-    encryptor.setPassword(password);
+    //    encryptor.setPassword(password);
+    encryptor.setPassword("J7GhAs287hsSQlKd9g5");
     encryptor.setPoolSize(4);
     encryptor.setSaltGenerator(new StringFixedSaltGenerator("H7g0oLkEw3wf52fs52g3hbG"));
     return encryptor;
@@ -78,7 +79,8 @@ public class HibernateEncryptionConfig {
   public PooledPBEStringEncryptor aes128StringEncryptor() {
     PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
     encryptor.setAlgorithm("PBEWITHSHA256AND128BITAES-CBC-BC");
-    encryptor.setPassword(password);
+    //    encryptor.setPassword(password);
+    encryptor.setPassword("J7GhAs287hsSQlKd9g5");
     encryptor.setPoolSize(4);
     encryptor.setSaltGenerator(new RandomSaltGenerator());
     return encryptor;

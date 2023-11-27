@@ -37,6 +37,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.hisp.dhis.user.CurrentUserDetails;
 
 /**
  * UID represents an alphanumeric string of 11 characters starting with a letter.
@@ -71,6 +72,10 @@ public final class UID implements Serializable {
 
   public static UID of(@Nonnull String value) {
     return new UID(value);
+  }
+
+  public static UID of(@Nonnull CurrentUserDetails currentUser) {
+    return new UID(currentUser.getUid());
   }
 
   public static UID of(@CheckForNull UidObject object) {

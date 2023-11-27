@@ -574,7 +574,7 @@ public class DefaultCategoryService implements CategoryService {
 
     if (coc != null) {
       for (CategoryOption categoryOption : coc.getCategoryOptions()) {
-        if (!aclService.canDataWrite(CurrentUserUtil.getCurrentUsername(), categoryOption)) {
+        if (!aclService.canDataWrite(CurrentUserUtil.getCurrentUserDetails(), categoryOption)) {
           return null;
         }
       }

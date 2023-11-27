@@ -201,7 +201,7 @@ public class DefaultSqlViewService implements SqlViewService {
   }
 
   private void canAccess(SqlView sqlView) {
-    if (!aclService.canDataRead(CurrentUserUtil.getCurrentUsername(), sqlView)) {
+    if (!aclService.canDataRead(CurrentUserUtil.getCurrentUserDetails(), sqlView)) {
       throw new IllegalQueryException(new ErrorMessage(ErrorCode.E4312, sqlView.getUid()));
     }
   }

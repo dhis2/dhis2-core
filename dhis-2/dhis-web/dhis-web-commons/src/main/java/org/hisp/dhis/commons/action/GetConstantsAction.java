@@ -96,7 +96,8 @@ public class GetConstantsAction extends ActionPagingSupport<Constant> {
               constantService.getConstantsBetween(paging.getStartPos(), paging.getPageSize()));
     }
 
-    constants.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+    constants.forEach(
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     Collections.sort(constants);
 

@@ -30,6 +30,7 @@ package org.hisp.dhis.security.acl;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
 
 /**
@@ -109,35 +110,37 @@ public interface AclService {
    * Is the user of the object equal to current user? 4. Is the object public read? 5. Does any of
    * the userGroupAccesses contain public read and the current user is in that group
    *
-   * @param username to check against
+   * @param userDetails to check against
    * @param object Object to check
    * @return Result of test
    */
-  boolean canRead(String username, IdentifiableObject object);
+  boolean canRead(CurrentUserDetails userDetails, IdentifiableObject object);
 
   boolean canRead(User user, IdentifiableObject object);
 
   /**
-   * Same as {@link #canRead(String, IdentifiableObject)} except that it allows to pass superclasses
-   * as object that can be validated as if they are of a certain object type.
+   * Same as {@link #canRead(CurrentUserDetails, IdentifiableObject)} except that it allows to pass
+   * superclasses as object that can be validated as if they are of a certain object type.
    *
-   * @param username to check against
+   * @param userDetails to check against
    * @param object Object to check, could be {@link org.hisp.dhis.common.BaseIdentifiableObject}
    * @param objType the type as which to regard the provided object
    * @param <T> type of the passed object
    * @return Result of test
    */
   <T extends IdentifiableObject> boolean canRead(
-      String username, T object, Class<? extends T> objType);
+      CurrentUserDetails userDetails, T object, Class<? extends T> objType);
 
   /**
    * Can user read data this object.
    *
-   * @param username to check against
+   * @param userDetails to check against
    * @param object Object to check
    * @return Result of test
    */
-  boolean canDataRead(String username, IdentifiableObject object);
+  boolean canDataRead(CurrentUserDetails userDetails, IdentifiableObject object);
+
+  boolean canDataRead(User user, IdentifiableObject object);
 
   /**
    * Check if the given user has data or metadata permission over the given object
@@ -145,11 +148,13 @@ public interface AclService {
    * <p>Data-read permission is only considered if the given object's schema is 'DataShareable'. If
    * not 'DataShareable', only metadata-read ACL is considered
    *
-   * @param username to check against
+   * @param userDetails to check against
    * @param object Object to check permission
    * @return true, if use can access object
    */
-  boolean canDataOrMetadataRead(String username, IdentifiableObject object);
+  boolean canDataOrMetadataRead(CurrentUserDetails userDetails, IdentifiableObject object);
+
+  boolean canDataOrMetadataRead(User user, IdentifiableObject object);
 
   /**
    * Can user write to this object (create)
@@ -158,22 +163,22 @@ public interface AclService {
    * Is the user of the object equal to current user? 4. Is the object public write? 5. Does any of
    * the userGroupAccesses contain public write and the current user is in that group
    *
-   * @param username to check against
+   * @param userDetails to check against
    * @param object Object to check
    * @return Result of test
    */
-  boolean canWrite(String username, IdentifiableObject object);
+  boolean canWrite(CurrentUserDetails userDetails, IdentifiableObject object);
 
   boolean canWrite(User user, IdentifiableObject object);
 
   /**
    * Can user write data to this object (create)
    *
-   * @param username to check against
+   * @param userDetails to check against
    * @param object Object to check
    * @return Result of test
    */
-  boolean canDataWrite(String username, IdentifiableObject object);
+  boolean canDataWrite(CurrentUserDetails userDetails, IdentifiableObject object);
 
   boolean canDataWrite(User user, IdentifiableObject object);
 
@@ -182,11 +187,11 @@ public interface AclService {
    *
    * <p>1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Can user write to this object?
    *
-   * @param username to check against
+   * @param userDetails to check against
    * @param object Object to check
    * @return Result of test
    */
-  boolean canUpdate(String username, IdentifiableObject object);
+  boolean canUpdate(CurrentUserDetails userDetails, IdentifiableObject object);
 
   boolean canUpdate(User user, IdentifiableObject object);
 
@@ -195,40 +200,46 @@ public interface AclService {
    *
    * <p>1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Can user write to this object?
    *
-   * @param username to check against
+   * @param userDetails to check against
    * @param object Object to check
    * @return Result of test
    */
-  boolean canDelete(String username, IdentifiableObject object);
+  boolean canDelete(CurrentUserDetails userDetails, IdentifiableObject object);
+
+  boolean canDelete(User user, IdentifiableObject object);
 
   /**
    * Can user manage (make public) this object
    *
    * <p>1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Can user write to this object?
    *
-   * @param username to check against
+   * @param userDetails to check against
    * @param object Object to check
    * @return Result of test
    */
-  boolean canManage(String username, IdentifiableObject object);
+  boolean canManage(CurrentUserDetails userDetails, IdentifiableObject object);
+
+  boolean canManage(User user, IdentifiableObject object);
 
   /**
    * Can read an objects of this type.
    *
-   * @param username to User to check against
+   * @param userDetails to User to check against
    * @param klass Type to check against
    * @return Result of test
    */
-  <T extends IdentifiableObject> boolean canRead(String username, Class<T> klass);
+  <T extends IdentifiableObject> boolean canRead(CurrentUserDetails userDetails, Class<T> klass);
 
   /**
    * Can create an object of this type.
    *
-   * @param username to User to check against
+   * @param userDetails to User to check against
    * @param klass Type to check against
    * @return Result of test
    */
-  <T extends IdentifiableObject> boolean canCreate(String username, Class<T> klass);
+  <T extends IdentifiableObject> boolean canCreate(CurrentUserDetails userDetails, Class<T> klass);
+
+  <T extends IdentifiableObject> boolean canCreate(User user, Class<T> klass);
 
   /**
    * Checks if a user can create a public instance of a certain object.
@@ -236,21 +247,26 @@ public interface AclService {
    * <p>1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Does user have the authority to
    * create public instances of that object
    *
-   * @param username to check against
+   * @param userDetails to check against
    * @param object Object to check
    * @return Result of test
    */
-  <T extends IdentifiableObject> boolean canMakePublic(String username, T object);
+  <T extends IdentifiableObject> boolean canMakePublic(CurrentUserDetails userDetails, T object);
+
+  <T extends IdentifiableObject> boolean canMakePublic(User user, T object);
 
   /**
    * Checks if a user can create a public instance of a certain class.
    *
    * @param <T>
-   * @param username to check against
+   * @param userDetails to check against
    * @param klass the class
    * @return Result of test
    */
-  <T extends IdentifiableObject> boolean canMakeClassPublic(String username, Class<T> klass);
+  <T extends IdentifiableObject> boolean canMakeClassPublic(
+      CurrentUserDetails userDetails, Class<T> klass);
+
+  <T extends IdentifiableObject> boolean canMakeClassPublic(User user, Class<T> klass);
 
   /**
    * Checks if a user can create a private instance of a certain object.
@@ -258,40 +274,46 @@ public interface AclService {
    * <p>1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Does user have the authority to
    * create private instances of that object
    *
-   * @param username to check against
+   * @param userDetails to check against
    * @param object Object to check
    * @return Result of test
    */
-  <T extends IdentifiableObject> boolean canMakePrivate(String username, T object);
+  <T extends IdentifiableObject> boolean canMakePrivate(CurrentUserDetails userDetails, T object);
+
+  <T extends IdentifiableObject> boolean canMakePrivate(User user, T object);
 
   /**
    * Checks if a user can create a private instance of a certain class.
    *
    * @param <T>
-   * @param username to check against
+   * @param userDetails to check against
    * @param klass the class
    * @return Result of test
    */
-  <T extends IdentifiableObject> boolean canMakeClassPrivate(String username, Class<T> klass);
+  <T extends IdentifiableObject> boolean canMakeClassPrivate(
+      CurrentUserDetails userDetails, Class<T> klass);
+
+  <T extends IdentifiableObject> boolean canMakeClassPrivate(User user, Class<T> klass);
 
   /**
    * Can user make this object external? (read with no login)
    *
-   * @param username to check against
+   * @param userDetails to check against
    * @param object Object to check
    * @return Result of test
    */
-  <T extends IdentifiableObject> boolean canMakeExternal(String username, T object);
+  <T extends IdentifiableObject> boolean canMakeExternal(CurrentUserDetails userDetails, T object);
 
   /**
    * Checks if a user can create an external instance of a certain class.
    *
    * @param <T>
-   * @param username to check against
+   * @param userDetails to check against
    * @param klass the class
    * @return Result of test
    */
-  <T extends IdentifiableObject> boolean canMakeClassExternal(String username, Class<T> klass);
+  <T extends IdentifiableObject> boolean canMakeClassExternal(
+      CurrentUserDetails userDetails, Class<T> klass);
 
   /**
    * Is the default for this type to be private?
@@ -321,46 +343,53 @@ public interface AclService {
    * Return the access object for a object for a specific user.
    *
    * @param object Object to check for access
-   * @param username to check against
+   * @param userDetails to check against
    * @return Populated access instance
    */
-  <T extends IdentifiableObject> Access getAccess(T object, String username);
+  <T extends IdentifiableObject> Access getAccess(T object, CurrentUserDetails userDetails);
+
+  <T extends IdentifiableObject> Access getAccess(T object, User user);
 
   /**
    * Return the access object for a object for a specific user assuming the object would be of the
    * provided object type.
    *
    * @param object Object to check for access
-   * @param username to check against
+   * @param userDetails to check against
    * @param objType type as which the object should be evaluated. This may be a subtype of the
    *     actual instance type of object.
    * @return Populated access instance
    */
   <T extends IdentifiableObject> Access getAccess(
-      T object, String username, Class<? extends T> objType);
+      T object, CurrentUserDetails userDetails, Class<? extends T> objType);
 
   /**
    * Sets default sharing props on object, disregarding what is already there.
    *
    * @param object Object to update
-   * @param username to base ACL on
+   * @param userDetails to base ACL on
    */
-  <T extends IdentifiableObject> void resetSharing(T object, String username);
+  <T extends IdentifiableObject> void resetSharing(T object, CurrentUserDetails userDetails);
+
+  <T extends IdentifiableObject> void resetSharing(T object, User user);
 
   /**
    * Clears all sharing information on the given object, and sets the owner to the given user.
    *
    * @param object the object.
-   * @param username the user.
+   * @param userDetails the user.
    */
-  <T extends IdentifiableObject> void clearSharing(T object, String username);
+  <T extends IdentifiableObject> void clearSharing(T object, CurrentUserDetails userDetails);
 
   /**
    * Verify that sharing props are correctly set according to user.
    *
    * @param object Object to update
-   * @param username to base ACL on
+   * @param userDetails to base ACL on
    * @return List of error reports (if any)
    */
-  <T extends IdentifiableObject> List<ErrorReport> verifySharing(T object, String username);
+  <T extends IdentifiableObject> List<ErrorReport> verifySharing(
+      T object, CurrentUserDetails userDetails);
+
+  <T extends IdentifiableObject> List<ErrorReport> verifySharing(T object, User user);
 }

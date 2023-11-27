@@ -38,7 +38,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
 /**
@@ -112,7 +112,7 @@ public class EnrollmentQueryParams {
   // -------------------------------------------------------------------------
 
   /** Current user for query. */
-  private transient User user;
+  private transient CurrentUserDetails currentUserDetails;
 
   // -------------------------------------------------------------------------
   // Constructors

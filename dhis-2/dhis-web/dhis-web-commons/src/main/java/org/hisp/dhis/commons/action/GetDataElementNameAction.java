@@ -91,12 +91,12 @@ public class GetDataElementNameAction extends BaseAction implements Action {
     if (dataElementId != null && categoryOptionComboId != null) {
       DataElement dataElement = dataElementService.getDataElement(dataElementId);
 
-      canReadInstance(dataElement, CurrentUserUtil.getCurrentUsername());
+      canReadInstance(dataElement, CurrentUserUtil.getCurrentUserDetails());
 
       CategoryOptionCombo categoryOptionCombo =
           categoryService.getCategoryOptionCombo(categoryOptionComboId);
 
-      canReadInstance(categoryOptionCombo, CurrentUserUtil.getCurrentUsername());
+      canReadInstance(categoryOptionCombo, CurrentUserUtil.getCurrentUserDetails());
 
       name = dataElement.getName() + " " + categoryOptionCombo.getName();
     }

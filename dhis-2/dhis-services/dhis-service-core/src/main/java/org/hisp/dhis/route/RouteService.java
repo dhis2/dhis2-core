@@ -48,7 +48,7 @@ import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
@@ -155,7 +155,10 @@ public class RouteService {
   }
 
   public ResponseEntity<String> exec(
-      Route route, User user, Optional<String> subPath, HttpServletRequest request)
+      Route route,
+      CurrentUserDetails currentUserDetails,
+      Optional<String> subPath,
+      HttpServletRequest request)
       throws IOException, BadRequestException {
     HttpHeaders headers = filterRequestHeaders(request);
     headers.forEach(
@@ -164,9 +167,9 @@ public class RouteService {
 
     route.getHeaders().forEach(headers::add);
 
-    if (user != null && StringUtils.hasText(user.getUsername())) {
-      log.debug(String.format("Route accessed by user %s", user.getUsername()));
-      headers.add("X-Forwarded-User", user.getUsername());
+    if (currentUserDetails != null && StringUtils.hasText(currentUserDetails.getUsername())) {
+      log.debug(String.format("Route accessed by user %s", currentUserDetails.getUsername()));
+      headers.add("X-Forwarded-User", currentUserDetails.getUsername());
     }
 
     if (route.getAuth() != null) {

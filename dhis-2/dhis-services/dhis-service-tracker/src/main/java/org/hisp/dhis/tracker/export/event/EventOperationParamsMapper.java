@@ -200,11 +200,11 @@ class EventOperationParamsMapper {
         || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
       return;
     }
-    if (program != null && !aclService.canDataRead(user.getUsername(), program)) {
+    if (program != null && !aclService.canDataRead(user, program)) {
       throw new ForbiddenException("User has no access to program: " + program.getUid());
     }
 
-    if (programStage != null && !aclService.canDataRead(user.getUsername(), programStage)) {
+    if (programStage != null && !aclService.canDataRead(user, programStage)) {
       throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
     }
 
@@ -234,7 +234,7 @@ class EventOperationParamsMapper {
       throws ForbiddenException {
     if (attributeOptionCombo != null
         && (user != null && !user.isSuper())
-        && !aclService.canDataRead(user.getUsername(), attributeOptionCombo)) {
+        && !aclService.canDataRead(user, attributeOptionCombo)) {
       throw new ForbiddenException(
           "User has no access to attribute category option combo: "
               + attributeOptionCombo.getUid());

@@ -274,7 +274,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
 
   private void preCreateBundleObject(BaseIdentifiableObject object, ObjectBundleParams params) {
     if (StringUtils.isEmpty(object.getSharing().getPublicAccess())) {
-      aclService.resetSharing(object, params.getUser().getUsername());
+      aclService.resetSharing(object, params.getUser());
     }
 
     object.setLastUpdatedBy(params.getUser());

@@ -80,7 +80,8 @@ public class GetSectionIndicatorsAction extends ActionPagingSupport<Indicator> {
 
     indicators = new ArrayList<>(dataSet.getIndicators());
 
-    indicators.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+    indicators.forEach(
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     for (Section section : dataSet.getSections()) {
       indicators.removeAll(section.getIndicators());

@@ -45,6 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,6 +68,7 @@ class DeduplicationServiceTest {
   @Mock private Enrollment enrollmentA;
 
   @Mock private Enrollment enrollmentB;
+  @Mock private UserService userService;
 
   @Mock private DeduplicationHelper deduplicationHelper;
 

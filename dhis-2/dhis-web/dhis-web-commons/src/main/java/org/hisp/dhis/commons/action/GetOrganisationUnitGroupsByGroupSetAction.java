@@ -86,7 +86,7 @@ public class GetOrganisationUnitGroupsByGroupSetAction extends BaseAction implem
     }
 
     organisationUnitGroups.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     return SUCCESS;
   }

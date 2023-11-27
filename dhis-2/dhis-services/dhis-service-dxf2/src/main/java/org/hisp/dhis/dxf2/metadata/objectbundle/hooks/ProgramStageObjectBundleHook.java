@@ -145,7 +145,7 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<Progr
             de -> {
               DataElement dataElement = bundle.getPreheat().get(identifier, de);
 
-              if (dataElement == null || !aclService.canRead(bundle.getUser().getUsername(), de)) {
+              if (dataElement == null || !aclService.canRead(bundle.getUser(), de)) {
                 addReports.accept(
                     new ErrorReport(
                         DataElement.class,

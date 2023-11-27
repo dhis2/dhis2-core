@@ -55,6 +55,7 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -80,6 +81,7 @@ class EnrollmentOperationParamsMapperTest {
   private static final String TRACKED_ENTITY_UID = "DGbr8GHG4li";
 
   //  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private OrganisationUnitService organisationUnitService;
 

@@ -141,8 +141,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
               TrackedEntityAttribute attribute =
                   bundle.getPreheat().get(identifier, programAttr.getAttribute());
 
-              if (attribute == null
-                  || !aclService.canRead(bundle.getUser().getUsername(), attribute)) {
+              if (attribute == null || !aclService.canRead(bundle.getUser(), attribute)) {
                 addReports.accept(
                     new ErrorReport(
                         TrackedEntityAttribute.class,

@@ -70,7 +70,7 @@ public class GetOrganisationUnitLevelsAction extends ActionPagingSupport<Organis
     organisationUnitLevels = new ArrayList<>(organisationUnitService.getOrganisationUnitLevels());
 
     organisationUnitLevels.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     if (usePaging) {
       this.paging = createPaging(organisationUnitLevels.size());

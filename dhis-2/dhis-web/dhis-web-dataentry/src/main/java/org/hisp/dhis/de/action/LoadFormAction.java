@@ -60,6 +60,7 @@ import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.util.SectionUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -272,7 +273,7 @@ public class LoadFormAction implements Action {
 
       orderedCategoryOptionCombos.put(categoryCombo.getId(), optionCombos);
 
-      addOptionAccess(CurrentUserUtil.getCurrentUsername(), optionComboAccessMap, optionCombos);
+      addOptionAccess(CurrentUserUtil.getCurrentUserDetails(), optionComboAccessMap, optionCombos);
 
       // -----------------------------------------------------------------
       // Perform ordering of categories and their options so that they
@@ -476,12 +477,12 @@ public class LoadFormAction implements Action {
   }
 
   private void addOptionAccess(
-      String username,
+      CurrentUserDetails user,
       Map<String, Boolean> optionAccessMap,
       List<CategoryOptionCombo> optionCombos) {
     optionCombos.forEach(
         o -> {
-          List<String> err = accessManager.canWrite(username, o);
+          List<String> err = accessManager.canWrite(user, o);
 
           if (!err.isEmpty()) {
             optionAccessMap.put(o.getUid(), false);

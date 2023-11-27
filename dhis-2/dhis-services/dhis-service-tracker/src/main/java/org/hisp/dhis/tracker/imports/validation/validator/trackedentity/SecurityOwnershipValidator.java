@@ -123,7 +123,7 @@ class SecurityOwnershipValidator
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(trackedEntityType, TRACKED_ENTITY_TYPE_CANT_BE_NULL);
 
-    if (!aclService.canDataWrite(user.getUsername(), trackedEntityType)) {
+    if (!aclService.canDataWrite(user, trackedEntityType)) {
       reporter.addError(trackedEntity, ValidationCode.E1001, user, trackedEntityType);
     }
   }

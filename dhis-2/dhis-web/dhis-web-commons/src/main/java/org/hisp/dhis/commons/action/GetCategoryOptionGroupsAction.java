@@ -64,7 +64,7 @@ public class GetCategoryOptionGroupsAction extends BaseAction implements Action 
     categoryOptionGroups = new ArrayList<>(dataElementCategoryService.getAllCategoryOptionGroups());
 
     categoryOptionGroups.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     Collections.sort(categoryOptionGroups);
 

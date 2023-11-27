@@ -83,9 +83,7 @@ public class DefaultSharingService implements SharingService {
               .setErrorKlass(entityClass));
     }
 
-    String username = CurrentUserUtil.getCurrentUsername();
-
-    if (!aclService.canManage(username, object)) {
+    if (!aclService.canManage(CurrentUserUtil.getCurrentUserDetails(), object)) {
       objectReport.addErrorReport(
           new ErrorReport(Sharing.class, ErrorCode.E3014).setErrorKlass(entityClass));
     }
@@ -100,7 +98,7 @@ public class DefaultSharingService implements SharingService {
     // Ignore externalAccess if user is not allowed to make objects external
     // ---------------------------------------------------------------------
 
-    if (aclService.canMakeClassExternal(username, entityClass)) {
+    if (aclService.canMakeClassExternal(CurrentUserUtil.getCurrentUserDetails(), entityClass)) {
       object.getSharing().setExternal(sharing.isExternal());
     }
 
@@ -110,7 +108,7 @@ public class DefaultSharingService implements SharingService {
 
     Schema schema = schemaService.getDynamicSchema(entityClass);
 
-    if (aclService.canMakePublic(username, object)) {
+    if (aclService.canMakePublic(CurrentUserUtil.getCurrentUserDetails(), object)) {
       object.getSharing().setPublicAccess(sharing.getPublicAccess());
     }
 

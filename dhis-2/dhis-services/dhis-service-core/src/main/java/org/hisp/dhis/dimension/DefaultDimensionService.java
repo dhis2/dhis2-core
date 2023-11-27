@@ -119,6 +119,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -172,13 +174,24 @@ public class DefaultDimensionService implements DimensionService {
     return getCanReadObjects(CurrentUserUtil.getCurrentUsername(), objects);
   }
 
+  private CurrentUserDetails getCurrentUserDetails(String username) {
+    CurrentUserDetails currentUserDetails;
+    if (CurrentUserUtil.getCurrentUsername().equals(username)) {
+      currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    } else {
+      User user = userService.getUserByUsername(username);
+      currentUserDetails = CurrentUserDetailsImpl.fromUser(user);
+    }
+    return currentUserDetails;
+  }
+
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getCanReadObjects(
       String username, List<T> objects) {
     List<T> list = new ArrayList<>(objects);
 
-    list.removeIf(object -> !aclService.canRead(username, object));
+    list.removeIf(object -> !aclService.canRead(getCurrentUserDetails(username), object));
 
     return list;
   }

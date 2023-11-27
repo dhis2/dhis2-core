@@ -876,6 +876,9 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public CurrentUserDetails createUserDetails(User user) {
+    if (user == null) {
+      return null;
+    }
     Objects.requireNonNull(user);
 
     String username = user.getUsername();
@@ -935,7 +938,7 @@ public class DefaultUserService implements UserService {
   @Transactional(readOnly = true)
   public boolean canCurrentUserCanModify(
       User currentUser, User userToModify, Consumer<ErrorReport> errors) {
-    if (!aclService.canUpdate(currentUser.getUsername(), userToModify)) {
+    if (!aclService.canUpdate(currentUser, userToModify)) {
       errors.accept(
           new ErrorReport(
               UserRole.class, ErrorCode.E3001, currentUser.getUsername(), userToModify.getName()));
@@ -998,16 +1001,17 @@ public class DefaultUserService implements UserService {
     }
 
     // If current user has access to manage this user, they can disable 2FA.
-    User currentUser = getUser(currentUserDetails.getUid());
-    if (!aclService.canUpdate(currentUser.getUsername(), userToModify)) {
+    if (!aclService.canUpdate(currentUserDetails, userToModify)) {
       throw new UpdateAccessDeniedException(
           String.format(
               "User `%s` is not allowed to update object `%s`.",
-              currentUser.getUsername(), userToModify));
+              currentUserDetails.getUsername(), userToModify));
     }
 
+    User currentUser = userStore.getUserByUsername(currentUserDetails.getUsername(), false);
+
     if (!canAddOrUpdateUser(getUids(userToModify.getGroups()), currentUser)
-        || !currentUser.canModifyUser(userToModify)) {
+        || !currentUserDetails.canModifyUser(userToModify)) {
       throw new UpdateAccessDeniedException(
           "You don't have the proper permissions to update this user.");
     }
@@ -1379,7 +1383,7 @@ public class DefaultUserService implements UserService {
   @Override
   public boolean canCreatePublic(IdentifiableObject identifiableObject) {
     return !aclService.isShareable(identifiableObject)
-        || aclService.canMakePublic(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+        || aclService.canMakePublic(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
   }
 
   @Override
@@ -1387,13 +1391,13 @@ public class DefaultUserService implements UserService {
     Class<? extends IdentifiableObject> klass = aclService.classForType(type);
 
     return !aclService.isClassShareable(klass)
-        || aclService.canMakeClassPublic(CurrentUserUtil.getCurrentUsername(), klass);
+        || aclService.canMakeClassPublic(CurrentUserUtil.getCurrentUserDetails(), klass);
   }
 
   @Override
   public boolean canCreatePrivate(IdentifiableObject identifiableObject) {
     return !aclService.isShareable(identifiableObject)
-        || aclService.canMakePrivate(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+        || aclService.canMakePrivate(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
   }
 
   @Override
@@ -1408,37 +1412,37 @@ public class DefaultUserService implements UserService {
     Class<? extends IdentifiableObject> klass = aclService.classForType(type);
 
     return !aclService.isClassShareable(klass)
-        || aclService.canMakeClassPrivate(CurrentUserUtil.getCurrentUsername(), klass);
+        || aclService.canMakeClassPrivate(CurrentUserUtil.getCurrentUserDetails(), klass);
   }
 
   @Override
   public boolean canRead(IdentifiableObject identifiableObject) {
     return !aclService.isSupported(identifiableObject)
-        || aclService.canRead(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+        || aclService.canRead(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
   }
 
   @Override
   public boolean canWrite(IdentifiableObject identifiableObject) {
     return !aclService.isSupported(identifiableObject)
-        || aclService.canWrite(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+        || aclService.canWrite(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
   }
 
   @Override
   public boolean canUpdate(IdentifiableObject identifiableObject) {
     return !aclService.isSupported(identifiableObject)
-        || aclService.canUpdate(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+        || aclService.canUpdate(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
   }
 
   @Override
   public boolean canDelete(IdentifiableObject identifiableObject) {
     return !aclService.isSupported(identifiableObject)
-        || aclService.canDelete(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+        || aclService.canDelete(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
   }
 
   @Override
   public boolean canManage(IdentifiableObject identifiableObject) {
     return !aclService.isShareable(identifiableObject)
-        || aclService.canManage(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+        || aclService.canManage(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
   }
 
   @Override
@@ -1474,12 +1478,12 @@ public class DefaultUserService implements UserService {
   @Override
   public boolean canDataWrite(IdentifiableObject identifiableObject) {
     return !aclService.isSupported(identifiableObject)
-        || aclService.canDataWrite(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+        || aclService.canDataWrite(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
   }
 
   @Override
   public boolean canDataRead(IdentifiableObject identifiableObject) {
     return !aclService.isSupported(identifiableObject)
-        || aclService.canDataRead(CurrentUserUtil.getCurrentUsername(), identifiableObject);
+        || aclService.canDataRead(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
   }
 }

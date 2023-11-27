@@ -110,7 +110,7 @@ public class CopyService {
       throws NotFoundException, ForbiddenException {
     Program original = programService.getProgram(uid);
     if (original != null) {
-      if (aclService.canWrite(CurrentUserUtil.getCurrentUsername(), original)) {
+      if (aclService.canWrite(CurrentUserUtil.getCurrentUserDetails(), original)) {
         return applyAllProgramCopySteps(original, copyOptions);
       }
       throw new ForbiddenException("You don't have write permissions for Program " + uid);

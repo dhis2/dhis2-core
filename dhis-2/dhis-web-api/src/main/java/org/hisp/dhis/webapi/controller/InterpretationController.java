@@ -64,6 +64,7 @@ import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
@@ -354,7 +355,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public WebMessage deleteObject(
       @PathVariable String uid,
-      @CurrentUser User currentUser,
+      @CurrentUser CurrentUserDetailsImpl currentUserDetails,
       HttpServletRequest request,
       HttpServletResponse response) {
     Interpretation interpretation = interpretationService.getInterpretation(uid);
@@ -363,7 +364,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
       return notFound("Interpretation does not exist: " + uid);
     }
 
-    if (!currentUser.equals(interpretation.getCreatedBy()) && !currentUser.isSuper()) {
+    if (!currentUserDetails.equals(CurrentUserDetailsImpl.fromUser(interpretation.getCreatedBy()))
+        && !currentUserDetails.isSuper()) {
       throw new AccessDeniedException("You are not allowed to delete this interpretation.");
     }
 

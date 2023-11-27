@@ -67,8 +67,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
@@ -399,7 +399,7 @@ public class DataValidator {
       DataSet dataSet,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo,
-      User user) {
+      CurrentUserDetails user) {
     if (dataSet == null
         ? !dataSetService
             .getLockStatus(dataElement, period, organisationUnit, attributeOptionCombo, user, null)
@@ -553,13 +553,14 @@ public class DataValidator {
   /**
    * Checks if the user has write access to the given category option combo.
    *
-   * @param user the user.
+   * @param userDetails the user.
    * @param categoryOptionCombo the {@link CategoryOptionCombo}.
    * @throws IllegalQueryException if the validation fails.
    */
-  public void checkCategoryOptionComboAccess(User user, CategoryOptionCombo categoryOptionCombo) {
+  public void checkCategoryOptionComboAccess(
+      CurrentUserDetails userDetails, CategoryOptionCombo categoryOptionCombo) {
     final List<String> categoryOptionComboErrors =
-        accessManager.canWriteCached(user.getUsername(), categoryOptionCombo);
+        accessManager.canWriteCached(userDetails, categoryOptionCombo);
 
     if (!categoryOptionComboErrors.isEmpty()) {
       String arg = String.format("%s %s", categoryOptionCombo.getUid(), categoryOptionComboErrors);
@@ -571,12 +572,13 @@ public class DataValidator {
   /**
    * Check if the respective User has read access to the given DataValue.
    *
-   * @param user the User.
+   * @param userDetails the User.
    * @param dataValue the {@link DataValue}.
    * @throws WebMessageException if the validation fails.
    */
-  public void checkDataValueSharing(User user, DataValue dataValue) throws WebMessageException {
-    final List<String> errors = accessManager.canRead(user.getUsername(), dataValue);
+  public void checkDataValueSharing(CurrentUserDetails userDetails, DataValue dataValue)
+      throws WebMessageException {
+    final List<String> errors = accessManager.canRead(userDetails, dataValue);
 
     if (!errors.isEmpty()) {
       throw new WebMessageException(forbidden(errors.toString()));

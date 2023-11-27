@@ -87,7 +87,7 @@ public class GetOrganisationUnitGroupSetsAction
     Collections.sort(organisationUnitGroupSets);
 
     organisationUnitGroupSets.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     if (usePaging) {
       this.paging = createPaging(organisationUnitGroupSets.size());

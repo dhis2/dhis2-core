@@ -34,6 +34,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -121,10 +122,13 @@ public interface TrackedEntityAttributeService {
    */
   List<TrackedEntityAttribute> getAllTrackedEntityAttributes();
 
-  Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(String username);
+  Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
+      CurrentUserDetails userDetails);
 
   Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
-      String username, List<Program> programs, List<TrackedEntityType> trackedEntityTypes);
+      CurrentUserDetails userDetails,
+      List<Program> programs,
+      List<TrackedEntityType> trackedEntityTypes);
 
   ProgramTrackedEntityAttribute getProgramTrackedEntityAttribute(
       Program program, TrackedEntityAttribute trackedEntityAttribute);

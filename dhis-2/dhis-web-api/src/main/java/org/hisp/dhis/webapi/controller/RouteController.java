@@ -40,7 +40,7 @@ import org.hisp.dhis.route.Route;
 import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.schema.descriptors.RouteSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -63,16 +63,20 @@ public class RouteController extends AbstractCrudController<Route> {
       value = "/{id}/run",
       method = {RequestMethod.GET, RequestMethod.POST})
   public ResponseEntity<String> run(
-      @PathVariable("id") String id, @CurrentUser User user, HttpServletRequest request)
+      @PathVariable("id") String id,
+      @CurrentUser CurrentUserDetailsImpl currentUserDetails,
+      HttpServletRequest request)
       throws IOException, ForbiddenException, NotFoundException, BadRequestException {
-    return runWithSubpath(id, user, request);
+    return runWithSubpath(id, currentUserDetails, request);
   }
 
   @RequestMapping(
       value = "/{id}/run/**",
       method = {RequestMethod.GET, RequestMethod.POST})
   public ResponseEntity<String> runWithSubpath(
-      @PathVariable("id") String id, @CurrentUser User user, HttpServletRequest request)
+      @PathVariable("id") String id,
+      @CurrentUser CurrentUserDetailsImpl currentUserDetails,
+      HttpServletRequest request)
       throws IOException, ForbiddenException, NotFoundException, BadRequestException {
     Route route = routeService.getDecryptedRoute(id);
 
@@ -80,14 +84,14 @@ public class RouteController extends AbstractCrudController<Route> {
       throw new NotFoundException(String.format("Route %s not found", id));
     }
 
-    if (!aclService.canRead(user.getUsername(), route)
-        && !user.hasAnyAuthority(route.getAuthorities())) {
+    if (!aclService.canRead(currentUserDetails, route)
+        && !currentUserDetails.hasAnyAuthority(route.getAuthorities())) {
       throw new ForbiddenException("User not authorized");
     }
 
     Optional<String> subPath = getSubPath(request.getPathInfo(), id);
 
-    return routeService.exec(route, user, subPath, request);
+    return routeService.exec(route, currentUserDetails, subPath, request);
   }
 
   private Optional<String> getSubPath(String path, String id) {

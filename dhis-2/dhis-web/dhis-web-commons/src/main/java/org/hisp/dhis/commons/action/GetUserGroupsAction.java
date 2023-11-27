@@ -76,7 +76,8 @@ public class GetUserGroupsAction extends ActionPagingSupport<UserGroup> {
 
     userGroups = new ArrayList<>(userGroupService.getAllUserGroups());
 
-    userGroups.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+    userGroups.forEach(
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     if (key != null) {
       userGroups = IdentifiableObjectUtils.filterNameByKey(userGroups, key, true);

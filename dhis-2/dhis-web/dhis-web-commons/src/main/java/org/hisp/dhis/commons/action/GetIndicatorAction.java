@@ -78,7 +78,7 @@ public class GetIndicatorAction extends BaseAction implements Action {
       indicator = indicatorService.getIndicator(id);
     }
 
-    canReadInstance(indicator, CurrentUserUtil.getCurrentUsername());
+    canReadInstance(indicator, CurrentUserUtil.getCurrentUserDetails());
 
     return SUCCESS;
   }

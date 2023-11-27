@@ -116,7 +116,7 @@ public class DashboardCheck implements ObjectValidationCheck {
                       item.getUid(),
                       item.getType(),
                       item.getEmbeddedItem().getUid()));
-            } else if (!aclService.canRead(bundle.getUser().getUsername(), embedded)) {
+            } else if (!aclService.canRead(bundle.getUser(), embedded)) {
               addError.accept(
                   new ErrorReport(
                       DashboardItem.class,
@@ -142,8 +142,7 @@ public class DashboardCheck implements ObjectValidationCheck {
                                 item.getUid(),
                                 item.getType(),
                                 linkItem.getUid()));
-                      } else if (!aclService.canRead(
-                          bundle.getUser().getUsername(), linkItemObject)) {
+                      } else if (!aclService.canRead(bundle.getUser(), linkItemObject)) {
                         addError.accept(
                             new ErrorReport(
                                 DashboardItem.class,

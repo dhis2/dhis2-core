@@ -605,7 +605,7 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
 
     for (DataApprovalLevel level : approvalLevels) {
       if (level.getOrgUnitLevel() >= userOrgUnitLevel
-          && aclService.canRead(user.getUsername(), level)
+          && aclService.canRead(user, level)
           && canReadCOGS(user, level.getCategoryOptionGroupSet())) {
         userLevel = level;
         break;
@@ -661,9 +661,9 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
         CategoryOptionGroupSet cogs = approvalLevel.getCategoryOptionGroupSet();
 
         addLevel =
-            aclService.canRead(user.getUsername(), approvalLevel) && cogs == null
+            aclService.canRead(user, approvalLevel) && cogs == null
                 ? canSeeAllDimensions
-                : (aclService.canRead(user.getUsername(), cogs)
+                : (aclService.canRead(user, cogs)
                     && !CollectionUtils.isEmpty(categoryService.getCategoryOptionGroups(cogs)));
       }
 

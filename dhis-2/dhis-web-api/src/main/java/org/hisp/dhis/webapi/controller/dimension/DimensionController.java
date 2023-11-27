@@ -67,7 +67,7 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.PaginationUtils;
 import org.hisp.dhis.webapi.utils.PaginationUtils.PagedEntities;
@@ -136,7 +136,7 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser User currentUser) {
+      @CurrentUser CurrentUserDetailsImpl currentUser) {
 
     WebRequestData requestData = applyRequestSetup(rpParameters, orderParams);
     PagedEntities<DimensionalObject> pagedEntities = getPagedEntities(requestData);
@@ -155,7 +155,7 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
   public ResponseEntity<String> getObjectListCsv(
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
-      @CurrentUser User currentUser,
+      @CurrentUser CurrentUserDetailsImpl currentUserDetails,
       @RequestParam(defaultValue = ",") char separator,
       @RequestParam(defaultValue = ";") String arraySeparator,
       @RequestParam(defaultValue = "false") boolean skipHeader,

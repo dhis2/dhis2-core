@@ -85,7 +85,7 @@ public class SecurityCheck implements ObjectValidationCheck {
 
     for (T object : objects) {
       if (importMode.isCreate()) {
-        if (!ctx.getAclService().canCreate(bundle.getUser().getUsername(), klass)) {
+        if (!ctx.getAclService().canCreate(bundle.getUser(), klass)) {
           ErrorReport errorReport =
               new ErrorReport(
                   klass,
@@ -101,7 +101,7 @@ public class SecurityCheck implements ObjectValidationCheck {
         T persistedObject = bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
 
         if (importMode.isUpdate()) {
-          if (!ctx.getAclService().canUpdate(bundle.getUser().getUsername(), persistedObject)) {
+          if (!ctx.getAclService().canUpdate(bundle.getUser(), persistedObject)) {
             ErrorReport errorReport =
                 new ErrorReport(
                     klass,
@@ -114,7 +114,7 @@ public class SecurityCheck implements ObjectValidationCheck {
             continue;
           }
         } else if (importMode.isDelete()
-            && !ctx.getAclService().canDelete(bundle.getUser().getUsername(), persistedObject)) {
+            && !ctx.getAclService().canDelete(bundle.getUser(), persistedObject)) {
           ErrorReport errorReport =
               new ErrorReport(
                   klass,
@@ -152,7 +152,7 @@ public class SecurityCheck implements ObjectValidationCheck {
 
       if (!bundle.isSkipSharing()) {
         List<ErrorReport> sharingErrorReports =
-            ctx.getAclService().verifySharing(object, bundle.getUser().getUsername());
+            ctx.getAclService().verifySharing(object, bundle.getUser());
         if (!sharingErrorReports.isEmpty()) {
           addReports.accept(createObjectReport(sharingErrorReports, object, bundle));
           ctx.markForRemoval(object);

@@ -47,7 +47,7 @@ import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -80,7 +80,7 @@ public class PredictionController {
       @RequestParam(value = "predictor", required = false) List<String> predictors,
       @RequestParam(value = "predictorGroup", required = false) List<String> predictorGroups,
       @RequestParam(defaultValue = "false", required = false) boolean async,
-      @CurrentUser User currentUser)
+      @CurrentUser CurrentUserDetailsImpl currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
 
     if (async) {

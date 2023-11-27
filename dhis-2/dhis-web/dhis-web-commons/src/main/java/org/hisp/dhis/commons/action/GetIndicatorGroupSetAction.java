@@ -75,7 +75,7 @@ public class GetIndicatorGroupSetAction extends BaseAction implements Action {
       indicatorGroupSet = indicatorService.getIndicatorGroupSet(id);
     }
 
-    canReadInstance(indicatorGroupSet, CurrentUserUtil.getCurrentUsername());
+    canReadInstance(indicatorGroupSet, CurrentUserUtil.getCurrentUserDetails());
 
     return SUCCESS;
   }

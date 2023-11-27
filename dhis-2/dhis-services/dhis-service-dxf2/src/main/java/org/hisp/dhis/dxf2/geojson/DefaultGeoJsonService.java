@@ -240,7 +240,7 @@ public class DefaultGeoJsonService implements GeoJsonService {
       report.addConflict(createConflict(index, GeoJsonImportConflict.ORG_UNIT_NOT_FOUND));
       return false;
     }
-    if (!aclService.canUpdate(params.getUser().getUsername(), target)) {
+    if (!aclService.canUpdate(params.getUser(), target)) {
       report.addConflict(createConflict(index, GeoJsonImportConflict.ORG_UNIT_NOT_ACCESSIBLE));
       return false;
     }

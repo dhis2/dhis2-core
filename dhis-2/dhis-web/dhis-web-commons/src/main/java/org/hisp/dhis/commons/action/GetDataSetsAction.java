@@ -112,7 +112,8 @@ public class GetDataSetsAction extends ActionPagingSupport<DataSet> {
       dataSets.retainAll(dataSetService.getUserDataWrite(currentUserDetails));
     }
 
-    dataSets.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUsername()));
+    dataSets.forEach(
+        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
 
     Collections.sort(dataSets);
 

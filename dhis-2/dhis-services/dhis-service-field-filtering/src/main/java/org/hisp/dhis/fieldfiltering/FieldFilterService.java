@@ -63,6 +63,8 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroupService;
@@ -468,8 +470,20 @@ public class FieldFilterService {
         });
   }
 
+  private CurrentUserDetails getCurrentUserDetails(String username) {
+    CurrentUserDetails currentUserDetails;
+    if (CurrentUserUtil.getCurrentUsername().equals(username)) {
+      currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    } else {
+      User user = userService.getUserByUsername(username);
+      currentUserDetails = CurrentUserDetailsImpl.fromUser(user);
+    }
+    return currentUserDetails;
+  }
+
   private void applyAccess(
       Object object, List<FieldPath> fieldPaths, boolean isSkipSharing, String username) {
+    CurrentUserDetails currentUserDetails = getCurrentUserDetails(username);
     applyFieldPathVisitor(
         object,
         fieldPaths,
@@ -477,7 +491,8 @@ public class FieldFilterService {
         s -> s.equals("access") || s.endsWith(".access"),
         o -> {
           if (o instanceof BaseIdentifiableObject identifiableObject) {
-            identifiableObject.setAccess(aclService.getAccess(((IdentifiableObject) o), username));
+            identifiableObject.setAccess(
+                aclService.getAccess(((IdentifiableObject) o), currentUserDetails));
           }
         });
   }

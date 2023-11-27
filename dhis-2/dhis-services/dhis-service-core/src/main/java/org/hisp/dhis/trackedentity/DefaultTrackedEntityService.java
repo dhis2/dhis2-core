@@ -76,6 +76,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -185,7 +186,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     User user = params.getUser();
     trackedEntities =
         trackedEntities.stream()
-            .filter((te) -> aclService.canDataRead(user.getUsername(), te.getTrackedEntityType()))
+            .filter((te) -> aclService.canDataRead(user, te.getTrackedEntityType()))
             .collect(Collectors.toList());
 
     // Avoiding NullPointerException
@@ -441,26 +442,22 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   @Transactional(readOnly = true)
   public void decideAccess(TrackedEntityQueryParams params) {
     User user = params.isInternalSearch() ? null : params.getUser();
-
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     if (params.isOrganisationUnitMode(ALL)
-        && !currentUserDetails.isAuthorized(
-            Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name())
+        && !user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name())
         && !params.isInternalSearch()) {
       throw new IllegalQueryException(
           "Current user is not authorized to query across all organisation units");
     }
 
     if (params.hasProgram()) {
-      if (!aclService.canDataRead(currentUserDetails.getUsername(), params.getProgram())) {
+      if (!aclService.canDataRead(user, params.getProgram())) {
         throw new IllegalQueryException(
             "Current user is not authorized to read data from selected program:  "
                 + params.getProgram().getUid());
       }
 
       if (params.getProgram().getTrackedEntityType() != null
-          && !aclService.canDataRead(
-              currentUserDetails.getUsername(), params.getProgram().getTrackedEntityType())) {
+          && !aclService.canDataRead(user, params.getProgram().getTrackedEntityType())) {
         throw new IllegalQueryException(
             "Current user is not authorized to read data from selected program's tracked entity type:  "
                 + params.getProgram().getTrackedEntityType().getUid());
@@ -468,15 +465,14 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     if (params.hasTrackedEntityType()
-        && !aclService.canDataRead(
-            currentUserDetails.getUsername(), params.getTrackedEntityType())) {
+        && !aclService.canDataRead(user, params.getTrackedEntityType())) {
       throw new IllegalQueryException(
           "Current user is not authorized to read data from selected tracked entity type:  "
               + params.getTrackedEntityType().getUid());
     } else {
       params.setTrackedEntityTypes(
           trackedEntityTypeService.getAllTrackedEntityType().stream()
-              .filter(tet -> aclService.canDataRead(currentUserDetails.getUsername(), tet))
+              .filter(tet -> aclService.canDataRead(user, tet))
               .collect(Collectors.toList()));
     }
   }
@@ -584,6 +580,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     if (params == null) {
       throw new IllegalQueryException("Params cannot be null");
     }
+
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     if (currentUserDetails == null) {
@@ -602,7 +599,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       List<String> uniqeAttributeIds =
           attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
               .map(TrackedEntityAttribute::getUid)
-              .collect(Collectors.toList());
+              .toList();
 
       for (String att : params.getAttributeAndFilterIds()) {
         if (!uniqeAttributeIds.contains(att)) {
@@ -769,7 +766,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   @Transactional
   public void updateTrackedEntity(TrackedEntity trackedEntity, User user) {
-    trackedEntityStore.update(trackedEntity, user);
+    trackedEntityStore.update(trackedEntity, CurrentUserDetailsImpl.fromUser(user));
   }
 
   @Override

@@ -91,6 +91,8 @@ import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.sharing.SharingService;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -171,7 +173,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   public WebMessage patchObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @RequestParam Map<String, String> rpParameters,
-      @CurrentUser User currentUser,
+      @CurrentUser CurrentUserDetailsImpl currentUser,
       HttpServletRequest request)
       throws ForbiddenException,
           NotFoundException,
@@ -182,7 +184,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     final T persistedObject = getEntity(pvUid, options);
 
-    if (!aclService.canUpdate(currentUser.getUsername(), persistedObject)) {
+    if (!aclService.canUpdate(currentUser, persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
@@ -334,9 +336,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   }
 
   private WebMessage postObject(T parsed) throws ForbiddenException, ConflictException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (!aclService.canCreate(currentUser.getUsername(), getEntityClass())) {
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    if (!aclService.canCreate(currentUserDetails, getEntityClass())) {
       throw new ForbiddenException("You don't have the proper permissions to create this object.");
     }
 
@@ -348,7 +350,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         importService
             .getParamsFromMap(contextService.getParameterValuesMap())
             .setImportReportMode(ImportReportMode.FULL)
-            .setUser(UID.of(currentUser))
+            .setUser(UID.of(currentUserDetails))
             .setImportStrategy(ImportStrategy.CREATE);
 
     return postObject(
@@ -378,8 +380,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @PostMapping(value = "/{uid}/favorite")
   @ResponseBody
   public WebMessage setAsFavorite(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid, @CurrentUser User currentUser)
+      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
+      @CurrentUser CurrentUserDetailsImpl currentUser)
       throws ConflictException, NotFoundException {
+
     if (!getSchema().isFavoritable()) {
       throw new ConflictException("Objects of this class cannot be set as favorite");
     }
@@ -399,6 +403,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   public WebMessage subscribe(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid, @CurrentUser User currentUser)
       throws ConflictException, NotFoundException {
+
     if (!getSchema().isSubscribable()) {
       throw new ConflictException("Objects of this class cannot be subscribed to");
     }
@@ -422,7 +427,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @SuppressWarnings("java:S1130")
   public WebMessage putJsonObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @CurrentUser User currentUser,
+      @CurrentUser CurrentUserDetailsImpl currentUser,
       HttpServletRequest request)
       throws NotFoundException,
           ForbiddenException,
@@ -431,7 +436,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
           HttpRequestMethodNotSupportedException {
     T persisted = getEntity(pvUid);
 
-    if (!aclService.canUpdate(currentUser.getUsername(), persisted)) {
+    if (!aclService.canUpdate(currentUser, persisted)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
@@ -472,12 +477,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @ResponseBody
   public WebMessage putXmlObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @CurrentUser User currentUser,
+      @CurrentUser CurrentUserDetailsImpl currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws IOException, ConflictException, NotFoundException, ForbiddenException {
     T persisted = getEntity(pvUid);
-    if (!aclService.canUpdate(currentUser.getUsername(), persisted)) {
+    if (!aclService.canUpdate(currentUser, persisted)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
@@ -514,14 +519,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   public WebMessage replaceTranslations(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @RequestParam Map<String, String> rpParameters,
-      @CurrentUser User currentUser,
+      @CurrentUser CurrentUserDetailsImpl currentUserDetails,
       HttpServletRequest request)
       throws NotFoundException, ForbiddenException, IOException {
     WebOptions options = new WebOptions(rpParameters);
 
     BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) getEntity(pvUid, options);
 
-    if (!aclService.canUpdate(currentUser.getUsername(), persistedObject)) {
+    if (!aclService.canUpdate(currentUserDetails, persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
@@ -550,7 +555,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @SuppressWarnings("java:S1130")
   public WebMessage deleteObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @CurrentUser User currentUser,
+      @CurrentUser CurrentUserDetailsImpl currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws NotFoundException,
@@ -558,7 +563,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
           ConflictException,
           HttpRequestMethodNotSupportedException {
     T persistedObject = getEntity(pvUid);
-    if (!aclService.canDelete(currentUser.getUsername(), persistedObject)) {
+    if (!aclService.canDelete(currentUser, persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to delete this object.");
     }
 
@@ -581,8 +586,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @DeleteMapping(value = "/{uid}/favorite")
   @ResponseBody
   public WebMessage removeAsFavorite(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid, @CurrentUser User currentUser)
+      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
+      @CurrentUser CurrentUserDetailsImpl currentUser)
       throws NotFoundException, ConflictException {
+
     if (!getSchema().isFavoritable()) {
       throw new ConflictException("Objects of this class cannot be set as favorite");
     }
@@ -602,6 +609,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   public WebMessage unsubscribe(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid, @CurrentUser User currentUser)
       throws NotFoundException, ConflictException {
+
     if (!getSchema().isSubscribable()) {
       throw new ConflictException("Objects of this class cannot be subscribed to");
     }
@@ -804,7 +812,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public WebMessage setSharing(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
-      @CurrentUser User currentUser,
+      @CurrentUser CurrentUserDetailsImpl currentUser,
       HttpServletRequest request)
       throws IOException, ForbiddenException, NotFoundException {
     T entity = manager.get(getEntityClass(), uid);
@@ -813,7 +821,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
       throw new NotFoundException(getEntityClass(), uid);
     }
 
-    if (!aclService.canUpdate(currentUser.getUsername(), entity)) {
+    if (!aclService.canUpdate(currentUser, entity)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 

@@ -82,7 +82,7 @@ public class GetUserAction extends BaseAction implements Action {
       user = userService.getUserByUsername(username);
     }
 
-    canReadInstance(user, CurrentUserUtil.getCurrentUsername());
+    canReadInstance(user, CurrentUserUtil.getCurrentUserDetails());
 
     return SUCCESS;
   }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
@@ -41,6 +42,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,6 +98,8 @@ class DefaultTrackedEntityServiceTest {
     user.setOrganisationUnits(Set.of(new OrganisationUnit("A")));
     user.setTeiSearchOrganisationUnits(Set.of(new OrganisationUnit("B")));
     //    when(getCurrentUser()).thenReturn(user);
+
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
 
     params = new TrackedEntityQueryParams();
     params.setOrgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);

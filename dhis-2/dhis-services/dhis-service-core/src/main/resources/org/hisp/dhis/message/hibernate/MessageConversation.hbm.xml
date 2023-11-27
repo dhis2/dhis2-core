@@ -75,6 +75,8 @@
 
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
                  foreign-key="fk_messageconversation_user_userid" />
+    <property name="createdById" column="userid" insert="false" update="false" />
+
   </class>
 
   <filter-def name="userMessageUser">

@@ -58,6 +58,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -178,8 +180,7 @@ public class DataValueSetImportValidator {
   private void validateDataSetIsAccessibleByUser(
       DataValueSet dataValueSet, ImportContext context, DataSetContext dataSetContext) {
     DataSet dataSet = dataSetContext.getDataSet();
-    if (dataSet != null
-        && !aclService.canDataWrite(context.getCurrentUser().getUsername(), dataSet)) {
+    if (dataSet != null && !aclService.canDataWrite(context.getCurrentUser(), dataSet)) {
       context
           .error()
           .addConflict(
@@ -292,7 +293,7 @@ public class DataValueSetImportValidator {
       DataValueContext valueContext) {
     if (valueContext.getCategoryOptionCombo() != null) {
       for (CategoryOption option : valueContext.getCategoryOptionCombo().getCategoryOptions()) {
-        if (!aclService.canDataWrite(context.getCurrentUser().getUsername(), option)) {
+        if (!aclService.canDataWrite(context.getCurrentUser(), option)) {
           context.addConflict(
               valueContext.getIndex(),
               DataValueImportConflict.CATEGORY_OPTION_COMBO_NOT_ACCESSIBLE,
@@ -324,7 +325,7 @@ public class DataValueSetImportValidator {
       DataValueContext valueContext) {
     if (valueContext.getAttrOptionCombo() != null) {
       for (CategoryOption option : valueContext.getAttrOptionCombo().getCategoryOptions()) {
-        if (!aclService.canDataWrite(context.getCurrentUser().getUsername(), option)) {
+        if (!aclService.canDataWrite(context.getCurrentUser(), option)) {
           context.addConflict(
               valueContext.getIndex(),
               DataValueImportConflict.ATTR_OPTION_COMBO_NOT_ACCESSIBLE,
@@ -694,7 +695,7 @@ public class DataValueSetImportValidator {
                   key,
                   () ->
                       isLocked(
-                          context.getCurrentUser(),
+                          CurrentUserDetailsImpl.fromUser(context.getCurrentUser()),
                           dataSet,
                           valueContext.getPeriod(),
                           valueContext.getOrgUnit(),
@@ -848,7 +849,7 @@ public class DataValueSetImportValidator {
    * @param skipLockExceptionCheck whether to skip lock exception check.
    */
   private boolean isLocked(
-      User user,
+      CurrentUserDetails user,
       DataSet dataSet,
       Period period,
       OrganisationUnit organisationUnit,

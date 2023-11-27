@@ -127,16 +127,20 @@ public class SharingController {
           notFound("Object of type " + type + " with ID " + id + " was not found."));
     }
 
-    String username = CurrentUserUtil.getCurrentUsername();
-
-    if (!aclService.canRead(username, object)) {
+    if (!aclService.canRead(CurrentUserUtil.getCurrentUserDetails(), object)) {
       throw new AccessDeniedException("You do not have manage access to this object.");
     }
 
     Sharing sharing = new Sharing();
 
-    sharing.getMeta().setAllowPublicAccess(aclService.canMakePublic(username, object));
-    sharing.getMeta().setAllowExternalAccess(aclService.canMakeExternal(username, object));
+    sharing
+        .getMeta()
+        .setAllowPublicAccess(
+            aclService.canMakePublic(CurrentUserUtil.getCurrentUserDetails(), object));
+    sharing
+        .getMeta()
+        .setAllowExternalAccess(
+            aclService.canMakeExternal(CurrentUserUtil.getCurrentUserDetails(), object));
 
     sharing.getObject().setId(object.getUid());
     sharing.getObject().setName(object.getDisplayName());
@@ -146,7 +150,7 @@ public class SharingController {
     if (object.getSharing().getPublicAccess() == null) {
       String access;
 
-      if (aclService.canMakeClassPublic(username, klass)) {
+      if (aclService.canMakeClassPublic(CurrentUserUtil.getCurrentUserDetails(), klass)) {
         access =
             AccessStringHelper.newInstance()
                 .enable(AccessStringHelper.Permission.READ)
@@ -234,9 +238,7 @@ public class SharingController {
               + " cannot be modified.");
     }
 
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-
-    if (!aclService.canManage(currentUsername, object)) {
+    if (!aclService.canManage(CurrentUserUtil.getCurrentUserDetails(), object)) {
       throw new AccessDeniedException("You do not have manage access to this object.");
     }
 
@@ -250,7 +252,7 @@ public class SharingController {
     // Ignore externalAccess if user is not allowed to make objects external
     // ---------------------------------------------------------------------
 
-    if (aclService.canMakeExternal(currentUsername, object)) {
+    if (aclService.canMakeExternal(CurrentUserUtil.getCurrentUserDetails(), object)) {
       object.getSharing().setExternal(sharing.getObject().hasExternalAccess());
     }
 
@@ -260,7 +262,7 @@ public class SharingController {
 
     Schema schema = schemaService.getDynamicSchema(sharingClass);
 
-    if (aclService.canMakePublic(currentUsername, object)) {
+    if (aclService.canMakePublic(CurrentUserUtil.getCurrentUserDetails(), object)) {
       object.getSharing().setPublicAccess(sharing.getObject().getPublicAccess());
     }
 
@@ -342,7 +344,7 @@ public class SharingController {
           sharing.getObject().getUserGroupAccesses());
     }
 
-    log.info(SharingUtils.sharingToString(object, currentUsername));
+    log.info(SharingUtils.sharingToString(object, CurrentUserUtil.getCurrentUsername()));
 
     return ok("Access control set");
   }

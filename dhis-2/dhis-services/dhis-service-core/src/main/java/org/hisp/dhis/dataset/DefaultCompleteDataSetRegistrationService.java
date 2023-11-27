@@ -190,7 +190,7 @@ public class DefaultCompleteDataSetRegistrationService
       }
 
       for (DataElementOperand deo : dataSet.getCompulsoryDataElementOperands()) {
-        List<String> errors = accessManager.canWrite(CurrentUserUtil.getCurrentUsername(), deo);
+        List<String> errors = accessManager.canWrite(CurrentUserUtil.getCurrentUserDetails(), deo);
         if (!errors.isEmpty()) {
           continue;
         }
