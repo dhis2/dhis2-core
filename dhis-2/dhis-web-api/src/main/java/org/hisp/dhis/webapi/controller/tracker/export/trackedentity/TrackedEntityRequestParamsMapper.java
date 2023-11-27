@@ -106,7 +106,7 @@ class TrackedEntityRequestParamsMapper {
             "trackedEntities",
             trackedEntityRequestParams.getTrackedEntities());
     validateOrderParams(trackedEntityRequestParams.getOrder(), ORDERABLE_FIELD_NAMES, "attribute");
-    validateRequestParams(requestParams);
+    validateRequestParams(trackedEntityRequestParams);
 
     Map<String, List<QueryFilter>> filters = parseFilters(trackedEntityRequestParams.getFilter());
 
@@ -155,7 +155,7 @@ class TrackedEntityRequestParamsMapper {
     return builder.build();
   }
 
-  private void validateRequestParams(RequestParams params) throws BadRequestException {
+  private void validateRequestParams(TrackedEntityRequestParams params) throws BadRequestException {
 
     String violation = null;
     if (params.getProgram() != null && params.getTrackedEntityType() != null) {
