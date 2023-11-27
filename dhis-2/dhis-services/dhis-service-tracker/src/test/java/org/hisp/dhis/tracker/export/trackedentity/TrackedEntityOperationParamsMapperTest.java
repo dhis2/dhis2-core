@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static java.util.Collections.emptySet;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
@@ -41,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -53,6 +55,7 @@ import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
@@ -76,6 +79,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -117,7 +121,7 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Mock private AclService aclService;
 
-  @Mock private HibernateTrackedEntityStore store;
+  @Mock private TrackedEntityStore trackedEntityStore;
 
   @InjectMocks private TrackedEntityOperationParamsMapper mapper;
 
@@ -667,5 +671,52 @@ class TrackedEntityOperationParamsMapperTest {
     Exception exception =
         assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
     assertStartsWith("Cannot order by 'lastUpdated'", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGlobalSearchAndNoAttributeSpecified() {
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
+    user.setOrganisationUnits(emptySet());
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ACCESSIBLE)
+            .user(user)
+            .programUid(PROGRAM_UID)
+            .build();
+
+    Exception IllegalQueryException =
+        Assert.assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
+
+    assertEquals(
+        "At least 1 attributes should be mentioned in the search criteria.",
+        IllegalQueryException.getMessage());
+  }
+
+  @Test
+  void shouldaFailWhenGlobalSearchAndNoAttributeSpecified() {
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
+    user.setOrganisationUnits(emptySet());
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    program.setMinAttributesRequiredToSearch(0);
+    program.setMaxTeiCountToReturn(1);
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+
+    when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ACCESSIBLE)
+            .user(user)
+            .programUid(PROGRAM_UID)
+            .build();
+
+    Exception IllegalQueryException =
+        Assert.assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
+
+    assertEquals("maxteicountreached", IllegalQueryException.getMessage());
   }
 }

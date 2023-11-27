@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
@@ -77,6 +78,8 @@ class TrackedEntityOperationParamsMapper {
 
   @Nonnull private final AclService aclService;
 
+  // TODO Remove this dependency from the mapper when working on
+  // https://dhis2.atlassian.net/browse/DHIS2-15915
   @Nonnull private final TrackedEntityStore trackedEntityStore;
 
   @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
@@ -91,8 +94,6 @@ class TrackedEntityOperationParamsMapper {
 
     TrackedEntityType trackedEntityType =
         validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
-    List<TrackedEntityType> trackedEntityTypes =
-        filterAndValidateTrackedEntityTypes(user, trackedEntityType, program);
 
     Set<OrganisationUnit> orgUnits = validateOrgUnits(user, operationParams.getOrganisationUnits());
     validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
@@ -118,7 +119,10 @@ class TrackedEntityOperationParamsMapper {
         .setProgramIncidentStartDate(operationParams.getProgramIncidentStartDate())
         .setProgramIncidentEndDate(operationParams.getProgramIncidentEndDate())
         .setTrackedEntityType(trackedEntityType)
-        .setTrackedEntityTypes(trackedEntityTypes)
+        .setTrackedEntityTypes(
+            trackedEntityType == null
+                ? filterAndValidateTrackedEntityTypes(user, program)
+                : emptyList())
         .addOrgUnits(orgUnits)
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setEventStatus(operationParams.getEventStatus())
@@ -135,17 +139,14 @@ class TrackedEntityOperationParamsMapper {
     return params;
   }
 
-  private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(
-      User user, TrackedEntityType trackedEntityType, Program program) throws BadRequestException {
-    List<TrackedEntityType> trackedEntityTypes = new ArrayList<>();
-    if (trackedEntityType == null) {
-      trackedEntityTypes =
-          trackedEntityTypeService.getAllTrackedEntityType().stream()
-              .filter(tet -> aclService.canDataRead(user, tet))
-              .toList();
-    }
+  private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(User user, Program program)
+      throws BadRequestException {
+    List<TrackedEntityType> trackedEntityTypes =
+        trackedEntityTypeService.getAllTrackedEntityType().stream()
+            .filter(tet -> aclService.canDataRead(user, tet))
+            .toList();
 
-    if (program == null && trackedEntityType == null && trackedEntityTypes.isEmpty()) {
+    if (program == null && trackedEntityTypes.isEmpty()) {
       throw new BadRequestException("Either Program or Tracked entity type should be specified");
     }
 

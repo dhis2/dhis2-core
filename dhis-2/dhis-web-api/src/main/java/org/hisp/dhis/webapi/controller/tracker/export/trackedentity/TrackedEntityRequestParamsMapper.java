@@ -157,55 +157,56 @@ class TrackedEntityRequestParamsMapper {
 
   private void validateRequestParams(TrackedEntityRequestParams params) throws BadRequestException {
 
-    String violation = null;
     if (params.getProgram() != null && params.getTrackedEntityType() != null) {
-      violation = "Program and tracked entity cannot be specified simultaneously";
+      throw new BadRequestException(
+          "Program and tracked entity cannot be specified simultaneously");
     }
 
     if (params.getProgram() == null) {
       if (params.getProgramStatus() != null) {
-        violation = "Program must be defined when program status is defined";
+        throw new BadRequestException("Program must be defined when program status is defined");
       }
 
       if (params.getFollowUp() != null) {
-        violation = "Program must be defined when follow up status is defined";
+        throw new BadRequestException("Program must be defined when follow up status is defined");
       }
 
       if (params.getEnrollmentEnrolledAfter() != null) {
-        violation = "Program must be defined when program enrollment start date is specified";
+        throw new BadRequestException(
+            "Program must be defined when program enrollment start date is specified");
       }
 
       if (params.getEnrollmentEnrolledBefore() != null) {
-        violation = "Program must be defined when program enrollment end date is specified";
+        throw new BadRequestException(
+            "Program must be defined when program enrollment end date is specified");
       }
 
       if (params.getEnrollmentOccurredAfter() != null) {
-        violation = "Program must be defined when program incident start date is specified";
+        throw new BadRequestException(
+            "Program must be defined when program incident start date is specified");
       }
 
       if (params.getEnrollmentOccurredBefore() != null) {
-        violation = "Program must be defined when program incident end date is specified";
+        throw new BadRequestException(
+            "Program must be defined when program incident end date is specified");
       }
     }
 
     if (params.getEventStatus() != null
         && (params.getEventOccurredAfter() == null || params.getEventOccurredBefore() == null)) {
-      violation = "Event start and end date must be specified when event status is specified";
+      throw new BadRequestException(
+          "Event start and end date must be specified when event status is specified");
     }
 
     if (params.getUpdatedWithin() != null
         && (params.getUpdatedAfter() != null || params.getUpdatedBefore() != null)) {
-      violation =
-          "Last updated from and/or to and last updated duration cannot be specified simultaneously";
+      throw new BadRequestException(
+          "Last updated from and/or to and last updated duration cannot be specified simultaneously");
     }
 
     if (params.getUpdatedWithin() != null
         && DateUtils.getDuration(params.getUpdatedWithin()) == null) {
-      violation = "Duration is not valid: " + params.getUpdatedWithin();
-    }
-
-    if (violation != null) {
-      throw new BadRequestException(violation);
+      throw new BadRequestException("Duration is not valid: " + params.getUpdatedWithin());
     }
   }
 
