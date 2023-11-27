@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
+import static java.lang.Math.abs;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.ANALYTICS_TEI_ENR;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.ANALYTICS_TEI_EVT;
@@ -40,19 +41,22 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
-/** Utility class for the {@link org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder}. */
+/**
+ * Helper class that contains methods used along with query generation. It's mainly referenced in
+ * implementers of {@link org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder}.
+ */
 @NoArgsConstructor(access = PRIVATE)
 class ContextUtils {
   static String enrollmentSelect(
       ElementWithOffset<Program> program,
       TrackedEntityType trackedEntityType,
       SqlParameterManager sqlParameterManager) {
-    int offset = program.hasOffset() ? program.getOffset() : 1;
+    int offset = program.hasOffset() ? program.getOffset() : 0;
 
     return "select innermost_enr.*"
         + " from (select *,"
         + " row_number() over (partition by trackedentityinstanceuid order by enrollmentdate "
-        + (offset > 0 ? "desc" : "asc")
+        + (offset >= 0 ? "desc" : "asc")
         + ") as rn "
         + " from "
         + ANALYTICS_TEI_ENR
@@ -63,7 +67,8 @@ class ContextUtils {
         + sqlParameterManager.bindParamAndGetIndex(program.getElement().getUid())
         + ") innermost_enr"
         + " where innermost_enr.rn = "
-        + Math.abs(offset);
+        // This logic is needed because of the row_number(), which starts in 1.
+        + (offset >= 0 ? ++offset : abs(offset));
   }
 
   static String eventSelect(
@@ -71,9 +76,13 @@ class ContextUtils {
       ElementWithOffset<ProgramStage> programStage,
       TrackedEntityType trackedEntityType,
       SqlParameterManager sqlParameterManager) {
+    int offset = programStage.hasOffset() ? programStage.getOffset() : 0;
+
     return "select innermost_evt.*"
         + " from (select *,"
-        + " row_number() over (partition by programinstanceuid order by occurreddate desc) as rn"
+        + " row_number() over (partition by programinstanceuid order by occurreddate "
+        + (offset >= 0 ? "desc" : "asc")
+        + " ) as rn"
         + " from "
         + ANALYTICS_TEI_EVT
         + trackedEntityType.getUid().toLowerCase()
@@ -86,6 +95,8 @@ class ContextUtils {
         + " = "
         + sqlParameterManager.bindParamAndGetIndex(programStage.getElement().getUid())
         + ") innermost_evt"
-        + " where innermost_evt.rn = 1";
+        + " where innermost_evt.rn = "
+        // This logic is needed because of the row_number(), which starts in 1.
+        + (offset >= 0 ? ++offset : abs(offset));
   }
 }
