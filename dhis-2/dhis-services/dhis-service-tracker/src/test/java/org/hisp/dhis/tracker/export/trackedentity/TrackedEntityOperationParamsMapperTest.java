@@ -79,7 +79,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -688,7 +687,7 @@ class TrackedEntityOperationParamsMapperTest {
             .build();
 
     Exception IllegalQueryException =
-        Assert.assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
+        assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
 
     assertEquals(
         "At least 1 attributes should be mentioned in the search criteria.",
@@ -715,7 +714,7 @@ class TrackedEntityOperationParamsMapperTest {
             .build();
 
     Exception IllegalQueryException =
-        Assert.assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
+        assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
 
     assertEquals("maxteicountreached", IllegalQueryException.getMessage());
   }
