@@ -292,10 +292,10 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
 
     TrackedEntity te = trackedEntity();
     Enrollment enrollment = enrollment(te);
-    Event programStageInstance = event(enrollment);
-    programStageInstance.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-    programStageInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-    programStageInstance.setAssignedUser(user);
+    Event event = event(enrollment);
+    event.setCreatedByUserInfo(UserInfoSnapshot.from(user));
+    event.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
+    event.setAssignedUser(user);
     EventDataValue eventDataValue = new EventDataValue();
     eventDataValue.setValue("6");
 
@@ -303,27 +303,26 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
     Set<EventDataValue> eventDataValues = Set.of(eventDataValue);
-    programStageInstance.setEventDataValues(eventDataValues);
-    manager.save(programStageInstance);
+    event.setEventDataValues(eventDataValues);
+    manager.save(event);
 
-    JsonObject event =
-        GET("/tracker/events/{id}", programStageInstance.getUid()).content(HttpStatus.OK);
+    JsonObject jsonEvent = GET("/tracker/events/{id}", event.getUid()).content(HttpStatus.OK);
 
-    assertTrue(event.isObject());
-    assertFalse(event.isEmpty());
-    assertEquals(programStageInstance.getUid(), event.getString("event").string());
-    assertEquals(enrollment.getUid(), event.getString("enrollment").string());
-    assertEquals(orgUnit.getUid(), event.getString("orgUnit").string());
-    assertEquals(user.getUsername(), event.getString("createdBy.username").string());
-    assertEquals(user.getUsername(), event.getString("updatedBy.username").string());
-    assertEquals(user.getDisplayName(), event.getString("assignedUser.displayName").string());
-    assertFalse(event.getArray("dataValues").isEmpty());
+    assertTrue(jsonEvent.isObject());
+    assertFalse(jsonEvent.isEmpty());
+    assertEquals(event.getUid(), jsonEvent.getString("event").string());
+    assertEquals(enrollment.getUid(), jsonEvent.getString("enrollment").string());
+    assertEquals(orgUnit.getUid(), jsonEvent.getString("orgUnit").string());
+    assertEquals(user.getUsername(), jsonEvent.getString("createdBy.username").string());
+    assertEquals(user.getUsername(), jsonEvent.getString("updatedBy.username").string());
+    assertEquals(user.getDisplayName(), jsonEvent.getString("assignedUser.displayName").string());
+    assertFalse(jsonEvent.getArray("dataValues").isEmpty());
     assertEquals(
         user.getUsername(),
-        event.getArray("dataValues").getObject(0).getString("createdBy.username").string());
+        jsonEvent.getArray("dataValues").getObject(0).getString("createdBy.username").string());
     assertEquals(
         user.getUsername(),
-        event.getArray("dataValues").getObject(0).getString("updatedBy.username").string());
+        jsonEvent.getArray("dataValues").getObject(0).getString("updatedBy.username").string());
   }
 
   @Test
