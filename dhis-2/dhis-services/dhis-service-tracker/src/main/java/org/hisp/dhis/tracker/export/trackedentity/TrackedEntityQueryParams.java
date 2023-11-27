@@ -586,7 +586,6 @@ public class TrackedEntityQueryParams {
 
   public TrackedEntityQueryParams setTrackedEntityTypes(
       List<TrackedEntityType> trackedEntityTypes) {
-    // TODO Ideally we merge this one with #setTrackedEntityType
     this.trackedEntityTypes = trackedEntityTypes;
     return this;
   }
