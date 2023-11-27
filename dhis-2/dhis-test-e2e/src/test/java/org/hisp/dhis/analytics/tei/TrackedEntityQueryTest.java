@@ -2725,9 +2725,18 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("metaData.pager.isLastPage", is(true))
         .body("metaData.pager", not(hasKey("total")))
         .body("metaData.pager", not(hasKey("pageCount")))
+        .body("metaData.items.GxdhnY5wmHq.name", equalTo("Average weight (g)"))
         .body("metaData.dimensions", hasKey("pe"));
 
-    // Validate the first row, as samples.
+    validateHeader(
+        response,
+        16,
+        "IpHINAT79UW.GxdhnY5wmHq",
+        "Average weight (g)",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        true);
 
     validateRow(
         response,
