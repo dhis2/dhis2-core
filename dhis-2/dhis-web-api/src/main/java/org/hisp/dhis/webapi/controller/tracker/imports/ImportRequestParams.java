@@ -47,7 +47,7 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundleMode;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-class RequestParams {
+public class ImportRequestParams {
   /** Should import be imported or just validated. */
   @JsonProperty @Builder.Default private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 

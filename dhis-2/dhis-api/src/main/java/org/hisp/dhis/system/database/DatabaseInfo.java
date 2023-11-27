@@ -28,62 +28,32 @@
 package org.hisp.dhis.system.database;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.lang.reflect.InvocationTargetException;
-import javax.annotation.Nonnull;
+import java.util.Date;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.beanutils.BeanUtils;
+import lombok.ToString;
 
 /**
  * @author Lars Helge Overland
  */
 @Getter
 @Setter
-@NoArgsConstructor
-public class DatabaseInfo {
-  @JsonProperty private String name;
+@Builder(toBuilder = true)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
+public final class DatabaseInfo {
 
-  @JsonProperty private String user;
+  @JsonProperty private final String name;
+  @JsonProperty private final String user;
+  @JsonProperty private final String url;
+  @JsonProperty private final String databaseVersion;
+  @JsonProperty private final boolean spatialSupport;
+  @JsonProperty private final Date time;
 
-  @JsonProperty private String url;
-
-  @JsonProperty private String databaseVersion;
-
-  @JsonProperty private boolean spatialSupport;
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public void clearSensitiveInfo() {
-    this.name = null;
-    this.user = null;
-    this.url = null;
-    this.databaseVersion = null;
-  }
-
-  /**
-   * @return a cloned instance of this object.
-   */
-  @Nonnull
-  public DatabaseInfo instance() {
-    final DatabaseInfo cloned = new DatabaseInfo();
-    try {
-      BeanUtils.copyProperties(cloned, this);
-    } catch (IllegalAccessException | InvocationTargetException ex) {
-      throw new IllegalStateException(ex);
-    }
-
-    return cloned;
-  }
-
-  // -------------------------------------------------------------------------
-  // toString
-  // -------------------------------------------------------------------------
-
-  @Override
-  public String toString() {
-    return "[Name: " + name + ", User: " + user + ", URL: " + url + "]";
+  public DatabaseInfo withoutSensitiveInfo() {
+    return toBuilder().name(null).user(null).url(null).databaseVersion(null).build();
   }
 }
