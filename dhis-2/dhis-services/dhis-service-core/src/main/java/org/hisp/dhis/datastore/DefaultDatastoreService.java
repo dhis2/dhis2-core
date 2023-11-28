@@ -133,11 +133,7 @@ public class DefaultDatastoreService implements DatastoreService {
   @Transactional
   public void updateEntry(DatastoreEntry entry) throws BadRequestException {
     validateEntry(entry);
-    DatastoreNamespaceProtection protection = protectionByNamespace.get(entry.getNamespace());
-    Runnable update =
-        protection == null || protection.isSharingRespected()
-            ? () -> store.update(entry)
-            : () -> store.updateNoAcl(entry);
+    Runnable update = () -> store.updateNoAcl(entry);
     writeProtectedIn(entry.getNamespace(), () -> singletonList(entry), update);
   }
 
@@ -195,31 +191,16 @@ public class DefaultDatastoreService implements DatastoreService {
     DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
     if (userHasNamespaceReadAccess(protection)) {
       T res = read.get();
-      if (isDatastoreEntryAndProtectionSharingRespected(res, protection)
-          || (isDatastoreEntryWithNoProtection(res, protection))) {
-        DatastoreEntry entry = (DatastoreEntry) res;
-        if (!aclService.canRead(currentUserService.getCurrentUser(), entry)) {
-          throw new AccessDeniedException(
-              String.format(
-                  "Access denied for key '%s' in namespace '%s'", entry.getKey(), namespace));
-        }
+      if (res instanceof DatastoreEntry de
+          && (!aclService.canRead(currentUserService.getCurrentUser(), de))) {
+        throw new AccessDeniedException(
+            String.format("Access denied for key '%s' in namespace '%s'", de.getKey(), namespace));
       }
       return res;
     } else if (protection.getReads() == ProtectionType.RESTRICTED) {
       throw accessDeniedTo(namespace);
     }
     return whenHidden;
-  }
-
-  private <T> boolean isDatastoreEntryWithNoProtection(
-      T res, DatastoreNamespaceProtection protection) {
-    return (res instanceof DatastoreEntry) && (protection == null);
-  }
-
-  private <T> boolean isDatastoreEntryAndProtectionSharingRespected(
-      T res, DatastoreNamespaceProtection protection) {
-    return (res instanceof DatastoreEntry)
-        && (protection != null && protection.isSharingRespected());
   }
 
   private boolean userHasNamespaceReadAccess(DatastoreNamespaceProtection protection) {
@@ -234,12 +215,9 @@ public class DefaultDatastoreService implements DatastoreService {
     if (protection == null || protection.getWrites() == ProtectionType.NONE) {
       write.run();
     } else if (currentUserHasAuthority(protection.getAuthorities())) {
-      // might also need to check sharing
-      if (protection.isSharingRespected()) {
-        for (DatastoreEntry entry : whenSharing.get()) {
-          if (!aclService.canWrite(currentUserService.getCurrentUser(), entry)) {
-            throw accessDeniedTo(namespace, entry.getKey());
-          }
+      for (DatastoreEntry entry : whenSharing.get()) {
+        if (!aclService.canWrite(currentUserService.getCurrentUser(), entry)) {
+          throw accessDeniedTo(namespace, entry.getKey());
         }
       }
       write.run();

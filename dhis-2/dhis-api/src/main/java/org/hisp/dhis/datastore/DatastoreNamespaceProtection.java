@@ -67,8 +67,6 @@ public class DatastoreNamespaceProtection {
 
   private final String namespace;
 
-  private final boolean sharingRespected;
-
   private final ProtectionType reads;
 
   private final ProtectionType writes;
@@ -76,27 +74,18 @@ public class DatastoreNamespaceProtection {
   private final Set<String> authorities;
 
   public DatastoreNamespaceProtection(
-      String namespace, ProtectionType readWrite, boolean sharingRespected, String... authorities) {
-    this(namespace, readWrite, readWrite, sharingRespected, authorities);
+      String namespace, ProtectionType readWrite, String... authorities) {
+    this(namespace, readWrite, readWrite, authorities);
   }
 
   public DatastoreNamespaceProtection(
-      String namespace,
-      ProtectionType reads,
-      ProtectionType writes,
-      boolean sharingRespected,
-      String... authorities) {
-    this(namespace, reads, writes, sharingRespected, new HashSet<>(asList(authorities)));
+      String namespace, ProtectionType reads, ProtectionType writes, String... authorities) {
+    this(namespace, reads, writes, new HashSet<>(asList(authorities)));
   }
 
   public DatastoreNamespaceProtection(
-      String namespace,
-      ProtectionType reads,
-      ProtectionType writes,
-      boolean sharingRespected,
-      Set<String> authorities) {
+      String namespace, ProtectionType reads, ProtectionType writes, Set<String> authorities) {
     this.namespace = namespace;
-    this.sharingRespected = sharingRespected;
     this.reads = reads;
     this.writes = writes;
     this.authorities = authorities;
@@ -110,10 +99,6 @@ public class DatastoreNamespaceProtection {
    * @return true when the {@link org.hisp.dhis.user.sharing.Sharing} of a {@link DatastoreEntry}
    *     should be checked in addition to authority based checks, else false.
    */
-  public boolean isSharingRespected() {
-    return sharingRespected;
-  }
-
   public Set<String> getAuthorities() {
     return authorities;
   }
@@ -129,7 +114,6 @@ public class DatastoreNamespaceProtection {
   @Override
   public String toString() {
     return String.format(
-        "KeyJsonNamespaceProtection{%s r:%s w:%s [%s]%s}",
-        namespace, reads, writes, authorities, (sharingRespected ? "!" : ""));
+        "KeyJsonNamespaceProtection{%s r:%s w:%s [%s]}", namespace, reads, writes, authorities);
   }
 }
