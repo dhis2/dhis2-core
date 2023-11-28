@@ -47,12 +47,12 @@ public interface UserDatastoreService {
   /**
    * Retrieves a KeyJsonValue based on a user and key
    *
-   * @param username the user where the key is associated
+   * @param user the user where the key is associated
    * @param namespace the namespace associated with the key
    * @param key the key referencing the value @return the UserKeyJsonValue matching the key and
    *     namespace
    */
-  UserDatastoreEntry getUserEntry(String username, String namespace, String key);
+  UserDatastoreEntry getUserEntry(User user, String namespace, String key);
 
   /**
    * Adds a new UserKeyJsonValue
@@ -79,27 +79,27 @@ public interface UserDatastoreService {
   /**
    * Returns a list of namespaces connected to the given user
    *
-   * @param username the user connected to the namespaces
+   * @param user the user connected to the namespaces
    * @return List of strings representing namespaces or an empty list if no namespaces are found
    */
-  List<String> getNamespacesByUser(String username);
+  List<String> getNamespacesByUser(User user);
 
   /**
    * Returns a list of keys in the given namespace connected to the given user
    *
-   * @param username connected to keys
+   * @param user connected to keys
    * @param namespace to fetch keys from
    * @return a list of keys or an empty list if no keys are found
    */
-  List<String> getKeysByUserAndNamespace(String username, String namespace);
+  List<String> getKeysByUserAndNamespace(User user, String namespace);
 
   /**
    * Deletes all keys associated with a given user and namespace
    *
-   * @param username the user associated with namespace to delete
+   * @param user the user associated with namespace to delete
    * @param namespace the namespace to delete
    */
-  void deleteNamespace(String username, String namespace);
+  void deleteNamespace(User user, String namespace);
 
   /**
    * Validates and plans a {@link DatastoreQuery}. This might correct or otherwise update the
@@ -122,7 +122,6 @@ public interface UserDatastoreService {
    * @param <T> type of the transformed stream
    * @return the transformed stream
    */
-  <T> T getEntries(
-      String username, DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
+  <T> T getEntries(User user, DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
       throws ConflictException;
 }

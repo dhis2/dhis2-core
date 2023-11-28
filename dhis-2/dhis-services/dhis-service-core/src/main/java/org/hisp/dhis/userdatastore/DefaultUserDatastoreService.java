@@ -38,7 +38,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,7 +49,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultUserDatastoreService implements UserDatastoreService {
 
   private final UserDatastoreStore store;
-  private final UserService userService;
 
   @Override
   @Transactional(readOnly = true)
@@ -60,17 +58,14 @@ public class DefaultUserDatastoreService implements UserDatastoreService {
 
   @Override
   @Transactional(readOnly = true)
-  public UserDatastoreEntry getUserEntry(String username, String namespace, String key) {
-    User user = userService.getUserByUsername(username);
+  public UserDatastoreEntry getUserEntry(User user, String namespace, String key) {
     return store.getEntry(user, namespace, key);
   }
 
   @Override
   @Transactional
   public long addEntry(UserDatastoreEntry entry) throws ConflictException, BadRequestException {
-    User user = entry.getUser();
-    if (getUserEntry(user != null ? user.getUsername() : null, entry.getNamespace(), entry.getKey())
-        != null) {
+    if (getUserEntry(entry.getUser(), entry.getNamespace(), entry.getKey()) != null) {
       throw new ConflictException(
           String.format(
               "Key '%s' already exists in namespace '%s'", entry.getKey(), entry.getNamespace()));
@@ -95,22 +90,19 @@ public class DefaultUserDatastoreService implements UserDatastoreService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<String> getNamespacesByUser(String username) {
-    User user = userService.getUserByUsername(username);
+  public List<String> getNamespacesByUser(User user) {
     return store.getNamespaces(user);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<String> getKeysByUserAndNamespace(String username, String namespace) {
-    User user = userService.getUserByUsername(username);
+  public List<String> getKeysByUserAndNamespace(User user, String namespace) {
     return store.getKeysInNamespace(user, namespace);
   }
 
   @Override
   @Transactional
-  public void deleteNamespace(String username, String namespace) {
-    User user = userService.getUserByUsername(username);
+  public void deleteNamespace(User user, String namespace) {
     store.getEntriesInNamespace(user, namespace).forEach(store::delete);
   }
 
@@ -123,10 +115,9 @@ public class DefaultUserDatastoreService implements UserDatastoreService {
   @Override
   @Transactional(readOnly = true)
   public <T> T getEntries(
-      String username, DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
+      User user, DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
       throws ConflictException {
     DatastoreQueryValidator.validate(query);
-    User user = userService.getUserByUsername(username);
     return store.getEntries(user, query, transform);
   }
 
