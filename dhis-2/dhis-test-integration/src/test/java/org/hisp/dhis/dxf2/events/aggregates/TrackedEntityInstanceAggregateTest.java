@@ -216,13 +216,13 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest {
     queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setLastUpdatedStartDate(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)));
-    queryParams.setLastUpdatedEndDate(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)));
+    queryParams.setLastUpdatedEndDate(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
     TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
     final List<TrackedEntityInstance> trackedEntityInstances =
         trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);
     assertThat(trackedEntityInstances, hasSize(4));
     assertThat(trackedEntityInstances.get(0).getEnrollments(), hasSize(0));
-    // Update last updated start date to today
+    // Update last updated start date to tomorrow
     queryParams.setLastUpdatedStartDate(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
     queryParams.setLastUpdatedEndDate(Date.from(Instant.now().plus(2, ChronoUnit.DAYS)));
     final List<TrackedEntityInstance> limitedTTrackedEntityInstances =
