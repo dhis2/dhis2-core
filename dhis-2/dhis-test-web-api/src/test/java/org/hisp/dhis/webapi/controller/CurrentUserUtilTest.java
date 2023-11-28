@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
-import org.hisp.dhis.datastore.DatastoreService;
-import org.springframework.stereotype.Component;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.Test;
 
 /**
- * The main purpose (so far) of the {@link AndroidSettingsApp} component is to establish the
- * protected {@link #NAMESPACE} in the {@link DatastoreService} so that only the app can write to it
- * using a role having the {@link #AUTHORITY}.
- *
- * @author Jan Bernitt
+ * @author david mackessy
  */
-@Component
-public class AndroidSettingsApp {
-  public static final String NAMESPACE = "ANDROID_SETTINGS_APP";
+class CurrentUserUtilTest extends DhisControllerConvenienceTest {
 
-  public static final String AUTHORITY = "M_androidsettingsapp";
+  @Test
+  void testCurrentUserDetailsIsSuper() {
+    switchToNewUser("newSuperuser", "ALL");
+    CurrentUserDetails newSuperuser = CurrentUserUtil.getCurrentUserDetails();
+    assertNotNull(newSuperuser);
+    assertEquals("newSuperuser", newSuperuser.getUsername());
+    assertTrue(newSuperuser.isSuper());
+  }
 
-  public AndroidSettingsApp(DatastoreService service) {
-    service.addProtection(
-        new DatastoreNamespaceProtection(
-            NAMESPACE, ProtectionType.NONE, ProtectionType.RESTRICTED, AUTHORITY));
+  @Test
+  void testCurrentUserDetailsIsNotSuper() {
+    switchToNewUser("basicUser", "NONE");
+    CurrentUserDetails basicUser = CurrentUserUtil.getCurrentUserDetails();
+    assertNotNull(basicUser);
+    assertEquals("basicUser", basicUser.getUsername());
+    assertFalse(basicUser.isSuper());
   }
 }

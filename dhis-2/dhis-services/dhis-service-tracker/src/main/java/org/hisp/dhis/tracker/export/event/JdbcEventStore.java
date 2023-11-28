@@ -32,7 +32,6 @@ import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.util.DateUtils.addDays;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -993,7 +992,7 @@ class JdbcEventStore implements EventStore {
     }
 
     if (params.getOccurredStartDate() != null) {
-      mapSqlParameterSource.addValue("startDate", params.getOccurredStartDate(), Types.DATE);
+      mapSqlParameterSource.addValue("startDate", params.getOccurredStartDate(), Types.TIMESTAMP);
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -1005,14 +1004,13 @@ class JdbcEventStore implements EventStore {
     }
 
     if (params.getOccurredEndDate() != null) {
-      mapSqlParameterSource.addValue(
-          "endDate", addDays(params.getOccurredEndDate(), 1), Types.DATE);
+      mapSqlParameterSource.addValue("endDate", params.getOccurredEndDate(), Types.TIMESTAMP);
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (ev.occurreddate < ")
+          .append(" (ev.occurreddate <= ")
           .append(":endDate")
-          .append(" or (ev.occurreddate is null and ev.scheduleddate < ")
+          .append(" or (ev.occurreddate is null and ev.scheduleddate <=")
           .append(":endDate")
           .append(" )) ");
     }
@@ -1436,11 +1434,11 @@ class JdbcEventStore implements EventStore {
 
       if (params.hasUpdatedAtEndDate()) {
         mapSqlParameterSource.addValue(
-            "lastUpdatedEnd", addDays(params.getUpdatedAtEndDate(), 1), Types.TIMESTAMP);
+            "lastUpdatedEnd", params.getUpdatedAtEndDate(), Types.TIMESTAMP);
 
         sqlBuilder
             .append(hlp.whereAnd())
-            .append(" ev.lastupdated < ")
+            .append(" ev.lastupdated <= ")
             .append(":lastUpdatedEnd")
             .append(" ");
       }
