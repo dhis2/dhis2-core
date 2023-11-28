@@ -55,8 +55,8 @@ class HibernateQueryCacheTest extends HibernateCacheBaseTest {
     optionSet.setAutoFields();
     optionSet.setName("OptionSetA");
     optionSet.setCode("OptionSetCodeA");
-
     optionSet.setValueType(ValueType.TEXT);
+
     entityManager.getTransaction().begin();
     entityManager.persist(optionSet);
     entityManager.getTransaction().commit();

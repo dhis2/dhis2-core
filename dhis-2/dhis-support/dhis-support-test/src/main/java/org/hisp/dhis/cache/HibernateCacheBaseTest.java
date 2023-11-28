@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.cache;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.IntegrationTest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,4 +41,23 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(classes = {HibernateCacheTestConfig.class})
 @ActiveProfiles("test-postgres")
 @IntegrationTest
-public class HibernateCacheBaseTest extends BaseSpringTest {}
+@Slf4j
+public class HibernateCacheBaseTest extends BaseSpringTest {
+  @BeforeEach
+  public final void before() throws Exception {
+    integrationTestBefore();
+  }
+
+  @AfterEach
+  public final void after() throws Exception {
+    clearSecurityContext();
+
+    tearDownTest();
+
+    try {
+      dbmsManager.clearSession();
+    } catch (Exception e) {
+      log.info("Failed to clear hibernate session, reason:" + e.getMessage());
+    }
+  }
+}
