@@ -415,8 +415,7 @@ public class DefaultAppManager implements AppManager {
               ? new String[] {WEB_MAINTENANCE_APPMANAGER_AUTHORITY}
               : new String[] {WEB_MAINTENANCE_APPMANAGER_AUTHORITY, app.getSeeAppAuthority()};
       datastoreService.addProtection(
-          new DatastoreNamespaceProtection(
-              namespace, ProtectionType.RESTRICTED, true, authorities));
+          new DatastoreNamespaceProtection(namespace, ProtectionType.RESTRICTED, authorities));
     }
   }
 
