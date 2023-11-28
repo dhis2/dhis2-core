@@ -92,8 +92,11 @@ class TrackedEntityOperationParamsMapper {
     Program program = validateProgram(operationParams.getProgramUid(), user);
     ProgramStage programStage = validateProgramStage(operationParams, program);
 
-    TrackedEntityType trackedEntityType =
+    TrackedEntityType requestedTrackedEntityType =
         validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
+
+    List<TrackedEntityType> trackedEntityTypes =
+        getTrackedEntityTypes(requestedTrackedEntityType, program, user);
 
     Set<OrganisationUnit> orgUnits = validateOrgUnits(user, operationParams.getOrganisationUnits());
     validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
@@ -104,7 +107,7 @@ class TrackedEntityOperationParamsMapper {
     mapOrderParam(params, operationParams.getOrder());
 
     validateTrackedEntityAttributeFilters(
-        program, trackedEntityType, operationParams, orgUnits, params);
+        program, requestedTrackedEntityType, operationParams, orgUnits, params);
 
     params
         .setProgram(program)
@@ -118,11 +121,8 @@ class TrackedEntityOperationParamsMapper {
         .setProgramEnrollmentEndDate(operationParams.getProgramEnrollmentEndDate())
         .setProgramIncidentStartDate(operationParams.getProgramIncidentStartDate())
         .setProgramIncidentEndDate(operationParams.getProgramIncidentEndDate())
-        .setTrackedEntityType(trackedEntityType)
-        .setTrackedEntityTypes(
-            trackedEntityType == null
-                ? filterAndValidateTrackedEntityTypes(user, program)
-                : emptyList())
+        .setTrackedEntityType(requestedTrackedEntityType)
+        .setTrackedEntityTypes(trackedEntityTypes)
         .addOrgUnits(orgUnits)
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setEventStatus(operationParams.getEventStatus())
@@ -139,6 +139,18 @@ class TrackedEntityOperationParamsMapper {
     return params;
   }
 
+  private List<TrackedEntityType> getTrackedEntityTypes(
+      TrackedEntityType trackedEntityType, Program program, User user) throws BadRequestException {
+
+    if (program != null && program.getTrackedEntityType() != null) {
+      return List.of(program.getTrackedEntityType());
+    } else if (trackedEntityType == null) {
+      return filterAndValidateTrackedEntityTypes(user, program);
+    }
+
+    return emptyList();
+  }
+
   private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(User user, Program program)
       throws BadRequestException {
     List<TrackedEntityType> trackedEntityTypes =
@@ -147,7 +159,7 @@ class TrackedEntityOperationParamsMapper {
             .toList();
 
     if (program == null && trackedEntityTypes.isEmpty()) {
-      throw new BadRequestException("Either Program or Tracked entity type should be specified");
+      throw new BadRequestException("User has no access to any Tracked Entity Type");
     }
 
     return trackedEntityTypes;

@@ -652,6 +652,26 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
+  void
+      shouldFailWhenNoProgramNorTrackedEntityTypeSpecifiedAndUserHasNoAccessToAnyTrackedEntityType() {
+    TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
+    tea1.setUid(TEA_1_UID);
+    when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(null);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ACCESSIBLE)
+            .user(user)
+            .orderBy(UID.of(TEA_1_UID), SortDirection.ASC)
+            .build();
+
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
+    assertStartsWith("User has no access to any Tracked Entity Type", exception.getMessage());
+  }
+
+  @Test
   void shouldFailToMapGivenInvalidOrderNameWhichIsAValidUID() {
     // This test case shows that some field names are valid UIDs. Previous stages (web) can thus not
     // rule out all
