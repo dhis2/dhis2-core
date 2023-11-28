@@ -167,6 +167,7 @@ class TrackedEntityImportRequestParamsMapperTest {
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOrgUnitMode(CAPTURE);
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, null);
 
@@ -177,6 +178,7 @@ class TrackedEntityImportRequestParamsMapperTest {
   void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
     TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOuMode(CAPTURE);
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, null);
 
@@ -186,6 +188,7 @@ class TrackedEntityImportRequestParamsMapperTest {
   @Test
   void shouldMapOrgUnitModeToDefaultGivenNoOrgUnitModeParamIsSet() throws BadRequestException {
     TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, null);
 
@@ -247,6 +250,7 @@ class TrackedEntityImportRequestParamsMapperTest {
   void testMappingAssignedUser() throws BadRequestException {
     trackedEntityRequestParams.setAssignedUser("IsdLBTOBzMi;l5ab8q5skbB");
     trackedEntityRequestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
@@ -261,6 +265,7 @@ class TrackedEntityImportRequestParamsMapperTest {
     trackedEntityRequestParams.setAssignedUsers(
         Set.of(UID.of("IsdLBTOBzMi"), UID.of("l5ab8q5skbB")));
     trackedEntityRequestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
@@ -312,6 +317,7 @@ class TrackedEntityImportRequestParamsMapperTest {
     TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOrder(
         OrderCriteria.fromOrderString("createdAt:asc,zGlzbfreTOH,enrolledAt:desc"));
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
@@ -325,6 +331,7 @@ class TrackedEntityImportRequestParamsMapperTest {
 
   @Test
   void testMappingOrderParamsNoOrder() throws BadRequestException {
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
     assertIsEmpty(params.getOrder());
@@ -347,6 +354,7 @@ class TrackedEntityImportRequestParamsMapperTest {
     TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOrgUnitMode(ACCESSIBLE);
     trackedEntityRequestParams.setFilter(TEA_1_UID + ":like:value1," + TEA_2_UID + ":like:value2");
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     Map<String, List<QueryFilter>> filters =
         mapper.map(trackedEntityRequestParams, user).getFilters();

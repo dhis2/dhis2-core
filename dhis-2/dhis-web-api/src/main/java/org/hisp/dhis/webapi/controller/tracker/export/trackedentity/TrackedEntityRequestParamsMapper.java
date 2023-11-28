@@ -159,54 +159,59 @@ class TrackedEntityRequestParamsMapper {
 
     if (params.getProgram() != null && params.getTrackedEntityType() != null) {
       throw new BadRequestException(
-          "Program and tracked entity cannot be specified simultaneously");
+          "`program` and `trackedEntityType` cannot be specified simultaneously");
     }
 
     if (params.getProgram() == null) {
+      if (params.getTrackedEntities().isEmpty() && params.getTrackedEntityType() == null) {
+        throw new BadRequestException(
+            "Either `program`, `trackedEntityType` or `trackedEntities` should be specified");
+      }
+
       if (params.getProgramStatus() != null) {
-        throw new BadRequestException("Program must be defined when program status is defined");
+        throw new BadRequestException("`program` must be defined when `programStatus` is defined");
       }
 
       if (params.getFollowUp() != null) {
-        throw new BadRequestException("Program must be defined when follow up status is defined");
+        throw new BadRequestException("`program` must be defined when `followUp` is defined");
       }
 
       if (params.getEnrollmentEnrolledAfter() != null) {
         throw new BadRequestException(
-            "Program must be defined when enrolled after date is specified");
+            "`program` must be defined when `enrollmentEnrolledAfter` is specified");
       }
 
       if (params.getEnrollmentEnrolledBefore() != null) {
         throw new BadRequestException(
-            "Program must be defined when enrolled before date is specified");
+            "`program` must be defined when `enrollmentEnrolledBefore` is specified");
       }
 
       if (params.getEnrollmentOccurredAfter() != null) {
         throw new BadRequestException(
-            "Program must be defined when enrollment occurred after date is specified");
+            "`program` must be defined when `enrollmentOccurredAfter` is specified");
       }
 
       if (params.getEnrollmentOccurredBefore() != null) {
         throw new BadRequestException(
-            "Program must be defined when enrollment occurred before date is specified");
+            "`program` must be defined when `enrollmentOccurredBefore` is specified");
       }
     }
 
     if (params.getEventStatus() != null
         && (params.getEventOccurredAfter() == null || params.getEventOccurredBefore() == null)) {
       throw new BadRequestException(
-          "Event occurred after date and event occurred before date must be specified when event status is specified");
+          "`eventOccurredAfter` and `eventOccurredBefore` must be specified when `eventStatus` is specified");
     }
 
     if (params.getUpdatedWithin() != null
         && (params.getUpdatedAfter() != null || params.getUpdatedBefore() != null)) {
       throw new BadRequestException(
-          "Updated after/before and updated within cannot be specified simultaneously");
+          "`updatedAfter` or `updatedBefore` and `updatedWithin` cannot be specified simultaneously");
     }
 
     if (params.getUpdatedWithin() != null
         && DateUtils.getDuration(params.getUpdatedWithin()) == null) {
-      throw new BadRequestException("Updated within is not valid: " + params.getUpdatedWithin());
+      throw new BadRequestException("`updatedWithin` is not valid: " + params.getUpdatedWithin());
     }
   }
 
