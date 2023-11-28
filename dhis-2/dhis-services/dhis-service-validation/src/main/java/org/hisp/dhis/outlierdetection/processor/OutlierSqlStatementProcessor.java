@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,11 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system;
+package org.hisp.dhis.outlierdetection.processor;
 
-/**
- * @author Lars Helge Overland
- */
-public interface SystemService {
-  SystemInfo getSystemInfo();
+import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+
+public interface OutlierSqlStatementProcessor {
+
+  /**
+   * Creates a parametrised SQL statement for outliers.
+   *
+   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @return SQL statement as a string.
+   */
+  String getSqlStatement(OutlierDetectionRequest request);
+
+  /**
+   * Retrieve SQL parameters for outliers SQL statement
+   *
+   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @return teh instance of {@link SqlParameterSource}.
+   */
+  SqlParameterSource getSqlParameterSource(OutlierDetectionRequest request);
 }

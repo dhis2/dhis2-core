@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.math.StatsAccumulator;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Stream;
@@ -51,8 +52,8 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
-import org.hisp.dhis.outlierdetection.OutlierDetectionService;
 import org.hisp.dhis.outlierdetection.OutlierValue;
+import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -74,7 +75,9 @@ class OutlierDetectionServiceZScoreTest extends IntegrationTestBase {
 
   @Autowired private DataValueService dataValueService;
 
-  @Autowired private OutlierDetectionService subject;
+  @Autowired private DefaultOutlierDetectionService subject;
+
+  @Autowired private OutlierDetectionQueryParser parser;
 
   private DataElement deA;
 
@@ -125,7 +128,7 @@ class OutlierDetectionServiceZScoreTest extends IntegrationTestBase {
     query.setAlgorithm(OutlierDetectionAlgorithm.Z_SCORE);
     query.setThreshold(2.5);
     query.setMaxResults(100);
-    OutlierDetectionRequest request = subject.getFromQuery(query);
+    OutlierDetectionRequest request = parser.getFromQuery(query);
     assertEquals(2, request.getDataElements().size());
     assertEquals(2, request.getOrgUnits().size());
     assertEquals(getDate(2020, 1, 1), request.getStartDate());
@@ -248,7 +251,7 @@ class OutlierDetectionServiceZScoreTest extends IntegrationTestBase {
             .withThreshold(2.0)
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    subject.getOutlierValuesAsCsv(request, out);
+    subject.getOutlierValuesAsCsv(request, new PrintWriter(out));
     List<String> csvLines =
         TextUtils.toLines(new String(out.toByteArray(), StandardCharsets.UTF_8));
     final int endIndex = 61;

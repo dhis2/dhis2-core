@@ -27,47 +27,37 @@
  */
 package org.hisp.dhis.system.database;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.apache.commons.beanutils.BeanUtils;
+import java.util.Date;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Volker Schmidt
  */
 class DatabaseInfoTest {
-  @Test
-  void cloneDatabaseInfo() throws Exception {
-    DatabaseInfo databaseInfo = getDataBaseInfo();
-    DatabaseInfo cloned = databaseInfo.instance();
-    BeanUtils.copyProperties(cloned, databaseInfo);
-    assertNotSame(databaseInfo, cloned);
-    assertEquals(databaseInfo.getName(), cloned.getName());
-    assertEquals(databaseInfo.getUser(), cloned.getUser());
-    assertEquals(databaseInfo.getUrl(), cloned.getUrl());
-    assertEquals(databaseInfo.getDatabaseVersion(), cloned.getDatabaseVersion());
-    assertEquals(databaseInfo.isSpatialSupport(), cloned.isSpatialSupport());
-  }
 
   @Test
   void clearSensitiveInfo() {
-    DatabaseInfo databaseInfo = getDataBaseInfo();
-    databaseInfo.clearSensitiveInfo();
-    assertNull(databaseInfo.getName());
-    assertNull(databaseInfo.getUser());
-    assertNull(databaseInfo.getUrl());
-    assertNull(databaseInfo.getDatabaseVersion());
+    DatabaseInfo info = getDataBaseInfo().withoutSensitiveInfo();
+    assertNull(info.getName());
+    assertNull(info.getUser());
+    assertNull(info.getUrl());
+    assertNull(info.getDatabaseVersion());
+    assertTrue(info.isSpatialSupport());
+    assertNotNull(info.getTime());
   }
 
   private DatabaseInfo getDataBaseInfo() {
-    DatabaseInfo databaseInfo = new DatabaseInfo();
-    databaseInfo.setName("testDatabase");
-    databaseInfo.setUser("testUser");
-    databaseInfo.setUrl("theUrl");
-    databaseInfo.setDatabaseVersion("xzy 10.7");
-    databaseInfo.setSpatialSupport(true);
-    return databaseInfo;
+    return DatabaseInfo.builder()
+        .name("testDatabase")
+        .user("testUser")
+        .url("theUrl")
+        .databaseVersion("xzy 10.7")
+        .spatialSupport(true)
+        .time(new Date())
+        .build();
   }
 }

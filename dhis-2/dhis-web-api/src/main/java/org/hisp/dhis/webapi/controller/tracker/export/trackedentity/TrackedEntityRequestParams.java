@@ -60,13 +60,19 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-class RequestParams implements PageRequestParams {
+public class TrackedEntityRequestParams implements PageRequestParams {
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
 
+  @OpenApi.Property(defaultValue = "1")
   private Integer page;
+
+  @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
-  private Boolean totalPages;
-  private Boolean skipPaging;
+
+  @OpenApi.Property(defaultValue = "false")
+  private Boolean totalPages = false;
+
+  private Boolean skipPaging = false;
 
   private List<OrderCriteria> order = new ArrayList<>();
 
@@ -182,7 +188,7 @@ class RequestParams implements PageRequestParams {
   private Date eventOccurredBefore;
 
   /** Indicates whether to include soft-deleted elements */
-  private boolean includeDeleted;
+  private boolean includeDeleted = false;
 
   /**
    * Potential Duplicate value for TEI. If null, we don't check whether a TEI is a

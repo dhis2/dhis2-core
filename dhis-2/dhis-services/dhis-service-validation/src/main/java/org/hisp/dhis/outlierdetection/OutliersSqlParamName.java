@@ -25,44 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.outlierdetection;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+/** Enum for named params of parametrized sql query */
+public enum OutliersSqlParamName {
+  // ZScore (modified ZScore) factor.
+  // For example the threshold=3 means all data lying outside 3 sigma (3 * standard deviation)
+  // are considered as the outliers
+  THRESHOLD("threshold"),
+  DATA_ELEMENT_IDS("data_element_ids"),
+  START_DATE("start_date"),
+  END_DATE("end_date"),
+  // start date criteria of statistic data collection (the stats will be based on data starting on
+  // this date)
+  DATA_START_DATE("data_start_date"),
+  // start date criteria of statistic data collection (the stats will be based on data ending on
+  // this date)
+  DATA_END_DATE("data_end_date"),
+  MAX_RESULTS("max_results");
+  private final String key;
 
-import lombok.Data;
-import org.junit.jupiter.api.Test;
-
-class PageRequestParamsTest {
-
-  @Data
-  private static class PaginationParameters implements PageRequestParams {
-    private Integer page;
-    private Integer pageSize;
-    private Boolean totalPages;
-    private Boolean skipPaging;
+  OutliersSqlParamName(String key) {
+    this.key = key;
   }
 
-  @Test
-  void shouldBePagedIfSkipPagingIsNull() {
-    PaginationParameters parameters = new PaginationParameters();
-
-    assertTrue(parameters.isPaged());
-  }
-
-  @Test
-  void shouldBePagedIfSkipPagingIsTrue() {
-    PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(true);
-
-    assertTrue(parameters.isPaged());
-  }
-
-  @Test
-  void shouldBeUnpagedIfSkipPagingIsTrue() {
-    PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(false);
-
-    assertFalse(parameters.isPaged());
+  public String getKey() {
+    return key;
   }
 }

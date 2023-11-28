@@ -76,6 +76,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -180,6 +181,62 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderEventsByCreatedAtClientInAscOrder()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .programStageUid(programStage.getUid())
+            .orderBy("createdAtClient", SortDirection.ASC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByCreatedAtClientInDescOrder()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .programStageUid(programStage.getUid())
+            .orderBy("createdAtClient", SortDirection.DESC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByUpdatedAtClientInAscOrder()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .programStageUid(programStage.getUid())
+            .orderBy("lastUpdatedAtClient", SortDirection.ASC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByUpdatedAtClientInDescOrder()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .programStageUid(programStage.getUid())
+            .orderBy("lastUpdatedAtClient", SortDirection.DESC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
+  }
+
+  @Test
   void testExportEvents() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         operationParamsBuilder.programStageUid(programStage.getUid()).build();
@@ -226,6 +283,52 @@ class EventExporterTest extends TrackerTest {
             .enrollments(Set.of("TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
             .updatedWithin("1d")
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldReturnEventsIfItOccurredBetweenPassedDateAndTime()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .enrollments(Set.of("TvctPPhpD8z"))
+            .programStageUid(programStage.getUid())
+            .occurredBefore(Date.from(getDate(2020, 1, 28).toInstant().plus(1, ChronoUnit.HOURS)))
+            .occurredAfter(Date.from(getDate(2020, 1, 28).toInstant().minus(1, ChronoUnit.HOURS)))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldReturnEventsIfItOccurredAtTheSameDateAndTimeOfOccurredBeforePassed()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .enrollments(Set.of("TvctPPhpD8z"))
+            .programStageUid(programStage.getUid())
+            .occurredBefore(getDate(2020, 1, 28))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldReturnEventsIfItOccurredAtTheSameDateAndTimeOfOccurredAfterPassed()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .enrollments(Set.of("TvctPPhpD8z"))
+            .programStageUid(programStage.getUid())
+            .occurredAfter(getDate(2020, 1, 28))
             .build();
 
     List<String> events = getEvents(params);

@@ -30,6 +30,7 @@ package org.hisp.dhis.datastore;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
@@ -43,7 +44,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author david mackessy
  */
-class DatastoreTest extends ApiTest {
+class DatastoreKeysTest extends ApiTest {
 
   private RestApiActions datastoreActions;
   private RestApiActions sharingActions;
@@ -365,13 +366,14 @@ class DatastoreTest extends ApiTest {
     assertEquals("[\"arsenal\",\"spurs\"]", entries);
   }
 
-  private String newEntry(String team) {
-    return """
-      {"name": "%s","league": "prem"}
-    """.strip().formatted(team);
+  protected static JsonObject newEntry(String team) {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("name", team);
+    jsonObject.addProperty("league", "prem");
+    return jsonObject;
   }
 
-  private String sharingUserAccess(String userId) {
+  protected static String sharingUserAccess(String userId) {
     return """
     {
         "object": {
@@ -381,7 +383,7 @@ class DatastoreTest extends ApiTest {
             "userAccesses": [
                 {
                     "id": "%s",
-                    "access": "r-------"
+                    "access": "rw------"
                 }
             ],
             "userGroupAccesses": []
@@ -392,7 +394,7 @@ class DatastoreTest extends ApiTest {
         .strip();
   }
 
-  private String sharingUserGroupAccess(String userGroupId) {
+  protected static String sharingUserGroupAccess(String userGroupId) {
     return """
     {
         "object": {
@@ -403,7 +405,7 @@ class DatastoreTest extends ApiTest {
             "userGroupAccesses": [
                 {
                     "id": "%s",
-                    "access": "r-------"
+                    "access": "rw------"
                 }
             ]
         }
@@ -413,7 +415,7 @@ class DatastoreTest extends ApiTest {
         .strip();
   }
 
-  private String sharingNoPublicAccess() {
+  protected static String sharingNoPublicAccess() {
     return """
     {
         "object": {
