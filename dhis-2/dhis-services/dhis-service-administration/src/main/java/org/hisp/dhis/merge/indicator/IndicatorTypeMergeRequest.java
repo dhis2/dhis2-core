@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.merge.indicator;
 
-import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -42,13 +41,14 @@ import org.hisp.dhis.indicator.IndicatorType;
  *
  * @author david mackessy
  */
+@Builder
 @Getter
 public class IndicatorTypeMergeRequest {
-  private Set<IndicatorType> sources = new HashSet<>();
+  @Builder.Default private Set<IndicatorType> sources = new HashSet<>();
 
   private IndicatorType target;
 
-  private boolean deleteSources;
+  @Builder.Default private boolean deleteSources = true;
 
   public Set<IndicatorType> getSources() {
     return ImmutableSet.copyOf(sources);
@@ -61,38 +61,5 @@ public class IndicatorTypeMergeRequest {
         .add("target", target != null ? target.getUid() : null)
         .add("deleteSources", deleteSources)
         .toString();
-  }
-
-  public static class Builder {
-    private IndicatorTypeMergeRequest request;
-
-    public Builder() {
-      this.request = new IndicatorTypeMergeRequest();
-      this.request.deleteSources = true;
-    }
-
-    public Builder addSource(IndicatorType source) {
-      this.request.sources.add(source);
-      return this;
-    }
-
-    public Builder addSources(Set<IndicatorType> sources) {
-      this.request.sources.addAll(sources);
-      return this;
-    }
-
-    public Builder withTarget(IndicatorType target) {
-      this.request.target = target;
-      return this;
-    }
-
-    public Builder withDeleteSources(Boolean deleteSources) {
-      this.request.deleteSources = firstNonNull(deleteSources, this.request.deleteSources);
-      return this;
-    }
-
-    public IndicatorTypeMergeRequest build() {
-      return this.request;
-    }
   }
 }

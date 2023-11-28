@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Lists;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -75,7 +75,7 @@ class IndicatorTypeMergeServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void testGetFromQuery() {
     IndicatorTypeMergeQuery query = new IndicatorTypeMergeQuery();
-    query.setSources(Lists.newArrayList(BASE_IN_TYPE_UID + 'A', BASE_IN_TYPE_UID + 'B'));
+    query.setSources(Set.of(BASE_IN_TYPE_UID + 'A', BASE_IN_TYPE_UID + 'B'));
     query.setTarget(BASE_IN_TYPE_UID + 'C');
     IndicatorTypeMergeRequest request = service.getFromQuery(query);
     assertEquals(2, request.getSources().size());
@@ -88,7 +88,7 @@ class IndicatorTypeMergeServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void testSourceOrgUnitNotFound() {
     IndicatorTypeMergeQuery query = new IndicatorTypeMergeQuery();
-    query.setSources(Lists.newArrayList(BASE_IN_TYPE_UID + 'A', BASE_IN_TYPE_UID + 'X'));
+    query.setSources(Set.of(BASE_IN_TYPE_UID + 'A', BASE_IN_TYPE_UID + 'X'));
     query.setTarget(BASE_IN_TYPE_UID + 'C');
     IllegalQueryException ex =
         assertThrows(IllegalQueryException.class, () -> service.getFromQuery(query));
@@ -113,11 +113,10 @@ class IndicatorTypeMergeServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals(itB, iB.getIndicatorType());
     assertEquals(itC, iC.getIndicatorType());
     IndicatorTypeMergeRequest request =
-        new IndicatorTypeMergeRequest.Builder()
-            .addSource(itA)
-            .addSource(itB)
-            .withTarget(itC)
-            .withDeleteSources(true)
+        IndicatorTypeMergeRequest.builder()
+            .sources(Set.of(itA, itB))
+            .target(itC)
+            .deleteSources(true)
             .build();
 
     // when an indicator merge request is processed

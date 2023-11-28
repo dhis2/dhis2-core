@@ -63,14 +63,7 @@ public class DefaultIndicatorTypeMergeService implements IndicatorTypeMergeServi
     log.info("Indicator type merge request: {}", request);
 
     validator.validate(request);
-
-    // merge manually here
-    IndicatorType indicatorTypeTarget = request.getTarget();
-    List<Indicator> associatedIndicators =
-        indicatorService.getAssociatedIndicators(request.getSources());
-    associatedIndicators.forEach(ind -> ind.setIndicatorType(indicatorTypeTarget));
-    idObjectManager.update(indicatorTypeTarget);
-
+    reassignIndicatorAssociations(request);
     handleDeleteSources(request);
 
     log.info("Indicator type merge operation done: {}", request);
@@ -85,16 +78,12 @@ public class DefaultIndicatorTypeMergeService implements IndicatorTypeMergeServi
 
     IndicatorType target = idObjectManager.get(IndicatorType.class, query.getTarget());
 
-    return new IndicatorTypeMergeRequest.Builder()
-        .addSources(sources)
-        .withTarget(target)
-        .withDeleteSources(query.isDeleteSources())
+    return IndicatorTypeMergeRequest.builder()
+        .sources(sources)
+        .target(target)
+        .deleteSources(query.isDeleteSources())
         .build();
   }
-
-  // -------------------------------------------------------------------------
-  // Private methods
-  // -------------------------------------------------------------------------
 
   /**
    * Handles deletion of the source {@link IndicatorType}.
@@ -111,8 +100,8 @@ public class DefaultIndicatorTypeMergeService implements IndicatorTypeMergeServi
   }
 
   /**
-   * Retrieves the indicator type with the given identifier. Throws an {@link IllegalQueryException}
-   * if it does not exist.
+   * Retrieves the {@link IndicatorType} with the given identifier. Throws an {@link
+   * IllegalQueryException} if it does not exist.
    *
    * @param uid the indicator type identifier.
    * @throws IllegalQueryException if the object is null.
@@ -121,5 +110,18 @@ public class DefaultIndicatorTypeMergeService implements IndicatorTypeMergeServi
     return ObjectUtils.throwIfNull(
         idObjectManager.get(IndicatorType.class, uid),
         () -> new IllegalQueryException(new ErrorMessage(ErrorCode.E1533, uid)));
+  }
+
+  /**
+   * All {@link Indicator} associations with source {@link IndicatorType}s are reassigned to the
+   * target {@link IndicatorType}
+   *
+   * @param request {@link IndicatorTypeMergeRequest}
+   */
+  private void reassignIndicatorAssociations(IndicatorTypeMergeRequest request) {
+    IndicatorType indicatorTypeTarget = request.getTarget();
+    List<Indicator> associatedIndicators =
+        indicatorService.getAssociatedIndicators(request.getSources());
+    associatedIndicators.forEach(ind -> ind.setIndicatorType(indicatorTypeTarget));
   }
 }
