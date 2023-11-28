@@ -173,40 +173,40 @@ class TrackedEntityRequestParamsMapper {
 
       if (params.getEnrollmentEnrolledAfter() != null) {
         throw new BadRequestException(
-            "Program must be defined when program enrollment start date is specified");
+            "Program must be defined when enrolled after date is specified");
       }
 
       if (params.getEnrollmentEnrolledBefore() != null) {
         throw new BadRequestException(
-            "Program must be defined when program enrollment end date is specified");
+            "Program must be defined when enrolled before date is specified");
       }
 
       if (params.getEnrollmentOccurredAfter() != null) {
         throw new BadRequestException(
-            "Program must be defined when program incident start date is specified");
+            "Program must be defined when enrollment occurred after date is specified");
       }
 
       if (params.getEnrollmentOccurredBefore() != null) {
         throw new BadRequestException(
-            "Program must be defined when program incident end date is specified");
+            "Program must be defined when enrollment occurred before date is specified");
       }
     }
 
     if (params.getEventStatus() != null
         && (params.getEventOccurredAfter() == null || params.getEventOccurredBefore() == null)) {
       throw new BadRequestException(
-          "Event start and end date must be specified when event status is specified");
+          "Event occurred after date and event occurred before date must be specified when event status is specified");
     }
 
     if (params.getUpdatedWithin() != null
         && (params.getUpdatedAfter() != null || params.getUpdatedBefore() != null)) {
       throw new BadRequestException(
-          "Last updated from and/or to and last updated duration cannot be specified simultaneously");
+          "Updated after/before and updated within cannot be specified simultaneously");
     }
 
     if (params.getUpdatedWithin() != null
         && DateUtils.getDuration(params.getUpdatedWithin()) == null) {
-      throw new BadRequestException("Duration is not valid: " + params.getUpdatedWithin());
+      throw new BadRequestException("Updated within is not valid: " + params.getUpdatedWithin());
     }
   }
 
