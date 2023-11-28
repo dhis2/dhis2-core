@@ -134,7 +134,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     if (object.getCreatedBy() == null) {
-      //      object.setCreatedBy(user);
+      User createdBy = new User();
+      createdBy.setId(userDetails != null ? userDetails.getId() : null);
+      createdBy.setUsername(userDetails != null ? userDetails.getUsername() : null);
+      object.setCreatedBy(createdBy);
+
       object.setCreatedById(userDetails != null ? userDetails.getId() : null);
     }
 

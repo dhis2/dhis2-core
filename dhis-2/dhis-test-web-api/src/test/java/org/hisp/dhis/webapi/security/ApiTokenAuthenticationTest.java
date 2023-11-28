@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
+import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.TokenWrapper;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
@@ -75,7 +76,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
     long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
     ApiKeyTokenGenerator.TokenWrapper wrapper =
         generatePersonalAccessToken(null, thirtyDaysInTheFuture);
-    apiTokenStore.save(wrapper.getApiToken());
+    apiTokenService.save(wrapper.getApiToken());
     return wrapper;
   }
 
@@ -106,8 +107,9 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
 
   @Test
   void testValidApiTokenAuthentication() {
+    TokenWrapper newToken = createNewToken();
     JsonUser user =
-        GET(URI, ApiTokenHeader(new String(createNewToken().getPlaintextToken())))
+        GET(URI, ApiTokenHeader(new String(newToken.getPlaintextToken())))
             .content(HttpStatus.OK)
             .as(JsonUser.class);
     assertEquals(adminUser.getUid(), user.getId());

@@ -89,8 +89,9 @@ public class ApiTokenServiceImpl implements ApiTokenService {
   @Override
   @Transactional
   public void save(@Nonnull ApiToken apiToken) {
-    throw new IllegalArgumentException(
-        "Tokens can not be saved, all tokens must be created with the createToken() method.");
+    apiTokenStore.save(apiToken);
+    //    throw new IllegalArgumentException(
+    //        "Tokens can not be saved, all tokens must be created with the createToken() method.");
   }
 
   @Override
