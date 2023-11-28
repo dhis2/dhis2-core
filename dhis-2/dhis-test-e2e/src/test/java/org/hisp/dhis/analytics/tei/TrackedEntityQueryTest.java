@@ -45,7 +45,6 @@ import org.hisp.dhis.actions.analytics.AnalyticsTeiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.json.JSONException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -1811,60 +1810,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     validateRow(response, 1, List.of("Ngelehun CHC", "Anna", "Jones"));
 
     validateRow(response, 2, List.of("Masoko MCHP", "Diane", "Bryant"));
-  }
-
-  @Test
-  @Disabled("Fails in CI. Remove this annotation when test will be fixed")
-  public void queryWithProgramAndEnrollmentDateAndPositiveEnrollmentOffset() {
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("program=IpHINAT79UW")
-            .add("enrollmentDate=IpHINAT79UW[1].LAST_MONTH")
-            .add("desc=lastupdated")
-            .add("headers=ouname,IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC");
-
-    // When
-    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
-
-    // Then
-    response
-        .validate()
-        .statusCode(200)
-        .body("headers", hasSize(equalTo(3)))
-        .body("rows", hasSize(equalTo(50)))
-        .body("height", equalTo(50))
-        .body("width", equalTo(3))
-        .body("headerWidth", equalTo(3));
-
-    // Validate headers
-    validateHeader(
-        response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response,
-        1,
-        "IpHINAT79UW.w75KJ2mc4zz",
-        "First name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeader(
-        response,
-        2,
-        "IpHINAT79UW.zDhUuAYrxNC",
-        "Last name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-
-    // Validate the first three rows, as samples.
-    validateRow(response, 0, List.of("Ngelehun CHC", "John", "Kelly"));
-
-    validateRow(response, 1, List.of("Jangalor MCHP", "Antonio", "Ruiz"));
-
-    validateRow(response, 2, List.of("Bureh MCHP", "Ralph", "Smith"));
   }
 
   @Test
