@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.cache;
 
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.core.io.Resource;
+import org.hisp.dhis.config.IntegrationTestConfig;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * @author Lars Helge Overland
- * @version $Id$
- */
-public class HibernateMappingJarLocationsFactoryBean implements FactoryBean<Object[]> {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
-  private HibernateConfigurationProvider hibernateConfigurationProvider;
-
-  public void setHibernateConfigurationProvider(
-      HibernateConfigurationProvider hibernateConfigurationProvider) {
-    this.hibernateConfigurationProvider = hibernateConfigurationProvider;
-  }
-
-  // -------------------------------------------------------------------------
-  // FactoryBean implementation
-  // -------------------------------------------------------------------------
-
+@Configuration
+public class HibernateCacheTestConfig extends IntegrationTestConfig {
   @Override
-  public Object[] getObject() throws Exception {
-    return hibernateConfigurationProvider.getJarResources().toArray();
-  }
-
-  @Override
-  public Class<Resource> getObjectType() {
-    return Resource.class;
-  }
-
-  @Override
-  public boolean isSingleton() {
-    return true;
+  protected String getConfigurationFile() {
+    return "hibernateCacheTest.conf";
   }
 }
