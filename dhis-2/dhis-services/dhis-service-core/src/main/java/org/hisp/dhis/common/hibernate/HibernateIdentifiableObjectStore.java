@@ -133,13 +133,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
       object.getSharing().resetUserGroupAccesses();
     }
 
-    if (object.getCreatedBy() == null) {
-      User createdBy = new User();
-      createdBy.setId(userDetails != null ? userDetails.getId() : null);
-      createdBy.setUsername(userDetails != null ? userDetails.getUsername() : null);
-      object.setCreatedBy(createdBy);
-
-      object.setCreatedById(userDetails != null ? userDetails.getId() : null);
+    if (object.getCreatedBy() == null && userDetails != null) {
+      User user = entityManager.find(User.class, userDetails.getId());
+      object.setCreatedBy(user);
+      object.setCreatedById(userDetails.getId());
     }
 
     if (object.getSharing().getOwner() == null) {

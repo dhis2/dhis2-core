@@ -997,7 +997,9 @@ public class MessageConversationController
   private boolean canReadMessageConversation(
       CurrentUserDetails userDetails,
       org.hisp.dhis.message.MessageConversation messageConversation) {
-    return messageConversation.getUsers().contains(userDetails) || userDetails.isSuper();
+    Set<User> users = messageConversation.getUsers();
+    List<String> list = users.stream().map(User::getUsername).toList();
+    return list.contains(userDetails.getUsername()) || userDetails.isSuper();
   }
 
   /**

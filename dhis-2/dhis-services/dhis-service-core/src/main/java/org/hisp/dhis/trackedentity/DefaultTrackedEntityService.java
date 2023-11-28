@@ -443,7 +443,9 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   public void decideAccess(TrackedEntityQueryParams params) {
     User user = params.isInternalSearch() ? null : params.getUser();
     if (params.isOrganisationUnitMode(ALL)
-        && !user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name())
+        && !(user != null
+            && user.isAuthorized(
+                Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))
         && !params.isInternalSearch()) {
       throw new IllegalQueryException(
           "Current user is not authorized to query across all organisation units");

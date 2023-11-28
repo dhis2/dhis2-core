@@ -58,8 +58,8 @@ public class CurrentUserUtil {
 
     // Principal being a string implies anonymous authentication
     // This is the state before the user is authenticated.
-    if (principal instanceof String) {
-      if (!"anonymousUser".equals(principal)) {
+    if (principal instanceof String principalString) {
+      if (!"anonymousUser".equals(principalString)) {
         return null;
       }
 
@@ -192,12 +192,5 @@ public class CurrentUserUtil {
         }
       }
     }
-  }
-
-  public static CurrentUserDetails getByUsername(String username) {
-    if (getCurrentUsername().equals(username)) {
-      return getCurrentUserDetails();
-    }
-    return null;
   }
 }

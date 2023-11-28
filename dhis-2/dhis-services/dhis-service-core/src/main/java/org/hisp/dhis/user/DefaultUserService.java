@@ -1058,6 +1058,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public ErrorCode validateInvite(User user) {
     if (user == null) {
       return ErrorCode.E6201;
@@ -1135,6 +1136,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional
   public String generateAndPersistTokens(User user, RestoreOptions restoreOptions) {
     RestoreType restoreType = restoreOptions.getRestoreType();
 
@@ -1176,6 +1178,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional
   public boolean restore(User user, String token, String newPassword, RestoreType restoreType) {
     if (user == null
         || token == null
@@ -1190,6 +1193,7 @@ public class DefaultUserService implements UserService {
     user.setInvitation(false);
 
     encodeAndSetPassword(user, newPassword);
+
     updateUser(user);
 
     return true;

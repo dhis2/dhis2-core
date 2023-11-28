@@ -163,7 +163,7 @@ public class GetOrganisationUnitTreeAction extends BaseAction implements Action 
 
     if (currentUser != null && currentUser.hasOrganisationUnit()) {
       rootOrganisationUnits = new ArrayList<>(currentUser.getOrganisationUnits());
-    } else if (currentUser.isSuper()) {
+    } else if (currentUser != null && currentUser.isSuper()) {
       rootOrganisationUnits = new ArrayList<>(organisationUnitService.getRootOrganisationUnits());
     }
 
