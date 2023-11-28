@@ -54,8 +54,7 @@ class UserDatastoreOrderControllerTest extends AbstractUserDatastoreControllerTe
   @Test
   void testOrder_Asc_String() {
     assertJson(
-        "[{'key':'cat'},{'key':'cow'},{'key':'pig'},{'key':'dog'}]",
-        GET("/userDataStore/pets"));
+        "[{'key':'cat'},{'key':'cow'},{'key':'pig'},{'key':'dog'}]", GET("/userDataStore/pets"));
 
     assertJson(
         "[{'key':'cat'},{'key':'cow'},{'key':'pig'},{'key':'dog'}]",
