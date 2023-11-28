@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.cache;
 
+import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.IntegrationTest;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ActiveProfiles;
@@ -37,4 +38,4 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(classes = {HibernateCacheTestConfig.class})
 @ActiveProfiles("test-postgres")
 @IntegrationTest
-public class HibernateCacheBaseTest {}
+public class HibernateCacheBaseTest extends BaseSpringTest {}

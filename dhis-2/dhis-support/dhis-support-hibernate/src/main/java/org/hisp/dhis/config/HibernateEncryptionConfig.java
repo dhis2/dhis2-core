@@ -57,7 +57,8 @@ public class HibernateEncryptionConfig {
 
   @PostConstruct
   public void init() {
-    password = (String) getConnectionProperty("encryption.password", "J7GhAs287hsSQlKd9g5");
+    password =
+        (String) getConnectionProperty(ConfigurationKey.ENCRYPTION_PASSWORD, "J7GhAs287hsSQlKd9g5");
   }
 
   /** Used only for SystemSettings (due to bug with JCE policy restrictions in Jasypt. */
@@ -100,10 +101,8 @@ public class HibernateEncryptionConfig {
     return methodInvokingFactoryBean;
   }
 
-  private Object getConnectionProperty(String key, String defaultValue) {
-    String value =
-        dhisConfigurationProvider.getPropertyOrDefault(
-            ConfigurationKey.ENCRYPTION_PASSWORD, "J7GhAs287hsSQlKd9g5");
+  private Object getConnectionProperty(ConfigurationKey key, String defaultValue) {
+    String value = dhisConfigurationProvider.getPropertyOrDefault(key, defaultValue);
 
     return StringUtils.defaultIfEmpty(value, defaultValue);
   }
