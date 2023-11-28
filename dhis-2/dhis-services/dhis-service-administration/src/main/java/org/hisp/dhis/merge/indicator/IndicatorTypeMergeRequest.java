@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit;
+package org.hisp.dhis.merge.indicator;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
@@ -35,27 +35,22 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.merge.DataMergeStrategy;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.indicator.IndicatorType;
 
 /**
- * Encapsulation of an org unit merge request.
+ * Encapsulation of an indicator type merge request.
  *
- * @author Lars Helge Overland
+ * @author david mackessy
  */
 @Getter
-public class OrgUnitMergeRequest {
-  private Set<OrganisationUnit> sources = new HashSet<>();
+public class IndicatorTypeMergeRequest {
+  private Set<IndicatorType> sources = new HashSet<>();
 
-  private OrganisationUnit target;
-
-  private DataMergeStrategy dataValueMergeStrategy;
-
-  private DataMergeStrategy dataApprovalMergeStrategy;
+  private IndicatorType target;
 
   private boolean deleteSources;
 
-  public Set<OrganisationUnit> getSources() {
+  public Set<IndicatorType> getSources() {
     return ImmutableSet.copyOf(sources);
   }
 
@@ -69,40 +64,25 @@ public class OrgUnitMergeRequest {
   }
 
   public static class Builder {
-    private OrgUnitMergeRequest request;
+    private IndicatorTypeMergeRequest request;
 
     public Builder() {
-      this.request = new OrgUnitMergeRequest();
-
-      this.request.dataValueMergeStrategy = DataMergeStrategy.LAST_UPDATED;
-      this.request.dataApprovalMergeStrategy = DataMergeStrategy.LAST_UPDATED;
+      this.request = new IndicatorTypeMergeRequest();
       this.request.deleteSources = true;
     }
 
-    public Builder addSource(OrganisationUnit source) {
+    public Builder addSource(IndicatorType source) {
       this.request.sources.add(source);
       return this;
     }
 
-    public Builder addSources(Set<OrganisationUnit> sources) {
+    public Builder addSources(Set<IndicatorType> sources) {
       this.request.sources.addAll(sources);
       return this;
     }
 
-    public Builder withTarget(OrganisationUnit target) {
+    public Builder withTarget(IndicatorType target) {
       this.request.target = target;
-      return this;
-    }
-
-    public Builder withDataValueMergeStrategy(DataMergeStrategy dataValueMergeStrategy) {
-      this.request.dataValueMergeStrategy =
-          firstNonNull(dataValueMergeStrategy, this.request.dataValueMergeStrategy);
-      return this;
-    }
-
-    public Builder withDataApprovalMergeStrategy(DataMergeStrategy dataApprovalMergeStrategy) {
-      this.request.dataApprovalMergeStrategy =
-          firstNonNull(dataApprovalMergeStrategy, this.request.dataApprovalMergeStrategy);
       return this;
     }
 
@@ -111,7 +91,7 @@ public class OrgUnitMergeRequest {
       return this;
     }
 
-    public OrgUnitMergeRequest build() {
+    public IndicatorTypeMergeRequest build() {
       return this.request;
     }
   }

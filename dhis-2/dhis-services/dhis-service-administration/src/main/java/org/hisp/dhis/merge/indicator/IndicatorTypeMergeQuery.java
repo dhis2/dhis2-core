@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
+package org.hisp.dhis.merge.indicator;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.HashSet;
 import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import lombok.Data;
 
 /**
- * @author Lars Helge Overland
+ * Encapsulation of a web API request for indicator type merge.
+ *
+ * @author david mackessy
  */
-public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
-  String ID = IndicatorStore.class.getName();
+@Data
+public class IndicatorTypeMergeQuery {
+  @JsonProperty private Set<String> sources = new HashSet<>();
 
-  List<Indicator> getIndicatorsWithGroupSets();
+  @JsonProperty private String target;
 
-  List<Indicator> getIndicatorsWithoutGroups();
-
-  List<Indicator> getIndicatorsWithDataSets();
-
-  //  List<Indicator> getAssociatedIndicators(Set<Long> indicatorTypeIds);
-
-  List<Indicator> getAssociatedIndicators(Set<IndicatorType> indicatorTypes);
+  @JsonProperty private boolean deleteSources;
 }

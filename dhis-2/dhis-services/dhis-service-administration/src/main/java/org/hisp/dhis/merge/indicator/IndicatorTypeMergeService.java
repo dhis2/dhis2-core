@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
-
-import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+package org.hisp.dhis.merge.indicator;
 
 /**
- * @author Lars Helge Overland
+ * Main interface for indicator type merge.
+ *
+ * @author david mackessy
  */
-public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
-  String ID = IndicatorStore.class.getName();
+public interface IndicatorTypeMergeService {
+  /**
+   * Performs an indicator type merge operation.
+   *
+   * @param request the {@link IndicatorTypeMergeRequest}.
+   */
+  void merge(IndicatorTypeMergeRequest request);
 
-  List<Indicator> getIndicatorsWithGroupSets();
-
-  List<Indicator> getIndicatorsWithoutGroups();
-
-  List<Indicator> getIndicatorsWithDataSets();
-
-  //  List<Indicator> getAssociatedIndicators(Set<Long> indicatorTypeIds);
-
-  List<Indicator> getAssociatedIndicators(Set<IndicatorType> indicatorTypes);
+  /**
+   * Converts the given {@link IndicatorTypeMergeQuery} to an {@link IndicatorTypeMergeRequest}.
+   *
+   * @param query the {@link IndicatorTypeMergeQuery}.
+   * @return an {@link IndicatorTypeMergeRequest}.
+   */
+  IndicatorTypeMergeRequest getFromQuery(IndicatorTypeMergeQuery query);
 }

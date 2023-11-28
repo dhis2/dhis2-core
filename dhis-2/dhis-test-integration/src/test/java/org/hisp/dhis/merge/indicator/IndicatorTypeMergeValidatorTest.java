@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit;
+package org.hisp.dhis.merge.indicator;
+
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 
 /**
- * Enum for merge strategies.
- *
- * @author Lars Helge Overland
+ * @author david mackessy
  */
-public enum DataMergeStrategy {
-  /** Use last updated source data records. */
-  LAST_UPDATED,
-
-  /** Discard source data records. */
-  DISCARD
-}
+class IndicatorTypeMergeValidatorTest extends SingleSetupIntegrationTestBase {}

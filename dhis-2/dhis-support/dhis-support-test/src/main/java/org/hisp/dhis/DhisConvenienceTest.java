@@ -225,6 +225,7 @@ public abstract class DhisConvenienceTest {
   protected static final String BASE_UID = "abcdefghij";
 
   protected static final String BASE_IN_UID = "inabcdefgh";
+  protected static final String BASE_IN_TYPE_UID = "intabcdefg";
 
   protected static final String BASE_DE_UID = "deabcdefgh";
 
@@ -825,6 +826,7 @@ public abstract class DhisConvenienceTest {
     IndicatorType type = new IndicatorType();
     type.setAutoFields();
 
+    type.setUid(BASE_IN_TYPE_UID + uniqueCharacter);
     type.setName("IndicatorType" + uniqueCharacter);
     type.setFactor(100);
 

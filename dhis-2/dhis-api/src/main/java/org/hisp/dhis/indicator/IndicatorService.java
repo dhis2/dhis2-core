@@ -28,6 +28,7 @@
 package org.hisp.dhis.indicator;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -54,6 +55,8 @@ public interface IndicatorService {
   List<Indicator> getIndicatorsWithoutGroups();
 
   List<Indicator> getIndicatorsWithDataSets();
+
+  List<Indicator> getAssociatedIndicators(Set<IndicatorType> indicatorTypes);
 
   // -------------------------------------------------------------------------
   // IndicatorType
