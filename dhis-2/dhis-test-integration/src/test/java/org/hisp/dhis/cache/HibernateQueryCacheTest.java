@@ -42,12 +42,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class HibernateQueryCacheTest extends HibernateCacheBaseTest {
 
-  @Autowired EntityManagerFactory entityManagerFactory;
+  private @Autowired EntityManagerFactory entityManagerFactory;
 
   @Test
   void testQueryCache() {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
-    OptionSet optionSet = createOptionSet('A');
+    OptionSet optionSet = new OptionSet();
+    optionSet.setName("OptionSetA");
+    optionSet.setCode("OptionSetCodeA");
     optionSet.setValueType(ValueType.TEXT);
     entityManager.persist(optionSet);
     entityManager.flush();
