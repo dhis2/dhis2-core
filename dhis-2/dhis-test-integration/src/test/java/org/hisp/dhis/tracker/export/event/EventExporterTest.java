@@ -291,6 +291,52 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldReturnEventsIfItOccurredBetweenPassedDateAndTime()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .enrollments(Set.of("TvctPPhpD8z"))
+            .programStageUid(programStage.getUid())
+            .occurredBefore(Date.from(getDate(2020, 1, 28).toInstant().plus(1, ChronoUnit.HOURS)))
+            .occurredAfter(Date.from(getDate(2020, 1, 28).toInstant().minus(1, ChronoUnit.HOURS)))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldReturnEventsIfItOccurredAtTheSameDateAndTimeOfOccurredBeforePassed()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .enrollments(Set.of("TvctPPhpD8z"))
+            .programStageUid(programStage.getUid())
+            .occurredBefore(getDate(2020, 1, 28))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldReturnEventsIfItOccurredAtTheSameDateAndTimeOfOccurredAfterPassed()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .enrollments(Set.of("TvctPPhpD8z"))
+            .programStageUid(programStage.getUid())
+            .occurredAfter(getDate(2020, 1, 28))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
   void testExportEventsWithLastUpdateDates() throws ForbiddenException, BadRequestException {
     Date date = new Date();
     EventOperationParams params =
