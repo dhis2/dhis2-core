@@ -30,6 +30,7 @@ package org.hisp.dhis.datastore;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
@@ -365,10 +366,11 @@ class DatastoreKeysTest extends ApiTest {
     assertEquals("[\"arsenal\",\"spurs\"]", entries);
   }
 
-  protected static String newEntry(String team) {
-    return """
-      {"name": "%s","league": "prem"}
-    """.strip().formatted(team);
+  protected static JsonObject newEntry(String team) {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("name", team);
+    jsonObject.addProperty("league", "prem");
+    return jsonObject;
   }
 
   protected static String sharingUserAccess(String userId) {
@@ -381,7 +383,7 @@ class DatastoreKeysTest extends ApiTest {
             "userAccesses": [
                 {
                     "id": "%s",
-                    "access": "r-------"
+                    "access": "rw------"
                 }
             ],
             "userGroupAccesses": []
@@ -403,7 +405,7 @@ class DatastoreKeysTest extends ApiTest {
             "userGroupAccesses": [
                 {
                     "id": "%s",
-                    "access": "r-------"
+                    "access": "rw------"
                 }
             ]
         }
