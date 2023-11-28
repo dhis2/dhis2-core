@@ -28,7 +28,6 @@
 package org.hisp.dhis.cache;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -37,6 +36,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.OptionSet;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,24 +45,39 @@ class HibernateQueryCacheTest extends HibernateCacheBaseTest {
   private @Autowired EntityManagerFactory entityManagerFactory;
 
   @Test
+  @DisplayName("Hibernate Query cache should be used")
   void testQueryCache() {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
+    SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
+    sessionFactory.getStatistics().setStatisticsEnabled(true);
+
     OptionSet optionSet = new OptionSet();
+    optionSet.setAutoFields();
     optionSet.setName("OptionSetA");
     optionSet.setCode("OptionSetCodeA");
+
     optionSet.setValueType(ValueType.TEXT);
+    entityManager.getTransaction().begin();
     entityManager.persist(optionSet);
-    entityManager.flush();
+    entityManager.getTransaction().commit();
 
-    TypedQuery<OptionSet> query =
-        entityManager
-            .createQuery("from OptionSet where code = :code", OptionSet.class)
-            .setParameter("code", "OptionSetCodeA")
-            .setHint(QueryHints.HINT_CACHE_REGION, "org.hisp.dhis.option.OptionSet")
-            .setHint(QueryHints.HINT_CACHEABLE, true);
-    assertEquals(1, query.getResultList().size());
+    for (int i = 0; i < 10; i++) {
+      entityManager.getTransaction().begin();
+      TypedQuery<OptionSet> query = createQuery(entityManager);
+      assertEquals(1, query.getResultList().size());
+      entityManager.getTransaction().commit();
+    }
 
-    SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
-    assertTrue(sessionFactory.getCache().containsQuery("org.hisp.dhis.option.OptionSet"));
+    assertEquals(1, sessionFactory.getStatistics().getQueryCacheMissCount());
+    assertEquals(9, sessionFactory.getStatistics().getQueryCacheHitCount());
+    entityManager.close();
+  }
+
+  private TypedQuery<OptionSet> createQuery(EntityManager entityManager) {
+    return entityManager
+        .createQuery("from OptionSet where code = :code", OptionSet.class)
+        .setParameter("code", "OptionSetCodeA")
+        .setHint(QueryHints.HINT_CACHE_REGION, "org.hisp.dhis.option.OptionSet")
+        .setHint(QueryHints.HINT_CACHEABLE, true);
   }
 }
