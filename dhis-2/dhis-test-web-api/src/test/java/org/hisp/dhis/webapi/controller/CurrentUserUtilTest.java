@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.database;
+package org.hisp.dhis.webapi.controller;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.Test;
 
 /**
- * @author Lars Helge Overland
+ * @author david mackessy
  */
-@Component
-public class DatabaseInfoFactoryBean implements FactoryBean<DatabaseInfo> {
-  private final DatabaseInfoProvider databaseInfoProvider;
+class CurrentUserUtilTest extends DhisControllerConvenienceTest {
 
-  public DatabaseInfoFactoryBean(DatabaseInfoProvider databaseInfoProvider) {
-    checkNotNull(databaseInfoProvider);
-
-    this.databaseInfoProvider = databaseInfoProvider;
+  @Test
+  void testCurrentUserDetailsIsSuper() {
+    switchToNewUser("newSuperuser", "ALL");
+    CurrentUserDetails newSuperuser = CurrentUserUtil.getCurrentUserDetails();
+    assertNotNull(newSuperuser);
+    assertEquals("newSuperuser", newSuperuser.getUsername());
+    assertTrue(newSuperuser.isSuper());
   }
 
-  @Override
-  public DatabaseInfo getObject() {
-    return databaseInfoProvider.getDatabaseInfo();
-  }
-
-  @Override
-  public Class<?> getObjectType() {
-    return DatabaseInfo.class;
-  }
-
-  @Override
-  public boolean isSingleton() {
-    return true;
+  @Test
+  void testCurrentUserDetailsIsNotSuper() {
+    switchToNewUser("basicUser", "NONE");
+    CurrentUserDetails basicUser = CurrentUserUtil.getCurrentUserDetails();
+    assertNotNull(basicUser);
+    assertEquals("basicUser", basicUser.getUsername());
+    assertFalse(basicUser.isSuper());
   }
 }

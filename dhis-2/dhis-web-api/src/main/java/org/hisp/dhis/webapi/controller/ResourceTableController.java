@@ -93,10 +93,10 @@ public class ResourceTableController {
       @RequestParam(defaultValue = "false") Boolean skipAggregate,
       @RequestParam(defaultValue = "false") Boolean skipEvents,
       @RequestParam(defaultValue = "false") Boolean skipEnrollment,
-      // STILL EXPERIMENTAL: to export TEIs, FE needs to set this to "false" explicitly
-      @RequestParam(defaultValue = "true") Boolean skipTrackedEntities,
+      @RequestParam(defaultValue = "false") Boolean skipTrackedEntities,
       @RequestParam(defaultValue = "false") Boolean skipOrgUnitOwnership,
-      @RequestParam(required = false) Integer lastYears)
+      @RequestParam(required = false) Integer lastYears,
+      @RequestParam(defaultValue = "false") Boolean skipOutliers)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
     Set<String> skipPrograms = new HashSet<>();
@@ -128,7 +128,8 @@ public class ResourceTableController {
     JobConfiguration config = new JobConfiguration(ANALYTICS_TABLE);
     config.setExecutedBy(currentUserService.getCurrentUser().getUid());
     config.setJobParameters(
-        new AnalyticsJobParameters(lastYears, skipTableTypes, skipPrograms, skipResourceTables));
+        new AnalyticsJobParameters(
+            lastYears, skipTableTypes, skipPrograms, skipResourceTables, skipOutliers));
 
     return execute(config);
   }

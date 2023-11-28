@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.Writer;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 
 /**
@@ -43,13 +43,13 @@ public class JacksonCsvUtils {
    * is inferred from the given type using {@CsvSchema}. A header line is included.
    *
    * @param value the value to write.
-   * @param out the {@link OutputStream} to write to.
+   * @param writer the {@link Writer} to write to.
    * @throws IOException if the write operation fails.
    */
-  public static void toCsv(Object value, Class<?> type, OutputStream out) throws IOException {
+  public static void toCsv(Object value, Class<?> type, Writer writer) throws IOException {
     CsvMapper csvMapper = JacksonObjectMapperConfig.csvMapper;
     CsvSchema schema = csvMapper.schemaFor(type).withHeader();
-    ObjectWriter writer = csvMapper.writer(schema);
-    writer.writeValue(out, value);
+    ObjectWriter objectWriter = csvMapper.writer(schema);
+    objectWriter.writeValue(writer, value);
   }
 }

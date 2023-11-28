@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.database;
+package org.hisp.dhis.util;
 
-/**
- * @author Lars Helge Overland
- * @version $Id$
- */
-public interface DatabaseInfoProvider {
-  String ID = DatabaseInfoProvider.class.getName();
+import java.sql.SQLException;
+import java.util.Optional;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-  DatabaseInfo getDatabaseInfo();
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class SqlExceptionUtils {
+  public static final String ERR_MSG_TABLE_NOT_EXISTING =
+      "Query failed, likely because the requested analytics table does not exist: ";
 
-  boolean isInMemory();
+  public static final String ERR_MSG_SQL_SYNTAX_ERROR =
+      "An error occurred during the execution of an analytics query: ";
+
+  public static final String ERR_MSG_SILENT_FALLBACK =
+      "An exception occurred - silently fallback since it's multiple analytics query: ";
+
+  /**
+   * Utility method to detect if the {@link SQLException} refers to a missing relation in the
+   * database.
+   *
+   * @param ex a {@link SQLException} to analyze
+   * @return true if the error is a missing relation error, false otherwise
+   */
+  public static boolean relationDoesNotExist(SQLException ex) {
+    if (ex != null) {
+      return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
+    }
+
+    return false;
+  }
 }

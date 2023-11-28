@@ -25,44 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.outlierdetection.processor;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
-import lombok.Data;
-import org.junit.jupiter.api.Test;
+public interface OutlierSqlStatementProcessor {
 
-class PageRequestParamsTest {
+  /**
+   * Creates a parametrised SQL statement for outliers.
+   *
+   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @return SQL statement as a string.
+   */
+  String getSqlStatement(OutlierDetectionRequest request);
 
-  @Data
-  private static class PaginationParameters implements PageRequestParams {
-    private Integer page;
-    private Integer pageSize;
-    private Boolean totalPages;
-    private Boolean skipPaging;
-  }
-
-  @Test
-  void shouldBePagedIfSkipPagingIsNull() {
-    PaginationParameters parameters = new PaginationParameters();
-
-    assertTrue(parameters.isPaged());
-  }
-
-  @Test
-  void shouldBePagedIfSkipPagingIsTrue() {
-    PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(true);
-
-    assertTrue(parameters.isPaged());
-  }
-
-  @Test
-  void shouldBeUnpagedIfSkipPagingIsTrue() {
-    PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(false);
-
-    assertFalse(parameters.isPaged());
-  }
+  /**
+   * Retrieve SQL parameters for outliers SQL statement
+   *
+   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @return teh instance of {@link SqlParameterSource}.
+   */
+  SqlParameterSource getSqlParameterSource(OutlierDetectionRequest request);
 }

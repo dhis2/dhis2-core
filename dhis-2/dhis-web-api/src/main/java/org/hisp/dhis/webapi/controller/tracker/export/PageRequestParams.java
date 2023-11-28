@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.Objects;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * {@link PageRequestParams} represent the HTTP request parameters that configure whether it is
@@ -58,11 +58,13 @@ public interface PageRequestParams {
   /**
    * Indicates whether to return a page of items or all items. By default, responses are paginated.
    */
+  @OpenApi.Ignore
   default boolean isPaged() {
-    return Objects.requireNonNullElse(getSkipPaging(), true);
+    return !Boolean.TRUE.equals(getSkipPaging());
   }
 
   /** Indicates whether to include the total number of items and pages in the paginated response. */
+  @OpenApi.Ignore
   default boolean isPageTotal() {
     return Boolean.TRUE.equals(getTotalPages());
   }
