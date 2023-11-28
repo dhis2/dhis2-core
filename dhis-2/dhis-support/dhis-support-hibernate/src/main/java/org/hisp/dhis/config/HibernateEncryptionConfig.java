@@ -31,7 +31,8 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
 import org.jasypt.salt.RandomSaltGenerator;
@@ -40,7 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 
 /**
  * @author Luciano Fiandesio
@@ -51,7 +51,7 @@ public class HibernateEncryptionConfig {
 
   public static final String AES_128_STRING_ENCRYPTOR = "aes128StringEncryptor";
 
-  @Autowired @Lazy private HibernateConfigurationProvider hibernateConfigurationProvider;
+  @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
 
   private String password;
 
@@ -101,7 +101,9 @@ public class HibernateEncryptionConfig {
   }
 
   private Object getConnectionProperty(String key, String defaultValue) {
-    String value = hibernateConfigurationProvider.getConfiguration().getProperty(key);
+    String value =
+        dhisConfigurationProvider.getPropertyOrDefault(
+            ConfigurationKey.ENCRYPTION_PASSWORD, "J7GhAs287hsSQlKd9g5");
 
     return StringUtils.defaultIfEmpty(value, defaultValue);
   }

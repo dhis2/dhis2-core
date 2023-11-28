@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis;
 
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.core.io.Resource;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * @author Lars Helge Overland
- * @version $Id$
- */
-public class HibernateMappingJarLocationsFactoryBean implements FactoryBean<Object[]> {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import org.hibernate.SessionFactory;
+import org.hibernate.jpa.QueryHints;
+import org.hisp.dhis.option.OptionSet;
+import org.junit.jupiter.api.Test;
 
-  private HibernateConfigurationProvider hibernateConfigurationProvider;
+public class HibernateBaseTest {
+  @PersistenceContext EntityManager entityManager;
 
-  public void setHibernateConfigurationProvider(
-      HibernateConfigurationProvider hibernateConfigurationProvider) {
-    this.hibernateConfigurationProvider = hibernateConfigurationProvider;
-  }
+  @Test
+  void testQueryCache() {
+    OptionSet optionSet = new OptionSet();
+    optionSet.setAutoFields();
 
-  // -------------------------------------------------------------------------
-  // FactoryBean implementation
-  // -------------------------------------------------------------------------
+    optionSet.setName("OptionSetA");
+    optionSet.setCode("OptionSetCodeA");
+    entityManager.persist(optionSet);
 
-  @Override
-  public Object[] getObject() throws Exception {
-    return hibernateConfigurationProvider.getJarResources().toArray();
-  }
+    entityManager
+        .createQuery("from OptionSet where code = :code", OptionSet.class)
+        .setParameter("code", "OptionSetCodeA")
+        .setHint(QueryHints.HINT_CACHEABLE, true)
+        .getResultList();
 
-  @Override
-  public Class<Resource> getObjectType() {
-    return Resource.class;
-  }
-
-  @Override
-  public boolean isSingleton() {
-    return true;
+    SessionFactory sessionFactory =
+        entityManager.getEntityManagerFactory().unwrap(SessionFactory.class);
+    assertTrue(sessionFactory.getCache().containsQuery("from OptionSet where code = :code"));
   }
 }

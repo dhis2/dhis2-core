@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.config;
+package org.hisp.dhis.cache;
 
-/**
- * @author Luciano Fiandesio
- */
-public class PostgresDhisConfigurationProvider extends TestConfigurationProvider {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-  private static final String DEFAULT_CONFIGURATION_FILE_NAME = "postgresTestConfig.conf";
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
+import org.hibernate.SessionFactory;
+import org.hibernate.jpa.QueryHints;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.option.OptionSet;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-  public PostgresDhisConfigurationProvider() {
-    this.properties = getPropertiesFromFile(DEFAULT_CONFIGURATION_FILE_NAME);
-  }
+class HibernateQueryCacheTest extends HibernateCacheBaseTest {
 
-  public PostgresDhisConfigurationProvider(String fileName) {
-    this.properties = getPropertiesFromFile(fileName);
+  @Autowired EntityManagerFactory entityManagerFactory;
+
+  @Test
+  void testQueryCache() {
+    EntityManager entityManager = entityManagerFactory.createEntityManager();
+    OptionSet optionSet = createOptionSet('A');
+    optionSet.setValueType(ValueType.TEXT);
+    entityManager.persist(optionSet);
+    entityManager.flush();
+
+    TypedQuery<OptionSet> query =
+        entityManager
+            .createQuery("from OptionSet where code = :code", OptionSet.class)
+            .setParameter("code", "OptionSetCodeA")
+            .setHint(QueryHints.HINT_CACHE_REGION, "org.hisp.dhis.option.OptionSet")
+            .setHint(QueryHints.HINT_CACHEABLE, true);
+    assertEquals(1, query.getResultList().size());
+
+    SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
+    assertTrue(sessionFactory.getCache().containsQuery("org.hisp.dhis.option.OptionSet"));
   }
 }

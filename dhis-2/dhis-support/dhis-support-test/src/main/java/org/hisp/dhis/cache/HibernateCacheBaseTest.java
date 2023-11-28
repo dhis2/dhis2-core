@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.cache;
 
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.core.io.Resource;
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.IntegrationTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-/**
- * @author Lars Helge Overland
- */
-public class HibernateMappingDirectoryLocationsFactoryBean implements FactoryBean<Object[]> {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
-  private HibernateConfigurationProvider hibernateConfigurationProvider;
-
-  public void setHibernateConfigurationProvider(
-      HibernateConfigurationProvider hibernateConfigurationProvider) {
-    this.hibernateConfigurationProvider = hibernateConfigurationProvider;
-  }
-
-  // -------------------------------------------------------------------------
-  // FactoryBean implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  public Object[] getObject() throws Exception {
-    return hibernateConfigurationProvider.getDirectoryResources().toArray();
-  }
-
-  @Override
-  public Class<Resource> getObjectType() {
-    return Resource.class;
-  }
-
-  @Override
-  public boolean isSingleton() {
-    return true;
-  }
-}
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {HibernateCacheTestConfig.class})
+@ActiveProfiles("test-postgres")
+@IntegrationTest
+public class HibernateCacheBaseTest extends DhisConvenienceTest {}

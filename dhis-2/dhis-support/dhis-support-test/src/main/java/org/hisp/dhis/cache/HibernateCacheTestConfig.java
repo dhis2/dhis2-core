@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.config;
+package org.hisp.dhis.cache;
 
-/**
- * @author Luciano Fiandesio
- */
-public class PostgresDhisConfigurationProvider extends TestConfigurationProvider {
+import org.hisp.dhis.config.IntegrationTestConfig;
+import org.springframework.context.annotation.Configuration;
 
-  private static final String DEFAULT_CONFIGURATION_FILE_NAME = "postgresTestConfig.conf";
-
-  public PostgresDhisConfigurationProvider() {
-    this.properties = getPropertiesFromFile(DEFAULT_CONFIGURATION_FILE_NAME);
-  }
-
-  public PostgresDhisConfigurationProvider(String fileName) {
-    this.properties = getPropertiesFromFile(fileName);
+@Configuration
+public class HibernateCacheTestConfig extends IntegrationTestConfig {
+  @Override
+  protected String getConfigurationFile() {
+    return "hibernateCacheTest.conf";
   }
 }
