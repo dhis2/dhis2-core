@@ -519,14 +519,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   public WebMessage replaceTranslations(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @RequestParam Map<String, String> rpParameters,
-      @CurrentUser CurrentUserDetailsImpl currentUserDetails,
+      @CurrentUser CurrentUserDetailsImpl currentUser,
       HttpServletRequest request)
       throws NotFoundException, ForbiddenException, IOException {
     WebOptions options = new WebOptions(rpParameters);
 
     BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) getEntity(pvUid, options);
 
-    if (!aclService.canUpdate(currentUserDetails, persistedObject)) {
+    if (!aclService.canUpdate(currentUser, persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 

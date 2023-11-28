@@ -58,33 +58,24 @@ public class CurrentUserDetailsImpl implements CurrentUserDetails {
   private boolean accountNonLocked;
   private boolean credentialsNonExpired;
   private Collection<GrantedAuthority> authorities;
+  private Set<String> allAuthorities;
   private Map<String, Serializable> userSettings;
   private Set<String> userGroupIds;
   private Set<String> userOrgUnitIds;
   private boolean isSuper;
   private Set<String> userRoleIds;
 
-  //  public CurrentUserDetailsImpl() {}
-
   public boolean canModifyUser(User other) {
     if (other == null) {
       return false;
     }
 
-    final Set<String> authorities = getAllAuthorities();
-    if (authorities.contains(UserRole.AUTHORITY_ALL)) {
+    final Set<String> auths = getAllAuthorities();
+    if (auths.contains(UserRole.AUTHORITY_ALL)) {
       return true;
     }
 
-    return authorities.containsAll(other.getAllAuthorities());
-  }
-
-  public Set<String> getAllAuthorities() {
-    return authorities == null
-        ? Set.of()
-        : authorities.stream()
-            .map(GrantedAuthority::getAuthority)
-            .collect(Collectors.toUnmodifiableSet());
+    return auths.containsAll(other.getAllAuthorities());
   }
 
   public boolean hasAnyAuthority(Collection<String> auths) {
@@ -125,7 +116,13 @@ public class CurrentUserDetailsImpl implements CurrentUserDetails {
     userDetails.setAccountNonExpired(user.isAccountNonExpired());
     userDetails.setAccountNonLocked(accountNonLocked);
     userDetails.setCredentialsNonExpired(credentialsNonExpired);
+
     userDetails.setAuthorities(user.getAuthorities());
+    userDetails.setAllAuthorities(
+        user.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.toUnmodifiableSet()));
+
     userDetails.setUserSettings(new HashMap<>());
     userDetails.setUserGroupIds(
         user.getUid() == null
