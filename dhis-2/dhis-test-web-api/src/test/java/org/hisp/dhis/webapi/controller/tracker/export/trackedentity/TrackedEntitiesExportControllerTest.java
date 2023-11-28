@@ -178,7 +178,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     injectSecurityContext(user);
 
     assertEquals(
-        "Either Program or Tracked entity type should be specified",
+        "User has no access to any Tracked Entity Type",
         GET("/tracker/trackedEntities").error(HttpStatus.BAD_REQUEST).getMessage());
   }
 
@@ -187,7 +187,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     this.switchContextToUser(user);
 
     assertEquals(
-        "Either Program or Tracked entity type should be specified",
+        "User has no access to any Tracked Entity Type",
         GET("/tracker/trackedEntities?orgUnit={ou}", orgUnit.getUid())
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
