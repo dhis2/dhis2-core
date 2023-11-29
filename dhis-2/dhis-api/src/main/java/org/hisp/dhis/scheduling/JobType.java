@@ -42,6 +42,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
@@ -71,6 +72,7 @@ public enum JobType {
   User defined jobs
    */
   DATA_INTEGRITY(DataIntegrityJobParameters.class),
+  DATA_INTEGRITY_DETAILS(DataIntegrityDetailsJobParameters.class),
   RESOURCE_TABLE(),
   ANALYTICS_TABLE(AnalyticsJobParameters.class),
   CONTINUOUS_ANALYTICS_TABLE(ContinuousAnalyticsJobParameters.class),
@@ -232,7 +234,7 @@ public enum JobType {
    *     the ready jobs per type is attempted to start in a single loop cycle
    */
   public boolean isUsingContinuousExecution() {
-    return this == METADATA_IMPORT || this == TRACKER_IMPORT_JOB;
+    return this == METADATA_IMPORT || this == TRACKER_IMPORT_JOB || this == DATA_INTEGRITY_DETAILS;
   }
 
   public boolean hasJobParameters() {
@@ -248,7 +250,7 @@ public enum JobType {
 
   public Map<String, String> getRelativeApiElements() {
     return switch (this) {
-      case DATA_INTEGRITY -> Map.of("checks", "/api/dataIntegrity");
+      case DATA_INTEGRITY, DATA_INTEGRITY_DETAILS -> Map.of("checks", "/api/dataIntegrity");
       case ANALYTICS_TABLE -> Map.of(
           "skipTableTypes", "/api/analytics/tableTypes",
           "skipPrograms", "/api/programs");
