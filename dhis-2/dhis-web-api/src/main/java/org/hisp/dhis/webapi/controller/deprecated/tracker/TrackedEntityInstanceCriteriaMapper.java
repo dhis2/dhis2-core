@@ -359,6 +359,4 @@ public class TrackedEntityInstanceCriteriaMapper {
       }
     }
   }
-
-  private void validateOrgUnitParams(Set<String> orgUnits, OrganisationUnitSelectionMode ouMode) {}
 }
