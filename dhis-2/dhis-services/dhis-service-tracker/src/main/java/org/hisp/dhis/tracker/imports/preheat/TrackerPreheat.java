@@ -270,7 +270,7 @@ public class TrackerPreheat {
   private List<String> enrollmentsWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
 
   /** A list of Program Stage UID having 1 or more Events */
-  private List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
+  private final List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
 
   /** idScheme map */
   @Getter @Setter private TrackerIdSchemeParams idSchemes = new TrackerIdSchemeParams();
