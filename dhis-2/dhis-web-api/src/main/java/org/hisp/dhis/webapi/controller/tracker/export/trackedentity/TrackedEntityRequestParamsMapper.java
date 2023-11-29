@@ -106,7 +106,7 @@ class TrackedEntityRequestParamsMapper {
             "trackedEntities",
             trackedEntityRequestParams.getTrackedEntities());
     validateOrderParams(trackedEntityRequestParams.getOrder(), ORDERABLE_FIELD_NAMES, "attribute");
-    validateRequestParams(trackedEntityRequestParams);
+    validateRequestParams(trackedEntityRequestParams, trackedEntities);
 
     Map<String, List<QueryFilter>> filters = parseFilters(trackedEntityRequestParams.getFilter());
 
@@ -155,7 +155,8 @@ class TrackedEntityRequestParamsMapper {
     return builder.build();
   }
 
-  private void validateRequestParams(TrackedEntityRequestParams params) throws BadRequestException {
+  private void validateRequestParams(TrackedEntityRequestParams params, Set<UID> trackedEntities)
+      throws BadRequestException {
 
     if (params.getProgram() != null && params.getTrackedEntityType() != null) {
       throw new BadRequestException(
@@ -163,7 +164,7 @@ class TrackedEntityRequestParamsMapper {
     }
 
     if (params.getProgram() == null) {
-      if (params.getTrackedEntities().isEmpty() && params.getTrackedEntityType() == null) {
+      if (trackedEntities.isEmpty() && params.getTrackedEntityType() == null) {
         throw new BadRequestException(
             "Either `program`, `trackedEntityType` or `trackedEntities` should be specified");
       }
