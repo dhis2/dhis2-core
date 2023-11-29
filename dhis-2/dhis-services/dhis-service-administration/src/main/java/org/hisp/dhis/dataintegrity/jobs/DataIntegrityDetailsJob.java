@@ -29,60 +29,34 @@ package org.hisp.dhis.dataintegrity.jobs;
 
 import java.util.Set;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.commons.timer.SystemTimer;
-import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
-import org.hisp.dhis.dataintegrity.FlattenedDataIntegrityReport;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
-import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters.DataIntegrityReportType;
-import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Halvdan Hoem Grelland <halvdanhg@gmail.com> (original)
- * @author Jan Bernitt (refactored)
+ * @author Jan Bernitt
  */
 @Component
 @AllArgsConstructor
-public class DataIntegrityJob implements Job {
-  private final DataIntegrityService dataIntegrityService;
+public class DataIntegrityDetailsJob implements Job {
 
-  private final Notifier notifier;
+  private final DataIntegrityService dataIntegrityService;
 
   @Override
   public JobType getJobType() {
-    return JobType.DATA_INTEGRITY;
+    return JobType.DATA_INTEGRITY_DETAILS;
   }
 
   @Override
   public void execute(JobConfiguration config, JobProgress progress) {
-    DataIntegrityJobParameters parameters = (DataIntegrityJobParameters) config.getJobParameters();
+    DataIntegrityDetailsJobParameters parameters =
+        (DataIntegrityDetailsJobParameters) config.getJobParameters();
     Set<String> checks = parameters == null ? Set.of() : parameters.getChecks();
 
-    DataIntegrityReportType type = parameters == null ? null : parameters.getType();
-    if (type == null || type == DataIntegrityReportType.REPORT) {
-      runReport(config, progress, checks);
-    } else if (type == DataIntegrityReportType.SUMMARY) {
-      dataIntegrityService.runSummaryChecks(checks, progress);
-    } else {
-      dataIntegrityService.runDetailsChecks(checks, progress);
-    }
-  }
-
-  private void runReport(JobConfiguration config, JobProgress progress, Set<String> checks) {
-    Timer timer = new SystemTimer().start();
-    notifier.notify(config, "Starting data integrity job");
-
-    FlattenedDataIntegrityReport report = dataIntegrityService.getReport(checks, progress);
-
-    timer.stop();
-
-    notifier
-        .notify(config, "Data integrity checks completed in " + timer + ".", true)
-        .addJobSummary(config, report, FlattenedDataIntegrityReport.class);
+    dataIntegrityService.runDetailsChecks(checks, progress);
   }
 }
