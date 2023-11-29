@@ -173,7 +173,7 @@ public class ValidationUtils {
       return;
     }
 
-    boolean isValid = true;
+    boolean isValid;
 
     if (optionalObject.getValueType().isMultiText()) {
       isValid = optionalObject.getOptionSet().hasAllOptions(ValueType.splitMultiText(value));
