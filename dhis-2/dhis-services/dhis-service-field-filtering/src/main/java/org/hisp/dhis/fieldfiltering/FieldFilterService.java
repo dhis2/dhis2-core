@@ -471,14 +471,15 @@ public class FieldFilterService {
   }
 
   private CurrentUserDetails getCurrentUserDetails(String username) {
-    CurrentUserDetails currentUserDetails;
-    if (CurrentUserUtil.getCurrentUsername().equals(username)) {
-      currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    } else {
+    if (CurrentUserUtil.getCurrentUsername() != null
+        && CurrentUserUtil.getCurrentUsername().equals(username)) {
+      return CurrentUserUtil.getCurrentUserDetails();
+    } else if (username != null) {
       User user = userService.getUserByUsername(username);
-      currentUserDetails = CurrentUserDetailsImpl.fromUser(user);
+      return CurrentUserDetailsImpl.fromUser(user);
+    } else {
+      return null;
     }
-    return currentUserDetails;
   }
 
   private void applyAccess(

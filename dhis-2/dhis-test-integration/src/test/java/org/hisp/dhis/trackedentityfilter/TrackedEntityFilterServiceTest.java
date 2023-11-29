@@ -46,6 +46,8 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,8 +71,15 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase {
   private Program programB;
 
   @BeforeEach
-  void init() {
+  void setup() {
     userService = _userService;
+
+    String currentUsername1 = CurrentUserUtil.getCurrentUsername();
+    preCreateInjectAdminUser();
+
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
+    injectSecurityContextUser(currentUser);
   }
 
   @Override

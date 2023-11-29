@@ -323,8 +323,11 @@ public class DefaultUserService implements UserService {
             || systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
     params.setDisjointRoles(!canSeeOwnRoles);
 
+    // TODO: MAS This breaks test: testGetManagedGroupsOrganisationUnit()
     if (!params.hasUser()) {
-      params.setUser(getUserByUsername(CurrentUserUtil.getCurrentUsername()));
+      String currentUsername = CurrentUserUtil.getCurrentUsername();
+      User currentUser = getUserByUsername(currentUsername);
+      params.setUser(currentUser);
     }
 
     if (params.hasUser() && params.getUser().isSuper()) {

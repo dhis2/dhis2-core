@@ -70,8 +70,6 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
   @Autowired private UserService _userService;
 
-  //  @Autowired protected CurrentUserService currentUserService;
-
   @Autowired protected IdentifiableObjectManager manager;
 
   @Autowired protected DbmsManager dbmsManager;
@@ -93,6 +91,12 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     TestUtils.executeStartupRoutines(webApplicationContext);
 
     integrationTestBefore();
+
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
+
+    this.currentUser = userService.getUserByUsername(this.currentUser.getUsername());
+    switchContextToUser(this.currentUser);
 
     dbmsManager.flushSession();
     dbmsManager.clearSession();

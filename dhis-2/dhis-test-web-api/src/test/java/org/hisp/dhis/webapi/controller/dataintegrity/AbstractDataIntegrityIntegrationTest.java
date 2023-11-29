@@ -300,4 +300,9 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
             .getObject(0);
     return ccDefault.getArray("categoryOptionCombos").getString(0).string();
   }
+
+  @Override
+  public HttpResponse GET(String url, Object... args) {
+    return super.GET(url, args);
+  }
 }

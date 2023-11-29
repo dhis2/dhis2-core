@@ -147,6 +147,11 @@ public class DefaultMetadataExportService implements MetadataExportService {
     Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata =
         new HashMap<>();
 
+    String username =
+        params.getCurrentUserDetails() != null
+            ? params.getCurrentUserDetails().getUsername()
+            : "system-process";
+
     if (params.getCurrentUserDetails() == null) {
       params.setCurrentUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
@@ -160,10 +165,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
                   params.getClasses().add((Class<? extends IdentifiableObject>) schema.getKlass()));
     }
 
-    log.info(
-        "(" + params.getCurrentUserDetails() == null
-            ? "system-process"
-            : params.getCurrentUserDetails() + ") Export:Start");
+    log.info("(" + username + ") Export:Start");
 
     for (Class<? extends IdentifiableObject> klass : params.getClasses()) {
       Query query;
@@ -190,23 +192,18 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
       if (!objects.isEmpty()) {
         log.info(
-            "(" + params.getCurrentUserDetails() == null
-                ? "system-process"
-                : params.getCurrentUserDetails().getUsername()
-                    + ") Exported "
-                    + objects.size()
-                    + " objects of type "
-                    + klass.getSimpleName());
+            "("
+                + username
+                + ") Exported "
+                + objects.size()
+                + " objects of type "
+                + klass.getSimpleName());
+
         metadata.put(klass, objects);
       }
     }
 
-    log.info(
-        "(" + params.getCurrentUserDetails() == null
-            ? "system-process"
-            : params.getCurrentUserDetails().getUsername()
-                + ") Export:Done took "
-                + timer.toString());
+    log.info("(" + username + ") Export:Done took " + timer.toString());
 
     return metadata;
   }

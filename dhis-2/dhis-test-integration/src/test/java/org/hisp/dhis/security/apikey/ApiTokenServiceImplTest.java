@@ -51,7 +51,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.test.web.servlet.MockMvc;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -67,12 +66,14 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private UserService _userService;
 
-  protected MockMvc mvc;
-
   @BeforeEach
   final void setup() throws Exception {
     userService = _userService;
     preCreateInjectAdminUser();
+
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
+    injectSecurityContextUser(currentUser);
   }
 
   public ApiToken createAndSaveToken() {

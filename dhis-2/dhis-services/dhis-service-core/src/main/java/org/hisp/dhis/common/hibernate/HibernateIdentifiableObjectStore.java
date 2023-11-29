@@ -120,12 +120,36 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   }
 
   private void save(T object, CurrentUserDetails userDetails, boolean clearSharing) {
-
     String username = userDetails != null ? userDetails.getUsername() : "system-process";
-
     object.setAutoFields();
-    //    object.setLastUpdatedBy(user);
-    object.setLastUpdatedById(userDetails != null ? userDetails.getId() : null);
+
+    if (userDetails != null && userDetails.getId() != 0L) {
+      // See: https://www.baeldung.com/jpa-entity-manager-get-reference for explanation of
+      // getReference
+      //
+      //      try {
+      //        User refuser = getSession().get(User.class, userDetails.getId().longValue());
+      //        log.info("refuser: {}", refuser);
+      //      } catch (Exception e) {
+      //        log.warn("Could not get reference to user with id: {}", userDetails.getId());
+      //        //        throw new RuntimeException(e);
+      //
+      //      }
+      //
+      //      User user = null;
+      //      try {
+      //        //        user = entityManager.getReference(User.class, userDetails.getId());
+      //        user = getSession().get(User.class, userDetails.getId().longValue());
+      //        object.setLastUpdatedBy(user);
+      //
+      //      } catch (Exception e) {
+      //
+      //        List<T> all = getAll();
+      //        //        throw new RuntimeException(e);
+      //
+      //      }
+      object.setLastUpdatedById(userDetails.getId());
+    }
 
     if (clearSharing) {
       object.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
@@ -133,9 +157,19 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
       object.getSharing().resetUserGroupAccesses();
     }
 
-    if (object.getCreatedBy() == null && userDetails != null) {
-      User user = entityManager.find(User.class, userDetails.getId());
-      object.setCreatedBy(user);
+    if (object.getCreatedBy() == null && userDetails != null && userDetails.getId() != 0L) {
+      //      //      User user = entityManager.find(User.class, userDetails.getId());
+      //      User user = null;
+      //      try {
+      //        //        user = entityManager.getReference(User.class, userDetails.getId());
+      //        user = getSession().getReference(User.class, userDetails.getId());
+      //        object.setCreatedBy(user);
+      //
+      //      } catch (Exception e) {
+      //
+      ////        throw new RuntimeException(e);
+      //      }
+
       object.setCreatedById(userDetails.getId());
     }
 

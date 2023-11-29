@@ -165,15 +165,15 @@ public class DefaultAclService implements AclService {
     Schema schema = schemaService.getSchema(objType);
 
     if (canAccess(userDetails, schema.getAuthorityByType(AuthorityType.DATA_READ))) {
+
       if (object instanceof CategoryOptionCombo) {
         return checkOptionComboSharingPermission(userDetails, object, Permission.DATA_READ)
             || checkOptionComboSharingPermission(userDetails, object, Permission.DATA_WRITE);
-      }
+      } else {
 
-      if (schema.isDataShareable()
-          && (checkSharingPermission(userDetails, object, Permission.DATA_READ)
-              || checkSharingPermission(userDetails, object, Permission.DATA_WRITE))) {
-        return true;
+        return schema.isDataShareable()
+            && (checkSharingPermission(userDetails, object, Permission.DATA_READ)
+                || checkSharingPermission(userDetails, object, Permission.DATA_WRITE));
       }
     }
 
@@ -377,7 +377,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canDataRead(User user, IdentifiableObject object) {
-    return false;
+    return canDataRead(CurrentUserDetailsImpl.fromUser(user), object);
   }
 
   public <T extends IdentifiableObject> boolean canCreate(User user, Class<T> klass) {
