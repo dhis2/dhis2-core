@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
+import static java.lang.Math.abs;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.NUMERIC;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
@@ -242,6 +243,8 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
       boolean needsExpressions) {
     String expression = programIndicatorQueryParts.expression();
     String filter = programIndicatorQueryParts.filter();
+    int offset = program.getOffsetWithDefault();
+
     return "select innermost_enr.*"
         + " from (select tei as "
         + TEI_UID
@@ -256,7 +259,9 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
         + SUBQUERY_TABLE_ALIAS
         + (needsExpressions ? " where " + filter : "")
         + ") innermost_enr"
-        + " where innermost_enr.rn = 1";
+        + " where innermost_enr.rn = "
+        // This logic is needed because of the row_number(), which starts in 1.
+        + (offset >= 0 ? ++offset : abs(offset));
   }
 
   static String eventProgramIndicatorSelect(

@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static java.lang.String.join;
 import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.joining;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
@@ -38,7 +37,6 @@ import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -202,28 +200,6 @@ public class TeiFields {
   }
 
   /**
-   * Based on the given item this method returns the correct UID based on internal rules.
-   *
-   * @param dimIdentifier the current {@link DimensionIdentifier}.
-   * @return the respective item's uid.
-   */
-  private static String getItemUid(DimensionIdentifier<DimensionParam> dimIdentifier) {
-    List<String> uids = new ArrayList<>();
-
-    if (dimIdentifier.hasProgram()) {
-      uids.add(dimIdentifier.getProgram().getElement().getUid());
-    }
-
-    if (dimIdentifier.hasProgramStage()) {
-      uids.add(dimIdentifier.getProgramStage().getElement().getUid());
-    }
-
-    uids.add(dimIdentifier.getDimension().getUid());
-
-    return uids.stream().collect(joining("."));
-  }
-
-  /**
    * Creates a {@link GridHeader} for the given {@link DimensionParam} based on the given {@link
    * CommonParams}. The last is needed because of particular cases where we need a custom version of
    * the header.
@@ -331,7 +307,7 @@ public class TeiFields {
           queryItem.getProgramStage().getUid(),
           repeatableStageParams);
     } else {
-      String itemUid = getItemUid(dimIdentifier);
+      String itemUid = dimIdentifier.toString();
       String column = queryItem.getItem().getDisplayProperty(commonParams.getDisplayProperty());
 
       return new GridHeader(
@@ -357,7 +333,7 @@ public class TeiFields {
   private static DimensionIdentifier<DimensionParam> findDimensionParamForField(
       Field field, List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers) {
     return dimensionIdentifiers.stream()
-        .filter(di -> di.getKey().equals(field.getDimensionIdentifier()))
+        .filter(di -> di.toString().equals(field.getDimensionIdentifier()))
         .findFirst()
         .orElse(null);
   }
