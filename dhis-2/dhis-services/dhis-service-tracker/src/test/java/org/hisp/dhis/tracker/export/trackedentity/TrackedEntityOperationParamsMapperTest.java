@@ -156,14 +156,21 @@ class TrackedEntityOperationParamsMapperTest {
             orgUnit2.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(true);
 
+    trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setUid(TRACKED_ENTITY_TYPE_UID);
+    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
+        .thenReturn(trackedEntityType);
+
     program = new Program();
     program.setUid(PROGRAM_UID);
+    program.setTrackedEntityType(trackedEntityType);
     programStage = new ProgramStage();
     programStage.setUid(PROGRAM_STAGE_UID);
     programStage.setProgram(program);
     program.setProgramStages(Set.of(programStage));
 
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
@@ -173,11 +180,6 @@ class TrackedEntityOperationParamsMapperTest {
 
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
     when(attributeService.getTrackedEntityAttribute(TEA_2_UID)).thenReturn(tea2);
-
-    trackedEntityType = new TrackedEntityType();
-    trackedEntityType.setUid(TRACKED_ENTITY_TYPE_UID);
-    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
-        .thenReturn(trackedEntityType);
   }
 
   @Test

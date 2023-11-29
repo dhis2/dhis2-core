@@ -140,7 +140,7 @@ class TrackedEntityOperationParamsMapper {
   }
 
   private List<TrackedEntityType> getTrackedEntityTypes(
-      TrackedEntityType trackedEntityType, Program program, User user) {
+      TrackedEntityType trackedEntityType, Program program, User user) throws BadRequestException {
 
     if (program != null && program.getTrackedEntityType() != null) {
       return List.of(program.getTrackedEntityType());
@@ -151,10 +151,18 @@ class TrackedEntityOperationParamsMapper {
     return emptyList();
   }
 
-  private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(User user) {
-    return trackedEntityTypeService.getAllTrackedEntityType().stream()
-        .filter(tet -> aclService.canDataRead(user, tet))
-        .toList();
+  private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(User user)
+      throws BadRequestException {
+    List<TrackedEntityType> trackedEntityTypes =
+        trackedEntityTypeService.getAllTrackedEntityType().stream()
+            .filter(tet -> aclService.canDataRead(user, tet))
+            .toList();
+
+    if (trackedEntityTypes.isEmpty()) {
+      throw new BadRequestException("User has no access to any Tracked Entity Type");
+    }
+
+    return trackedEntityTypes;
   }
 
   private void mapAttributeFilters(
