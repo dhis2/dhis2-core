@@ -697,7 +697,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldaFailWhenGlobalSearchAndNoAttributeSpecified() {
+  void shouldFailWhenGlobalSearchAndMaxTeLimitReached() {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
     when(currentUserService.getCurrentUser()).thenReturn(user);
@@ -719,5 +719,26 @@ class TrackedEntityOperationParamsMapperTest {
         assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
 
     assertEquals("maxteicountreached", IllegalQueryException.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenUserHasNoAccessToAnyTrackedEntityType() {
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
+    user.setOrganisationUnits(emptySet());
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    program.setMinAttributesRequiredToSearch(0);
+    program.setMaxTeiCountToReturn(1);
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+
+    when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).user(user).build();
+
+    Exception BadRequestException =
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
+
+    assertEquals("User has no access to any Tracked Entity Type", BadRequestException.getMessage());
   }
 }
