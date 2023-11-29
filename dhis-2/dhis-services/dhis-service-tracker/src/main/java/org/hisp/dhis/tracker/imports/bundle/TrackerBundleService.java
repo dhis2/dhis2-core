@@ -77,7 +77,7 @@ public interface TrackerBundleService {
   /**
    * Finalize bundle objects
    *
-   * @param bundle
+   * @param bundle to process in post commit operations if any
    */
   void postCommit(TrackerBundle bundle);
 }

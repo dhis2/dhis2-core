@@ -151,7 +151,7 @@ public class EventOperationParams {
 
   public static class EventOperationParamsBuilder {
 
-    private List<Order> order = new ArrayList<>();
+    private final List<Order> order = new ArrayList<>();
 
     // Do not remove this unused method. This hides the order field from the builder which Lombok
     // does not support. The repeated order field and private order method prevent access to order
