@@ -62,7 +62,7 @@ public class OperationsParamsValidator {
   }
 
   private static void validateUserCanSearchOrgUnitModeALL(User user) throws BadRequestException {
-    if (user != null && !(user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS))) {
+    if (!user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
       throw new BadRequestException(
           "Current user is not authorized to query across all organisation units");
     }

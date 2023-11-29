@@ -148,8 +148,11 @@ public class TrackedEntityInstanceCriteriaMapper {
         throw new IllegalQueryException("Organisation unit does not exist: " + orgUnit);
       }
 
-      if (user != null
-          && !user.isSuper()
+      if (user == null) {
+        throw new IllegalQueryException("Please log in and try again.");
+      }
+
+      if (!user.isSuper()
           && !organisationUnitService.isInUserHierarchy(
               organisationUnit.getUid(), possibleSearchOrgUnits)) {
         throw new IllegalQueryException(
