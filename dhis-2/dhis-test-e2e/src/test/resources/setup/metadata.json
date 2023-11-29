@@ -3042,5 +3042,60 @@
       "legendSets": [],
       "aggregationLevels": []
     }
+  ],
+  "indicatorTypes": [
+    {
+      "name": "test indicator type 1",
+      "factor": 12,
+      "number": true,
+      "id": "indType0001"
+    },
+    {
+      "name": "test indicator type 2",
+      "factor": 1,
+      "number": false,
+      "id": "indType0002"
+    },
+    {
+      "name": "test indicator type 3",
+      "factor": 100,
+      "number": false,
+      "id": "indType0003"
+    }
+  ],
+  "indicators": [
+    {
+      "name": "test indicator1",
+      "id": "Indicator01",
+      "shortName": "test short indicator1",
+      "dimensionItemType": "INDICATOR",
+      "numerator": "#{fbfJHSPpUQD}",
+      "denominator": "#{h0xKKjijTdI}",
+      "indicatorType": {
+        "id": "indType0001"
+      }
+    },
+    {
+      "name": "test indicator2",
+      "id": "Indicator02",
+      "shortName": "test short indicator2",
+      "dimensionItemType": "INDICATOR",
+      "numerator": "#{fbfJHSPpUQD}",
+      "denominator": "#{h0xKKjijTdI}",
+      "indicatorType": {
+        "id": "indType0002"
+      }
+    },
+    {
+      "name": "test indicator3",
+      "id": "Indicator03",
+      "shortName": "test short indicator3",
+      "dimensionItemType": "INDICATOR",
+      "numerator": "#{fbfJHSPpUQD}",
+      "denominator": "#{h0xKKjijTdI}",
+      "indicatorType": {
+        "id": "indType0003"
+      }
+    }
   ]
 }

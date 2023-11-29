@@ -27,14 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller.indicator;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.merge.indicator.IndicatorTypeMergeQuery;
+import org.hisp.dhis.merge.indicator.IndicatorTypeMergeRequest;
 import org.hisp.dhis.merge.indicator.IndicatorTypeMergeService;
 import org.hisp.dhis.schema.descriptors.IndicatorTypeSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -54,6 +58,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping(value = IndicatorTypeSchemaDescriptor.API_ENDPOINT)
 @RequiredArgsConstructor
+@Slf4j
 public class IndicatorTypeController extends AbstractCrudController<IndicatorType> {
 
   private final IndicatorTypeMergeService indicatorTypeMergeService;
@@ -62,7 +67,18 @@ public class IndicatorTypeController extends AbstractCrudController<IndicatorTyp
   @PreAuthorize("hasRole('ALL') or hasRole('F_INDICATOR_TYPE_MERGE')")
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody WebMessage mergeIndicatorTypes(@RequestBody IndicatorTypeMergeQuery query) {
-    indicatorTypeMergeService.merge(indicatorTypeMergeService.getFromQuery(query));
-    return ok("Indicator types merged");
+    log.info("Indicator type merge request received: {}", query);
+    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+
+    IndicatorTypeMergeRequest request = indicatorTypeMergeService.getFromQuery(query, mergeReport);
+
+    if (mergeReport.hasErrorMessages()) {
+      log.info("Indicator type merge request processed: {}", mergeReport);
+      return WebMessageUtils.mergeReport(mergeReport);
+    }
+    indicatorTypeMergeService.merge(request, mergeReport);
+
+    log.info("Indicator type merge request processed: {}", mergeReport);
+    return WebMessageUtils.mergeReport(mergeReport);
   }
 }

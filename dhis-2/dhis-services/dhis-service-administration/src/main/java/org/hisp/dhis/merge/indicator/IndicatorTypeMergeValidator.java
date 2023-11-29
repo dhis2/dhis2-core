@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.merge.indicator;
 
+import static org.hisp.dhis.merge.MergeType.INDICATOR_TYPE;
+
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.feedback.MergeReport;
 import org.springframework.stereotype.Service;
 
 /**
@@ -47,12 +50,9 @@ public class IndicatorTypeMergeValidator {
    * @param request the {@link IndicatorTypeMergeRequest}.
    * @throws IllegalQueryException if validation failed.
    */
-  public void validate(IndicatorTypeMergeRequest request) throws IllegalQueryException {
-    ErrorMessage error = validateForErrorMessage(request);
-
-    if (error != null) {
-      throw new IllegalQueryException(error);
-    }
+  public void validate(IndicatorTypeMergeRequest request, MergeReport mergeReport)
+      throws IllegalQueryException {
+    validateForErrorMessage(request, mergeReport);
   }
 
   /**
@@ -61,17 +61,15 @@ public class IndicatorTypeMergeValidator {
    * @param request the {@link IndicatorTypeMergeRequest}.
    * @return an {@link ErrorMessage} if the validation failed, or null if validation was successful.
    */
-  public ErrorMessage validateForErrorMessage(IndicatorTypeMergeRequest request) {
+  public void validateForErrorMessage(IndicatorTypeMergeRequest request, MergeReport mergeReport) {
     if (request.getSources().isEmpty()) {
-      return new ErrorMessage(ErrorCode.E1530);
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1530));
     }
     if (request.getTarget() == null) {
-      return new ErrorMessage(ErrorCode.E1531);
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1531));
     }
     if (request.getSources().contains(request.getTarget())) {
-      return new ErrorMessage(ErrorCode.E1502);
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1502));
     }
-
-    return null;
   }
 }

@@ -92,7 +92,7 @@ public enum ErrorCode {
   E1530("At least one source indicator type must be specified"),
   E1531("Target indicator type must be specified"),
   E1532("Target indicator type cannot be a source indicator type"),
-  E1533("Source indicator type does not exist: `{0}`"),
+  E1533("{0} indicator type does not exist: `{1}`"),
 
   /* Data */
   E2000("Query parameters cannot be null"),

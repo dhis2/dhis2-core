@@ -25,44 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.indicator;
+package org.hisp.dhis.dxf2.webmessage.responses;
 
-import com.google.common.base.MoreObjects;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.Builder;
-import lombok.Getter;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.indicator.IndicatorType;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.merge.MergeType;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * Encapsulation of an indicator type merge request.
- *
  * @author david mackessy
  */
-@Builder
-@Getter
-public class IndicatorTypeMergeRequest {
-  @Builder.Default private Set<IndicatorType> sources = new HashSet<>();
+public class MergeWebResponse implements WebMessageResponse {
+  @JsonProperty private MergeReport mergeReport;
+  @JsonProperty private String message;
 
-  private IndicatorType target;
-
-  private boolean deleteSources;
-
-  public Set<IndicatorType> getSources() {
-    return Set.copyOf(sources);
-  }
-
-  public static IndicatorTypeMergeRequest empty() {
-    return IndicatorTypeMergeRequest.builder().build();
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("sources", IdentifiableObjectUtils.getUids(sources))
-        .add("target", target != null ? target.getUid() : null)
-        .add("deleteSources", deleteSources)
-        .toString();
+  public MergeWebResponse(@Nonnull MergeReport mergeReport) {
+    this.mergeReport = mergeReport;
+    MergeType mergeType = mergeReport.getMergeType();
+    if (mergeReport.hasErrorMessages()) {
+      this.message = "%s merge has errors".formatted(mergeType);
+    } else {
+      message = "%s merge complete".formatted(mergeType);
+    }
   }
 }

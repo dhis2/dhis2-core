@@ -25,44 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.indicator;
+package org.hisp.dhis.feedback;
 
-import com.google.common.base.MoreObjects;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import lombok.Builder;
-import lombok.Getter;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.indicator.IndicatorType;
+import lombok.Data;
+import org.hisp.dhis.merge.MergeType;
 
 /**
- * Encapsulation of an indicator type merge request.
- *
  * @author david mackessy
  */
-@Builder
-@Getter
-public class IndicatorTypeMergeRequest {
-  @Builder.Default private Set<IndicatorType> sources = new HashSet<>();
+@Data
+public class MergeReport implements ErrorMessageContainer {
 
-  private IndicatorType target;
+  @JsonProperty private final List<ErrorMessage> mergeErrors = new ArrayList<>();
+  @JsonProperty private MergeType mergeType;
+  @JsonProperty private Set<String> sourcesDeleted = new HashSet<>();
 
-  private boolean deleteSources;
-
-  public Set<IndicatorType> getSources() {
-    return Set.copyOf(sources);
-  }
-
-  public static IndicatorTypeMergeRequest empty() {
-    return IndicatorTypeMergeRequest.builder().build();
+  public MergeReport(MergeType mergeType) {
+    this.mergeType = mergeType;
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("sources", IdentifiableObjectUtils.getUids(sources))
-        .add("target", target != null ? target.getUid() : null)
-        .add("deleteSources", deleteSources)
-        .toString();
+  public boolean hasErrorMessages() {
+    return !mergeErrors.isEmpty();
+  }
+
+  @Override
+  public boolean addErrorMessage(ErrorMessage errorMessage) {
+    return mergeErrors.add(errorMessage);
+  }
+
+  @Override
+  public List<ErrorMessage> getErrorMessages() {
+    return mergeErrors;
+  }
+
+  public void addDeletedSource(String uid) {
+    sourcesDeleted.add(uid);
   }
 }

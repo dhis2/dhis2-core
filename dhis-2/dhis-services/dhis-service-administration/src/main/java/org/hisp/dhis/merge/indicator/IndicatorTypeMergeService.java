@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.merge.indicator;
 
+import org.hisp.dhis.feedback.MergeReport;
+
 /**
  * Main interface for indicator type merge.
  *
@@ -38,7 +40,7 @@ public interface IndicatorTypeMergeService {
    *
    * @param request the {@link IndicatorTypeMergeRequest}.
    */
-  void merge(IndicatorTypeMergeRequest request);
+  MergeReport merge(IndicatorTypeMergeRequest request, MergeReport mergeReport);
 
   /**
    * Converts the given {@link IndicatorTypeMergeQuery} to an {@link IndicatorTypeMergeRequest}.
@@ -46,5 +48,5 @@ public interface IndicatorTypeMergeService {
    * @param query the {@link IndicatorTypeMergeQuery}.
    * @return an {@link IndicatorTypeMergeRequest}.
    */
-  IndicatorTypeMergeRequest getFromQuery(IndicatorTypeMergeQuery query);
+  IndicatorTypeMergeRequest getFromQuery(IndicatorTypeMergeQuery query, MergeReport mergeReport);
 }

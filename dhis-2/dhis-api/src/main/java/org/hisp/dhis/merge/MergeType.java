@@ -25,44 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.indicator;
-
-import com.google.common.base.MoreObjects;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.Builder;
-import lombok.Getter;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.indicator.IndicatorType;
+package org.hisp.dhis.merge;
 
 /**
- * Encapsulation of an indicator type merge request.
+ * Enum for merge type.
  *
  * @author david mackessy
  */
-@Builder
-@Getter
-public class IndicatorTypeMergeRequest {
-  @Builder.Default private Set<IndicatorType> sources = new HashSet<>();
+public enum MergeType {
+  ORG_UNIT,
 
-  private IndicatorType target;
-
-  private boolean deleteSources;
-
-  public Set<IndicatorType> getSources() {
-    return Set.copyOf(sources);
-  }
-
-  public static IndicatorTypeMergeRequest empty() {
-    return IndicatorTypeMergeRequest.builder().build();
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("sources", IdentifiableObjectUtils.getUids(sources))
-        .add("target", target != null ? target.getUid() : null)
-        .add("deleteSources", deleteSources)
-        .toString();
-  }
+  INDICATOR_TYPE
 }

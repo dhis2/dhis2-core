@@ -40,12 +40,14 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.MergeWebResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.TypeReportWebMessageResponse;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
@@ -226,6 +228,13 @@ public final class WebMessageUtils {
       return badRequest(null).setResponse(new ErrorReportsWebMessageResponse(errorReports));
     }
     return ok().setResponse(new ErrorReportsWebMessageResponse(errorReports));
+  }
+
+  public static WebMessage mergeReport(MergeReport mergeReport) {
+    if (mergeReport.hasErrorMessages()) {
+      return badRequest(null).setResponse(new MergeWebResponse(mergeReport));
+    }
+    return ok().setResponse(new MergeWebResponse(mergeReport));
   }
 
   public static TypeReport typeReport(Class<?> clazz, List<ErrorReport> errorReports) {
