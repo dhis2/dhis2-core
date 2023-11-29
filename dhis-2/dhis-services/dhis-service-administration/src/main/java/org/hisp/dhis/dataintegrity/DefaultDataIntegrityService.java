@@ -986,7 +986,11 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
             .map(DataIntegrityCheck::getName)
             .forEach(expanded::add);
       } else if (name.contains("*")) {
-        String pattern = name.toLowerCase().replace('-', '_').replace("*", ".*");
+        String pattern =
+            name.toLowerCase()
+                .replace('-', '_') // make uniform
+                .replaceAll("[^_a-z0-9]+", "") // sanitise against regex attacks
+                .replace("*", ".*"); // expand regex wildcard match
         for (DataIntegrityCheck check : checksByName.values()) {
           if (check.getName().matches(pattern)) {
             expanded.add(check.getName());
