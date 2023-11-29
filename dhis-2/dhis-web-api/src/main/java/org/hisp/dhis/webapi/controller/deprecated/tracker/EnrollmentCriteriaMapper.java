@@ -148,9 +148,7 @@ public class EnrollmentCriteriaMapper {
     }
 
     if (ouMode == ALL
-        && (user != null
-            && !user.isSuper()
-            && !user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS))) {
+        && (user != null && !user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS))) {
       throw new IllegalQueryException(
           "Current user is not authorized to query across all organisation units");
     }

@@ -80,16 +80,16 @@ class ValidationExecutorTest extends DhisConvenienceTest {
 
   private static final String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
 
-  private ShowWarningOnCompleteExecutor warningOnCompleteExecutor =
+  private final ShowWarningOnCompleteExecutor warningOnCompleteExecutor =
       new ShowWarningOnCompleteExecutor(getValidationRuleAction(WARNING));
 
-  private ShowErrorOnCompleteExecutor errorOnCompleteExecutor =
+  private final ShowErrorOnCompleteExecutor errorOnCompleteExecutor =
       new ShowErrorOnCompleteExecutor(getValidationRuleAction(ERROR));
 
-  private ShowErrorExecutor showErrorExecutor =
+  private final ShowErrorExecutor showErrorExecutor =
       new ShowErrorExecutor(getValidationRuleAction(ERROR));
 
-  private ShowWarningExecutor showWarningExecutor =
+  private final ShowWarningExecutor showWarningExecutor =
       new ShowWarningExecutor(getValidationRuleAction(WARNING));
 
   private TrackerBundle bundle;
