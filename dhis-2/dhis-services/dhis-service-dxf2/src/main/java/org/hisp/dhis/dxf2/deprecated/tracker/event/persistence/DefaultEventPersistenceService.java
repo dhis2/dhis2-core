@@ -27,19 +27,22 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.event.persistence;
 
+import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.EventCommentStore;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.EventStore;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.mapper.ProgramStageInstanceMapper;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +58,8 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
   @Nonnull private final EventCommentStore jdbcEventCommentStore;
 
   @Nonnull private final EntityManager entityManager;
+
+  @Nonnull private final ObjectMapper mapper;
 
   @Override
   @Transactional
@@ -117,9 +122,33 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
   }
 
   @Override
-  public void updateDataElements(String query) {
+  @Transactional
+  public void updateDataElements(
+      EventDataValue de, org.hisp.dhis.dxf2.deprecated.tracker.event.Event event)
+      throws JsonProcessingException {
 
-    entityManager.createNativeQuery(query).executeUpdate();
+    String uid = de.getDataElement();
+    de.setDataElement(
+        null); // de uid is used as a key in the json, so we don't need it here when updating
+
+    String query =
+        format(
+            "UPDATE event SET "
+                + "eventdatavalues= (CASE"
+                + "        WHEN eventdatavalues->:de IS NOT NULL"
+                + "        THEN jsonb_set(eventdatavalues, '{%1$s}', (eventdatavalues->:de) || '%2$s')"
+                + "        WHEN eventdatavalues->:de IS NULL"
+                + "        THEN jsonb_insert(eventdatavalues, '{%1$s}', '%2$s')"
+                + "    END) ,"
+                + " lastupdated = current_timestamp "
+                + "WHERE  uid = :event",
+            uid, mapper.writeValueAsString(de));
+
+    entityManager
+        .createNativeQuery(query)
+        .setParameter("event", event.getEvent())
+        .setParameter("de", uid)
+        .executeUpdate();
   }
 
   /**

@@ -55,6 +55,7 @@ import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.PAGE
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -760,11 +761,39 @@ public abstract class AbstractEventService
         event, workContextLoader.load(localImportOptions, Collections.singletonList(event)));
   }
 
+  /**
+   * @param event
+   * @return
+   * @throws JsonProcessingException
+   */
   @Transactional
   @Override
-  public ImportSummary updateDataElements(
-      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event) {
-    return eventManager.updateDataElements(event);
+  public ImportSummary updateEventDataValues(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event) throws JsonProcessingException {
+
+    Set<EventDataValue> eventDataValues =
+        workContextLoader
+            .load(
+                ImportOptions.getDefaultImportOptions(),
+                Collections.singletonList(
+                    event)) // load the event data values merging existing and new values
+            .getEventDataValueMap()
+            .get(event.getEvent())
+            .stream()
+            .filter(
+                edv ->
+                    event.getDataValues().stream()
+                        .anyMatch(
+                            input ->
+                                input
+                                    .getDataElement()
+                                    .equals(edv.getDataElement()))) // filter only for the required
+            // data elements because we
+            // previously load all the event
+            // data values
+            .collect(Collectors.toSet());
+
+    return eventManager.updateEventDataValues(event, eventDataValues);
   }
 
   @Transactional

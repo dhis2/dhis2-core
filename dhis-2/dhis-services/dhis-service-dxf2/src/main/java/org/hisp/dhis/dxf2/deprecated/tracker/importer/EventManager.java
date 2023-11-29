@@ -39,6 +39,7 @@ import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
 import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -100,25 +101,17 @@ public class EventManager {
 
   private static final String IMPORT_ERROR_STRING = "Invalid or conflicting data";
 
-  public ImportSummary updateDataElements(
-      org.hisp.dhis.dxf2.deprecated.tracker.event.Event events) {
-    for (DataValue de : events.getDataValues()) {
+  public ImportSummary updateEventDataValues(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, Set<EventDataValue> eventDataValues)
+      throws JsonProcessingException {
+    final ImportSummaries importSummaries = new ImportSummaries();
 
-      String s =
-          String.format(
-              "UPDATE event SET "
-                  + "eventdatavalues= (CASE"
-                  + "        WHEN eventdatavalues->'%1$s' IS NOT NULL"
-                  + "        THEN jsonb_set(eventdatavalues, '{%1$s}', %2$s)"
-                  + "        WHEN eventdatavalues->'%1$s' IS NULL"
-                  + "        THEN jsonb_insert(eventdatavalues, '{%1$s}', %2$s)"
-                  + "    END)"
-                  + "WHERE  uid = '%1$s'",
-              de.getDataElement(), de.toString1());
-
-      eventPersistenceService.updateDataElements(s);
+    for (EventDataValue de : eventDataValues) {
+      eventPersistenceService.updateDataElements(de, event);
     }
-    return null;
+    incrementSummaryTotals(List.of(event), importSummaries, UPDATE);
+
+    return importSummaries.getImportSummaries().get(0);
   }
 
   public ImportSummary addEvent(
