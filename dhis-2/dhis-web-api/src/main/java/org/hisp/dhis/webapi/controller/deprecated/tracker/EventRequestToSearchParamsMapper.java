@@ -462,9 +462,7 @@ class EventRequestToSearchParamsMapper {
 
   private void validateUser(
       User user, Program program, ProgramStage programStage, OrganisationUnit requestedOrgUnit) {
-    if (user == null
-        || user.isSuper()
-        || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
+    if (user == null || user.isSuper()) {
       return;
     }
 
@@ -487,8 +485,7 @@ class EventRequestToSearchParamsMapper {
 
   private static void validateUserCanSearchOrgUnitModeALL(User user) {
     if (user != null
-        && !(user.isSuper()
-            || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))) {
+        && !(user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))) {
       throw new IllegalQueryException(
           "Current user is not authorized to query across all organisation units");
     }

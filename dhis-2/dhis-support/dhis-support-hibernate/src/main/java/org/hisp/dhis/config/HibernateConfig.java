@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.config;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.USE_QUERY_CACHE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.USE_SECOND_LEVEL_CACHE;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,14 +42,14 @@ import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.SessionFactory;
+import org.hibernate.cache.ehcache.internal.EhcacheRegionFactory;
+import org.hibernate.cfg.AvailableSettings;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
 import org.hisp.dhis.hibernate.EntityManagerBeanDefinitionRegistrarPostProcessor;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
@@ -70,14 +73,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 @EnableTransactionManagement
 @Slf4j
 public class HibernateConfig {
-  @Bean("hibernateConfigurationProvider")
-  public HibernateConfigurationProvider hibernateConfigurationProvider(
-      DhisConfigurationProvider dhisConfig) {
-    DefaultHibernateConfigurationProvider hibernateConfigurationProvider =
-        new DefaultHibernateConfigurationProvider();
-    hibernateConfigurationProvider.setConfigProvider(dhisConfig);
-    return hibernateConfigurationProvider;
-  }
 
   @Bean
   public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
@@ -139,7 +134,7 @@ public class HibernateConfig {
     factory.setPackagesToScan("org.hisp.dhis");
     factory.setSharedCacheMode(SharedCacheMode.ENABLE_SELECTIVE);
     factory.setValidationMode(ValidationMode.AUTO);
-    factory.setJpaProperties(getAdditionalProperties());
+    factory.setJpaProperties(getAdditionalProperties(dhisConfig));
     factory.setMappingResources(loadResources());
     factory.afterPropertiesSet();
     return factory.getObject();
@@ -148,11 +143,17 @@ public class HibernateConfig {
   /**
    * Returns additional properties to be used by the {@link LocalContainerEntityManagerFactoryBean}
    */
-  private Properties getAdditionalProperties() {
+  private Properties getAdditionalProperties(DhisConfigurationProvider dhisConfig) {
     Properties properties = new Properties();
     properties.put(
         "hibernate.current_session_context_class",
         "org.springframework.orm.hibernate5.SpringSessionContext");
+
+    if (dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE).equals("true")) {
+      properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
+      properties.put(AvailableSettings.CACHE_REGION_FACTORY, EhcacheRegionFactory.class.getName());
+      properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
+    }
 
     // TODO: this is anti-pattern and should be turn off
     properties.put("hibernate.allow_update_outside_transaction", "true");
