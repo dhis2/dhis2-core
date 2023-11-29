@@ -72,4 +72,17 @@ class DataIntegrityCheckTest {
         checks.stream().sorted(DataIntegrityCheck.FAST_TO_SLOW).toList();
     assertEquals(List.of("c", "b", "a"), actual.stream().map(DataIntegrityCheck::getName).toList());
   }
+
+  @Test
+  void testAddExecution() {
+    DataIntegrityCheck check = DataIntegrityCheck.builder().name("a").build();
+
+    check.addExecution(1000).addExecution(1000); // sum is 2000, 2 times
+
+    assertEquals(1000L, check.getAverageExecutionTime());
+
+    check.addExecution(4000); // sum is now 6000, 3 times
+
+    assertEquals(2000L, check.getAverageExecutionTime());
+  }
 }
