@@ -988,7 +988,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       } else if (name.contains("*")) {
         String pattern = name.toLowerCase().replace('-', '_').replace("*", ".*");
         for (DataIntegrityCheck check : checksByName.values()) {
-          if (!check.isSlow() && check.getName().matches(pattern)) {
+          if (check.getName().matches(pattern)) {
             expanded.add(check.getName());
           }
         }
