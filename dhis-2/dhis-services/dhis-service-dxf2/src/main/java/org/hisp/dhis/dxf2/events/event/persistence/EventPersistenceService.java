@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.dxf2.events.event.persistence;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 
 /**
  * Wrapper service for Event-related operations. This service acts as a transactional wrapper for
@@ -61,4 +63,6 @@ public interface EventPersistenceService {
    * @param events a List of {@see Event}
    */
   void delete(WorkContext context, List<Event> events);
+
+  void updateEventDataValues(EventDataValue de, Event event) throws JsonProcessingException;
 }
