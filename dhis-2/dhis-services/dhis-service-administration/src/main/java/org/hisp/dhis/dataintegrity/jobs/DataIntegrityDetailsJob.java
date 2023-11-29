@@ -25,61 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.dataintegrity.jobs;
 
-import org.hisp.dhis.dataintegrity.DataIntegritySeverity;
-import org.hisp.dhis.jsontree.Expected;
-import org.hisp.dhis.jsontree.JsonObject;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import org.hisp.dhis.dataintegrity.DataIntegrityService;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
+import org.springframework.stereotype.Component;
 
 /**
- * JSON API equivalent of the {@link org.hisp.dhis.dataintegrity.DataIntegrityCheck}.
- *
  * @author Jan Bernitt
  */
-public interface JsonDataIntegrityCheck extends JsonObject {
-  @Expected
-  default String getName() {
-    return getString("name").string();
+@Component
+@AllArgsConstructor
+public class DataIntegrityDetailsJob implements Job {
+
+  private final DataIntegrityService dataIntegrityService;
+
+  @Override
+  public JobType getJobType() {
+    return JobType.DATA_INTEGRITY_DETAILS;
   }
 
-  @Expected
-  default String getDisplayName() {
-    return getString("displayName").string();
-  }
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    DataIntegrityDetailsJobParameters parameters =
+        (DataIntegrityDetailsJobParameters) config.getJobParameters();
+    Set<String> checks = parameters == null ? Set.of() : parameters.getChecks();
 
-  default String getSection() {
-    return getString("section").string();
-  }
-
-  default DataIntegritySeverity getSeverity() {
-    return getString("severity").parsed(DataIntegritySeverity::valueOf);
-  }
-
-  default String getDescription() {
-    return getString("description").string();
-  }
-
-  default String getIntroduction() {
-    return getString("introduction").string();
-  }
-
-  default String getRecommendation() {
-    return getString("recommendation").string();
-  }
-
-  default String getIssuesIdType() {
-    return getString("issuesIdType").string();
-  }
-
-  default boolean getIsSlow() {
-    return getBoolean("isSlow").booleanValue();
-  }
-
-  default boolean getIsProgrammatic() {
-    return getBoolean("isProgrammatic").booleanValue();
-  }
-
-  default String getCode() {
-    return getString("code").string();
+    dataIntegrityService.runDetailsChecks(checks, progress);
   }
 }

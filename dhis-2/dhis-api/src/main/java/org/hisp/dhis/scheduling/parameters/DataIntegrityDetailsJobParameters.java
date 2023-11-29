@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,61 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.scheduling.parameters;
 
-import org.hisp.dhis.dataintegrity.DataIntegritySeverity;
-import org.hisp.dhis.jsontree.Expected;
-import org.hisp.dhis.jsontree.JsonObject;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.scheduling.JobParameters;
 
 /**
- * JSON API equivalent of the {@link org.hisp.dhis.dataintegrity.DataIntegrityCheck}.
- *
  * @author Jan Bernitt
  */
-public interface JsonDataIntegrityCheck extends JsonObject {
-  @Expected
-  default String getName() {
-    return getString("name").string();
-  }
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class DataIntegrityDetailsJobParameters implements JobParameters {
 
-  @Expected
-  default String getDisplayName() {
-    return getString("displayName").string();
-  }
-
-  default String getSection() {
-    return getString("section").string();
-  }
-
-  default DataIntegritySeverity getSeverity() {
-    return getString("severity").parsed(DataIntegritySeverity::valueOf);
-  }
-
-  default String getDescription() {
-    return getString("description").string();
-  }
-
-  default String getIntroduction() {
-    return getString("introduction").string();
-  }
-
-  default String getRecommendation() {
-    return getString("recommendation").string();
-  }
-
-  default String getIssuesIdType() {
-    return getString("issuesIdType").string();
-  }
-
-  default boolean getIsSlow() {
-    return getBoolean("isSlow").booleanValue();
-  }
-
-  default boolean getIsProgrammatic() {
-    return getBoolean("isProgrammatic").booleanValue();
-  }
-
-  default String getCode() {
-    return getString("code").string();
-  }
+  @JsonProperty(required = false)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private Set<String> checks;
 }

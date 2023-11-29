@@ -491,7 +491,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         issues.add(toIssue(rule, i18n.getString(result.getKey())));
       }
     }
-
     return issues;
   }
 
@@ -508,11 +507,13 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     try {
       Schema issueSchema = issueIdType == null ? null : schemaService.getDynamicSchema(issueIdType);
       String issueIdTypeName = issueSchema == null ? null : issueSchema.getPlural();
-      checksByName.put(
+      checksByName.putIfAbsent(
           name,
           DataIntegrityCheck.builder()
               .name(name)
               .displayName(info.apply("name", name.replace('_', ' ')))
+              .isSlow(true)
+              .isProgrammatic(true)
               .severity(
                   DataIntegritySeverity.valueOf(
                       info.apply("severity", DataIntegritySeverity.WARNING.name()).toUpperCase()))
@@ -942,7 +943,10 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       progress.startingProcess("Data Integrity check");
       progress.startingStage(stageDesc, checks.size(), SKIP_ITEM);
       progress.runStage(
-          checks.stream().map(checksByName::get).filter(Objects::nonNull),
+          checks.stream()
+              .map(checksByName::get)
+              .filter(Objects::nonNull)
+              .sorted(DataIntegrityCheck.FAST_TO_SLOW),
           DataIntegrityCheck::getDescription,
           check -> {
             Date startTime = new Date();
@@ -956,6 +960,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
               running.remove(check.getName());
             }
             if (res != null) {
+              check.addExecution(currentTimeMillis() - startTime.getTime());
               cache.put(check.getName(), res);
             }
           });
@@ -981,9 +986,13 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
             .map(DataIntegrityCheck::getName)
             .forEach(expanded::add);
       } else if (name.contains("*")) {
-        String pattern = name.toLowerCase().replace('-', '_').replace("*", ".*");
+        String pattern =
+            name.toLowerCase()
+                .replace('-', '_') // make uniform
+                .replaceAll("[^*_a-z0-9]+", "") // sanitise against regex attacks
+                .replace("*", ".*"); // expand regex wildcard match
         for (DataIntegrityCheck check : checksByName.values()) {
-          if (!check.isSlow() && check.getName().matches(pattern)) {
+          if (check.getName().matches(pattern)) {
             expanded.add(check.getName());
           }
         }
@@ -1005,11 +1014,11 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
 
   private void ensureConfigurationsAreLoaded() {
     if (configurationsAreLoaded.compareAndSet(false, true)) {
-      // programmatic checks
-      initIntegrityChecks();
-
       // load system-packaged data integrity checks
       loadChecks(CLASS_PATH, "data-integrity-checks.yaml", "data-integrity-checks");
+
+      // programmatic checks
+      initIntegrityChecks();
 
       // load user-packaged custom data integrity checks
       try {
