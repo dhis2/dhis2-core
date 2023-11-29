@@ -75,6 +75,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -315,6 +316,74 @@ class EventImportTest extends TransactionalIntegrationTest {
     manager.save(pi);
 
     return program;
+  }
+
+  @Test
+  void shouldUpdateEventDataValues_whenAddingDataValuesToEvent() throws IOException {
+    InputStream is =
+        createEventJsonInputStream(
+            programB.getUid(),
+            programStageB.getUid(),
+            organisationUnitB.getUid(),
+            null,
+            dataElementB,
+            "10");
+    String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
+
+    Event event = createEvent(uid);
+
+    ProgramStageInstance ev = programStageInstanceService.getProgramStageInstance(event.getUid());
+
+    assertNotNull(ev);
+    assertEquals(1, ev.getEventDataValues().size());
+
+    // add a new data value and update an existing one
+
+    DataValue dataValueA = new DataValue();
+    dataValueA.setValue("10");
+    dataValueA.setDataElement(dataElementA.getUid());
+    dataValueA.setStoredBy(superUser.getName());
+
+    DataValue dataValueB = new DataValue();
+    dataValueB.setValue("20");
+    dataValueB.setDataElement(dataElementB.getUid());
+    dataValueB.setStoredBy(superUser.getName());
+
+    event.setDataValues(Set.of(dataValueA, dataValueB));
+
+    eventService.updateEventDataValues(event);
+
+    manager.clear();
+
+    ev = programStageInstanceService.getProgramStageInstance(event.getUid());
+
+    assertNotNull(ev);
+    assertNotNull(ev.getEventDataValues());
+    assertEquals(2, ev.getEventDataValues().size());
+
+    EventDataValue eventDataValueA =
+        ev.getEventDataValues().stream()
+            .filter(edv -> edv.getDataElement().equals(dataValueA.getDataElement()))
+            .findFirst()
+            .orElse(null);
+
+    assertNotNull(eventDataValueA);
+    assertEquals(eventDataValueA.getValue(), dataValueA.getValue());
+    assertEquals(eventDataValueA.getStoredBy(), superUser.getName());
+    assertNotNull(eventDataValueA.getCreated());
+    assertNotNull(eventDataValueA.getLastUpdated());
+
+    EventDataValue eventDataValueB =
+        ev.getEventDataValues().stream()
+            .filter(edv -> edv.getDataElement().equals(dataValueB.getDataElement()))
+            .findFirst()
+            .orElse(null);
+
+    assertNotNull(eventDataValueB);
+    assertEquals(eventDataValueB.getValue(), dataValueB.getValue());
+    assertEquals(eventDataValueB.getStoredBy(), superUser.getName());
+    assertNotNull(eventDataValueB.getCreated());
+    assertNotNull(eventDataValueB.getLastUpdated());
   }
 
   @Test
