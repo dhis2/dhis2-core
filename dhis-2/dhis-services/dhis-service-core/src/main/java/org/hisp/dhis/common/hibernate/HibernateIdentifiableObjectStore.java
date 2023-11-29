@@ -124,6 +124,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     object.setAutoFields();
 
     if (userDetails != null && userDetails.getId() != 0L) {
+      User user = null;
+      user = entityManager.getReference(User.class, userDetails.getId());
       // See: https://www.baeldung.com/jpa-entity-manager-get-reference for explanation of
       // getReference
       //
@@ -148,7 +150,13 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
       //        //        throw new RuntimeException(e);
       //
       //      }
-      object.setLastUpdatedById(userDetails.getId());
+
+      //      object.setLastUpdatedById(userDetails.getId());
+
+      object.setLastUpdatedBy(user);
+      if (object.getCreatedBy() == null) {
+        object.setCreatedBy(user);
+      }
     }
 
     if (clearSharing) {
@@ -157,21 +165,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
       object.getSharing().resetUserGroupAccesses();
     }
 
-    if (object.getCreatedBy() == null && userDetails != null && userDetails.getId() != 0L) {
-      //      //      User user = entityManager.find(User.class, userDetails.getId());
-      //      User user = null;
-      //      try {
-      //        //        user = entityManager.getReference(User.class, userDetails.getId());
-      //        user = getSession().getReference(User.class, userDetails.getId());
-      //        object.setCreatedBy(user);
-      //
-      //      } catch (Exception e) {
-      //
-      ////        throw new RuntimeException(e);
-      //      }
-
-      object.setCreatedById(userDetails.getId());
-    }
+    //    if (object.getCreatedBy() == null && userDetails != null && userDetails.getId() != 0L) {
+    //      //      //      User user = entityManager.find(User.class, userDetails.getId());
+    //      //      User user = null;
+    //      //      try {
+    //      //        //        user = entityManager.getReference(User.class, userDetails.getId());
+    //      //        user = getSession().getReference(User.class, userDetails.getId());
+    //      //        object.setCreatedBy(user);
+    //      //
+    //      //      } catch (Exception e) {
+    //      //
+    //      ////        throw new RuntimeException(e);
+    //      //      }
+    //
+    //      //      User user = entityManager.getReference(User.class, userDetails.getId());
+    //      object.setCreatedBy(user);
+    //      //      object.setCreatedById(userDetails.getId());
+    //    }
 
     if (object.getSharing().getOwner() == null) {
       object

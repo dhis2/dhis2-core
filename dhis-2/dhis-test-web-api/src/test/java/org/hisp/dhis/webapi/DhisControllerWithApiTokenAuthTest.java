@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi;
 import static org.hisp.dhis.web.WebClientUtils.failOnException;
 
 import org.hisp.dhis.IntegrationH2Test;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.config.ConfigProviderConfiguration;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -73,6 +74,8 @@ public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcCont
   @Autowired private FilterChainProxy springSecurityFilterChain;
 
   @Autowired private UserService _userService;
+
+  @Autowired protected IdentifiableObjectManager manager;
 
   protected MockMvc mvc;
 

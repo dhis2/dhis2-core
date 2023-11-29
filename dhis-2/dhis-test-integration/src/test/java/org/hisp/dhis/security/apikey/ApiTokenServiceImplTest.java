@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -55,7 +55,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase {
+class ApiTokenServiceImplTest extends TransactionalIntegrationTest {
   @Autowired private ApiTokenStore apiTokenStore;
 
   @Autowired private ApiTokenService apiTokenService;

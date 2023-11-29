@@ -32,7 +32,11 @@ import static org.hisp.dhis.web.WebClient.ApiTokenHeader;
 import static org.hisp.dhis.web.WebClient.Header;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.TokenWrapper;
 import org.hisp.dhis.security.apikey.ApiToken;
@@ -121,7 +125,17 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
     final String plaintext = new String(wrapper.getPlaintextToken());
     final ApiToken token = wrapper.getApiToken();
 
-    token.addIpToAllowedList("192.168.2.1");
+    hibernateService.flushSession();
+
+    List<CategoryOption> allCategoryOptions = internalCategoryService.getAllCategoryOptions();
+    List<CategoryCombo> allCategoryCombos = internalCategoryService.getAllCategoryCombos();
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        internalCategoryService.getAllCategoryOptionCombos();
+
+    List<ApiToken> all = apiTokenService.getAll();
+
+    ApiToken fetchedToken = apiTokenService.getByUid(token.getUid());
+    fetchedToken.addIpToAllowedList("192.168.2.1");
     apiTokenService.update(token);
 
     String errorMessage =

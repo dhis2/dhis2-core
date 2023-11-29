@@ -78,7 +78,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
 
@@ -95,7 +94,9 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   private final SystemSettingManager systemSettings;
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  //    @Transactional(propagation = Propagation.REQUIRES_NEW, noRollbackFor =
+  //        Exception.class)
+  @Transactional
   public String create(JobConfiguration config) throws ConflictException {
     config.setAutoFields();
     jobConfigurationStore.save(config);
@@ -103,7 +104,10 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  //  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
+  //  @Transactional(propagation = Propagation.REQUIRES_NEW, noRollbackFor =
+  //      Exception.class)
   public String create(JobConfiguration config, MimeType contentType, InputStream content)
       throws ConflictException {
     if (config.getSchedulingType() != SchedulingType.ONCE_ASAP)
