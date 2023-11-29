@@ -49,8 +49,10 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters.DataIntegrityReportType;
 import org.hisp.dhis.user.CurrentUser;
@@ -102,7 +104,11 @@ public class DataIntegrityController {
             : JobType.DATA_INTEGRITY;
     JobConfiguration config = new JobConfiguration(jobType);
     config.setExecutedBy(currentUser.getUid());
-    config.setJobParameters(new DataIntegrityJobParameters(type, checks));
+    JobParameters parameters =
+        type == DataIntegrityReportType.DETAILS
+            ? new DataIntegrityDetailsJobParameters(checks)
+            : new DataIntegrityJobParameters(type, checks);
+    config.setJobParameters(parameters);
 
     jobSchedulerService.executeNow(jobConfigurationService.create(config));
 
