@@ -25,28 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.indicator;
+package org.hisp.dhis.merge;
 
-import org.hisp.dhis.feedback.MergeReport;
+import com.google.common.base.MoreObjects;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.Builder;
+import lombok.Getter;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 
 /**
- * Main interface for indicator type merge.
+ * Encapsulation of an indicator type merge request.
  *
  * @author david mackessy
  */
-public interface IndicatorTypeMergeService {
-  /**
-   * Performs an indicator type merge operation.
-   *
-   * @param request the {@link IndicatorTypeMergeRequest}.
-   */
-  MergeReport merge(IndicatorTypeMergeRequest request, MergeReport mergeReport);
+@Builder
+public class MergeRequest<T extends BaseIdentifiableObject> {
+  @Builder.Default private Set<T> sources = new HashSet<>();
 
-  /**
-   * Converts the given {@link IndicatorTypeMergeQuery} to an {@link IndicatorTypeMergeRequest}.
-   *
-   * @param query the {@link IndicatorTypeMergeQuery}.
-   * @return an {@link IndicatorTypeMergeRequest}.
-   */
-  IndicatorTypeMergeRequest getFromQuery(IndicatorTypeMergeQuery query, MergeReport mergeReport);
+  private T target;
+
+  @Getter private boolean deleteSources;
+
+  public Set<T> getSources() {
+    return Set.copyOf(sources);
+  }
+
+  public T getTarget() {
+    return target;
+  }
+
+  public static <T extends BaseIdentifiableObject> MergeRequest<T> empty() {
+    return MergeRequest.<T>builder().build();
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("sources", IdentifiableObjectUtils.getUids(sources))
+        .add("target", target != null ? target.getUid() : null)
+        .add("deleteSources", deleteSources)
+        .toString();
+  }
 }

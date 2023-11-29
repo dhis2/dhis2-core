@@ -26,7 +26,9 @@ class IndicatorTypeMergeTest extends ApiTest {
   @Test
   void testThis() {
     String merge = indicatorTypeApiActions.post("merge", getMergeBody()).getAsString();
-    assertEquals("test", merge);
+    assertEquals(
+        "{\"httpStatus\":\"OK\",\"httpStatusCode\":200,\"status\":\"OK\",\"response\":{\"mergeReport\":{\"mergeErrors\":[],\"mergeType\":\"INDICATOR_TYPE\",\"sourcesDeleted\":[]},\"message\":\"INDICATOR_TYPE merge complete\"}}",
+        merge);
   }
 
   private JsonObject getMergeBody() {

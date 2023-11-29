@@ -25,25 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.indicator;
-
-import static org.hisp.dhis.merge.MergeType.INDICATOR_TYPE;
+package org.hisp.dhis.merge;
 
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
-import org.hisp.dhis.merge.MergeRequest;
-import org.hisp.dhis.merge.MergeValidator;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.merge.indicator.IndicatorTypeMergeRequest;
 
 /**
  * Validation service for indicator type merge requests.
  *
  * @author david mackessy
  */
-@Service
-public class IndicatorTypeMergeValidator implements MergeValidator {
+public interface MergeValidator {
 
   /**
    * Validates the given {@link IndicatorTypeMergeRequest}. Throws {@link IllegalQueryException} if
@@ -52,10 +46,7 @@ public class IndicatorTypeMergeValidator implements MergeValidator {
    * @param request the {@link IndicatorTypeMergeRequest}.
    * @throws IllegalQueryException if validation failed.
    */
-  @Override
-  public void validate(MergeRequest request, MergeReport mergeReport) throws IllegalQueryException {
-    validateForErrorMessage(request, mergeReport);
-  }
+  void validate(MergeRequest request, MergeReport mergeReport);
 
   /**
    * Validates the given {@link IndicatorTypeMergeRequest}.
@@ -63,16 +54,5 @@ public class IndicatorTypeMergeValidator implements MergeValidator {
    * @param request the {@link IndicatorTypeMergeRequest}.
    * @return an {@link ErrorMessage} if the validation failed, or null if validation was successful.
    */
-  @Override
-  public void validateForErrorMessage(MergeRequest request, MergeReport mergeReport) {
-    if (request.getSources().isEmpty()) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1530));
-    }
-    if (request.getTarget() == null) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1531));
-    }
-    if (request.getSources().contains(request.getTarget())) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1502));
-    }
-  }
+  void validateForErrorMessage(MergeRequest request, MergeReport mergeReport);
 }

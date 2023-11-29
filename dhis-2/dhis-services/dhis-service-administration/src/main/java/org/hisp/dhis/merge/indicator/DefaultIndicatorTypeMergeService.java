@@ -41,6 +41,9 @@ import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.merge.MergeQuery;
+import org.hisp.dhis.merge.MergeRequest;
+import org.hisp.dhis.merge.MergeValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,16 +55,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DefaultIndicatorTypeMergeService implements IndicatorTypeMergeService {
+public class DefaultIndicatorTypeMergeService implements MergeService<IndicatorType> {
 
-  private final IndicatorTypeMergeValidator validator;
+  private final MergeValidator indicatorTypeMergeValidator;
   private final IndicatorService indicatorService;
   private final IdentifiableObjectManager idObjectManager;
 
   @Override
   @Transactional
-  public MergeReport merge(IndicatorTypeMergeRequest request, MergeReport mergeReport) {
-    validator.validate(request, mergeReport);
+  public MergeReport merge(MergeRequest<IndicatorType> request, MergeReport mergeReport) {
+    indicatorTypeMergeValidator.validate(request, mergeReport);
 
     if (mergeReport.hasErrorMessages()) {
       return mergeReport;
@@ -74,8 +77,7 @@ public class DefaultIndicatorTypeMergeService implements IndicatorTypeMergeServi
   }
 
   @Override
-  public IndicatorTypeMergeRequest getFromQuery(
-      IndicatorTypeMergeQuery query, MergeReport mergeReport) {
+  public MergeRequest<IndicatorType> getFromQuery(MergeQuery query, MergeReport mergeReport) {
     // sources
     Set<IndicatorType> sources = new HashSet<>();
     if (query.getSources() == null || query.getSources().isEmpty()) {
@@ -91,18 +93,18 @@ public class DefaultIndicatorTypeMergeService implements IndicatorTypeMergeServi
     // target
     if (query.getTarget() == null) {
       mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1531));
-      return IndicatorTypeMergeRequest.empty();
+      return MergeRequest.empty();
     }
     Optional<IndicatorType> target =
         getAndVerifyIndicatorType(query.getTarget(), mergeReport, "Target");
 
     if (target.isPresent()) {
-      return IndicatorTypeMergeRequest.builder()
+      return MergeRequest.<IndicatorType>builder()
           .sources(sources)
           .target(target.get())
           .deleteSources(query.isDeleteSources())
           .build();
-    } else return IndicatorTypeMergeRequest.empty();
+    } else return MergeRequest.empty();
   }
 
   /**
@@ -110,7 +112,7 @@ public class DefaultIndicatorTypeMergeService implements IndicatorTypeMergeServi
    *
    * @param request the {@link IndicatorTypeMergeRequest}.
    */
-  private void handleDeleteSources(IndicatorTypeMergeRequest request, MergeReport mergeReport) {
+  private void handleDeleteSources(MergeRequest<IndicatorType> request, MergeReport mergeReport) {
     if (request.isDeleteSources()) {
 
       for (IndicatorType source : request.getSources()) {
@@ -145,7 +147,7 @@ public class DefaultIndicatorTypeMergeService implements IndicatorTypeMergeServi
    *
    * @param request {@link IndicatorTypeMergeRequest}
    */
-  private void reassignIndicatorAssociations(IndicatorTypeMergeRequest request) {
+  private void reassignIndicatorAssociations(MergeRequest<IndicatorType> request) {
     IndicatorType target = request.getTarget();
     List<Indicator> associatedIndicators =
         indicatorService.getAssociatedIndicators(request.getSources());

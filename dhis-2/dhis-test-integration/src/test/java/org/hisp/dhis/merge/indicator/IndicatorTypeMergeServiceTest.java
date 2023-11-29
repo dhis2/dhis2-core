@@ -42,6 +42,8 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.merge.MergeQuery;
+import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -53,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
-  @Autowired private IndicatorTypeMergeService service;
+  @Autowired private MergeService<IndicatorType> service;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -78,12 +80,12 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
   @Test
   @DisplayName("Valid query produces a valid merge request and a merge report with no errors")
   void testGetFromQuery() {
-    IndicatorTypeMergeQuery query = new IndicatorTypeMergeQuery();
+    MergeQuery query = new MergeQuery();
     query.setSources(Set.of(BASE_IN_TYPE_UID + 'A', BASE_IN_TYPE_UID + 'B'));
     query.setTarget(BASE_IN_TYPE_UID + 'C');
     query.setDeleteSources(true);
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    IndicatorTypeMergeRequest request = service.getFromQuery(query, mergeReport);
+    MergeRequest<IndicatorType> request = service.getFromQuery(query, mergeReport);
     assertEquals(2, request.getSources().size());
     assertTrue(request.getSources().containsAll(List.of(itA, itB)));
     assertEquals(itC, request.getTarget());
@@ -94,9 +96,9 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
   @Test
   @DisplayName("Query with missing sources and target produces a merge report with errors")
   void testGetFromQueryWithErrors() {
-    IndicatorTypeMergeQuery query = new IndicatorTypeMergeQuery();
+    MergeQuery query = new MergeQuery();
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    IndicatorTypeMergeRequest request = service.getFromQuery(query, mergeReport);
+    MergeRequest request = service.getFromQuery(query, mergeReport);
 
     // then
     assertRequestIsEmpty(request);
@@ -113,11 +115,11 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
   @Test
   @DisplayName("Query with invalid source uid produces a merge report with error")
   void testSourceNotFound() {
-    IndicatorTypeMergeQuery query = new IndicatorTypeMergeQuery();
+    MergeQuery query = new MergeQuery();
     query.setSources(Set.of(BASE_IN_TYPE_UID + 'A', BASE_IN_TYPE_UID + 'X'));
     query.setTarget(BASE_IN_TYPE_UID + 'C');
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    IndicatorTypeMergeRequest request = service.getFromQuery(query, mergeReport);
+    MergeRequest<IndicatorType> request = service.getFromQuery(query, mergeReport);
     assertEquals(1, request.getSources().size());
     assertEquals(BASE_IN_TYPE_UID + 'C', request.getTarget().getUid());
     assertTrue(mergeReport.hasErrorMessages());
@@ -132,13 +134,13 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
   @DisplayName("Query with invalid target uid produces a merge report with error")
   void testTargetNotFound() {
     // given
-    IndicatorTypeMergeQuery query = new IndicatorTypeMergeQuery();
+    MergeQuery query = new MergeQuery();
     query.setSources(Set.of(BASE_IN_TYPE_UID + 'A', BASE_IN_TYPE_UID + 'B'));
     query.setTarget(BASE_IN_TYPE_UID + 'X');
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
-    IndicatorTypeMergeRequest request = service.getFromQuery(query, mergeReport);
+    MergeRequest<IndicatorType> request = service.getFromQuery(query, mergeReport);
 
     // then
     assertRequestIsEmpty(request);
@@ -167,8 +169,8 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     assertEquals(itA, iA.getIndicatorType());
     assertEquals(itB, iB.getIndicatorType());
     assertEquals(itC, iC.getIndicatorType());
-    IndicatorTypeMergeRequest request =
-        IndicatorTypeMergeRequest.builder()
+    MergeRequest<IndicatorType> request =
+        MergeRequest.<IndicatorType>builder()
             .sources(Set.of(itA, itB))
             .target(itC)
             .deleteSources(true)
@@ -196,7 +198,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     assertFalse(mergeReport.hasErrorMessages());
   }
 
-  private void assertRequestIsEmpty(IndicatorTypeMergeRequest request) {
+  private void assertRequestIsEmpty(MergeRequest<IndicatorType> request) {
     assertEquals(0, request.getSources().size());
     assertNull(request.getTarget());
     assertFalse(request.isDeleteSources());

@@ -27,52 +27,29 @@
  */
 package org.hisp.dhis.merge.indicator;
 
-import static org.hisp.dhis.merge.MergeType.INDICATOR_TYPE;
-
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.merge.MergeQuery;
 import org.hisp.dhis.merge.MergeRequest;
-import org.hisp.dhis.merge.MergeValidator;
-import org.springframework.stereotype.Service;
 
 /**
- * Validation service for indicator type merge requests.
+ * Main interface for indicator type merge.
  *
  * @author david mackessy
  */
-@Service
-public class IndicatorTypeMergeValidator implements MergeValidator {
-
+public interface MergeService<T extends BaseIdentifiableObject> {
   /**
-   * Validates the given {@link IndicatorTypeMergeRequest}. Throws {@link IllegalQueryException} if
-   * validation fails.
+   * Performs an indicator type merge operation.
    *
    * @param request the {@link IndicatorTypeMergeRequest}.
-   * @throws IllegalQueryException if validation failed.
    */
-  @Override
-  public void validate(MergeRequest request, MergeReport mergeReport) throws IllegalQueryException {
-    validateForErrorMessage(request, mergeReport);
-  }
+  MergeReport merge(MergeRequest<T> request, MergeReport mergeReport);
 
   /**
-   * Validates the given {@link IndicatorTypeMergeRequest}.
+   * Converts the given {@link IndicatorTypeMergeQuery} to an {@link IndicatorTypeMergeRequest}.
    *
-   * @param request the {@link IndicatorTypeMergeRequest}.
-   * @return an {@link ErrorMessage} if the validation failed, or null if validation was successful.
+   * @param query the {@link IndicatorTypeMergeQuery}.
+   * @return an {@link IndicatorTypeMergeRequest}.
    */
-  @Override
-  public void validateForErrorMessage(MergeRequest request, MergeReport mergeReport) {
-    if (request.getSources().isEmpty()) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1530));
-    }
-    if (request.getTarget() == null) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1531));
-    }
-    if (request.getSources().contains(request.getTarget())) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1502));
-    }
-  }
+  MergeRequest<T> getFromQuery(MergeQuery query, MergeReport mergeReport);
 }
