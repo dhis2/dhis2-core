@@ -39,6 +39,7 @@ import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
 import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.Date;
@@ -101,6 +102,18 @@ public class EventManager {
   @NonNull private final CurrentUserService currentUserService;
 
   private static final String IMPORT_ERROR_STRING = "Invalid or conflicting data";
+
+  public ImportSummary updateEventDataValues(Event event, Set<EventDataValue> eventDataValues)
+      throws JsonProcessingException {
+    final ImportSummaries importSummaries = new ImportSummaries();
+
+    for (EventDataValue de : eventDataValues) {
+      eventPersistenceService.updateEventDataValues(de, event);
+    }
+    incrementSummaryTotals(List.of(event), importSummaries, UPDATE);
+
+    return importSummaries.getImportSummaries().get(0);
+  }
 
   public ImportSummary addEvent(final Event event, final WorkContext workContext) {
     final ImportSummaries importSummaries = addEvents(ImmutableList.of(event), workContext);
