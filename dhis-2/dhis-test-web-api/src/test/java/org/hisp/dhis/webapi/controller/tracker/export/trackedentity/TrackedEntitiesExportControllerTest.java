@@ -167,6 +167,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
     trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
     manager.save(trackedEntityType, false);
+    program.setTrackedEntityType(trackedEntityType);
+    manager.save(program, false);
 
     softDeletedTrackedEntity = createTrackedEntity(orgUnit);
     softDeletedTrackedEntity.setDeleted(true);
