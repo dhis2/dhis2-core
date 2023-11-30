@@ -28,8 +28,8 @@
 package org.hisp.dhis.dataintegrity;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toUnmodifiableList;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.ResourceLocation.CLASS_PATH;
+import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.ResourceLocation.FILE_SYSTEM;
 import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.readDataIntegrityYaml;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.junit.jupiter.api.Test;
@@ -56,24 +55,11 @@ class DataIntegrityYamlReaderTest {
   void testReadDataIntegrityYaml() {
 
     List<DataIntegrityCheck> checks = new ArrayList<>();
-    readDataIntegrityYaml(
-        "data-integrity-checks.yaml",
-        checks::add,
-        (property, defaultValue) -> defaultValue,
-        sql -> check -> new DataIntegritySummary(check, new Date(), new Date(), null, 1, 100d),
-        sql ->
-            check ->
-                new DataIntegrityDetails(
-                    check,
-                    new Date(),
-                    new Date(),
-                    null,
-                    List.of(new DataIntegrityIssue("id", "name", sql, List.of()))));
+    readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
     assertEquals(63, checks.size());
 
     // Names should be unique
-    List<String> allNames =
-        checks.stream().map(DataIntegrityCheck::getName).collect(toUnmodifiableList());
+    List<String> allNames = checks.stream().map(DataIntegrityCheck::getName).collect(toList());
     assertEquals(allNames.size(), Set.copyOf(allNames).size());
 
     // Config checks and Java checks should not have any of the same names
@@ -87,31 +73,14 @@ class DataIntegrityYamlReaderTest {
 
     // Assert that all "codes" are unique.
     List<String> codeList =
-        checks.stream().map(DataIntegrityCheck::getCode).sorted().collect(toUnmodifiableList());
+        checks.stream().map(DataIntegrityCheck::getCode).sorted().collect(toList());
     assertEquals(codeList.size(), Set.copyOf(codeList).size());
 
     // Assert that codes consist of upper case letter and numbers only
     String regEx = "^[A-Z0-9]+$";
     Predicate<String> IS_NOT_CAPS = Pattern.compile(regEx).asPredicate().negate();
-    List<String> badCodes =
-        codeList.stream().filter(IS_NOT_CAPS).collect(Collectors.toUnmodifiableList());
+    List<String> badCodes = codeList.stream().filter(IS_NOT_CAPS).collect(toList());
     assertEquals(0, badCodes.size());
-
-    // Assert that all checks have details ID and are unique and UIDish
-    List<String> detailsIDs =
-        checks.stream().map(DataIntegrityCheck::getDetailsID).collect(toUnmodifiableList());
-    assertEquals(detailsIDs.size(), Set.copyOf(detailsIDs).size());
-
-    List<String> badDetailsUIDs = detailsIDs.stream().filter(e -> !isValidUid(e)).collect(toList());
-    assertEquals(0, badDetailsUIDs.size());
-
-    // Assert that all checks have summary ID and are unique and are UIDish
-    List<String> summaryIDs =
-        checks.stream().map(DataIntegrityCheck::getSummaryID).collect(toUnmodifiableList());
-
-    assertEquals(summaryIDs.size(), Set.copyOf(summaryIDs).size());
-    List<String> badSummaryUIDs = summaryIDs.stream().filter(e -> !isValidUid(e)).collect(toList());
-    assertEquals(0, badSummaryUIDs.size());
 
     DataIntegrityCheck check = checks.get(0);
     assertEquals("categories_no_options", check.getName());
@@ -135,5 +104,64 @@ class DataIntegrityYamlReaderTest {
             .get(0)
             .getComment()
             .startsWith("SELECT uid,name from dataelementcategory"));
+  }
+
+  @Test
+  void testWithValidChecksFile() {
+    List<DataIntegrityCheck> checks = new ArrayList<>();
+    readYaml(checks, "test-data-integrity-checks.yaml", "test-data-integrity-checks", CLASS_PATH);
+    assertEquals(1, checks.size());
+  }
+
+  @Test
+  void testWithInvalidChecksFile() {
+    List<DataIntegrityCheck> checks = new ArrayList<>();
+    readYaml(checks, "invalid-file-checks.yaml", "test-data-integrity-checks", CLASS_PATH);
+    assertEquals(0, checks.size());
+  }
+
+  @Test
+  void testWithInvalidChecksDirectory() {
+    List<DataIntegrityCheck> checks = new ArrayList<>();
+    readYaml(checks, "test-data-integrity-checks.yaml", "invalid-integrity-checks", CLASS_PATH);
+    assertEquals(0, checks.size());
+  }
+
+  @Test
+  void testWithInvalidChecksDirectoryFromFileSystem() {
+    List<DataIntegrityCheck> checks = new ArrayList<>();
+    readYaml(checks, "data-integrity-checks.yaml", "invalid-integrity-checks", FILE_SYSTEM);
+    assertEquals(0, checks.size());
+  }
+
+  @Test
+  void testWithInvalidYamlFormat() {
+    List<DataIntegrityCheck> checks = new ArrayList<>();
+    readYaml(
+        checks, "test-data-integrity-checks.yaml", "test-data-integrity-checks.yaml", FILE_SYSTEM);
+    assertEquals(0, checks.size());
+  }
+
+  private void readYaml(
+      List<DataIntegrityCheck> checks,
+      String fileChecks,
+      String checksDirectory,
+      DataIntegrityYamlReader.ResourceLocation resourceLocation) {
+    readDataIntegrityYaml(
+        new DefaultDataIntegrityService.DataIntegrityRecord(
+            resourceLocation,
+            fileChecks,
+            checksDirectory,
+            checks::add,
+            (property, defaultValue) -> defaultValue,
+            sql -> check -> new DataIntegritySummary(check, new Date(), new Date(), null, 1, 100d),
+            sql ->
+                check ->
+                    new DataIntegrityDetails(
+                        check,
+                        new Date(),
+                        new Date(),
+                        null,
+                        List.of(new DataIntegrityIssue("id", "name", sql, List.of())))));
   }
 }

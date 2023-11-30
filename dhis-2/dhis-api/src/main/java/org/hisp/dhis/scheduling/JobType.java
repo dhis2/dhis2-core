@@ -31,6 +31,7 @@ import java.util.Map;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
@@ -61,6 +62,11 @@ public enum JobType {
       true,
       SchedulingType.CRON,
       DataIntegrityJobParameters.class,
+      Map.of("checks", "/api/dataIntegrity")),
+  DATA_INTEGRITY_DETAILS(
+      true,
+      SchedulingType.CRON,
+      DataIntegrityDetailsJobParameters.class,
       Map.of("checks", "/api/dataIntegrity")),
   RESOURCE_TABLE(true),
   ANALYTICS_TABLE(

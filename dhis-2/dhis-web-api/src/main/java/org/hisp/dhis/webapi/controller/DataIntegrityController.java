@@ -27,14 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.lang.System.currentTimeMillis;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
@@ -45,9 +46,12 @@ import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.dataintegrity.DataIntegritySummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters.DataIntegrityReportType;
 import org.hisp.dhis.user.CurrentUser;
@@ -72,8 +76,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class DataIntegrityController {
-  private final SchedulingManager schedulingManager;
 
+  private final SchedulingManager schedulingManager;
   private final DataIntegrityService dataIntegrityService;
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
@@ -82,29 +86,33 @@ public class DataIntegrityController {
   public WebMessage runDataIntegrity(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @CheckForNull @RequestBody(required = false) Set<String> checksBody,
-      @CurrentUser User currentUser) {
+      @CurrentUser User currentUser)
+      throws ConflictException {
     Set<String> names = getCheckNames(checksBody, checks);
-    return runDataIntegrityAsync(
-            names, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT)
+    return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.REPORT)
         .setLocation("/dataIntegrity/details?checks=" + toChecksList(names));
   }
 
   private WebMessage runDataIntegrityAsync(
-      @Nonnull Set<String> checks,
-      User currentUser,
-      String description,
-      DataIntegrityReportType type) {
-    DataIntegrityJobParameters params = new DataIntegrityJobParameters();
-    params.setChecks(checks);
-    params.setType(type);
-    JobConfiguration config =
-        new JobConfiguration(description, JobType.DATA_INTEGRITY, null, params, true, true);
+      @Nonnull Set<String> checks, User currentUser, DataIntegrityReportType type)
+      throws ConflictException {
+    JobType jobType =
+        type == DataIntegrityReportType.DETAILS
+            ? JobType.DATA_INTEGRITY_DETAILS
+            : JobType.DATA_INTEGRITY;
+    JobParameters params =
+        type == DataIntegrityReportType.DETAILS
+            ? new DataIntegrityDetailsJobParameters(checks)
+            : new DataIntegrityJobParameters(type, checks);
+    String name = "DATA_INTEGRITY_" + currentTimeMillis();
+    JobConfiguration config = new JobConfiguration(name, jobType, null, params, true, true);
     config.setUserUid(currentUser.getUid());
     config.setAutoFields();
 
     if (!schedulingManager.executeNow(config)) {
-      return conflict("Data integrity check is already running");
+      throw new ConflictException("Data integrity check is already running");
     }
+
     return jobConfigurationReport(config);
   }
 
@@ -112,12 +120,16 @@ public class DataIntegrityController {
   @ResponseBody
   public Collection<DataIntegrityCheck> getAvailableChecks(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
-      @CheckForNull @RequestParam(required = false) String section) {
+      @CheckForNull @RequestParam(required = false) String section,
+      @CheckForNull @RequestParam(required = false) Boolean slow,
+      @CheckForNull @RequestParam(required = false) Boolean programmatic) {
     Collection<DataIntegrityCheck> matches =
         dataIntegrityService.getDataIntegrityChecks(getCheckNames(checks));
-    return section == null || section.isBlank()
-        ? matches
-        : matches.stream().filter(check -> section.equals(check.getSection())).collect(toList());
+    Predicate<DataIntegrityCheck> filter = check -> true;
+    if (section != null && !section.isBlank()) filter = check -> section.equals(check.getSection());
+    if (slow != null) filter = filter.and(check -> check.isSlow() == slow);
+    if (programmatic != null) filter = filter.and(check -> check.isProgrammatic() == programmatic);
+    return matches.stream().filter(filter).collect(toList());
   }
 
   @GetMapping("/summary/running")
@@ -147,10 +159,10 @@ public class DataIntegrityController {
   public WebMessage runSummariesCheck(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @CheckForNull @RequestBody(required = false) Set<String> checksBody,
-      @CurrentUser User currentUser) {
+      @CurrentUser User currentUser)
+      throws ConflictException {
     Set<String> names = getCheckNames(checksBody, checks);
-    return runDataIntegrityAsync(
-            names, currentUser, "runSummariesCheck", DataIntegrityReportType.SUMMARY)
+    return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.SUMMARY)
         .setLocation("/dataIntegrity/summary?checks=" + toChecksList(names));
   }
 
@@ -181,10 +193,10 @@ public class DataIntegrityController {
   public WebMessage runDetailsCheck(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @RequestBody(required = false) Set<String> checksBody,
-      @CurrentUser User currentUser) {
+      @CurrentUser User currentUser)
+      throws ConflictException {
     Set<String> names = getCheckNames(checksBody, checks);
-    return runDataIntegrityAsync(
-            names, currentUser, "runDetailsCheck", DataIntegrityReportType.DETAILS)
+    return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.DETAILS)
         .setLocation("/dataIntegrity/details?checks=" + toChecksList(names));
   }
 
