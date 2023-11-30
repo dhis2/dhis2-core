@@ -25,56 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.dataintegrity.jobs;
 
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.FactoryBean;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import org.hisp.dhis.dataintegrity.DataIntegrityService;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Lars Helge Overland
+ * @author Jan Bernitt
  */
-public class ConnectionPropertyFactoryBean implements FactoryBean<String> {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+@Component
+@AllArgsConstructor
+public class DataIntegrityDetailsJob implements Job {
 
-  private HibernateConfigurationProvider hibernateConfigurationProvider;
-
-  public void setHibernateConfigurationProvider(
-      HibernateConfigurationProvider hibernateConfigurationProvider) {
-    this.hibernateConfigurationProvider = hibernateConfigurationProvider;
-  }
-
-  private String hibernateProperty;
-
-  public void setHibernateProperty(String hibernateProperty) {
-    this.hibernateProperty = hibernateProperty;
-  }
-
-  private String defaultValue;
-
-  public void setDefaultValue(String defaultValue) {
-    this.defaultValue = defaultValue;
-  }
-
-  // -------------------------------------------------------------------------
-  // FactoryBean implementation
-  // -------------------------------------------------------------------------
+  private final DataIntegrityService dataIntegrityService;
 
   @Override
-  public String getObject() {
-    String value = hibernateConfigurationProvider.getConfiguration().getProperty(hibernateProperty);
-
-    return StringUtils.defaultIfEmpty(value, defaultValue);
+  public JobType getJobType() {
+    return JobType.DATA_INTEGRITY_DETAILS;
   }
 
   @Override
-  public Class<String> getObjectType() {
-    return String.class;
-  }
+  public void execute(JobConfiguration config, JobProgress progress) {
+    DataIntegrityDetailsJobParameters parameters =
+        (DataIntegrityDetailsJobParameters) config.getJobParameters();
+    Set<String> checks = parameters == null ? Set.of() : parameters.getChecks();
 
-  @Override
-  public boolean isSingleton() {
-    return true;
+    dataIntegrityService.runDetailsChecks(checks, progress);
   }
 }

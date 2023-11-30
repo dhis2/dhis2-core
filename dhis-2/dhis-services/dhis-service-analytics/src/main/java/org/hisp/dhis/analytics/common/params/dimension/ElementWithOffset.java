@@ -59,6 +59,15 @@ public class ElementWithOffset<T extends UidObject> {
     return EMPTY_ELEMENT_WITH_OFFSET;
   }
 
+  /**
+   * Returns the current offset. If there is none, the number "0" (zero) is returned.
+   *
+   * @return the current offset, or "0" (zero) as default value.
+   */
+  public Integer getOffsetWithDefault() {
+    return hasOffset() ? offset : 0;
+  }
+
   public boolean isPresent() {
     return Objects.nonNull(element);
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat;
+package org.hisp.dhis.scheduling.parameters;
 
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.user.User;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.scheduling.JobParameters;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
-public interface TrackerPreheatService {
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class DataIntegrityDetailsJobParameters implements JobParameters {
 
-  /**
-   * Preheat a set of pre-defined classes. If size == 0, then preheat all metadata classes
-   * automatically.
-   *
-   * @param trackerObjects list of payload entities
-   * @param idSchemeParams id schema identifier
-   * @param user current user
-   * @return
-   */
-  TrackerPreheat preheat(
-      TrackerObjects trackerObjects, TrackerIdSchemeParams idSchemeParams, User user);
+  @JsonProperty(required = false)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private Set<String> checks;
 }

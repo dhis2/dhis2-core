@@ -51,6 +51,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
@@ -285,6 +286,9 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
             value = TrackerTrigramIndexJobParameters.class,
             name = "TRACKER_SEARCH_OPTIMIZATION"),
         @JsonSubTypes.Type(value = DataIntegrityJobParameters.class, name = "DATA_INTEGRITY"),
+        @JsonSubTypes.Type(
+            value = DataIntegrityDetailsJobParameters.class,
+            name = "DATA_INTEGRITY_DETAILS"),
         @JsonSubTypes.Type(
             value = AggregateDataExchangeJobParameters.class,
             name = "AGGREGATE_DATA_EXCHANGE"),

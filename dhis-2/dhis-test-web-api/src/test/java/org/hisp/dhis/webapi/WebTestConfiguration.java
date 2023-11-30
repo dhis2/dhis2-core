@@ -48,7 +48,6 @@ import org.hisp.dhis.db.migration.config.FlywayConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.h2.H2SqlFunction;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
 import org.hisp.dhis.security.Authorities;
@@ -138,8 +137,7 @@ public class WebTestConfiguration {
 
   @Bean(name = {"dataSource", "analyticsDataSource"})
   @Primary
-  public DataSource actualDataSource(
-      HibernateConfigurationProvider hibernateConfigurationProvider) {
+  public DataSource actualDataSource() {
     final DhisConfigurationProvider config = dhisConfigurationProvider;
     String jdbcUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);

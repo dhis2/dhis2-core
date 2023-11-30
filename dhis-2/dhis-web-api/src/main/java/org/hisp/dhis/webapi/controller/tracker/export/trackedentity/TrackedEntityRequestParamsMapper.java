@@ -47,6 +47,7 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
@@ -105,6 +106,7 @@ class TrackedEntityRequestParamsMapper {
             "trackedEntities",
             trackedEntityRequestParams.getTrackedEntities());
     validateOrderParams(trackedEntityRequestParams.getOrder(), ORDERABLE_FIELD_NAMES, "attribute");
+    validateRequestParams(trackedEntityRequestParams, trackedEntities);
 
     Map<String, List<QueryFilter>> filters = parseFilters(trackedEntityRequestParams.getFilter());
 
@@ -151,6 +153,67 @@ class TrackedEntityRequestParamsMapper {
     mapOrderParam(builder, trackedEntityRequestParams.getOrder());
 
     return builder.build();
+  }
+
+  private void validateRequestParams(TrackedEntityRequestParams params, Set<UID> trackedEntities)
+      throws BadRequestException {
+
+    if (params.getProgram() != null && params.getTrackedEntityType() != null) {
+      throw new BadRequestException(
+          "`program` and `trackedEntityType` cannot be specified simultaneously");
+    }
+
+    if (params.getProgram() == null) {
+      if (trackedEntities.isEmpty() && params.getTrackedEntityType() == null) {
+        throw new BadRequestException(
+            "Either `program`, `trackedEntityType` or `trackedEntities` should be specified");
+      }
+
+      if (params.getProgramStatus() != null) {
+        throw new BadRequestException("`program` must be defined when `programStatus` is defined");
+      }
+
+      if (params.getFollowUp() != null) {
+        throw new BadRequestException("`program` must be defined when `followUp` is defined");
+      }
+
+      if (params.getEnrollmentEnrolledAfter() != null) {
+        throw new BadRequestException(
+            "`program` must be defined when `enrollmentEnrolledAfter` is specified");
+      }
+
+      if (params.getEnrollmentEnrolledBefore() != null) {
+        throw new BadRequestException(
+            "`program` must be defined when `enrollmentEnrolledBefore` is specified");
+      }
+
+      if (params.getEnrollmentOccurredAfter() != null) {
+        throw new BadRequestException(
+            "`program` must be defined when `enrollmentOccurredAfter` is specified");
+      }
+
+      if (params.getEnrollmentOccurredBefore() != null) {
+        throw new BadRequestException(
+            "`program` must be defined when `enrollmentOccurredBefore` is specified");
+      }
+    }
+
+    if (params.getEventStatus() != null
+        && (params.getEventOccurredAfter() == null || params.getEventOccurredBefore() == null)) {
+      throw new BadRequestException(
+          "`eventOccurredAfter` and `eventOccurredBefore` must be specified when `eventStatus` is specified");
+    }
+
+    if (params.getUpdatedWithin() != null
+        && (params.getUpdatedAfter() != null || params.getUpdatedBefore() != null)) {
+      throw new BadRequestException(
+          "`updatedAfter` or `updatedBefore` and `updatedWithin` cannot be specified simultaneously");
+    }
+
+    if (params.getUpdatedWithin() != null
+        && DateUtils.getDuration(params.getUpdatedWithin()) == null) {
+      throw new BadRequestException("`updatedWithin` is not valid: " + params.getUpdatedWithin());
+    }
   }
 
   private void validateRemovedParameters(TrackedEntityRequestParams trackedEntityRequestParams)

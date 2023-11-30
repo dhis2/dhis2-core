@@ -97,7 +97,7 @@ class TrackedEntityImportRequestParamsMapperTest {
   }
 
   @Test
-  void testMapping() throws BadRequestException {
+  void shouldMapCorrectlyWhenProgramAndSpecificUpdateDatesSupplied() throws BadRequestException {
     trackedEntityRequestParams.setOuMode(CAPTURE);
     trackedEntityRequestParams.setProgramStatus(ProgramStatus.ACTIVE);
     trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
@@ -105,10 +105,8 @@ class TrackedEntityImportRequestParamsMapperTest {
     trackedEntityRequestParams.setFollowUp(true);
     trackedEntityRequestParams.setUpdatedAfter(getDate(2019, 1, 1));
     trackedEntityRequestParams.setUpdatedBefore(getDate(2020, 1, 1));
-    trackedEntityRequestParams.setUpdatedWithin("20");
     trackedEntityRequestParams.setEnrollmentOccurredAfter(getDate(2019, 5, 5));
     trackedEntityRequestParams.setEnrollmentOccurredBefore(getDate(2020, 5, 5));
-    trackedEntityRequestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
     trackedEntityRequestParams.setEventStatus(EventStatus.COMPLETED);
     trackedEntityRequestParams.setEventOccurredAfter(getDate(2019, 7, 7));
     trackedEntityRequestParams.setEventOccurredBefore(getDate(2020, 7, 7));
@@ -118,9 +116,37 @@ class TrackedEntityImportRequestParamsMapperTest {
 
     assertThat(params.getProgramUid(), is(PROGRAM_UID));
     assertThat(params.getProgramStageUid(), is(PROGRAM_STAGE_UID));
-    assertThat(params.getTrackedEntityTypeUid(), is(TRACKED_ENTITY_TYPE_UID));
-    assertThat(params.getProgramStatus(), is(ProgramStatus.ACTIVE));
     assertThat(params.getFollowUp(), is(true));
+    assertThat(params.getLastUpdatedStartDate(), is(trackedEntityRequestParams.getUpdatedAfter()));
+    assertThat(params.getLastUpdatedEndDate(), is(trackedEntityRequestParams.getUpdatedBefore()));
+    assertThat(
+        params.getProgramIncidentStartDate(),
+        is(trackedEntityRequestParams.getEnrollmentOccurredAfter()));
+    assertThat(
+        params.getProgramIncidentEndDate(),
+        is(trackedEntityRequestParams.getEnrollmentOccurredBefore()));
+    assertThat(params.getEventStatus(), is(EventStatus.COMPLETED));
+    assertThat(params.getEventStartDate(), is(trackedEntityRequestParams.getEventOccurredAfter()));
+    assertThat(params.getEventEndDate(), is(trackedEntityRequestParams.getEventOccurredBefore()));
+    assertThat(
+        params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
+    assertThat(params.isIncludeDeleted(), is(true));
+  }
+
+  @Test
+  void shouldMapCorrectlyWhenTrackedEntityAndSpecificUpdatedRangeSupplied()
+      throws BadRequestException {
+    trackedEntityRequestParams.setOuMode(CAPTURE);
+    trackedEntityRequestParams.setUpdatedWithin("20h");
+    trackedEntityRequestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
+    trackedEntityRequestParams.setEventStatus(EventStatus.COMPLETED);
+    trackedEntityRequestParams.setEventOccurredAfter(getDate(2019, 7, 7));
+    trackedEntityRequestParams.setEventOccurredBefore(getDate(2020, 7, 7));
+    trackedEntityRequestParams.setIncludeDeleted(true);
+
+    final TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
+
+    assertThat(params.getTrackedEntityTypeUid(), is(TRACKED_ENTITY_TYPE_UID));
     assertThat(params.getLastUpdatedStartDate(), is(trackedEntityRequestParams.getUpdatedAfter()));
     assertThat(params.getLastUpdatedEndDate(), is(trackedEntityRequestParams.getUpdatedBefore()));
     assertThat(
@@ -141,6 +167,7 @@ class TrackedEntityImportRequestParamsMapperTest {
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOrgUnitMode(CAPTURE);
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, null);
 
@@ -151,6 +178,7 @@ class TrackedEntityImportRequestParamsMapperTest {
   void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
     TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOuMode(CAPTURE);
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, null);
 
@@ -160,6 +188,7 @@ class TrackedEntityImportRequestParamsMapperTest {
   @Test
   void shouldMapOrgUnitModeToDefaultGivenNoOrgUnitModeParamIsSet() throws BadRequestException {
     TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, null);
 
@@ -182,6 +211,7 @@ class TrackedEntityImportRequestParamsMapperTest {
   void testMappingProgramEnrollmentStartDate() throws BadRequestException {
     Date date = parseDate("2022-12-13");
     trackedEntityRequestParams.setEnrollmentEnrolledAfter(date);
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
@@ -220,6 +250,7 @@ class TrackedEntityImportRequestParamsMapperTest {
   void testMappingAssignedUser() throws BadRequestException {
     trackedEntityRequestParams.setAssignedUser("IsdLBTOBzMi;l5ab8q5skbB");
     trackedEntityRequestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
@@ -234,6 +265,7 @@ class TrackedEntityImportRequestParamsMapperTest {
     trackedEntityRequestParams.setAssignedUsers(
         Set.of(UID.of("IsdLBTOBzMi"), UID.of("l5ab8q5skbB")));
     trackedEntityRequestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
@@ -285,6 +317,7 @@ class TrackedEntityImportRequestParamsMapperTest {
     TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOrder(
         OrderCriteria.fromOrderString("createdAt:asc,zGlzbfreTOH,enrolledAt:desc"));
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
@@ -298,6 +331,7 @@ class TrackedEntityImportRequestParamsMapperTest {
 
   @Test
   void testMappingOrderParamsNoOrder() throws BadRequestException {
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
     assertIsEmpty(params.getOrder());
@@ -320,6 +354,7 @@ class TrackedEntityImportRequestParamsMapperTest {
     TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOrgUnitMode(ACCESSIBLE);
     trackedEntityRequestParams.setFilter(TEA_1_UID + ":like:value1," + TEA_2_UID + ":like:value2");
+    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     Map<String, List<QueryFilter>> filters =
         mapper.map(trackedEntityRequestParams, user).getFilters();

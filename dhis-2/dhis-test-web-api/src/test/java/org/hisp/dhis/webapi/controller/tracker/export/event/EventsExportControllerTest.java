@@ -480,7 +480,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     return r;
   }
 
-  private Relationship relationship(TrackedEntity from, Event to) {
+  private void relationship(TrackedEntity from, Event to) {
     Relationship r = new Relationship();
 
     RelationshipItem fromItem = new RelationshipItem();
@@ -505,7 +505,6 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     r.setAutoFields();
     r.getSharing().setOwner(owner);
     manager.save(r, false);
-    return r;
   }
 
   private Note note(String uid, String value, String storedBy) {
@@ -518,7 +517,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
   private void assertDefaultResponse(JsonObject json, Event event) {
     // note that some fields are not included in the response because they
     // are not part of the setup
-    // i.e attributeOptionCombo, ...
+    // i.e. attributeOptionCombo, ...
     assertTrue(json.isObject());
     assertFalse(json.isEmpty());
     assertEquals(event.getUid(), json.getString("event").string(), "event UID");
