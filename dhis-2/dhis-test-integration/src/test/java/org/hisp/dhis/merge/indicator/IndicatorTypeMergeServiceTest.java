@@ -56,7 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
-  @Autowired private MergeService<IndicatorType, IndicatorTypeMergeService> service;
+  @Autowired private MergeService<IndicatorType> service;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 

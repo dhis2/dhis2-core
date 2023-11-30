@@ -38,13 +38,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author david mackessy
  */
 public interface MergeService<T extends BaseIdentifiableObject> {
-  //  default MergeReport processMergeRequest(
-  //      MergeQuery query, MergeType mergeType, MergeService<T, U> service) {
-  //    MergeReport mergeReport = new MergeReport(mergeType);
-  //
-  //    MergeQueryProcessor<T, U> mergeQueryProcessor = new MergeQueryProcessor(service);
-  //    return mergeQueryProcessor.processMerge(query, mergeReport);
-  //  }
 
   /**
    * This method transforms a {@link MergeQuery} to a {@link MergeRequest}. If there are any
