@@ -118,8 +118,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   /** User who created this object. This field is immutable and must not be updated. */
   @Immutable protected User createdBy;
 
-  @Immutable protected Long createdById;
-
   /** Access information for this object. Applies to current user. */
   protected transient Access access;
 
@@ -128,8 +126,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
 
   /** Last user updated this object. */
   protected User lastUpdatedBy;
-
-  protected Long lastUpdatedById;
 
   /** Object sharing (JSONB). */
   protected Sharing sharing = new Sharing();
@@ -269,16 +265,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
-  public void setLastUpdatedById(Long lastUpdatedById) {
-    this.lastUpdatedById = lastUpdatedById;
-  }
-
-  @Override
-  public Long getLastUpdatedById() {
-    return lastUpdatedById;
-  }
-
-  @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   @Description("The date this object was last updated.")
@@ -391,16 +377,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   @Override
   public void setCreatedBy(User createdBy) {
     this.createdBy = createdBy;
-  }
-
-  @Override
-  public Long getCreatedById() {
-    return createdById;
-  }
-
-  @Override
-  public void setCreatedById(Long createdById) {
-    this.createdById = createdById;
   }
 
   @Override

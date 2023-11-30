@@ -55,10 +55,6 @@ public interface IdentifiableObject
 
   User getLastUpdatedBy();
 
-  void setLastUpdatedById(Long id);
-
-  Long getLastUpdatedById();
-
   Set<AttributeValue> getAttributeValues();
 
   void setAttributeValues(Set<AttributeValue> attributeValues);
@@ -88,10 +84,6 @@ public interface IdentifiableObject
   User getUser();
 
   void setCreatedBy(User createdBy);
-
-  Long getCreatedById();
-
-  void setCreatedById(Long createdById);
 
   /**
    * @deprecated This method is replaced by {@link #setCreatedBy(User)} ()} Currently it is only

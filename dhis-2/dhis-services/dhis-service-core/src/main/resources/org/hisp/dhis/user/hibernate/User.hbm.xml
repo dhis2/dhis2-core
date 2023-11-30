@@ -112,7 +112,6 @@
     <property name="uuid" column="uuid" type="pg-uuid" not-null="false" unique="true" />
 
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="creatoruserid" foreign-key="fk_user_userid" />
-    <property name="createdById" column="creatoruserid" insert="false" update="false" />
 
     <property name="username" column="username" not-null="true" unique="true" />
 

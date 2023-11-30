@@ -34,7 +34,6 @@
     <property name="itemConfig" type="jbDashboardItemConfig"/>
 
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dashboard_userid" />
-    <property name="createdById" column="userid" insert="false" update="false" />
 
     <property name="restrictFilters" column="restrictfilters" />
     

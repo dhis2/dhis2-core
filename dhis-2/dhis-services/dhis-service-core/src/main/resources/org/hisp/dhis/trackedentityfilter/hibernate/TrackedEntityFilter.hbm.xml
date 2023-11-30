@@ -33,7 +33,7 @@
     <property name="translations" type="jblTranslations"/>
 
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_trackedentityinstancefilter_userid" />
-    <property name="createdById" column="userid" insert="false" update="false" />
+
 
     <property name="sharing" type="jsbObjectSharing"/>
     

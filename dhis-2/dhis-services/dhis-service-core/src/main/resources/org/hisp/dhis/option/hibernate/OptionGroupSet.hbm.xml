@@ -34,7 +34,7 @@
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" foreign-key="fk_optiongroupset_optionsetid" />
 
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_optiongroupset_userid" />
-    <property name="createdById" column="userid" insert="false" update="false" />
+
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>

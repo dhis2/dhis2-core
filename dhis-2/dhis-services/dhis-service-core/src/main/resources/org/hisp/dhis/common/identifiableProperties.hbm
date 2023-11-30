@@ -3,4 +3,3 @@
     <property name="created" type="timestamp" not-null="true" />
     <property name="lastUpdated" type="timestamp" not-null="true"/>
     <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />
-    <property name="lastUpdatedById" column="lastupdatedby" insert="false" update="false" />

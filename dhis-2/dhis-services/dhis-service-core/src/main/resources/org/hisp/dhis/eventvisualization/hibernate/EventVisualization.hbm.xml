@@ -295,7 +295,7 @@
 
         <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
                      foreign-key="fk_evisualization_userid"/>
-        <property name="createdById" column="userid" insert="false" update="false" />
+
 
         <property name="userOrgUnitType" length="12">
             <type name="org.hibernate.type.EnumType">

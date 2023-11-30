@@ -74,6 +74,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditStore;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -286,15 +287,13 @@ public class HibernatePotentialDuplicateStore
 
     enrollmentList.forEach(duplicate.getEnrollments()::remove);
 
+    User currentUser =
+        entityManager.getReference(User.class, CurrentUserUtil.getCurrentUserDetails());
+
     enrollmentList.forEach(
         e -> {
           e.setTrackedEntity(original);
-          //          e.setLastUpdatedBy(getCurrentUser());
-          e.setLastUpdatedById(
-              CurrentUserUtil.getCurrentUserDetails() != null
-                  ? CurrentUserUtil.getCurrentUserDetails().getId()
-                  : null);
-
+          e.setLastUpdatedBy(currentUser);
           e.setLastUpdatedByUserInfo(
               UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
           e.setLastUpdated(new Date());
