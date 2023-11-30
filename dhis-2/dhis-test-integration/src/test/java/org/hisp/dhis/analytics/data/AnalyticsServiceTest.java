@@ -1539,7 +1539,11 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         systemSettingManager.getSystemSetting(
             SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, Date.class);
     assertNotEquals(null, resourceTablesUpdated);
-    assertTrue(tableLastUpdated.compareTo(processStartTime) > 0);
-    assertTrue(resourceTablesUpdated.compareTo(processStartTime) > 0);
+    assertTrue(
+        tableLastUpdated.compareTo(processStartTime) > 0,
+        String.format("%s > %s", tableLastUpdated, processStartTime));
+    assertTrue(
+        resourceTablesUpdated.compareTo(processStartTime) > 0,
+        String.format("%s > %s", resourceTablesUpdated, processStartTime));
   }
 }

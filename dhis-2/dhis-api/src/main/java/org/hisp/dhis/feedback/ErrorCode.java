@@ -146,6 +146,9 @@ public enum ErrorCode {
   E2206("Max results exceeds the allowed max limit: `{0}`"),
   E2207("Data start date must be before data end date"),
   E2208("Non-numeric data values encountered during outlier value detection"),
+  E2209("Data start date not allowed"),
+  E2210("Data end date not allowed"),
+  E2211("Algorithm min-max values not allowed"),
 
   /* Followup analysis */
   E2300("At least one data element or data set must be specified"),
@@ -336,6 +339,8 @@ public enum ErrorCode {
   /* File resource */
   E6100("Filename not present"),
   E6101("File type not allowed"),
+  E6102("File content could not be stored"),
+  E6103("File resource appears to have no content"),
 
   /* Users */
   E6200("Feedback message recipients user group not defined"),

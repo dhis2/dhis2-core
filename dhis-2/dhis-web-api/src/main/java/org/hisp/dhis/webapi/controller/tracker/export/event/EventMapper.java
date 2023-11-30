@@ -64,6 +64,7 @@ public interface EventMapper
           entry("completedAt", "completedDate"),
           entry("completedBy", "completedBy"),
           entry("createdAt", "created"),
+          entry("createdAtClient", "createdAtClient"),
           entry("createdBy", "createdBy"),
           entry("deleted", "deleted"),
           entry("enrolledAt", "enrollment.enrollmentDate"),
@@ -81,6 +82,7 @@ public interface EventMapper
           entry("storedBy", "storedBy"),
           entry("trackedEntity", "enrollment.trackedEntity.uid"),
           entry("updatedAt", "lastUpdated"),
+          entry("updatedAtClient", "lastUpdatedAtClient"),
           entry("updatedBy", "lastUpdatedBy"));
 
   @Mapping(target = "event", source = "uid")

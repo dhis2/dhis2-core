@@ -102,7 +102,7 @@ public class IntegrationTestConfig {
   public DhisConfigurationProvider dhisConfigurationProvider() {
 
     PostgresDhisConfigurationProvider dhisConfigurationProvider =
-        new PostgresDhisConfigurationProvider();
+        new PostgresDhisConfigurationProvider(getConfigurationFile());
 
     Properties properties = new Properties();
     properties.setProperty(
@@ -114,5 +114,9 @@ public class IntegrationTestConfig {
     dhisConfigurationProvider.addProperties(properties);
 
     return dhisConfigurationProvider;
+  }
+
+  protected String getConfigurationFile() {
+    return "postgresTestConfig.conf";
   }
 }

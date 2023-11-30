@@ -66,8 +66,7 @@ class MetadataSyncDelegateTest {
   void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInLocal() {
     String versionSnapshot =
         "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-    SystemInfo systemInfo = new SystemInfo();
-    when(systemService.getSystemInfo()).thenReturn(systemInfo);
+    when(systemService.getSystemInfo()).thenReturn(SystemInfo.builder().build());
     boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(versionSnapshot);
     assertFalse(shouldStopSync);
   }
@@ -76,9 +75,7 @@ class MetadataSyncDelegateTest {
   void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInRemote() {
     String versionSnapshot =
         "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-    SystemInfo systemInfo = new SystemInfo();
-    systemInfo.setVersion("2.26");
-    when(systemService.getSystemInfo()).thenReturn(systemInfo);
+    when(systemService.getSystemInfo()).thenReturn(SystemInfo.builder().version("2.26").build());
     boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(versionSnapshot);
     assertFalse(shouldStopSync);
   }
@@ -89,9 +86,7 @@ class MetadataSyncDelegateTest {
         "{\"system:\": {\"date\":\"2016-06-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\","
             + "\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
     String systemNodeString = "{\"date\":\"2016-06-24T05:27:25.128+0000\", \"version\": \"2.26\"}";
-    SystemInfo systemInfo = new SystemInfo();
-    systemInfo.setVersion("2.25");
-    when(systemService.getSystemInfo()).thenReturn(systemInfo);
+    when(systemService.getSystemInfo()).thenReturn(SystemInfo.builder().version("2.25").build());
     when(metadataSystemSettingService.getStopMetadataSyncSetting()).thenReturn(true);
     ObjectMapper mapper = new ObjectMapper();
     JsonNode jsonNode = mapper.readTree(systemNodeString);
@@ -107,9 +102,7 @@ class MetadataSyncDelegateTest {
     String versionSnapshot =
         "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
     String systemNodeString = "{\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}";
-    SystemInfo systemInfo = new SystemInfo();
-    systemInfo.setVersion("2.26");
-    when(systemService.getSystemInfo()).thenReturn(systemInfo);
+    when(systemService.getSystemInfo()).thenReturn(SystemInfo.builder().version("2.26").build());
     when(metadataSystemSettingService.getStopMetadataSyncSetting()).thenReturn(true);
     ObjectMapper mapper = new ObjectMapper();
     JsonNode jsonNode = mapper.readTree(systemNodeString);
@@ -124,10 +117,7 @@ class MetadataSyncDelegateTest {
   void testShouldVerifyIfStopSyncReturnFalseIfStopSyncIsNotSet() {
     String versionSnapshot =
         "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-    SystemInfo systemInfo = new SystemInfo();
-    systemInfo.setVersion("2.26");
-
-    when(systemService.getSystemInfo()).thenReturn(systemInfo);
+    when(systemService.getSystemInfo()).thenReturn(SystemInfo.builder().version("2.26").build());
     when(metadataSystemSettingService.getStopMetadataSyncSetting()).thenReturn(false);
     boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(versionSnapshot);
     assertFalse(shouldStopSync);

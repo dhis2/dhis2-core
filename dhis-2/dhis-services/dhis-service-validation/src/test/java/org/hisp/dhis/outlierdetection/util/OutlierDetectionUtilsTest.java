@@ -28,12 +28,21 @@
 package org.hisp.dhis.outlierdetection.util;
 
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.feedback.ErrorCode.E2208;
+import static org.hisp.dhis.feedback.ErrorCode.E7131;
+import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.withExceptionHandling;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 /**
  * @author Lars Helge Overland
@@ -48,6 +57,33 @@ class OutlierDetectionUtilsTest {
     List<OrganisationUnit> orgUnits = Lists.newArrayList(ouA, ouB, ouC);
     String expected =
         "(ou.\"path\" like '/ouabcdefghA%' or ou.\"path\" like '/ouabcdefghB%' or ou.\"path\" like '/ouabcdefghC%')";
-    assertEquals(expected, OutlierDetectionUtils.getOrgUnitPathClause(orgUnits));
+    assertEquals(expected, OutlierDetectionUtils.getOrgUnitPathClause(orgUnits, "ou"));
+  }
+
+  @Test
+  void testWithIllegalQueryExceptionHandling() {
+    IllegalQueryException illegalQueryException =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> withExceptionHandling(() -> supplyWithErrorCode(E2208)));
+    assertEquals(E2208.getMessage(), illegalQueryException.getMessage());
+  }
+
+  @Test
+  void testWithQueryRuntimeExceptionHandling() {
+    QueryRuntimeException queryRuntimeException =
+        assertThrows(
+            QueryRuntimeException.class,
+            () -> withExceptionHandling(() -> supplyWithErrorCode(E7131)));
+    assertEquals(E7131.getMessage(), queryRuntimeException.getMessage());
+  }
+
+  private Object supplyWithErrorCode(ErrorCode errorCode) {
+    switch (errorCode) {
+      case E2208 -> throw new DataIntegrityViolationException(errorCode.getMessage());
+      case E7131 -> throw new DataAccessResourceFailureException(errorCode.getMessage());
+    }
+
+    return null;
   }
 }

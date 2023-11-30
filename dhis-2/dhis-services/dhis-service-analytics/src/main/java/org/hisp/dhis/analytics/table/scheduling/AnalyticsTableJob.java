@@ -60,6 +60,7 @@ public class AnalyticsTableJob implements Job {
         AnalyticsTableUpdateParams.newBuilder()
             .withLastYears(parameters.getLastYears())
             .withSkipResourceTables(parameters.isSkipResourceTables())
+            .withSkipOutliers(parameters.isSkipOutliers())
             .withSkipTableTypes(parameters.getSkipTableTypes())
             .withSkipPrograms(parameters.getSkipPrograms())
             .withJobId(jobConfiguration)
