@@ -48,6 +48,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
@@ -84,17 +85,27 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
   @Test
   void verifyUserHasNoWriteAccessToProgram() {
     // Given
-    final User demo = createUserWithAuth("demo");
+    final User demo = createUserWithAuth("demo", "ALL");
+
+    CurrentUserDetailsImpl currentUserDetails = CurrentUserDetailsImpl.fromUser(demo);
+    injectSecurityContext(currentUserDetails);
+
     final Program program = createProgram('A');
     program.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(program, false);
     dbmsManager.flushSession();
+
     // When
     final Map<String, Program> programs =
         programSupplier.get(getDefaultImportOptions(), singletonList(event));
+
     // Then
     assertThat(programs.keySet(), hasSize(1));
-    assertFalse(aclService.canDataWrite(demo, programs.get(program.getUid())));
+
+    final User noAuthUser = createUserWithAuth("noauth");
+    assertFalse(
+        aclService.canDataWrite(
+            CurrentUserDetailsImpl.fromUser(noAuthUser), programs.get(program.getUid())));
   }
 
   @Test
@@ -196,6 +207,12 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
 
   @Test
   void verifyUserHasWriteAccessToProgramStageForGroupAccess() {
+
+    // TODO: MAS cross check master, what authorities the acting user in, has none here
+    // acl.checkSharingPermission() has line:
+    // if (sharing.getUserGroups() != null
+    //        && !CollectionUtils.isEmpty(userDetails.getAllAuthorities())) {
+
     // Given
     final User user = createUserWithAuth("user1");
     final ProgramStage programStage = createProgramStage('A', 1);
@@ -219,7 +236,10 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
         programSupplier.get(getDefaultImportOptions(), singletonList(event));
     // Then
     assertThat(programs.keySet(), hasSize(1));
-    assertTrue(aclService.canDataWrite(user, getProgramStage(programs.get(program.getUid()))));
+    assertTrue(
+        aclService.canDataWrite(
+            CurrentUserDetailsImpl.fromUser(user),
+            getProgramStage(programs.get(program.getUid()))));
   }
 
   @Test
@@ -311,7 +331,10 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
         programSupplier.get(getDefaultImportOptions(), singletonList(event));
     // Then
     assertThat(programs.keySet(), hasSize(1));
-    assertTrue(aclService.canDataWrite(user, getTrackedEntityType(programs.get(program.getUid()))));
+    assertTrue(
+        aclService.canDataWrite(
+            CurrentUserDetailsImpl.fromUser(user),
+            getTrackedEntityType(programs.get(program.getUid()))));
   }
 
   @Test

@@ -43,8 +43,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,7 +63,7 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest {
 
   @Mock private OrganisationUnitGroupService organisationUnitGroupService;
 
-  //  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @InjectMocks private SupplementaryDataProvider providerToTest;
 
@@ -72,8 +74,11 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest {
   @BeforeEach
   void setUp() {
     User user = makeUser("A");
+    user.setUsername("A");
     user.setUserRoles(getUserRoles());
-    //    when(getCurrentUser()).thenReturn(user);
+
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+
     orgUnitA = createOrganisationUnit('A');
     orgUnitB = createOrganisationUnit('B');
     OrganisationUnitGroup orgUnitGroup = createOrganisationUnitGroup('A');

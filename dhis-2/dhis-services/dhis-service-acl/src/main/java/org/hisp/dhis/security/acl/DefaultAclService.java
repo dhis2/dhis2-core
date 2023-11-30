@@ -245,6 +245,7 @@ public class DefaultAclService implements AclService {
 
   private <T extends IdentifiableObject> boolean canDataWrite(
       CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+
     if (readWriteCommonCheck(userDetails, objType)) {
       return true;
     }
@@ -260,10 +261,8 @@ public class DefaultAclService implements AclService {
         return checkOptionComboSharingPermission(userDetails, object, Permission.DATA_WRITE);
       }
 
-      if (schema.isDataShareable()
-          && checkSharingPermission(userDetails, object, Permission.DATA_WRITE)) {
-        return true;
-      }
+      return schema.isDataShareable()
+          && checkSharingPermission(userDetails, object, Permission.DATA_WRITE);
     }
 
     return false;

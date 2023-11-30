@@ -69,6 +69,7 @@ public class CurrentUserUtil {
     if (principal instanceof UserDetails) {
       UserDetails userDetails = (UserDetails) authentication.getPrincipal();
       return userDetails.getUsername();
+
     } else {
       throw new RuntimeException(
           "Authentication principal is not supported; principal:" + principal);

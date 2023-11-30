@@ -114,9 +114,11 @@ class JdbcEventStoreTest {
             userService);
 
     User user = new User();
+    user.setUsername("test");
     user.setTeiSearchOrganisationUnits(Set.of(new OrganisationUnit()));
-    //    when(getCurrentUser()).thenReturn(user);
+
     injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+    when(userService.getUserByUsername(anyString())).thenReturn(user);
   }
 
   @Test

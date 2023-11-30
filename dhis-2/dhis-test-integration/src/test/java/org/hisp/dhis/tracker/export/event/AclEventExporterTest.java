@@ -475,7 +475,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnAllEventsWhenOrgUnitModeAllAndNoOrgUnitProvidedAndUserNull()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(null);
+    clearSecurityContext();
 
     EventOperationParams params = operationParamsBuilder.orgUnitMode(ALL).build();
 

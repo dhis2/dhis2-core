@@ -55,6 +55,8 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -67,6 +69,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Unit tests for {@link UserController}.
@@ -159,14 +165,16 @@ class UserControllerTest {
     currentUser2.setUid("def2");
 
     when(userService.getUser("def2")).thenReturn(user);
-    //    when(getCurrentUser()).thenReturn(currentUser2);
 
+    when(userService.getUserByUsername(any())).thenReturn(currentUser);
     if (isInStatusUpdatedOK(createReportWith(Status.OK, Stats::incUpdated))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    //    verify(currentUserService).getCurrentUser();
-    //    verifyNoMoreInteractions(currentUserService);
+    when(userService.canAddOrUpdateUser(any())).thenReturn(true);
+    when(userService.getUserByUsername(any())).thenReturn(currentUser2);
+
+    // TODO: MAS: Not sure what is wrong here
     verify(userGroupService)
         .updateUserGroups(
             same(user),
@@ -187,13 +195,25 @@ class UserControllerTest {
     return report.getStatus() == Status.OK && report.getStats().getUpdated() == 1;
   }
 
+  public static void injectSecurityContext(CurrentUserDetails currentUserDetails) {
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(
+            currentUserDetails, "", currentUserDetails.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
+  }
+
   private void setUpUserExpireScenarios() {
     addUserTo(user);
     addUserTo(currentUser);
     // make current user have ALL authority
     setUpUserAuthority(currentUser, UserRole.AUTHORITY_ALL);
+
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(currentUser));
+
     // allow any change
-    when(aclService.canUpdate(any(User.class), any())).thenReturn(true);
+    when(aclService.canUpdate(any(CurrentUserDetailsImpl.class), any())).thenReturn(true);
 
     lenient().when(userService.canAddOrUpdateUser(any(), any())).thenReturn(true);
     // link user and current user to service methods
@@ -204,6 +224,7 @@ class UserControllerTest {
   @Test
   void expireUserInTheFutureDoesNotExpireSession() throws Exception {
     setUpUserExpireScenarios();
+    when(userService.canAddOrUpdateUser(any())).thenReturn(true);
 
     Date inTheFuture = new Date(System.currentTimeMillis() + 1000);
     userController.expireUser(user.getUid(), inTheFuture);
@@ -216,7 +237,7 @@ class UserControllerTest {
   void expireUserNowDoesExpireSession() throws Exception {
     setUpUserExpireScenarios();
     when(userService.isAccountExpired(same(user))).thenReturn(true);
-
+    when(userService.canAddOrUpdateUser(any())).thenReturn(true);
     Date now = new Date();
     userController.expireUser(user.getUid(), now);
 
@@ -228,6 +249,7 @@ class UserControllerTest {
   void unexpireUserDoesUpdateUser() throws Exception {
     setUpUserExpireScenarios();
 
+    when(userService.canAddOrUpdateUser(any())).thenReturn(true);
     userController.unexpireUser(user.getUid());
 
     assertUserUpdatedWithAccountExpiry(null);
@@ -252,7 +274,7 @@ class UserControllerTest {
   @Test
   void updateUserExpireRequiresGroupBasedAuthority() {
     setUpUserExpireScenarios();
-    when(userService.canAddOrUpdateUser(any(), any())).thenReturn(false);
+    when(userService.canAddOrUpdateUser(any())).thenReturn(false);
 
     WebMessageException ex =
         assertThrows(
@@ -264,8 +286,13 @@ class UserControllerTest {
 
   @Test
   void updateUserExpireRequiresShareBasedAuthority() {
-    setUpUserExpireScenarios();
-    //    when(aclService.canUpdate(currentUser, user)).thenReturn(false);
+    addUserTo(user);
+    addUserTo(currentUser);
+    setUpUserAuthority(currentUser, UserRole.AUTHORITY_ALL);
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(currentUser));
+    when(aclService.canUpdate(any(CurrentUserDetailsImpl.class), any())).thenReturn(false);
+    lenient().when(userService.canAddOrUpdateUser(any(), any())).thenReturn(true);
+    when(userService.getUser(user.getUid())).thenReturn(user);
 
     Exception ex =
         assertThrows(

@@ -103,15 +103,14 @@ public class CurrentUserDetailsImpl implements CurrentUserDetails {
 
     CurrentUserDetailsImpl userDetails = new CurrentUserDetailsImpl();
     userDetails.setId(user.getId());
-
     userDetails.setUid(user.getUid());
+    userDetails.setUsername(user.getUsername());
+    userDetails.setPassword(user.getPassword());
+
     userDetails.setCode(user.getCode());
     userDetails.setFirstName(user.getFirstName());
     userDetails.setSurname(user.getSurname());
 
-    userDetails.setUsername(user.getUsername());
-
-    userDetails.setPassword(user.getPassword());
     userDetails.setEnabled(user.isEnabled());
     userDetails.setAccountNonExpired(user.isAccountNonExpired());
     userDetails.setAccountNonLocked(accountNonLocked);
@@ -122,23 +121,26 @@ public class CurrentUserDetailsImpl implements CurrentUserDetails {
         user.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
             .collect(Collectors.toUnmodifiableSet()));
+    userDetails.setSuper(user.isSuper());
 
-    userDetails.setUserSettings(new HashMap<>());
+    userDetails.setUserRoleIds(
+        user.getUserRoles().stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet()));
+
     userDetails.setUserGroupIds(
         user.getUid() == null
             ? Set.of()
             : user.getGroups().stream()
                 .map(BaseIdentifiableObject::getUid)
                 .collect(Collectors.toSet()));
-    userDetails.setSuper(user.isSuper());
+
     userDetails.setUserOrgUnitIds(
         user.getOrganisationUnits().stream()
             .map(BaseIdentifiableObject::getUid)
             .collect(Collectors.toSet()));
-    userDetails.setUserRoleIds(
-        user.getUserRoles().stream()
-            .map(BaseIdentifiableObject::getUid)
-            .collect(Collectors.toSet()));
+
+    userDetails.setUserSettings(new HashMap<>());
 
     return userDetails;
   }

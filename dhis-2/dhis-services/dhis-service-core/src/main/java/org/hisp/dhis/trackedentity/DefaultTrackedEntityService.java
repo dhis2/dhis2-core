@@ -589,7 +589,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       throw new IllegalQueryException("User cannot be null");
     }
 
-    if (!currentUserDetails.isSuper() && currentUserDetails.getUserGroupIds().isEmpty()) {
+    if (!currentUserDetails.isSuper() && currentUserDetails.getUserOrgUnitIds().isEmpty()) {
       throw new IllegalQueryException(
           "User need to be associated with at least one organisation unit.");
     }
@@ -640,7 +640,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
           searchableAttributeIds.addAll(
               attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
                   .map(TrackedEntityAttribute::getUid)
-                  .collect(Collectors.toList()));
+                  .toList());
         }
 
         List<String> violatingAttributes = new ArrayList<>();

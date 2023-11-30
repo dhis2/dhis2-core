@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
+import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,6 +43,8 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -70,14 +73,15 @@ class IconServiceTest {
         .thenReturn(Optional.of(new FileResource()));
     User user = new User();
     user.setId(1234);
-    //    when(getCurrentUser()).thenReturn(user);
 
     iconService.addCustomIcon(
         new CustomIcon(
             uniqueKey, "description", new String[] {"keyword1"}, fileResourceUid, "userUid"));
 
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+
     verify(customIconStore, times(1))
-        .save(any(CustomIcon.class), any(FileResource.class), any(User.class));
+        .save(any(CustomIcon.class), any(FileResource.class), any(CurrentUserDetails.class));
   }
 
   @Test

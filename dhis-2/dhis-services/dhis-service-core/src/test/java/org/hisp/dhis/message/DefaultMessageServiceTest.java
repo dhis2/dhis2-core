@@ -38,6 +38,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.message.hibernate.HibernateMessageConversationStore;
+import org.hisp.dhis.user.UserSettingService;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -58,6 +61,9 @@ class DefaultMessageServiceTest {
   @Mock private List<MessageSender> messageSenders = new ArrayList<>();
 
   @InjectMocks private DefaultMessageService messageService;
+  @Mock private HibernateMessageConversationStore messageConversationStore;
+  @Mock private UserSettingService userSettingService;
+  @Mock private I18nManager i18nManager;
 
   @ParameterizedTest
   @MethodSource("provideArgCombos")

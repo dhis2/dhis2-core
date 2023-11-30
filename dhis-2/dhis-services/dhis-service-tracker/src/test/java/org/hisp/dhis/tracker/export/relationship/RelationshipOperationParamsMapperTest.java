@@ -34,6 +34,7 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -51,6 +52,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
@@ -105,8 +107,10 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
     event.setUid(EV_UID);
 
     user = new User();
+    user.setUsername("admin");
 
-    //    when(getCurrentUser()).thenReturn(user);
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+    when(userService.getUserByUsername(anyString())).thenReturn(user);
   }
 
   @Test

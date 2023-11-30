@@ -373,7 +373,7 @@ class AclEventExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnAllEventsWhenOrgUnitModeAllAndNoOrgUnitProvidedAndUserNull() {
-    injectSecurityContext(null);
+    clearSecurityContext();
 
     EventSearchParams params = new EventSearchParams();
     params.setOrgUnitSelectionMode(ALL);

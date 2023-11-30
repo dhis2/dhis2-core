@@ -42,7 +42,7 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class DhisOidcUser extends DefaultOAuth2User implements OidcUser {
+public class DhisOidcUser extends DefaultOAuth2User implements CurrentUserDetails, OidcUser {
   private final OidcIdToken oidcIdToken;
 
   private final CurrentUserDetails user;

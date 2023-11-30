@@ -36,6 +36,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.createIndicatorType;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
+import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_APRIL;
 import static org.hisp.dhis.analytics.DataQueryParams.DYNAMIC_DIM_CLASSES;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
@@ -91,7 +92,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -434,9 +435,16 @@ class DimensionalObjectProducerTest {
     List<String> items = List.of("ALL_ITEMS");
     category.setCategoryOptions(List.of(new CategoryOption()));
 
+    CurrentUserDetailsImpl currentUserDetails = new CurrentUserDetailsImpl();
+    currentUserDetails.setAllAuthorities(Set.of("ALL"));
+    currentUserDetails.setUsername("admin");
+    currentUserDetails.setSuper(true);
+    injectSecurityContext(currentUserDetails);
+
     // when
     when(idObjectManager.get(DYNAMIC_DIM_CLASSES, UID, categoryUid)).thenReturn(category);
-    when(aclService.canDataOrMetadataRead(any(User.class), any(CategoryOption.class)))
+    when(aclService.canDataOrMetadataRead(
+            any(CurrentUserDetailsImpl.class), any(CategoryOption.class)))
         .thenReturn(true);
 
     Optional<BaseDimensionalObject> dimensionalObject =

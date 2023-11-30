@@ -36,6 +36,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
+import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,6 +48,7 @@ import com.google.common.collect.Sets;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.cache.DefaultCacheBuilderProvider;
@@ -85,8 +87,11 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRetrievalStore;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
@@ -166,6 +171,13 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   @BeforeEach
   public void setUp() {
     user = new User();
+    user.setUsername("test");
+    UserRole all = new UserRole();
+    all.setAuthorities(Collections.singleton(UserRole.AUTHORITY_ALL));
+    user.setUserRoles(Set.of(all));
+
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
     when(environment.getActiveProfiles()).thenReturn(new String[] {"test"});
     when(dhisConfigurationProvider.getProperty(ConfigurationKey.SYSTEM_CACHE_MAX_SIZE_FACTOR))
@@ -228,7 +240,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
               when(mock.getOrgUnitInHierarchyMap()).thenReturn(orgUnitInHierarchyCache);
               when(mock.getAttrOptComboOrgUnitMap()).thenReturn(attrOptComboOrgUnitCache);
             })) {
-      //      when(getCurrentUser()).thenReturn(user);
+
       when(batchHandler.init()).thenReturn(batchHandler);
       when(idObjManager.get(CategoryCombo.class, categoryCombo.getUid())).thenReturn(categoryCombo);
       when(idObjManager.getObject(CategoryOption.class, IdScheme.UID, categoryOptionA.getUid()))
@@ -270,8 +282,10 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
           .thenReturn(false);
 
       // TODO: MAS: why use getCurrentUserOrganisationUnits() here?
-      when(user.getOrganisationUnits())
-          .thenReturn(Collections.singleton(createOrganisationUnit('A')));
+      //      when(user.getOrganisationUnits())
+      //          .thenReturn(Collections.singleton(createOrganisationUnit('A')));
+
+      user.setOrganisationUnits(Collections.singleton(createOrganisationUnit('A')));
 
       when(i18nManager.getI18n()).thenReturn(i18n);
 

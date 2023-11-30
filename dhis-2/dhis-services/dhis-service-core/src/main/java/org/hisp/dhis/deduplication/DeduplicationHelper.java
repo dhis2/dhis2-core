@@ -249,10 +249,10 @@ public class DeduplicationHelper {
 
   public String getUserAccessErrors(
       TrackedEntity original, TrackedEntity duplicate, MergeObject mergeObject) {
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
+
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
-    if (currentUsername == null
+    if (currentUserDetails == null
         || !(currentUserDetails.getAllAuthorities().contains("ALL")
             || currentUserDetails.getAllAuthorities().contains("F_TRACKED_ENTITY_MERGE"))) {
       return "Missing required authority for merging tracked entities.";
@@ -267,7 +267,7 @@ public class DeduplicationHelper {
         relationshipService.getRelationships(mergeObject.getRelationships()).stream()
             .map(Relationship::getRelationshipType)
             .distinct()
-            .collect(Collectors.toList());
+            .toList();
 
     if (relationshipTypes.stream()
         .anyMatch(rt -> !aclService.canDataWrite(currentUserDetails, rt))) {

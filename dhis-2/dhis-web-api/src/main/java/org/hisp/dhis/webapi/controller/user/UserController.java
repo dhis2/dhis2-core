@@ -98,6 +98,7 @@ import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.PasswordValidationResult;
@@ -654,6 +655,7 @@ public class UserController extends AbstractCrudController<User> {
   protected void updateUserGroups(String userUid, User parsed, User currentUser) {
     User user = userService.getUser(userUid);
 
+    // TODO: MAS This is weird, why do we need to reload the current user?
     if (currentUser != null && currentUser.getId() == user.getId()) {
       currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     }
@@ -866,15 +868,15 @@ public class UserController extends AbstractCrudController<User> {
   }
 
   private void checkCurrentUserCanModify(User userToModify) throws WebMessageException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
-    if (!aclService.canUpdate(currentUser, userToModify)) {
+    if (!aclService.canUpdate(currentUserDetails, userToModify)) {
       throw new UpdateAccessDeniedException(
           "You don't have the proper permissions to update this object.");
     }
 
-    if (!userService.canAddOrUpdateUser(getUids(userToModify.getGroups()), currentUser)
-        || !currentUser.canModifyUser(userToModify)) {
+    if (!userService.canAddOrUpdateUser(getUids(userToModify.getGroups()))
+        || !currentUserDetails.canModifyUser(userToModify)) {
       throw new WebMessageException(
           conflict(
               "You must have permissions to create user, or ability to manage at least one user group for the user."));

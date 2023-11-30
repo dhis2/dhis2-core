@@ -557,6 +557,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * @return true if this org unit is a descendant of the ancestors.
    */
   public boolean isDescendant(Collection<OrganisationUnit> ancestors) {
+    // TODO: MAS optimize to use Set of UIDs from UserDetails as input instead
     if (isEmpty(ancestors)) {
       return false;
     }

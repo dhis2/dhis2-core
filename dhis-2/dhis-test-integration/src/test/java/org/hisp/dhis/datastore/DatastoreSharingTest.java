@@ -48,7 +48,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -64,9 +64,13 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
 
   private static final String NAMESPACE = "FOOTBALL";
 
-  @BeforeAll
-  public void init() {
-    this.userService = _userService;
+  @BeforeEach
+  final void setup() throws Exception {
+    userService = _userService;
+    preCreateInjectAdminUser();
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    injectSecurityContextUser(currentUser);
   }
 
   @Test
@@ -75,6 +79,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     // given
     // 2 existing namespace entries with default public sharing access 'rw------'
     User basicUser = createAndAddUser(false, "basicUser", null);
+    injectSecurityContextUser(basicUser);
 
     String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
     String spurs = jsonMapper.writeValueAsString(club("spurs"));
@@ -84,7 +89,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
 
     // when
     // a basic user without explicit access tries to get namespace keys
-    injectSecurityContextUser(basicUser);
+
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("basicUser", currentUserDetails.getUsername());

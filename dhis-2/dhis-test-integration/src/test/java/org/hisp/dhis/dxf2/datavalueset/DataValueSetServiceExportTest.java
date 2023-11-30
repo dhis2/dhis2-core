@@ -325,6 +325,11 @@ class DataValueSetServiceExportTest extends IntegrationTestBase {
 
   @Test
   void testExportAttributeOptionCombo_FromUrlParamsWithCodes() throws IOException {
+    // TODO: MAS investigate with Viet on why this test fails:
+    // java.lang.IllegalArgumentException: Unable to locate Attribute  with the the given name
+    // [sharing] on this ManagedType [org.hisp.dhis.organisationunit.OrganisationUnit]
+    // org.hisp.dhis.common.hibernate.InternalHibernateGenericStoreImpl.lambda$getSharingPredicates$0(InternalHibernateGenericStoreImpl.java:107)
+
     DataValueSetQueryParams params =
         DataValueSetQueryParams.builder()
             .dataSet(singleton(dsA.getCode()))
