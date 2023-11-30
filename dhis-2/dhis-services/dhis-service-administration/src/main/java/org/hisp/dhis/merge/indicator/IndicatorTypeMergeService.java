@@ -31,11 +31,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.BiConsumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
@@ -43,10 +44,8 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeQuery;
-import org.hisp.dhis.merge.MergeQueryProcessor;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
-import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.merge.MergeValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,43 +65,20 @@ public class IndicatorTypeMergeService implements MergeService<IndicatorType> {
   private final IdentifiableObjectManager idObjectManager;
 
   @Override
-  public MergeReport processMergeRequest(MergeQuery query) {
-    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-
-    MergeQueryProcessor<IndicatorType, IndicatorTypeMergeService> mergeQueryProcessor =
-        new MergeQueryProcessor<>(this);
-    return mergeQueryProcessor.processMerge(query, mergeReport);
-  }
-
-  @Override
   public MergeRequest<IndicatorType> transform(MergeQuery query, MergeReport mergeReport) {
     // sources
     Set<IndicatorType> sources = new HashSet<>();
-    if (query.getSources() == null || query.getSources().isEmpty()) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1530));
-    } else {
-      for (String uid : query.getSources()) {
-        Optional<IndicatorType> indicatorType =
-            getAndVerifyIndicatorType(uid, mergeReport, "Source");
-        indicatorType.ifPresent(sources::add);
-      }
-    }
+    Optional.ofNullable(query.getSources())
+        .filter(CollectionUtils::isNotEmpty)
+        .ifPresentOrElse(
+            ids -> getSourcesAndVerify(ids, mergeReport, sources),
+            () -> addError.accept(mergeReport, ErrorCode.E1530));
 
     // target
-    if (query.getTarget() == null) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1531));
-      return MergeRequest.empty();
-    }
-    Optional<IndicatorType> target =
-        getAndVerifyIndicatorType(query.getTarget(), mergeReport, "Target");
-
-    if (target.isPresent()) {
-      return MergeRequest.<IndicatorType>builder()
-          .sources(sources)
-          .target(target.get())
-          .deleteSources(query.isDeleteSources())
-          .build();
-    } else return MergeRequest.empty();
+    Optional<String> target = Optional.ofNullable(query.getTarget());
+    return target
+        .map(t -> getTargetAndVerify(t, mergeReport, sources, query))
+        .orElse(MergeRequest.empty());
   }
 
   @Override
@@ -138,14 +114,12 @@ public class IndicatorTypeMergeService implements MergeService<IndicatorType> {
   public Optional<IndicatorType> getAndVerifyIndicatorType(
       String uid, MergeReport mergeReport, String indType) {
 
-    Optional<IndicatorType> indicatorType =
-        Optional.ofNullable(idObjectManager.get(IndicatorType.class, uid));
-
-    return indicatorType.or(
-        () -> {
-          mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1533, indType, uid));
-          return Optional.empty();
-        });
+    return Optional.ofNullable(idObjectManager.get(IndicatorType.class, uid))
+        .or(
+            () -> {
+              mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1533, indType, uid));
+              return Optional.empty();
+            });
   }
 
   /**
@@ -159,5 +133,27 @@ public class IndicatorTypeMergeService implements MergeService<IndicatorType> {
     List<Indicator> associatedIndicators =
         indicatorService.getAssociatedIndicators(request.getSources());
     associatedIndicators.forEach(ind -> ind.setIndicatorType(target));
+  }
+
+  private final BiConsumer<MergeReport, ErrorCode> addError =
+      (report, code) -> report.addErrorMessage(new ErrorMessage(code));
+
+  private void getSourcesAndVerify(
+      Set<String> uids, MergeReport report, Set<IndicatorType> indicatorTypes) {
+    uids.forEach(
+        uid -> getAndVerifyIndicatorType(uid, report, "Source").ifPresent(indicatorTypes::add));
+  }
+
+  private MergeRequest<IndicatorType> getTargetAndVerify(
+      String uid, MergeReport report, Set<IndicatorType> indicatorTypes, MergeQuery query) {
+    return getAndVerifyIndicatorType(uid, report, "Target")
+        .map(
+            t ->
+                MergeRequest.<IndicatorType>builder()
+                    .sources(indicatorTypes)
+                    .target(t)
+                    .deleteSources(query.isDeleteSources())
+                    .build())
+        .orElse(MergeRequest.empty());
   }
 }

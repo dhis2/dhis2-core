@@ -37,7 +37,9 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeQuery;
+import org.hisp.dhis.merge.MergeQueryProcessor;
 import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.schema.descriptors.IndicatorTypeSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -67,7 +69,9 @@ public class IndicatorTypeController extends AbstractCrudController<IndicatorTyp
   public @ResponseBody WebMessage mergeIndicatorTypes(@RequestBody MergeQuery query) {
     log.info("Indicator type merge request received: {}", query);
 
-    MergeReport report = indicatorTypeMergeService.processMergeRequest(query);
+    MergeReport report =
+        new MergeQueryProcessor<>(indicatorTypeMergeService)
+            .processMergeRequest(query, MergeType.INDICATOR_TYPE);
 
     log.info("Indicator type merge request processed: {}", report);
     return WebMessageUtils.mergeReport(report);

@@ -16,17 +16,23 @@ import org.hisp.dhis.feedback.MergeReport;
  * </ol>
  *
  * @param <T> type extending BaseIdentifiableObject
- * @param <U> type extending MergeService
  */
-public class MergeQueryProcessor<T extends BaseIdentifiableObject, U extends MergeService<T>> {
+public class MergeQueryProcessor<T extends BaseIdentifiableObject> {
 
-  public MergeQueryProcessor(U mergeService) {
+  public MergeQueryProcessor(MergeService<T> mergeService) {
     this.mergeService = mergeService;
   }
 
-  private final U mergeService;
+  private final MergeService<T> mergeService;
+
+  public MergeReport processMergeRequest(MergeQuery query, MergeType mergeType) {
+    MergeReport mergeReport = new MergeReport(mergeType);
+    return processMerge(query, mergeReport);
+  }
 
   /**
+   * Processes a merge query in full, using the implemented {@link MergeService} provided.
+   *
    * @param mergeQuery {@link MergeQuery} to process
    * @param mergeReport {@link MergeReport} to update with any errors and return
    * @return updated {@link MergeReport} with any errors

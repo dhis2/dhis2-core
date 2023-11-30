@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.merge;
 
-import java.util.function.BiFunction;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.MergeReport;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Interface for merging {@link BaseIdentifiableObject}s
@@ -38,14 +38,13 @@ import org.hisp.dhis.feedback.MergeReport;
  * @author david mackessy
  */
 public interface MergeService<T extends BaseIdentifiableObject> {
-
-  /**
-   * Entry method to process a {@link MergeQuery}
-   *
-   * @param query {@link MergeQuery}
-   * @return {@link MergeReport} updated with any errors
-   */
-  MergeReport processMergeRequest(MergeQuery query);
+  //  default MergeReport processMergeRequest(
+  //      MergeQuery query, MergeType mergeType, MergeService<T, U> service) {
+  //    MergeReport mergeReport = new MergeReport(mergeType);
+  //
+  //    MergeQueryProcessor<T, U> mergeQueryProcessor = new MergeQueryProcessor(service);
+  //    return mergeQueryProcessor.processMerge(query, mergeReport);
+  //  }
 
   /**
    * This method transforms a {@link MergeQuery} to a {@link MergeRequest}. If there are any
@@ -75,5 +74,6 @@ public interface MergeService<T extends BaseIdentifiableObject> {
    * @param mergeReport report to be updated if any issues/errors with the {@link MergeRequest}
    * @return {@link MergeReport}
    */
+  @Transactional
   MergeReport merge(MergeRequest<T> request, MergeReport mergeReport);
 }
