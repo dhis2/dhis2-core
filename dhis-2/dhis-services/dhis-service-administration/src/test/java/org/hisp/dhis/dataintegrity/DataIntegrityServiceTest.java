@@ -429,13 +429,6 @@ class DataIntegrityServiceTest {
   }
 
   @Test
-  void testGetOrganisationUnitsWithoutGroups() {
-    subject.getOrganisationUnitsWithoutGroups();
-    verify(organisationUnitService).getOrganisationUnitsWithoutGroups();
-    verifyNoMoreInteractions(organisationUnitService);
-  }
-
-  @Test
   void testGetProgramRulesWithNoExpression() {
     programRuleB.setCondition(null);
     when(programRuleService.getProgramRulesWithNoCondition()).thenReturn(List.of(programRuleB));
