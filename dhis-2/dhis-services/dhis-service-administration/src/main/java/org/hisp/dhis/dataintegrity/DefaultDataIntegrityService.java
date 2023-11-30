@@ -688,7 +688,9 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       checks =
           Arrays.stream(DataIntegrityCheckType.values())
               .map(DataIntegrityCheckType::getName)
-              .collect(toUnmodifiableSet());
+              .collect(Collectors.toSet());
+      // Add additional SQL based checks here
+      checks.add("organisation_units_without_groups");
     }
     runDetailsChecks(checks, progress);
     return new FlattenedDataIntegrityReport(getDetails(checks, -1L));

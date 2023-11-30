@@ -102,7 +102,7 @@ public interface JsonDataIntegrityReport extends JsonObject {
   }
 
   default JsonList<JsonString> getOrganisationUnitsWithoutGroups() {
-    return getList("organisation_units_without_groups", JsonString.class);
+    return getList("organisationUnitsWithoutGroups", JsonString.class);
   }
 
   default JsonMultiMap<JsonString> getOrganisationUnitsViolatingExclusiveGroupSets() {

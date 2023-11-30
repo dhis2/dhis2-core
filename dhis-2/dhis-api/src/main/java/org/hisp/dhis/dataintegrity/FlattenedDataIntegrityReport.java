@@ -145,7 +145,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
             detailsByName.get(DataIntegrityCheckType.ORG_UNITS_BEING_ORPHANED.getName()));
     // Replaced with SQL based equivalent
     this.organisationUnitsWithoutGroups =
-        listOfDisplayNameOrUid(detailsByName.get("organisation_units_without_groups"));
+        listOfDisplayNameWithUid(detailsByName.get("organisation_units_without_groups"));
     this.organisationUnitGroupsWithoutGroupSets =
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS.getName()));
@@ -252,6 +252,14 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
         ? null
         : details.getIssues().stream()
             .map(DataIntegrityIssue::getName)
+            .collect(toUnmodifiableList());
+  }
+
+  private List<String> listOfDisplayNameWithUid(DataIntegrityDetails details) {
+    return details == null
+        ? null
+        : details.getIssues().stream()
+            .map(issue -> issue.getName() + ":" + issue.getId())
             .collect(toUnmodifiableList());
   }
 
