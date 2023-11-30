@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,16 +44,7 @@ import org.hisp.dhis.scheduling.JobParameters;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DataIntegrityJobParameters implements JobParameters {
-  public enum DataIntegrityReportType {
-    REPORT,
-    SUMMARY,
-    DETAILS
-  }
-
-  @JsonProperty(required = false)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private DataIntegrityReportType type;
+public class DataIntegrityDetailsJobParameters implements JobParameters {
 
   @JsonProperty(required = false)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)

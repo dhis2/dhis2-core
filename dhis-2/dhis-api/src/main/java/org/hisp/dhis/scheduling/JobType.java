@@ -62,6 +62,11 @@ public enum JobType {
       SchedulingType.CRON,
       DataIntegrityJobParameters.class,
       Map.of("checks", "/api/dataIntegrity")),
+  DATA_INTEGRITY_DETAILS(
+      true,
+      SchedulingType.CRON,
+      DataIntegrityDetailsJobParameters.class,
+      Map.of("checks", "/api/dataIntegrity")),
   RESOURCE_TABLE(true),
   ANALYTICS_TABLE(
       true,

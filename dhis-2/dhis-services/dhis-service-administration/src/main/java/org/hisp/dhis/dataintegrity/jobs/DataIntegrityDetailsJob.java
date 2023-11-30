@@ -25,37 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.dataintegrity.jobs;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.dataintegrity.DataIntegrityService;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Jan Bernitt
  */
-@Getter
-@Setter
-@NoArgsConstructor
+@Component
 @AllArgsConstructor
-public class DataIntegrityJobParameters implements JobParameters {
-  public enum DataIntegrityReportType {
-    REPORT,
-    SUMMARY,
-    DETAILS
+public class DataIntegrityDetailsJob implements Job {
+
+  private final DataIntegrityService dataIntegrityService;
+
+  @Override
+  public JobType getJobType() {
+    return JobType.DATA_INTEGRITY_DETAILS;
   }
 
-  @JsonProperty(required = false)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private DataIntegrityReportType type;
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    DataIntegrityDetailsJobParameters parameters =
+        (DataIntegrityDetailsJobParameters) config.getJobParameters();
+    Set<String> checks = parameters == null ? Set.of() : parameters.getChecks();
 
-  @JsonProperty(required = false)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private Set<String> checks;
+    dataIntegrityService.runDetailsChecks(checks, progress);
+  }
 }
