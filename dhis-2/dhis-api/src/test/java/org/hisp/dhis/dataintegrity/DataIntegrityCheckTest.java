@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -45,8 +46,9 @@ class DataIntegrityCheckTest {
             DataIntegrityCheck.builder().name("b").isSlow(false).build(),
             DataIntegrityCheck.builder().name("c").isSlow(true).build());
     List<DataIntegrityCheck> actual =
-        checks.stream().sorted(DataIntegrityCheck.FAST_TO_SLOW).toList();
-    assertEquals(List.of("b", "a", "c"), actual.stream().map(DataIntegrityCheck::getName).toList());
+        checks.stream().sorted(DataIntegrityCheck.FAST_TO_SLOW).collect(toList());
+    assertEquals(
+        List.of("b", "a", "c"), actual.stream().map(DataIntegrityCheck::getName).collect(toList()));
   }
 
   @Test
@@ -57,8 +59,9 @@ class DataIntegrityCheckTest {
             DataIntegrityCheck.builder().name("b").isSlow(false).build().addExecution(20),
             DataIntegrityCheck.builder().name("c").isSlow(true).build().addExecution(500));
     List<DataIntegrityCheck> actual =
-        checks.stream().sorted(DataIntegrityCheck.FAST_TO_SLOW).toList();
-    assertEquals(List.of("b", "c", "a"), actual.stream().map(DataIntegrityCheck::getName).toList());
+        checks.stream().sorted(DataIntegrityCheck.FAST_TO_SLOW).collect(toList());
+    assertEquals(
+        List.of("b", "c", "a"), actual.stream().map(DataIntegrityCheck::getName).collect(toList()));
   }
 
   @Test
@@ -69,8 +72,9 @@ class DataIntegrityCheckTest {
             DataIntegrityCheck.builder().name("b").isSlow(false).build(),
             DataIntegrityCheck.builder().name("c").isSlow(true).build().addExecution(500));
     List<DataIntegrityCheck> actual =
-        checks.stream().sorted(DataIntegrityCheck.FAST_TO_SLOW).toList();
-    assertEquals(List.of("c", "b", "a"), actual.stream().map(DataIntegrityCheck::getName).toList());
+        checks.stream().sorted(DataIntegrityCheck.FAST_TO_SLOW).collect(toList());
+    assertEquals(
+        List.of("c", "b", "a"), actual.stream().map(DataIntegrityCheck::getName).collect(toList()));
   }
 
   @Test

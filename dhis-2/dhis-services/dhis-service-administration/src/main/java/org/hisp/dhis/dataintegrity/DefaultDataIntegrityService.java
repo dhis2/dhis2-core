@@ -32,6 +32,7 @@ import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static java.util.stream.StreamSupport.stream;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
@@ -68,6 +69,8 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.antlr.ParserException;
@@ -188,7 +191,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     return items
         .map(DataIntegrityIssue::toIssue)
         .sorted(DefaultDataIntegrityService::alphabeticalOrder)
-        .toList();
+        .collect(toList());
   }
 
   private static <T extends IdentifiableObject> List<DataIntegrityIssue> toIssueList(
@@ -196,7 +199,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     return items
         .map(e -> DataIntegrityIssue.toIssue(e, toRefs.apply(e)))
         .sorted(DefaultDataIntegrityService::alphabeticalOrder)
-        .toList();
+        .collect(toList());
   }
 
   @Nonnull
@@ -425,7 +428,9 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
                 null,
                 group.getKey(),
                 null,
-                group.getValue().stream().map(p -> p.toString() + ":" + p.getUid()).toList()));
+                group.getValue().stream()
+                    .map(p -> p.toString() + ":" + p.getUid())
+                    .collect(toList())));
       }
     }
     return issues;
@@ -725,7 +730,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   private List<DataIntegrityIssue> getInvalidProgramIndicators(
       Function<ProgramIndicator, String> property, Predicate<ProgramIndicator> filter) {
     List<ProgramIndicator> programIndicators =
-        programIndicatorService.getAllProgramIndicators().stream().filter(filter).toList();
+        programIndicatorService.getAllProgramIndicators().stream().filter(filter).collect(toList());
 
     List<DataIntegrityIssue> issues = new ArrayList<>();
     for (ProgramIndicator programIndicator : programIndicators) {
@@ -831,7 +836,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       List<DataIntegrityIssue> groupBy(Function<V, K> property, Collection<V> values) {
     return values.stream().collect(groupingBy(property)).entrySet().stream()
         .map(e -> DataIntegrityIssue.toIssue(e.getKey(), e.getValue()))
-        .toList();
+        .collect(toList());
   }
 
   /*
@@ -848,7 +853,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     ensureConfigurationsAreLoaded();
     return checks.isEmpty()
         ? unmodifiableCollection(checksByName.values())
-        : expandChecks(checks).stream().map(checksByName::get).toList();
+        : expandChecks(checks).stream().map(checksByName::get).collect(toList());
   }
 
   @Nonnull
@@ -1081,12 +1086,15 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
               check.getCode());
       };
 
-  record DataIntegrityRecord(
-      DataIntegrityYamlReader.ResourceLocation resourceLocation,
-      String yamlFileChecks,
-      String checksDir,
-      Consumer<DataIntegrityCheck> adder,
-      BinaryOperator<String> info,
-      Function<String, Function<DataIntegrityCheck, DataIntegritySummary>> sqlToSummary,
-      Function<String, Function<DataIntegrityCheck, DataIntegrityDetails>> sqlToDetails) {}
+  @Value
+  @Accessors(fluent = true)
+  static class DataIntegrityRecord {
+    DataIntegrityYamlReader.ResourceLocation resourceLocation;
+    String yamlFileChecks;
+    String checksDir;
+    Consumer<DataIntegrityCheck> adder;
+    BinaryOperator<String> info;
+    Function<String, Function<DataIntegrityCheck, DataIntegritySummary>> sqlToSummary;
+    Function<String, Function<DataIntegrityCheck, DataIntegrityDetails>> sqlToDetails;
+  }
 }
