@@ -72,7 +72,7 @@ class DataIntegrityOrganisationUnitsNoGroupsControllerTest
             "/organisationUnitGroups",
             "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '"
                 + orgunitA
-                + "'}]}" ) );
+                + "'}]}"));
     assertHasDataIntegrityIssues(
         detailsIdType, check, 50, orgunitB, "Pizza District", "Type", true);
   }
@@ -103,7 +103,7 @@ class DataIntegrityOrganisationUnitsNoGroupsControllerTest
                 + orgunitA
                 + "'}, {'id' : '"
                 + orgunitB
-                + "'}]}" ) );
+                + "'}]}"));
     assertHasNoDataIntegrityIssues(detailsIdType, check, true);
   }
 
