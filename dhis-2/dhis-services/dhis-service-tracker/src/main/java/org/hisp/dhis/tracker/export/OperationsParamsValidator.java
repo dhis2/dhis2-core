@@ -91,7 +91,7 @@ public class OperationsParamsValidator {
     if (user == null) {
       throw new BadRequestException("User is required for orgUnitMode: " + CAPTURE);
     } else if (user.getOrganisationUnits().isEmpty()) {
-      throw new BadRequestException("User needs to be assigned data capture orgunits");
+      throw new BadRequestException("User needs to be assigned data capture org units");
     }
   }
 }
