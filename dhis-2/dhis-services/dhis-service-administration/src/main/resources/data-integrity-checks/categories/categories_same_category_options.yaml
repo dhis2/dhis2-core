@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  summary_uid: SkFAjPsMHJc
   name: categories_same_category_options
   description: Categories with the same category options
   section: Categories
@@ -40,11 +39,10 @@
     )
     SELECT COUNT(*) as value,
      100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*)
-    FROM dataelementcategory),0 ) percent
+    FROM category),0 ) percent
     FROM duplicative_categories;
-  details_uid: yKInwm9p54H
   details_sql: >-
-    SELECT x.uid,'(' || b.rank || ') ' || x.name as name  from dataelementcategory x
+    SELECT x.uid,'(' || b.rank || ') ' || x.name as name  from category x
     INNER JOIN (
     SELECT categoryid, array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
     from categories_categoryoptions GROUP BY categoryid

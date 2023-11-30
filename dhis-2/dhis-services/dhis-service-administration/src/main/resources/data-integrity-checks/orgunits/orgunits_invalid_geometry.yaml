@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: HJoHTRxcaVv
 name: orgunits_invalid_geometry
 description: Organisation units with invalid geometry.
 section: Organisation units
@@ -38,7 +37,6 @@ summary_sql: >-
   COUNT(*) as value,
   100.0 * COUNT(*) / NULLIF(( SELECT COUNT(*) FROM organisationunit where geometry IS NOT NULL),0)  as percent
   FROM orgunits_invalid_geometry;
-details_uid: lEmJf83tdNR
 details_sql: >-
   SELECT uid,name,ST_IsValidReason(geometry) as comment from organisationunit
   where ST_IsValid(geometry) = FALSE
