@@ -44,8 +44,6 @@ class DataIntegrityOrganisationUnitsNoGroupsControllerTest
 
   private String orgunitB;
 
-  private String testOrgUnitGroupA;
-
   private static final String check = "orgunits_no_groups";
 
   private static final String detailsIdType = "organisationUnits";
@@ -68,14 +66,13 @@ class DataIntegrityOrganisationUnitsNoGroupsControllerTest
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}"));
 
     // Create an orgunit group
-    testOrgUnitGroupA =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/organisationUnitGroups",
-                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '"
-                    + orgunitA
-                    + "'}]}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnitGroups",
+            "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '"
+                + orgunitA
+                + "'}]}" ) );
     assertHasDataIntegrityIssues(
         detailsIdType, check, 50, orgunitB, "Pizza District", "Type", true);
   }
@@ -98,16 +95,15 @@ class DataIntegrityOrganisationUnitsNoGroupsControllerTest
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}"));
 
     // Create an orgunit group
-    testOrgUnitGroupA =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/organisationUnitGroups",
-                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '"
-                    + orgunitA
-                    + "'}, {'id' : '"
-                    + orgunitB
-                    + "'}]}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnitGroups",
+            "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '"
+                + orgunitA
+                + "'}, {'id' : '"
+                + orgunitB
+                + "'}]}" ) );
     assertHasNoDataIntegrityIssues(detailsIdType, check, true);
   }
 
