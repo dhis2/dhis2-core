@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.config;
+package org.hisp.dhis.webapi.common;
 
-import java.util.List;
+import java.beans.PropertyEditorSupport;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.springframework.core.convert.converter.Converter;
 
-/**
- * String to Order Criterias converter for MVC requests
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-class StringToOrderCriteriaListConverter implements Converter<String, List<OrderCriteria>> {
+public class OrderCriteriaParamEditor extends PropertyEditorSupport {
   @Override
-  public List<OrderCriteria> convert(String source) {
-    return OrderCriteria.fromOrderString(source);
+  public void setAsText(String source) {
+    setValue(OrderCriteria.toOrderCriteria(source));
   }
 }
