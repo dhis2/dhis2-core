@@ -32,18 +32,22 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.QueryOperator;
 
+/**
+ * Represents a query operator that can be negated. It holds Internally a {@link QueryOperator} and
+ * a boolean flag that indicates if the operator is negated.
+ */
 @Data
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class AnalyticsQueryOperator {
+public class NegatableQueryOperator {
 
   private final QueryOperator queryOperator;
   private final boolean negated;
 
-  public AnalyticsQueryOperator negate() {
-    return new AnalyticsQueryOperator(queryOperator, !negated);
+  public NegatableQueryOperator negate() {
+    return new NegatableQueryOperator(queryOperator, !negated);
   }
 
-  public static AnalyticsQueryOperator of(QueryOperator queryOperator) {
-    return new AnalyticsQueryOperator(queryOperator, false);
+  public static NegatableQueryOperator of(QueryOperator queryOperator) {
+    return new NegatableQueryOperator(queryOperator, false);
   }
 }
