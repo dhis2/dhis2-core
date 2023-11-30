@@ -44,6 +44,8 @@ import lombok.Getter;
 public class DataIntegritySummary implements Serializable {
   @JsonUnwrapped private final DataIntegrityCheck check;
 
+  @JsonProperty private final Date startTime;
+
   @JsonProperty private final Date finishedTime;
 
   @JsonProperty private final String error;
