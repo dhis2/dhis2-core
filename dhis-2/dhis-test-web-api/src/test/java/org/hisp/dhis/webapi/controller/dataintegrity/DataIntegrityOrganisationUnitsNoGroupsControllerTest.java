@@ -44,7 +44,7 @@ class DataIntegrityOrganisationUnitsNoGroupsControllerTest
 
   private String orgunitB;
 
-  private static final String check = "orgunits_no_groups";
+  private static final String check = "organisation_units_without_groups";
 
   private static final String detailsIdType = "organisationUnits";
 

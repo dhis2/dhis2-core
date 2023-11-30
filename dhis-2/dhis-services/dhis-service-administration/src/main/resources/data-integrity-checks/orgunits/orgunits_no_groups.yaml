@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: orgunits_no_groups
+name: organisation_units_without_groups
 description: Organisation units with no groups.
 section: Organisation units
 section_order: 13
