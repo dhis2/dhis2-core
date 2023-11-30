@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -42,8 +43,10 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeQuery;
+import org.hisp.dhis.merge.MergeQueryProcessor;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.merge.MergeValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,7 +66,16 @@ public class IndicatorTypeMergeService implements MergeService<IndicatorType> {
   private final IdentifiableObjectManager idObjectManager;
 
   @Override
-  public MergeRequest<IndicatorType> getFromQuery(MergeQuery query, MergeReport mergeReport) {
+  public MergeReport processMergeRequest(MergeQuery query) {
+    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+
+    MergeQueryProcessor<IndicatorType, IndicatorTypeMergeService> mergeQueryProcessor =
+        new MergeQueryProcessor<>(this);
+    return mergeQueryProcessor.processMerge(query, mergeReport);
+  }
+
+  @Override
+  public MergeRequest<IndicatorType> transform(MergeQuery query, MergeReport mergeReport) {
     // sources
     Set<IndicatorType> sources = new HashSet<>();
     if (query.getSources() == null || query.getSources().isEmpty()) {

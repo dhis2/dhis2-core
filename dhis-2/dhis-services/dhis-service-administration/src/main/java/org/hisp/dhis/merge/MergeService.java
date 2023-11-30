@@ -27,19 +27,53 @@
  */
 package org.hisp.dhis.merge;
 
+import java.util.function.BiFunction;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.MergeReport;
 
 /**
- * Main interface for indicator type merge.
+ * Interface for merging {@link BaseIdentifiableObject}s
  *
+ * @param <T> type extending {@link BaseIdentifiableObject}
  * @author david mackessy
  */
 public interface MergeService<T extends BaseIdentifiableObject> {
 
-  MergeRequest<T> getFromQuery(MergeQuery query, MergeReport mergeReport);
+  /**
+   * Entry method to process a {@link MergeQuery}
+   *
+   * @param query {@link MergeQuery}
+   * @return {@link MergeReport} updated with any errors
+   */
+  MergeReport processMergeRequest(MergeQuery query);
 
+  /**
+   * This method transforms a {@link MergeQuery} to a {@link MergeRequest}. If there are any
+   * errors/issues with the query then the {@link MergeReport} should be updated.
+   *
+   * @param query query to transform to {@link MergeRequest}
+   * @param mergeReport report to be updated if any issues/errors with the {@link MergeQuery}
+   * @return {@link MergeRequest}
+   */
+  MergeRequest<T> transform(MergeQuery query, MergeReport mergeReport);
+
+  /**
+   * This method validates a {@link MergeRequest}. If there are any errors/issues with the query
+   * then the {@link MergeReport} should be updated.
+   *
+   * @param request request to be validated
+   * @param mergeReport report to be updated if any issues/errors with the {@link MergeRequest}
+   * @return {@link MergeReport}
+   */
   MergeReport validate(MergeRequest<T> request, MergeReport mergeReport);
 
+  /**
+   * This method merges a {@link MergeRequest}. If there are any errors/issues with the {@link
+   * MergeRequest} then the {@link MergeReport} should be updated.
+   *
+   * @param request request to be merged
+   * @param mergeReport report to be updated if any issues/errors with the {@link MergeRequest}
+   * @return {@link MergeReport}
+   */
   MergeReport merge(MergeRequest<T> request, MergeReport mergeReport);
 }

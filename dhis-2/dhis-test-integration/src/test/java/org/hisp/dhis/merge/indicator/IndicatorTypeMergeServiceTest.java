@@ -86,7 +86,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     query.setTarget(BASE_IN_TYPE_UID + 'C');
     query.setDeleteSources(true);
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    MergeRequest<IndicatorType> request = service.getFromQuery(query, mergeReport);
+    MergeRequest<IndicatorType> request = service.transform(query, mergeReport);
     assertEquals(2, request.getSources().size());
     assertTrue(request.getSources().containsAll(List.of(itA, itB)));
     assertEquals(itC, request.getTarget());
@@ -99,7 +99,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
   void testGetFromQueryWithErrors() {
     MergeQuery query = new MergeQuery();
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    MergeRequest request = service.getFromQuery(query, mergeReport);
+    MergeRequest request = service.transform(query, mergeReport);
 
     // then
     assertRequestIsEmpty(request);
@@ -120,7 +120,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     query.setSources(Set.of(BASE_IN_TYPE_UID + 'A', BASE_IN_TYPE_UID + 'X'));
     query.setTarget(BASE_IN_TYPE_UID + 'C');
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    MergeRequest<IndicatorType> request = service.getFromQuery(query, mergeReport);
+    MergeRequest<IndicatorType> request = service.transform(query, mergeReport);
     assertEquals(1, request.getSources().size());
     assertEquals(BASE_IN_TYPE_UID + 'C', request.getTarget().getUid());
     assertTrue(mergeReport.hasErrorMessages());
@@ -141,7 +141,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
-    MergeRequest<IndicatorType> request = service.getFromQuery(query, mergeReport);
+    MergeRequest<IndicatorType> request = service.transform(query, mergeReport);
 
     // then
     assertRequestIsEmpty(request);

@@ -53,7 +53,7 @@ public class MergeRequest<T extends BaseIdentifiableObject> {
   @Getter private boolean deleteSources;
 
   public Set<T> getSources() {
-    return Set.copyOf(sources);
+    return sources != null ? Set.copyOf(sources) : Set.of();
   }
 
   public T getTarget() {

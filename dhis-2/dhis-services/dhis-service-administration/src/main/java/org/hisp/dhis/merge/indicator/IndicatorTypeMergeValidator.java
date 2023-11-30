@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.merge.indicator;
 
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
@@ -37,7 +37,7 @@ import org.hisp.dhis.merge.MergeValidator;
 import org.springframework.stereotype.Service;
 
 /**
- * Validation service for indicator type merge requests.
+ * Validator for {@link IndicatorType} {@link MergeRequest}.
  *
  * @author david mackessy
  */
@@ -45,34 +45,21 @@ import org.springframework.stereotype.Service;
 public class IndicatorTypeMergeValidator implements MergeValidator<IndicatorType> {
 
   /**
-   * Validates the given {@link MergeRequest}. Throws {@link IllegalQueryException} if validation
-   * fails.
+   * Validates the given {@link MergeRequest}. Any errors result in the {@link MergeReport} being
+   * updated.
    *
-   * @param request the {@link MergeRequest}.
-   * @throws IllegalQueryException if validation failed.
+   * @param request the {@link MergeRequest} to be validated
+   * @param mergeReport the {@link MergeReport} to be updated with any errors
    */
   @Override
   public MergeReport validate(MergeRequest<IndicatorType> request, MergeReport mergeReport) {
-    return validateForErrorMessage(request, mergeReport);
-  }
-
-  /**
-   * Validates the given {@link MergeRequest}.
-   *
-   * @param request the {@link MergeRequest}.
-   * @return an {@link ErrorMessage} if the validation failed, or null if validation was successful.
-   */
-  @Override
-  public MergeReport validateForErrorMessage(
-      MergeRequest<IndicatorType> request, MergeReport mergeReport) {
-    if (request.getSources().isEmpty()) {
+    if (CollectionUtils.isEmpty(request.getSources())) {
       mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1530));
     }
     if (request.getTarget() == null) {
       mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1531));
-    }
-    if (request.getSources().contains(request.getTarget())) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1502));
+    } else if (request.getSources().contains(request.getTarget())) {
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1532));
     }
     return mergeReport;
   }
