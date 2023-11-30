@@ -27,32 +27,32 @@
  */
 package org.hisp.dhis.merge;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
-import org.hisp.dhis.merge.indicator.IndicatorTypeMergeRequest;
 
 /**
  * Validation service for indicator type merge requests.
  *
  * @author david mackessy
  */
-public interface MergeValidator {
+public interface MergeValidator<T extends BaseIdentifiableObject> {
 
   /**
-   * Validates the given {@link IndicatorTypeMergeRequest}. Throws {@link IllegalQueryException} if
-   * validation fails.
+   * Validates the given {@link MergeRequest}. Throws {@link IllegalQueryException} if validation
+   * fails.
    *
-   * @param request the {@link IndicatorTypeMergeRequest}.
+   * @param request the {@link MergeRequest}.
    * @throws IllegalQueryException if validation failed.
    */
-  void validate(MergeRequest request, MergeReport mergeReport);
+  MergeReport validate(MergeRequest<T> request, MergeReport mergeReport);
 
   /**
-   * Validates the given {@link IndicatorTypeMergeRequest}.
+   * Validates the given {@link MergeRequest}.
    *
-   * @param request the {@link IndicatorTypeMergeRequest}.
+   * @param request the {@link MergeRequest}.
    * @return an {@link ErrorMessage} if the validation failed, or null if validation was successful.
    */
-  void validateForErrorMessage(MergeRequest request, MergeReport mergeReport);
+  MergeReport validateForErrorMessage(MergeRequest<T> request, MergeReport mergeReport);
 }

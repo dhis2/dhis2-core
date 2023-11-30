@@ -37,9 +37,9 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeQuery;
-import org.hisp.dhis.merge.MergeRequest;
+import org.hisp.dhis.merge.MergeQueryProcessor;
 import org.hisp.dhis.merge.MergeType;
-import org.hisp.dhis.merge.indicator.MergeService;
+import org.hisp.dhis.merge.indicator.IndicatorTypeMergeService;
 import org.hisp.dhis.schema.descriptors.IndicatorTypeSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -61,7 +61,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Slf4j
 public class IndicatorTypeController extends AbstractCrudController<IndicatorType> {
 
-  private final MergeService<IndicatorType> indicatorTypeMergeService;
+  private final IndicatorTypeMergeService indicatorTypeMergeService;
 
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize("hasRole('ALL') or hasRole('F_INDICATOR_TYPE_MERGE')")
@@ -70,16 +70,11 @@ public class IndicatorTypeController extends AbstractCrudController<IndicatorTyp
     log.info("Indicator type merge request received: {}", query);
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
-    MergeRequest<IndicatorType> request =
-        indicatorTypeMergeService.getFromQuery(query, mergeReport);
+    MergeQueryProcessor<IndicatorType, IndicatorTypeMergeService> mergeQueryProcessor =
+        new MergeQueryProcessor<>(indicatorTypeMergeService);
+    MergeReport finalReport = mergeQueryProcessor.processMerge(query, mergeReport);
 
-    if (mergeReport.hasErrorMessages()) {
-      log.info("Indicator type merge request processed: {}", mergeReport);
-      return WebMessageUtils.mergeReport(mergeReport);
-    }
-    indicatorTypeMergeService.merge(request, mergeReport);
-
-    log.info("Indicator type merge request processed: {}", mergeReport);
-    return WebMessageUtils.mergeReport(mergeReport);
+    log.info("Indicator type merge request processed: {}", finalReport);
+    return WebMessageUtils.mergeReport(finalReport);
   }
 }

@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.merge.indicator;
 
-import static org.hisp.dhis.merge.MergeType.INDICATOR_TYPE;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeValidator;
 import org.springframework.stereotype.Service;
@@ -43,28 +42,29 @@ import org.springframework.stereotype.Service;
  * @author david mackessy
  */
 @Service
-public class IndicatorTypeMergeValidator implements MergeValidator {
+public class IndicatorTypeMergeValidator implements MergeValidator<IndicatorType> {
 
   /**
-   * Validates the given {@link IndicatorTypeMergeRequest}. Throws {@link IllegalQueryException} if
-   * validation fails.
+   * Validates the given {@link MergeRequest}. Throws {@link IllegalQueryException} if validation
+   * fails.
    *
-   * @param request the {@link IndicatorTypeMergeRequest}.
+   * @param request the {@link MergeRequest}.
    * @throws IllegalQueryException if validation failed.
    */
   @Override
-  public void validate(MergeRequest request, MergeReport mergeReport) throws IllegalQueryException {
-    validateForErrorMessage(request, mergeReport);
+  public MergeReport validate(MergeRequest<IndicatorType> request, MergeReport mergeReport) {
+    return validateForErrorMessage(request, mergeReport);
   }
 
   /**
-   * Validates the given {@link IndicatorTypeMergeRequest}.
+   * Validates the given {@link MergeRequest}.
    *
-   * @param request the {@link IndicatorTypeMergeRequest}.
+   * @param request the {@link MergeRequest}.
    * @return an {@link ErrorMessage} if the validation failed, or null if validation was successful.
    */
   @Override
-  public void validateForErrorMessage(MergeRequest request, MergeReport mergeReport) {
+  public MergeReport validateForErrorMessage(
+      MergeRequest<IndicatorType> request, MergeReport mergeReport) {
     if (request.getSources().isEmpty()) {
       mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1530));
     }
@@ -74,5 +74,6 @@ public class IndicatorTypeMergeValidator implements MergeValidator {
     if (request.getSources().contains(request.getTarget())) {
       mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1502));
     }
+    return mergeReport;
   }
 }

@@ -44,6 +44,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeQuery;
 import org.hisp.dhis.merge.MergeRequest;
+import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.DisplayName;

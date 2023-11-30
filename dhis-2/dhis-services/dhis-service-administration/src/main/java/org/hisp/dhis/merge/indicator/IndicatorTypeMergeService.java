@@ -43,6 +43,7 @@ import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeQuery;
 import org.hisp.dhis.merge.MergeRequest;
+import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.merge.MergeValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,26 +56,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DefaultIndicatorTypeMergeService implements MergeService<IndicatorType> {
+public class IndicatorTypeMergeService implements MergeService<IndicatorType> {
 
-  private final MergeValidator indicatorTypeMergeValidator;
+  private final MergeValidator<IndicatorType> indicatorTypeMergeValidator;
   private final IndicatorService indicatorService;
   private final IdentifiableObjectManager idObjectManager;
-
-  @Override
-  @Transactional
-  public MergeReport merge(MergeRequest<IndicatorType> request, MergeReport mergeReport) {
-    indicatorTypeMergeValidator.validate(request, mergeReport);
-
-    if (mergeReport.hasErrorMessages()) {
-      return mergeReport;
-    }
-
-    reassignIndicatorAssociations(request);
-    handleDeleteSources(request, mergeReport);
-
-    return mergeReport;
-  }
 
   @Override
   public MergeRequest<IndicatorType> getFromQuery(MergeQuery query, MergeReport mergeReport) {
@@ -107,11 +93,20 @@ public class DefaultIndicatorTypeMergeService implements MergeService<IndicatorT
     } else return MergeRequest.empty();
   }
 
-  /**
-   * Handles deletion of the source {@link IndicatorType}.
-   *
-   * @param request the {@link IndicatorTypeMergeRequest}.
-   */
+  @Override
+  public MergeReport validate(MergeRequest<IndicatorType> request, MergeReport mergeReport) {
+    return indicatorTypeMergeValidator.validate(request, mergeReport);
+  }
+
+  @Override
+  @Transactional
+  public MergeReport merge(MergeRequest<IndicatorType> request, MergeReport mergeReport) {
+    reassignIndicatorAssociations(request);
+    handleDeleteSources(request, mergeReport);
+
+    return mergeReport;
+  }
+
   private void handleDeleteSources(MergeRequest<IndicatorType> request, MergeReport mergeReport) {
     if (request.isDeleteSources()) {
 
@@ -145,7 +140,7 @@ public class DefaultIndicatorTypeMergeService implements MergeService<IndicatorT
    * All {@link Indicator} associations with source {@link IndicatorType}s are reassigned to the
    * target {@link IndicatorType}
    *
-   * @param request {@link IndicatorTypeMergeRequest}
+   * @param request {@link MergeRequest}
    */
   private void reassignIndicatorAssociations(MergeRequest<IndicatorType> request) {
     IndicatorType target = request.getTarget();

@@ -30,8 +30,10 @@ package org.hisp.dhis.merge;
 import com.google.common.base.MoreObjects;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 
@@ -41,6 +43,8 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
  * @author david mackessy
  */
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class MergeRequest<T extends BaseIdentifiableObject> {
   @Builder.Default private Set<T> sources = new HashSet<>();
 
