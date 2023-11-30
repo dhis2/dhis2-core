@@ -103,7 +103,7 @@ class DataIntegrityYamlReaderTest {
             .getIssues()
             .get(0)
             .getComment()
-            .startsWith("SELECT uid,name from category"));
+            .startsWith("SELECT uid,name from dataelementcategory"));
   }
 
   @Test

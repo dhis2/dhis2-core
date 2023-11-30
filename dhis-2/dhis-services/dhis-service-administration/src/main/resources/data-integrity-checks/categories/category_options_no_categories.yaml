@@ -38,7 +38,7 @@
     FROM categories_categoryoptions))
     SELECT COUNT(*) as value,
     100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*)
-    FROM categoryoption), 0 ) as percent
+    FROM dataelementcategoryoption), 0 ) as percent
     FROM category_options_no_categories;
   details_sql: >-
     SELECT uid,name FROM dataelementcategoryoption
