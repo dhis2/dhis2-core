@@ -34,29 +34,26 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum SortDirection {
-  ASC("asc", false),
-  DESC("desc", false),
-  IASC("iasc", true),
-  IDESC("idesc", true);
-
-  private static final SortDirection DEFAULT_SORTING_DIRECTION = ASC;
+  ASC("asc"),
+  DESC("desc");
 
   private final String value;
 
-  private final boolean ignoreCase;
-
   public static SortDirection of(String value) {
-    return of(value, DEFAULT_SORTING_DIRECTION);
-  }
-
-  public static SortDirection of(String value, SortDirection defaultSortingDirection) {
     return Arrays.stream(values())
         .filter(sortDirection -> sortDirection.getValue().equalsIgnoreCase(value))
         .findFirst()
-        .orElse(defaultSortingDirection);
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "'"
+                        + value
+                        + "' is not a valid sort direction. Valid values are: "
+                        + Arrays.toString(SortDirection.values())
+                        + "."));
   }
 
   public boolean isAscending() {
-    return this == ASC || this == IASC;
+    return this == ASC;
   }
 }
