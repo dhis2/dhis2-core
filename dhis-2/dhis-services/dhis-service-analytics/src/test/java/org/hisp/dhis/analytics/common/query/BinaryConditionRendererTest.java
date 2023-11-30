@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.common.params.dimension.AnalyticsQueryOperator;
+import org.hisp.dhis.analytics.common.params.dimension.NegatableQueryOperator;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -70,7 +70,7 @@ class BinaryConditionRendererTest {
   @Test
   void testNegatedInWithSingleValueProduceCorrectSql() {
     genericTestExecutor(
-        AnalyticsQueryOperator.of(IN).negate(),
+        NegatableQueryOperator.of(IN).negate(),
         List.of("v1"),
         ValueTypeMapping.STRING,
         "not (\"field\" = :1)",
@@ -302,7 +302,7 @@ class BinaryConditionRendererTest {
       String expectedSql,
       List<Consumer<QueryContext>> queryContextConsumers) {
     genericTestExecutor(
-        AnalyticsQueryOperator.of(operator),
+        NegatableQueryOperator.of(operator),
         values,
         valueTypeMapping,
         expectedSql,
@@ -310,7 +310,7 @@ class BinaryConditionRendererTest {
   }
 
   private void genericTestExecutor(
-      AnalyticsQueryOperator analyticsQueryOperator,
+      NegatableQueryOperator negatableQueryOperator,
       List<String> values,
       ValueTypeMapping valueTypeMapping,
       String expectedSql,
@@ -319,7 +319,7 @@ class BinaryConditionRendererTest {
     QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
     String render =
         BinaryConditionRenderer.of(
-                of("field"), analyticsQueryOperator, values, valueTypeMapping, queryContext)
+                of("field"), negatableQueryOperator, values, valueTypeMapping, queryContext)
             .render();
     assertEquals(expectedSql, render);
     queryContextConsumers.forEach(

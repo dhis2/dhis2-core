@@ -48,7 +48,7 @@ import java.util.function.BiFunction;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.common.params.dimension.AnalyticsQueryOperator;
+import org.hisp.dhis.analytics.common.params.dimension.NegatableQueryOperator;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryOperator;
@@ -58,7 +58,7 @@ import org.hisp.dhis.common.QueryOperator;
 public class BinaryConditionRenderer extends BaseRenderable {
   private final Renderable left;
 
-  private final AnalyticsQueryOperator analyticsQueryOperator;
+  private final NegatableQueryOperator negatableQueryOperator;
 
   private final Renderable right;
 
@@ -66,7 +66,7 @@ public class BinaryConditionRenderer extends BaseRenderable {
       String leftAlias, String left, String rightAlias, String right) {
     return BinaryConditionRenderer.of(
         Field.of(leftAlias, () -> left, EMPTY),
-        AnalyticsQueryOperator.of(EQ),
+        NegatableQueryOperator.of(EQ),
         Field.of(rightAlias, () -> right, EMPTY));
   }
 
@@ -78,24 +78,24 @@ public class BinaryConditionRenderer extends BaseRenderable {
       QueryContext queryContext) {
     return BinaryConditionRenderer.of(
         field,
-        AnalyticsQueryOperator.of(queryOperator),
+        NegatableQueryOperator.of(queryOperator),
         ConstantValuesRenderer.of(values, valueTypeMapping, queryContext));
   }
 
   public static BinaryConditionRenderer of(
       Renderable field,
-      AnalyticsQueryOperator analyticsQueryOperator,
+      NegatableQueryOperator negatableQueryOperator,
       List<String> values,
       ValueTypeMapping valueTypeMapping,
       QueryContext queryContext) {
     return BinaryConditionRenderer.of(
         field,
-        analyticsQueryOperator,
+        negatableQueryOperator,
         ConstantValuesRenderer.of(values, valueTypeMapping, queryContext));
   }
 
   public static Renderable of(Renderable left, QueryOperator queryOperator, Renderable right) {
-    return BinaryConditionRenderer.of(left, AnalyticsQueryOperator.of(queryOperator), right);
+    return BinaryConditionRenderer.of(left, NegatableQueryOperator.of(queryOperator), right);
   }
 
   private static final Collection<QueryOperator> comparisonOperators =
@@ -145,11 +145,11 @@ public class BinaryConditionRenderer extends BaseRenderable {
   @Nonnull
   @Override
   public String render() {
-    if (analyticsQueryOperator.isNegated()) {
-      return NotConditionRenderer.of(getCondition(analyticsQueryOperator.getQueryOperator()))
+    if (negatableQueryOperator.isNegated()) {
+      return NotConditionRenderer.of(getCondition(negatableQueryOperator.getQueryOperator()))
           .render();
     }
-    return getCondition(analyticsQueryOperator.getQueryOperator()).render();
+    return getCondition(negatableQueryOperator.getQueryOperator()).render();
   }
 
   /** This class is responsible for mapping a "like" {@link QueryOperator} */

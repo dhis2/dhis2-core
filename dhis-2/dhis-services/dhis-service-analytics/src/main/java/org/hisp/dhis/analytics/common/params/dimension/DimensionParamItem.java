@@ -46,7 +46,7 @@ import org.hisp.dhis.common.QueryOperator;
 @Getter
 @RequiredArgsConstructor(access = PRIVATE)
 public class DimensionParamItem {
-  private final AnalyticsQueryOperator operator;
+  private final NegatableQueryOperator operator;
 
   private final List<String> values;
 
@@ -59,7 +59,7 @@ public class DimensionParamItem {
 
     if (firstElement.contains(DIMENSION_NAME_SEP)) { // Has operator.
       String[] parts = firstElement.split(DIMENSION_NAME_SEP);
-      AnalyticsQueryOperator queryOperator = getOperator(parts[0].trim());
+      NegatableQueryOperator queryOperator = getOperator(parts[0].trim());
       return singletonList(
           new DimensionParamItem(
               queryOperator,
@@ -70,14 +70,14 @@ public class DimensionParamItem {
     }
   }
 
-  private static AnalyticsQueryOperator getOperator(String operator) {
+  private static NegatableQueryOperator getOperator(String operator) {
     if (operator.startsWith("!")) {
       return getOperator(operator.substring(1)).negate();
     }
     return Arrays.stream(QueryOperator.values())
         .filter(queryOperator -> equalsIgnoreCase(queryOperator.name(), operator))
         .findFirst()
-        .map(AnalyticsQueryOperator::of)
+        .map(NegatableQueryOperator::of)
         .orElseThrow(() -> new IllegalQueryException(E2035, operator));
   }
 }
