@@ -107,7 +107,7 @@ public class EventManager {
     final ImportSummaries importSummaries = new ImportSummaries();
 
     for (EventDataValue de : eventDataValues) {
-      eventPersistenceService.updateDataElements(de, event);
+      eventPersistenceService.updateEventDataValues(de, event);
     }
     incrementSummaryTotals(List.of(event), importSummaries, UPDATE);
 

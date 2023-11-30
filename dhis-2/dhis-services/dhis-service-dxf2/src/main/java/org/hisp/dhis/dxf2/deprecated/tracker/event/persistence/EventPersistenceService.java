@@ -67,5 +67,5 @@ public interface EventPersistenceService {
    */
   void delete(WorkContext context, List<Event> events);
 
-  void updateDataElements(EventDataValue de, Event event) throws JsonProcessingException;
+  void updateEventDataValues(EventDataValue de, Event event) throws JsonProcessingException;
 }

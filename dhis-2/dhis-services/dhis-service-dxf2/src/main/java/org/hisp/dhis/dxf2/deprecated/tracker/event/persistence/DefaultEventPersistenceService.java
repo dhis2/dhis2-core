@@ -123,7 +123,7 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
 
   @Override
   @Transactional
-  public void updateDataElements(
+  public void updateEventDataValues(
       EventDataValue de, org.hisp.dhis.dxf2.deprecated.tracker.event.Event event)
       throws JsonProcessingException {
 
