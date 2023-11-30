@@ -31,7 +31,7 @@
   section_order: 3
   summary_sql: >-
     WITH category_options_no_categories  AS (
-    SELECT uid,name FROM categoryoption
+    SELECT uid,name FROM dataelementcategoryoption
     WHERE categoryoptionid
     NOT IN
     (SELECT DISTINCT categoryoptionid
@@ -41,7 +41,7 @@
     FROM categoryoption), 0 ) as percent
     FROM category_options_no_categories;
   details_sql: >-
-    SELECT uid,name FROM categoryoption
+    SELECT uid,name FROM dataelementcategoryoption
     WHERE categoryoptionid
     NOT IN
     (SELECT DISTINCT categoryoptionid

@@ -29,10 +29,10 @@ name: categories_one_default_category
 description: Only one "default" category should exist
 section: Categories
 summary_sql: >-
-  SELECT count(*) AS count FROM category
+  SELECT count(*) AS count FROM dataelementcategory
   WHERE name = 'default' AND uid != 'GLevLNI9wkl';
 details_sql: >-
-  SELECT uid, name FROM category
+  SELECT uid, name FROM dataelementcategory
   WHERE name = 'default' AND uid != 'GLevLNI9wkl'
   ORDER BY categoryid;
 details_id_type: categories
