@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jason P. Pickering
  */
-private class DataIntegrityOrganisationUnitsNoGroupsControllerTest
+class DataIntegrityOrganisationUnitsNoGroupsControllerTest
     extends AbstractDataIntegrityIntegrationTest {
   private String orgunitA;
 
