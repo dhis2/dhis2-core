@@ -100,7 +100,6 @@ public class TrackedEntityInstanceAggregate extends AbstractAggregate {
     teiAttributesCache = cacheProvider.createTeiAttributesCache();
     programTeiAttributesCache = cacheProvider.createProgramTeiAttributesCache();
     userGroupUIDCache = cacheProvider.createUserGroupUIDCache();
-    securityCache = cacheProvider.createOldTrackerSecurityCache();
   }
 
   /**
