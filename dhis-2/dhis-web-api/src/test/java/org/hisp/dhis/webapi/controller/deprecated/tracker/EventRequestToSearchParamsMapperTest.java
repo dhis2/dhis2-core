@@ -474,8 +474,10 @@ class EventRequestToSearchParamsMapperTest {
     UserRole userRole = new UserRole();
     userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
     user.setUserRoles(Set.of(userRole));
+    user.setUsername("anyUser");
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(currentUserService.getCurrentUser()).thenReturn(user);
     when(aclService.canDataRead(user, program)).thenReturn(false);
 
     Exception illegalQueryException =
