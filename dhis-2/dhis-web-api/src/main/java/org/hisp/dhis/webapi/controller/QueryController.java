@@ -29,15 +29,13 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.servlet.http.HttpServletRequest;
-
 import lombok.Value;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -54,147 +52,122 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.view.RedirectView;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * Supports shortening of long API request URIs. This is achieved by accepting
- * the long URI in the body of a POST request and creating a deterministic
- * shortened endpoint for subsequent GET requests which are forwarded to the
- * original controller.
+ * Supports shortening of long API request URIs. This is achieved by accepting the long URI in the
+ * body of a POST request and creating a deterministic shortened endpoint for subsequent GET
+ * requests which are forwarded to the original controller.
  *
  * @author Austin McGee
  */
-@RequestMapping( QueryController.RESOURCE_PATH )
+@RequestMapping(QueryController.RESOURCE_PATH)
 @Controller
-public class QueryController
-{
-    public static final String RESOURCE_PATH = "/query";
+public class QueryController {
+  public static final String RESOURCE_PATH = "/query";
 
-    private static final String ALIAS_ROOT = "/api/query/alias";
+  private static final String ALIAS_ROOT = "/api/query/alias";
 
-    private static final Pattern MULTIPLE_FORWARD_SLASH_PATTERN = Pattern.compile( "/+" );
+  private static final Pattern MULTIPLE_FORWARD_SLASH_PATTERN = Pattern.compile("/+");
 
-    /* Set an upper bound url size to prevent abuse */
-    private static final int MAX_TARGET_LENGTH = 16 * 1024;
+  /* Set an upper bound url size to prevent abuse */
+  private static final int MAX_TARGET_LENGTH = 16 * 1024;
 
-    private final RenderService renderService;
+  private final RenderService renderService;
 
-    private final Cache<String> aliasCache;
+  private final Cache<String> aliasCache;
 
-    public QueryController( RenderService renderService, CacheProvider cacheProvider )
-    {
-        this.renderService = renderService;
-        this.aliasCache = cacheProvider.createQueryAliasCache();
+  public QueryController(RenderService renderService, CacheProvider cacheProvider) {
+    this.renderService = renderService;
+    this.aliasCache = cacheProvider.createQueryAliasCache();
+  }
+
+  @PostMapping(
+      value = "/alias",
+      consumes = APPLICATION_JSON_VALUE,
+      produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody QueryAlias postQueryAlias(
+      HttpServletRequest request, @RequestBody String bodyString) throws BadRequestException {
+    final String target = parseTargetFromRequestBody(bodyString);
+
+    return createAlias(target, request);
+  }
+
+  @PostMapping(value = "/alias/redirect", consumes = APPLICATION_JSON_VALUE)
+  public RedirectView redirectQueryAlias(HttpServletRequest request, @RequestBody String bodyString)
+      throws BadRequestException {
+    final String target = parseTargetFromRequestBody(bodyString);
+    final QueryAlias alias = createAlias(target, request);
+
+    return new RedirectView(alias.getHref(), false, false);
+  }
+
+  @GetMapping("/alias/{hash}")
+  public String getQueryAlias(@PathVariable("hash") String hash) throws NotFoundException {
+    Optional<String> targetUrl = aliasCache.get(hash);
+    if (targetUrl.isPresent()) {
+      return "forward:" + targetUrl.get();
+    }
+    throw new NotFoundException("No query alias found with this hash id, it may have expired.");
+  }
+
+  private String parseTargetFromRequestBody(String bodyString) throws BadRequestException {
+    String target = null;
+    try {
+      Map<String, String> map = renderService.fromJson(bodyString, Map.class);
+
+      if (map != null) {
+        target = map.get("target");
+      }
+    } catch (Exception e) {
+      throw new BadRequestException("Request body must be a valid JSON object");
     }
 
-    @PostMapping( value = "/alias", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody QueryAlias postQueryAlias( HttpServletRequest request,
-        @RequestBody String bodyString )
-        throws BadRequestException
-    {
-        final String target = parseTargetFromRequestBody( bodyString );
-
-        return createAlias( target, request );
+    if (target == null) {
+      throw new BadRequestException("Alias must contain a 'target' property");
     }
 
-    @PostMapping( value = "/alias/redirect", consumes = APPLICATION_JSON_VALUE )
-    public RedirectView redirectQueryAlias( HttpServletRequest request, @RequestBody String bodyString )
-        throws BadRequestException
-    {
-        final String target = parseTargetFromRequestBody( bodyString );
-        final QueryAlias alias = createAlias( target, request );
-
-        return new RedirectView( alias.getHref(), false, false );
+    if (!target.startsWith("/api/")) {
+      throw new BadRequestException("Target must start with /api/");
     }
 
-    @GetMapping( "/alias/{hash}" )
-    public String getQueryAlias( @PathVariable( "hash" ) String hash )
-        throws NotFoundException
-    {
-        Optional<String> targetUrl = aliasCache.get( hash );
-        if ( targetUrl.isPresent() )
-        {
-            return "forward:" + targetUrl.get();
-        }
-        throw new NotFoundException( "No query alias found with this hash id, it may have expired." );
+    return target;
+  }
+
+  private QueryAlias createAlias(String target, HttpServletRequest request)
+      throws BadRequestException {
+    if (target.length() > MAX_TARGET_LENGTH) {
+      throw new BadRequestException("Target url exceeds maximum length");
     }
 
-    private String parseTargetFromRequestBody( String bodyString )
-        throws BadRequestException
-    {
-        String target = null;
-        try
-        {
-            Map<String, String> map = renderService.fromJson( bodyString, Map.class );
+    String alias = CodecUtils.sha1Hex(target);
+    aliasCache.put(alias, target);
 
-            if ( map != null )
-            {
-                target = map.get( "target" );
-            }
-        }
-        catch ( Exception e )
-        {
-            throw new BadRequestException( "Request body must be a valid JSON object" );
-        }
+    String contextPath = ContextUtils.getContextPath(request);
+    String path = replaceDuplicateSlashes(String.join("/", ALIAS_ROOT, alias));
+    String href = constructAliasHref(path, contextPath);
 
-        if ( target == null )
-        {
-            throw new BadRequestException( "Alias must contain a 'target' property" );
-        }
+    return new QueryAlias(alias, path, href, target);
+  }
 
-        if ( !target.startsWith( "/api/" ) )
-        {
-            throw new BadRequestException( "Target must start with /api/" );
-        }
+  private static String constructAliasHref(String path, String contextPath) {
+    String scheme = contextPath.substring(0, contextPath.indexOf("://") + 3);
+    String fullPath = String.join("/", contextPath.substring(scheme.length()), path);
 
-        return target;
-    }
+    return scheme + replaceDuplicateSlashes(fullPath);
+  }
 
-    private QueryAlias createAlias( String target, HttpServletRequest request )
-        throws BadRequestException
-    {
-        if ( target.length() > MAX_TARGET_LENGTH )
-        {
-            throw new BadRequestException( "Target url exceeds maximum length" );
-        }
+  private static String replaceDuplicateSlashes(String input) {
+    Matcher matcher = MULTIPLE_FORWARD_SLASH_PATTERN.matcher(input);
+    return matcher.replaceAll("/");
+  }
 
-        String alias = CodecUtils.sha1Hex( target );
-        aliasCache.put( alias, target );
+  @Value
+  public static class QueryAlias {
+    @JsonProperty String id;
 
-        String contextPath = ContextUtils.getContextPath( request );
-        String path = replaceDuplicateSlashes( String.join( "/", ALIAS_ROOT, alias ) );
-        String href = constructAliasHref( path, contextPath );
+    @JsonProperty String path;
 
-        return new QueryAlias( alias, path, href, target );
-    }
+    @JsonProperty String href;
 
-    private static String constructAliasHref( String path, String contextPath )
-    {
-        String scheme = contextPath.substring( 0, contextPath.indexOf( "://" ) + 3 );
-        String fullPath = String.join( "/", contextPath.substring( scheme.length() ), path );
-
-        return scheme + replaceDuplicateSlashes( fullPath );
-    }
-
-    private static String replaceDuplicateSlashes( String input )
-    {
-        Matcher matcher = MULTIPLE_FORWARD_SLASH_PATTERN.matcher( input );
-        return matcher.replaceAll( "/" );
-    }
-
-    @Value
-    public static class QueryAlias
-    {
-        @JsonProperty
-        String id;
-
-        @JsonProperty
-        String path;
-
-        @JsonProperty
-        String href;
-
-        @JsonProperty
-        String target;
-    }
+    @JsonProperty String target;
+  }
 }
