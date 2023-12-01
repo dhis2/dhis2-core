@@ -36,6 +36,14 @@ import lombok.Data;
 import org.hisp.dhis.merge.MergeType;
 
 /**
+ * Class representing the state of a merge<br>
+ *
+ * <ul>
+ *   <li>It can contain {@link ErrorMessage}s
+ *   <li>It describes the type of merge
+ *   <li>what sources have been deleted, if any
+ * </ul>
+ *
  * @author david mackessy
  */
 @Data
@@ -55,13 +63,8 @@ public class MergeReport implements ErrorMessageContainer {
   }
 
   @Override
-  public boolean addErrorMessage(ErrorMessage errorMessage) {
-    return mergeErrors.add(errorMessage);
-  }
-
-  @Override
-  public List<ErrorMessage> getErrorMessages() {
-    return mergeErrors;
+  public void addErrorMessage(ErrorMessage errorMessage) {
+    mergeErrors.add(errorMessage);
   }
 
   public void addDeletedSource(String uid) {

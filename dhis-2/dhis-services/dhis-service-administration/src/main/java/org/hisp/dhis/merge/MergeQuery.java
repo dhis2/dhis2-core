@@ -30,18 +30,30 @@ package org.hisp.dhis.merge;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 
 /**
- * Encapsulation of a web API request for indicator type merge.
+ * Encapsulation of a web API merge query. Contains source {@link UID}s to be merged and a target
+ * {@link UID} to be merged in to. Also indicates whether sources should be deleted or not. <br>
+ * All {@link UID}s should be verified.
  *
  * @author david mackessy
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class MergeQuery {
-  @JsonProperty private Set<String> sources = new HashSet<>();
+  @OpenApi.Property({UID[].class})
+  @JsonProperty
+  private Set<UID> sources = new HashSet<>();
 
-  @JsonProperty private String target;
+  @OpenApi.Property(UID.class)
+  @JsonProperty
+  private UID target;
 
-  @JsonProperty private boolean deleteSources;
+  @OpenApi.Property @JsonProperty private boolean deleteSources;
 }

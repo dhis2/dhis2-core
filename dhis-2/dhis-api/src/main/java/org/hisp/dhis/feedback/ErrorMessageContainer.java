@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.feedback;
 
-import java.util.List;
-
 /**
  * An ADT interface for a collection of {@link ErrorMessage}s.
  *
@@ -38,7 +36,5 @@ public interface ErrorMessageContainer {
 
   boolean hasErrorMessages();
 
-  boolean addErrorMessage(ErrorMessage errorMessage);
-
-  List<ErrorMessage> getErrorMessages();
+  void addErrorMessage(ErrorMessage errorMessage);
 }

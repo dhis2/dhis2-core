@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.merge;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.MergeReport;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +48,7 @@ public interface MergeService<T extends BaseIdentifiableObject> {
    * @param mergeReport report to be updated if any issues/errors with the {@link MergeQuery}
    * @return {@link MergeRequest}
    */
-  MergeRequest<T> transform(MergeQuery query, MergeReport mergeReport);
+  MergeRequest<T> transform(@Nonnull MergeQuery query, @Nonnull MergeReport mergeReport);
 
   /**
    * This method validates a {@link MergeRequest}. If there are any errors/issues with the query
@@ -55,9 +56,9 @@ public interface MergeService<T extends BaseIdentifiableObject> {
    *
    * @param request request to be validated
    * @param mergeReport report to be updated if any issues/errors with the {@link MergeRequest}
-   * @return {@link MergeReport}
+   * @return {@link MergeRequest}
    */
-  MergeReport validate(MergeRequest<T> request, MergeReport mergeReport);
+  MergeRequest<T> validate(@Nonnull MergeRequest<T> request, @Nonnull MergeReport mergeReport);
 
   /**
    * This method merges a {@link MergeRequest}. If there are any errors/issues with the {@link
@@ -68,5 +69,5 @@ public interface MergeService<T extends BaseIdentifiableObject> {
    * @return {@link MergeReport}
    */
   @Transactional
-  MergeReport merge(MergeRequest<T> request, MergeReport mergeReport);
+  MergeReport merge(@Nonnull MergeRequest<T> request, @Nonnull MergeReport mergeReport);
 }

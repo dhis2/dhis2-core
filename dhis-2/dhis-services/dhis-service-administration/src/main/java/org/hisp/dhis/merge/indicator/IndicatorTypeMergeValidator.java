@@ -29,7 +29,6 @@ package org.hisp.dhis.merge.indicator;
 
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeRequest;
@@ -46,21 +45,23 @@ public class IndicatorTypeMergeValidator implements MergeValidator<IndicatorType
 
   /**
    * Validates the given {@link MergeRequest}. Any errors result in the {@link MergeReport} being
-   * updated.
+   * updated and an empty {@link MergeRequest} returned.
    *
    * @param request the {@link MergeRequest} to be validated
    * @param mergeReport the {@link MergeReport} to be updated with any errors
    */
   @Override
-  public MergeReport validate(MergeRequest<IndicatorType> request, MergeReport mergeReport) {
+  public MergeRequest<IndicatorType> validate(
+      MergeRequest<IndicatorType> request, MergeReport mergeReport) {
     if (CollectionUtils.isEmpty(request.getSources())) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1530));
+      addError(mergeReport, ErrorCode.E1530);
     }
     if (request.getTarget() == null) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1531));
+      addError(mergeReport, ErrorCode.E1531);
     } else if (request.getSources().contains(request.getTarget())) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1532));
+      addError(mergeReport, ErrorCode.E1532);
     }
-    return mergeReport;
+
+    return mergeReport.hasErrorMessages() ? MergeRequest.empty() : request;
   }
 }

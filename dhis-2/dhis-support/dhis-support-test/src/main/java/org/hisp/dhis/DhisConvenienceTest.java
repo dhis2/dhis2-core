@@ -225,7 +225,7 @@ public abstract class DhisConvenienceTest {
   protected static final String BASE_UID = "abcdefghij";
 
   protected static final String BASE_IN_UID = "inabcdefgh";
-  protected static final String BASE_IN_TYPE_UID = "intabcdefg";
+  protected static final String BASE_IN_TYPE_UID = "IntY123abg";
 
   protected static final String BASE_DE_UID = "deabcdefgh";
 

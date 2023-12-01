@@ -28,6 +28,7 @@
 package org.hisp.dhis.merge.indicator;
 
 import static org.hisp.dhis.merge.MergeType.INDICATOR_TYPE;
+import static org.hisp.dhis.merge.indicator.IndicatorTypeMergeServiceTest.assertRequestIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -57,27 +58,6 @@ class IndicatorTypeMergeValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  @DisplayName("Empty request results in merge report with errors for sources and target")
-  void testEmptyRequest() {
-    // given an empty merge request
-    MergeRequest<IndicatorType> mergeRequest = MergeRequest.empty();
-    MergeReport mergeReport = new MergeReport(INDICATOR_TYPE);
-
-    // when the request is validated
-    MergeReport updatedReport = validator.validate(mergeRequest, mergeReport);
-
-    // then the report has errors
-    assertTrue(updatedReport.hasErrorMessages());
-    assertReportMatchesErrorCodes(updatedReport, Set.of(ErrorCode.E1530, ErrorCode.E1531));
-    assertReportMatchesErrorMessages(
-        updatedReport,
-        Set.of(
-            "At least one source indicator type must be specified",
-            "Target indicator type must be specified"));
-    assertEquals(INDICATOR_TYPE, updatedReport.getMergeType());
-  }
-
-  @Test
   @DisplayName("Valid request results in merge report with no errors")
   void testValidRequest() {
     // given a valid merge request
@@ -89,17 +69,41 @@ class IndicatorTypeMergeValidatorTest extends DhisConvenienceTest {
         MergeRequest.<IndicatorType>builder().sources(Set.of(a, b)).target(c).build();
 
     // when the request is validated
-    MergeReport updatedReport = validator.validate(mergeRequest, mergeReport);
+    MergeRequest<IndicatorType> validatedRequest = validator.validate(mergeRequest, mergeReport);
 
     // then the report has no errors
-    assertFalse(updatedReport.hasErrorMessages());
-    assertReportMatchesErrorCodes(updatedReport, Set.of());
-    assertReportMatchesErrorMessages(updatedReport, Set.of());
-    assertEquals(INDICATOR_TYPE, updatedReport.getMergeType());
+    assertEquals(Set.of(a, b), validatedRequest.getSources());
+    assertEquals(c, validatedRequest.getTarget());
+    assertFalse(mergeReport.hasErrorMessages());
+    assertReportMatchesErrorCodes(mergeReport, Set.of());
+    assertReportMatchesErrorMessages(mergeReport, Set.of());
+    assertEquals(INDICATOR_TYPE, mergeReport.getMergeType());
   }
 
   @Test
-  @DisplayName("Empty sources results in merge report with error for sources")
+  @DisplayName("Empty request results in a merge report with errors and an empty merge request")
+  void testEmptyRequest() {
+    // given an empty merge request
+    MergeRequest<IndicatorType> mergeRequest = MergeRequest.empty();
+    MergeReport mergeReport = new MergeReport(INDICATOR_TYPE);
+
+    // when the request is validated
+    MergeRequest<IndicatorType> validatedRequest = validator.validate(mergeRequest, mergeReport);
+
+    // then the report has errors
+    assertTrue(mergeReport.hasErrorMessages());
+    assertRequestIsEmpty(validatedRequest);
+    assertReportMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1530, ErrorCode.E1531));
+    assertReportMatchesErrorMessages(
+        mergeReport,
+        Set.of(
+            "At least one source indicator type must be specified",
+            "Target indicator type must be specified"));
+    assertEquals(INDICATOR_TYPE, mergeReport.getMergeType());
+  }
+
+  @Test
+  @DisplayName("Empty sources results in a merge report with an error and an empty request")
   void testEmptySources() {
     // given a merge request with empty sources
     IndicatorType a = createIndicatorType('a');
@@ -108,18 +112,19 @@ class IndicatorTypeMergeValidatorTest extends DhisConvenienceTest {
     MergeReport mergeReport = new MergeReport(INDICATOR_TYPE);
 
     // when the request is validated
-    MergeReport updatedReport = validator.validate(mergeRequest, mergeReport);
+    MergeRequest<IndicatorType> validatedRequest = validator.validate(mergeRequest, mergeReport);
 
     // then the report has an error
-    assertTrue(updatedReport.hasErrorMessages());
-    assertReportMatchesErrorCodes(updatedReport, Set.of(ErrorCode.E1530));
+    assertTrue(mergeReport.hasErrorMessages());
+    assertRequestIsEmpty(validatedRequest);
+    assertReportMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1530));
     assertReportMatchesErrorMessages(
-        updatedReport, Set.of("At least one source indicator type must be specified"));
-    assertEquals(INDICATOR_TYPE, updatedReport.getMergeType());
+        mergeReport, Set.of("At least one source indicator type must be specified"));
+    assertEquals(INDICATOR_TYPE, mergeReport.getMergeType());
   }
 
   @Test
-  @DisplayName("Null sources results in merge report with error for sources")
+  @DisplayName("Null sources results in a merge report with an error and an empty request")
   void testNullSources() {
     // given a merge request with null sources
     IndicatorType a = createIndicatorType('a');
@@ -128,18 +133,19 @@ class IndicatorTypeMergeValidatorTest extends DhisConvenienceTest {
     MergeReport mergeReport = new MergeReport(INDICATOR_TYPE);
 
     // when the request is validated
-    MergeReport updatedReport = validator.validate(mergeRequest, mergeReport);
+    MergeRequest<IndicatorType> validatedRequest = validator.validate(mergeRequest, mergeReport);
 
     // then the report has an error
-    assertTrue(updatedReport.hasErrorMessages());
-    assertReportMatchesErrorCodes(updatedReport, Set.of(ErrorCode.E1530));
+    assertTrue(mergeReport.hasErrorMessages());
+    assertRequestIsEmpty(validatedRequest);
+    assertReportMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1530));
     assertReportMatchesErrorMessages(
-        updatedReport, Set.of("At least one source indicator type must be specified"));
-    assertEquals(INDICATOR_TYPE, updatedReport.getMergeType());
+        mergeReport, Set.of("At least one source indicator type must be specified"));
+    assertEquals(INDICATOR_TYPE, mergeReport.getMergeType());
   }
 
   @Test
-  @DisplayName("Null target results in merge report with errors for target")
+  @DisplayName("Null target results in a merge report with an error and an empty request")
   void testNullTarget() {
     // given a merge request with null target
     IndicatorType a = createIndicatorType('a');
@@ -148,18 +154,19 @@ class IndicatorTypeMergeValidatorTest extends DhisConvenienceTest {
     MergeReport mergeReport = new MergeReport(INDICATOR_TYPE);
 
     // when the request is validated
-    MergeReport updatedReport = validator.validate(mergeRequest, mergeReport);
+    MergeRequest<IndicatorType> validatedRequest = validator.validate(mergeRequest, mergeReport);
 
     // then the report has an error
-    assertTrue(updatedReport.hasErrorMessages());
-    assertReportMatchesErrorCodes(updatedReport, Set.of(ErrorCode.E1531));
+    assertTrue(mergeReport.hasErrorMessages());
+    assertRequestIsEmpty(validatedRequest);
+    assertReportMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1531));
     assertReportMatchesErrorMessages(
-        updatedReport, Set.of("Target indicator type must be specified"));
-    assertEquals(INDICATOR_TYPE, updatedReport.getMergeType());
+        mergeReport, Set.of("Target indicator type must be specified"));
+    assertEquals(INDICATOR_TYPE, mergeReport.getMergeType());
   }
 
   @Test
-  @DisplayName("Target in sources results in merge report with error")
+  @DisplayName("Target in sources results in a merge report with an error and an empty request")
   void testTargetInSources() {
     // given a merge request with the target in the sources
     IndicatorType a = createIndicatorType('a');
@@ -168,14 +175,15 @@ class IndicatorTypeMergeValidatorTest extends DhisConvenienceTest {
     MergeReport mergeReport = new MergeReport(INDICATOR_TYPE);
 
     // when the request is validated
-    MergeReport updatedReport = validator.validate(mergeRequest, mergeReport);
+    MergeRequest<IndicatorType> validatedRequest = validator.validate(mergeRequest, mergeReport);
 
     // then the report has an error
-    assertTrue(updatedReport.hasErrorMessages());
-    assertReportMatchesErrorCodes(updatedReport, Set.of(ErrorCode.E1532));
+    assertTrue(mergeReport.hasErrorMessages());
+    assertRequestIsEmpty(validatedRequest);
+    assertReportMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1532));
     assertReportMatchesErrorMessages(
-        updatedReport, Set.of("Target indicator type cannot be a source indicator type"));
-    assertEquals(INDICATOR_TYPE, updatedReport.getMergeType());
+        mergeReport, Set.of("Target indicator type cannot be a source indicator type"));
+    assertEquals(INDICATOR_TYPE, mergeReport.getMergeType());
   }
 
   private void assertReportMatchesErrorMessages(

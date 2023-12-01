@@ -28,20 +28,30 @@
 package org.hisp.dhis.merge;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 
 /**
- * Interface to validate MergeRequests
+ * Interface to validate a {@link MergeRequest}
  *
- * @param <T> Type extending BaseIdentifiableObject
+ * @param <T> Type extending {@link BaseIdentifiableObject}
  * @author david mackessy
  */
 public interface MergeValidator<T extends BaseIdentifiableObject> {
 
   /**
-   * @param request the request to be validated
-   * @param mergeReport the merge report to be updated with any validation errors
-   * @return updated mergeReport with any validation errors
+   * @param request the {@link MergeRequest} to be validated
+   * @param mergeReport the {@link MergeReport} to be updated with any validation errors
+   * @return validated {@link MergeRequest}
    */
-  MergeReport validate(MergeRequest<T> request, MergeReport mergeReport);
+  MergeRequest<T> validate(MergeRequest<T> request, MergeReport mergeReport);
+
+  /**
+   * @param errorCode the error code to add
+   * @param mergeReport the {@link MergeReport} to update
+   */
+  default void addError(MergeReport mergeReport, ErrorCode errorCode) {
+    mergeReport.addErrorMessage(new ErrorMessage(errorCode));
+  }
 }

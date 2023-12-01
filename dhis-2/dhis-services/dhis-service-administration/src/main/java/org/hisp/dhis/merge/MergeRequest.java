@@ -38,7 +38,9 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 
 /**
- * Encapsulation of an indicator type merge request.
+ * Encapsulation of a merge request. Contains source types that extend {@link
+ * BaseIdentifiableObject} to be merged into a target of the same type. Also indicates whether
+ * sources should be deleted.
  *
  * @author david mackessy
  */

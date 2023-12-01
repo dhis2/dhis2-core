@@ -34,16 +34,16 @@ public class MergeQueryProcessor<T extends BaseIdentifiableObject> {
    * Processes a merge query in full, using the implemented {@link MergeService} provided.
    *
    * @param mergeQuery {@link MergeQuery} to process
-   * @param mergeReport {@link MergeReport} to update with any errors and return
+   * @param mergeReport {@link MergeReport} to update with any errors
    * @return updated {@link MergeReport} with any errors
    */
   public MergeReport processMerge(MergeQuery mergeQuery, MergeReport mergeReport) {
     MergeRequest<T> mergeRequest = mergeService.transform(mergeQuery, mergeReport);
     if (mergeReport.hasErrorMessages()) return mergeReport;
 
-    MergeReport updatedReport = mergeService.validate(mergeRequest, mergeReport);
-    if (updatedReport.hasErrorMessages()) return mergeReport;
+    MergeRequest<T> validatedRequest = mergeService.validate(mergeRequest, mergeReport);
+    if (mergeReport.hasErrorMessages()) return mergeReport;
 
-    return mergeService.merge(mergeRequest, mergeReport);
+    return mergeService.merge(validatedRequest, mergeReport);
   }
 }

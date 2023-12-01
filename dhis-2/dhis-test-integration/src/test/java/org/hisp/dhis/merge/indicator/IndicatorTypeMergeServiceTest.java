@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
@@ -64,6 +65,11 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
   private IndicatorType itB;
   private IndicatorType itC;
 
+  private final UID uidA = UID.of(BASE_IN_TYPE_UID + 'A');
+  private final UID uidB = UID.of(BASE_IN_TYPE_UID + 'B');
+  private final UID uidC = UID.of(BASE_IN_TYPE_UID + 'C');
+  private final UID uidX = UID.of(BASE_IN_TYPE_UID + 'X');
+
   @Override
   public void setUpTest() {
     itA = createIndicatorType('A');
@@ -79,14 +85,20 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  @DisplayName("Valid query produces a valid merge request and a merge report with no errors")
+  @DisplayName(
+      "Transform a valid merge query, producing a valid merge request and an error free merge report")
   void testGetFromQuery() {
+    // given
     MergeQuery query = new MergeQuery();
-    query.setSources(Set.of(BASE_IN_TYPE_UID + 'A', BASE_IN_TYPE_UID + 'B'));
-    query.setTarget(BASE_IN_TYPE_UID + 'C');
+    query.setSources(Set.of(uidA, uidB));
+    query.setTarget(uidC);
     query.setDeleteSources(true);
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+
+    // when
     MergeRequest<IndicatorType> request = service.transform(query, mergeReport);
+
+    // then
     assertEquals(2, request.getSources().size());
     assertTrue(request.getSources().containsAll(List.of(itA, itB)));
     assertEquals(itC, request.getTarget());
@@ -95,49 +107,11 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  @DisplayName("Query with missing sources and target produces a merge report with errors")
+  @DisplayName(
+      "Transform a merge query with missing sources and target, producing an empty merge request and a merge report with errors")
   void testGetFromQueryWithErrors() {
-    MergeQuery query = new MergeQuery();
-    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    MergeRequest request = service.transform(query, mergeReport);
-
-    // then
-    assertRequestIsEmpty(request);
-
-    assertTrue(mergeReport.hasErrorMessages());
-
-    Set<ErrorCode> mergeErrorCodes =
-        mergeReport.getMergeErrors().stream()
-            .map(ErrorMessage::getErrorCode)
-            .collect(Collectors.toSet());
-    assertEquals(Set.of(ErrorCode.E1530, ErrorCode.E1531), mergeErrorCodes);
-  }
-
-  @Test
-  @DisplayName("Query with invalid source uid produces a merge report with error")
-  void testSourceNotFound() {
-    MergeQuery query = new MergeQuery();
-    query.setSources(Set.of(BASE_IN_TYPE_UID + 'A', BASE_IN_TYPE_UID + 'X'));
-    query.setTarget(BASE_IN_TYPE_UID + 'C');
-    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    MergeRequest<IndicatorType> request = service.transform(query, mergeReport);
-    assertEquals(1, request.getSources().size());
-    assertEquals(BASE_IN_TYPE_UID + 'C', request.getTarget().getUid());
-    assertTrue(mergeReport.hasErrorMessages());
-    Set<String> errors =
-        mergeReport.getMergeErrors().stream()
-            .map(ErrorMessage::getMessage)
-            .collect(Collectors.toSet());
-    assertEquals(Set.of("Source indicator type does not exist: `intabcdefgX`"), errors);
-  }
-
-  @Test
-  @DisplayName("Query with invalid target uid produces a merge report with error")
-  void testTargetNotFound() {
     // given
     MergeQuery query = new MergeQuery();
-    query.setSources(Set.of(BASE_IN_TYPE_UID + 'A', BASE_IN_TYPE_UID + 'B'));
-    query.setTarget(BASE_IN_TYPE_UID + 'X');
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
@@ -146,16 +120,60 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     // then
     assertRequestIsEmpty(request);
     assertTrue(mergeReport.hasErrorMessages());
-    Set<String> errors =
-        mergeReport.getMergeErrors().stream()
-            .map(ErrorMessage::getMessage)
-            .collect(Collectors.toSet());
-    assertEquals(Set.of("Target indicator type does not exist: `intabcdefgX`"), errors);
+    assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1530, ErrorCode.E1531));
+    assertMatchesErrorMessages(
+        mergeReport,
+        Set.of(
+            "At least one source indicator type must be specified",
+            "Target indicator type must be specified"));
   }
 
   @Test
-  @DisplayName("Merge indicator types")
-  void testValidMerge() {
+  @DisplayName(
+      "Transform a merge query with invalid source uid, producing an empty merge request and a merge report with an error")
+  void testSourceNotFound() {
+    // given
+    MergeQuery query = new MergeQuery();
+    query.setSources(Set.of(uidA, uidX));
+    query.setTarget(uidC);
+    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+
+    // when
+    MergeRequest<IndicatorType> request = service.transform(query, mergeReport);
+
+    // then
+    assertEquals(1, request.getSources().size());
+    assertEquals(BASE_IN_TYPE_UID + 'C', request.getTarget().getUid());
+    assertTrue(mergeReport.hasErrorMessages());
+    assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1533));
+    assertMatchesErrorMessages(
+        mergeReport, Set.of("Source indicator type does not exist: `IntY123abgX`"));
+  }
+
+  @Test
+  @DisplayName(
+      "Transform a merge query with invalid target uid, producing an empty merge request and a merge report with error")
+  void testTargetNotFound() {
+    // given
+    MergeQuery query = new MergeQuery();
+    query.setSources(Set.of(uidA, uidB));
+    query.setTarget(uidX);
+    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+
+    // when
+    MergeRequest<IndicatorType> request = service.transform(query, mergeReport);
+
+    // then
+    assertRequestIsEmpty(request);
+    assertTrue(mergeReport.hasErrorMessages());
+    assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1533));
+    assertMatchesErrorMessages(
+        mergeReport, Set.of("Target indicator type does not exist: `IntY123abgX`"));
+  }
+
+  @Test
+  @DisplayName("Validate a valid merge request")
+  void testValidate() {
     // given indicators exist and are associated with indicator types
     Indicator iA = createIndicator('A', itA);
     Indicator iB = createIndicator('B', itB);
@@ -177,9 +195,116 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
             .deleteSources(true)
             .build();
 
-    // when an indicator merge request is processed
+    // when an indicator merge request is validated
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    service.merge(request, mergeReport);
+    service.validate(request, mergeReport);
+
+    // then
+    // source indicator types exist
+    assertNotNull(idObjectManager.get(IndicatorType.class, itA.getUid()));
+    assertNotNull(idObjectManager.get(IndicatorType.class, itB.getUid()));
+    // and the target indicator type exists
+    assertNotNull(idObjectManager.get(IndicatorType.class, itC.getUid()));
+
+    // and the merge report has no errors
+    assertFalse(mergeReport.hasErrorMessages());
+  }
+
+  @Test
+  @DisplayName("Validate an invalid merge request missing sources")
+  void testValidateWithErrorNoSources() {
+    // given
+    Indicator iC = createIndicator('C', itC);
+    idObjectManager.save(iC);
+
+    assertNotNull(idObjectManager.get(IndicatorType.class, itC.getUid()));
+    assertEquals(itC, iC.getIndicatorType());
+    MergeRequest<IndicatorType> request =
+        MergeRequest.<IndicatorType>builder()
+            .sources(Set.of())
+            .target(itC)
+            .deleteSources(true)
+            .build();
+
+    // when an indicator merge request is validated
+    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+    MergeRequest<IndicatorType> validatedRequest = service.validate(request, mergeReport);
+
+    // then
+    // and the target indicator exists
+    assertNotNull(idObjectManager.get(IndicatorType.class, itC.getUid()));
+
+    // and the merge report has errors and the merge request is empty
+    assertTrue(mergeReport.hasErrorMessages());
+    assertRequestIsEmpty(validatedRequest);
+    assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1530));
+    assertMatchesErrorMessages(
+        mergeReport, Set.of("At least one source indicator type must be specified"));
+  }
+
+  @Test
+  @DisplayName("Validate an invalid merge request missing a target")
+  void testValidateWithErrorNoTarget() {
+    // given indicators exist and are associated with indicator types
+    Indicator iA = createIndicator('A', itA);
+    Indicator iB = createIndicator('B', itB);
+    idObjectManager.save(iA);
+    idObjectManager.save(iB);
+
+    assertNotNull(idObjectManager.get(IndicatorType.class, itA.getUid()));
+    assertNotNull(idObjectManager.get(IndicatorType.class, itB.getUid()));
+    assertEquals(itA, iA.getIndicatorType());
+    assertEquals(itB, iB.getIndicatorType());
+    MergeRequest<IndicatorType> request =
+        MergeRequest.<IndicatorType>builder()
+            .sources(Set.of(itA, itB))
+            .target(null)
+            .deleteSources(true)
+            .build();
+
+    // when an indicator merge request is validated
+    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+    MergeRequest<IndicatorType> validatedRequest = service.validate(request, mergeReport);
+
+    // then
+    // and the source indicators exists
+    assertNotNull(idObjectManager.get(IndicatorType.class, itA.getUid()));
+    assertNotNull(idObjectManager.get(IndicatorType.class, itB.getUid()));
+
+    // and the merge report has errors and the merge request is empty
+    assertTrue(mergeReport.hasErrorMessages());
+    assertRequestIsEmpty(validatedRequest);
+    assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1531));
+    assertMatchesErrorMessages(mergeReport, Set.of("Target indicator type must be specified"));
+  }
+
+  @Test
+  @DisplayName("Merge indicator types and delete sources")
+  void testValidMergeDeleteSources() {
+    // given indicators exist and are associated with indicator types
+    Indicator iA = createIndicator('A', itA);
+    Indicator iB = createIndicator('B', itB);
+    Indicator iC = createIndicator('C', itC);
+    idObjectManager.save(iA);
+    idObjectManager.save(iB);
+    idObjectManager.save(iC);
+
+    assertNotNull(idObjectManager.get(IndicatorType.class, itA.getUid()));
+    assertNotNull(idObjectManager.get(IndicatorType.class, itB.getUid()));
+    assertNotNull(idObjectManager.get(IndicatorType.class, itC.getUid()));
+    assertEquals(itA, iA.getIndicatorType());
+    assertEquals(itB, iB.getIndicatorType());
+    assertEquals(itC, iC.getIndicatorType());
+    MergeRequest<IndicatorType> request =
+        MergeRequest.<IndicatorType>builder()
+            .sources(Set.of(itA, itB))
+            .target(itC)
+            .deleteSources(true)
+            .build();
+
+    // when an indicator merge request is merged
+    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+    MergeReport completeReport = service.merge(request, mergeReport);
 
     // then
     // source indicator types are deleted
@@ -195,13 +320,77 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     assertEquals(100, itC.getFactor());
     assertFalse(itC.isNumber());
 
-    // and the merge report has no errors
-    assertFalse(mergeReport.hasErrorMessages());
+    // and the merge report has no errors and contains deleted sources
+    assertFalse(completeReport.hasErrorMessages());
+    assertEquals(Set.of("IntY123abgA", "IntY123abgB"), completeReport.getSourcesDeleted());
   }
 
-  private void assertRequestIsEmpty(MergeRequest<IndicatorType> request) {
+  @Test
+  @DisplayName("Merge indicator types and do not delete sources")
+  void testValidMergeKeepSources() {
+    // given indicators exist and are associated with indicator types
+    Indicator iA = createIndicator('A', itA);
+    Indicator iB = createIndicator('B', itB);
+    Indicator iC = createIndicator('C', itC);
+    idObjectManager.save(iA);
+    idObjectManager.save(iB);
+    idObjectManager.save(iC);
+
+    assertNotNull(idObjectManager.get(IndicatorType.class, itA.getUid()));
+    assertNotNull(idObjectManager.get(IndicatorType.class, itB.getUid()));
+    assertNotNull(idObjectManager.get(IndicatorType.class, itC.getUid()));
+    assertEquals(itA, iA.getIndicatorType());
+    assertEquals(itB, iB.getIndicatorType());
+    assertEquals(itC, iC.getIndicatorType());
+    MergeRequest<IndicatorType> request =
+        MergeRequest.<IndicatorType>builder()
+            .sources(Set.of(itA, itB))
+            .target(itC)
+            .deleteSources(false)
+            .build();
+
+    // when an indicator merge request is merged
+    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+    MergeReport completeReport = service.merge(request, mergeReport);
+
+    // then
+    // source indicator types are deleted
+    assertNotNull(idObjectManager.get(IndicatorType.class, itA.getUid()));
+    assertNotNull(idObjectManager.get(IndicatorType.class, itB.getUid()));
+    // and the target indicator type exists
+    assertNotNull(idObjectManager.get(IndicatorType.class, itC.getUid()));
+
+    // and associated source indicators are now associated to the target indicator type
+    assertEquals(itC, iA.getIndicatorType());
+    assertEquals(itC, iB.getIndicatorType());
+    assertEquals(itC, iC.getIndicatorType());
+    assertEquals(100, itC.getFactor());
+    assertFalse(itC.isNumber());
+
+    // and the merge report has no errors and shows 2 deleted sources
+    assertFalse(completeReport.hasErrorMessages());
+    assertEquals(Set.of(), completeReport.getSourcesDeleted());
+  }
+
+  public static void assertRequestIsEmpty(MergeRequest<IndicatorType> request) {
     assertEquals(0, request.getSources().size());
     assertNull(request.getTarget());
     assertFalse(request.isDeleteSources());
+  }
+
+  private void assertMatchesErrorMessages(MergeReport mergeReport, Set<String> expected) {
+    Set<String> actual =
+        mergeReport.getMergeErrors().stream()
+            .map(ErrorMessage::getMessage)
+            .collect(Collectors.toSet());
+    assertEquals(expected, actual);
+  }
+
+  private void assertMatchesErrorCodes(MergeReport mergeReport, Set<ErrorCode> expected) {
+    Set<ErrorCode> actual =
+        mergeReport.getMergeErrors().stream()
+            .map(ErrorMessage::getErrorCode)
+            .collect(Collectors.toSet());
+    assertEquals(expected, actual);
   }
 }
