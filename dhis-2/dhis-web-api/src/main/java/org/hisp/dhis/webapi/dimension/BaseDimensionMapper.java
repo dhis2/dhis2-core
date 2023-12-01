@@ -27,30 +27,41 @@
  */
 package org.hisp.dhis.webapi.dimension;
 
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 
-public abstract class BaseDimensionMapper implements DimensionMapper
-{
+/** Base mapper for Dimensions to be returned */
+public abstract class BaseDimensionMapper implements DimensionMapper {
 
-    @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
-    {
-        DimensionResponse mapped = DimensionResponse.builder()
-            .id( dimension.getUid() )
-            .uid( dimension.getUid() )
-            .displayName( dimension.getDisplayName() )
-            .created( dimension.getCreated() )
-            .code( dimension.getCode() )
-            .lastUpdated( dimension.getLastUpdated() )
-            .name( dimension.getName() )
+  /** Returns a DimensionResponse with common fields mapped */
+  @Override
+  public DimensionResponse map(PrefixedDimension prefixedDimension, String prefix) {
+    BaseIdentifiableObject dimension = prefixedDimension.getItem();
+    DimensionResponse mapped =
+        DimensionResponse.builder()
+            .id(getPrefixed(prefix, dimension.getUid()))
+            .uid(dimension.getUid())
+            .displayName(dimension.getDisplayName())
+            .created(dimension.getCreated())
+            .code(dimension.getCode())
+            .lastUpdated(dimension.getLastUpdated())
+            .name(dimension.getName())
             .build();
 
-        if ( dimension instanceof BaseNameableObject )
-        {
-            return mapped.withDisplayShortName(
-                ((BaseNameableObject) dimension).getDisplayShortName() );
-        }
-        return mapped;
+    if (dimension instanceof BaseNameableObject) {
+      return mapped.withDisplayShortName(((BaseNameableObject) dimension).getDisplayShortName());
     }
+    return mapped;
+  }
+
+  private String getPrefixed(String prefix, String uid) {
+    if (StringUtils.isNotBlank(prefix)) {
+      return prefix + DIMENSION_IDENTIFIER_SEP + uid;
+    }
+    return uid;
+  }
 }

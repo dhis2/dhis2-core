@@ -28,7 +28,6 @@
 package org.hisp.dhis.indicator;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -37,17 +36,15 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Stian Sandvold
  */
-@Transactional( readOnly = true )
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.indicator.IndicatorGroupService" )
-public class DefaultIndicatorGroupService implements IndicatorGroupService
-{
-    @Qualifier( "org.hisp.dhis.indicator.IndicatorGroupStore" )
-    private final HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
+@Service("org.hisp.dhis.indicator.IndicatorGroupService")
+public class DefaultIndicatorGroupService implements IndicatorGroupService {
+  @Qualifier("org.hisp.dhis.indicator.IndicatorGroupStore")
+  private final HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
 
-    @Override
-    public IndicatorGroup getIndicatorGroupByUid( String uid )
-    {
-        return indicatorGroupStore.getByUid( uid );
-    }
+  @Override
+  public IndicatorGroup getIndicatorGroupByUid(String uid) {
+    return indicatorGroupStore.getByUid(uid);
+  }
 }

@@ -28,150 +28,183 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
+import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
-import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
+import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.event.LabelMapper;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Markus Bekken
  */
-@Service( "org.hisp.dhis.analytics.event.EnrollmentAnalyticsService" )
-public class DefaultEnrollmentAnalyticsService
-    extends
-    AbstractAnalyticsService
-    implements
-    EnrollmentAnalyticsService
-{
-    private static final String NAME_TEI = "Tracked entity instance";
+@Service("org.hisp.dhis.analytics.event.EnrollmentAnalyticsService")
+public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
+    implements EnrollmentAnalyticsService {
+  private static final String NAME_TEI = "Tracked entity instance";
 
-    private static final String NAME_PI = "Enrollment";
+  private static final String NAME_PI = "Enrollment";
 
-    private static final String NAME_GEOMETRY = "Geometry";
+  private static final String NAME_GEOMETRY = "Geometry";
 
-    private static final String NAME_ENROLLMENT_DATE = "Enrollment date";
+  private static final String NAME_ENROLLMENT_DATE = "Enrollment date";
 
-    private static final String NAME_INCIDENT_DATE = "Incident date";
+  private static final String NAME_INCIDENT_DATE = "Incident date";
 
-    private static final String NAME_STORED_BY = "Stored by";
+  private static final String NAME_STORED_BY = "Stored by";
 
-    private static final String NAME_CREATED_BY_DISPLAY_NAME = "Created by";
+  private static final String NAME_CREATED_BY_DISPLAY_NAME = "Created by";
 
-    private static final String NAME_LAST_UPDATED_BY_DISPLAY_NAME = "Last updated by";
+  private static final String NAME_LAST_UPDATED_BY_DISPLAY_NAME = "Last updated by";
 
-    private static final String NAME_LAST_UPDATED = "Last updated on";
+  private static final String NAME_LAST_UPDATED = "Last updated on";
 
-    private static final String NAME_LONGITUDE = "Longitude";
+  private static final String NAME_LONGITUDE = "Longitude";
 
-    private static final String NAME_LATITUDE = "Latitude";
+  private static final String NAME_LATITUDE = "Latitude";
 
-    private static final String NAME_ORG_UNIT_NAME = "Organisation unit name";
+  private static final String NAME_ORG_UNIT_NAME = "Organisation unit name";
 
-    private static final String NAME_ORG_UNIT_NAME_HIERARCHY = "Organisation unit name hierarchy";
+  private static final String NAME_ORG_UNIT_NAME_HIERARCHY = "Organisation unit name hierarchy";
 
-    private static final String NAME_ORG_UNIT_CODE = "Organisation unit code";
+  private static final String NAME_ORG_UNIT_CODE = "Organisation unit code";
 
-    private static final String NAME_PROGRAM_STATUS = "Program status";
+  private static final String NAME_PROGRAM_STATUS = "Program status";
 
-    private final EnrollmentAnalyticsManager enrollmentAnalyticsManager;
+  private final EnrollmentAnalyticsManager enrollmentAnalyticsManager;
 
-    private final EventQueryPlanner queryPlanner;
+  private final EventQueryPlanner queryPlanner;
 
-    public DefaultEnrollmentAnalyticsService( EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-        AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator,
-        SchemaIdResponseMapper schemaIdResponseMapper )
-    {
-        super( securityManager, queryValidator, schemaIdResponseMapper );
+  public DefaultEnrollmentAnalyticsService(
+      EnrollmentAnalyticsManager enrollmentAnalyticsManager,
+      AnalyticsSecurityManager securityManager,
+      EventQueryPlanner queryPlanner,
+      EventQueryValidator queryValidator,
+      SchemeIdResponseMapper schemeIdResponseMapper,
+      CurrentUserService currentUserService) {
+    super(securityManager, queryValidator, schemeIdResponseMapper, currentUserService);
 
-        checkNotNull( enrollmentAnalyticsManager );
-        checkNotNull( queryPlanner );
-        checkNotNull( schemaIdResponseMapper );
+    checkNotNull(enrollmentAnalyticsManager);
+    checkNotNull(queryPlanner);
+    checkNotNull(schemeIdResponseMapper);
 
-        this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
-        this.queryPlanner = queryPlanner;
+    this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
+    this.queryPlanner = queryPlanner;
+  }
+
+  // -------------------------------------------------------------------------
+  // EventAnalyticsService implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public Grid getEnrollments(EventQueryParams params) {
+    return getGrid(params);
+  }
+
+  @Override
+  protected Grid createGridWithHeaders(EventQueryParams params) {
+    if (params.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE) {
+      return new ListGrid()
+          .addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, NUMBER, false, false));
     }
 
-    // -------------------------------------------------------------------------
-    // EventAnalyticsService implementation
-    // -------------------------------------------------------------------------
+    return new ListGrid()
+        .addHeader(new GridHeader(ITEM_PI, NAME_PI, TEXT, false, true))
+        .addHeader(new GridHeader(ITEM_TEI, NAME_TEI, TEXT, false, true))
+        .addHeader(
+            new GridHeader(
+                ITEM_ENROLLMENT_DATE,
+                LabelMapper.getEnrollmentDateLabel(params.getProgram(), NAME_ENROLLMENT_DATE),
+                DATE,
+                false,
+                true))
+        .addHeader(
+            new GridHeader(
+                ITEM_INCIDENT_DATE,
+                LabelMapper.getIncidentDateLabel(params.getProgram(), NAME_INCIDENT_DATE),
+                DATE,
+                false,
+                true))
+        .addHeader(new GridHeader(ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true))
+        .addHeader(
+            new GridHeader(
+                ITEM_CREATED_BY_DISPLAY_NAME, NAME_CREATED_BY_DISPLAY_NAME, TEXT, false, true))
+        .addHeader(
+            new GridHeader(
+                ITEM_LAST_UPDATED_BY_DISPLAY_NAME,
+                NAME_LAST_UPDATED_BY_DISPLAY_NAME,
+                TEXT,
+                false,
+                true))
+        .addHeader(new GridHeader(ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true))
+        .addHeader(new GridHeader(ITEM_GEOMETRY, NAME_GEOMETRY, TEXT, false, true))
+        .addHeader(new GridHeader(ITEM_LONGITUDE, NAME_LONGITUDE, NUMBER, false, true))
+        .addHeader(new GridHeader(ITEM_LATITUDE, NAME_LATITUDE, NUMBER, false, true))
+        .addHeader(new GridHeader(ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true))
+        .addHeader(
+            new GridHeader(
+                ITEM_ORG_UNIT_NAME_HIERARCHY, NAME_ORG_UNIT_NAME_HIERARCHY, TEXT, false, true))
+        .addHeader(new GridHeader(ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true))
+        .addHeader(new GridHeader(ITEM_PROGRAM_STATUS, NAME_PROGRAM_STATUS, TEXT, false, true));
+  }
 
-    @Override
-    public Grid getEnrollments( EventQueryParams params )
-    {
-        return getGrid( params );
+  @Override
+  protected long addData(Grid grid, EventQueryParams params) {
+    Timer timer = new Timer().start().disablePrint();
+
+    List<EventQueryParams> paramsList;
+
+    if (params.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE) {
+      paramsList = queryPlanner.planAggregateQuery(params);
+    } else {
+      paramsList = List.of(queryPlanner.planEnrollmentQuery(params));
     }
 
-    @Override
-    protected Grid createGridWithHeaders( EventQueryParams params )
-    {
-        return new ListGrid()
-            .addHeader( new GridHeader(
-                ITEM_PI, NAME_PI, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_TEI, NAME_TEI, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_ENROLLMENT_DATE, LabelMapper.getEnrollmentDateLabel( params.getProgram(), NAME_ENROLLMENT_DATE ),
-                DATE, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_INCIDENT_DATE, LabelMapper.getIncidentDateLabel( params.getProgram(), NAME_INCIDENT_DATE ), DATE,
-                false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_CREATED_BY_DISPLAY_NAME, NAME_CREATED_BY_DISPLAY_NAME, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_LAST_UPDATED_BY_DISPLAY_NAME, NAME_LAST_UPDATED_BY_DISPLAY_NAME, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_GEOMETRY, NAME_GEOMETRY, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_LONGITUDE, NAME_LONGITUDE, NUMBER, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_LATITUDE, NAME_LATITUDE, NUMBER, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_ORG_UNIT_NAME_HIERARCHY, NAME_ORG_UNIT_NAME_HIERARCHY, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_PROGRAM_STATUS, NAME_PROGRAM_STATUS, TEXT, false, true ) );
+    long count = 0;
+    for (EventQueryParams queryParams : paramsList) {
+      timer.getSplitTime("Planned event query, got partitions: " + queryParams.getPartitions());
+      if (queryParams.isTotalPages() && !params.isAggregatedEnrollments()) {
+        count += enrollmentAnalyticsManager.getEnrollmentCount(queryParams);
+      }
+
+      // maxLimit == 0 means unlimited paging
+      int maxLimit = params.isAggregatedEnrollments() ? 0 : queryValidator.getMaxLimit();
+
+      enrollmentAnalyticsManager.getEnrollments(queryParams, grid, maxLimit);
+
+      timer.getTime("Got enrollments " + grid.getHeight());
     }
 
-    @Override
-    protected long addEventData( Grid grid, EventQueryParams params )
-    {
-        Timer timer = new Timer().start().disablePrint();
+    return count;
+  }
 
-        params = queryPlanner.planEnrollmentQuery( params );
-
-        timer.getSplitTime( "Planned event query, got partitions: " + params.getPartitions() );
-
-        long count = 0;
-
-        if ( params.isTotalPages() )
-        {
-            count += enrollmentAnalyticsManager.getEnrollmentCount( params );
-        }
-
-        enrollmentAnalyticsManager.getEnrollments( params, grid, queryValidator.getMaxLimit() );
-
-        timer.getTime( "Got enrollments " + grid.getHeight() );
-
-        return count;
+  @Override
+  protected List<DimensionalObject> getPeriods(EventQueryParams params) {
+    // for aggregated enrollments only
+    if (!params.isAggregatedEnrollments()) {
+      return List.of();
     }
+
+    return params.getDimensions().stream()
+        .filter(d -> d.getDimensionType() == DimensionType.PERIOD)
+        .toList();
+  }
 }

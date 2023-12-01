@@ -30,17 +30,15 @@ package org.hisp.dhis.programrule.engine;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.rules.models.RuleAction;
@@ -55,87 +53,84 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.programrule.engine.NotificationRuleActionImplementer" )
-abstract class NotificationRuleActionImplementer implements RuleActionImplementer
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@Component("org.hisp.dhis.programrule.engine.NotificationRuleActionImplementer")
+abstract class NotificationRuleActionImplementer implements RuleActionImplementer {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    protected final ProgramNotificationTemplateService programNotificationTemplateService;
+  protected final ProgramNotificationTemplateService programNotificationTemplateService;
 
-    protected final NotificationLoggingService notificationLoggingService;
+  protected final NotificationLoggingService notificationLoggingService;
 
-    protected final ProgramInstanceService programInstanceService;
+  protected final EnrollmentService enrollmentService;
 
-    protected final ProgramStageInstanceService programStageInstanceService;
+  protected final EventService eventService;
 
-    protected ExternalNotificationLogEntry createLogEntry( String key, String templateUid )
-    {
-        ExternalNotificationLogEntry entry = new ExternalNotificationLogEntry();
-        entry.setLastSentAt( new Date() );
-        entry.setKey( key );
-        entry.setNotificationTemplateUid( templateUid );
-        entry.setAllowMultiple( false );
+  protected ExternalNotificationLogEntry createLogEntry(String key, String templateUid) {
+    ExternalNotificationLogEntry entry = new ExternalNotificationLogEntry();
+    entry.setLastSentAt(new Date());
+    entry.setKey(key);
+    entry.setNotificationTemplateUid(templateUid);
+    entry.setAllowMultiple(false);
 
-        return entry;
+    return entry;
+  }
+
+  @Transactional(readOnly = true)
+  public ProgramNotificationTemplate getNotificationTemplate(RuleAction action) {
+    String uid = "";
+
+    if (action instanceof RuleActionSendMessage) {
+      RuleActionSendMessage sendMessage = (RuleActionSendMessage) action;
+      uid = sendMessage.notification();
+    } else if (action instanceof RuleActionScheduleMessage) {
+      RuleActionScheduleMessage scheduleMessage = (RuleActionScheduleMessage) action;
+      uid = scheduleMessage.notification();
     }
 
-    @Transactional( readOnly = true )
-    public ProgramNotificationTemplate getNotificationTemplate( RuleAction action )
-    {
-        String uid = "";
+    return programNotificationTemplateService.getByUid(uid);
+  }
 
-        if ( action instanceof RuleActionSendMessage )
-        {
-            RuleActionSendMessage sendMessage = (RuleActionSendMessage) action;
-            uid = sendMessage.notification();
-        }
-        else if ( action instanceof RuleActionScheduleMessage )
-        {
-            RuleActionScheduleMessage scheduleMessage = (RuleActionScheduleMessage) action;
-            uid = scheduleMessage.notification();
-        }
+  protected String generateKey(ProgramNotificationTemplate template, Enrollment enrollment) {
+    return template.getUid() + enrollment.getUid();
+  }
 
-        return programNotificationTemplateService.getByUid( uid );
+  @Transactional(readOnly = true)
+  public NotificationValidationResult validate(RuleEffect ruleEffect, Enrollment enrollment) {
+    checkNotNull(ruleEffect, "Rule Effect cannot be null");
+    checkNotNull(enrollment, "Enrollment cannot be null");
+
+    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.ruleAction());
+
+    if (template == null) {
+      log.warn(
+          String.format("No template found for Program: %s", enrollment.getProgram().getName()));
+
+      return NotificationValidationResult.builder().valid(false).build();
     }
 
-    protected String generateKey( ProgramNotificationTemplate template, ProgramInstance programInstance )
-    {
-        return template.getUid() + programInstance.getUid();
+    ExternalNotificationLogEntry logEntry =
+        notificationLoggingService.getByKey(generateKey(template, enrollment));
+
+    // template has already been delivered and repeated delivery not allowed
+    if (logEntry != null && !logEntry.isAllowMultiple()) {
+      return NotificationValidationResult.builder()
+          .valid(false)
+          .template(template)
+          .logEntry(logEntry)
+          .build();
     }
 
-    @Transactional( readOnly = true )
-    public NotificationValidationResult validate( RuleEffect ruleEffect, ProgramInstance programInstance )
-    {
-        checkNotNull( ruleEffect, "Rule Effect cannot be null" );
-        checkNotNull( programInstance, "ProgramInstance cannot be null" );
+    return NotificationValidationResult.builder()
+        .valid(true)
+        .template(template)
+        .logEntry(logEntry)
+        .build();
+  }
 
-        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
-
-        if ( template == null )
-        {
-            log.warn( String.format( "No template found for Program: %s", programInstance.getProgram().getName() ) );
-
-            return NotificationValidationResult.builder().valid( false ).build();
-        }
-
-        ExternalNotificationLogEntry logEntry = notificationLoggingService
-            .getByKey( generateKey( template, programInstance ) );
-
-        // template has already been delivered and repeated delivery not allowed
-        if ( logEntry != null && !logEntry.isAllowMultiple() )
-        {
-            return NotificationValidationResult.builder().valid( false )
-                .template( template ).logEntry( logEntry ).build();
-        }
-
-        return NotificationValidationResult.builder().valid( true ).template( template ).logEntry( logEntry ).build();
-    }
-
-    protected void checkNulls( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
-    {
-        checkNotNull( ruleEffect, "Rule Effect cannot be null" );
-        checkNotNull( programStageInstance, "ProgramStageInstance cannot be null" );
-    }
+  protected void checkNulls(RuleEffect ruleEffect, Event event) {
+    checkNotNull(ruleEffect, "Rule Effect cannot be null");
+    checkNotNull(event, "Event cannot be null");
+  }
 }

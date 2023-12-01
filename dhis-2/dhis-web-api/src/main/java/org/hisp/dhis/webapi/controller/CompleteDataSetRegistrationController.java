@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,30 +33,19 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationRepo
 import static org.hisp.dhis.scheduling.JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_XML;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.io.IOUtils;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -66,24 +55,28 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeService;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
-import org.hisp.dhis.dxf2.dataset.tasks.ImportCompleteDataSetRegistrationsTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.webapi.webdomain.CompleteDataSetRegQueryParams;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -96,277 +89,219 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Halvdan Hoem Grelland <halvdan@dhis2.org>
  */
-@OpenApi.Tags( "data" )
+@OpenApi.Tags("data")
 @Controller
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-@RequestMapping( value = CompleteDataSetRegistrationController.RESOURCE_PATH )
-public class CompleteDataSetRegistrationController
-{
-    public static final String RESOURCE_PATH = "/completeDataSetRegistrations";
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequestMapping(value = CompleteDataSetRegistrationController.RESOURCE_PATH)
+@RequiredArgsConstructor
+public class CompleteDataSetRegistrationController {
+  public static final String RESOURCE_PATH = "/completeDataSetRegistrations";
 
-    @Autowired
-    private CompleteDataSetRegistrationService registrationService;
+  private final CompleteDataSetRegistrationService registrationService;
 
-    @Autowired
-    private DataSetService dataSetService;
+  private final DataSetService dataSetService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  private final IdentifiableObjectManager manager;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    @Autowired
-    private InputUtils inputUtils;
+  private final InputUtils inputUtils;
 
-    @Autowired
-    private DefaultCompleteDataSetRegistrationExchangeService registrationExchangeService;
+  private final CompleteDataSetRegistrationExchangeService registrationExchangeService;
 
-    @Autowired
-    private AsyncTaskExecutor taskExecutor;
+  private final JobConfigurationService jobConfigurationService;
+  private final JobSchedulerService jobSchedulerService;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+  // -------------------------------------------------------------------------
+  // GET
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // GET
-    // -------------------------------------------------------------------------
+  @GetMapping(produces = CONTENT_TYPE_JSON)
+  public void getCompleteRegistrationsJson(
+      CompleteDataSetRegQueryParams queryParams, IdSchemes idSchemes, HttpServletResponse response)
+      throws IOException {
+    response.setContentType(CONTENT_TYPE_JSON);
+    ExportParams params = getExportParams(queryParams, idSchemes);
+    registrationExchangeService.writeCompleteDataSetRegistrationsJson(
+        params, response.getOutputStream());
+  }
 
-    @GetMapping( produces = CONTENT_TYPE_XML )
-    public void getCompleteRegistrationsXml(
-        @RequestParam Set<String> dataSet,
-        @RequestParam( required = false ) Set<String> period,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false, name = "children" ) boolean includeChildren,
-        @RequestParam( required = false ) Set<String> orgUnit,
-        @RequestParam( required = false ) Set<String> orgUnitGroup,
-        @RequestParam( required = false ) Date created,
-        @RequestParam( required = false ) String createdDuration,
-        @RequestParam( required = false ) Integer limit,
-        IdSchemes idSchemes,
-        HttpServletRequest request,
-        HttpServletResponse response )
-        throws IOException
-    {
-        response.setContentType( CONTENT_TYPE_XML );
+  @GetMapping(produces = CONTENT_TYPE_XML)
+  public void getCompleteRegistrationsXml(
+      CompleteDataSetRegQueryParams queryParams, IdSchemes idSchemes, HttpServletResponse response)
+      throws IOException {
+    response.setContentType(CONTENT_TYPE_XML);
+    ExportParams params = getExportParams(queryParams, idSchemes);
+    registrationExchangeService.writeCompleteDataSetRegistrationsXml(
+        params, response.getOutputStream());
+  }
 
-        ExportParams params = registrationExchangeService.paramsFromUrl(
-            dataSet, orgUnit, orgUnitGroup, period, startDate, endDate, includeChildren, created, createdDuration,
-            limit, idSchemes );
+  // -------------------------------------------------------------------------
+  // POST
+  // -------------------------------------------------------------------------
 
-        registrationExchangeService.writeCompleteDataSetRegistrationsXml( params, response.getOutputStream() );
+  @PostMapping(consumes = CONTENT_TYPE_XML, produces = CONTENT_TYPE_XML)
+  @ResponseBody
+  public WebMessage postCompleteRegistrationsXml(
+      ImportOptions importOptions, HttpServletRequest request)
+      throws IOException, ConflictException, NotFoundException {
+    if (importOptions.isAsync()) {
+      return asyncImport(importOptions, APPLICATION_XML, request);
+    }
+    ImportSummary summary =
+        registrationExchangeService.saveCompleteDataSetRegistrationsXml(
+            request.getInputStream(), importOptions);
+    summary.setImportOptions(importOptions);
+    return importSummary(summary).withPlainResponseBefore(DhisApiVersion.V38);
+  }
+
+  @PostMapping(consumes = CONTENT_TYPE_JSON, produces = CONTENT_TYPE_JSON)
+  @ResponseBody
+  public WebMessage postCompleteRegistrationsJson(
+      ImportOptions importOptions, HttpServletRequest request)
+      throws IOException, ConflictException, NotFoundException {
+    if (importOptions.isAsync()) {
+      return asyncImport(importOptions, APPLICATION_JSON, request);
+    }
+    ImportSummary summary =
+        registrationExchangeService.saveCompleteDataSetRegistrationsJson(
+            request.getInputStream(), importOptions);
+    summary.setImportOptions(importOptions);
+    return importSummary(summary).withPlainResponseBefore(DhisApiVersion.V38);
+  }
+
+  // -------------------------------------------------------------------------
+  // DELETE
+  // -------------------------------------------------------------------------
+
+  @DeleteMapping
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteCompleteDataSetRegistration(
+      @RequestParam Set<String> ds,
+      @RequestParam String pe,
+      @RequestParam String ou,
+      @RequestParam(required = false) String cc,
+      @RequestParam(required = false) String cp,
+      @RequestParam(required = false) boolean multiOu,
+      HttpServletResponse response)
+      throws WebMessageException {
+    Set<DataSet> dataSets = new HashSet<>(manager.getByUid(DataSet.class, ds));
+
+    if (dataSets.size() != ds.size()) {
+      throw new WebMessageException(conflict("Illegal data set identifier in this list: " + ds));
     }
 
-    @GetMapping( produces = CONTENT_TYPE_JSON )
-    public void getCompleteRegistrationsJson(
-        @RequestParam Set<String> dataSet,
-        @RequestParam( required = false ) Set<String> period,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false, name = "children" ) boolean includeChildren,
-        @RequestParam( required = false ) Set<String> orgUnit,
-        @RequestParam( required = false ) Set<String> orgUnitGroup,
-        @RequestParam( required = false ) Date created,
-        @RequestParam( required = false ) String createdDuration,
-        @RequestParam( required = false ) Integer limit,
-        IdSchemes idSchemes,
-        HttpServletRequest request,
-        HttpServletResponse response )
-        throws IOException
-    {
-        response.setContentType( CONTENT_TYPE_JSON );
+    Period period = PeriodType.getPeriodFromIsoString(pe);
 
-        ExportParams params = registrationExchangeService.paramsFromUrl(
-            dataSet, orgUnit, orgUnitGroup, period, startDate, endDate, includeChildren, created, createdDuration,
-            limit, idSchemes );
-
-        registrationExchangeService.writeCompleteDataSetRegistrationsJson( params, response.getOutputStream() );
+    if (period == null) {
+      throw new WebMessageException(conflict("Illegal period identifier: " + pe));
     }
 
-    // -------------------------------------------------------------------------
-    // POST
-    // -------------------------------------------------------------------------
+    OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(ou);
 
-    @PostMapping( consumes = CONTENT_TYPE_XML, produces = CONTENT_TYPE_XML )
-    @ResponseBody
-    public WebMessage postCompleteRegistrationsXml(
-        ImportOptions importOptions, HttpServletRequest request )
-        throws IOException
-    {
-        if ( importOptions.isAsync() )
-        {
-            return asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_XML, request );
-        }
-        ImportSummary summary = registrationExchangeService
-            .saveCompleteDataSetRegistrationsXml( request.getInputStream(), importOptions );
-        summary.setImportOptions( importOptions );
-        return importSummary( summary ).withPlainResponseBefore( DhisApiVersion.V38 );
+    if (organisationUnit == null) {
+      throw new WebMessageException(conflict("Illegal organisation unit identifier: " + ou));
     }
 
-    @PostMapping( consumes = CONTENT_TYPE_JSON, produces = CONTENT_TYPE_JSON )
-    @ResponseBody
-    public WebMessage postCompleteRegistrationsJson(
-        ImportOptions importOptions, HttpServletRequest request )
-        throws IOException
-    {
-        if ( importOptions.isAsync() )
-        {
-            return asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_JSON, request );
-        }
-        ImportSummary summary = registrationExchangeService
-            .saveCompleteDataSetRegistrationsJson( request.getInputStream(), importOptions );
-        summary.setImportOptions( importOptions );
-        return importSummary( summary ).withPlainResponseBefore( DhisApiVersion.V38 );
+    CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(cc, cp, false);
+
+    if (attributeOptionCombo == null) {
+      return;
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE
-    // -------------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // Check locked status
+    // ---------------------------------------------------------------------
 
-    @DeleteMapping
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteCompleteDataSetRegistration(
-        @RequestParam Set<String> ds,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String cc,
-        @RequestParam( required = false ) String cp,
-        @RequestParam( required = false ) boolean multiOu, HttpServletResponse response )
-        throws WebMessageException
-    {
-        Set<DataSet> dataSets = new HashSet<>( manager.getByUid( DataSet.class, ds ) );
+    User user = currentUserService.getCurrentUser();
 
-        if ( dataSets.size() != ds.size() )
-        {
-            throw new WebMessageException(
-                conflict( "Illegal data set identifier in this list: " + ds ) );
-        }
+    List<String> lockedDataSets = new ArrayList<>();
 
-        Period period = PeriodType.getPeriodFromIsoString( pe );
-
-        if ( period == null )
-        {
-            throw new WebMessageException( conflict( "Illegal period identifier: " + pe ) );
-        }
-
-        OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( ou );
-
-        if ( organisationUnit == null )
-        {
-            throw new WebMessageException( conflict( "Illegal organisation unit identifier: " + ou ) );
-        }
-
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
-
-        if ( attributeOptionCombo == null )
-        {
-            return;
-        }
-
-        // ---------------------------------------------------------------------
-        // Check locked status
-        // ---------------------------------------------------------------------
-
-        User user = currentUserService.getCurrentUser();
-
-        List<String> lockedDataSets = new ArrayList<>();
-
-        for ( DataSet dataSet : dataSets )
-        {
-            if ( !dataSetService.getLockStatus(
-                dataSet, period, organisationUnit, attributeOptionCombo, user, null, multiOu ).isOpen() )
-            {
-                lockedDataSets.add( dataSet.getUid() );
-            }
-        }
-
-        if ( lockedDataSets.size() != 0 )
-        {
-            throw new WebMessageException(
-                conflict( "Locked Data set(s) : " + StringUtils.join( lockedDataSets, ", " ) ) );
-        }
-
-        // ---------------------------------------------------------------------
-        // Un-register as completed data set
-        // ---------------------------------------------------------------------
-
-        Set<OrganisationUnit> orgUnits = new HashSet<>();
-        orgUnits.add( organisationUnit );
-
-        if ( multiOu )
-        {
-            orgUnits.addAll( organisationUnit.getChildren() );
-        }
-
-        unRegisterCompleteDataSet( dataSets, period, orgUnits, attributeOptionCombo );
+    for (DataSet dataSet : dataSets) {
+      if (!dataSetService
+          .getLockStatus(
+              dataSet, period, organisationUnit, attributeOptionCombo, user, null, multiOu)
+          .isOpen()) {
+        lockedDataSets.add(dataSet.getUid());
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private WebMessage asyncImport( ImportOptions importOptions, String format, HttpServletRequest request )
-        throws IOException
-    {
-        Pair<InputStream, Path> tmpFile = saveTmpFile( request.getInputStream() );
-
-        JobConfiguration jobId = new JobConfiguration( "inMemoryCompleteDataSetRegistrationImport",
-            COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
-
-        taskExecutor.executeTask(
-            new ImportCompleteDataSetRegistrationsTask(
-                registrationExchangeService, sessionFactory, tmpFile.getLeft(), tmpFile.getRight(), importOptions,
-                format,
-                jobId ) );
-
-        return jobConfigurationReport( jobId )
-            .setLocation( "/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT );
+    if (lockedDataSets.size() != 0) {
+      throw new WebMessageException(
+          conflict("Locked Data set(s) : " + StringUtils.join(lockedDataSets, ", ")));
     }
 
-    private Pair<InputStream, Path> saveTmpFile( InputStream in )
-        throws IOException
-    {
-        String filename = CodeGenerator.generateCode( 6 );
+    // ---------------------------------------------------------------------
+    // Un-register as completed data set
+    // ---------------------------------------------------------------------
 
-        File tmpFile = File.createTempFile( filename, null );
-        tmpFile.deleteOnExit();
+    Set<OrganisationUnit> orgUnits = new HashSet<>();
+    orgUnits.add(organisationUnit);
 
-        try ( FileOutputStream out = new FileOutputStream( tmpFile ) )
-        {
-            IOUtils.copy( in, out );
-        }
-
-        return Pair.of( new BufferedInputStream( new FileInputStream( tmpFile ) ), tmpFile.toPath() );
+    if (multiOu) {
+      orgUnits.addAll(organisationUnit.getChildren());
     }
 
-    private void unRegisterCompleteDataSet( Set<DataSet> dataSets, Period period,
-        Set<OrganisationUnit> orgUnits, CategoryOptionCombo attributeOptionCombo )
-    {
-        List<CompleteDataSetRegistration> registrations = new ArrayList<>();
+    unRegisterCompleteDataSet(dataSets, period, orgUnits, attributeOptionCombo);
+  }
 
-        for ( OrganisationUnit unit : orgUnits )
-        {
-            for ( DataSet dataSet : dataSets )
-            {
-                if ( unit.getDataSets().contains( dataSet ) )
-                {
-                    CompleteDataSetRegistration registration = registrationService
-                        .getCompleteDataSetRegistration( dataSet, period, unit, attributeOptionCombo );
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-                    if ( registration != null )
-                    {
-                        registrations.add( registration );
-                    }
-                }
-            }
+  private WebMessage asyncImport(
+      ImportOptions importOptions, MimeType mimeType, HttpServletRequest request)
+      throws IOException, ConflictException, NotFoundException {
+
+    JobConfiguration jobConfig = new JobConfiguration(COMPLETE_DATA_SET_REGISTRATION_IMPORT);
+
+    jobConfig.setJobParameters(importOptions);
+    jobConfig.setExecutedBy(currentUserService.getCurrentUser().getUid());
+    jobSchedulerService.executeNow(
+        jobConfigurationService.create(jobConfig, mimeType, request.getInputStream()));
+
+    return jobConfigurationReport(jobConfig);
+  }
+
+  private void unRegisterCompleteDataSet(
+      Set<DataSet> dataSets,
+      Period period,
+      Set<OrganisationUnit> orgUnits,
+      CategoryOptionCombo attributeOptionCombo) {
+    List<CompleteDataSetRegistration> registrations = new ArrayList<>();
+
+    for (OrganisationUnit unit : orgUnits) {
+      for (DataSet dataSet : dataSets) {
+        if (unit.getDataSets().contains(dataSet)) {
+          CompleteDataSetRegistration registration =
+              registrationService.getCompleteDataSetRegistration(
+                  dataSet, period, unit, attributeOptionCombo);
+
+          if (registration != null) {
+            registrations.add(registration);
+          }
         }
-        if ( !registrations.isEmpty() )
-        {
-            registrationService.deleteCompleteDataSetRegistrations( registrations );
-        }
+      }
     }
+    if (!registrations.isEmpty()) {
+      registrationService.deleteCompleteDataSetRegistrations(registrations);
+    }
+  }
+
+  private ExportParams getExportParams(CompleteDataSetRegQueryParams params, IdSchemes idSchemes) {
+    return registrationExchangeService.paramsFromUrl(
+        params.getDataSet(),
+        params.getOrgUnit(),
+        params.getOrgUnitGroup(),
+        params.getPeriod(),
+        params.getStartDate(),
+        params.getEndDate(),
+        params.isChildren(),
+        params.getCreated(),
+        params.getCreatedDuration(),
+        params.getLimit(),
+        idSchemes);
+  }
 }

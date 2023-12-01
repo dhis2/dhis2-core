@@ -32,21 +32,19 @@ package org.hisp.dhis.split.orgunit;
  *
  * @author Lars Helge Overland
  */
-public interface OrgUnitSplitService
-{
-    /**
-     * Performs an org unit split operation.
-     *
-     * @param request the {@link OrgUnitSplitRequest}.
-     */
-    void split( OrgUnitSplitRequest request );
+public interface OrgUnitSplitService {
+  /**
+   * Performs an org unit split operation.
+   *
+   * @param request the {@link OrgUnitSplitRequest}.
+   */
+  void split(OrgUnitSplitRequest request);
 
-    /**
-     * Converts the given {@link OrgUnitSplitQuery} to an
-     * {@link OrgUnitSplitRequest}.
-     *
-     * @param request the {@link OrgUnitSplitQuery}.
-     * @return an {@link OrgUnitSplitRequest}.
-     */
-    OrgUnitSplitRequest getFromQuery( OrgUnitSplitQuery query );
+  /**
+   * Converts the given {@link OrgUnitSplitQuery} to an {@link OrgUnitSplitRequest}.
+   *
+   * @param request the {@link OrgUnitSplitQuery}.
+   * @return an {@link OrgUnitSplitRequest}.
+   */
+  OrgUnitSplitRequest getFromQuery(OrgUnitSplitQuery query);
 }

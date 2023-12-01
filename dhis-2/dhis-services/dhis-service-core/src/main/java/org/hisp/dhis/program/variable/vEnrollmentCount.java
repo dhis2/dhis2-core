@@ -35,16 +35,16 @@ import org.hisp.dhis.program.AnalyticsType;
  *
  * @author Jim Grace
  */
-public class vEnrollmentCount
-    extends ProgramDoubleVariable
-{
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        if ( visitor.getProgParams().getProgramIndicator().getAnalyticsType().equals( AnalyticsType.ENROLLMENT ) )
-        {
-            return "pi";
-        }
-        return "distinct pi";
+public class vEnrollmentCount extends ProgramDoubleVariable {
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    if (visitor
+        .getProgParams()
+        .getProgramIndicator()
+        .getAnalyticsType()
+        .equals(AnalyticsType.ENROLLMENT)) {
+      return "pi";
     }
+    return "distinct pi";
+  }
 }

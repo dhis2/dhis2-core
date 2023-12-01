@@ -8,7 +8,6 @@
       "shortName": "Value",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "publicAccess": "rw------",
       "valueType": "NUMBER",
       "zeroIsSignificant": false,
       "lastUpdatedBy": {
@@ -30,7 +29,14 @@
         {
           "id": "ID4"
         }
-      ]
+      ],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "M5zQapPyTZI",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ]
 }

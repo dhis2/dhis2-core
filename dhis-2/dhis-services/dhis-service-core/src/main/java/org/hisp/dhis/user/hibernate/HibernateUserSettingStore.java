@@ -28,9 +28,8 @@
 package org.hisp.dhis.user.hibernate;
 
 import java.util.List;
-
+import javax.persistence.EntityManager;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSetting;
@@ -41,91 +40,75 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.user.UserSettingStore" )
-public class HibernateUserSettingStore
-    implements UserSettingStore
-{
-    private static final boolean CACHEABLE = true;
+@Repository("org.hisp.dhis.user.UserSettingStore")
+public class HibernateUserSettingStore implements UserSettingStore {
+  private static final boolean CACHEABLE = true;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  private EntityManager entityManager;
 
-    private SessionFactory sessionFactory;
+  public HibernateUserSettingStore(EntityManager entityManager) {
+    this.entityManager = entityManager;
+  }
 
-    public HibernateUserSettingStore( SessionFactory sessionFactory )
-    {
-        this.sessionFactory = sessionFactory;
-    }
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // UserSettingStore implementation
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // UserSettingStore implementation
-    // -------------------------------------------------------------------------
+  @Override
+  public void addUserSetting(UserSetting userSetting) {
+    getSession().save(userSetting);
+  }
 
-    @Override
-    public void addUserSetting( UserSetting userSetting )
-    {
-        Session session = sessionFactory.getCurrentSession();
+  @Override
+  public void updateUserSetting(UserSetting userSetting) {
+    getSession().update(userSetting);
+  }
 
-        session.save( userSetting );
-    }
+  @Override
+  @Transactional
+  public UserSetting getUserSettingTx(User user, String name) {
+    return getUserSetting(user, name);
+  }
 
-    @Override
-    public void updateUserSetting( UserSetting userSetting )
-    {
-        Session session = sessionFactory.getCurrentSession();
+  @Override
+  @SuppressWarnings("unchecked")
+  public UserSetting getUserSetting(User user, String name) {
+    Query<UserSetting> query =
+        getSession().createQuery("from UserSetting us where us.user = :user and us.name = :name");
+    query.setParameter("user", user);
+    query.setParameter("name", name);
+    query.setCacheable(CACHEABLE);
 
-        session.update( userSetting );
-    }
+    return query.uniqueResult();
+  }
 
-    @Override
-    @Transactional
-    public UserSetting getUserSettingTx( User user, String name )
-    {
-        return getUserSetting( user, name );
-    }
+  @Override
+  @SuppressWarnings("unchecked")
+  public List<UserSetting> getAllUserSettings(User user) {
+    Query<UserSetting> query =
+        getSession().createQuery("from UserSetting us where us.user = :user");
+    query.setParameter("user", user);
+    query.setCacheable(CACHEABLE);
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public UserSetting getUserSetting( User user, String name )
-    {
-        Session session = sessionFactory.getCurrentSession();
-        Query<UserSetting> query = session
-            .createQuery( "from UserSetting us where us.user = :user and us.name = :name" );
-        query.setParameter( "user", user );
-        query.setParameter( "name", name );
-        query.setCacheable( CACHEABLE );
+    return query.list();
+  }
 
-        return query.uniqueResult();
-    }
+  @Override
+  public void deleteUserSetting(UserSetting userSetting) {
+    getSession().delete(userSetting);
+  }
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<UserSetting> getAllUserSettings( User user )
-    {
-        Session session = sessionFactory.getCurrentSession();
-        Query<UserSetting> query = session.createQuery( "from UserSetting us where us.user = :user" );
-        query.setParameter( "user", user );
-        query.setCacheable( CACHEABLE );
+  @Override
+  public void removeUserSettings(User user) {
+    String hql = "delete from UserSetting us where us.user = :user";
 
-        return query.list();
-    }
+    getSession().createQuery(hql).setParameter("user", user).executeUpdate();
+  }
 
-    @Override
-    public void deleteUserSetting( UserSetting userSetting )
-    {
-        Session session = sessionFactory.getCurrentSession();
-
-        session.delete( userSetting );
-    }
-
-    @Override
-    public void removeUserSettings( User user )
-    {
-        Session session = sessionFactory.getCurrentSession();
-
-        String hql = "delete from UserSetting us where us.user = :user";
-
-        session.createQuery( hql ).setParameter( "user", user ).executeUpdate();
-    }
+  private Session getSession() {
+    return entityManager.unwrap(Session.class);
+  }
 }

@@ -32,15 +32,10 @@ package org.hisp.dhis.merge.orgunit;
  *
  * @author Lars Helge Overland
  */
-public enum DataMergeStrategy
-{
-    /**
-     * Use last updated source data records.
-     */
-    LAST_UPDATED,
+public enum DataMergeStrategy {
+  /** Use last updated source data records. */
+  LAST_UPDATED,
 
-    /**
-     * Discard source data records.
-     */
-    DISCARD
+  /** Discard source data records. */
+  DISCARD
 }

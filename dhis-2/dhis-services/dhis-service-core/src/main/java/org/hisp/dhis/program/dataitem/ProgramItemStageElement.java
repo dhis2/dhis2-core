@@ -48,115 +48,111 @@ import org.hisp.dhis.system.util.SqlUtils;
  *
  * @author Jim Grace
  */
-public class ProgramItemStageElement
-    extends ProgramExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        assumeStageElementSyntax( ctx );
+public class ProgramItemStageElement extends ProgramExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    assumeStageElementSyntax(ctx);
 
-        String programStageId = ctx.uid0.getText();
-        String dataElementId = ctx.uid1.getText();
+    String programStageId = ctx.uid0.getText();
+    String dataElementId = ctx.uid1.getText();
 
-        ProgramStageService stageService = visitor.getProgramStageService();
+    ProgramStageService stageService = visitor.getProgramStageService();
 
-        ProgramStage programStage = stageService.getProgramStage( programStageId );
-        DataElement dataElement = visitor.getIdObjectManager().get( DataElement.class, dataElementId );
+    ProgramStage programStage = stageService.getProgramStage(programStageId);
+    DataElement dataElement = visitor.getIdObjectManager().get(DataElement.class, dataElementId);
 
-        if ( programStage == null )
-        {
-            throw new ParserExceptionWithoutContext( "Program stage " + programStageId + " not found" );
-        }
+    if (programStage == null) {
+      throw new ParserExceptionWithoutContext("Program stage " + programStageId + " not found");
+    }
 
-        if ( dataElement == null )
-        {
-            throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found" );
-        }
+    if (dataElement == null) {
+      throw new ParserExceptionWithoutContext("Data element " + dataElementId + " not found");
+    }
 
-        if ( isNonDefaultStageOffset( visitor.getState().getStageOffset() )
-            && !isRepeatableStage( stageService, programStageId ) )
-        {
-            throw new ParserException( getErrorMessage( programStageId ) );
-        }
+    if (isNonDefaultStageOffset(visitor.getState().getStageOffset())
+        && !isRepeatableStage(stageService, programStageId)) {
+      throw new ParserException(getErrorMessage(programStageId));
+    }
 
-        String description = programStage.getDisplayName() + ProgramIndicator.SEPARATOR_ID
+    String description =
+        programStage.getDisplayName()
+            + ProgramIndicator.SEPARATOR_ID
             + dataElement.getDisplayName();
 
-        visitor.getItemDescriptions().put( ctx.getText(), description );
+    visitor.getItemDescriptions().put(ctx.getText(), description);
 
-        return getNullReplacementValue( dataElement.getValueType() );
+    return getNullReplacementValue(dataElement.getValueType());
+  }
+
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    assumeStageElementSyntax(ctx);
+
+    String programStageId = ctx.uid0.getText();
+
+    String dataElementId = ctx.uid1.getText();
+
+    ProgramExpressionParams params = visitor.getProgParams();
+
+    int stageOffset = visitor.getState().getStageOffset();
+
+    String column;
+
+    if (isNonDefaultStageOffset(stageOffset)) {
+      if (isRepeatableStage(visitor.getProgramStageService(), programStageId)) {
+        column =
+            visitor
+                .getStatementBuilder()
+                .getProgramIndicatorEventColumnSql(
+                    programStageId,
+                    Integer.valueOf(stageOffset).toString(),
+                    SqlUtils.quote(dataElementId),
+                    params.getReportingStartDate(),
+                    params.getReportingEndDate(),
+                    params.getProgramIndicator());
+      } else {
+        throw new ParserException(getErrorMessage(programStageId));
+      }
+    } else {
+      column =
+          visitor
+              .getStatementBuilder()
+              .getProgramIndicatorDataValueSelectSql(
+                  programStageId,
+                  dataElementId,
+                  params.getReportingStartDate(),
+                  params.getReportingEndDate(),
+                  params.getProgramIndicator());
     }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        assumeStageElementSyntax( ctx );
+    if (visitor.getState().isReplaceNulls()) {
+      DataElement dataElement = visitor.getIdObjectManager().get(DataElement.class, dataElementId);
 
-        String programStageId = ctx.uid0.getText();
+      if (dataElement == null) {
+        throw new ParserExceptionWithoutContext(
+            "Data element " + dataElementId + " not found during SQL generation.");
+      }
 
-        String dataElementId = ctx.uid1.getText();
-
-        ProgramExpressionParams params = visitor.getProgParams();
-
-        int stageOffset = visitor.getState().getStageOffset();
-
-        String column;
-
-        if ( isNonDefaultStageOffset( stageOffset ) )
-        {
-            if ( isRepeatableStage( visitor.getProgramStageService(), programStageId ) )
-            {
-                column = visitor.getStatementBuilder().getProgramIndicatorEventColumnSql( programStageId,
-                    Integer.valueOf( stageOffset ).toString(),
-                    SqlUtils.quote( dataElementId ),
-                    params.getReportingStartDate(), params.getReportingEndDate(),
-                    params.getProgramIndicator() );
-            }
-            else
-            {
-                throw new ParserException( getErrorMessage( programStageId ) );
-            }
-        }
-        else
-        {
-            column = visitor.getStatementBuilder().getProgramIndicatorDataValueSelectSql(
-                programStageId, dataElementId, params.getReportingStartDate(), params.getReportingEndDate(),
-                params.getProgramIndicator() );
-        }
-
-        if ( visitor.getState().isReplaceNulls() )
-        {
-            DataElement dataElement = visitor.getIdObjectManager().get( DataElement.class, dataElementId );
-
-            if ( dataElement == null )
-            {
-                throw new ParserExceptionWithoutContext(
-                    "Data element " + dataElementId + " not found during SQL generation." );
-            }
-
-            column = replaceNullSqlValues( column, visitor, dataElement.getValueType() );
-        }
-
-        return column;
+      column = replaceNullSqlValues(column, visitor, dataElement.getValueType());
     }
 
-    private static boolean isNonDefaultStageOffset( int stageOffset )
-    {
-        return stageOffset != Integer.MIN_VALUE;
-    }
+    return column;
+  }
 
-    private static boolean isRepeatableStage( ProgramStageService stageService, String programStageId )
-    {
-        ProgramStage programStage = stageService.getProgramStage( programStageId );
+  private static boolean isNonDefaultStageOffset(int stageOffset) {
+    return stageOffset != Integer.MIN_VALUE;
+  }
 
-        return programStage != null && programStage.getRepeatable();
-    }
+  private static boolean isRepeatableStage(
+      ProgramStageService stageService, String programStageId) {
+    ProgramStage programStage = stageService.getProgramStage(programStageId);
 
-    private static String getErrorMessage( String programStageId )
-    {
-        ErrorMessage errorMessage = new ErrorMessage( ErrorCode.E2039, programStageId );
+    return programStage != null && programStage.getRepeatable();
+  }
 
-        return errorMessage.getMessage();
-    }
+  private static String getErrorMessage(String programStageId) {
+    ErrorMessage errorMessage = new ErrorMessage(ErrorCode.E2039, programStageId);
+
+    return errorMessage.getMessage();
+  }
 }

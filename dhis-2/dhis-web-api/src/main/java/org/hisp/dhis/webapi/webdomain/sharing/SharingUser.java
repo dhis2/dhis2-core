@@ -32,35 +32,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class SharingUser
-{
-    private String id;
+public class SharingUser {
+  private String id;
 
-    private String name;
+  private String name;
 
-    public SharingUser()
-    {
-    }
+  public SharingUser() {}
 
-    @JsonProperty
-    public String getId()
-    {
-        return id;
-    }
+  @JsonProperty
+  public String getId() {
+    return id;
+  }
 
-    public void setId( String id )
-    {
-        this.id = id;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
+  @JsonProperty
+  public String getName() {
+    return name;
+  }
 
-    public void setName( String name )
-    {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 }

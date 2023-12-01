@@ -30,28 +30,25 @@ package org.hisp.dhis.fieldfiltering.transformers;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.junit.jupiter.api.Test;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen
  */
-class IsNotEmptyFieldFilterTest
-{
-    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+class IsNotEmptyFieldFilterTest {
+  private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    @Test
-    void isEmptyFieldNameTest()
-    {
-        ObjectNode objectNode = jsonMapper.createObjectNode();
-        objectNode.set( "a", jsonMapper.createArrayNode() );
-        IsNotEmptyFieldTransformer transformer = new IsNotEmptyFieldTransformer();
-        transformer.apply( "a", objectNode.get( "a" ), objectNode );
-        assertTrue( objectNode.has( "a" ) );
-        assertTrue( objectNode.get( "a" ).isBoolean() );
-        assertFalse( objectNode.get( "a" ).asBoolean() );
-    }
+  @Test
+  void isEmptyFieldNameTest() {
+    ObjectNode objectNode = jsonMapper.createObjectNode();
+    objectNode.set("a", jsonMapper.createArrayNode());
+    IsNotEmptyFieldTransformer transformer = new IsNotEmptyFieldTransformer();
+    transformer.apply("a", objectNode.get("a"), objectNode);
+    assertTrue(objectNode.has("a"));
+    assertTrue(objectNode.get("a").isBoolean());
+    assertFalse(objectNode.get("a").asBoolean());
+  }
 }

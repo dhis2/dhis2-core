@@ -30,10 +30,14 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyType;
+import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.RSAKey;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -49,75 +53,57 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyType;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Controller
-@RequestMapping( "/publicKeys" )
+@RequestMapping("/publicKeys")
 @RequiredArgsConstructor
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class PublicKeysController
-{
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class PublicKeysController {
 
-    private final DhisOidcProviderRepository clientRegistrationRepository;
+  private final DhisOidcProviderRepository clientRegistrationRepository;
 
-    @GetMapping( value = "/{clientId}/jwks.json", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody Map<String, Object> getKeys( @PathVariable( "clientId" ) String clientId )
-        throws WebMessageException
-    {
-        DhisOidcClientRegistration dhisOidcClientRegistration = clientRegistrationRepository
-            .getDhisOidcClientRegistration( clientId );
+  @GetMapping(value = "/{clientId}/jwks.json", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody Map<String, Object> getKeys(@PathVariable("clientId") String clientId)
+      throws WebMessageException {
+    DhisOidcClientRegistration dhisOidcClientRegistration =
+        clientRegistrationRepository.getDhisOidcClientRegistration(clientId);
 
-        JwsAlgorithm jwsAlgorithm = resolveAlgorithm( dhisOidcClientRegistration.getJwk() );
-        if ( jwsAlgorithm == null )
-        {
-            throw new WebMessageException( conflict( ErrorCode.E3040.getMessage(), ErrorCode.E3040 ) );
-        }
-
-        RSAKey.Builder builder = new RSAKey.Builder( dhisOidcClientRegistration.getRsaPublicKey() )
-            .keyUse( KeyUse.SIGNATURE )
-            .algorithm( JWSAlgorithm.parse( jwsAlgorithm.toString() ) )
-            .keyID( dhisOidcClientRegistration.getKeyId() );
-
-        return new JWKSet( builder.build() ).toJSONObject();
+    JwsAlgorithm jwsAlgorithm = resolveAlgorithm(dhisOidcClientRegistration.getJwk());
+    if (jwsAlgorithm == null) {
+      throw new WebMessageException(conflict(ErrorCode.E3040.getMessage(), ErrorCode.E3040));
     }
 
-    private static JwsAlgorithm resolveAlgorithm( JWK jwk )
-    {
-        JwsAlgorithm jwsAlgorithm = null;
+    RSAKey.Builder builder =
+        new RSAKey.Builder(dhisOidcClientRegistration.getRsaPublicKey())
+            .keyUse(KeyUse.SIGNATURE)
+            .algorithm(JWSAlgorithm.parse(jwsAlgorithm.toString()))
+            .keyID(dhisOidcClientRegistration.getKeyId());
 
-        if ( jwk.getAlgorithm() != null )
-        {
-            jwsAlgorithm = SignatureAlgorithm.from( jwk.getAlgorithm().getName() );
-            if ( jwsAlgorithm == null )
-            {
-                jwsAlgorithm = MacAlgorithm.from( jwk.getAlgorithm().getName() );
-            }
-        }
+    return new JWKSet(builder.build()).toJSONObject();
+  }
 
-        if ( jwsAlgorithm == null )
-        {
-            if ( KeyType.RSA.equals( jwk.getKeyType() ) )
-            {
-                jwsAlgorithm = SignatureAlgorithm.RS256;
-            }
-            else if ( KeyType.EC.equals( jwk.getKeyType() ) )
-            {
-                jwsAlgorithm = SignatureAlgorithm.ES256;
-            }
-            else if ( KeyType.OCT.equals( jwk.getKeyType() ) )
-            {
-                jwsAlgorithm = MacAlgorithm.HS256;
-            }
-        }
+  private static JwsAlgorithm resolveAlgorithm(JWK jwk) {
+    JwsAlgorithm jwsAlgorithm = null;
 
-        return jwsAlgorithm;
+    if (jwk.getAlgorithm() != null) {
+      jwsAlgorithm = SignatureAlgorithm.from(jwk.getAlgorithm().getName());
+      if (jwsAlgorithm == null) {
+        jwsAlgorithm = MacAlgorithm.from(jwk.getAlgorithm().getName());
+      }
     }
+
+    if (jwsAlgorithm == null) {
+      if (KeyType.RSA.equals(jwk.getKeyType())) {
+        jwsAlgorithm = SignatureAlgorithm.RS256;
+      } else if (KeyType.EC.equals(jwk.getKeyType())) {
+        jwsAlgorithm = SignatureAlgorithm.ES256;
+      } else if (KeyType.OCT.equals(jwk.getKeyType())) {
+        jwsAlgorithm = MacAlgorithm.HS256;
+      }
+    }
+
+    return jwsAlgorithm;
+  }
 }

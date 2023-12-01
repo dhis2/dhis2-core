@@ -27,17 +27,29 @@
  */
 package org.hisp.dhis.common;
 
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
+import java.util.function.BiFunction;
+import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Immutable;
@@ -61,711 +73,611 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.util.SharingUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 
 /**
  * @author Bob Jolliffe
  */
-@JacksonXmlRootElement( localName = "identifiableObject", namespace = DxfNamespaces.DXF_2_0 )
-public class BaseIdentifiableObject
-    extends BaseLinkableObject implements IdentifiableObject
-{
-    /**
-     * The database internal identifier for this Object.
-     */
-    protected long id;
+@JacksonXmlRootElement(localName = "identifiableObject", namespace = DxfNamespaces.DXF_2_0)
+public class BaseIdentifiableObject extends BaseLinkableObject implements IdentifiableObject {
+  /** The database internal identifier for this Object. */
+  protected long id;
 
-    /**
-     * The unique identifier for this object.
-     */
-    @AuditAttribute
-    protected String uid;
+  /** The unique identifier for this object. */
+  @AuditAttribute protected String uid;
 
-    /**
-     * The unique code for this object.
-     */
-    @AuditAttribute
-    protected String code;
+  /** The unique code for this object. */
+  @AuditAttribute protected String code;
 
-    /**
-     * The name of this object. Required and unique.
-     */
-    protected String name;
+  /** The name of this object. Required and unique. */
+  protected String name;
 
-    /**
-     * The date this object was created.
-     */
-    protected Date created;
+  /** The date this object was created. */
+  protected Date created;
 
-    /**
-     * The date this object was last updated.
-     */
-    protected Date lastUpdated;
+  /** The date this object was last updated. */
+  protected Date lastUpdated;
 
-    /**
-     * Set of the dynamic attributes values that belong to this data element.
-     */
-    @AuditAttribute
-    protected Set<AttributeValue> attributeValues = new HashSet<>();
+  /** Set of the dynamic attributes values that belong to this data element. */
+  @AuditAttribute protected Set<AttributeValue> attributeValues = new HashSet<>();
 
-    /**
-     * Cache of attribute values which allows for lookup by attribute
-     * identifier.
-     */
-    protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
+  /** Cache of attribute values which allows for lookup by attribute identifier. */
+  protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
 
-    /**
-     * Set of available object translation, normally filtered by locale.
-     */
-    protected Set<Translation> translations = new HashSet<>();
+  /** Set of available object translation, normally filtered by locale. */
+  protected Set<Translation> translations = new HashSet<>();
 
-    /**
-     * Cache for object translations, where the cache key is a combination of
-     * locale and translation property, and value is the translated value.
-     */
-    private Map<String, String> translationCache = new ConcurrentHashMap<>();
+  /**
+   * Cache for object translations, where the cache key is a combination of locale and translation
+   * property, and value is the translated value.
+   */
+  private Map<String, String> translationCache = new ConcurrentHashMap<>();
 
-    /**
-     * This object is available as external read-only.
-     */
-    protected transient Boolean externalAccess;
+  /** User who created this object. This field is immutable and must not be updated. */
+  @Immutable protected User createdBy;
 
-    /**
-     * Access string for public access.
-     */
-    protected transient String publicAccess;
+  /** Access information for this object. Applies to current user. */
+  protected transient Access access;
 
-    /**
-     * User who created this object. This field is immutable and must not be
-     * updated.
-     */
-    @Immutable
-    protected User createdBy;
+  /** Users who have marked this object as a favorite. */
+  protected Set<String> favorites = new HashSet<>();
 
-    /**
-     * Access for user groups.
-     */
-    protected transient Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses = new HashSet<>();
+  /** Last user updated this object. */
+  protected User lastUpdatedBy;
 
-    /**
-     * Access for users.
-     */
-    protected transient Set<org.hisp.dhis.user.UserAccess> userAccesses = new HashSet<>();
+  /** Object sharing (JSONB). */
+  protected Sharing sharing = new Sharing();
 
-    /**
-     * Access information for this object. Applies to current user.
-     */
-    protected transient Access access;
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    /**
-     * Users who have marked this object as a favorite.
-     */
-    protected Set<String> favorites = new HashSet<>();
+  public BaseIdentifiableObject() {}
 
-    /**
-     * Last user updated this object.
-     */
-    protected User lastUpdatedBy;
+  public BaseIdentifiableObject(long id, String uid, String name) {
+    this.id = id;
+    this.uid = uid;
+    this.name = name;
+  }
 
-    /**
-     * Object sharing (JSONB).
-     */
-    protected Sharing sharing = new Sharing();
+  public BaseIdentifiableObject(String uid, String code, String name) {
+    this.uid = uid;
+    this.code = code;
+    this.name = name;
+  }
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  public BaseIdentifiableObject(IdentifiableObject identifiableObject) {
+    this.id = identifiableObject.getId();
+    this.uid = identifiableObject.getUid();
+    this.name = identifiableObject.getName();
+    this.created = identifiableObject.getCreated();
+    this.lastUpdated = identifiableObject.getLastUpdated();
+  }
 
-    public BaseIdentifiableObject()
-    {
+  // -------------------------------------------------------------------------
+  // Comparable implementation
+  // -------------------------------------------------------------------------
+
+  /**
+   * Compares objects based on display name. A null display name is ordered after a non-null display
+   * name.
+   */
+  @Override
+  public int compareTo(IdentifiableObject object) {
+    if (this.getDisplayName() == null) {
+      return object.getDisplayName() == null ? 0 : 1;
     }
 
-    public BaseIdentifiableObject( long id, String uid, String name )
-    {
-        this.id = id;
-        this.uid = uid;
-        this.name = name;
+    return object.getDisplayName() == null
+        ? -1
+        : this.getDisplayName().compareToIgnoreCase(object.getDisplayName());
+  }
+
+  // -------------------------------------------------------------------------
+  // Setters and getters
+  // -------------------------------------------------------------------------
+
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
+  }
+
+  public void setId(long id) {
+    this.id = id;
+  }
+
+  @Override
+  @JsonProperty(value = "id")
+  @JacksonXmlProperty(localName = "id", isAttribute = true)
+  @Description("The Unique Identifier for this Object.")
+  @Property(value = PropertyType.IDENTIFIER, required = Value.FALSE)
+  @PropertyRange(min = 11, max = 11)
+  public String getUid() {
+    return uid;
+  }
+
+  public void setUid(String uid) {
+    this.uid = uid;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The unique code for this Object.")
+  @Property(PropertyType.IDENTIFIER)
+  public String getCode() {
+    return code;
+  }
+
+  public void setCode(String code) {
+    this.code = code;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The name of this Object. Required and unique.")
+  @PropertyRange(min = 1)
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
+  public String getDisplayName() {
+    return getTranslation("NAME", getName());
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The date this object was created.")
+  @Property(value = PropertyType.DATE, required = Value.FALSE)
+  public Date getCreated() {
+    return created;
+  }
+
+  public void setCreated(Date created) {
+    this.created = created;
+  }
+
+  @Override
+  @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public User getLastUpdatedBy() {
+    return lastUpdatedBy;
+  }
+
+  public void setLastUpdatedBy(User lastUpdatedBy) {
+    this.lastUpdatedBy = lastUpdatedBy;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The date this object was last updated.")
+  @Property(value = PropertyType.DATE, required = Value.FALSE)
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
+
+  public void setLastUpdated(Date lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
+
+  @Override
+  @JsonProperty("attributeValues")
+  @JacksonXmlElementWrapper(localName = "attributeValues", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "attributeValue", namespace = DxfNamespaces.DXF_2_0)
+  public Set<AttributeValue> getAttributeValues() {
+    return attributeValues;
+  }
+
+  @Override
+  public void setAttributeValues(Set<AttributeValue> attributeValues) {
+    cacheAttributeValues.clear();
+    this.attributeValues = attributeValues;
+  }
+
+  public AttributeValue getAttributeValue(Attribute attribute) {
+    loadAttributeValuesCacheIfEmpty();
+    return cacheAttributeValues.get(attribute.getUid());
+  }
+
+  public AttributeValue getAttributeValue(String attributeUid) {
+    loadAttributeValuesCacheIfEmpty();
+    return cacheAttributeValues.get(attributeUid);
+  }
+
+  public String getAttributeValueString(Attribute attribute) {
+    AttributeValue attributeValue = getAttributeValue(attribute);
+    return attributeValue != null ? attributeValue.getValue() : null;
+  }
+
+  @Gist(included = Include.FALSE)
+  @Override
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Translation> getTranslations() {
+    if (translations == null) {
+      translations = new HashSet<>();
     }
 
-    public BaseIdentifiableObject( String uid, String code, String name )
-    {
-        this.uid = uid;
-        this.code = code;
-        this.name = name;
+    return translations;
+  }
+
+  /** Clears out cache when setting translations. */
+  public void setTranslations(Set<Translation> translations) {
+    this.translationCache.clear();
+    this.translations = translations;
+  }
+
+  /**
+   * Returns a translated value for this object for the given property. The current locale is read
+   * from the user context.
+   *
+   * @param translationKey the translation key.
+   * @param defaultValue the value to use if there are no translations.
+   * @return a translated value.
+   */
+  protected String getTranslation(String translationKey, String defaultValue) {
+    Locale locale = CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE);
+
+    final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
+
+    if (locale == null || translationKey == null || CollectionUtils.isEmpty(translations)) {
+      return defaultValue;
     }
 
-    public BaseIdentifiableObject( IdentifiableObject identifiableObject )
-    {
-        this.id = identifiableObject.getId();
-        this.uid = identifiableObject.getUid();
-        this.name = identifiableObject.getName();
-        this.created = identifiableObject.getCreated();
-        this.lastUpdated = identifiableObject.getLastUpdated();
+    return translationCache.computeIfAbsent(
+        Translation.getCacheKey(locale.toString(), translationKey),
+        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+  }
+
+  private void loadAttributeValuesCacheIfEmpty() {
+    if (cacheAttributeValues.isEmpty() && attributeValues != null) {
+      attributeValues.forEach(av -> cacheAttributeValues.put(av.getAttribute().getUid(), av));
+    }
+  }
+
+  @Override
+  @Gist(included = Include.FALSE)
+  @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public User getCreatedBy() {
+    return createdBy;
+  }
+
+  @Override
+  @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public User getUser() {
+    return createdBy;
+  }
+
+  @Override
+  public void setCreatedBy(User createdBy) {
+    this.createdBy = createdBy;
+  }
+
+  @Override
+  public void setUser(User user) {
+    // TODO remove this after implementing functions for using Owner
+    setCreatedBy(createdBy == null ? user : createdBy);
+    setOwner(user != null ? user.getUid() : null);
+  }
+
+  public void setOwner(String userId) {
+    getSharing().setOwner(userId);
+  }
+
+  @Override
+  @Gist(included = Include.FALSE)
+  @JsonProperty
+  @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
+  public Access getAccess() {
+    return access;
+  }
+
+  public void setAccess(Access access) {
+    this.access = access;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "favorites", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "favorite", namespace = DxfNamespaces.DXF_2_0)
+  public Set<String> getFavorites() {
+    return favorites;
+  }
+
+  public void setFavorites(Set<String> favorites) {
+    this.favorites = favorites;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isFavorite() {
+    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    return user != null && favorites != null && favorites.contains(user.getUid());
+  }
+
+  @Override
+  @Gist(included = Include.FALSE)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Sharing getSharing() {
+    if (sharing == null) {
+      sharing = new Sharing();
     }
 
-    // -------------------------------------------------------------------------
-    // Comparable implementation
-    // -------------------------------------------------------------------------
+    return sharing;
+  }
 
-    /**
-     * Compares objects based on display name. A null display name is ordered
-     * after a non-null display name.
-     */
-    @Override
-    public int compareTo( IdentifiableObject object )
-    {
-        if ( this.getDisplayName() == null )
-        {
-            return object.getDisplayName() == null ? 0 : 1;
+  public void setSharing(Sharing sharing) {
+    this.sharing = sharing;
+  }
+
+  @Override
+  public boolean setAsFavorite(User user) {
+    if (this.favorites == null) {
+      this.favorites = new HashSet<>();
+    }
+
+    return this.favorites.add(user.getUid());
+  }
+
+  @Override
+  public boolean removeAsFavorite(User user) {
+    if (this.favorites == null) {
+      this.favorites = new HashSet<>();
+    }
+
+    return this.favorites.remove(user.getUid());
+  }
+
+  // -------------------------------------------------------------------------
+  // hashCode and equals
+  // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    int result = getUid() != null ? getUid().hashCode() : 0;
+    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
+    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
+
+    return result;
+  }
+
+  /** Class check uses isAssignableFrom and get-methods to handle proxied objects. */
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof BaseIdentifiableObject
+            && getRealClass(this) == getRealClass(obj)
+            && typedEquals((IdentifiableObject) obj);
+  }
+
+  /**
+   * Equality check against typed identifiable object. This method is not vulnerable to proxy
+   * issues, where an uninitialized object class type fails comparison to a real class.
+   *
+   * @param other the identifiable object to compare this object against.
+   * @return true if equal.
+   */
+  public final boolean typedEquals(IdentifiableObject other) {
+    if (other == null) {
+      return false;
+    }
+    return Objects.equals(getUid(), other.getUid())
+        && Objects.equals(getCode(), other.getCode())
+        && Objects.equals(getName(), other.getName());
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  /** Set auto-generated fields on save or update */
+  public void setAutoFields() {
+    if (uid == null || uid.length() == 0) {
+      setUid(CodeGenerator.generateUid());
+    }
+
+    Date date = new Date();
+
+    if (created == null) {
+      created = date;
+    }
+
+    setLastUpdated(date);
+  }
+
+  /**
+   * Returns the value of the property referred to by the given {@link IdScheme}.
+   *
+   * @param idScheme the {@link IdScheme}.
+   * @return the value of the property referred to by the {@link IdScheme}.
+   */
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return uid;
+    } else if (idScheme.is(IdentifiableProperty.CODE)) {
+      return code;
+    } else if (idScheme.is(IdentifiableProperty.NAME)) {
+      return name;
+    } else if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    } else if (idScheme.is(IdentifiableProperty.ATTRIBUTE)) {
+      for (AttributeValue attributeValue : attributeValues) {
+        if (idScheme.getAttribute().equals(attributeValue.getAttribute().getUid())) {
+          return attributeValue.getValue();
         }
-
-        return object.getDisplayName() == null ? -1
-            : this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Setters and getters
-    // -------------------------------------------------------------------------
+    return null;
+  }
 
-    @Override
-    @JsonIgnore
-    public long getId()
-    {
-        return id;
+  /**
+   * Returns the value of the property referred to by the given {@link IdScheme}. If this happens to
+   * refer to NAME, it returns the translatable/display version.
+   *
+   * @param idScheme the {@link IdScheme}.
+   * @return the value of the property referred to by the {@link IdScheme}.
+   */
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    } else {
+      return getPropertyValue(idScheme);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Sharing helpers
+  // -------------------------------------------------------------------------
+
+  public void setExternalAccess(boolean externalAccess) {
+    if (sharing == null) {
+      sharing = new Sharing();
     }
 
-    public void setId( long id )
-    {
-        this.id = id;
+    sharing.setExternal(externalAccess);
+  }
+
+  public void setPublicAccess(String access) {
+    if (sharing == null) {
+      sharing = new Sharing();
     }
 
-    @Override
-    @JsonProperty( value = "id" )
-    @JacksonXmlProperty( localName = "id", isAttribute = true )
-    @Description( "The Unique Identifier for this Object." )
-    @Property( value = PropertyType.IDENTIFIER, required = Value.FALSE )
-    @PropertyRange( min = 11, max = 11 )
-    public String getUid()
-    {
-        return uid;
+    sharing.setPublicAccess(access);
+  }
+
+  public String getPublicAccess() {
+    if (sharing != null) {
+      return sharing.getPublicAccess();
     }
 
-    public void setUid( String uid )
-    {
-        this.uid = uid;
+    return null;
+  }
+
+  public Collection<UserAccess> getUserAccesses() {
+    if (sharing == null || getSharing().getUsers() == null) {
+      return Collections.emptyList();
     }
 
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    @Description( "The unique code for this Object." )
-    @Property( PropertyType.IDENTIFIER )
-    public String getCode()
-    {
-        return code;
+    return getSharing().getUsers().values();
+  }
+
+  public Collection<UserGroupAccess> getUserGroupAccesses() {
+    if (sharing == null || getSharing().getUserGroups() == null) {
+      return Collections.emptyList();
     }
 
-    public void setCode( String code )
-    {
-        this.code = code;
+    return getSharing().getUserGroups().values();
+  }
+
+  @Override
+  public String toString() {
+    return "{"
+        + "\"class\":\""
+        + getClass()
+        + "\", "
+        + "\"id\":\""
+        + getId()
+        + "\", "
+        + "\"uid\":\""
+        + getUid()
+        + "\", "
+        + "\"code\":\""
+        + getCode()
+        + "\", "
+        + "\"name\":\""
+        + getName()
+        + "\", "
+        + "\"created\":\""
+        + getCreated()
+        + "\", "
+        + "\"lastUpdated\":\""
+        + getLastUpdated()
+        + "\" "
+        + "}";
+  }
+
+  /**
+   * Get Translation value from {@code Set<Translation>} by given locale and translationKey
+   *
+   * @return Translation value if exists, otherwise return default value.
+   */
+  private String getTranslationValue(String locale, String translationKey, String defaultValue) {
+    for (Translation translation : translations) {
+      if (locale.equals(translation.getLocale())
+          && translationKey.equals(translation.getProperty())
+          && !StringUtils.isEmpty(translation.getValue())) {
+        return translation.getValue();
+      }
     }
 
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    @Description( "The name of this Object. Required and unique." )
-    @PropertyRange( min = 1 )
-    public String getName()
-    {
-        return name;
-    }
+    return defaultValue;
+  }
 
-    public void setName( String name )
-    {
-        this.name = name;
-    }
+  /**
+   * Method that allows copying of a Collection which requires a parent object of each element to be
+   * used in the copying logic.
+   *
+   * @param parent Object to be used as part of the copying logic
+   * @param original Collection to be copied
+   * @param copy BiFunction which applies the copying logic
+   * @return Copied Set
+   * @param <T> parent
+   * @param <E> element
+   */
+  public static <T, E> Set<E> copySet(T parent, Collection<E> original, BiFunction<E, T, E> copy) {
+    return original == null
+        ? Stream.<E>empty().collect(toSet())
+        : original.stream()
+            .filter(Objects::nonNull)
+            .map(e -> copy.apply(e, parent))
+            .collect(toSet());
+  }
 
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "name", key = "NAME" )
-    public String getDisplayName()
-    {
-        return getTranslation( "NAME", getName() );
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    @Description( "The date this object was created." )
-    @Property( value = PropertyType.DATE, required = Value.FALSE )
-    public Date getCreated()
-    {
-        return created;
-    }
-
-    public void setCreated( Date created )
-    {
-        this.created = created;
-    }
-
-    @Override
-    @JsonProperty
-    @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
-    @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
-    @PropertyTransformer( UserPropertyTransformer.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public User getLastUpdatedBy()
-    {
-        return lastUpdatedBy;
-    }
-
-    public void setLastUpdatedBy( User lastUpdatedBy )
-    {
-        this.lastUpdatedBy = lastUpdatedBy;
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    @Description( "The date this object was last updated." )
-    @Property( value = PropertyType.DATE, required = Value.FALSE )
-    public Date getLastUpdated()
-    {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated( Date lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
-
-    @Override
-    @JsonProperty( "attributeValues" )
-    @JacksonXmlElementWrapper( localName = "attributeValues", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "attributeValue", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<AttributeValue> getAttributeValues()
-    {
-        return attributeValues;
-    }
-
-    @Override
-    public void setAttributeValues( Set<AttributeValue> attributeValues )
-    {
-        cacheAttributeValues.clear();
-        this.attributeValues = attributeValues;
-    }
-
-    public AttributeValue getAttributeValue( Attribute attribute )
-    {
-        loadAttributeValuesCacheIfEmpty();
-        return cacheAttributeValues.get( attribute.getUid() );
-    }
-
-    public AttributeValue getAttributeValue( String attributeUid )
-    {
-        loadAttributeValuesCacheIfEmpty();
-        return cacheAttributeValues.get( attributeUid );
-    }
-
-    public String getAttributeValueString( Attribute attribute )
-    {
-        AttributeValue attributeValue = getAttributeValue( attribute );
-        return attributeValue != null ? attributeValue.getValue() : null;
-    }
-
-    @Gist( included = Include.FALSE )
-    @Override
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "translations", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "translation", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<Translation> getTranslations()
-    {
-        if ( translations == null )
-        {
-            translations = new HashSet<>();
-        }
-
-        return translations;
-    }
-
-    /**
-     * Clears out cache when setting translations.
-     */
-    public void setTranslations( Set<Translation> translations )
-    {
-        this.translationCache.clear();
-        this.translations = translations;
-    }
-
-    /**
-     * Returns a translated value for this object for the given property. The
-     * current locale is read from the user context.
-     *
-     * @param translationKey the translation key.
-     * @param defaultValue the value to use if there are no translations.
-     * @return a translated value.
-     */
-    protected String getTranslation( String translationKey, String defaultValue )
-    {
-        Locale locale = CurrentUserUtil.getUserSetting( UserSettingKey.DB_LOCALE );
-
-        final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
-
-        if ( locale == null || translationKey == null || CollectionUtils.isEmpty( translations ) )
-        {
-            return defaultValue;
-        }
-
-        return translationCache.computeIfAbsent( Translation.getCacheKey( locale.toString(), translationKey ),
-            key -> getTranslationValue( locale.toString(), translationKey, defaultTranslation ) );
-    }
-
-    private void loadAttributeValuesCacheIfEmpty()
-    {
-        if ( cacheAttributeValues.isEmpty() && attributeValues != null )
-        {
-            attributeValues.forEach( av -> cacheAttributeValues.put( av.getAttribute().getUid(), av ) );
-        }
-    }
-
-    @Override
-    @Gist( included = Include.FALSE )
-    @JsonProperty
-    @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
-    @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
-    @PropertyTransformer( UserPropertyTransformer.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public User getCreatedBy()
-    {
-        return createdBy;
-    }
-
-    @Override
-    @JsonProperty
-    @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
-    @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
-    @PropertyTransformer( UserPropertyTransformer.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public User getUser()
-    {
-        return createdBy;
-    }
-
-    @Override
-    public void setCreatedBy( User createdBy )
-    {
-        this.createdBy = createdBy;
-    }
-
-    @Override
-    public void setUser( User user )
-    {
-        // TODO remove this after implementing functions for using Owner
-        setCreatedBy( createdBy == null ? user : createdBy );
-        setOwner( user != null ? user.getUid() : null );
-    }
-
-    public void setOwner( String userId )
-    {
-        getSharing().setOwner( userId );
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 8, max = 8 )
-    public String getPublicAccess()
-    {
-        return SharingUtils.getDtoPublicAccess( publicAccess, getSharing() );
-    }
-
-    public void setPublicAccess( String publicAccess )
-    {
-        this.publicAccess = publicAccess;
-        getSharing().setPublicAccess( publicAccess );
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean getExternalAccess()
-    {
-        return SharingUtils.getDtoExternalAccess( externalAccess, getSharing() );
-    }
-
-    public void setExternalAccess( boolean externalAccess )
-    {
-        this.externalAccess = externalAccess;
-        getSharing().setExternal( externalAccess );
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "userGroupAccesses", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<org.hisp.dhis.user.UserGroupAccess> getUserGroupAccesses()
-    {
-        return SharingUtils.getDtoUserGroupAccesses( userGroupAccesses, getSharing() );
-    }
-
-    public void setUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
-    {
-        getSharing().setDtoUserGroupAccesses( userGroupAccesses );
-        this.userGroupAccesses = userGroupAccesses;
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "userAccesses", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<org.hisp.dhis.user.UserAccess> getUserAccesses()
-    {
-        return SharingUtils.getDtoUserAccesses( userAccesses, getSharing() );
-    }
-
-    public void setUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
-    {
-        getSharing().setDtoUserAccesses( userAccesses );
-        this.userAccesses = userAccesses;
-    }
-
-    @Override
-    @Gist( included = Include.FALSE )
-    @JsonProperty
-    @JacksonXmlProperty( localName = "access", namespace = DxfNamespaces.DXF_2_0 )
-    public Access getAccess()
-    {
-        return access;
-    }
-
-    public void setAccess( Access access )
-    {
-        this.access = access;
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "favorites", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "favorite", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<String> getFavorites()
-    {
-        return favorites;
-    }
-
-    public void setFavorites( Set<String> favorites )
-    {
-        this.favorites = favorites;
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isFavorite()
-    {
-        CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
-        return user != null && favorites != null && favorites.contains( user.getUid() );
-    }
-
-    @Override
-    @Gist( included = Include.FALSE )
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Sharing getSharing()
-    {
-        if ( sharing == null )
-        {
-            sharing = new Sharing();
-        }
-
-        return sharing;
-    }
-
-    public void setSharing( Sharing sharing )
-    {
-        this.sharing = sharing;
-    }
-
-    @Override
-    public boolean setAsFavorite( User user )
-    {
-        if ( this.favorites == null )
-        {
-            this.favorites = new HashSet<>();
-        }
-
-        return this.favorites.add( user.getUid() );
-    }
-
-    @Override
-    public boolean removeAsFavorite( User user )
-    {
-        if ( this.favorites == null )
-        {
-            this.favorites = new HashSet<>();
-        }
-
-        return this.favorites.remove( user.getUid() );
-    }
-
-    // -------------------------------------------------------------------------
-    // hashCode and equals
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        int result = getUid() != null ? getUid().hashCode() : 0;
-        result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
-        result = 31 * result + (getName() != null ? getName().hashCode() : 0);
-
-        return result;
-    }
-
-    /**
-     * Class check uses isAssignableFrom and get-methods to handle proxied
-     * objects.
-     */
-    @Override
-    public boolean equals( Object obj )
-    {
-        return this == obj || obj instanceof BaseIdentifiableObject
-            && getRealClass( this ) == getRealClass( obj )
-            && typedEquals( (IdentifiableObject) obj );
-    }
-
-    /**
-     * Equality check against typed identifiable object. This method is not
-     * vulnerable to proxy issues, where an uninitialized object class type
-     * fails comparison to a real class.
-     *
-     * @param other the identifiable object to compare this object against.
-     * @return true if equal.
-     */
-    public final boolean typedEquals( IdentifiableObject other )
-    {
-        if ( other == null )
-        {
-            return false;
-        }
-        return Objects.equals( getUid(), other.getUid() )
-            && Objects.equals( getCode(), other.getCode() )
-            && Objects.equals( getName(), other.getName() );
-    }
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    /**
-     * Set auto-generated fields on save or update
-     */
-    public void setAutoFields()
-    {
-        if ( uid == null || uid.length() == 0 )
-        {
-            setUid( CodeGenerator.generateUid() );
-        }
-
-        Date date = new Date();
-
-        if ( created == null )
-        {
-            created = date;
-        }
-
-        setLastUpdated( date );
-    }
-
-    /**
-     * Returns the value of the property referred to by the given IdScheme.
-     *
-     * @param idScheme the IdScheme.
-     * @return the value of the property referred to by the IdScheme.
-     */
-    @Override
-    public String getPropertyValue( IdScheme idScheme )
-    {
-        if ( idScheme.isNull() || idScheme.is( IdentifiableProperty.UID ) )
-        {
-            return uid;
-        }
-        else if ( idScheme.is( IdentifiableProperty.CODE ) )
-        {
-            return code;
-        }
-        else if ( idScheme.is( IdentifiableProperty.NAME ) )
-        {
-            return name;
-        }
-        else if ( idScheme.is( IdentifiableProperty.ID ) )
-        {
-            return id > 0 ? String.valueOf( id ) : null;
-        }
-        else if ( idScheme.is( IdentifiableProperty.ATTRIBUTE ) )
-        {
-            for ( AttributeValue attributeValue : attributeValues )
-            {
-                if ( idScheme.getAttribute().equals( attributeValue.getAttribute().getUid() ) )
-                {
-                    return attributeValue.getValue();
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Set legacy sharing collections to null so that the ImportService will
-     * import current object with new Sharing format.
-     */
-    public void clearLegacySharingCollections()
-    {
-        this.userAccesses = null;
-        this.userGroupAccesses = null;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "{" +
-            "\"class\":\"" + getClass() + "\", " +
-            "\"id\":\"" + getId() + "\", " +
-            "\"uid\":\"" + getUid() + "\", " +
-            "\"code\":\"" + getCode() + "\", " +
-            "\"name\":\"" + getName() + "\", " +
-            "\"created\":\"" + getCreated() + "\", " +
-            "\"lastUpdated\":\"" + getLastUpdated() + "\" " +
-            "}";
-    }
-
-    /**
-     * Get Translation value from {@code Set<Translation>} by given locale and
-     * translationKey
-     *
-     * @return Translation value if exists, otherwise return default value.
-     */
-    private String getTranslationValue( String locale, String translationKey, String defaultValue )
-    {
-        for ( Translation translation : translations )
-        {
-            if ( locale.equals( translation.getLocale() ) && translationKey.equals( translation.getProperty() ) &&
-                !StringUtils.isEmpty( translation.getValue() ) )
-            {
-                return translation.getValue();
-            }
-        }
-
-        return defaultValue;
-    }
-
+  /**
+   * Method that allows copying of a Collection which requires a parent object of each element to be
+   * used in the copying logic.
+   *
+   * @param parent Object to be used as part of the copying logic
+   * @param original Collection to be copied
+   * @param copy BiFunction which applies the copying logic
+   * @return Copied List
+   * @param <T> parent
+   * @param <E> element
+   */
+  public static <T, E> List<E> copyList(
+      T parent, Collection<E> original, BiFunction<E, T, E> copy) {
+    return original == null
+        ? Stream.<E>empty().toList()
+        : original.stream().filter(Objects::nonNull).map(e -> copy.apply(e, parent)).toList();
+  }
 }

@@ -36,52 +36,47 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class IndexedObjectContainerTest
-{
+class IndexedObjectContainerTest {
 
-    private final IndexedObjectContainer container = new IndexedObjectContainer();
+  private final IndexedObjectContainer container = new IndexedObjectContainer();
 
-    @Test
-    void merge()
-    {
-        final Attribute attribute1 = new Attribute();
-        final Attribute attribute2 = new Attribute();
-        final Attribute attribute3 = new Attribute();
-        Assertions.assertEquals( (Integer) 0, container.mergeObjectIndex( attribute1 ) );
-        Assertions.assertEquals( (Integer) 1, container.mergeObjectIndex( attribute2 ) );
-        Assertions.assertEquals( (Integer) 0, container.mergeObjectIndex( attribute1 ) );
-        Assertions.assertEquals( (Integer) 2, container.mergeObjectIndex( attribute3 ) );
-    }
+  @Test
+  void merge() {
+    final Attribute attribute1 = new Attribute();
+    final Attribute attribute2 = new Attribute();
+    final Attribute attribute3 = new Attribute();
+    Assertions.assertEquals((Integer) 0, container.mergeObjectIndex(attribute1));
+    Assertions.assertEquals((Integer) 1, container.mergeObjectIndex(attribute2));
+    Assertions.assertEquals((Integer) 0, container.mergeObjectIndex(attribute1));
+    Assertions.assertEquals((Integer) 2, container.mergeObjectIndex(attribute3));
+  }
 
-    @Test
-    void add()
-    {
-        final Attribute attribute1 = new Attribute();
-        final Attribute attribute2 = new Attribute();
-        final Attribute attribute3 = new Attribute();
-        Assertions.assertEquals( (Integer) 0, container.add( attribute1 ) );
-        Assertions.assertEquals( (Integer) 1, container.add( attribute2 ) );
-        Assertions.assertEquals( (Integer) 0, container.add( attribute1 ) );
-        Assertions.assertEquals( (Integer) 2, container.add( attribute3 ) );
-    }
+  @Test
+  void add() {
+    final Attribute attribute1 = new Attribute();
+    final Attribute attribute2 = new Attribute();
+    final Attribute attribute3 = new Attribute();
+    Assertions.assertEquals((Integer) 0, container.add(attribute1));
+    Assertions.assertEquals((Integer) 1, container.add(attribute2));
+    Assertions.assertEquals((Integer) 0, container.add(attribute1));
+    Assertions.assertEquals((Integer) 2, container.add(attribute3));
+  }
 
-    @Test
-    void containsObject()
-    {
-        final Attribute attribute1 = new Attribute();
-        final Attribute attribute2 = new Attribute();
-        container.add( attribute1 );
-        container.add( attribute2 );
-        Assertions.assertTrue( container.containsObject( attribute2 ) );
-    }
+  @Test
+  void containsObject() {
+    final Attribute attribute1 = new Attribute();
+    final Attribute attribute2 = new Attribute();
+    container.add(attribute1);
+    container.add(attribute2);
+    Assertions.assertTrue(container.containsObject(attribute2));
+  }
 
-    @Test
-    void containsObjectNot()
-    {
-        final Attribute attribute1 = new Attribute();
-        final Attribute attribute2 = new Attribute();
-        container.add( attribute1 );
-        container.add( attribute2 );
-        Assertions.assertFalse( container.containsObject( new Attribute() ) );
-    }
+  @Test
+  void containsObjectNot() {
+    final Attribute attribute1 = new Attribute();
+    final Attribute attribute2 = new Attribute();
+    container.add(attribute1);
+    container.add(attribute2);
+    Assertions.assertFalse(container.containsObject(new Attribute()));
+  }
 }

@@ -36,27 +36,20 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiter
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.system.util.SqlUtils;
 
-/**
- * Gets literal value Strings from an ANTLR parse tree for use in SQL queries.
- */
-public class SqlLiteral
-    implements AntlrExprLiteral
-{
-    @Override
-    public Object getNumericLiteral( NumericLiteralContext ctx )
-    {
-        return ctx.getText();
-    }
+/** Gets literal value Strings from an ANTLR parse tree for use in SQL queries. */
+public class SqlLiteral implements AntlrExprLiteral {
+  @Override
+  public Object getNumericLiteral(NumericLiteralContext ctx) {
+    return ctx.getText();
+  }
 
-    @Override
-    public Object getStringLiteral( StringLiteralContext ctx )
-    {
-        return "'" + SqlUtils.escapeSql( unescapeJava( trimQuotes( ctx.getText() ) ) ) + "'";
-    }
+  @Override
+  public Object getStringLiteral(StringLiteralContext ctx) {
+    return "'" + SqlUtils.escapeSql(unescapeJava(trimQuotes(ctx.getText()))) + "'";
+  }
 
-    @Override
-    public Object getBooleanLiteral( BooleanLiteralContext ctx )
-    {
-        return ctx.getText();
-    }
+  @Override
+  public Object getBooleanLiteral(BooleanLiteralContext ctx) {
+    return ctx.getText();
+  }
 }

@@ -34,21 +34,19 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class MapViewSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "mapView";
+public class MapViewSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "mapView";
 
-    public static final String PLURAL = "mapViews";
+  public static final String PLURAL = "mapViews";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( MapView.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1900 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(MapView.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1900);
 
-        return schema;
-    }
+    return schema;
+  }
 }

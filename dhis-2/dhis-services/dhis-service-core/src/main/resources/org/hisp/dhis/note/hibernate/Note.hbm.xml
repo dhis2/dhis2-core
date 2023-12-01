@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.note.Note" table="note">
+
+    <id name="id" column="noteid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="noteText" column="notetext" type="text" />
+
+    <property name="creator" column="creator" />
+
+  </class>
+</hibernate-mapping>

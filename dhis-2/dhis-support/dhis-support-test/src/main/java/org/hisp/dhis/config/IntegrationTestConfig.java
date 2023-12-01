@@ -29,11 +29,12 @@ package org.hisp.dhis.config;
 
 import java.util.Map;
 import java.util.Properties;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
@@ -45,70 +46,77 @@ import org.testcontainers.utility.DockerImageName;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @Configuration
-@ComponentScan( "org.hisp.dhis" )
-public class IntegrationTestConfig
-{
-    private static final String POSTGRES_DATABASE_NAME = "dhis";
+@ComponentScan("org.hisp.dhis")
+public class IntegrationTestConfig {
+  private static final String POSTGRES_DATABASE_NAME = "dhis";
 
-    private static final String POSTGRES_USERNAME = "dhis";
+  private static final String POSTGRES_USERNAME = "dhis";
 
-    private static final String POSTGRES_PASSWORD = "dhis";
+  private static final String POSTGRES_PASSWORD = "dhis";
 
-    private static final DockerImageName POSTGIS_IMAGE_NAME = DockerImageName
-        .parse( "postgis/postgis" )
-        .asCompatibleSubstituteFor( "postgres" );
+  private static final DockerImageName POSTGIS_IMAGE_NAME =
+      DockerImageName.parse("postgis/postgis").asCompatibleSubstituteFor("postgres");
 
-    /**
-     * Refers to the {@code postgis/postgis:10-2.5-alpine} image which contains
-     * PostgreSQL 10 and PostGIS 2.5.
-     */
-    private static final String POSTGRES_POSTGIS_VERSION = "10-2.5-alpine";
+  /**
+   * Refers to the {@code postgis/postgis:10-2.5-alpine} image which contains PostgreSQL 10 and
+   * PostGIS 2.5.
+   */
+  private static final String POSTGRES_POSTGIS_VERSION = "10-2.5-alpine";
 
-    private static final PostgreSQLContainer<?> POSTGRES_CONTAINER;
+  private static final PostgreSQLContainer<?> POSTGRES_CONTAINER;
 
-    static
-    {
-        POSTGRES_CONTAINER = new PostgreSQLContainer<>( POSTGIS_IMAGE_NAME.withTag( POSTGRES_POSTGIS_VERSION ) )
-            .withDatabaseName( POSTGRES_DATABASE_NAME )
-            .withUsername( POSTGRES_USERNAME )
-            .withPassword( POSTGRES_PASSWORD )
-            .withInitScript( "db/extensions.sql" )
-            .withTmpFs( Map.of( "/testtmpfs", "rw" ) );
-        POSTGRES_CONTAINER.start();
-    }
+  static {
+    POSTGRES_CONTAINER =
+        new PostgreSQLContainer<>(POSTGIS_IMAGE_NAME.withTag(POSTGRES_POSTGIS_VERSION))
+            .withDatabaseName(POSTGRES_DATABASE_NAME)
+            .withUsername(POSTGRES_USERNAME)
+            .withPassword(POSTGRES_PASSWORD)
+            .withInitScript("db/extensions.sql")
+            .withTmpFs(Map.of("/testtmpfs", "rw"))
+            .withEnv("LC_COLLATE", "C");
 
-    @Bean
-    public LdapAuthenticator ldapAuthenticator()
-    {
-        return authentication -> null;
-    }
+    POSTGRES_CONTAINER.start();
+  }
 
-    @Bean
-    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
-    {
-        return ( dirContextOperations, s ) -> null;
-    }
+  @Bean
+  public static SessionRegistry sessionRegistry() {
+    return new SessionRegistryImpl();
+  }
 
-    @Bean
-    public PasswordEncoder encoder()
-    {
-        return new BCryptPasswordEncoder();
-    }
+  @Bean
+  public LdapAuthenticator ldapAuthenticator() {
+    return authentication -> null;
+  }
 
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
-    {
+  @Bean
+  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
+    return (dirContextOperations, s) -> null;
+  }
 
-        PostgresDhisConfigurationProvider dhisConfigurationProvider = new PostgresDhisConfigurationProvider();
+  @Bean
+  public PasswordEncoder encoder() {
+    return new BCryptPasswordEncoder();
+  }
 
-        Properties properties = new Properties();
-        properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
-        properties.setProperty( "connection.driver_class", POSTGRES_CONTAINER.getDriverClassName() );
-        properties.setProperty( "connection.url", POSTGRES_CONTAINER.getJdbcUrl() );
-        properties.setProperty( "connection.username", POSTGRES_USERNAME );
-        properties.setProperty( "connection.password", POSTGRES_PASSWORD );
-        dhisConfigurationProvider.addProperties( properties );
+  @Bean(name = "dhisConfigurationProvider")
+  public DhisConfigurationProvider dhisConfigurationProvider() {
 
-        return dhisConfigurationProvider;
-    }
+    PostgresDhisConfigurationProvider dhisConfigurationProvider =
+        new PostgresDhisConfigurationProvider(getConfigurationFile());
+
+    Properties properties = new Properties();
+    properties.setProperty(
+        "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect");
+    properties.setProperty("connection.driver_class", POSTGRES_CONTAINER.getDriverClassName());
+    properties.setProperty("connection.url", POSTGRES_CONTAINER.getJdbcUrl());
+    properties.setProperty("connection.username", POSTGRES_USERNAME);
+    properties.setProperty("connection.password", POSTGRES_PASSWORD);
+    dhisConfigurationProvider.addProperties(properties);
+
+    return dhisConfigurationProvider;
+  }
+
+  protected String getConfigurationFile() {
+    return "postgresTestConfig.conf";
+  }
 }

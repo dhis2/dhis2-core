@@ -30,6 +30,4 @@ package org.hisp.dhis.audit;
 /**
  * @author Luciano Fiandesio
  */
-public interface AuditConsumer
-{
-}
+public interface AuditConsumer {}

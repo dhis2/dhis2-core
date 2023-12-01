@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.dataitem.helper;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.ORDERING_ATTRIBUTE_NAME;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.ORDERING_VALUE;
 
 import java.util.Set;
-
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
@@ -42,38 +43,31 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
-public class OrderingHelper
-{
-    private OrderingHelper()
-    {
+@NoArgsConstructor(access = PRIVATE)
+public class OrderingHelper {
+  /**
+   * Sets the ordering defined by orderParams into the paramsMap. It will set the given
+   * "orderParams" into the provided "paramsMap". It's important to highlight that the "key" added
+   * to the "paramsMap" will contain the actual order param, ie.: "name" + "Order". So, if there is
+   * a "name" as order param, the "key" will result in "nameOrder". This method is used to set the
+   * ordering at database level.
+   *
+   * @param orderParams the source of ordering params
+   * @param paramsMap the map that will receive the order params
+   */
+  public static void setOrderingParams(OrderParams orderParams, MapSqlParameterSource paramsMap) {
+    if (orderParams != null && isNotEmpty(orderParams.getOrders())) {
+      Set<String> orders = orderParams.getOrders();
+
+      for (String order : orders) {
+        String[] orderAttributeValuePair = order.split(":");
+
+        // Concatenation of param name (ie.:"name") + "Order". It will
+        // result in "nameOrder".
+        paramsMap.addValue(
+            trimToEmpty(orderAttributeValuePair[ORDERING_ATTRIBUTE_NAME]).concat("Order"),
+            trimToEmpty(orderAttributeValuePair[ORDERING_VALUE]));
+      }
     }
-
-    /**
-     * Sets the ordering defined by orderParams into the paramsMap. It will set
-     * the given "orderParams" into the provided "paramsMap". It's important to
-     * highlight that the "key" added to the "paramsMap" will contain the actual
-     * order param, ie.: "name" + "Order". So, if there is a "name" as order
-     * param, the "key" will result in "nameOrder". This method is used to set
-     * the ordering at database level.
-     *
-     * @param orderParams the source of ordering params
-     * @param paramsMap the map that will receive the order params
-     */
-    public static void setOrderingParams( final OrderParams orderParams, final MapSqlParameterSource paramsMap )
-    {
-        if ( orderParams != null && isNotEmpty( orderParams.getOrders() ) )
-        {
-            final Set<String> orders = orderParams.getOrders();
-
-            for ( final String order : orders )
-            {
-                final String[] orderAttributeValuePair = order.split( ":" );
-
-                // Concatenation of param name (ie.:"name") + "Order". It will
-                // result in "nameOrder".
-                paramsMap.addValue( trimToEmpty( orderAttributeValuePair[ORDERING_ATTRIBUTE_NAME] ).concat( "Order" ),
-                    trimToEmpty( orderAttributeValuePair[ORDERING_VALUE] ) );
-            }
-        }
-    }
+  }
 }

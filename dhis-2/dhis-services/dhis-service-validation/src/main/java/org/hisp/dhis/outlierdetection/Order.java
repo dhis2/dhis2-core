@@ -32,20 +32,17 @@ package org.hisp.dhis.outlierdetection;
  *
  * @author Lars Helge Overland
  */
-public enum Order
-{
-    MEAN_ABS_DEV( "mean_abs_dev" ),
-    Z_SCORE( "z_score" );
+public enum Order {
+  MEAN_ABS_DEV("mean_abs_dev"),
+  Z_SCORE("z_score");
 
-    private String key;
+  private String key;
 
-    Order( String key )
-    {
-        this.key = key;
-    }
+  Order(String key) {
+    this.key = key;
+  }
 
-    public String getKey()
-    {
-        return key;
-    }
+  public String getKey() {
+    return key;
+  }
 }

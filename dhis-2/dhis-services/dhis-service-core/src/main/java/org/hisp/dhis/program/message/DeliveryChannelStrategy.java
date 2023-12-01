@@ -28,94 +28,85 @@
 package org.hisp.dhis.program.message;
 
 import java.util.Set;
-
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-public abstract class DeliveryChannelStrategy
-{
-    @Autowired
-    protected OrganisationUnitService organisationUnitService;
+public abstract class DeliveryChannelStrategy {
+  @Autowired protected OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
+  @Autowired protected TrackedEntityService trackedEntityService;
 
-    // -------------------------------------------------------------------------
-    // Abstract methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Abstract methods
+  // -------------------------------------------------------------------------
 
-    protected abstract DeliveryChannel getDeliveryChannel();
+  protected abstract DeliveryChannel getDeliveryChannel();
 
-    protected abstract ProgramMessage setAttributes( ProgramMessage message );
+  protected abstract ProgramMessage setAttributes(ProgramMessage message);
 
-    protected abstract void validate( ProgramMessage message );
+  protected abstract void validate(ProgramMessage message);
 
-    protected abstract String getOrganisationUnitRecipient( OrganisationUnit orgUnit );
+  protected abstract String getOrganisationUnitRecipient(OrganisationUnit orgUnit);
 
-    // -------------------------------------------------------------------------
-    // Public methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Public methods
+  // -------------------------------------------------------------------------
 
-    public String getTrackedEntityInstanceRecipient( TrackedEntityInstance tei, ValueType type )
-    {
-        Set<TrackedEntityAttributeValue> attributeValues = tei.getTrackedEntityAttributeValues();
+  public String getTrackedEntityRecipient(TrackedEntity te, ValueType type) {
+    Set<TrackedEntityAttributeValue> attributeValues = te.getTrackedEntityAttributeValues();
 
-        for ( TrackedEntityAttributeValue value : attributeValues )
-        {
-            if ( value != null && value.getAttribute().getValueType().equals( type ) &&
-                value.getPlainValue() != null && !value.getPlainValue().trim().isEmpty() )
-            {
-                return value.getPlainValue();
-            }
-        }
-
-        throw new IllegalQueryException(
-            "Tracked entity does not have any attribute of value type: " + type.toString() );
+    for (TrackedEntityAttributeValue value : attributeValues) {
+      if (value != null
+          && value.getAttribute().getValueType().equals(type)
+          && value.getPlainValue() != null
+          && !value.getPlainValue().trim().isEmpty()) {
+        return value.getPlainValue();
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Public methods
-    // -------------------------------------------------------------------------
+    throw new IllegalQueryException(
+        "Tracked entity does not have any attribute of value type: " + type.toString());
+  }
 
-    protected TrackedEntityInstance getTrackedEntityInstance( ProgramMessage message )
-    {
-        if ( message.getRecipients().getTrackedEntityInstance() == null )
-        {
-            return null;
-        }
+  // -------------------------------------------------------------------------
+  // Public methods
+  // -------------------------------------------------------------------------
 
-        String uid = message.getRecipients().getTrackedEntityInstance().getUid();
-
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( uid );
-
-        message.getRecipients().setTrackedEntityInstance( tei );
-
-        return tei;
+  protected TrackedEntity getTrackedEntity(ProgramMessage message) {
+    if (message.getRecipients().getTrackedEntity() == null) {
+      return null;
     }
 
-    protected OrganisationUnit getOrganisationUnit( ProgramMessage message )
-    {
-        if ( message.getRecipients().getOrganisationUnit() == null )
-        {
-            return null;
-        }
+    String uid = message.getRecipients().getTrackedEntity().getUid();
 
-        String uid = message.getRecipients().getOrganisationUnit().getUid();
+    TrackedEntity te = trackedEntityService.getTrackedEntity(uid);
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( uid );
+    message.getRecipients().setTrackedEntity(te);
 
-        message.getRecipients().setOrganisationUnit( orgUnit );
+    return te;
+  }
 
-        return orgUnit;
+  protected OrganisationUnit getOrganisationUnit(ProgramMessage message) {
+    if (message.getRecipients().getOrganisationUnit() == null) {
+      return null;
     }
+
+    String uid = message.getRecipients().getOrganisationUnit().getUid();
+
+    OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(uid);
+
+    message.getRecipients().setOrganisationUnit(orgUnit);
+
+    return orgUnit;
+  }
 }

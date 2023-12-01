@@ -27,84 +27,71 @@
  */
 package org.hisp.dhis.eventhook;
 
+import com.google.common.base.CaseFormat;
 import java.util.Map;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobStatus;
 
-import com.google.common.base.CaseFormat;
-
 /**
  * @author Morten Olav Hansen
  */
-public final class EventUtils
-{
-    public static Event metadataCreate( BaseIdentifiableObject object )
-    {
-        return metadata( object, "create" );
-    }
+public final class EventUtils {
+  public static Event metadataCreate(BaseIdentifiableObject object) {
+    return metadata(object, "create");
+  }
 
-    public static Event metadataUpdate( BaseIdentifiableObject object )
-    {
-        return metadata( object, "update" );
-    }
+  public static Event metadataUpdate(BaseIdentifiableObject object) {
+    return metadata(object, "update");
+  }
 
-    public static Event metadataDelete( Class<?> type, String uid )
-    {
-        String name = camelCase( type.getSimpleName() );
+  public static Event metadataDelete(Class<?> type, String uid) {
+    String name = camelCase(type.getSimpleName());
 
-        return Event.builder()
-            .path( String.format( "metadata.%s.%s", name, uid ) )
-            .meta( Map.of( "op", "delete" ) )
-            .object( Map.of( "id", uid ) )
-            .build();
-    }
+    return Event.builder()
+        .path(String.format("metadata.%s.%s", name, uid))
+        .meta(Map.of("op", "delete"))
+        .object(Map.of("id", uid))
+        .build();
+  }
 
-    private static Event metadata( BaseIdentifiableObject object, String op )
-    {
-        String name = camelCase( object.getClass().getSimpleName() );
+  private static Event metadata(BaseIdentifiableObject object, String op) {
+    String name = camelCase(object.getClass().getSimpleName());
 
-        return Event.builder()
-            .path( String.format( "metadata.%s.%s", name, object.getUid() ) )
-            .meta( Map.of( "op", op ) )
-            .object( object )
-            .build();
-    }
+    return Event.builder()
+        .path(String.format("metadata.%s.%s", name, object.getUid()))
+        .meta(Map.of("op", op))
+        .object(object)
+        .build();
+  }
 
-    public static Event schedulerStart( JobConfiguration object )
-    {
-        return Event.builder()
-            .path( String.format( "scheduler.%s.%s", object.getJobType(), object.getUid() ) )
-            .meta( Map.of( "op", JobStatus.RUNNING ) )
-            .object( object )
-            .build();
-    }
+  public static Event schedulerStart(JobConfiguration object) {
+    return Event.builder()
+        .path(String.format("scheduler.%s.%s", object.getJobType(), object.getUid()))
+        .meta(Map.of("op", JobStatus.RUNNING))
+        .object(object)
+        .build();
+  }
 
-    public static Event schedulerCompleted( JobConfiguration object )
-    {
-        return Event.builder()
-            .path( String.format( "scheduler.%s.%s", object.getJobType(), object.getUid() ) )
-            .meta( Map.of( "op", JobStatus.COMPLETED ) )
-            .object( object )
-            .build();
-    }
+  public static Event schedulerCompleted(JobConfiguration object) {
+    return Event.builder()
+        .path(String.format("scheduler.%s.%s", object.getJobType(), object.getUid()))
+        .meta(Map.of("op", JobStatus.COMPLETED))
+        .object(object)
+        .build();
+  }
 
-    public static Event schedulerFailed( JobConfiguration object )
-    {
-        return Event.builder()
-            .path( String.format( "scheduler.%s.%s", object.getJobType(), object.getUid() ) )
-            .meta( Map.of( "op", JobStatus.FAILED ) )
-            .object( object )
-            .build();
-    }
+  public static Event schedulerFailed(JobConfiguration object) {
+    return Event.builder()
+        .path(String.format("scheduler.%s.%s", object.getJobType(), object.getUid()))
+        .meta(Map.of("op", JobStatus.FAILED))
+        .object(object)
+        .build();
+  }
 
-    public static String camelCase( String name )
-    {
-        return CaseFormat.UPPER_CAMEL.to( CaseFormat.LOWER_CAMEL, name );
-    }
+  public static String camelCase(String name) {
+    return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, name);
+  }
 
-    private EventUtils()
-    {
-    }
+  private EventUtils() {}
 }

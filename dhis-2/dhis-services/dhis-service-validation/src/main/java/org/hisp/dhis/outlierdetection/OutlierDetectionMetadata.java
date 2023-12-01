@@ -27,11 +27,9 @@
  */
 package org.hisp.dhis.outlierdetection;
 
-import java.util.Date;
-
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
+import lombok.Data;
 
 /**
  * Metadata for an outlier detection response.
@@ -39,26 +37,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Lars Helge Overland
  */
 @Data
-public class OutlierDetectionMetadata
-{
-    @JsonProperty
-    private OutlierDetectionAlgorithm algorithm;
+public class OutlierDetectionMetadata {
+  @JsonProperty private OutlierDetectionAlgorithm algorithm;
 
-    @JsonProperty
-    private Double threshold;
+  @JsonProperty private Double threshold;
 
-    @JsonProperty
-    private Date dataStartDate;
+  @JsonProperty private Date dataStartDate;
 
-    @JsonProperty
-    private Date dataEndDate;
+  @JsonProperty private Date dataEndDate;
 
-    @JsonProperty
-    private Order orderBy;
+  @JsonProperty private Order orderBy;
 
-    @JsonProperty
-    private Integer maxResults;
+  @JsonProperty private Integer maxResults;
 
-    @JsonProperty
-    private Integer count;
+  @JsonProperty private Integer count;
 }

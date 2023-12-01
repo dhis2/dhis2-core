@@ -28,9 +28,7 @@
 package org.hisp.dhis.audit;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 
 /**
@@ -38,25 +36,21 @@ import org.springframework.stereotype.Service;
  */
 @RequiredArgsConstructor
 @Service
-public class DefaultAuditService implements AuditService
-{
-    private final AuditRepository auditRepository;
+public class DefaultAuditService implements AuditService {
+  private final AuditRepository auditRepository;
 
-    @Override
-    public long addAudit( Audit audit )
-    {
-        return auditRepository.save( audit );
-    }
+  @Override
+  public long addAudit(Audit audit) {
+    return auditRepository.save(audit);
+  }
 
-    @Override
-    public int countAudits( AuditQuery query )
-    {
-        return auditRepository.count( query );
-    }
+  @Override
+  public int countAudits(AuditQuery query) {
+    return auditRepository.count(query);
+  }
 
-    @Override
-    public List<Audit> getAudits( AuditQuery query )
-    {
-        return auditRepository.query( query );
-    }
+  @Override
+  public List<Audit> getAudits(AuditQuery query) {
+    return auditRepository.query(query);
+  }
 }

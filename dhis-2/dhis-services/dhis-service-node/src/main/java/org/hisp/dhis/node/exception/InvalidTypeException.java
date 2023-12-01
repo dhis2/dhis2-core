@@ -30,10 +30,8 @@ package org.hisp.dhis.node.exception;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class InvalidTypeException extends RuntimeException
-{
-    public InvalidTypeException()
-    {
-        super( "Adding children to a node of type simple is not allowed." );
-    }
+public class InvalidTypeException extends RuntimeException {
+  public InvalidTypeException() {
+    super("Adding children to a node of type simple is not allowed.");
+  }
 }

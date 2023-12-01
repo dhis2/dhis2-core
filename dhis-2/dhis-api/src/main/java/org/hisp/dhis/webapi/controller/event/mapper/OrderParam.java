@@ -27,10 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.event.mapper;
 
-import java.util.Arrays;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.Value;
 
 /**
@@ -39,43 +35,8 @@ import lombok.Value;
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
 @Value
-public class OrderParam
-{
-    private final String field;
+public class OrderParam {
+  private final String field;
 
-    private final SortDirection direction;
-
-    @Getter
-    @AllArgsConstructor
-    public enum SortDirection
-    {
-        ASC( "asc", false ),
-        DESC( "desc", false ),
-        IASC( "iasc", true ),
-        IDESC( "idesc", true );
-
-        private static final SortDirection DEFAULT_SORTING_DIRECTION = ASC;
-
-        private final String value;
-
-        private final boolean ignoreCase;
-
-        public static SortDirection of( String value )
-        {
-            return of( value, DEFAULT_SORTING_DIRECTION );
-        }
-
-        public static SortDirection of( String value, SortDirection defaultSortingDirection )
-        {
-            return Arrays.stream( values() )
-                .filter( sortDirection -> sortDirection.getValue().equalsIgnoreCase( value ) )
-                .findFirst()
-                .orElse( defaultSortingDirection );
-        }
-
-        public boolean isAscending()
-        {
-            return this.equals( ASC ) || this.equals( IASC );
-        }
-    }
+  private final SortDirection direction;
 }

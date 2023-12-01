@@ -34,59 +34,51 @@ import java.io.Serializable;
  *
  * @author Lars Helge Overland
  */
-public class SerializableOptional
-    implements Serializable
-{
-    private final Serializable value;
+public class SerializableOptional implements Serializable {
+  private final Serializable value;
 
-    private SerializableOptional()
-    {
-        this.value = null;
-    }
+  private SerializableOptional() {
+    this.value = null;
+  }
 
-    private SerializableOptional( Serializable value )
-    {
-        this.value = value;
-    }
+  private SerializableOptional(Serializable value) {
+    this.value = value;
+  }
 
-    /**
-     * Creates a {@link SerializableOptional} with the given value.
-     *
-     * @param value the value.
-     * @return a {@link SerializableOptional}.
-     */
-    public static SerializableOptional of( Serializable value )
-    {
-        return new SerializableOptional( value );
-    }
+  /**
+   * Creates a {@link SerializableOptional} with the given value.
+   *
+   * @param value the value.
+   * @return a {@link SerializableOptional}.
+   */
+  public static SerializableOptional of(Serializable value) {
+    return new SerializableOptional(value);
+  }
 
-    /**
-     * Returns a {@link SerializableOptional} with a null value.
-     *
-     * @return a {@link SerializableOptional} with a null value.
-     */
-    public static SerializableOptional empty()
-    {
-        return new SerializableOptional();
-    }
+  /**
+   * Returns a {@link SerializableOptional} with a null value.
+   *
+   * @return a {@link SerializableOptional} with a null value.
+   */
+  public static SerializableOptional empty() {
+    return new SerializableOptional();
+  }
 
-    /**
-     * Indicates whether a value is present.
-     *
-     * @return true if a value is present.
-     */
-    public boolean isPresent()
-    {
-        return value != null;
-    }
+  /**
+   * Indicates whether a value is present.
+   *
+   * @return true if a value is present.
+   */
+  public boolean isPresent() {
+    return value != null;
+  }
 
-    /**
-     * Returns the value, may be null.
-     *
-     * @return the value.
-     */
-    public Serializable get()
-    {
-        return value;
-    }
+  /**
+   * Returns the value, may be null.
+   *
+   * @return the value.
+   */
+  public Serializable get() {
+    return value;
+  }
 }

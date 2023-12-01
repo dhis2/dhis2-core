@@ -27,187 +27,147 @@
  */
 package org.hisp.dhis.system.notification;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Date;
-
 import javax.annotation.Nonnull;
-
+import lombok.EqualsAndHashCode;
+import lombok.Setter;
+import lombok.ToString;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.scheduling.JobType;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "notification", namespace = DxfNamespaces.DXF_2_0 )
-public class Notification implements Comparable<Notification>
-{
-    private String uid; // FIXME expose as "id" externally in next API version
-                       // as "uid" is internal
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
+@JacksonXmlRootElement(localName = "notification", namespace = DxfNamespaces.DXF_2_0)
+public class Notification implements Comparable<Notification> {
+  @EqualsAndHashCode.Include private String uid;
 
-    private NotificationLevel level;
+  @ToString.Include private NotificationLevel level;
 
-    private JobType category;
+  @ToString.Include private JobType category;
 
-    private Date time;
+  @ToString.Include private Date time;
 
-    private String message;
+  @ToString.Include private String message;
 
-    private boolean completed;
+  private boolean completed;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  private NotificationDataType dataType;
 
-    public Notification()
-    {
-        this.uid = CodeGenerator.generateUid();
+  private JsonNode data;
+
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
+
+  public Notification() {
+    this.uid = CodeGenerator.generateUid();
+  }
+
+  public Notification(
+      NotificationLevel level,
+      JobType category,
+      Date time,
+      String message,
+      boolean completed,
+      NotificationDataType dataType,
+      JsonNode data) {
+    this.uid = CodeGenerator.generateUid();
+    this.level = level;
+    this.category = category;
+    this.time = time;
+    this.message = message;
+    this.completed = completed;
+    this.dataType = dataType;
+    this.data = data;
+  }
+
+  // -------------------------------------------------------------------------
+  // Get and set
+  // -------------------------------------------------------------------------
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public NotificationLevel getLevel() {
+    return level;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getId() {
+    return uid;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getUid() {
+    return uid;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public JobType getCategory() {
+    return category;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Date getTime() {
+    return time;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getMessage() {
+    return message;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isCompleted() {
+    return completed;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public NotificationDataType getDataType() {
+    return dataType;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public JsonNode getData() {
+    return data;
+  }
+
+  /**
+   * When comparing {@link Notification}s with the same time & {@link JobType}, we want the {@link
+   * Notification} marked as completed to be seen as the latest {@link Notification}. This ensures
+   * the UI doesn't 'hang' if the order is not as expected. This is an edge case but has been seen
+   * locally.
+   *
+   * @param other the object to be compared.
+   * @return comparison result
+   */
+  @Override
+  public int compareTo(@Nonnull Notification other) {
+    if (category != other.category) {
+      return category.compareTo(other.category);
     }
+    // flip this/other => newest first
+    int result = other.time.compareTo(time);
 
-    public Notification( NotificationLevel level, JobType category, Date time, String message, boolean completed )
-    {
-        this.uid = CodeGenerator.generateUid();
-        this.level = level;
-        this.category = category;
-        this.time = time;
-        this.message = message;
-        this.completed = completed;
-    }
+    if (result != 0) return result;
 
-    // -------------------------------------------------------------------------
-    // Get and set
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public NotificationLevel getLevel()
-    {
-        return level;
-    }
-
-    public void setLevel( NotificationLevel level )
-    {
-        this.level = level;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getId() // expose as ID also to be future proof, we should not
-                         // expose UID fields
-    {
-        return uid;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUid()
-    {
-        return uid;
-    }
-
-    public void setUid( String uid )
-    {
-        this.uid = uid;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public JobType getCategory()
-    {
-        return category;
-    }
-
-    public void setCategory( JobType category )
-    {
-        this.category = category;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getTime()
-    {
-        return time;
-    }
-
-    public void setTime( Date time )
-    {
-        this.time = time;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getMessage()
-    {
-        return message;
-    }
-
-    public void setMessage( String message )
-    {
-        this.message = message;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isCompleted()
-    {
-        return completed;
-    }
-
-    public void setCompleted( boolean completed )
-    {
-        this.completed = completed;
-    }
-
-    // -------------------------------------------------------------------------
-    // equals, hashCode, toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        return uid.hashCode();
-    }
-
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( getClass() != object.getClass() )
-        {
-            return false;
-        }
-
-        final Notification other = (Notification) object;
-
-        return uid.equals( other.uid );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[Level: " + level + ", category: " + category + ", time: " + time + ", message: " + message + "]";
-    }
-
-    @Override
-    public int compareTo( @Nonnull Notification other )
-    {
-        if ( category != other.category )
-        {
-            return category.compareTo( other.category );
-        }
-        // flip this/other => newest first
-        return other.time.compareTo( time );
-    }
+    if (completed) return -1;
+    return result;
+  }
 }

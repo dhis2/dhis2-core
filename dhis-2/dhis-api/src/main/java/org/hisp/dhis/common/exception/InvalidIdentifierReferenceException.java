@@ -30,16 +30,12 @@ package org.hisp.dhis.common.exception;
 /**
  * @author Lars Helge Overland
  */
-public class InvalidIdentifierReferenceException
-    extends RuntimeException
-{
-    public InvalidIdentifierReferenceException( String message )
-    {
-        super( message );
-    }
+public class InvalidIdentifierReferenceException extends RuntimeException {
+  public InvalidIdentifierReferenceException(String message) {
+    super(message);
+  }
 
-    public InvalidIdentifierReferenceException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
+  public InvalidIdentifierReferenceException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

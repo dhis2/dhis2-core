@@ -41,45 +41,36 @@ import org.springframework.security.web.servletapi.SecurityContextHolderAwareReq
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DefaultRolesPrefixPostProcessor implements BeanPostProcessor, PriorityOrdered
-{
-    @Override
-    public Object postProcessAfterInitialization( Object bean, String beanName )
-        throws BeansException
-    {
-        if ( bean instanceof Jsr250MethodSecurityMetadataSource )
-        {
-            ((Jsr250MethodSecurityMetadataSource) bean).setDefaultRolePrefix( null );
-        }
-
-        if ( bean instanceof DefaultMethodSecurityExpressionHandler )
-        {
-            ((DefaultMethodSecurityExpressionHandler) bean).setDefaultRolePrefix( null );
-        }
-
-        if ( bean instanceof DefaultWebSecurityExpressionHandler )
-        {
-            ((DefaultWebSecurityExpressionHandler) bean).setDefaultRolePrefix( null );
-        }
-
-        if ( bean instanceof SecurityContextHolderAwareRequestFilter )
-        {
-            ((SecurityContextHolderAwareRequestFilter) bean).setRolePrefix( "" );
-        }
-
-        return bean;
+public class DefaultRolesPrefixPostProcessor implements BeanPostProcessor, PriorityOrdered {
+  @Override
+  public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+    if (bean instanceof Jsr250MethodSecurityMetadataSource) {
+      ((Jsr250MethodSecurityMetadataSource) bean).setDefaultRolePrefix(null);
     }
 
-    @Override
-    public Object postProcessBeforeInitialization( Object bean, String beanName )
-        throws BeansException
-    {
-        return bean;
+    if (bean instanceof DefaultMethodSecurityExpressionHandler) {
+      ((DefaultMethodSecurityExpressionHandler) bean).setDefaultRolePrefix(null);
     }
 
-    @Override
-    public int getOrder()
-    {
-        return PriorityOrdered.HIGHEST_PRECEDENCE;
+    if (bean instanceof DefaultWebSecurityExpressionHandler) {
+      ((DefaultWebSecurityExpressionHandler) bean).setDefaultRolePrefix(null);
     }
+
+    if (bean instanceof SecurityContextHolderAwareRequestFilter) {
+      ((SecurityContextHolderAwareRequestFilter) bean).setRolePrefix("");
+    }
+
+    return bean;
+  }
+
+  @Override
+  public Object postProcessBeforeInitialization(Object bean, String beanName)
+      throws BeansException {
+    return bean;
+  }
+
+  @Override
+  public int getOrder() {
+    return PriorityOrdered.HIGHEST_PRECEDENCE;
+  }
 }

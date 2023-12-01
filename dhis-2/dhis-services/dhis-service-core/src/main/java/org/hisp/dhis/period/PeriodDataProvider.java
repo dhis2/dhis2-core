@@ -30,81 +30,116 @@ package org.hisp.dhis.period;
 import static java.time.LocalDate.now;
 import static java.util.Collections.sort;
 import static java.util.Collections.unmodifiableList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * Component responsible for fetching, extracting and providing specific data
- * related to existing periods in the database.
+ * Component responsible for fetching, extracting and providing specific data related to existing
+ * periods in the database.
  *
  * @author maikel arabori
  */
 @Component
 @RequiredArgsConstructor
-public class PeriodDataProvider
-{
-    private static final int BEFORE_AND_AFTER_DATA_YEARS_SUPPORTED = 5;
+public class PeriodDataProvider {
+  static final int BEFORE_AND_AFTER_DATA_YEARS_SUPPORTED = 5;
 
-    private final JdbcTemplate jdbcTemplate;
+  static final int DEFAULT_FIRST_YEAR_SUPPORTED = 1975;
 
-    /**
-     * Returns a distinct union of all years available in the
-     * "programstageinstance" table + "period" table, both from aggregate and
-     * tracker, with 5 years previous and future additions.
-     *
-     * ie: [extra_5_previous_years, data_years, extra_5_future_year]
-     *
-     * @return an unmodifiable list of distinct years and the respective
-     *         additions.
-     */
-    public List<Integer> getAvailableYears()
-    {
-        List<Integer> availableDataYears = new ArrayList<>( fetchAvailableYears() );
+  static final int DEFAULT_LATEST_YEAR_SUPPORTED = now().plusYears(25).getYear();
 
-        if ( availableDataYears.isEmpty() )
-        {
-            availableDataYears.add( now().getYear() );
-        }
+  private final JdbcTemplate jdbcTemplate;
 
-        int firstYear = availableDataYears.get( 0 );
-        int lastYear = availableDataYears.get( availableDataYears.size() - 1 );
+  public enum DataSource {
+    SYSTEM_DEFINED,
+    DATABASE
+  }
 
-        for ( int i = 0; i < BEFORE_AND_AFTER_DATA_YEARS_SUPPORTED; i++ )
-        {
-            availableDataYears.add( --firstYear );
-            availableDataYears.add( ++lastYear );
-        }
+  /**
+   * Returns a distinct union of all years available in the "event" table + "period" table, both
+   * from aggregate and tracker, with 5 years previous and future additions.
+   *
+   * <p>ie: [extra_5_previous_years, data_years, extra_5_future_year]
+   *
+   * @param source the source ({@link DataSource}) where the years wil be retrieved from.
+   * @return an unmodifiable list of distinct years and the respective additions.
+   */
+  public List<Integer> getAvailableYears(DataSource source) {
+    List<Integer> availableDataYears = new ArrayList<>();
 
-        sort( availableDataYears );
-
-        return unmodifiableList( availableDataYears );
+    if (source == SYSTEM_DEFINED) {
+      // Add default hard-coded years (keeps it backward compatible).
+      for (int year = DEFAULT_FIRST_YEAR_SUPPORTED; year <= DEFAULT_LATEST_YEAR_SUPPORTED; year++) {
+        availableDataYears.add(year);
+      }
+    } else {
+      // Add years dynamically, based on the database.
+      availableDataYears.addAll(fetchAvailableYears());
+      addSafetyBuffer(availableDataYears, BEFORE_AND_AFTER_DATA_YEARS_SUPPORTED);
     }
 
-    /**
-     * Queries the database in order to fetch all years available in the
-     * "period" and "programstageinstance" tables.
-     *
-     * @return the list of distinct years found.
-     */
-    private List<Integer> fetchAvailableYears()
-    {
-        String dueDateOrExecutionDate = "(case when 'SCHEDULE' = psi.status then psi.duedate else psi.executiondate end)";
+    sort(availableDataYears);
 
-        String sql = "( select distinct (extract(year from pe.startdate)) as datayear from period pe )" +
-            " union" +
-            " ( select distinct (extract(year from pe.enddate)) as datayear from period pe )" +
-            " union" +
-            " ( select distinct (extract(year from " + dueDateOrExecutionDate + ")) as datayear" +
-            " from programstageinstance psi" +
-            " where " + dueDateOrExecutionDate + " is not null" +
-            " and psi.deleted is false ) order by datayear asc";
+    return unmodifiableList(availableDataYears);
+  }
 
-        return jdbcTemplate.queryForList( sql, Integer.class );
+  /**
+   * Adds some extra years (based on the buffer) to the given list of years. The extra years are
+   * added at the end of the list.
+   *
+   * <p>Let's say that the given list contains [2021, 2024], and the buffer is 3. This will result
+   * in a list like [2021, 2024, 2020, 2025, 2019, 2026, 2018, 2027].
+   *
+   * @param years the list of years to append new years as buffer.
+   * @param buffer the buffer representing the amount of years to add.
+   */
+  void addSafetyBuffer(List<Integer> years, int buffer) {
+    int firstYear = years.get(0);
+    int lastYear = years.get(years.size() - 1);
+
+    for (int i = 0; i < buffer; i++) {
+      years.add(--firstYear);
+      years.add(++lastYear);
     }
+  }
+
+  /**
+   * Queries the database in order to fetch all years available in the "period" and "event" tables.
+   * It does a distinct union of all years available in the "event" and "period" table, both from
+   * aggregate and tracker. If nothing is found, the current year is returned (as default).
+   *
+   * @return the list of distinct years found in the database, or current year.
+   */
+  private List<Integer> fetchAvailableYears() {
+    String dueDateOrExecutionDate =
+        "(case when 'SCHEDULE' = ev.status then ev.scheduleddate else ev.occurreddate end)";
+
+    String sql =
+        "( select distinct (extract(year from pe.startdate)) as datayear from period pe )"
+            + " union"
+            + " ( select distinct (extract(year from pe.enddate)) as datayear from period pe )"
+            + " union"
+            + " ( select distinct (extract(year from "
+            + dueDateOrExecutionDate
+            + ")) as datayear"
+            + " from event ev"
+            + " where "
+            + dueDateOrExecutionDate
+            + " is not null"
+            + " and ev.deleted is false ) order by datayear asc";
+
+    List<Integer> years = jdbcTemplate.queryForList(sql, Integer.class);
+
+    if (isEmpty(years)) {
+      years.add(now().getYear());
+    }
+
+    return years;
+  }
 }

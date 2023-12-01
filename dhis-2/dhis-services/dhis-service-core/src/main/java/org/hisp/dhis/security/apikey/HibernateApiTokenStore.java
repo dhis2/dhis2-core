@@ -28,10 +28,10 @@
 package org.hisp.dhis.security.apikey;
 
 import java.util.List;
-
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -45,40 +45,50 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public class HibernateApiTokenStore extends HibernateIdentifiableObjectStore<ApiToken>
-    implements ApiTokenStore
-{
-    public HibernateApiTokenStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ApiToken.class, currentUserService, aclService,
-            true );
-    }
+    implements ApiTokenStore {
+  public HibernateApiTokenStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        entityManager,
+        jdbcTemplate,
+        publisher,
+        ApiToken.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public List<ApiToken> getAllOwning( User currentUser )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "currentUser" ), currentUser ) )
-            .addOrder( root -> builder.asc( root.get( "created" ) ) ) );
-    }
+  @Override
+  @Nonnull
+  public List<ApiToken> getAllOwning(@Nonnull User currentUser) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("createdBy"), currentUser))
+            .addOrder(root -> builder.asc(root.get("created"))));
+  }
 
-    @Override
-    public ApiToken getByKey( String key, User currentUser )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-        return getSingleResult( builder,
-            newJpaParameters()
-                .addPredicate( root -> builder.equal( root.get( "key" ), key ) )
-                .addPredicate( root -> builder.equal( root.get( "createdBy" ), currentUser ) ) );
-    }
+  @Override
+  @CheckForNull
+  public ApiToken getByKey(@Nonnull String key, @Nonnull User currentUser) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+    return getSingleResult(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("key"), key))
+            .addPredicate(root -> builder.equal(root.get("createdBy"), currentUser)));
+  }
 
-    @Override
-    public ApiToken getByKey( String key )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-        return getSingleResult( builder,
-            newJpaParameters()
-                .addPredicate( root -> builder.equal( root.get( "key" ), key ) ) );
-    }
+  @Override
+  @CheckForNull
+  public ApiToken getByKey(@Nonnull String key) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+    return getSingleResult(
+        builder, newJpaParameters().addPredicate(root -> builder.equal(root.get("key"), key)));
+  }
 }

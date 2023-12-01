@@ -30,10 +30,8 @@ package org.hisp.dhis.reservedvalue.hibernate;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
 import org.springframework.stereotype.Repository;
 
@@ -41,29 +39,31 @@ import org.springframework.stereotype.Repository;
  * @author Stian Sandvold
  */
 @RequiredArgsConstructor
-@Repository( "org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" )
-public class HibernateSequentialNumberCounterStore
-    implements SequentialNumberCounterStore
-{
-    private final SessionFactory sessionFactory;
+@Repository("org.hisp.dhis.reservedvalue.SequentialNumberCounterStore")
+public class HibernateSequentialNumberCounterStore implements SequentialNumberCounterStore {
+  private final EntityManager entityManager;
 
-    @Override
-    public List<Integer> getNextValues( String uid, String key, int length )
-    {
-        int count = (int) sessionFactory.getCurrentSession()
-            .createNativeQuery( "SELECT * FROM incrementSequentialCounter(:uid, :key, :length)" )
-            .setParameter( "uid", uid )
-            .setParameter( "key", key )
-            .setParameter( "length", length )
-            .uniqueResult();
+  @Override
+  public List<Integer> getNextValues(String uid, String key, int length) {
+    int count =
+        (int)
+            entityManager
+                .createNativeQuery("SELECT * FROM incrementSequentialCounter(:uid, :key, :length)")
+                .setParameter("uid", uid)
+                .setParameter("key", key)
+                .setParameter("length", length)
+                .getSingleResult();
 
-        return IntStream.range( count - length, length + (count - length) ).boxed().collect( Collectors.toList() );
-    }
+    return IntStream.range(count - length, length + (count - length))
+        .boxed()
+        .collect(Collectors.toList());
+  }
 
-    @Override
-    public void deleteCounter( String uid )
-    {
-        sessionFactory.getCurrentSession().createQuery( "DELETE SequentialNumberCounter WHERE owneruid = :uid" )
-            .setParameter( "uid", uid ).executeUpdate();
-    }
+  @Override
+  public void deleteCounter(String uid) {
+    entityManager
+        .createQuery("DELETE SequentialNumberCounter WHERE owneruid = :uid")
+        .setParameter("uid", uid)
+        .executeUpdate();
+  }
 }

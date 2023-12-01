@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -40,32 +39,35 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.stereotype.Component;
 
 /**
- * Validation hook for embedded TrackEntityAttribute in TrackedEntityType. If
- * TrackEntityAttributes are associated, then we check if they exist in Preheat
- * by identifier otherwise we report error
+ * Validation hook for embedded TrackEntityAttribute in TrackedEntityType. If TrackEntityAttributes
+ * are associated, then we check if they exist in Preheat by identifier otherwise we report error
  *
  * @author Luca Cambi <luca@dhis2.org>
  */
-@Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityTypeObjectBundleHook" )
-public class TrackedEntityTypeObjectBundleHook extends AbstractObjectBundleHook<TrackedEntityType>
-{
-    @Override
-    public void validate( TrackedEntityType object, ObjectBundle bundle, Consumer<ErrorReport> addReports )
-    {
-        List<TrackedEntityAttribute> attributes = object.getTrackedEntityAttributes();
-        if ( attributes != null && !attributes.isEmpty() )
-        {
-            attributes.stream().filter( Objects::nonNull ).forEach( tea -> {
+@Component("org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityTypeObjectBundleHook")
+public class TrackedEntityTypeObjectBundleHook extends AbstractObjectBundleHook<TrackedEntityType> {
+  @Override
+  public void validate(
+      TrackedEntityType object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    List<TrackedEntityAttribute> attributes = object.getTrackedEntityAttributes();
+    if (attributes != null && !attributes.isEmpty()) {
+      attributes.stream()
+          .filter(Objects::nonNull)
+          .forEach(
+              tea -> {
                 PreheatIdentifier preheatIdentifier = bundle.getPreheatIdentifier();
 
-                if ( bundle.getPreheat().get( preheatIdentifier, tea ) == null )
-                {
-                    addReports.accept(
-                        new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E5001, preheatIdentifier,
-                            preheatIdentifier.getIdentifiersWithName( tea ) ).setErrorProperty( "id" )
-                                .setMainId( tea.getUid() ) );
+                if (bundle.getPreheat().get(preheatIdentifier, tea) == null) {
+                  addReports.accept(
+                      new ErrorReport(
+                              TrackedEntityAttribute.class,
+                              ErrorCode.E5001,
+                              preheatIdentifier,
+                              preheatIdentifier.getIdentifiersWithName(tea))
+                          .setErrorProperty("id")
+                          .setMainId(tea.getUid()));
                 }
-            } );
-        }
+              });
     }
+  }
 }

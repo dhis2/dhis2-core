@@ -32,18 +32,15 @@ import org.springframework.context.ApplicationEvent;
 /**
  * @author Zubair Asghar
  */
-public class EnrollmentEvaluationEvent extends ApplicationEvent
-{
-    private final long programInstance;
+public class EnrollmentEvaluationEvent extends ApplicationEvent {
+  private final long enrollment;
 
-    public EnrollmentEvaluationEvent( Object source, long programInstance )
-    {
-        super( source );
-        this.programInstance = programInstance;
-    }
+  public EnrollmentEvaluationEvent(Object source, long enrollment) {
+    super(source);
+    this.enrollment = enrollment;
+  }
 
-    public long getProgramInstance()
-    {
-        return programInstance;
-    }
+  public long getEnrollment() {
+    return enrollment;
+  }
 }

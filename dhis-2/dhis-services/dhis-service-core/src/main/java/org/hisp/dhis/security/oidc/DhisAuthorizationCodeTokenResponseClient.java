@@ -27,15 +27,13 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import com.nimbusds.jose.jwk.JWK;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -58,123 +56,127 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 
-import com.nimbusds.jose.jwk.JWK;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service
 @RequiredArgsConstructor
 public class DhisAuthorizationCodeTokenResponseClient
-    implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
-{
-    private static final String INVALID_TOKEN_RESPONSE_ERROR_CODE = "invalid_token_response";
+    implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> {
+  private static final String INVALID_TOKEN_RESPONSE_ERROR_CODE = "invalid_token_response";
 
-    private final DhisOidcProviderRepository clientRegistrations;
+  private final DhisOidcProviderRepository clientRegistrations;
 
-    private Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> requestEntityConverter = new OAuth2AuthorizationCodeGrantRequestEntityConverter();
+  private Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> requestEntityConverter =
+      new OAuth2AuthorizationCodeGrantRequestEntityConverter();
 
-    private Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> jwtRequestEntityConverter;
+  private Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>>
+      jwtRequestEntityConverter;
 
-    private RestOperations restOperations;
+  private RestOperations restOperations;
 
-    @PostConstruct
-    public void init()
-    {
-        Function<ClientRegistration, JWK> jwkResolver = clientRegistration -> {
-            if ( clientRegistration.getClientAuthenticationMethod()
-                .equals( ClientAuthenticationMethod.PRIVATE_KEY_JWT ) )
-            {
-                DhisOidcClientRegistration clientReg = clientRegistrations.getDhisOidcClientRegistration(
-                    clientRegistration.getRegistrationId() );
-                return clientReg.getJwk();
-            }
-            return null;
+  @PostConstruct
+  public void init() {
+    Function<ClientRegistration, JWK> jwkResolver =
+        clientRegistration -> {
+          if (clientRegistration
+              .getClientAuthenticationMethod()
+              .equals(ClientAuthenticationMethod.PRIVATE_KEY_JWT)) {
+            DhisOidcClientRegistration clientReg =
+                clientRegistrations.getDhisOidcClientRegistration(
+                    clientRegistration.getRegistrationId());
+            return clientReg.getJwk();
+          }
+          return null;
         };
 
-        Consumer<NimbusJwtClientAuthenticationParametersConverter.JwtClientAuthenticationContext<OAuth2AuthorizationCodeGrantRequest>> jwtClientAssertionCustomizer = context -> {
-            ClientRegistration clientRegistration = context.getAuthorizationGrantRequest().getClientRegistration();
-            DhisOidcClientRegistration dhisOidcClientRegistration = clientRegistrations
-                .getDhisOidcClientRegistration( clientRegistration.getRegistrationId() );
-            context.getHeaders().jwkSetUrl( dhisOidcClientRegistration.getJwkSetUrl() );
-        };
+    Consumer<
+            NimbusJwtClientAuthenticationParametersConverter.JwtClientAuthenticationContext<
+                OAuth2AuthorizationCodeGrantRequest>>
+        jwtClientAssertionCustomizer =
+            context -> {
+              ClientRegistration clientRegistration =
+                  context.getAuthorizationGrantRequest().getClientRegistration();
+              DhisOidcClientRegistration dhisOidcClientRegistration =
+                  clientRegistrations.getDhisOidcClientRegistration(
+                      clientRegistration.getRegistrationId());
+              context.getHeaders().jwkSetUrl(dhisOidcClientRegistration.getJwkSetUrl());
+            };
 
-        NimbusJwtClientAuthenticationParametersConverter<OAuth2AuthorizationCodeGrantRequest> parametersConverter = new NimbusJwtClientAuthenticationParametersConverter<>(
-            jwkResolver );
-        parametersConverter.setJwtClientAssertionCustomizer( jwtClientAssertionCustomizer );
+    NimbusJwtClientAuthenticationParametersConverter<OAuth2AuthorizationCodeGrantRequest>
+        parametersConverter = new NimbusJwtClientAuthenticationParametersConverter<>(jwkResolver);
+    parametersConverter.setJwtClientAssertionCustomizer(jwtClientAssertionCustomizer);
 
-        OAuth2AuthorizationCodeGrantRequestEntityConverter jwtReqConverter = new OAuth2AuthorizationCodeGrantRequestEntityConverter();
-        jwtReqConverter.addParametersConverter( parametersConverter );
-        this.jwtRequestEntityConverter = jwtReqConverter;
+    OAuth2AuthorizationCodeGrantRequestEntityConverter jwtReqConverter =
+        new OAuth2AuthorizationCodeGrantRequestEntityConverter();
+    jwtReqConverter.addParametersConverter(parametersConverter);
+    this.jwtRequestEntityConverter = jwtReqConverter;
 
-        RestTemplate restTemplate = new RestTemplate(
-            List.of( new FormHttpMessageConverter(), new OAuth2AccessTokenResponseHttpMessageConverter() ) );
-        restTemplate.setErrorHandler( new OAuth2ErrorResponseErrorHandler() );
-        this.restOperations = restTemplate;
+    RestTemplate restTemplate =
+        new RestTemplate(
+            List.of(
+                new FormHttpMessageConverter(),
+                new OAuth2AccessTokenResponseHttpMessageConverter()));
+    restTemplate.setErrorHandler(new OAuth2ErrorResponseErrorHandler());
+    this.restOperations = restTemplate;
+  }
+
+  @Override
+  public OAuth2AccessTokenResponse getTokenResponse(
+      @Nonnull OAuth2AuthorizationCodeGrantRequest authorizationCodeGrantRequest) {
+    Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> converter =
+        ClientAuthenticationMethod.PRIVATE_KEY_JWT.equals(
+                authorizationCodeGrantRequest
+                    .getClientRegistration()
+                    .getClientAuthenticationMethod())
+            ? this.jwtRequestEntityConverter
+            : this.requestEntityConverter;
+
+    return getResponse(converter.convert(authorizationCodeGrantRequest)).getBody();
+  }
+
+  private ResponseEntity<OAuth2AccessTokenResponse> getResponse(RequestEntity<?> request) {
+    try {
+      return this.restOperations.exchange(request, OAuth2AccessTokenResponse.class);
+    } catch (RestClientException ex) {
+      OAuth2Error oauth2Error =
+          new OAuth2Error(
+              INVALID_TOKEN_RESPONSE_ERROR_CODE,
+              "An error occurred while attempting to retrieve the OAuth 2.0 Access Token Response: "
+                  + ex.getMessage(),
+              null);
+      throw new OAuth2AuthorizationException(oauth2Error, ex);
     }
+  }
 
-    @Override
-    public OAuth2AccessTokenResponse getTokenResponse(
-        @Nonnull OAuth2AuthorizationCodeGrantRequest authorizationCodeGrantRequest )
-    {
-        Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> converter = ClientAuthenticationMethod.PRIVATE_KEY_JWT
-            .equals( authorizationCodeGrantRequest.getClientRegistration().getClientAuthenticationMethod() )
-                ? this.jwtRequestEntityConverter
-                : this.requestEntityConverter;
+  /**
+   * Sets the {@link Converter} used for converting the {@link OAuth2AuthorizationCodeGrantRequest}
+   * to a {@link RequestEntity} representation of the OAuth 2.0 Access Token Request.
+   *
+   * @param requestEntityConverter the {@link Converter} used for converting to a {@link
+   *     RequestEntity} representation of the Access Token Request
+   */
+  public void setRequestEntityConverter(
+      @Nonnull
+          Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> requestEntityConverter) {
+    this.requestEntityConverter = requestEntityConverter;
+  }
 
-        return getResponse( converter.convert( authorizationCodeGrantRequest ) ).getBody();
-    }
-
-    private ResponseEntity<OAuth2AccessTokenResponse> getResponse( RequestEntity<?> request )
-    {
-        try
-        {
-            return this.restOperations.exchange( request, OAuth2AccessTokenResponse.class );
-        }
-        catch ( RestClientException ex )
-        {
-            OAuth2Error oauth2Error = new OAuth2Error( INVALID_TOKEN_RESPONSE_ERROR_CODE,
-                "An error occurred while attempting to retrieve the OAuth 2.0 Access Token Response: "
-                    + ex.getMessage(),
-                null );
-            throw new OAuth2AuthorizationException( oauth2Error, ex );
-        }
-    }
-
-    /**
-     * Sets the {@link Converter} used for converting the
-     * {@link OAuth2AuthorizationCodeGrantRequest} to a {@link RequestEntity}
-     * representation of the OAuth 2.0 Access Token Request.
-     *
-     * @param requestEntityConverter the {@link Converter} used for converting
-     *        to a {@link RequestEntity} representation of the Access Token
-     *        Request
-     */
-    public void setRequestEntityConverter(
-        @Nonnull Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> requestEntityConverter )
-    {
-        this.requestEntityConverter = requestEntityConverter;
-    }
-
-    /**
-     * Sets the {@link RestOperations} used when requesting the OAuth 2.0 Access
-     * Token Response.
-     *
-     * <p>
-     * <b>NOTE:</b> At a minimum, the supplied {@code restOperations} must be
-     * configured with the following:
-     * <ol>
-     * <li>{@link HttpMessageConverter}'s - {@link FormHttpMessageConverter} and
-     * {@link OAuth2AccessTokenResponseHttpMessageConverter}</li>
-     * <li>{@link ResponseErrorHandler} -
-     * {@link OAuth2ErrorResponseErrorHandler}</li>
-     * </ol>
-     *
-     * @param restOperations the {@link RestOperations} used when requesting the
-     *        Access Token Response
-     */
-    public void setRestOperations( @Nonnull RestOperations restOperations )
-    {
-        this.restOperations = restOperations;
-    }
+  /**
+   * Sets the {@link RestOperations} used when requesting the OAuth 2.0 Access Token Response.
+   *
+   * <p><b>NOTE:</b> At a minimum, the supplied {@code restOperations} must be configured with the
+   * following:
+   *
+   * <ol>
+   *   <li>{@link HttpMessageConverter}'s - {@link FormHttpMessageConverter} and {@link
+   *       OAuth2AccessTokenResponseHttpMessageConverter}
+   *   <li>{@link ResponseErrorHandler} - {@link OAuth2ErrorResponseErrorHandler}
+   * </ol>
+   *
+   * @param restOperations the {@link RestOperations} used when requesting the Access Token Response
+   */
+  public void setRestOperations(@Nonnull RestOperations restOperations) {
+    this.restOperations = restOperations;
+  }
 }

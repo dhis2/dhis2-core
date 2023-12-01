@@ -45,72 +45,72 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class CategoryOptionTest
-{
+class CategoryOptionTest {
 
-    @Test
-    void hasDefault()
-    {
-        Assertions.assertTrue( SystemDefaultMetadataObject.class.isAssignableFrom( CategoryOption.class ) );
-    }
+  @Test
+  void hasDefault() {
+    Assertions.assertTrue(SystemDefaultMetadataObject.class.isAssignableFrom(CategoryOption.class));
+  }
 
-    @Test
-    void isDefault()
-    {
-        CategoryOption categoryOption = new CategoryOption();
-        categoryOption.setName( CategoryOption.DEFAULT_NAME );
-        Assertions.assertTrue( categoryOption.isDefault() );
-    }
+  @Test
+  void isDefault() {
+    CategoryOption categoryOption = new CategoryOption();
+    categoryOption.setName(CategoryOption.DEFAULT_NAME);
+    Assertions.assertTrue(categoryOption.isDefault());
+  }
 
-    @Test
-    void isNotDefault()
-    {
-        CategoryOption categoryOption = new CategoryOption();
-        categoryOption.setName( CategoryOption.DEFAULT_NAME + "x" );
-        Assertions.assertFalse( categoryOption.isDefault() );
-    }
+  @Test
+  void isNotDefault() {
+    CategoryOption categoryOption = new CategoryOption();
+    categoryOption.setName(CategoryOption.DEFAULT_NAME + "x");
+    Assertions.assertFalse(categoryOption.isDefault());
+  }
 
-    @Test
-    void getAdjustedDate_DataSet()
-    {
-        CategoryOption categoryOption = new CategoryOption();
-        DataSet dataSet = new DataSet( "dataSet", new DailyPeriodType() );
-        assertNull( categoryOption.getAdjustedEndDate( dataSet ) );
-        categoryOption.setEndDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate() );
-        assertEquals( new DateTime( 2020, 1, 1, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( dataSet ) );
-        dataSet.setOpenPeriodsAfterCoEndDate( 3 );
-        assertEquals( new DateTime( 2020, 1, 4, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( dataSet ) );
-    }
+  @Test
+  void getAdjustedDate_DataSet() {
+    CategoryOption categoryOption = new CategoryOption();
+    DataSet dataSet = new DataSet("dataSet", new DailyPeriodType());
+    assertNull(categoryOption.getAdjustedEndDate(dataSet));
+    categoryOption.setEndDate(new DateTime(2020, 1, 1, 0, 0).toDate());
+    assertEquals(
+        new DateTime(2020, 1, 1, 0, 0).toDate(), categoryOption.getAdjustedEndDate(dataSet));
+    dataSet.setOpenPeriodsAfterCoEndDate(3);
+    assertEquals(
+        new DateTime(2020, 1, 4, 0, 0).toDate(), categoryOption.getAdjustedEndDate(dataSet));
+  }
 
-    @Test
-    void getAdjustedDate_DataElement()
-    {
-        CategoryOption categoryOption = new CategoryOption();
-        DataElement dataElement = new DataElement();
-        DataSet dataSetA = new DataSet( "dataSetA", new MonthlyPeriodType() );
-        DataSet dataSetB = new DataSet( "dataSetB", new MonthlyPeriodType() );
-        dataSetA.addDataSetElement( dataElement );
-        dataSetB.addDataSetElement( dataElement );
-        dataElement.getDataSetElements().addAll( dataSetA.getDataSetElements() );
-        dataElement.getDataSetElements().addAll( dataSetB.getDataSetElements() );
-        assertNull( categoryOption.getAdjustedEndDate( dataElement ) );
-        categoryOption.setEndDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate() );
-        assertEquals( new DateTime( 2020, 1, 1, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( dataElement ) );
-        dataSetA.setOpenPeriodsAfterCoEndDate( 2 );
-        assertEquals( new DateTime( 2020, 3, 1, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( dataElement ) );
-        dataSetB.setOpenPeriodsAfterCoEndDate( 4 );
-        assertEquals( new DateTime( 2020, 5, 1, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( dataElement ) );
-    }
+  @Test
+  void getAdjustedDate_DataElement() {
+    CategoryOption categoryOption = new CategoryOption();
+    DataElement dataElement = new DataElement();
+    DataSet dataSetA = new DataSet("dataSetA", new MonthlyPeriodType());
+    DataSet dataSetB = new DataSet("dataSetB", new MonthlyPeriodType());
+    dataSetA.addDataSetElement(dataElement);
+    dataSetB.addDataSetElement(dataElement);
+    dataElement.getDataSetElements().addAll(dataSetA.getDataSetElements());
+    dataElement.getDataSetElements().addAll(dataSetB.getDataSetElements());
+    assertNull(categoryOption.getAdjustedEndDate(dataElement));
+    categoryOption.setEndDate(new DateTime(2020, 1, 1, 0, 0).toDate());
+    assertEquals(
+        new DateTime(2020, 1, 1, 0, 0).toDate(), categoryOption.getAdjustedEndDate(dataElement));
+    dataSetA.setOpenPeriodsAfterCoEndDate(2);
+    assertEquals(
+        new DateTime(2020, 3, 1, 0, 0).toDate(), categoryOption.getAdjustedEndDate(dataElement));
+    dataSetB.setOpenPeriodsAfterCoEndDate(4);
+    assertEquals(
+        new DateTime(2020, 5, 1, 0, 0).toDate(), categoryOption.getAdjustedEndDate(dataElement));
+  }
 
-    @Test
-    void getAdjustedDate_Program()
-    {
-        CategoryOption categoryOption = new CategoryOption();
-        Program program = new Program( "program" );
-        assertNull( categoryOption.getAdjustedEndDate( program ) );
-        categoryOption.setEndDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate() );
-        assertEquals( new DateTime( 2020, 1, 1, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( program ) );
-        program.setOpenDaysAfterCoEndDate( 3 );
-        assertEquals( new DateTime( 2020, 1, 4, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( program ) );
-    }
+  @Test
+  void getAdjustedDate_Program() {
+    CategoryOption categoryOption = new CategoryOption();
+    Program program = new Program("program");
+    assertNull(categoryOption.getAdjustedEndDate(program));
+    categoryOption.setEndDate(new DateTime(2020, 1, 1, 0, 0).toDate());
+    assertEquals(
+        new DateTime(2020, 1, 1, 0, 0).toDate(), categoryOption.getAdjustedEndDate(program));
+    program.setOpenDaysAfterCoEndDate(3);
+    assertEquals(
+        new DateTime(2020, 1, 4, 0, 0).toDate(), categoryOption.getAdjustedEndDate(program));
+  }
 }

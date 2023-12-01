@@ -33,18 +33,16 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * @author Henning Håkonsen
  */
-public interface CoordinateObject
-{
-    FeatureType getFeatureType();
+public interface CoordinateObject {
+  FeatureType getFeatureType();
 
-    String getCoordinates();
+  String getCoordinates();
 
-    boolean hasCoordinates();
+  boolean hasCoordinates();
 
-    boolean hasDescendantsWithCoordinates();
+  boolean hasDescendantsWithCoordinates();
 
-    default String extractCoordinates( Geometry geometry )
-    {
-        return CoordinateUtils.getCoordinatesFromGeometry( geometry );
-    }
+  default String extractCoordinates(Geometry geometry) {
+    return CoordinateUtils.getCoordinatesFromGeometry(geometry);
+  }
 }

@@ -34,7 +34,10 @@
       "name": "Internal data exchange",
       "source": {
         "params": {
-          "periodTypes": ["MONTHLY", "QUARTERLY"]
+          "periodTypes": [
+            "MONTHLY",
+            "QUARTERLY"
+          ]
         },
         "requests": [
           {
@@ -51,10 +54,11 @@
             "ou": [
               "ImspTQPwCqd"
             ],
-            "inputIdScheme": null,
-            "outputDataElementIdScheme": null,
-            "outputOrgUnitIdScheme": null,
-            "outputIdscheme": null
+            "inputIdScheme": "UID",
+            "outputDataElementIdScheme": "UID",
+            "outputOrgUnitIdScheme": "UID",
+            "outputDataItemIdScheme": "UID",
+            "outputIdScheme": "UID"
           }
         ]
       },
@@ -64,16 +68,22 @@
           "dataElementIdScheme": null,
           "orgUnitIdScheme": null,
           "categoryOptionComboIdScheme": null,
-          "idScheme": null
+          "idScheme": null,
+          "importStrategy": "CREATE_AND_UPDATE",
+          "skipAudit": false,
+          "dryRun": false
         }
       }
     },
     {
       "id": "PnWccbwCJLQ",
       "name": "External basic auth data exchange",
-      "source":{
+      "source": {
         "params": {
-          "periodTypes": ["MONTHLY", "QUARTERLY"]
+          "periodTypes": [
+            "MONTHLY",
+            "QUARTERLY"
+          ]
         },
         "requests": [
           {
@@ -93,11 +103,12 @@
             "inputIdScheme": "UID",
             "outputDataElementIdScheme": "UID",
             "outputOrgUnitIdScheme": "UID",
-            "outputIdscheme": "UID"
+            "outputDataItemIdScheme": "UID",
+            "outputIdScheme": "UID"
           }
         ]
       },
-      "target":{
+      "target": {
         "type": "EXTERNAL",
         "api": {
           "url": "https://play.dhis2.org/2.38.1",
@@ -108,16 +119,22 @@
           "dataElementIdScheme": "UID",
           "orgUnitIdScheme": "UID",
           "categoryOptionComboIdScheme": "UID",
-          "idScheme": "UID"
+          "idScheme": "UID",
+          "importStrategy": "CREATE_AND_UPDATE",
+          "skipAudit": false,
+          "dryRun": false
         }
       }
     },
     {
       "id": "VpQ4qVEseyM",
       "name": "External access token data exchange",
-      "source":{
+      "source": {
         "params": {
-          "periodTypes": ["MONTHLY", "QUARTERLY"]
+          "periodTypes": [
+            "MONTHLY",
+            "QUARTERLY"
+          ]
         },
         "requests": [
           {
@@ -137,11 +154,12 @@
             "inputIdScheme": "UID",
             "outputDataElementIdScheme": "UID",
             "outputOrgUnitIdScheme": "UID",
-            "outputIdscheme": "UID"
+            "outputDataItemIdScheme": "UID",
+            "outputIdScheme": "UID"
           }
         ]
       },
-      "target":{
+      "target": {
         "type": "EXTERNAL",
         "api": {
           "url": "https://play.dhis2.org/2.38.1",
@@ -151,7 +169,10 @@
           "dataElementIdScheme": "UID",
           "orgUnitIdScheme": "UID",
           "categoryOptionComboIdScheme": "UID",
-          "idScheme": "UID"
+          "idScheme": "UID",
+          "importStrategy": "CREATE_AND_UPDATE",
+          "skipAudit": false,
+          "dryRun": false
         }
       }
     }

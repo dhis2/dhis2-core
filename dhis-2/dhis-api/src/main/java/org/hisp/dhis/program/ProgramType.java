@@ -30,34 +30,27 @@ package org.hisp.dhis.program;
 /**
  * @author Chau Thu Tran
  */
-public enum ProgramType
-{
-    WITH_REGISTRATION( "with_registration" ),
-    WITHOUT_REGISTRATION( "without_registration" );
+public enum ProgramType {
+  WITH_REGISTRATION("with_registration"),
+  WITHOUT_REGISTRATION("without_registration");
 
-    private final String value;
+  private final String value;
 
-    ProgramType( String value )
-    {
-        this.value = value;
+  ProgramType(String value) {
+    this.value = value;
+  }
+
+  public static ProgramType fromValue(String value) {
+    for (ProgramType programType : ProgramType.values()) {
+      if (programType.value.equalsIgnoreCase(value)) {
+        return programType;
+      }
     }
 
-    public static ProgramType fromValue( String value )
-    {
-        for ( ProgramType programType : ProgramType.values() )
-        {
-            if ( programType.value.equalsIgnoreCase( value ) )
-            {
-                return programType;
-            }
-        }
+    return null;
+  }
 
-        return null;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
-
+  public String getValue() {
+    return value;
+  }
 }

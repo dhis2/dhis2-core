@@ -27,45 +27,53 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.OTHER;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 
 import lombok.Getter;
 
-public class RequestTypeAware
-{
-    private EndpointAction endpointAction = EndpointAction.OTHER;
+/**
+ * Encapsulates some information about the current request and endpoint invoked. They are needed
+ * because of some internal rules.
+ */
+public class RequestTypeAware {
 
-    @Getter
-    private EndpointItem endpointItem;
+  @Getter private EndpointAction endpointAction = OTHER;
 
-    public RequestTypeAware withQueryEndpointAction()
-    {
-        endpointAction = QUERY;
-        return this;
-    }
+  @Getter private EndpointItem endpointItem;
 
-    public RequestTypeAware withEndpointItem( EndpointItem endpointItem )
-    {
-        this.endpointItem = endpointItem;
-        return this;
-    }
+  public RequestTypeAware withEndpointAction(EndpointAction endpointAction) {
+    this.endpointAction = endpointAction;
+    return this;
+  }
 
-    public boolean isQueryEndpoint()
-    {
-        return QUERY == endpointAction;
-    }
+  public RequestTypeAware withEndpointItem(EndpointItem endpointItem) {
+    this.endpointItem = endpointItem;
+    return this;
+  }
 
-    enum EndpointAction
-    {
-        QUERY,
-        OTHER
-    }
+  public boolean isQueryEndpoint() {
+    return QUERY == endpointAction;
+  }
 
-    public enum EndpointItem
-    {
-        EVENT,
-        ENROLLMENT,
-        TRACKED_ENTITY_INSTANCE
-    }
+  public boolean isAggregateEndpoint() {
+    return AGGREGATE == endpointAction;
+  }
 
+  public boolean isEnrollmentEndpointItem() {
+    return EndpointItem.ENROLLMENT == endpointItem;
+  }
+
+  public enum EndpointAction {
+    AGGREGATE,
+    QUERY,
+    OTHER
+  }
+
+  public enum EndpointItem {
+    EVENT,
+    ENROLLMENT,
+    TRACKED_ENTITY_INSTANCE
+  }
 }

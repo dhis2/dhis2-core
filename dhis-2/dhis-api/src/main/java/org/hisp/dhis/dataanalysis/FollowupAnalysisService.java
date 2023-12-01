@@ -29,23 +29,29 @@ package org.hisp.dhis.dataanalysis;
 
 import java.util.Collection;
 import java.util.List;
-
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public interface FollowupAnalysisService
-{
-    /**
-     * @deprecated Use {@link #getFollowupDataValues(FollowupAnalysisRequest)}
-     */
-    @Deprecated
-    List<DeflatedDataValue> getFollowupDataValues( Collection<OrganisationUnit> parents,
-        Collection<DataElement> dataElements, Collection<Period> periods, int limit );
+public interface FollowupAnalysisService {
+  /**
+   * @deprecated Use {@link #getFollowupDataValues(FollowupAnalysisRequest)}
+   */
+  @Deprecated
+  List<DeflatedDataValue> getFollowupDataValues(
+      Collection<OrganisationUnit> parents,
+      Collection<DataElement> dataElements,
+      Collection<Period> periods,
+      int limit);
 
-    FollowupAnalysisResponse getFollowupDataValues( FollowupAnalysisRequest params );
+  FollowupAnalysisResponse getFollowupDataValues(FollowupAnalysisRequest params);
+
+  @Transactional(readOnly = true)
+  Grid generateAnalysisReport(FollowupAnalysisResponse followupAnalysisResponse);
 }

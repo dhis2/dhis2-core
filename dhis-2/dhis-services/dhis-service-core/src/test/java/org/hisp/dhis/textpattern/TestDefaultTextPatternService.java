@@ -36,64 +36,57 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class TestDefaultTextPatternService
-{
-    @InjectMocks
-    private DefaultTextPatternService textPatternService;
+@ExtendWith(MockitoExtension.class)
+class TestDefaultTextPatternService {
+  @InjectMocks private DefaultTextPatternService textPatternService;
 
-    private TextPattern pattern;
+  private TextPattern pattern;
 
-    private Map<String, String> values;
+  private Map<String, String> values;
 
-    @BeforeEach
-    void init()
-    {
-        List<TextPatternSegment> segments = new ArrayList<>();
-        segments.add( new TextPatternSegment( TextPatternMethod.TEXT, "\"TEXT\"" ) );
-        segments.add( new TextPatternSegment( TextPatternMethod.ORG_UNIT_CODE, "ORG_UNIT_CODE(...)" ) );
-        segments.add( new TextPatternSegment( TextPatternMethod.SEQUENTIAL, "SEQUENTIAL(#)" ) );
-        segments.add( new TextPatternSegment( TextPatternMethod.CURRENT_DATE, "CURRENT_DATE(YYYY)" ) );
-        pattern = new TextPattern( segments );
-        values = Map.of(
+  @BeforeEach
+  void init() {
+    List<TextPatternSegment> segments = new ArrayList<>();
+    segments.add(new TextPatternSegment(TextPatternMethod.TEXT, "\"TEXT\""));
+    segments.add(new TextPatternSegment(TextPatternMethod.ORG_UNIT_CODE, "ORG_UNIT_CODE(...)"));
+    segments.add(new TextPatternSegment(TextPatternMethod.SEQUENTIAL, "SEQUENTIAL(#)"));
+    segments.add(new TextPatternSegment(TextPatternMethod.CURRENT_DATE, "CURRENT_DATE(YYYY)"));
+    pattern = new TextPattern(segments);
+    values =
+        Map.of(
             "ORG_UNIT_CODE", "OSLO",
-            "SEQUENTIAL", "1" );
-    }
+            "SEQUENTIAL", "1");
+  }
 
-    @Test
-    void testGetRequiredValues()
-    {
-        List<String> required = textPatternService.getRequiredValues( pattern ).get( "REQUIRED" );
-        assertFalse( required.contains( "TEXT" ) );
-        assertFalse( required.contains( "CURRENT_DATE" ) );
-        assertTrue( required.contains( "ORG_UNIT_CODE" ) );
-        assertFalse( required.contains( "SEQUENTIAL" ) );
-        assertEquals( 1, required.size() );
-    }
+  @Test
+  void testGetRequiredValues() {
+    List<String> required = textPatternService.getRequiredValues(pattern).get("REQUIRED");
+    assertFalse(required.contains("TEXT"));
+    assertFalse(required.contains("CURRENT_DATE"));
+    assertTrue(required.contains("ORG_UNIT_CODE"));
+    assertFalse(required.contains("SEQUENTIAL"));
+    assertEquals(1, required.size());
+  }
 
-    @Test
-    void testGetOptionalValues()
-    {
-        List<String> optional = textPatternService.getRequiredValues( pattern ).get( "OPTIONAL" );
-        assertFalse( optional.contains( "TEXT" ) );
-        assertFalse( optional.contains( "CURRENT_DATE" ) );
-        assertFalse( optional.contains( "ORG_UNIT_CODE" ) );
-        assertTrue( optional.contains( "SEQUENTIAL" ) );
-        assertEquals( 1, optional.size() );
-    }
+  @Test
+  void testGetOptionalValues() {
+    List<String> optional = textPatternService.getRequiredValues(pattern).get("OPTIONAL");
+    assertFalse(optional.contains("TEXT"));
+    assertFalse(optional.contains("CURRENT_DATE"));
+    assertFalse(optional.contains("ORG_UNIT_CODE"));
+    assertTrue(optional.contains("SEQUENTIAL"));
+    assertEquals(1, optional.size());
+  }
 
-    @Test
-    void testResolvePattern()
-        throws Exception
-    {
-        String result = textPatternService.resolvePattern( pattern, values );
-        assertEquals( "TEXTOSL1" + (new SimpleDateFormat( "YYYY" ).format( new Date() )), result );
-    }
+  @Test
+  void testResolvePattern() throws Exception {
+    String result = textPatternService.resolvePattern(pattern, values);
+    assertEquals("TEXTOSL1" + (new SimpleDateFormat("YYYY").format(new Date())), result);
+  }
 }

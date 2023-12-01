@@ -34,12 +34,9 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Jim Grace
  */
-public class vSyncDate
-    extends ProgramDateVariable
-{
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        return "lastupdated";
-    }
+public class vSyncDate extends ProgramDateVariable {
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    return "lastupdated";
+  }
 }

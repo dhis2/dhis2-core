@@ -28,64 +28,78 @@
 package org.hisp.dhis.programrule.action.validation;
 
 import lombok.extern.slf4j.Slf4j;
-
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair Asghar
  */
-
 @Slf4j
 @Component
-public class HideOptionProgramRuleActionValidator extends BaseProgramRuleActionValidator
-{
-    @Override
-    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationContext validationContext )
-    {
-        // First checking the validity of DataElement and TEA
-        ProgramRuleActionValidationResult result = super.validate( programRuleAction,
-            validationContext );
+public class HideOptionProgramRuleActionValidator extends BaseProgramRuleActionValidator {
+  @Override
+  public ProgramRuleActionValidationResult validate(
+      ProgramRuleAction programRuleAction, ProgramRuleActionValidationContext validationContext) {
+    // First checking the validity of DataElement and TEA
+    ProgramRuleActionValidationResult result = super.validate(programRuleAction, validationContext);
 
-        ProgramRule rule = validationContext.getProgramRule();
+    ProgramRule rule = validationContext.getProgramRule();
 
-        if ( !result.isValid() )
-        {
-            return result;
-        }
-
-        if ( !programRuleAction.hasOption() )
-        {
-            log.debug( String.format( "Option cannot be null for program rule: %s ",
-                rule.getName() ) );
-
-            return ProgramRuleActionValidationResult.builder()
-                .valid( false )
-                .errorReport( new ErrorReport( Option.class, ErrorCode.E4040,
-                    rule.getName() ) )
-                .build();
-        }
-
-        Option option = validationContext.getOption();
-
-        if ( option == null )
-        {
-            log.debug( String.format( "Option %s associated with program rule %s does not exist",
-                programRuleAction.getOption().getUid(), rule.getName() ) );
-
-            return ProgramRuleActionValidationResult.builder()
-                .valid( false )
-                .errorReport( new ErrorReport( Option.class, ErrorCode.E4041,
-                    programRuleAction.getOption().getUid(), rule.getName() ) )
-                .build();
-        }
-
-        return ProgramRuleActionValidationResult.builder().valid( true ).build();
+    if (!result.isValid()) {
+      return result;
     }
+
+    if (!programRuleAction.hasOption()) {
+      log.debug(String.format("Option cannot be null for program rule: %s ", rule.getName()));
+
+      return ProgramRuleActionValidationResult.builder()
+          .valid(false)
+          .errorReport(new ErrorReport(Option.class, ErrorCode.E4040, rule.getName()))
+          .build();
+    }
+
+    Option option = validationContext.getOption();
+
+    if (option == null) {
+      log.debug(
+          String.format(
+              "Option %s associated with program rule %s does not exist",
+              programRuleAction.getOption().getUid(), rule.getName()));
+
+      return ProgramRuleActionValidationResult.builder()
+          .valid(false)
+          .errorReport(
+              new ErrorReport(
+                  Option.class,
+                  ErrorCode.E4041,
+                  programRuleAction.getOption().getUid(),
+                  rule.getName()))
+          .build();
+    }
+
+    if (ObjectUtils.anyNotNull(
+        programRuleAction.getDataElement(),
+        programRuleAction.getProgramStage(),
+        programRuleAction.getOptionGroup(),
+        programRuleAction.getProgramStageSection())) {
+      return ProgramRuleActionValidationResult.builder()
+          .valid(false)
+          .errorReport(
+              new ErrorReport(
+                  Option.class,
+                  ErrorCode.E4058,
+                  rule.getName(),
+                  ProgramRuleActionType.HIDEOPTION.name()))
+          .build();
+    }
+
+    return ProgramRuleActionValidationResult.builder().valid(true).build();
+  }
 }

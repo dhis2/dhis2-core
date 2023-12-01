@@ -27,145 +27,132 @@
  */
 package org.hisp.dhis.predictor;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 
 /**
  * @author Jim Grace
  */
-@JacksonXmlRootElement( localName = "predictionSummary", namespace = DxfNamespaces.DXF_2_0 )
-public class PredictionSummary extends AbstractWebMessageResponse
-{
-    private PredictionStatus status = PredictionStatus.SUCCESS;
+@JacksonXmlRootElement(localName = "predictionSummary", namespace = DxfNamespaces.DXF_2_0)
+public class PredictionSummary extends AbstractWebMessageResponse {
+  private PredictionStatus status = PredictionStatus.SUCCESS;
 
-    private String description;
+  private String description;
 
-    private int predictors = 0;
+  private int predictors = 0;
 
-    private int inserted = 0;
+  private int inserted = 0;
 
-    private int updated = 0;
+  private int updated = 0;
 
-    private int deleted = 0;
+  private int deleted = 0;
 
-    private int unchanged = 0;
+  private int unchanged = 0;
 
-    public PredictionSummary()
-    {
-    }
+  public PredictionSummary() {}
 
-    public PredictionSummary( PredictionStatus status, String description )
-    {
-        this.status = status;
-        this.description = description;
-    }
+  public PredictionSummary(PredictionStatus status, String description) {
+    this.status = status;
+    this.description = description;
+  }
 
-    public void incrementInserted()
-    {
-        inserted += 1;
-    }
+  public void incrementInserted() {
+    inserted += 1;
+  }
 
-    public void incrementPredictors()
-    {
-        predictors += 1;
-    }
+  public void incrementPredictors() {
+    predictors += 1;
+  }
 
-    public void incrementUpdated()
-    {
-        updated += 1;
-    }
+  public void incrementUpdated() {
+    updated += 1;
+  }
 
-    public void incrementDeleted()
-    {
-        deleted += 1;
-    }
+  public void incrementDeleted() {
+    deleted += 1;
+  }
 
-    public void incrementUnchanged()
-    {
-        unchanged += 1;
-    }
+  public void incrementUnchanged() {
+    unchanged += 1;
+  }
 
-    public int getPredictions()
-    {
-        return inserted + updated + unchanged;
-    }
+  public int getPredictions() {
+    return inserted + updated + unchanged;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public PredictionStatus getStatus()
-    {
-        return status;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public PredictionStatus getStatus() {
+    return status;
+  }
 
-    public PredictionSummary setStatus( PredictionStatus status )
-    {
-        this.status = status;
-        return this;
-    }
+  public PredictionSummary setStatus(PredictionStatus status) {
+    this.status = status;
+    return this;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDescription()
-    {
-        return description;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDescription() {
+    return description;
+  }
 
-    public PredictionSummary setDescription( String description )
-    {
-        this.description = description;
-        return this;
-    }
+  public PredictionSummary setDescription(String description) {
+    this.description = description;
+    return this;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPredictors()
-    {
-        return predictors;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getPredictors() {
+    return predictors;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getInserted()
-    {
-        return inserted;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getInserted() {
+    return inserted;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getUpdated()
-    {
-        return updated;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getUpdated() {
+    return updated;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getDeleted()
-    {
-        return deleted;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getDeleted() {
+    return deleted;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getUnchanged()
-    {
-        return unchanged;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getUnchanged() {
+    return unchanged;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "PredictionSummary{" +
-            "status=" + status +
-            ", description='" + description + '\'' +
-            ", predictors=" + predictors +
-            ", inserted=" + inserted +
-            ", updated=" + updated +
-            ", deleted=" + deleted +
-            ", unchanged=" + unchanged +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "PredictionSummary{"
+        + "status="
+        + status
+        + ", description='"
+        + description
+        + '\''
+        + ", predictors="
+        + predictors
+        + ", inserted="
+        + inserted
+        + ", updated="
+        + updated
+        + ", deleted="
+        + deleted
+        + ", unchanged="
+        + unchanged
+        + '}';
+  }
 }

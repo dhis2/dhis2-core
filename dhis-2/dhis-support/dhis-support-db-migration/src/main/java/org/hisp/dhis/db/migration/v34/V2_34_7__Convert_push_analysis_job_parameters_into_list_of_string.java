@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.db.migration.v34;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-
 import org.apache.commons.lang3.StringUtils;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
@@ -41,65 +45,59 @@ import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
-
 /**
  * @author Zubair Asghar.
  */
-public class V2_34_7__Convert_push_analysis_job_parameters_into_list_of_string extends BaseJavaMigration
-{
-    private static final Logger log = LoggerFactory
-        .getLogger( V2_34_7__Convert_push_analysis_job_parameters_into_list_of_string.class );
+public class V2_34_7__Convert_push_analysis_job_parameters_into_list_of_string
+    extends BaseJavaMigration {
+  private static final Logger log =
+      LoggerFactory.getLogger(
+          V2_34_7__Convert_push_analysis_job_parameters_into_list_of_string.class);
 
-    @Override
-    public void migrate( Context context )
-        throws Exception
-    {
-        String pushAnalysisUid = null;
+  @Override
+  public void migrate(Context context) throws Exception {
+    String pushAnalysisUid = null;
 
-        try ( Statement statement = context.getConnection().createStatement() )
-        {
-            ResultSet resultSet = statement.executeQuery(
-                "select jsonbjobparameters->1->'pushAnalysis' from public.jobconfiguration where jobtype = '" +
-                    JobType.PUSH_ANALYSIS.name() + "';" );
+    try (Statement statement = context.getConnection().createStatement()) {
+      ResultSet resultSet =
+          statement.executeQuery(
+              "select jsonbjobparameters->1->'pushAnalysis' from public.jobconfiguration where jobtype = '"
+                  + JobType.PUSH_ANALYSIS.name()
+                  + "';");
 
-            if ( resultSet.next() )
-            {
-                pushAnalysisUid = resultSet.getString( 1 );
-                pushAnalysisUid = StringUtils.strip( pushAnalysisUid, "\"" );
-            }
-        }
-
-        if ( pushAnalysisUid != null )
-        {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.activateDefaultTyping(
-                BasicPolymorphicTypeValidator.builder().allowIfBaseType( JobParameters.class ).build() );
-            mapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-
-            JavaType resultingJavaType = mapper.getTypeFactory().constructType( JobParameters.class );
-            ObjectWriter writer = mapper.writerFor( resultingJavaType );
-
-            try ( PreparedStatement ps = context.getConnection()
-                .prepareStatement( "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobtype = ?;" ) )
-            {
-                PushAnalysisJobParameters jobParameters = new PushAnalysisJobParameters( pushAnalysisUid );
-
-                PGobject pg = new PGobject();
-                pg.setType( "jsonb" );
-                pg.setValue( writer.writeValueAsString( jobParameters ) );
-
-                ps.setObject( 1, pg );
-                ps.setString( 2, JobType.PUSH_ANALYSIS.name() );
-
-                ps.execute();
-
-                log.info( "JobType " + JobType.PUSH_ANALYSIS.name() + " has been updated." );
-            }
-        }
+      if (resultSet.next()) {
+        pushAnalysisUid = resultSet.getString(1);
+        pushAnalysisUid = StringUtils.strip(pushAnalysisUid, "\"");
+      }
     }
+
+    if (pushAnalysisUid != null) {
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.activateDefaultTyping(
+          BasicPolymorphicTypeValidator.builder().allowIfBaseType(JobParameters.class).build());
+      mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+      JavaType resultingJavaType = mapper.getTypeFactory().constructType(JobParameters.class);
+      ObjectWriter writer = mapper.writerFor(resultingJavaType);
+
+      try (PreparedStatement ps =
+          context
+              .getConnection()
+              .prepareStatement(
+                  "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobtype = ?;")) {
+        PushAnalysisJobParameters jobParameters = new PushAnalysisJobParameters(pushAnalysisUid);
+
+        PGobject pg = new PGobject();
+        pg.setType("jsonb");
+        pg.setValue(writer.writeValueAsString(jobParameters));
+
+        ps.setObject(1, pg);
+        ps.setString(2, JobType.PUSH_ANALYSIS.name());
+
+        ps.execute();
+
+        log.info("JobType " + JobType.PUSH_ANALYSIS.name() + " has been updated.");
+      }
+    }
+  }
 }

@@ -33,9 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -46,153 +46,131 @@ import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Kristian Nordal
  */
-class MinMaxDataElementStoreTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private DataElementService dataElementService;
+class MinMaxDataElementStoreTest extends SingleSetupIntegrationTestBase {
+  @Autowired private DataElementService dataElementService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private MinMaxDataElementStore minMaxDataElementStore;
+  @Autowired private MinMaxDataElementStore minMaxDataElementStore;
 
-    @Test
-    void testBasic()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        organisationUnitService.addOrganisationUnit( ouA );
-        organisationUnitService.addOrganisationUnit( ouB );
-        DataElement deA = createDataElement( 'A' );
-        DataElement deB = createDataElement( 'B' );
-        DataElement deC = createDataElement( 'C' );
-        DataElement deD = createDataElement( 'D' );
-        dataElementService.addDataElement( deA );
-        dataElementService.addDataElement( deB );
-        dataElementService.addDataElement( deC );
-        dataElementService.addDataElement( deD );
-        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
-        MinMaxDataElement valueA = new MinMaxDataElement(
-            deA, ouA, optionCombo, 0, 100, false );
-        MinMaxDataElement valueB = new MinMaxDataElement(
-            deB, ouB, optionCombo, 0, 100, false );
-        MinMaxDataElement valueC = new MinMaxDataElement(
-            deC, ouB, optionCombo, 0, 100, false );
-        MinMaxDataElement valueD = new MinMaxDataElement(
-            deD, ouB, optionCombo, 0, 100, false );
-        minMaxDataElementStore.save( valueA );
-        long idA = valueA.getId();
-        minMaxDataElementStore.save( valueB );
-        minMaxDataElementStore.save( valueC );
-        minMaxDataElementStore.save( valueD );
+  @Test
+  void testBasic() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    organisationUnitService.addOrganisationUnit(ouA);
+    organisationUnitService.addOrganisationUnit(ouB);
+    DataElement deA = createDataElement('A');
+    DataElement deB = createDataElement('B');
+    DataElement deC = createDataElement('C');
+    DataElement deD = createDataElement('D');
+    dataElementService.addDataElement(deA);
+    dataElementService.addDataElement(deB);
+    dataElementService.addDataElement(deC);
+    dataElementService.addDataElement(deD);
+    CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
+    MinMaxDataElement valueA = new MinMaxDataElement(deA, ouA, optionCombo, 0, 100, false);
+    MinMaxDataElement valueB = new MinMaxDataElement(deB, ouB, optionCombo, 0, 100, false);
+    MinMaxDataElement valueC = new MinMaxDataElement(deC, ouB, optionCombo, 0, 100, false);
+    MinMaxDataElement valueD = new MinMaxDataElement(deD, ouB, optionCombo, 0, 100, false);
+    minMaxDataElementStore.save(valueA);
+    long idA = valueA.getId();
+    minMaxDataElementStore.save(valueB);
+    minMaxDataElementStore.save(valueC);
+    minMaxDataElementStore.save(valueD);
 
-        assertNotNull( minMaxDataElementStore.get( idA ) );
-        assertTrue( minMaxDataElementStore.get( idA ).getMax() == 100 );
-        List<DataElement> dataElements1 = new ArrayList<>();
-        dataElements1.add( deA );
-        List<DataElement> dataElements2 = new ArrayList<>();
-        dataElements2.add( deB );
-        dataElements2.add( deC );
-        dataElements2.add( deD );
-        assertNotNull( minMaxDataElementStore.get( ouA, deA, optionCombo ) );
-        assertNull( minMaxDataElementStore.get( ouB, deA, optionCombo ) );
-        assertEquals( 1, minMaxDataElementStore.get( ouA, dataElements1 ).size() );
-        assertEquals( 3, minMaxDataElementStore.get( ouB, dataElements2 ).size() );
-        minMaxDataElementStore.delete( valueA );
-        assertNull( minMaxDataElementStore.get( idA ) );
-    }
+    assertNotNull(minMaxDataElementStore.get(idA));
+    assertTrue(minMaxDataElementStore.get(idA).getMax() == 100);
+    List<DataElement> dataElements1 = new ArrayList<>();
+    dataElements1.add(deA);
+    List<DataElement> dataElements2 = new ArrayList<>();
+    dataElements2.add(deB);
+    dataElements2.add(deC);
+    dataElements2.add(deD);
+    assertNotNull(minMaxDataElementStore.get(ouA, deA, optionCombo));
+    assertNull(minMaxDataElementStore.get(ouB, deA, optionCombo));
+    assertEquals(1, minMaxDataElementStore.get(ouA, dataElements1).size());
+    assertEquals(3, minMaxDataElementStore.get(ouB, dataElements2).size());
+    minMaxDataElementStore.delete(valueA);
+    assertNull(minMaxDataElementStore.get(idA));
+  }
 
-    @Test
-    void testGetBySourceDataElements()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        organisationUnitService.addOrganisationUnit( ouA );
-        organisationUnitService.addOrganisationUnit( ouB );
-        DataElement deA = createDataElement( 'A' );
-        DataElement deB = createDataElement( 'B' );
-        DataElement deC = createDataElement( 'C' );
-        DataElement deD = createDataElement( 'D' );
-        dataElementService.addDataElement( deA );
-        dataElementService.addDataElement( deB );
-        dataElementService.addDataElement( deC );
-        dataElementService.addDataElement( deD );
-        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
-        MinMaxDataElement valueA = new MinMaxDataElement(
-            deA, ouA, optionCombo, 0, 100, false );
-        MinMaxDataElement valueB = new MinMaxDataElement(
-            deB, ouA, optionCombo, 0, 100, false );
-        MinMaxDataElement valueC = new MinMaxDataElement(
-            deC, ouA, optionCombo, 0, 100, false );
-        MinMaxDataElement valueD = new MinMaxDataElement(
-            deD, ouB, optionCombo, 0, 100, false );
-        minMaxDataElementStore.save( valueA );
-        minMaxDataElementStore.save( valueB );
-        minMaxDataElementStore.save( valueC );
-        minMaxDataElementStore.save( valueD );
+  @Test
+  void testGetBySourceDataElements() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    organisationUnitService.addOrganisationUnit(ouA);
+    organisationUnitService.addOrganisationUnit(ouB);
+    DataElement deA = createDataElement('A');
+    DataElement deB = createDataElement('B');
+    DataElement deC = createDataElement('C');
+    DataElement deD = createDataElement('D');
+    dataElementService.addDataElement(deA);
+    dataElementService.addDataElement(deB);
+    dataElementService.addDataElement(deC);
+    dataElementService.addDataElement(deD);
+    CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
+    MinMaxDataElement valueA = new MinMaxDataElement(deA, ouA, optionCombo, 0, 100, false);
+    MinMaxDataElement valueB = new MinMaxDataElement(deB, ouA, optionCombo, 0, 100, false);
+    MinMaxDataElement valueC = new MinMaxDataElement(deC, ouA, optionCombo, 0, 100, false);
+    MinMaxDataElement valueD = new MinMaxDataElement(deD, ouB, optionCombo, 0, 100, false);
+    minMaxDataElementStore.save(valueA);
+    minMaxDataElementStore.save(valueB);
+    minMaxDataElementStore.save(valueC);
+    minMaxDataElementStore.save(valueD);
 
-        List<MinMaxDataElement> values = minMaxDataElementStore.get( ouA, List.of( deA, deB ) );
+    List<MinMaxDataElement> values = minMaxDataElementStore.get(ouA, List.of(deA, deB));
 
-        assertContainsOnly( List.of( valueA, valueB ), values );
-    }
+    assertContainsOnly(List.of(valueA, valueB), values);
+  }
 
-    @Test
-    void testQuery()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        organisationUnitService.addOrganisationUnit( ouA );
-        organisationUnitService.addOrganisationUnit( ouB );
-        DataElement deA = createDataElement( 'A' );
-        DataElement deB = createDataElement( 'B' );
-        DataElement deC = createDataElement( 'C' );
-        DataElement deD = createDataElement( 'D' );
-        dataElementService.addDataElement( deA );
-        dataElementService.addDataElement( deB );
-        dataElementService.addDataElement( deC );
-        dataElementService.addDataElement( deD );
-        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
-        MinMaxDataElement valueA = new MinMaxDataElement(
-            deA, ouA, optionCombo, 0, 100, false );
-        MinMaxDataElement valueB = new MinMaxDataElement(
-            deB, ouB, optionCombo, 0, 100, false );
-        MinMaxDataElement valueC = new MinMaxDataElement(
-            deC, ouB, optionCombo, 0, 100, false );
-        MinMaxDataElement valueD = new MinMaxDataElement(
-            deD, ouB, optionCombo, 0, 100, false );
-        minMaxDataElementStore.save( valueA );
-        minMaxDataElementStore.save( valueB );
-        minMaxDataElementStore.save( valueC );
-        minMaxDataElementStore.save( valueD );
-        MinMaxDataElementQueryParams params = new MinMaxDataElementQueryParams();
-        List<String> filters = Lists.newArrayList();
-        filters.add( "dataElement.id:eq:" + deA.getUid() );
-        params.setFilters( filters );
-        List<MinMaxDataElement> result = minMaxDataElementStore.query( params );
+  @Test
+  void testQuery() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    organisationUnitService.addOrganisationUnit(ouA);
+    organisationUnitService.addOrganisationUnit(ouB);
+    DataElement deA = createDataElement('A');
+    DataElement deB = createDataElement('B');
+    DataElement deC = createDataElement('C');
+    DataElement deD = createDataElement('D');
+    dataElementService.addDataElement(deA);
+    dataElementService.addDataElement(deB);
+    dataElementService.addDataElement(deC);
+    dataElementService.addDataElement(deD);
+    CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
+    MinMaxDataElement valueA = new MinMaxDataElement(deA, ouA, optionCombo, 0, 100, false);
+    MinMaxDataElement valueB = new MinMaxDataElement(deB, ouB, optionCombo, 0, 100, false);
+    MinMaxDataElement valueC = new MinMaxDataElement(deC, ouB, optionCombo, 0, 100, false);
+    MinMaxDataElement valueD = new MinMaxDataElement(deD, ouB, optionCombo, 0, 100, false);
+    minMaxDataElementStore.save(valueA);
+    minMaxDataElementStore.save(valueB);
+    minMaxDataElementStore.save(valueC);
+    minMaxDataElementStore.save(valueD);
+    MinMaxDataElementQueryParams params = new MinMaxDataElementQueryParams();
+    List<String> filters = Lists.newArrayList();
+    filters.add("dataElement.id:eq:" + deA.getUid());
+    params.setFilters(filters);
+    List<MinMaxDataElement> result = minMaxDataElementStore.query(params);
 
-        assertNotNull( result );
-        assertEquals( 1, result.size() );
-        params = new MinMaxDataElementQueryParams();
-        filters.clear();
-        filters.add( "min:eq:0" );
-        params.setFilters( filters );
-        result = minMaxDataElementStore.query( params );
-        assertNotNull( result );
-        assertEquals( 4, result.size() );
-        filters.clear();
-        filters.add( "dataElement.id:in:[" + deA.getUid() + "," + deB.getUid() + "]" );
-        params.setFilters( filters );
-        result = minMaxDataElementStore.query( params );
-        assertNotNull( result );
-        assertEquals( 2, result.size() );
-    }
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    params = new MinMaxDataElementQueryParams();
+    filters.clear();
+    filters.add("min:eq:0");
+    params.setFilters(filters);
+    result = minMaxDataElementStore.query(params);
+    assertNotNull(result);
+    assertEquals(4, result.size());
+    filters.clear();
+    filters.add("dataElement.id:in:[" + deA.getUid() + "," + deB.getUid() + "]");
+    params.setFilters(filters);
+    result = minMaxDataElementStore.query(params);
+    assertNotNull(result);
+    assertEquals(2, result.size());
+  }
 }

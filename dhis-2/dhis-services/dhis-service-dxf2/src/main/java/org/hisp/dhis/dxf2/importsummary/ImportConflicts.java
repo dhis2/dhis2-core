@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.importsummary;
 
 import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
-
 import org.hisp.dhis.feedback.ErrorCode;
 
 /**
@@ -37,85 +36,74 @@ import org.hisp.dhis.feedback.ErrorCode;
  *
  * @author Jan Bernitt
  */
-public interface ImportConflicts
-{
+public interface ImportConflicts {
 
-    /**
-     * @return read-only access to the set of conflicts (in order of occurrence)
-     */
-    Iterable<ImportConflict> getConflicts();
+  /**
+   * @return read-only access to the set of conflicts (in order of occurrence)
+   */
+  Iterable<ImportConflict> getConflicts();
 
-    /**
-     * Adds a new conflict to this set of conflicts
-     *
-     * @param conflict the added conflict
-     */
-    void addConflict( ImportConflict conflict );
+  /**
+   * Adds a new conflict to this set of conflicts
+   *
+   * @param conflict the added conflict
+   */
+  void addConflict(ImportConflict conflict);
 
-    /**
-     * Adds a new conflict to this set of conflicts
-     *
-     * @param object reference or ID of the object causing the conflict
-     * @param message a description of the conflict
-     */
-    default void addConflict( String object, String message )
-    {
-        addConflict( new ImportConflict( object, message ) );
-    }
+  /**
+   * Adds a new conflict to this set of conflicts
+   *
+   * @param object reference or ID of the object causing the conflict
+   * @param message a description of the conflict
+   */
+  default void addConflict(String object, String message) {
+    addConflict(new ImportConflict(object, message));
+  }
 
-    /**
-     * @return A textual description of all {@link ImportConflict}s in this set
-     */
-    String getConflictsDescription();
+  /**
+   * @return A textual description of all {@link ImportConflict}s in this set
+   */
+  String getConflictsDescription();
 
-    /**
-     * @return Number of grouped conflicts in the set. This can be less than the
-     *         number of conflicts added using
-     *         {@link #addConflict(String, String)} since duplicates are
-     *         eliminated
-     */
-    int getConflictCount();
+  /**
+   * @return Number of grouped conflicts in the set. This can be less than the number of conflicts
+   *     added using {@link #addConflict(String, String)} since duplicates are eliminated
+   */
+  int getConflictCount();
 
-    /**
-     *
-     * @return The total number of occurred conflicts (no grouping) which is
-     *         similar to the number of conflicts added using
-     *         {@link #addConflict(ImportConflict)}.
-     */
-    int getTotalConflictOccurrenceCount();
+  /**
+   * @return The total number of occurred conflicts (no grouping) which is similar to the number of
+   *     conflicts added using {@link #addConflict(ImportConflict)}.
+   */
+  int getTotalConflictOccurrenceCount();
 
-    /**
-     * Count number of conflicts occurred for a particular error type.
-     *
-     * @param errorCode error code to count
-     * @return number of total occurred conflicts with the provided
-     *         {@link ErrorCode}
-     */
-    default int getConflictOccurrenceCount( ErrorCode errorCode )
-    {
-        return StreamSupport.stream( getConflicts().spliterator(), false )
-            .filter( c -> c.getErrorCode() == errorCode )
-            .mapToInt( ImportConflict::getOccurrenceCount )
-            .sum();
-    }
+  /**
+   * Count number of conflicts occurred for a particular error type.
+   *
+   * @param errorCode error code to count
+   * @return number of total occurred conflicts with the provided {@link ErrorCode}
+   */
+  default int getConflictOccurrenceCount(ErrorCode errorCode) {
+    return StreamSupport.stream(getConflicts().spliterator(), false)
+        .filter(c -> c.getErrorCode() == errorCode)
+        .mapToInt(ImportConflict::getOccurrenceCount)
+        .sum();
+  }
 
-    /**
-     * Tests if a {@link ImportConflict} with certain qualities exists in this
-     * set.
-     *
-     * @param test the test to perform
-     * @return true if it exist, otherwise false
-     */
-    default boolean hasConflict( Predicate<ImportConflict> test )
-    {
-        return StreamSupport.stream( getConflicts().spliterator(), false ).anyMatch( test );
-    }
+  /**
+   * Tests if a {@link ImportConflict} with certain qualities exists in this set.
+   *
+   * @param test the test to perform
+   * @return true if it exist, otherwise false
+   */
+  default boolean hasConflict(Predicate<ImportConflict> test) {
+    return StreamSupport.stream(getConflicts().spliterator(), false).anyMatch(test);
+  }
 
-    /**
-     * @return true, if there are any conflicts in this set, else false
-     */
-    default boolean hasConflicts()
-    {
-        return getConflictCount() > 0;
-    }
+  /**
+   * @return true, if there are any conflicts in this set, else false
+   */
+  default boolean hasConflicts() {
+    return getConflictCount() > 0;
+  }
 }

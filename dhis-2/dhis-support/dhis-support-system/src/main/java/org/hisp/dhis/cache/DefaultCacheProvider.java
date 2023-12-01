@@ -132,7 +132,6 @@ public class DefaultCacheProvider
         jobCancelRequested,
         dataIntegritySummaryCache,
         dataIntegrityDetailsCache,
-        subExpressionCache,
         queryAliasCache
     }
 
@@ -638,14 +637,6 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.dataIntegrityDetailsCache.name() )
             .expireAfterWrite( 1, HOURS ) );
-    }
-
-    @Override
-    public <V> Cache<V> createSubExpressionCache()
-    {
-        return registerCache( this.<V> newBuilder()
-            .forRegion( Region.subExpressionCache.name() )
-            .expireAfterWrite( 5, TimeUnit.MINUTES ) );
     }
 
     @Override

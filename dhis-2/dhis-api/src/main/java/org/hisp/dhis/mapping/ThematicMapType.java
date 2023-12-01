@@ -32,8 +32,7 @@ package org.hisp.dhis.mapping;
  *
  * @author Lars Helge Overland
  */
-public enum ThematicMapType
-{
-    CHOROPLETH,
-    BUBBLE;
+public enum ThematicMapType {
+  CHOROPLETH,
+  BUBBLE;
 }

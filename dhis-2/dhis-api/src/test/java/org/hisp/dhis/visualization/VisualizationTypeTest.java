@@ -32,12 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-class VisualizationTypeTest
-{
-    @Test
-    void testIsChart()
-    {
-        assertTrue( VisualizationType.LINE.isChart() );
-        assertFalse( VisualizationType.PIVOT_TABLE.isChart() );
-    }
+class VisualizationTypeTest {
+  @Test
+  void testIsChart() {
+    assertTrue(VisualizationType.LINE.isChart());
+    assertFalse(VisualizationType.PIVOT_TABLE.isChart());
+  }
 }

@@ -43,9 +43,9 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsCompressionException;
@@ -60,117 +60,112 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class DeleteEventSMSListenerTest extends
-    CompressionSMSListenerTest
-{
+@ExtendWith(MockitoExtension.class)
+class DeleteEventSMSListenerTest extends CompressionSMSListenerTest {
 
-    @Mock
-    private UserService userService;
+  @Mock private UserService userService;
 
-    @Mock
-    private IncomingSmsService incomingSmsService;
+  @Mock private IncomingSmsService incomingSmsService;
 
-    @Mock
-    private MessageSender smsSender;
+  @Mock private MessageSender smsSender;
 
-    @Mock
-    private DataElementService dataElementService;
+  @Mock private DataElementService dataElementService;
 
-    @Mock
-    private TrackedEntityTypeService trackedEntityTypeService;
+  @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Mock
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Mock
-    private ProgramService programService;
+  @Mock private ProgramService programService;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private CategoryService categoryService;
+  @Mock private CategoryService categoryService;
 
-    @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+  @Mock private EventService eventService;
 
-    @Mock
-    private IdentifiableObjectManager identifiableObjectManager;
+  @Mock private IdentifiableObjectManager identifiableObjectManager;
 
-    private User user;
+  private User user;
 
-    private OutboundMessageResponse response = new OutboundMessageResponse();
+  private OutboundMessageResponse response = new OutboundMessageResponse();
 
-    private IncomingSms updatedIncomingSms;
+  private IncomingSms updatedIncomingSms;
 
-    private String message = "";
+  private String message = "";
 
-    // Needed for this test
+  // Needed for this test
 
-    DeleteEventSMSListener subject;
+  DeleteEventSMSListener subject;
 
-    private IncomingSms incomingSmsDelete;
+  private IncomingSms incomingSmsDelete;
 
-    private ProgramStageInstance programStageInstance;
+  private Event event;
 
-    @BeforeEach
-    public void initTest()
-        throws SmsCompressionException
-    {
-        subject = new DeleteEventSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
-            trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, identifiableObjectManager );
+  @BeforeEach
+  public void initTest() throws SmsCompressionException {
+    subject =
+        new DeleteEventSMSListener(
+            incomingSmsService,
+            smsSender,
+            userService,
+            trackedEntityTypeService,
+            trackedEntityAttributeService,
+            programService,
+            organisationUnitService,
+            categoryService,
+            dataElementService,
+            eventService,
+            identifiableObjectManager);
 
-        setUpInstances();
+    setUpInstances();
 
-        when( userService.getUser( anyString() ) ).thenReturn( user );
-        when( smsSender.isConfigured() ).thenReturn( true );
-        when( smsSender.sendMessage( any(), any(), anyString() ) ).thenAnswer( invocation -> {
-            message = (String) invocation.getArguments()[1];
-            return response;
-        } );
-        when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
+    when(userService.getUser(anyString())).thenReturn(user);
+    when(smsSender.isConfigured()).thenReturn(true);
+    when(smsSender.sendMessage(any(), any(), anyString()))
+        .thenAnswer(
+            invocation -> {
+              message = (String) invocation.getArguments()[1];
+              return response;
+            });
+    when(eventService.getEvent(anyString())).thenReturn(event);
 
-        doAnswer( invocation -> {
-            updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
-            return updatedIncomingSms;
-        } ).when( incomingSmsService ).update( any() );
-    }
+    doAnswer(
+            invocation -> {
+              updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
+              return updatedIncomingSms;
+            })
+        .when(incomingSmsService)
+        .update(any());
+  }
 
-    @Test
-    void testDeleteEvent()
-    {
-        subject.receive( incomingSmsDelete );
+  @Test
+  void testDeleteEvent() {
+    subject.receive(incomingSmsDelete);
 
-        assertNotNull( updatedIncomingSms );
-        assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( SUCCESS_MESSAGE, message );
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(SUCCESS_MESSAGE, message);
 
-        verify( incomingSmsService, times( 1 ) ).update( any() );
-    }
+    verify(incomingSmsService, times(1)).update(any());
+  }
 
-    private void setUpInstances()
-        throws SmsCompressionException
-    {
-        user = makeUser( "U" );
-        user.setPhoneNumber( ORIGINATOR );
+  private void setUpInstances() throws SmsCompressionException {
+    user = makeUser("U");
+    user.setPhoneNumber(ORIGINATOR);
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
+    event = new Event();
+    event.setAutoFields();
 
-        incomingSmsDelete = createSMSFromSubmission( createDeleteSubmission() );
-    }
+    incomingSmsDelete = createSMSFromSubmission(createDeleteSubmission());
+  }
 
-    private DeleteSmsSubmission createDeleteSubmission()
-    {
-        DeleteSmsSubmission subm = new DeleteSmsSubmission();
+  private DeleteSmsSubmission createDeleteSubmission() {
+    DeleteSmsSubmission subm = new DeleteSmsSubmission();
 
-        subm.setUserId( user.getUid() );
-        subm.setEvent( programStageInstance.getUid() );
-        subm.setSubmissionId( 1 );
+    subm.setUserId(user.getUid());
+    subm.setEvent(event.getUid());
+    subm.setSubmissionId(1);
 
-        return subm;
-    }
-
+    return subm;
+  }
 }

@@ -31,13 +31,12 @@
       "skipOffline": false,
       "dataElementDecoration": false,
       "validCompleteOnly": false,
-      "publicAccess": "rw------",
       "noValueRequiresComment": false,
       "shortName": "Data Set",
-      "description" : "update data set",
-      "attributeValues": [ ],
+      "description": "update data set",
+      "attributeValues": [],
       "id": "em8Bg4LCr5k",
-      "indicators": [ ],
+      "indicators": [],
       "periodType": "Monthly",
       "mobile": false,
       "lastUpdated": "2016-03-08T07:32:42.146+0000",
@@ -52,6 +51,13 @@
       "renderHorizontally": false,
       "user": {
         "id": "T12jeH7KPzk"
+      },
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "T12jeH7KPzk",
+        "users": {},
+        "userGroups": {}
       }
     }
   ]

@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import java.util.List;
-
 import org.hisp.dhis.jsontree.JsonList;
 
 /**
@@ -36,26 +35,21 @@ import org.hisp.dhis.jsontree.JsonList;
  *
  * @author Jan Bernitt
  */
-public interface JsonDashboard extends JsonNameableObject
-{
+public interface JsonDashboard extends JsonNameableObject {
 
-    default int getItemCount()
-    {
-        return getNumber( "itemCount" ).intValue();
-    }
+  default int getItemCount() {
+    return getNumber("itemCount").intValue();
+  }
 
-    default boolean isRestrictFilters()
-    {
-        return getBoolean( "restrictFilters" ).booleanValue();
-    }
+  default boolean isRestrictFilters() {
+    return getBoolean("restrictFilters").booleanValue();
+  }
 
-    default List<String> getAllowedFilters()
-    {
-        return getArray( "allowedFilters" ).stringValues();
-    }
+  default List<String> getAllowedFilters() {
+    return getArray("allowedFilters").stringValues();
+  }
 
-    default JsonList<JsonDashboardItem> getDashboardItems()
-    {
-        return getList( "dashboardItems", JsonDashboardItem.class );
-    }
+  default JsonList<JsonDashboardItem> getDashboardItems() {
+    return getList("dashboardItems", JsonDashboardItem.class);
+  }
 }

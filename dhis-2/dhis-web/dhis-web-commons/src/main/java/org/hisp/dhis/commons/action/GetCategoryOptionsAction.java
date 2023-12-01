@@ -27,53 +27,46 @@
  */
 package org.hisp.dhis.commons.action;
 
+import com.opensymphony.xwork2.Action;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author Lars Helge Overland
  */
-public class GetCategoryOptionsAction extends BaseAction
-    implements Action
-{
-    @Autowired
-    private CategoryService categoryService;
+public class GetCategoryOptionsAction extends BaseAction implements Action {
+  @Autowired private CategoryService categoryService;
 
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
 
-    private List<CategoryOption> categoryOptions;
+  private List<CategoryOption> categoryOptions;
 
-    public List<CategoryOption> getCategoryOptions()
-    {
-        return categoryOptions;
-    }
+  public List<CategoryOption> getCategoryOptions() {
+    return categoryOptions;
+  }
 
-    // -------------------------------------------------------------------------
-    // Action
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Action
+  // -------------------------------------------------------------------------
 
-    @Override
-    public String execute()
-    {
-        canReadType( CategoryOption.class );
+  @Override
+  public String execute() {
+    canReadType(CategoryOption.class);
 
-        categoryOptions = new ArrayList<>( categoryService.getAllCategoryOptions() );
+    categoryOptions = new ArrayList<>(categoryService.getAllCategoryOptions());
 
-        User currentUser = currentUserService.getCurrentUser();
-        categoryOptions.forEach( instance -> canReadInstance( instance, currentUser ) );
+    User currentUser = currentUserService.getCurrentUser();
+    categoryOptions.forEach(instance -> canReadInstance(instance, currentUser));
 
-        Collections.sort( categoryOptions );
+    Collections.sort(categoryOptions);
 
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

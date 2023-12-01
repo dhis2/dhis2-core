@@ -28,12 +28,10 @@
 package org.hisp.dhis.predictor;
 
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-
 import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -42,11 +40,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 @ToString
 @EqualsAndHashCode
 @AllArgsConstructor
-public class PredictionData
-{
-    private final OrganisationUnit orgUnit;
+public class PredictionData {
+  private final OrganisationUnit orgUnit;
 
-    private final List<FoundDimensionItemValue> values;
+  private final List<FoundDimensionItemValue> values;
 
-    private final List<DataValue> oldPredictions;
+  private final List<DataValue> oldPredictions;
 }

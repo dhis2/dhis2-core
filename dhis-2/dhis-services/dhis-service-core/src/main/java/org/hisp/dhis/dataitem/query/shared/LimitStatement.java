@@ -27,37 +27,32 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasIntegerPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.MAX_LIMIT;
 
+import lombok.NoArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
- * This class should hold common/general SQL statements used by data item
- * queries.
+ * This class should hold common/general SQL statements used by data item queries.
  *
  * @author maikel arabori
  */
-public class LimitStatement
-{
-    private LimitStatement()
-    {
+@NoArgsConstructor(access = PRIVATE)
+public class LimitStatement {
+  /**
+   * Adds a SQL limit statement if one is set in the given paramsMap.
+   *
+   * @param paramsMap
+   * @return the limit SQL statement
+   */
+  public static String maxLimit(MapSqlParameterSource paramsMap) {
+    if (hasIntegerPresence(paramsMap, MAX_LIMIT)) {
+      return " limit :" + MAX_LIMIT;
     }
 
-    /**
-     * Adds a SQL limit statement if one is set in the given paramsMap.
-     *
-     * @param paramsMap
-     * @return the limit SQL statement
-     */
-    public static String maxLimit( final MapSqlParameterSource paramsMap )
-    {
-        if ( hasIntegerPresence( paramsMap, MAX_LIMIT ) )
-        {
-            return " limit :" + MAX_LIMIT;
-        }
-
-        return EMPTY;
-    }
+    return EMPTY;
+  }
 }

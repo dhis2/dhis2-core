@@ -27,32 +27,28 @@
  */
 package org.hisp.dhis.program.notification.event;
 
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.springframework.context.ApplicationEvent;
 
 /**
  * @author Zubair Asghar.
  */
-public class ProgramRuleEnrollmentEvent extends ApplicationEvent
-{
-    private long template;
+public class ProgramRuleEnrollmentEvent extends ApplicationEvent {
+  private long template;
 
-    private ProgramInstance programInstance;
+  private Enrollment enrollment;
 
-    public ProgramRuleEnrollmentEvent( Object source, long template, ProgramInstance programInstance )
-    {
-        super( source );
-        this.template = template;
-        this.programInstance = programInstance;
-    }
+  public ProgramRuleEnrollmentEvent(Object source, long template, Enrollment enrollment) {
+    super(source);
+    this.template = template;
+    this.enrollment = enrollment;
+  }
 
-    public long getTemplate()
-    {
-        return template;
-    }
+  public long getTemplate() {
+    return template;
+  }
 
-    public ProgramInstance getProgramInstance()
-    {
-        return programInstance;
-    }
+  public Enrollment getEnrollment() {
+    return enrollment;
+  }
 }

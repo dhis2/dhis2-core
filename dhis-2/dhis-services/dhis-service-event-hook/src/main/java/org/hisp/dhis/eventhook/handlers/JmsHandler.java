@@ -28,7 +28,6 @@
 package org.hisp.dhis.eventhook.handlers;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.activemq.artemis.api.jms.ActiveMQJMSClient;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.apache.activemq.artemis.jms.client.ActiveMQDestination;
@@ -45,94 +44,85 @@ import org.springframework.jms.core.JmsTemplate;
  * @author Morten Olav Hansen
  */
 @Slf4j
-public class JmsHandler implements Handler
-{
-    private final JmsTarget target;
+public class JmsHandler implements Handler {
+  private final JmsTarget target;
 
-    private JmsTemplate jmsTemplate;
+  private JmsTemplate jmsTemplate;
 
-    private ActiveMQConnectionFactory connectionFactory;
+  private ActiveMQConnectionFactory connectionFactory;
 
-    public JmsHandler( JmsTarget target )
-    {
-        this.target = target;
-        configure( target );
+  public JmsHandler(JmsTarget target) {
+    this.target = target;
+    configure(target);
+  }
+
+  private void configure(JmsTarget target) {
+    try {
+      connectionFactory =
+          ActiveMQJMSClient.createConnectionFactory(target.getBrokerUrl(), target.getUsername());
+      connectionFactory.setPassword(target.getPassword());
+      connectionFactory.setClientID(target.getClientId());
+      connectionFactory.setGroupID(target.getGroupId());
+
+      connectionFactory.setConnectionTTL(60_000);
+      connectionFactory.setCallTimeout(30_000);
+      connectionFactory.setCallFailoverTimeout(30_000);
+      connectionFactory.setRetryInterval(2_000);
+      connectionFactory.setMaxRetryInterval(2_000);
+      connectionFactory.setReconnectAttempts(0);
+
+      connectionFactory.setAutoGroup(false);
+      connectionFactory.setBlockOnAcknowledge(false);
+      connectionFactory.setBlockOnDurableSend(true);
+      connectionFactory.setBlockOnNonDurableSend(false);
+
+      // open and close a connection to see that the configuration is correct
+      connectionFactory.createConnection().close();
+    } catch (Exception e) {
+      log.warn(
+          "Could not create connection factory for JMS target: "
+              + target.getBrokerUrl()
+              + ", check and validate that your broker is up and running on the correct address");
+      return;
     }
 
-    private void configure( JmsTarget target )
-    {
-        try
-        {
-            connectionFactory = ActiveMQJMSClient.createConnectionFactory( target.getBrokerUrl(),
-                target.getUsername() );
-            connectionFactory.setPassword( target.getPassword() );
-            connectionFactory.setClientID( target.getClientId() );
-            connectionFactory.setGroupID( target.getGroupId() );
+    this.jmsTemplate = new JmsTemplate(connectionFactory);
+  }
 
-            connectionFactory.setConnectionTTL( 60_000 );
-            connectionFactory.setCallTimeout( 30_000 );
-            connectionFactory.setCallFailoverTimeout( 30_000 );
-            connectionFactory.setRetryInterval( 2_000 );
-            connectionFactory.setMaxRetryInterval( 2_000 );
-            connectionFactory.setReconnectAttempts( 0 );
-
-            connectionFactory.setAutoGroup( false );
-            connectionFactory.setBlockOnAcknowledge( false );
-            connectionFactory.setBlockOnDurableSend( true );
-            connectionFactory.setBlockOnNonDurableSend( false );
-
-            // open and close a connection to see that the configuration is correct
-            connectionFactory.createConnection().close();
-        }
-        catch ( Exception e )
-        {
-            log.warn( "Could not create connection factory for JMS target: " + target.getBrokerUrl()
-                + ", check and validate that your broker is up and running on the correct address" );
-            return;
-        }
-
-        this.jmsTemplate = new JmsTemplate( connectionFactory );
+  @Override
+  public void run(EventHook eventHook, Event event, String payload) {
+    if (jmsTemplate == null) {
+      log.error(
+          "Jms is not properly configured. Please check Event Hook '"
+              + eventHook.getName()
+              + "' with ID '"
+              + eventHook.getUid()
+              + "'");
+      return;
     }
 
-    @Override
-    public void run( EventHook eventHook, Event event, String payload )
-    {
-        if ( jmsTemplate == null )
-        {
-            log.error( "Jms is not properly configured. Please check Event Hook '" + eventHook.getName()
-                + "' with ID '" + eventHook.getUid() + "'" );
-            return;
-        }
-
-        if ( target.isUseQueue() )
-        {
-            sendTo( new ActiveMQQueue( target.getAddress() ), payload );
-        }
-        else
-        {
-            sendTo( new ActiveMQTopic( target.getAddress() ), payload );
-        }
+    if (target.isUseQueue()) {
+      sendTo(new ActiveMQQueue(target.getAddress()), payload);
+    } else {
+      sendTo(new ActiveMQTopic(target.getAddress()), payload);
     }
+  }
 
-    private void sendTo( ActiveMQDestination destination, String payload )
-    {
-        try
-        {
-            jmsTemplate.send( destination, session -> session.createTextMessage( payload ) );
-        }
-        catch ( JmsException ex )
-        {
-            log.warn( "Could not send message to JMS target: " + target.getBrokerUrl()
-                + ", check and validate that your broker is up and running on the correct address" );
-        }
+  private void sendTo(ActiveMQDestination destination, String payload) {
+    try {
+      jmsTemplate.send(destination, session -> session.createTextMessage(payload));
+    } catch (JmsException ex) {
+      log.warn(
+          "Could not send message to JMS target: "
+              + target.getBrokerUrl()
+              + ", check and validate that your broker is up and running on the correct address");
     }
+  }
 
-    @Override
-    public void close()
-    {
-        if ( connectionFactory != null )
-        {
-            connectionFactory.close();
-        }
+  @Override
+  public void close() {
+    if (connectionFactory != null) {
+      connectionFactory.close();
     }
+  }
 }

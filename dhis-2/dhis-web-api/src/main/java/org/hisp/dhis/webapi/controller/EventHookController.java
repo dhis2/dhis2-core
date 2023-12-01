@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.schema.descriptors.EventHookSchemaDescriptor;
@@ -41,9 +40,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping( value = EventHookSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class EventHookController
-    extends AbstractCrudController<EventHook>
-{
-}
+@RequestMapping(value = EventHookSchemaDescriptor.API_ENDPOINT)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class EventHookController extends AbstractCrudController<EventHook> {}

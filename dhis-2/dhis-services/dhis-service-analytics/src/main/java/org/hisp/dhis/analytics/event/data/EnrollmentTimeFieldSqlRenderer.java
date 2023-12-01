@@ -28,12 +28,9 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 
@@ -45,10 +42,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
@@ -63,106 +58,119 @@ import org.springframework.util.Assert;
 
 @Component
 @RequiredArgsConstructor
-class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
-{
-    private final StatementBuilder statementBuilder;
+class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
+  private final StatementBuilder statementBuilder;
 
-    @Getter
-    private final Set<TimeField> allowedTimeFields = Set.of( TimeField.LAST_UPDATED );
+  @Getter private final Set<TimeField> allowedTimeFields = Set.of(TimeField.LAST_UPDATED);
 
-    @Override
-    protected String getAggregatedConditionForPeriods( EventQueryParams params )
-    {
-        List<DimensionalItemObject> periods = params.getDimensionOrFilterItems( PERIOD_DIM_ID );
+  @Override
+  protected String getAggregatedConditionForPeriods(EventQueryParams params) {
+    List<DimensionalItemObject> periods = params.getAllDimensionOrFilterItems(PERIOD_DIM_ID);
 
-        Optional<TimeField> timeField = getTimeField( params );
+    Optional<TimeField> timeField = getTimeField(params);
 
-        StringBuilder sql = new StringBuilder();
+    StringBuilder sql = new StringBuilder();
 
-        if ( timeField.isPresent() )
-        {
-            sql.append( periods.stream()
-                .filter( dimensionalItemObject -> dimensionalItemObject instanceof Period )
-                .map( dimensionalItemObject -> (Period) dimensionalItemObject )
-                .map( period -> toSqlCondition( period, timeField.get() ) )
-                .collect( Collectors.joining( " or ", "(", ")" ) ) );
-        }
-        else
-        {
-            sql
-                .append( quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() ) )
-                .append( " in (" )
-                .append( getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) )
-                .append( ") " );
-        }
-        return sql.toString();
+    if (timeField.isPresent()) {
+      return sql.append(
+              periods.stream()
+                  .filter(this::isPeriod)
+                  .map(dimensionalItemObject -> (Period) dimensionalItemObject)
+                  .map(period -> toSqlCondition(period, timeField.get()))
+                  .collect(Collectors.joining(" or ", "(", ")")))
+          .toString();
     }
+    return sql.append(getSqlForAllPeriods(ANALYTICS_TBL_ALIAS, periods)).toString();
+  }
 
-    @Override
-    protected String getColumnName( Optional<TimeField> timeField, EventOutputType outputType )
-    {
-        return timeField.orElse( TimeField.ENROLLMENT_DATE ).getField();
-    }
+  @Override
+  protected String getColumnName(Optional<TimeField> timeField, EventOutputType outputType) {
+    return timeField.orElse(TimeField.ENROLLMENT_DATE).getField();
+  }
 
-    @Override
-    protected String getConditionForNonDefaultBoundaries( EventQueryParams params )
-    {
-        String sql = params.getProgramIndicator().getAnalyticsPeriodBoundaries().stream()
+  @Override
+  protected String getConditionForNonDefaultBoundaries(EventQueryParams params) {
+    String sql =
+        params.getProgramIndicator().getAnalyticsPeriodBoundaries().stream()
             .filter(
-                boundary -> boundary.isCohortDateBoundary() && !boundary.isEnrollmentHavingEventDateCohortBoundary() )
-            .map( boundary -> statementBuilder.getBoundaryCondition( boundary, params.getProgramIndicator(),
-                params.getTimeFieldAsField(),
-                params.getEarliestStartDate(), params.getLatestEndDate() ) )
-            .collect( Collectors.joining( " and " ) );
+                boundary ->
+                    boundary.isCohortDateBoundary()
+                        && !boundary.isEnrollmentHavingEventDateCohortBoundary())
+            .map(
+                boundary ->
+                    statementBuilder.getBoundaryCondition(
+                        boundary,
+                        params.getProgramIndicator(),
+                        params.getTimeFieldAsField(),
+                        params.getEarliestStartDate(),
+                        params.getLatestEndDate()))
+            .collect(Collectors.joining(" and "));
 
-        String sqlEventCohortBoundary = params.getProgramIndicator().hasEventDateCohortBoundary()
-            ? getProgramIndicatorEventInProgramStageSql( params.getProgramIndicator(), params.getEarliestStartDate(),
-                params.getLatestEndDate() )
+    String sqlEventCohortBoundary =
+        params.getProgramIndicator().hasEventDateCohortBoundary()
+            ? getProgramIndicatorEventInProgramStageSql(
+                params.getProgramIndicator(),
+                params.getEarliestStartDate(),
+                params.getLatestEndDate())
             : EMPTY;
 
-        return Stream.of( sql, sqlEventCohortBoundary )
-            .filter( StringUtils::isNotBlank )
-            .collect( Collectors.joining( " and " ) );
+    return Stream.of(sql, sqlEventCohortBoundary)
+        .filter(StringUtils::isNotBlank)
+        .collect(Collectors.joining(" and "));
+  }
+
+  private String getProgramIndicatorEventInProgramStageSql(
+      ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate) {
+    Assert.isTrue(
+        programIndicator.hasEventDateCohortBoundary(),
+        "Can not get event date cohort boundaries for program indicator:"
+            + programIndicator.getUid());
+
+    Map<String, Set<AnalyticsPeriodBoundary>> map =
+        programIndicator.getEventDateCohortBoundaryByProgramStage();
+
+    SimpleDateFormat format = new SimpleDateFormat();
+    format.applyPattern(Period.DEFAULT_DATE_FORMAT);
+
+    String sql = EMPTY;
+    for (String programStage : map.keySet()) {
+      Set<AnalyticsPeriodBoundary> boundaries = map.get(programStage);
+
+      String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
+      sql +=
+          " exists(select 1 from "
+              + eventTableName
+              + " where "
+              + eventTableName
+              + ".pi = "
+              + ANALYTICS_TBL_ALIAS
+              + ".pi and occurreddate is not null ";
+
+      for (AnalyticsPeriodBoundary boundary : boundaries) {
+        sql +=
+            " and occurreddate "
+                + (boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() ? ">=" : "<")
+                + " cast( '"
+                + format.format(boundary.getBoundaryDate(reportingStartDate, reportingEndDate))
+                + "' as date )";
+      }
+
+      sql += " limit 1)";
     }
 
-    private String getProgramIndicatorEventInProgramStageSql( ProgramIndicator programIndicator,
-        Date reportingStartDate, Date reportingEndDate )
-    {
-        Assert.isTrue( programIndicator.hasEventDateCohortBoundary(),
-            "Can not get event date cohort boundaries for program indicator:" + programIndicator.getUid() );
+    return sql;
+  }
 
-        Map<String, Set<AnalyticsPeriodBoundary>> map = programIndicator.getEventDateCohortBoundaryByProgramStage();
-
-        SimpleDateFormat format = new SimpleDateFormat();
-        format.applyPattern( Period.DEFAULT_DATE_FORMAT );
-
-        String sql = EMPTY;
-        for ( String programStage : map.keySet() )
-        {
-            Set<AnalyticsPeriodBoundary> boundaries = map.get( programStage );
-
-            String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
-            sql += " exists(select 1 from " + eventTableName + " where " + eventTableName +
-                ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and executiondate is not null ";
-
-            for ( AnalyticsPeriodBoundary boundary : boundaries )
-            {
-                sql += " and executiondate "
-                    + (boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() ? ">=" : "<") +
-                    " cast( '" + format.format( boundary.getBoundaryDate( reportingStartDate, reportingEndDate ) )
-                    + "' as date )";
-            }
-
-            sql += " limit 1)";
-        }
-
-        return sql;
-    }
-
-    private String toSqlCondition( Period period, TimeField timeField )
-    {
-        String timeCol = quoteAlias( timeField.getField() );
-        return "( " + timeCol + " >= '" + getMediumDateString( period.getStartDate() ) + "' and " + timeCol + " < '"
-            + getMediumDateString( plusOneDay( period.getEndDate() ) ) + "') ";
-    }
+  private String toSqlCondition(Period period, TimeField timeField) {
+    String timeCol = quoteAlias(timeField.getField());
+    return "( "
+        + timeCol
+        + " >= '"
+        + getMediumDateString(period.getStartDate())
+        + "' and "
+        + timeCol
+        + " < '"
+        + getMediumDateString(plusOneDay(period.getEndDate()))
+        + "') ";
+  }
 }

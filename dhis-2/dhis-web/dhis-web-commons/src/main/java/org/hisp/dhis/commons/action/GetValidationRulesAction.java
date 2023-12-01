@@ -27,65 +27,58 @@
  */
 package org.hisp.dhis.commons.action;
 
+import com.opensymphony.xwork2.Action;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ContextUtils;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author mortenoh
  */
-public class GetValidationRulesAction extends BaseAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetValidationRulesAction extends BaseAction implements Action {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private ValidationRuleService validationRuleService;
+  private ValidationRuleService validationRuleService;
 
-    public void setValidationRuleService( ValidationRuleService validationRuleService )
-    {
-        this.validationRuleService = validationRuleService;
-    }
+  public void setValidationRuleService(ValidationRuleService validationRuleService) {
+    this.validationRuleService = validationRuleService;
+  }
 
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Input & Output
+  // -------------------------------------------------------------------------
 
-    private List<ValidationRule> validationRules;
+  private List<ValidationRule> validationRules;
 
-    public List<ValidationRule> getValidationRules()
-    {
-        return this.validationRules;
-    }
+  public List<ValidationRule> getValidationRules() {
+    return this.validationRules;
+  }
 
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public String execute()
-    {
-        canReadType( ValidationRule.class );
+  @Override
+  public String execute() {
+    canReadType(ValidationRule.class);
 
-        validationRules = new ArrayList<>( validationRuleService.getAllValidationRules() );
+    validationRules = new ArrayList<>(validationRuleService.getAllValidationRules());
 
-        User currentUser = currentUserService.getCurrentUser();
-        validationRules.forEach( instance -> canReadInstance( instance, currentUser ) );
+    User currentUser = currentUserService.getCurrentUser();
+    validationRules.forEach(instance -> canReadInstance(instance, currentUser));
 
-        ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(),
-            validationRules );
+    ContextUtils.clearIfNotModified(
+        ServletActionContext.getRequest(), ServletActionContext.getResponse(), validationRules);
 
-        Collections.sort( validationRules );
+    Collections.sort(validationRules);
 
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

@@ -33,7 +33,6 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.i18n.I18nFormat;
 
 /**
@@ -42,123 +41,104 @@ import org.hisp.dhis.i18n.I18nFormat;
  * @author Kristin Simonsen <krissimo@ifi.uio.no>
  * @author Kjetil Andresen <kjetil.andrese@gmail.com>
  */
-public class LegendSet
-{
-    private List<Legend> legends;
+public class LegendSet {
+  private List<Legend> legends;
 
-    private Color backgroundColor = null;
+  private Color backgroundColor = null;
 
-    public static final int LEGEND_WIDTH = 132;
+  public static final int LEGEND_WIDTH = 132;
 
-    public static final int LEGEND_MARGIN_LEFT = 3;
+  public static final int LEGEND_MARGIN_LEFT = 3;
 
-    public static final int LEGEND_MARGIN_BOTTOM = 20;
+  public static final int LEGEND_MARGIN_BOTTOM = 20;
 
-    public static final int LEGEND_TOTAL_WIDTH = LEGEND_WIDTH + LEGEND_MARGIN_LEFT;
+  public static final int LEGEND_TOTAL_WIDTH = LEGEND_WIDTH + LEGEND_MARGIN_LEFT;
 
-    public LegendSet()
-    {
-        legends = new ArrayList<>();
+  public LegendSet() {
+    legends = new ArrayList<>();
+  }
+
+  public LegendSet(InternalMapLayer mapLayer) {
+    legends = new ArrayList<>();
+    addMapLayer(mapLayer);
+  }
+
+  public LegendSet(List<InternalMapLayer> mapLayers) {
+    legends = new ArrayList<>();
+    addMapLayers(mapLayers);
+  }
+
+  /**
+   * Render the legends contained in this set onto a image. The width of the image returned may
+   * vary, depending on how many columns of legends that is added. The image height can be decided
+   * by the user, but if the biggest legend is higher than imageMaxHeight, the height will
+   * automatically be set to the height of this legend.
+   *
+   * @param format the i18n format.
+   * @return a buffered image.
+   */
+  public BufferedImage render(I18nFormat format) {
+    int imageWidth = LEGEND_TOTAL_WIDTH;
+    int imageHeight = calculateImageHeight();
+    BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D graphics = (Graphics2D) image.getGraphics();
+
+    graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    graphics.translate(LEGEND_MARGIN_LEFT, 0);
+
+    // Draw legends
+    for (Legend legend : legends) {
+      legend.draw(graphics, format);
+      graphics.translate(0, LEGEND_MARGIN_BOTTOM);
     }
 
-    public LegendSet( InternalMapLayer mapLayer )
-    {
-        legends = new ArrayList<>();
-        addMapLayer( mapLayer );
+    return image;
+  }
+
+  public void addLegend(Legend legend) {
+    legends.add(legend);
+  }
+
+  public void addLegends(List<Legend> legends) {
+    for (Legend legend : legends) {
+      addLegend(legend);
+    }
+  }
+
+  public void addMapLayer(InternalMapLayer mapLayer) {
+    legends.add(new Legend(mapLayer));
+  }
+
+  public void addMapLayers(List<InternalMapLayer> mapLayers) {
+    for (InternalMapLayer mapLayer : mapLayers) {
+      addMapLayer(mapLayer);
+    }
+  }
+
+  public List<Legend> getLegends() {
+    return legends;
+  }
+
+  public Color getBackground() {
+    return backgroundColor;
+  }
+
+  public void setBackground(Color c) {
+    backgroundColor = c;
+  }
+
+  private int calculateImageHeight() {
+    int imageHeight = 0;
+
+    for (Legend legend : legends) {
+      imageHeight += legend.getHeight() + LEGEND_MARGIN_BOTTOM;
     }
 
-    public LegendSet( List<InternalMapLayer> mapLayers )
-    {
-        legends = new ArrayList<>();
-        addMapLayers( mapLayers );
-    }
+    return imageHeight;
+  }
 
-    /**
-     * Render the legends contained in this set onto a image. The width of the
-     * image returned may vary, depending on how many columns of legends that is
-     * added. The image height can be decided by the user, but if the biggest
-     * legend is higher than imageMaxHeight, the height will automatically be
-     * set to the height of this legend.
-     *
-     * @param format the i18n format.
-     * @return a buffered image.
-     */
-    public BufferedImage render( I18nFormat format )
-    {
-        int imageWidth = LEGEND_TOTAL_WIDTH;
-        int imageHeight = calculateImageHeight();
-        BufferedImage image = new BufferedImage( imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB );
-        Graphics2D graphics = (Graphics2D) image.getGraphics();
-
-        graphics.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
-        graphics.translate( LEGEND_MARGIN_LEFT, 0 );
-
-        // Draw legends
-        for ( Legend legend : legends )
-        {
-            legend.draw( graphics, format );
-            graphics.translate( 0, LEGEND_MARGIN_BOTTOM );
-        }
-
-        return image;
-    }
-
-    public void addLegend( Legend legend )
-    {
-        legends.add( legend );
-    }
-
-    public void addLegends( List<Legend> legends )
-    {
-        for ( Legend legend : legends )
-        {
-            addLegend( legend );
-        }
-    }
-
-    public void addMapLayer( InternalMapLayer mapLayer )
-    {
-        legends.add( new Legend( mapLayer ) );
-    }
-
-    public void addMapLayers( List<InternalMapLayer> mapLayers )
-    {
-        for ( InternalMapLayer mapLayer : mapLayers )
-        {
-            addMapLayer( mapLayer );
-        }
-    }
-
-    public List<Legend> getLegends()
-    {
-        return legends;
-    }
-
-    public Color getBackground()
-    {
-        return backgroundColor;
-    }
-
-    public void setBackground( Color c )
-    {
-        backgroundColor = c;
-    }
-
-    private int calculateImageHeight()
-    {
-        int imageHeight = 0;
-
-        for ( Legend legend : legends )
-        {
-            imageHeight += legend.getHeight() + LEGEND_MARGIN_BOTTOM;
-        }
-
-        return imageHeight;
-    }
-
-    @Override
-    public String toString()
-    {
-        return legends != null ? legends.toString() : "[No legends]";
-    }
+  @Override
+  public String toString() {
+    return legends != null ? legends.toString() : "[No legends]";
+  }
 }

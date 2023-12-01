@@ -27,20 +27,18 @@
  */
 package org.hisp.dhis.commons.util;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class ExpressionFunctionsTest
-{
+class ExpressionFunctionsTest {
 
-    @Test
-    void testDaysBetween()
-    {
-        assertEquals( 1, ExpressionFunctions.daysBetween( "2014-03-04", "2014-03-05" ) );
-        assertEquals( 32, ExpressionFunctions.daysBetween( "2015-04-04", "2015-05-06" ) );
-    }
+  @Test
+  void testDaysBetween() {
+    assertEquals(1, ExpressionFunctions.daysBetween("2014-03-04", "2014-03-05"));
+    assertEquals(32, ExpressionFunctions.daysBetween("2015-04-04", "2015-05-06"));
+  }
 }

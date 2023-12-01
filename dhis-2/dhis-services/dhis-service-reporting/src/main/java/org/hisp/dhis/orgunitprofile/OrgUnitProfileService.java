@@ -28,9 +28,7 @@
 package org.hisp.dhis.orgunitprofile;
 
 import java.util.List;
-
 import javax.annotation.Nullable;
-
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
@@ -38,37 +36,36 @@ import org.hisp.dhis.feedback.ErrorReport;
  *
  * @author Lars Helge Overland
  */
-public interface OrgUnitProfileService
-{
-    /**
-     * Saves or updates the {@link OrgUnitProfile}.
-     *
-     * @param profile the {@link OrgUnitProfile}.
-     */
-    void saveOrgUnitProfile( OrgUnitProfile profile );
+public interface OrgUnitProfileService {
+  /**
+   * Saves or updates the {@link OrgUnitProfile}.
+   *
+   * @param profile the {@link OrgUnitProfile}.
+   */
+  void saveOrgUnitProfile(OrgUnitProfile profile);
 
-    /**
-     * Validates the {@link OrgUnitProfile}.
-     *
-     * @param profile the {@link OrgUnitProfile}.
-     * @return a list of {@link ErrorReport}.
-     */
-    List<ErrorReport> validateOrgUnitProfile( OrgUnitProfile profile );
+  /**
+   * Validates the {@link OrgUnitProfile}.
+   *
+   * @param profile the {@link OrgUnitProfile}.
+   * @return a list of {@link ErrorReport}.
+   */
+  List<ErrorReport> validateOrgUnitProfile(OrgUnitProfile profile);
 
-    /**
-     * Retrieves the current {@link OrgUnitProfile}. If no profile is set, an
-     * empty profile object is returned.
-     *
-     * @return the {@link OrgUnitProfile}, never null.
-     */
-    OrgUnitProfile getOrgUnitProfile();
+  /**
+   * Retrieves the current {@link OrgUnitProfile}. If no profile is set, an empty profile object is
+   * returned.
+   *
+   * @return the {@link OrgUnitProfile}, never null.
+   */
+  OrgUnitProfile getOrgUnitProfile();
 
-    /**
-     * Retrieves data for the current {@link OrgUnitProfile}.
-     *
-     * @param orgUnit org unit identifier.
-     * @param isoPeriod the ISO period, optional.
-     * @return the {@link OrgUnitProfileData}.
-     */
-    OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod );
+  /**
+   * Retrieves data for the current {@link OrgUnitProfile}.
+   *
+   * @param orgUnit org unit identifier.
+   * @param isoPeriod the ISO period, optional.
+   * @return the {@link OrgUnitProfileData}.
+   */
+  OrgUnitProfileData getOrgUnitProfileData(String orgUnit, @Nullable String isoPeriod);
 }

@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -56,156 +55,148 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class ObjectBundleServiceFavoritesTest extends SingleSetupIntegrationTestBase
-{
+class ObjectBundleServiceFavoritesTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private ObjectBundleService objectBundleService;
+  @Autowired private ObjectBundleService objectBundleService;
 
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
+  @Autowired private ObjectBundleValidationService objectBundleValidationService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private RenderService _renderService;
+  @Autowired private RenderService _renderService;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        renderService = _renderService;
-        userService = _userService;
-    }
+  @Override
+  protected void setUpTest() throws Exception {
+    renderService = _renderService;
+    userService = _userService;
+  }
 
-    @Test
-    void testCreateMetadataWithVisualization()
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_with_visualization.json" ).getInputStream(),
-            RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertFalse( validate.hasErrorReports() );
-        objectBundleService.commit( bundle );
-        List<DataSet> dataSets = manager.getAll( DataSet.class );
-        List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
-        List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<Visualization> visualizations = manager.getAll( Visualization.class );
-        assertEquals( 1, dataSets.size() );
-        assertEquals( 1, organisationUnits.size() );
-        assertEquals( 4, dataElements.size() );
-        assertEquals( 3, visualizations.size() );
-        assertNotNull( visualizations.get( 0 ).getFontSize() );
-        assertNotNull( visualizations.get( 1 ).getFontSize() );
-        assertNotNull( visualizations.get( 2 ).getFontSize() );
-        assertNotNull( visualizations.get( 0 ).getSeries() );
-        assertNotNull( visualizations.get( 1 ).getSeries() );
-        assertNotNull( visualizations.get( 2 ).getSeries() );
-        assertNotNull( visualizations.get( 0 ).getAxes() );
-        assertNotNull( visualizations.get( 1 ).getAxes() );
-        assertNotNull( visualizations.get( 2 ).getAxes() );
-        assertNotNull( visualizations.get( 0 ).getSeriesKey() );
-        assertNotNull( visualizations.get( 1 ).getSeriesKey() );
-        assertNotNull( visualizations.get( 2 ).getSeriesKey() );
-        assertEquals( 2, visualizations.get( 0 ).getSeries().size() );
-        assertEquals( 2, visualizations.get( 1 ).getSeries().size() );
-        assertEquals( 2, visualizations.get( 2 ).getSeries().size() );
-        assertEquals( 2, visualizations.get( 0 ).getAxes().size() );
-        assertEquals( 2, visualizations.get( 1 ).getAxes().size() );
-        assertEquals( 2, visualizations.get( 2 ).getAxes().size() );
-        assertNotNull( visualizations.get( 0 ).getFontStyle() );
-        assertNotNull( visualizations.get( 1 ).getFontStyle() );
-        assertNotNull( visualizations.get( 2 ).getFontStyle() );
-        assertNotNull( visualizations.get( 0 ).getFontStyle().getVisualizationTitle() );
-        assertNotNull( visualizations.get( 1 ).getFontStyle().getVisualizationTitle() );
-        assertNotNull( visualizations.get( 2 ).getFontStyle().getVisualizationTitle() );
-        assertEquals( "color_set_01", visualizations.get( 0 ).getColorSet() );
-        assertEquals( "color_set_01", visualizations.get( 1 ).getColorSet() );
-        assertEquals( "color_set_01", visualizations.get( 2 ).getColorSet() );
-    }
+  @Test
+  void testCreateMetadataWithVisualization() throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/favorites/metadata_with_visualization.json")
+                .getInputStream(),
+            RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
+    params.setObjects(metadata);
+    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
+    assertFalse(validate.hasErrorReports());
+    objectBundleService.commit(bundle);
+    List<DataSet> dataSets = manager.getAll(DataSet.class);
+    List<OrganisationUnit> organisationUnits = manager.getAll(OrganisationUnit.class);
+    List<DataElement> dataElements = manager.getAll(DataElement.class);
+    List<Visualization> visualizations = manager.getAll(Visualization.class);
+    assertEquals(1, dataSets.size());
+    assertEquals(1, organisationUnits.size());
+    assertEquals(4, dataElements.size());
+    assertEquals(3, visualizations.size());
+    assertNotNull(visualizations.get(0).getFontSize());
+    assertNotNull(visualizations.get(1).getFontSize());
+    assertNotNull(visualizations.get(2).getFontSize());
+    assertNotNull(visualizations.get(0).getSeries());
+    assertNotNull(visualizations.get(1).getSeries());
+    assertNotNull(visualizations.get(2).getSeries());
+    assertNotNull(visualizations.get(0).getAxes());
+    assertNotNull(visualizations.get(1).getAxes());
+    assertNotNull(visualizations.get(2).getAxes());
+    assertNotNull(visualizations.get(0).getSeriesKey());
+    assertNotNull(visualizations.get(1).getSeriesKey());
+    assertNotNull(visualizations.get(2).getSeriesKey());
+    assertEquals(2, visualizations.get(0).getSeries().size());
+    assertEquals(2, visualizations.get(1).getSeries().size());
+    assertEquals(2, visualizations.get(2).getSeries().size());
+    assertEquals(2, visualizations.get(0).getAxes().size());
+    assertEquals(2, visualizations.get(1).getAxes().size());
+    assertEquals(2, visualizations.get(2).getAxes().size());
+    assertNotNull(visualizations.get(0).getFontStyle());
+    assertNotNull(visualizations.get(1).getFontStyle());
+    assertNotNull(visualizations.get(2).getFontStyle());
+    assertNotNull(visualizations.get(0).getFontStyle().getVisualizationTitle());
+    assertNotNull(visualizations.get(1).getFontStyle().getVisualizationTitle());
+    assertNotNull(visualizations.get(2).getFontStyle().getVisualizationTitle());
+    assertEquals("color_set_01", visualizations.get(0).getColorSet());
+    assertEquals("color_set_01", visualizations.get(1).getColorSet());
+    assertEquals("color_set_01", visualizations.get(2).getColorSet());
+  }
 
-    @Test
-    void testCreateMetadataWithVisualizationsWithPeriods()
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_with_visualization_periods.json" ).getInputStream(),
-            RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertFalse( validate.hasErrorReports() );
-        objectBundleService.commit( bundle );
-        List<DataSet> dataSets = manager.getAll( DataSet.class );
-        List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
-        List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<Visualization> visualizations = manager.getAll( Visualization.class );
-        assertEquals( 1, dataSets.size() );
-        assertEquals( 1, organisationUnits.size() );
-        assertEquals( 4, dataElements.size() );
-        assertEquals( 4, visualizations.size() );
-        Visualization visualization = manager.get( Visualization.class, "ziCoxdcXRQz" );
-        assertNotNull( visualization );
-        assertEquals( 5, visualization.getPeriods().size() );
-    }
+  @Test
+  void testCreateMetadataWithVisualizationsWithPeriods() throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/favorites/metadata_with_visualization_periods.json")
+                .getInputStream(),
+            RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
+    params.setObjects(metadata);
+    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
+    assertFalse(validate.hasErrorReports());
+    objectBundleService.commit(bundle);
+    List<DataSet> dataSets = manager.getAll(DataSet.class);
+    List<OrganisationUnit> organisationUnits = manager.getAll(OrganisationUnit.class);
+    List<DataElement> dataElements = manager.getAll(DataElement.class);
+    List<Visualization> visualizations = manager.getAll(Visualization.class);
+    assertEquals(1, dataSets.size());
+    assertEquals(1, organisationUnits.size());
+    assertEquals(4, dataElements.size());
+    assertEquals(4, visualizations.size());
+    Visualization visualization = manager.get(Visualization.class, "ziCoxdcXRQz");
+    assertNotNull(visualization);
+    assertEquals(5, visualization.getPeriods().size());
+  }
 
-    @Test
-    void testCreateLegendSets()
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-            .fromMetadata( new ClassPathResource( "dxf2/favorites/legends.json" ).getInputStream(), RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertFalse( validate.hasErrorReports() );
-        objectBundleService.commit( bundle );
-        List<LegendSet> legendSets = manager.getAll( LegendSet.class );
-        assertEquals( 1, legendSets.size() );
-        LegendSet legendSet = legendSets.get( 0 );
-        assertEquals( "fqs276KXCXi", legendSet.getUid() );
-        assertEquals( "ANC Coverage", legendSet.getName() );
-        assertEquals( 7, legendSet.getLegends().size() );
-    }
+  @Test
+  void testCreateLegendSets() throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/favorites/legends.json").getInputStream(),
+            RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
+    params.setObjects(metadata);
+    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
+    assertFalse(validate.hasErrorReports());
+    objectBundleService.commit(bundle);
+    List<LegendSet> legendSets = manager.getAll(LegendSet.class);
+    assertEquals(1, legendSets.size());
+    LegendSet legendSet = legendSets.get(0);
+    assertEquals("fqs276KXCXi", legendSet.getUid());
+    assertEquals("ANC Coverage", legendSet.getName());
+    assertEquals(7, legendSet.getLegends().size());
+  }
 
-    @Test
-    void testDeleteLegendSet()
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-            .fromMetadata( new ClassPathResource( "dxf2/favorites/legends.json" ).getInputStream(), RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertFalse( validate.hasErrorReports() );
-        objectBundleService.commit( bundle );
-        List<LegendSet> legendSets = manager.getAll( LegendSet.class );
-        assertEquals( 1, legendSets.size() );
-        LegendSet legendSet = legendSets.get( 0 );
-        assertEquals( "fqs276KXCXi", legendSet.getUid() );
-        assertEquals( "ANC Coverage", legendSet.getName() );
-        assertEquals( 7, legendSet.getLegends().size() );
-        manager.delete( legendSet );
-        legendSets = manager.getAll( LegendSet.class );
-        assertTrue( legendSets.isEmpty() );
-    }
+  @Test
+  void testDeleteLegendSet() throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/favorites/legends.json").getInputStream(),
+            RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
+    params.setObjects(metadata);
+    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
+    assertFalse(validate.hasErrorReports());
+    objectBundleService.commit(bundle);
+    List<LegendSet> legendSets = manager.getAll(LegendSet.class);
+    assertEquals(1, legendSets.size());
+    LegendSet legendSet = legendSets.get(0);
+    assertEquals("fqs276KXCXi", legendSet.getUid());
+    assertEquals("ANC Coverage", legendSet.getName());
+    assertEquals(7, legendSet.getLegends().size());
+    manager.delete(legendSet);
+    legendSets = manager.getAll(LegendSet.class);
+    assertTrue(legendSets.isEmpty());
+  }
 }

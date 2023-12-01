@@ -32,21 +32,20 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface DeletedObjectService
-{
-    void addDeletedObject( DeletedObject deletedObject );
+public interface DeletedObjectService {
+  void addDeletedObject(DeletedObject deletedObject);
 
-    void deleteDeletedObject( DeletedObject deletedObject );
+  void deleteDeletedObject(DeletedObject deletedObject);
 
-    void deleteDeletedObjects( DeletedObjectQuery query );
+  void deleteDeletedObjects(DeletedObjectQuery query);
 
-    List<DeletedObject> getDeletedObjectsByKlass( String klass );
+  List<DeletedObject> getDeletedObjectsByKlass(String klass);
 
-    int countDeletedObjects();
+  int countDeletedObjects();
 
-    int countDeletedObjects( DeletedObjectQuery query );
+  int countDeletedObjects(DeletedObjectQuery query);
 
-    List<DeletedObject> getDeletedObjects();
+  List<DeletedObject> getDeletedObjects();
 
-    List<DeletedObject> getDeletedObjects( DeletedObjectQuery query );
+  List<DeletedObject> getDeletedObjects(DeletedObjectQuery query);
 }

@@ -29,17 +29,15 @@ package org.hisp.dhis.program;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
-public interface ProgramOwnershipHistoryService
-{
+public interface ProgramOwnershipHistoryService {
 
-    String ID = ProgramOwnershipHistoryService.class.getName();
+  String ID = ProgramOwnershipHistoryService.class.getName();
 
-    /**
-     * Adds program ownership history
-     *
-     * @param programOwnershipHistory the history to add
-     */
-    void addProgramOwnershipHistory( ProgramOwnershipHistory programOwnershipHistory );
+  /**
+   * Adds program ownership history
+   *
+   * @param programOwnershipHistory the history to add
+   */
+  void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory);
 }

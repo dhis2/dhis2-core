@@ -29,40 +29,51 @@ package org.hisp.dhis.analytics;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
 /**
- * Component responsible for exposing analytics table export settings. Can hold
- * settings living in configuration files (ie. dhis.conf) or in system settings.
+ * Component responsible for exposing analytics table export settings. Can hold settings living in
+ * configuration files (ie. dhis.conf) or in system settings.
  *
  * @author maikel arabori
  */
 @Component
 @RequiredArgsConstructor
-public class AnalyticsExportSettings
-{
-    private final DhisConfigurationProvider dhisConfigurationProvider;
+public class AnalyticsExportSettings {
+  private final DhisConfigurationProvider dhisConfigurationProvider;
 
-    private static final String UNLOGGED = "unlogged";
+  private final SystemSettingManager systemSettingManager;
 
-    /**
-     * Returns the respective string that represents the table type to be
-     * exported. Two types are supported: UNLOGGED and DEFAULT. See
-     * {@link AnalyticsTableType}
-     *
-     * @return the string representation of {@link AnalyticsTableType}.
-     */
-    public String getTableType()
-    {
-        if ( dhisConfigurationProvider.isEnabled( ANALYTICS_TABLE_UNLOGGED ) )
-        {
-            return UNLOGGED;
-        }
+  private static final String UNLOGGED = "unlogged";
 
-        return EMPTY;
+  /**
+   * Returns the respective string that represents the table type to be exported. Two types are
+   * supported: UNLOGGED and DEFAULT. See {@link AnalyticsTableType}
+   *
+   * @return the string representation of {@link AnalyticsTableType}.
+   */
+  public String getTableType() {
+    if (dhisConfigurationProvider.isEnabled(ANALYTICS_TABLE_UNLOGGED)) {
+      return UNLOGGED;
     }
+
+    return EMPTY;
+  }
+
+  /**
+   * Returns the years' offset defined for the period generation. See {@link
+   * ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
+   *
+   * @return the offset defined in system settings, or null if nothing is set.
+   */
+  public Integer getMaxPeriodYearsOffset() {
+    return systemSettingManager.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET) < 0
+        ? null
+        : systemSettingManager.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET);
+  }
 }

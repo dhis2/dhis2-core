@@ -29,7 +29,6 @@ package org.hisp.dhis.dataelementhistory;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -37,150 +36,121 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 /**
  * @author Torgeir Lorange Ostby
  */
-public class DataElementHistory
-{
-    private DataElement dataElement;
+public class DataElementHistory {
+  private DataElement dataElement;
 
-    private CategoryOptionCombo optionCombo;
+  private CategoryOptionCombo optionCombo;
 
-    private CategoryOptionCombo attributeOptionCombo;
+  private CategoryOptionCombo attributeOptionCombo;
 
-    private OrganisationUnit organisationUnit;
+  private OrganisationUnit organisationUnit;
 
-    private Integer minLimit;
+  private Integer minLimit;
 
-    private Integer maxLimit;
+  private Integer maxLimit;
 
-    private int historyLength;
+  private int historyLength;
 
-    /**
-     * Max value used to draw the history graph
-     */
-    private double maxHistoryValue;
+  /** Max value used to draw the history graph */
+  private double maxHistoryValue;
 
-    /**
-     * The lowest entered value
-     */
-    private double minValue;
+  /** The lowest entered value */
+  private double minValue;
 
-    /**
-     * The highest entered value
-     */
-    private double maxValue = Double.NEGATIVE_INFINITY;
+  /** The highest entered value */
+  private double maxValue = Double.NEGATIVE_INFINITY;
 
-    private List<DataElementHistoryPoint> historyPoints = new ArrayList<>();
+  private List<DataElementHistoryPoint> historyPoints = new ArrayList<>();
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    public Integer getMaxLimit()
-    {
-        return maxLimit;
-    }
+  public Integer getMaxLimit() {
+    return maxLimit;
+  }
 
-    public void setMaxLimit( Integer maxLimit )
-    {
-        this.maxLimit = maxLimit;
-    }
+  public void setMaxLimit(Integer maxLimit) {
+    this.maxLimit = maxLimit;
+  }
 
-    public OrganisationUnit getOrganisationUnit()
-    {
-        return organisationUnit;
-    }
+  public OrganisationUnit getOrganisationUnit() {
+    return organisationUnit;
+  }
 
-    public void setOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-    }
+  public void setOrganisationUnit(OrganisationUnit organisationUnit) {
+    this.organisationUnit = organisationUnit;
+  }
 
-    public Integer getMinLimit()
-    {
-        return minLimit;
-    }
+  public Integer getMinLimit() {
+    return minLimit;
+  }
 
-    public void setMinLimit( Integer minLimit )
-    {
-        this.minLimit = minLimit;
-    }
+  public void setMinLimit(Integer minLimit) {
+    this.minLimit = minLimit;
+  }
 
-    public DataElement getDataElement()
-    {
-        return dataElement;
-    }
+  public DataElement getDataElement() {
+    return dataElement;
+  }
 
-    public void setDataElement( DataElement dataElement )
-    {
-        this.dataElement = dataElement;
-    }
+  public void setDataElement(DataElement dataElement) {
+    this.dataElement = dataElement;
+  }
 
-    public CategoryOptionCombo getOptionCombo()
-    {
-        return optionCombo;
-    }
+  public CategoryOptionCombo getOptionCombo() {
+    return optionCombo;
+  }
 
-    public void setOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        this.optionCombo = optionCombo;
-    }
+  public void setOptionCombo(CategoryOptionCombo optionCombo) {
+    this.optionCombo = optionCombo;
+  }
 
-    public CategoryOptionCombo getAttributeOptionCombo()
-    {
-        return attributeOptionCombo;
-    }
+  public CategoryOptionCombo getAttributeOptionCombo() {
+    return attributeOptionCombo;
+  }
 
-    public void setAttributeOptionComboOptionCombo( CategoryOptionCombo attributeOptionCombo )
-    {
-        this.attributeOptionCombo = attributeOptionCombo;
-    }
+  public void setAttributeOptionComboOptionCombo(CategoryOptionCombo attributeOptionCombo) {
+    this.attributeOptionCombo = attributeOptionCombo;
+  }
 
-    public int getHistoryLength()
-    {
-        return historyLength;
-    }
+  public int getHistoryLength() {
+    return historyLength;
+  }
 
-    public void setHistoryLength( int historyLength )
-    {
-        this.historyLength = historyLength;
-    }
+  public void setHistoryLength(int historyLength) {
+    this.historyLength = historyLength;
+  }
 
-    public List<DataElementHistoryPoint> getHistoryPoints()
-    {
-        return historyPoints;
-    }
+  public List<DataElementHistoryPoint> getHistoryPoints() {
+    return historyPoints;
+  }
 
-    public void setHistoryPoints( List<DataElementHistoryPoint> historyPoints )
-    {
-        this.historyPoints = historyPoints;
-    }
+  public void setHistoryPoints(List<DataElementHistoryPoint> historyPoints) {
+    this.historyPoints = historyPoints;
+  }
 
-    public double getMaxValue()
-    {
-        return maxValue;
-    }
+  public double getMaxValue() {
+    return maxValue;
+  }
 
-    public void setMaxValue( double maxValue )
-    {
-        this.maxValue = maxValue;
-    }
+  public void setMaxValue(double maxValue) {
+    this.maxValue = maxValue;
+  }
 
-    public double getMinValue()
-    {
-        return minValue;
-    }
+  public double getMinValue() {
+    return minValue;
+  }
 
-    public void setMinValue( double minValue )
-    {
-        this.minValue = minValue;
-    }
+  public void setMinValue(double minValue) {
+    this.minValue = minValue;
+  }
 
-    public double getMaxHistoryValue()
-    {
-        return maxHistoryValue;
-    }
+  public double getMaxHistoryValue() {
+    return maxHistoryValue;
+  }
 
-    public void setMaxHistoryValue( double maxHistoryValue )
-    {
-        this.maxHistoryValue = maxHistoryValue;
-    }
+  public void setMaxHistoryValue(double maxHistoryValue) {
+    this.maxHistoryValue = maxHistoryValue;
+  }
 }

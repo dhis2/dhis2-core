@@ -27,56 +27,74 @@
  */
 package org.hisp.dhis.outlierdetection.util;
 
-import java.util.Date;
-import java.util.List;
+import static org.hisp.dhis.feedback.ErrorCode.E2208;
+import static org.hisp.dhis.feedback.ErrorCode.E7131;
+import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.util.SqlExceptionUtils;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.BadSqlGrammarException;
 
 /**
  * @author Lars Helge Overland
  */
-public class OutlierDetectionUtils
-{
-    /**
-     * Returns an organisation unit 'path' "like" clause for the given list of
-     * {@link OrganisationUnit}.
-     *
-     * @param query the list of {@link OrganisationUnit}.
-     * @return an organisation unit 'path' "like" clause.
-     */
-    public static String getOrgUnitPathClause( List<OrganisationUnit> orgUnits )
-    {
-        String sql = "(";
+@Slf4j
+public class OutlierDetectionUtils {
 
-        for ( OrganisationUnit ou : orgUnits )
-        {
-            sql += "ou.\"path\" like '" + ou.getPath() + "%' or ";
-        }
+  /**
+   * Returns an organisation unit 'path' "like" clause for the given list of {@link
+   * OrganisationUnit}.
+   *
+   * @param orgUnits the list of {@link OrganisationUnit}.
+   * @return an organisation unit 'path' "like" clause.
+   */
+  public static String getOrgUnitPathClause(List<OrganisationUnit> orgUnits, String pathAlias) {
+    StringBuilder sql = new StringBuilder("(");
+    orgUnits.forEach(
+        ou ->
+            sql.append(pathAlias).append(".\"path\" like '").append(ou.getPath()).append("%' or "));
 
-        return StringUtils.trim( TextUtils.removeLastOr( sql ) ) + ")";
+    return StringUtils.trim(TextUtils.removeLastOr(sql.toString())) + ")";
+  }
+
+  /**
+   * Wraps the provided interface around a common exception handling strategy.
+   *
+   * @param supplier the {@link Supplier} containing the code block to execute and wrap around the
+   *     exception handling.
+   * @return the {@link Optional} wrapping th result of the supplier execution.
+   */
+  public static <T> Optional<T> withExceptionHandling(Supplier<T> supplier) {
+    try {
+      return Optional.ofNullable(supplier.get());
+    } catch (BadSqlGrammarException ex) {
+      if (relationDoesNotExist(ex.getSQLException())) {
+        log.info(SqlExceptionUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+        throw ex;
+      }
+      log.info(SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK, ex);
+    } catch (QueryRuntimeException ex) {
+      log.error("Internal runtime exception", ex);
+      throw ex;
+    } catch (DataIntegrityViolationException ex) {
+      log.error(E2208.getMessage(), ex);
+      throw new IllegalQueryException(ErrorCode.E2208);
+    } catch (DataAccessResourceFailureException ex) {
+      log.error(E7131.getMessage(), ex);
+      throw new QueryRuntimeException(E7131);
     }
 
-    /**
-     * Returns a period data start date clause.
-     *
-     * @param dataStartDate the data start date.
-     * @return a period data start date clause.
-     */
-    public static String getDataStartDateClause( Date dataStartDate )
-    {
-        return dataStartDate != null ? "and pe.startdate >= :data_start_date " : StringUtils.EMPTY;
-    }
-
-    /**
-     * Returns a period data end date clause.
-     *
-     * @param dataStartDate the data start date.
-     * @return a period data end date clause.
-     */
-    public static String getDataEndDateClause( Date dataStartDate )
-    {
-        return dataStartDate != null ? "and pe.enddate <= :data_end_date " : StringUtils.EMPTY;
-    }
+    return Optional.empty();
+  }
 }

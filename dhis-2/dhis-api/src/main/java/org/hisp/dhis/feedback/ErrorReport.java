@@ -27,155 +27,69 @@
  */
 package org.hisp.dhis.feedback;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
+import java.util.Arrays;
+import java.util.List;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
-public class ErrorReport
-{
-    protected final ErrorMessage message;
+@ToString
+@Getter
+@Setter
+@Accessors(chain = true)
+public class ErrorReport {
 
-    protected final Class<?> mainKlass;
+  private final ErrorMessage message;
+  @JsonProperty private final Class<?> mainKlass;
+  @JsonProperty private String mainId;
+  @JsonProperty private Class<?> errorKlass;
+  @JsonProperty private String errorProperty;
+  @Nonnull @JsonProperty private List<?> errorProperties;
+  @JsonProperty private Object value;
 
-    protected String mainId;
+  public ErrorReport(@Nonnull Class<?> mainKlass, @Nonnull ErrorCode errorCode, Object... args) {
+    this.mainKlass = mainKlass;
+    this.message = new ErrorMessage(errorCode, args);
+    this.errorProperties = Arrays.asList(args); // OBS! Must support null values!
+  }
 
-    protected Class<?> errorKlass;
+  public ErrorReport(@Nonnull Class<?> mainKlass, @Nonnull ErrorMessage message) {
+    this.mainKlass = mainKlass;
+    this.message = message;
+    this.errorProperties = message.getArgs();
+  }
 
-    protected String errorProperty;
+  @JsonCreator
+  public ErrorReport(
+      @JsonProperty("message") String message,
+      @CheckForNull @JsonProperty("args") List<String> args,
+      @JsonProperty("mainKlass") Class<?> mainKlass,
+      @JsonProperty("errorCode") ErrorCode errorCode) {
+    this.mainKlass = mainKlass;
+    this.message = new ErrorMessage(message, errorCode, args);
+    this.errorProperties = args == null ? List.of() : args;
+  }
 
-    protected List<Object> errorProperties = new ArrayList<>();
+  @JsonProperty
+  public ErrorCode getErrorCode() {
+    return message.getErrorCode();
+  }
 
-    protected Object value;
+  @JsonProperty
+  public String getMessage() {
+    return message.getMessage();
+  }
 
-    public ErrorReport( Class<?> mainKlass, ErrorCode errorCode, Object... args )
-    {
-        this.mainKlass = mainKlass;
-        this.message = new ErrorMessage( errorCode, args );
-        this.errorProperties.addAll( Arrays.asList( args ) );
-    }
-
-    public ErrorReport( Class<?> mainKlass, ErrorMessage message )
-    {
-        this.mainKlass = mainKlass;
-        this.message = message;
-    }
-
-    @JsonCreator
-    public ErrorReport(
-        @JsonProperty( "message" ) String message,
-        @JsonProperty( "mainKlass" ) Class<?> mainKlass,
-        @JsonProperty( "errorCode" ) ErrorCode errorCode )
-    {
-        this.mainKlass = mainKlass;
-        this.message = new ErrorMessage( message, errorCode );
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ErrorCode getErrorCode()
-    {
-        return message.getErrorCode();
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getMessage()
-    {
-        return message.getMessage();
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class<?> getMainKlass()
-    {
-        return mainKlass;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getMainId()
-    {
-        return mainId;
-    }
-
-    public ErrorReport setMainId( String mainId )
-    {
-        this.mainId = mainId;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class<?> getErrorKlass()
-    {
-        return errorKlass;
-    }
-
-    public ErrorReport setErrorKlass( Class<?> errorKlass )
-    {
-        this.errorKlass = errorKlass;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getErrorProperty()
-    {
-        return errorProperty;
-    }
-
-    public ErrorReport setErrorProperty( String errorProperty )
-    {
-        this.errorProperty = errorProperty;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<Object> getErrorProperties()
-    {
-        return errorProperties;
-    }
-
-    public void setErrorProperties( List<Object> errorProperties )
-    {
-        this.errorProperties = errorProperties;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Object getValue()
-    {
-        return value;
-    }
-
-    public ErrorReport setValue( Object value )
-    {
-        this.value = value;
-        return this;
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "message", getMessage() )
-            .add( "errorCode", message.getErrorCode() )
-            .add( "mainKlass", mainKlass )
-            .add( "errorKlass", errorKlass )
-            .add( "value", value )
-            .toString();
-    }
+  @JsonProperty
+  public List<String> getArgs() {
+    return message.getArgs();
+  }
 }

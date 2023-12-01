@@ -27,19 +27,26 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
+import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.copy.CopyService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -50,91 +57,121 @@ import org.hisp.dhis.schema.descriptors.ProgramSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.google.common.collect.Lists;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "tracker" )
+@OpenApi.Tags("tracker")
 @Controller
-@RequestMapping( value = ProgramSchemaDescriptor.API_ENDPOINT )
-public class ProgramController
-    extends AbstractCrudController<Program>
-{
-    @Autowired
-    private ProgramService programService;
+@RequestMapping(value = ProgramSchemaDescriptor.API_ENDPOINT)
+@RequiredArgsConstructor
+public class ProgramController extends AbstractCrudController<Program> {
+  private final ProgramService programService;
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    protected List<Program> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
-        List<Order> orders )
-        throws QueryParserException
-    {
-        boolean userFilter = Boolean.parseBoolean( options.getOptions().get( "userFilter" ) );
+  private final CopyService copyService;
 
-        List<Program> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
-            options.getRootJunction() );
-        query.setDefaultOrder();
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
+  @Override
+  @SuppressWarnings("unchecked")
+  protected List<Program> getEntityList(
+      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      throws QueryParserException {
+    boolean userFilter = Boolean.parseBoolean(options.getOptions().get("userFilter"));
 
-        if ( options.getOptions().containsKey( "query" ) )
-        {
-            entityList = Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
-        }
-        else
-        {
-            entityList = (List<Program>) queryService.query( query );
-        }
+    List<Program> entityList;
+    Query query =
+        queryService.getQueryFromUrl(
+            getEntityClass(),
+            filters,
+            orders,
+            getPaginationData(options),
+            options.getRootJunction());
+    query.setDefaultOrder();
+    query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
 
-        if ( userFilter )
-        {
-            List<Program> programs = programService.getCurrentUserPrograms();
-            entityList.retainAll( programs );
-            metadata.setPager( null );
-        }
-
-        return entityList;
+    if (options.getOptions().containsKey("query")) {
+      entityList =
+          Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
+    } else {
+      entityList = (List<Program>) queryService.query(query);
     }
 
-    @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<MetadataExportParams> getProgramWithDependencies( @PathVariable( "uid" ) String pvUid,
-        @RequestParam( required = false, defaultValue = "false" ) boolean download )
-        throws WebMessageException
-    {
-        Program program = programService.getProgram( pvUid );
-
-        if ( program == null )
-        {
-            throw new WebMessageException( notFound( "Program not found for uid: " + pvUid ) );
-        }
-
-        MetadataExportParams exportParams = exportService.getParamsFromMap( contextService.getParameterValuesMap() );
-        exportService.validate( exportParams );
-        exportParams.setObjectExportWithDependencies( program );
-
-        return ResponseEntity.ok( exportParams );
+    if (userFilter) {
+      List<Program> programs = programService.getCurrentUserPrograms();
+      entityList.retainAll(programs);
+      metadata.setPager(null);
     }
 
-    @ResponseBody
-    @GetMapping( value = "orgUnits" )
-    public Map<String, Collection<String>> getOrgUnitsAssociations(
-        @RequestParam( value = "programs" ) Set<String> programs )
-    {
-        return Optional.ofNullable( programs )
-            .filter( CollectionUtils::isNotEmpty )
-            .map( programService::getProgramOrganisationUnitsAssociationsForCurrentUser )
-            .map( SetValuedMap::asMap )
-            .orElseThrow( () -> new IllegalArgumentException( "At least one program uid must be specified" ) );
+    return entityList;
+  }
+
+  @GetMapping("/{uid}/metadata")
+  public ResponseEntity<MetadataExportParams> getProgramWithDependencies(
+      @PathVariable("uid") String pvUid,
+      @RequestParam(required = false, defaultValue = "false") boolean download)
+      throws WebMessageException {
+    Program program = programService.getProgram(pvUid);
+
+    if (program == null) {
+      throw new WebMessageException(notFound("Program not found for uid: " + pvUid));
     }
 
+    MetadataExportParams exportParams =
+        exportService.getParamsFromMap(contextService.getParameterValuesMap());
+    exportService.validate(exportParams);
+    exportParams.setObjectExportWithDependencies(program);
+
+    return ResponseEntity.ok(exportParams);
+  }
+
+  @PostMapping("/{uid}/copy")
+  @ResponseStatus(HttpStatus.CREATED)
+  @ResponseBody
+  public WebMessage copyProgram(
+      @PathVariable("uid") String uid,
+      @RequestParam(required = false) Map<String, String> copyOptions)
+      throws NotFoundException, ConflictException, ForbiddenException {
+    Program programCopy = null;
+    try {
+      programCopy = copyService.copyProgram(uid, copyOptions);
+    } catch (DataIntegrityViolationException dive) {
+      String exceptionMessage = getRootCauseMessageIfPossible(dive);
+      throw new ConflictException(exceptionMessage);
+    }
+    return created(("Program created: '%s'".formatted(programCopy.getUid())))
+        .setLocation("/programs/" + programCopy.getUid());
+  }
+
+  @ResponseBody
+  @GetMapping(value = "orgUnits")
+  public Map<String, Collection<String>> getOrgUnitsAssociations(
+      @RequestParam(value = "programs") Set<String> programs) {
+    return Optional.ofNullable(programs)
+        .filter(CollectionUtils::isNotEmpty)
+        .map(programService::getProgramOrganisationUnitsAssociationsForCurrentUser)
+        .map(SetValuedMap::asMap)
+        .orElseThrow(
+            () -> new IllegalArgumentException("At least one program uid must be specified"));
+  }
+
+  private String getRootCauseMessageIfPossible(DataIntegrityViolationException dive) {
+    String exceptionMessage = "";
+    if (null != dive.getRootCause()) {
+      Throwable throwable = dive.getRootCause();
+      if (null != throwable) exceptionMessage = throwable.getMessage();
+    } else {
+      exceptionMessage = dive.getMessage();
+    }
+    return exceptionMessage;
+  }
 }

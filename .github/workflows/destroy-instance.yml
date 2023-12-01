@@ -1,0 +1,59 @@
+name: Destroy instance
+
+on:
+  pull_request:
+    types: [closed, unlabeled]
+
+# Cancel previous runs of the same workflow and PR number or branch/tag
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-deploy-label:
+    runs-on: ubuntu-latest
+    outputs:
+      removed: ${{ steps.check.outputs.removed }}
+    steps:
+      - name: Check if "deploy" was removed
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          last_removed_label=$(
+            gh api "repos/$GITHUB_REPOSITORY/issues/${{ github.event.pull_request.number }}/events" \
+            --jq 'map(select(.event == "unlabeled"))[-1].label.name'
+          )
+
+          if [[ "$last_removed_label" == 'deploy' ]]; then
+              echo "removed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  destroy-instance:
+    needs: check-deploy-label
+    if: (github.event.action == 'closed' && contains(github.event.pull_request.labels.*.name, 'deploy')) || needs.check-deploy-label.outputs.removed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: dhis2-sre/im-manager
+          sparse-checkout: scripts/instances
+
+      - name: Install HTTPie
+        run: python -m pip install httpie
+
+      - name: Destroy DHIS2 instance
+        working-directory: scripts/instances
+        env:
+          HTTP: https --check-status
+          USER_EMAIL: ${{ secrets.IM_BOT_EMAIL }}
+          PASSWORD: ${{ secrets.IM_BOT_PASSWORD }}
+          IM_HOST: 'https://api.im.dhis2.org'
+          INSTANCE_NAME: pr-${{ github.event.number }}
+        run: ./findByName.sh dev $INSTANCE_NAME && ./destroy.sh dev $INSTANCE_NAME
+
+      - name: Delete instance URL comment
+        uses: actions-cool/maintain-one-comment@v3
+        with:
+          body: "Instance deployed to https://dev.im.dhis2.org/pr-${{ github.event.pull_request.number }}"
+          delete: true

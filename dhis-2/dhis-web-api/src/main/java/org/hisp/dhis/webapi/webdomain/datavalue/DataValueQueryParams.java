@@ -33,15 +33,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 
 /**
  * Object which encapsulates parameters for a data value query.
@@ -53,24 +52,23 @@ import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 @Setter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class DataValueQueryParams
-{
-    @OpenApi.Property( { UID.class, DataElement.class } )
-    private String de;
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class DataValueQueryParams {
+  @OpenApi.Property({UID.class, DataElement.class})
+  private String de;
 
-    @OpenApi.Property( { Period.class } )
-    private String pe;
+  @OpenApi.Property({Period.class})
+  private String pe;
 
-    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
-    private String ou;
+  @OpenApi.Property({UID.class, OrganisationUnit.class})
+  private String ou;
 
-    @OpenApi.Property( { UID.class, CategoryOptionCombo.class } )
-    private String co;
+  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+  private String co;
 
-    @OpenApi.Property( { UID.class, CategoryCombo.class } )
-    private String cc;
+  @OpenApi.Property({UID.class, CategoryCombo.class})
+  private String cc;
 
-    @OpenApi.Property( { UID.class, CategoryOption.class } )
-    private String cp;
+  @OpenApi.Property({UID.class, CategoryOption.class})
+  private String cp;
 }

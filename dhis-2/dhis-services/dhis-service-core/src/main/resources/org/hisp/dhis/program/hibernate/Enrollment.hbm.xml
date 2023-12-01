@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.Enrollment" table="enrollment">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="enrollmentid">
+      <generator class="sequence">
+        <param name="sequence_name">programinstance_sequence</param>
+      </generator>
+    </id>
+
+    <property name="uid" column="uid" unique="true" length="11"/>
+
+    <property name="created" type="timestamp" not-null="true"/>
+
+    <property name="lastUpdated" type="timestamp" not-null="true"/>
+
+    <property name="createdAtClient" type="timestamp"/>
+
+    <property name="lastUpdatedAtClient" type="timestamp"/>
+
+    <property name="createdByUserInfo" type="jbUserInfoSnapshot" column="createdbyuserinfo"/>
+
+    <property name="lastUpdatedByUserInfo" type="jbUserInfoSnapshot" column="lastupdatedbyuserinfo"/>
+
+    <property name="occurredDate" column="occurreddate"/>
+
+    <property name="enrollmentDate" column="enrollmentdate" not-null="true"/>
+
+    <property name="completedDate" column="completeddate"/>
+
+    <property name="followup" column="followup"/>
+
+    <property name="completedBy"/>
+
+    <property name="geometry" />
+
+    <property name="deleted" column="deleted" />
+
+    <property name="storedBy" column="storedby" />
+
+    <property name="status" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.ProgramStatus</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <many-to-one name="trackedEntity"
+                 class="org.hisp.dhis.trackedentity.TrackedEntity" column="trackedentityid"
+                 foreign-key="fk_programinstance_trackedentityinstanceid" lazy="false" />
+
+    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+      column="programid" not-null="true" foreign-key="fk_programinstance_programid" lazy="false" />
+
+    <set name="events" order-by="occurreddate,scheduleddate" inverse="true">
+      <key column="enrollmentid"/>
+      <one-to-many class="org.hisp.dhis.program.Event"/>
+    </set>
+
+    <set name="relationshipItems" inverse="true">
+      <key column="enrollmentid" />
+      <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
+    </set>
+
+    <list name="notes" table="enrollment_notes" cascade="all-delete-orphan">
+      <key column="enrollmentid" foreign-key="fk_programinstancecomments_programinstanceid" />
+      <list-index column="sort_order" base="1" />
+      <many-to-many class="org.hisp.dhis.note.Note" column="noteid"
+                    unique="true" foreign-key="fk_programinstancecomments_trackedentitycommentid" />
+    </list>
+
+    <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
+      foreign-key="fk_programinstance_organisationunitid" />
+
+  </class>
+
+</hibernate-mapping>

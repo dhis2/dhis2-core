@@ -28,8 +28,12 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.Collections.emptyList;
+import static java.util.Optional.empty;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
@@ -37,10 +41,12 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
+import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptionsAsFilter;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
+import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
@@ -54,15 +60,17 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
-
+import java.util.TreeMap;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
-import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
+import org.hisp.dhis.analytics.common.processing.MetadataItemsHandler;
+import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
+import org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionItemKeywords;
@@ -72,537 +80,659 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 
 /**
  * @author Luciano Fiandesio
  */
 @RequiredArgsConstructor
-public abstract class AbstractAnalyticsService
-{
-    protected final AnalyticsSecurityManager securityManager;
+public abstract class AbstractAnalyticsService {
+  protected final AnalyticsSecurityManager securityManager;
 
-    protected final EventQueryValidator queryValidator;
+  protected final EventQueryValidator queryValidator;
 
-    protected final SchemaIdResponseMapper schemaIdResponseMapper;
+  protected final SchemeIdResponseMapper schemeIdResponseMapper;
 
-    /**
-     * Returns a grid based on the given query.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @return a {@link Grid}.
-     */
-    protected Grid getGrid( EventQueryParams params )
-    {
-        // ---------------------------------------------------------------------
-        // Decide access, add constraints and validate
-        // ---------------------------------------------------------------------
+  private final CurrentUserService currentUserService;
 
-        securityManager.decideAccessEventQuery( params );
+  /**
+   * Returns a grid based on the given query.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return a {@link Grid}.
+   */
+  protected Grid getGrid(EventQueryParams params) {
+    // ---------------------------------------------------------------------
+    // Decide access, add constraints and validate
+    // ---------------------------------------------------------------------
 
-        params = securityManager.withUserConstraints( params );
+    securityManager.decideAccessEventQuery(params);
 
-        queryValidator.validate( params );
+    params = securityManager.withUserConstraints(params);
 
-        // Keywords and periods are removed in the next step
+    queryValidator.validate(params);
 
-        List<DimensionItemKeywords.Keyword> periodKeywords = params.getDimensions().stream()
-            .map( DimensionalObject::getDimensionItemKeywords )
-            .filter( dimensionItemKeywords -> dimensionItemKeywords != null && !dimensionItemKeywords.isEmpty() )
-            .flatMap( dk -> dk.getKeywords().stream() ).collect( toList() );
+    // Keywords and periods are removed in the next step
 
-        params = new EventQueryParams.Builder( params )
-            .withStartEndDatesForPeriods()
-            .build();
+    List<DimensionItemKeywords.Keyword> periodKeywords =
+        params.getDimensions().stream()
+            .map(DimensionalObject::getDimensionItemKeywords)
+            .filter(
+                dimensionItemKeywords ->
+                    dimensionItemKeywords != null && !dimensionItemKeywords.isEmpty())
+            .flatMap(dk -> dk.getKeywords().stream())
+            .collect(toList());
 
-        // ---------------------------------------------------------------------
-        // Headers
-        // ---------------------------------------------------------------------
+    List<DimensionalObject> periods = getPeriods(params);
 
-        Grid grid = createGridWithHeaders( params );
+    params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
-        for ( DimensionalObject dimension : params.getDimensions() )
-        {
-            grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDimensionDisplayName(),
-                ValueType.TEXT, false, true ) );
-        }
+    // ---------------------------------------------------------------------
+    // Headers
+    // ---------------------------------------------------------------------
 
-        for ( QueryItem item : params.getItems() )
-        {
-            /**
-             * If the request contains an item of value type ORGANISATION_UNIT
-             * and the item UID is linked to coordinates (coordinateField), then
-             * create header of value type COORDINATE and type Point.
-             */
-            if ( item.getValueType() == ValueType.ORGANISATION_UNIT
-                && params.getCoordinateFields().stream().anyMatch( f -> f.equals( item.getItem().getUid() ) ) )
-            {
-                grid.addHeader( new GridHeader( item.getItem().getUid(),
-                    item.getItem().getDisplayProperty( params.getDisplayProperty() ), COORDINATE,
-                    false, true, item.getOptionSet(), item.getLegendSet() ) );
-            }
-            else if ( item.hasNonDefaultRepeatableProgramStageOffset() )
-            {
-                String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
+    Grid grid = createGridWithHeaders(params);
 
-                RepeatableStageParams repeatableStageParams = item.getRepeatableStageParams();
-
-                String name = repeatableStageParams.getDimension();
-
-                grid.addHeader( new GridHeader( name, column,
-                    repeatableStageParams.simpleStageValueExpected() ? item.getValueType() : ValueType.REFERENCE,
-                    false, true, item.getOptionSet(), item.getLegendSet(),
-                    item.getProgramStage().getUid(), item.getRepeatableStageParams() ) );
-            }
-            else
-            {
-                String uid = getItemUid( item );
-
-                String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
-
-                grid.addHeader( new GridHeader( uid, column, item.getValueType(),
-                    false, true, item.getOptionSet(), item.getLegendSet() ) );
-            }
-        }
-
-        // ---------------------------------------------------------------------
-        // Data
-        // ---------------------------------------------------------------------
-
-        long count = 0;
-
-        if ( !params.isSkipData() || params.analyzeOnly() )
-        {
-            count = addEventData( grid, params );
-        }
-
-        // ---------------------------------------------------------------------
-        // Metadata
-        // ---------------------------------------------------------------------
-
-        addMetadata( params, periodKeywords, grid );
-
-        // ---------------------------------------------------------------------
-        // ID scheme
-        // ---------------------------------------------------------------------
-
-        if ( params.hasDataIdScheme() )
-        {
-            substituteData( grid );
-        }
-
-        applyIdScheme( params, grid );
-
-        // ---------------------------------------------------------------------
-        // Paging
-        // ---------------------------------------------------------------------
-
-        addPaging( params, count, grid );
-
-        // ---------------------------------------------------------------------
-        // Headers
-        // ---------------------------------------------------------------------
-
-        addHeaders( params, grid );
-
-        return grid;
+    for (DimensionalObject dimension : params.getDimensions()) {
+      grid.addHeader(
+          new GridHeader(
+              dimension.getDimension(),
+              dimension.getDimensionDisplayName(),
+              ValueType.TEXT,
+              false,
+              true));
     }
 
-    /**
-     * Substitutes the meta data of the grid with the identifier scheme meta
-     * data property indicated in the query. This happens only when a custom
-     * identifier scheme is specified.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @param grid the {@link Grid}.
-     */
-    void applyIdScheme( EventQueryParams params, Grid grid )
-    {
-        if ( !params.isSkipMeta() && params.hasCustomIdSchemaSet() )
-        {
-            grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
-        }
+    for (DimensionalObject dimension : periods) {
+      grid.addHeader(
+          new GridHeader(
+              dimension.getDimension(),
+              dimension.getDimensionDisplayName(),
+              ValueType.TEXT,
+              false,
+              true));
     }
 
-    /**
-     * Applies paging to the given grid if the given query specifies paging.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @param totalCount the total count.
-     * @param grid the {@link Grid}.
-     */
-    private void addPaging( EventQueryParams params, long totalCount, Grid grid )
-    {
-        if ( params.isPaging() )
-        {
-            Pager pager = params.isTotalPages()
-                ? new Pager( params.getPageWithDefault(), totalCount, params.getPageSizeWithDefault() )
-                : new SlimPager( params.getPageWithDefault(), params.getPageSizeWithDefault(), grid.hasLastDataRow() );
+    final DisplayProperty displayProperty = params.getDisplayProperty();
+    Map<String, Long> repeatedNames =
+        params.getItems().stream()
+            .collect(groupingBy(s -> s.getItem().getDisplayProperty(displayProperty), counting()));
 
-            grid.getMetaData().put( PAGER.getKey(), pager );
-        }
+    for (QueryItem item : params.getItems()) {
+      /**
+       * If the request contains an item of value type ORGANISATION_UNIT and the item UID is linked
+       * to coordinates (coordinateField), then create header of value type COORDINATE and type
+       * Point.
+       */
+      if (item.getValueType() == ValueType.ORGANISATION_UNIT
+          && params.getCoordinateFields().stream()
+              .anyMatch(f -> f.equals(item.getItem().getUid()))) {
+        grid.addHeader(
+            new GridHeader(
+                item.getItem().getUid(),
+                item.getItem().getDisplayProperty(displayProperty),
+                COORDINATE,
+                false,
+                true,
+                item.getOptionSet(),
+                item.getLegendSet()));
+      } else if (item.hasNonDefaultRepeatableProgramStageOffset()) {
+        String column = item.getItem().getDisplayProperty(displayProperty);
+        String displayColumn = item.getColumnName(displayProperty, repeatedNames.get(column) > 1);
+
+        RepeatableStageParams repeatableStageParams = item.getRepeatableStageParams();
+
+        String name = repeatableStageParams.getDimension();
+
+        grid.addHeader(
+            new GridHeader(
+                name,
+                column,
+                displayColumn,
+                repeatableStageParams.simpleStageValueExpected()
+                    ? item.getValueType()
+                    : ValueType.REFERENCE,
+                false,
+                true,
+                item.getOptionSet(),
+                item.getLegendSet(),
+                item.getProgramStage().getUid(),
+                item.getRepeatableStageParams()));
+      } else {
+        String uid = getItemUid(item);
+        String column = item.getItem().getDisplayProperty(displayProperty);
+        String displayColumn = item.getColumnName(displayProperty, repeatedNames.get(column) > 1);
+
+        grid.addHeader(
+            new GridHeader(
+                uid,
+                column,
+                displayColumn,
+                item.getValueType(),
+                false,
+                true,
+                item.getOptionSet(),
+                item.getLegendSet()));
+      }
     }
 
-    /**
-     * Based on the given item this method returns the correct UID based on
-     * internal rules.
-     *
-     * @param item the current QueryItem.
-     * @return the correct UID based on the item type.
-     */
-    private String getItemUid( QueryItem item )
-    {
-        String uid = item.getItem().getUid();
+    // ---------------------------------------------------------------------
+    // Data
+    // ---------------------------------------------------------------------
 
-        if ( item.hasProgramStage() )
-        {
-            uid = joinWith( ".", item.getProgramStage().getUid(), uid );
-        }
+    long count = 0;
 
-        return uid;
+    if (!params.isSkipData() || params.analyzeOnly()) {
+      if (!periods.isEmpty()) {
+        params =
+            new EventQueryParams.Builder(params)
+                .withPeriods(periods.stream().flatMap(p -> p.getItems().stream()).toList(), EMPTY)
+                .build();
+      }
+      count = addData(grid, params);
     }
 
-    protected abstract Grid createGridWithHeaders( EventQueryParams params );
+    // ---------------------------------------------------------------------
+    // Metadata
+    // ---------------------------------------------------------------------
 
-    protected abstract long addEventData( Grid grid, EventQueryParams params );
+    addMetadata(params, periodKeywords, grid);
 
-    /**
-     * Applies headers to the given if the given query specifies headers.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @param grid the {@link Grid}.
-     */
-    private void addHeaders( EventQueryParams params, Grid grid )
-    {
-        if ( params.hasHeaders() )
-        {
-            grid.retainColumns( params.getHeaders() );
-            grid.repositionColumns( grid.repositionHeaders( new ArrayList<>( params.getHeaders() ) ) );
-        }
+    // ---------------------------------------------------------------------
+    // ID scheme
+    // ---------------------------------------------------------------------
+
+    if (params.hasDataIdScheme()) {
+      schemeIdResponseMapper.applyOptionAndLegendSetMapping(grid, NAME);
     }
 
-    /**
-     * Adds meta data values to the given grid based on the given data query
-     * parameters.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @param grid the {@link Grid}.
-     */
-    protected void addMetadata( EventQueryParams params, Grid grid )
-    {
-        addMetadata( params, null, grid );
+    schemeIdResponseMapper.applyCustomIdScheme(params, grid);
+
+    // ---------------------------------------------------------------------
+    // Paging
+    // ---------------------------------------------------------------------
+
+    addPaging(params, count, grid);
+
+    // ---------------------------------------------------------------------
+    // Headers
+    // ---------------------------------------------------------------------
+
+    addHeaders(params, grid);
+
+    // ---------------------------------------------------------------------
+    // RowContext
+    // ---------------------------------------------------------------------
+
+    setRowContextColumns(grid);
+
+    return grid;
+  }
+
+  /**
+   * Add information about row context. The row context is based on origin of repeatable stage
+   * value. Please see the {@link ValueStatus}
+   *
+   * @param grid the {@link Grid}.
+   */
+  private void setRowContextColumns(Grid grid) {
+    Map<Integer, Map<String, Object>> oldRowContext = grid.getRowContext();
+
+    Map<Integer, Map<String, Object>> newRowContext = new TreeMap<>();
+
+    oldRowContext
+        .keySet()
+        .forEach(
+            rowKey -> {
+              Map<String, Object> newCols = new HashMap<>();
+              Map<String, Object> cols = oldRowContext.get(rowKey);
+              cols.keySet()
+                  .forEach(
+                      colKey ->
+                          newCols.put(
+                              Integer.toString(grid.getIndexOfHeader(colKey)), cols.get(colKey)));
+              newRowContext.put(rowKey, newCols);
+            });
+
+    grid.setRowContext(newRowContext);
+  }
+
+  /**
+   * Applies paging to the given grid if the given query specifies paging.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param totalCount the total count.
+   * @param grid the {@link Grid}.
+   */
+  private void addPaging(EventQueryParams params, long totalCount, Grid grid) {
+    if (params.isPaging()) {
+      Pager pager =
+          params.isTotalPages()
+              ? new Pager(params.getPageWithDefault(), totalCount, params.getPageSizeWithDefault())
+              : new SlimPager(
+                  params.getPageWithDefault(),
+                  params.getPageSizeWithDefault(),
+                  grid.hasLastDataRow());
+
+      grid.getMetaData().put(PAGER.getKey(), pager);
+    }
+  }
+
+  /**
+   * Based on the given item this method returns the correct UID based on internal rules.
+   *
+   * @param item the current QueryItem.
+   * @return the correct UID based on the item type.
+   */
+  private String getItemUid(QueryItem item) {
+    String uid = item.getItem().getUid();
+
+    if (item.hasProgramStage()) {
+      uid = joinWith(".", item.getProgramStage().getUid(), uid);
     }
 
-    /**
-     * Adds meta data values to the given grid based on the given data query
-     * parameters.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @param periodKeywords the list of period keywords.
-     * @param grid the {@link Grid}.
-     */
-    protected void addMetadata( EventQueryParams params, List<DimensionItemKeywords.Keyword> periodKeywords, Grid grid )
-    {
-        if ( !params.isSkipMeta() )
-        {
-            Map<String, Object> metadata = new HashMap<>();
-            Map<String, List<Option>> optionsPresentInGrid = getItemOptions( grid, params );
-            Set<Option> optionItems = new LinkedHashSet<>();
-            boolean hasResults = isNotEmpty( grid.getRows() );
+    return uid;
+  }
 
-            if ( hasResults )
-            {
-                optionItems.addAll( optionsPresentInGrid.values().stream()
-                    .flatMap( Collection::stream ).distinct().collect( toList() ) );
-            }
-            else
-            {
-                optionItems.addAll( getItemOptions( params.getItemOptions(), params.getItems() ) );
-            }
+  protected abstract Grid createGridWithHeaders(EventQueryParams params);
 
-            metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, optionItems, grid ) );
-            metadata.put( DIMENSIONS.getKey(), getDimensionItems( params, optionsPresentInGrid ) );
-            maybeAddOrgUnitHierarchyInfo( params, metadata, grid );
+  protected abstract long addData(Grid grid, EventQueryParams params);
 
-            grid.setMetaData( metadata );
-        }
+  /**
+   * Applies headers to the given if the given query specifies headers.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param grid the {@link Grid}.
+   */
+  private void addHeaders(EventQueryParams params, Grid grid) {
+    if (params.hasHeaders()) {
+      grid.retainColumns(params.getHeaders());
+    }
+  }
+
+  /**
+   * Adds meta data values to the given grid based on the given data query parameters.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param grid the {@link Grid}.
+   */
+  protected void addMetadata(EventQueryParams params, Grid grid) {
+    addMetadata(params, null, grid);
+  }
+
+  /**
+   * Adds meta data values to the given grid based on the given data query parameters.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param periodKeywords the list of period keywords.
+   * @param grid the {@link Grid}.
+   */
+  protected void addMetadata(
+      EventQueryParams params, List<DimensionItemKeywords.Keyword> periodKeywords, Grid grid) {
+    if (!params.isSkipMeta()) {
+      Map<String, Object> metadata = new HashMap<>();
+      Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, params.getItems());
+      Set<Option> optionItems = new LinkedHashSet<>();
+      boolean hasResults = isNotEmpty(grid.getRows());
+
+      if (hasResults) {
+        optionItems.addAll(
+            optionsPresentInGrid.values().stream().flatMap(Collection::stream).distinct().toList());
+      } else {
+        optionItems.addAll(getItemOptionsAsFilter(params.getItemOptions(), params.getItems()));
+      }
+
+      Map<String, Object> items = new HashMap<>();
+      AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems(
+              currentUserService.getCurrentUser(), params.getUserOrganisationUnitsCriteria())
+          .forEach(items::putAll);
+
+      if (params.isComingFromQuery()) {
+        items.putAll(getMetadataItems(params, periodKeywords, optionItems, grid));
+      } else {
+        items.putAll(getMetadataItems(params));
+      }
+
+      metadata.put(ITEMS.getKey(), items);
+
+      if (params.isComingFromQuery()) {
+        metadata.put(
+            DIMENSIONS.getKey(), getDimensionItems(params, Optional.of(optionsPresentInGrid)));
+      } else {
+        metadata.put(DIMENSIONS.getKey(), getDimensionItems(params, empty()));
+      }
+
+      maybeAddOrgUnitHierarchyInfo(params, metadata, grid);
+
+      grid.setMetaData(metadata);
+    }
+  }
+
+  /**
+   * Depending on the params "hierarchy" metadata boolean flags, this method may append (or not)
+   * Org. Unit data into the given metadata map.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param metadata the metadata map.
+   */
+  private void maybeAddOrgUnitHierarchyInfo(
+      EventQueryParams params, Map<String, Object> metadata, Grid grid) {
+    if (params.isHierarchyMeta() || params.isShowHierarchy()) {
+      User user = securityManager.getCurrentUser(params);
+
+      List<OrganisationUnit> organisationUnits =
+          asTypedList(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID));
+
+      Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+
+      List<OrganisationUnit> activeOrgUnits =
+          OrgUnitHelper.getActiveOrganisationUnits(grid, organisationUnits);
+
+      if (params.isHierarchyMeta()) {
+        metadata.put(ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap(activeOrgUnits, roots));
+      }
+
+      if (params.isShowHierarchy()) {
+        metadata.put(
+            ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap(activeOrgUnits, roots, true));
+      }
+    }
+  }
+
+  /**
+   * Creates the map of {@link MetadataItem} based on the given params and internal rules.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return a {@link Map} of metadata item identifiers represented by {@link MetadataItem}.
+   */
+  private Map<String, MetadataItem> getMetadataItems(EventQueryParams params) {
+    Map<String, MetadataItem> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap(params);
+
+    boolean includeDetails = params.isIncludeMetadataDetails();
+
+    if (params.hasValueDimension()) {
+      DimensionalItemObject value = params.getValue();
+      metadataItemMap.put(
+          value.getUid(),
+          new MetadataItem(
+              value.getDisplayProperty(params.getDisplayProperty()),
+              includeDetails ? value.getUid() : null,
+              value.getCode()));
     }
 
-    /**
-     * Depending on the params "hierarchy" metadata boolean flags, this method
-     * may append (or not) Org. Unit data into the given metadata map.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @param metadata the metadata map.
-     */
-    private void maybeAddOrgUnitHierarchyInfo( EventQueryParams params, Map<String, Object> metadata, Grid grid )
-    {
-        if ( params.isHierarchyMeta() || params.isShowHierarchy() )
-        {
-            User user = securityManager.getCurrentUser( params );
+    params.getItemLegends().stream()
+        .filter(Objects::nonNull)
+        .forEach(
+            legend ->
+                metadataItemMap.put(
+                    legend.getUid(),
+                    new MetadataItem(
+                        legend.getDisplayName(),
+                        includeDetails ? legend.getUid() : null,
+                        legend.getCode())));
 
-            List<OrganisationUnit> organisationUnits = asTypedList(
-                params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+    params.getItemOptions().stream()
+        .filter(Objects::nonNull)
+        .forEach(
+            option ->
+                metadataItemMap.put(
+                    option.getUid(),
+                    new MetadataItem(
+                        option.getDisplayName(),
+                        includeDetails ? option.getUid() : null,
+                        option.getCode())));
 
-            Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+    params.getItemsAndItemFilters().stream()
+        .filter(Objects::nonNull)
+        .forEach(
+            item ->
+                metadataItemMap.put(
+                    item.getItemId(),
+                    new MetadataItem(
+                        item.getItem().getDisplayName(), includeDetails ? item.getItem() : null)));
 
-            List<OrganisationUnit> activeOrgUnits = OrgUnitHelper.getActiveOrganisationUnits( grid, organisationUnits );
+    return metadataItemMap;
+  }
 
-            if ( params.isHierarchyMeta() )
-            {
-                metadata.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( activeOrgUnits, roots ) );
-            }
+  /**
+   * Returns a map of metadata item identifiers and {@link MetadataItem}.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param periodKeywords the period keywords.
+   * @param itemOptions the set of item {@link Option}.
+   * @param grid the grid instance {@link Grid}.
+   * @return a map.
+   */
+  private Map<String, MetadataItem> getMetadataItems(
+      EventQueryParams params,
+      List<DimensionItemKeywords.Keyword> periodKeywords,
+      Set<Option> itemOptions,
+      Grid grid) {
+    Map<String, MetadataItem> metadataItemMap =
+        AnalyticsUtils.getDimensionMetadataItemMap(params, grid);
 
-            if ( params.isShowHierarchy() )
-            {
-                metadata.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
-                    getParentNameGraphMap( activeOrgUnits, roots, true ) );
-            }
-        }
+    boolean includeDetails = params.isIncludeMetadataDetails();
+
+    if (params.hasValueDimension()) {
+      DimensionalItemObject value = params.getValue();
+      metadataItemMap.put(
+          value.getUid(),
+          new MetadataItem(
+              value.getDisplayProperty(params.getDisplayProperty()),
+              includeDetails ? value.getUid() : null,
+              value.getCode()));
     }
 
-    /**
-     * Returns a map of metadata item identifiers and {@link MetadataItem}.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @param periodKeywords the period keywords.
-     * @param itemOptions the set of item {@link Option}.
-     * @param grid the grid instance {@link Grid}.
-     * @return a map.
-     */
-    private Map<String, MetadataItem> getMetadataItems( EventQueryParams params,
-        List<DimensionItemKeywords.Keyword> periodKeywords, Set<Option> itemOptions, Grid grid )
-    {
-        Map<String, MetadataItem> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params, grid );
+    params.getItemLegends().stream()
+        .filter(Objects::nonNull)
+        .forEach(
+            legend ->
+                metadataItemMap.put(
+                    legend.getUid(),
+                    new MetadataItem(
+                        legend.getDisplayName(),
+                        includeDetails ? legend.getUid() : null,
+                        legend.getCode())));
 
-        boolean includeDetails = params.isIncludeMetadataDetails();
+    addMetadataItems(metadataItemMap, params, itemOptions);
 
-        if ( params.hasValueDimension() )
-        {
-            DimensionalItemObject value = params.getValue();
-            metadataItemMap.put( value.getUid(),
-                new MetadataItem( value.getDisplayProperty( params.getDisplayProperty() ),
-                    includeDetails ? value.getUid() : null, value.getCode() ) );
+    params.getItemsAndItemFilters().stream()
+        .filter(Objects::nonNull)
+        .forEach(
+            item ->
+                addItemToMetadata(
+                    metadataItemMap, item, includeDetails, params.getDisplayProperty()));
+
+    if (hasPeriodKeywords(periodKeywords)) {
+      for (DimensionItemKeywords.Keyword keyword : periodKeywords) {
+        if (keyword.getMetadataItem() != null) {
+          metadataItemMap.put(
+              keyword.getKey(), new MetadataItem(keyword.getMetadataItem().getName()));
         }
-
-        params.getItemLegends().stream()
-            .filter( Objects::nonNull )
-            .forEach( legend -> metadataItemMap.put( legend.getUid(),
-                new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null,
-                    legend.getCode() ) ) );
-
-        addMetadataItems( metadataItemMap, params, itemOptions );
-
-        params.getItemsAndItemFilters().stream()
-            .filter( Objects::nonNull )
-            .forEach( item -> addItemToMetadata(
-                metadataItemMap, item, includeDetails, params.getDisplayProperty() ) );
-
-        if ( hasPeriodKeywords( periodKeywords ) )
-        {
-            for ( DimensionItemKeywords.Keyword keyword : periodKeywords )
-            {
-                if ( keyword.getMetadataItem() != null )
-                {
-                    metadataItemMap.put( keyword.getKey(), new MetadataItem( keyword.getMetadataItem().getName() ) );
-                }
-            }
-        }
-
-        return metadataItemMap;
+      }
     }
 
-    /**
-     * Adds the given item to the given metadata item map.
-     *
-     * @param metadataItemMap the metadata item map.
-     * @param item the {@link QueryItem}.
-     * @param includeDetails whether to include metadata details.
-     * @param displayProperty the {@link DisplayProperty}.
-     */
-    private void addItemToMetadata( Map<String, MetadataItem> metadataItemMap, QueryItem item,
-        boolean includeDetails, DisplayProperty displayProperty )
-    {
-        MetadataItem metadataItem = new MetadataItem( item.getItem().getDisplayProperty( displayProperty ),
-            includeDetails ? item.getItem() : null );
+    return metadataItemMap;
+  }
 
-        metadataItemMap.put( getItemIdWithProgramStageIdPrefix( item ), metadataItem );
+  /**
+   * Adds the given item to the given metadata item map.
+   *
+   * @param metadataItemMap the metadata item map.
+   * @param item the {@link QueryItem}.
+   * @param includeDetails whether to include metadata details.
+   * @param displayProperty the {@link DisplayProperty}.
+   */
+  private void addItemToMetadata(
+      Map<String, MetadataItem> metadataItemMap,
+      QueryItem item,
+      boolean includeDetails,
+      DisplayProperty displayProperty) {
+    MetadataItem metadataItem =
+        new MetadataItem(
+            item.getItem().getDisplayProperty(displayProperty),
+            includeDetails ? item.getItem() : null);
 
-        // Done for backwards compatibility
+    metadataItemMap.put(getItemIdWithProgramStageIdPrefix(item), metadataItem);
 
-        metadataItemMap.put( item.getItemId(), metadataItem );
+    // Done for backwards compatibility
+
+    metadataItemMap.put(item.getItemId(), metadataItem);
+  }
+
+  /**
+   * Returns the query item identifier, may have a program stage prefix.
+   *
+   * @param item {@link QueryItem}.
+   */
+  private String getItemIdWithProgramStageIdPrefix(QueryItem item) {
+    if (item.hasProgramStage()) {
+      return item.getProgramStage().getUid() + "." + item.getItemId();
     }
 
-    /**
-     * Returns the query item identifier, may have a program stage prefix.
-     *
-     * @param item {@link QueryItem}.
-     */
-    private String getItemIdWithProgramStageIdPrefix( QueryItem item )
-    {
-        if ( item.hasProgramStage() )
-        {
-            return item.getProgramStage().getUid() + "." + item.getItemId();
-        }
+    return item.getItemId();
+  }
 
-        return item.getItemId();
+  /**
+   * Indicates whether any keywords exist.
+   *
+   * @param keywords the list of {@link Keyword}.
+   */
+  private boolean hasPeriodKeywords(List<DimensionItemKeywords.Keyword> keywords) {
+    return keywords != null && !keywords.isEmpty();
+  }
+
+  /**
+   * Adds the given metadata items.
+   *
+   * @param metadataItemMap the metadata item map.
+   * @param params the {@link EventQueryParams}.
+   * @param itemOptions the list of {@link Option}.
+   */
+  private void addMetadataItems(
+      Map<String, MetadataItem> metadataItemMap, EventQueryParams params, Set<Option> itemOptions) {
+    boolean includeDetails = params.isIncludeMetadataDetails();
+
+    itemOptions.forEach(
+        option ->
+            metadataItemMap.put(
+                option.getUid(),
+                new MetadataItem(
+                    option.getDisplayProperty(params.getDisplayProperty()),
+                    includeDetails ? option.getUid() : null,
+                    option.getCode())));
+
+    new MetadataItemsHandler().addOptionsSetIntoMap(metadataItemMap, itemOptions);
+  }
+
+  /**
+   * Returns a map between dimension identifiers and lists of dimension item identifiers.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param itemOptions the item options to be added into dimension items.
+   * @return a {@link Map} of dimension items.
+   */
+  private Map<String, List<String>> getDimensionItems(
+      EventQueryParams params, Optional<Map<String, List<Option>>> itemOptions) {
+    Calendar calendar = PeriodType.getCalendar();
+
+    List<String> periodUids =
+        calendar.isIso8601()
+            ? getUids(params.getDimensionOrFilterItems(PERIOD_DIM_ID))
+            : getLocalPeriodIdentifiers(params.getDimensionOrFilterItems(PERIOD_DIM_ID), calendar);
+
+    Map<String, List<String>> dimensionItems = new HashMap<>();
+
+    dimensionItems.put(PERIOD_DIM_ID, periodUids);
+
+    for (DimensionalObject dim : params.getDimensionsAndFilters()) {
+      dimensionItems.put(dim.getDimension(), getDimensionalItemIds(dim.getItems()));
     }
 
-    /**
-     * Indicates whether any keywords exist.
-     *
-     * @param keywords the list of {@link Keyword}.
-     */
-    private boolean hasPeriodKeywords( List<DimensionItemKeywords.Keyword> keywords )
-    {
-        return keywords != null && !keywords.isEmpty();
+    for (QueryItem item : params.getItems()) {
+      String itemUid = getItemUid(item);
+
+      if (item.hasOptionSet()) {
+        if (itemOptions.isPresent()) {
+          Map<String, List<Option>> itemOptionsMap = itemOptions.get();
+
+          // The call itemOptions.get( itemUid ) can return null.
+          // The query item can't have both legends and options.
+          dimensionItems.put(
+              itemUid,
+              getDimensionItemUidsFrom(
+                  itemOptionsMap.get(itemUid), item.getOptionSetFilterItemsOrAll()));
+        } else {
+          dimensionItems.put(item.getItemId(), item.getOptionSetFilterItemsOrAll());
+        }
+      } else if (item.hasLegendSet()) {
+        dimensionItems.put(itemUid, item.getLegendSetFilterItemsOrAll());
+      } else {
+        dimensionItems.put(itemUid, List.of());
+      }
     }
 
-    /**
-     * Adds the given metadata items.
-     *
-     * @param metadataItemMap the metadata item map.
-     * @param params the {@link EventQueryParams}.
-     * @param itemOptions the list of {@link Option}.
-     */
-    private void addMetadataItems( Map<String, MetadataItem> metadataItemMap,
-        EventQueryParams params, Set<Option> itemOptions )
-    {
-        boolean includeDetails = params.isIncludeMetadataDetails();
+    addItemFiltersToDimensionItems(params.getItemFilters(), dimensionItems);
 
-        itemOptions.forEach( option -> metadataItemMap.put( option.getUid(),
-            new MetadataItem(
-                option.getDisplayProperty( params.getDisplayProperty() ),
-                includeDetails ? option.getUid() : null,
-                option.getCode() ) ) );
+    return dimensionItems;
+  }
+
+  private static void addItemFiltersToDimensionItems(
+      List<QueryItem> itemsFilter, Map<String, List<String>> dimensionItems) {
+    for (QueryItem item : itemsFilter) {
+      if (item.hasOptionSet()) {
+        dimensionItems.put(item.getItemId(), item.getOptionSetFilterItemsOrAll());
+      } else if (item.hasLegendSet()) {
+        dimensionItems.put(item.getItemId(), item.getLegendSetFilterItemsOrAll());
+      } else {
+        dimensionItems.put(
+            item.getItemId(),
+            item.getFiltersAsString() != null ? List.of(item.getFiltersAsString()) : emptyList());
+      }
+    }
+  }
+
+  /**
+   * Based on the given arguments, this method will extract a list of UIDs of {@link Option}. If
+   * itemOptions is null, it returns the default list of UIDs (defaultOptionUids). Otherwise, it
+   * will return the list of UIDs from itemOptions.
+   *
+   * @param itemOptions a list of {@link Option} objects
+   * @param defaultOptionUids a list of default {@link Option} UIDs.
+   * @return a list of UIDs.
+   */
+  private List<String> getDimensionItemUidsFrom(
+      List<Option> itemOptions, List<String> defaultOptionUids) {
+    List<String> dimensionUids = new ArrayList<>();
+
+    if (itemOptions == null) {
+      dimensionUids.addAll(defaultOptionUids);
+    } else {
+      dimensionUids.addAll(IdentifiableObjectUtils.getUids(itemOptions));
     }
 
-    /**
-     * Returns a map between dimension identifiers and lists of dimension item
-     * identifiers.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @param itemOptions the data query parameters.
-     * @return a map.
-     */
-    private Map<String, List<String>> getDimensionItems( EventQueryParams params,
-        Map<String, List<Option>> itemOptions )
-    {
-        Calendar calendar = PeriodType.getCalendar();
+    return dimensionUids;
+  }
 
-        List<String> periodUids = calendar.isIso8601() ? getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) )
-            : getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
-
-        Map<String, List<String>> dimensionItems = new HashMap<>();
-
-        dimensionItems.put( PERIOD_DIM_ID, periodUids );
-
-        for ( DimensionalObject dim : params.getDimensionsAndFilters() )
-        {
-            dimensionItems.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
-        }
-
-        for ( QueryItem item : params.getItems() )
-        {
-            String itemUid = getItemUid( item );
-
-            if ( item.hasOptionSet() )
-            {
-                // The call itemOptions.get( itemUid ) can return null.
-                // The query item can't have both legends and options.
-                dimensionItems.put( itemUid,
-                    getDimensionItemUidsFrom( itemOptions.get( itemUid ), item.getOptionSetFilterItemsOrAll() ) );
-            }
-            else if ( item.hasLegendSet() )
-            {
-                dimensionItems.put( itemUid, item.getLegendSetFilterItemsOrAll() );
-            }
-            else
-            {
-                dimensionItems.put( itemUid, List.of() );
-            }
-        }
-
-        for ( QueryItem item : params.getItemFilters() )
-        {
-            if ( item.hasOptionSet() )
-            {
-                dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
-            }
-            else if ( item.hasLegendSet() )
-            {
-                dimensionItems.put( item.getItemId(), item.getLegendSetFilterItemsOrAll() );
-            }
-            else
-            {
-                dimensionItems.put( item.getItemId(),
-                    item.getFiltersAsString() != null
-                        ? List.of( item.getFiltersAsString() )
-                        : emptyList() );
-            }
-        }
-
-        return dimensionItems;
-    }
-
-    /**
-     * Based on the given arguments, this method will extract a list of UIDs of
-     * {@link Option}. If itemOptions is null, it returns the default list of
-     * UIDs (defaultOptionUids). Otherwise, it will return the list of UIDs from
-     * itemOptions.
-     *
-     * @param itemOptions a list of {@link Option} objects
-     * @param defaultOptionUids a list of default {@link Option} UIDs.
-     * @return a list of UIDs.
-     */
-    private List<String> getDimensionItemUidsFrom( List<Option> itemOptions, List<String> defaultOptionUids )
-    {
-        List<String> dimensionUids = new ArrayList<>();
-
-        if ( itemOptions == null )
-        {
-            dimensionUids.addAll( defaultOptionUids );
-        }
-        else
-        {
-            dimensionUids.addAll( IdentifiableObjectUtils.getUids( itemOptions ) );
-        }
-
-        return dimensionUids;
-    }
-
-    /**
-     * Substitutes metadata in the given grid.
-     *
-     * @param grid the {@link Grid}.
-     */
-    private void substituteData( Grid grid )
-    {
-        for ( int i = 0; i < grid.getHeaders().size(); i++ )
-        {
-            GridHeader header = grid.getHeaders().get( i );
-
-            if ( header.hasOptionSet() )
-            {
-                Map<String, String> optionMap = header.getOptionSetObject().getOptionCodePropertyMap( IdScheme.NAME );
-                grid.substituteMetaData( i, i, optionMap );
-            }
-            else if ( header.hasLegendSet() )
-            {
-                Map<String, String> legendMap = header.getLegendSetObject().getLegendUidPropertyMap( IdScheme.NAME );
-                grid.substituteMetaData( i, i, legendMap );
-            }
-        }
-    }
+  /**
+   * retrieve all periods as list of dimensional objects
+   *
+   * @param params
+   * @return {@link EventQueryParams} object
+   */
+  protected List<DimensionalObject> getPeriods(EventQueryParams params) {
+    return List.of();
+  }
 }

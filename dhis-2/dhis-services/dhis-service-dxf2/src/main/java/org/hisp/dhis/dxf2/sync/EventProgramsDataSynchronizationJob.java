@@ -28,9 +28,6 @@
 package org.hisp.dhis.dxf2.sync;
 
 import lombok.AllArgsConstructor;
-
-import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -44,30 +41,18 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class EventProgramsDataSynchronizationJob implements Job
-{
-    private final EventSynchronization eventSync;
+public class EventProgramsDataSynchronizationJob implements Job {
+  private final EventSynchronization eventSync;
 
-    private final SynchronizationManager syncManager;
+  @Override
+  public JobType getJobType() {
+    return JobType.EVENT_PROGRAMS_DATA_SYNC;
+  }
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.EVENT_PROGRAMS_DATA_SYNC;
-    }
-
-    @Override
-    public void execute( JobConfiguration config, JobProgress progress )
-    {
-        EventProgramsDataSynchronizationJobParameters params = (EventProgramsDataSynchronizationJobParameters) config
-            .getJobParameters();
-        eventSync.synchronizeData( params.getPageSize(), progress );
-    }
-
-    @Override
-    public ErrorReport validate()
-    {
-        return SyncUtils.validateRemoteServerAvailability( syncManager, EventProgramsDataSynchronizationJob.class )
-            .orElse( null );
-    }
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    EventProgramsDataSynchronizationJobParameters params =
+        (EventProgramsDataSynchronizationJobParameters) config.getJobParameters();
+    eventSync.synchronizeData(params.getPageSize(), progress);
+  }
 }

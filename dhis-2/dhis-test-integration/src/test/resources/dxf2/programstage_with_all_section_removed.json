@@ -4,22 +4,23 @@
       "id": "JEMRBUHgpqA",
       "name": "test Program",
       "shortName": "test Program",
-      "programType":"WITH_REGISTRATION",
+      "programType": "WITH_REGISTRATION",
       "programStages": [
-        {"id": "NpsdDv6kKSO"}
+        {
+          "id": "NpsdDv6kKSO"
+        }
       ]
     }
   ],
   "programStages": [
     {
-      "programStageSections" : [],
+      "programStageSections": [],
       "lastUpdated": "2019-01-28T11:23:20.850",
       "id": "NpsdDv6kKSO",
       "created": "2019-01-28T11:23:20.850",
       "name": "ProgramA",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
-      "publicAccess": "rw------",
       "openAfterEnrollment": false,
       "repeatable": false,
       "remindCompleted": false,
@@ -38,9 +39,14 @@
       },
       "notificationTemplates": [],
       "translations": [],
-      "userGroupAccesses": [],
       "attributeValues": [],
-      "userAccesses": []
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "T12jeH7KPzk",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ]
 }

@@ -32,258 +32,253 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
-
 import org.springframework.core.io.Resource;
 
 /**
  * @author Saptarshi Purkayastha
  */
-public interface AppManager
-{
-    static final String ID = AppManager.class.getName();
+public interface AppManager {
+  static final String ID = AppManager.class.getName();
 
-    static final String BUNDLED_APP_PREFIX = "dhis-web-";
+  static final String BUNDLED_APP_PREFIX = "dhis-web-";
 
-    static final Set<String> BUNDLED_APPS = Set.of(
-        // Javascript apps
-        "aggregate-data-entry",
-        "app-management",
-        "cache-cleaner",
-        "capture",
-        "dashboard",
-        "data-administration",
-        "data-visualizer",
-        "data-quality",
-        "datastore",
-        "event-reports",
-        "event-visualizer",
-        "import-export",
-        "interpretation",
-        "maintenance",
-        "maps",
-        "menu-management",
-        "messaging",
-        "pivot",
-        "reports",
-        "scheduler",
-        "settings",
-        "sms-configuration",
-        "tracker-capture",
-        "translations",
-        "usage-analytics",
-        "user",
-        "user-profile",
-        // Struts apps
-        "approval",
-        "dataentry",
-        "maintenance-mobile" );
+  static final Set<String> BUNDLED_APPS =
+      Set.of(
+          // Javascript apps
+          "aggregate-data-entry",
+          "app-management",
+          "cache-cleaner",
+          "capture",
+          "dashboard",
+          "data-administration",
+          "data-visualizer",
+          "data-quality",
+          "datastore",
+          "event-reports",
+          "event-visualizer",
+          "import-export",
+          "interpretation",
+          "maintenance",
+          "maps",
+          "menu-management",
+          "messaging",
+          "pivot",
+          "reports",
+          "scheduler",
+          "settings",
+          "sms-configuration",
+          "tracker-capture",
+          "translations",
+          "usage-analytics",
+          "user",
+          "user-profile",
+          // Struts apps
+          "approval",
+          "dataentry",
+          "maintenance-mobile");
 
-    static final String WEB_MAINTENANCE_APPMANAGER_AUTHORITY = "M_dhis-web-app-management";
+  static final String WEB_MAINTENANCE_APPMANAGER_AUTHORITY = "M_dhis-web-app-management";
 
-    static final String DASHBOARD_PLUGIN_TYPE = "DASHBOARD";
+  static final String DASHBOARD_PLUGIN_TYPE = "DASHBOARD";
 
-    /**
-     * Returns a list of all installed apps.
-     *
-     * @param contextPath the context path of this instance.
-     * @param max the maximum number of apps to return, -1 to return all
-     * @return list of installed apps
-     */
-    List<App> getApps( String contextPath, int max );
+  /**
+   * Returns a list of all installed apps.
+   *
+   * @param contextPath the context path of this instance.
+   * @param max the maximum number of apps to return, -1 to return all
+   * @return list of installed apps
+   */
+  List<App> getApps(String contextPath, int max);
 
-    /**
-     * Returns a list of all installed apps.
-     *
-     * @param contextPath the context path of this instance.
-     * @return list of installed apps
-     */
-    List<App> getApps( String contextPath );
+  /**
+   * Returns a list of all installed apps.
+   *
+   * @param contextPath the context path of this instance.
+   * @return list of installed apps
+   */
+  List<App> getApps(String contextPath);
 
-    /**
-     * Returns a list of installed apps with plugins. Includes both
-     * DASHBOARD_WIDGET app types and APP app types with a pluginLaunchPath.
-     *
-     * @param contextPath the context path of this instance.
-     * @param max the maximum number of apps to return, -1 to return all
-     *
-     * @return a list of apps.
-     */
-    List<App> getDashboardPlugins( String contextPath, int max );
+  /**
+   * Returns a list of installed apps with plugins. Includes both DASHBOARD_WIDGET app types and APP
+   * app types with a pluginLaunchPath.
+   *
+   * @param contextPath the context path of this instance.
+   * @param max the maximum number of apps to return, -1 to return all
+   * @return a list of apps.
+   */
+  List<App> getDashboardPlugins(String contextPath, int max);
 
-    /**
-     * Returns the installed app with a given name
-     *
-     * @param appName the name of the app to return.
-     * @return the app with the requested name
-     */
-    App getApp( String appName );
+  /**
+   * Returns a list of installed apps with plugins. Includes both {@link AppType.DASHBOARD_WIDGET}
+   * app types and {@link AppType.APP} app types with a pluginLaunchPath.
+   *
+   * @param contextPath the context path of this instance.
+   * @param max the maximum number of apps to return, -1 to return all.
+   * @param skipCore if true, all core apps will be removed from the result list.
+   * @return a list of {@link App}.
+   */
+  List<App> getDashboardPlugins(String contextPath, int max, boolean skipCore);
 
-    /**
-     * Return a list of all installed apps with given filter list Currently
-     * support filtering by AppType and name
-     *
-     * @param filter
-     * @return Return a list of all installed apps with given filter list
-     */
-    List<App> filterApps( List<String> filter, String contextPath );
+  /**
+   * Returns the installed app with a given name
+   *
+   * @param appName the name of the app to return.
+   * @return the app with the requested name
+   */
+  App getApp(String appName);
 
-    /**
-     * Returns the app with the given key (folder name).
-     *
-     * @param key the app key.
-     * @param contextPath the context path of this instance.
-     * @return the app with the given key.
-     */
-    App getApp( String key, String contextPath );
+  /**
+   * Return a list of all installed apps with given filter list Currently support filtering by
+   * AppType and name
+   *
+   * @param filter
+   * @return Return a list of all installed apps with given filter list
+   */
+  List<App> filterApps(List<String> filter, String contextPath);
 
-    /**
-     * Installs the app.
-     *
-     * @param file the app file.
-     * @param fileName the name of the app file.
-     * @throws IOException if the app manifest file could not be read.
-     */
-    AppStatus installApp( File file, String fileName );
+  /**
+   * Returns the app with the given key (folder name).
+   *
+   * @param key the app key.
+   * @param contextPath the context path of this instance.
+   * @return the app with the given key.
+   */
+  App getApp(String key, String contextPath);
 
-    /**
-     * Indicates whether the app with the given name exist.
-     *
-     * @param appName the name of the app-
-     * @return true if the app exists.
-     */
-    boolean exists( String appName );
+  /**
+   * Installs the app.
+   *
+   * @param file the app file.
+   * @param fileName the name of the app file.
+   * @return outcome of the installation
+   */
+  AppStatus installApp(File file, String fileName);
 
-    /**
-     * Deletes the given app.
-     *
-     * @param app the app to delete.
-     * @param deleteAppData decide if associated data in dataStore should be
-     *        deleted or not.
-     */
-    void deleteApp( App app, boolean deleteAppData );
+  /**
+   * Installs an app from the AppHub with the given ID.
+   *
+   * @param appHubId A unqiue ID for a specific app version
+   * @return outcome of the installation
+   */
+  AppStatus installApp(UUID appHubId);
 
-    /**
-     * Reload list of apps.
-     */
-    void reloadApps();
+  /**
+   * Indicates whether the app with the given name exist.
+   *
+   * @param appName the name of the app-
+   * @return true if the app exists.
+   */
+  boolean exists(String appName);
 
-    /**
-     * Returns the url of the app repository
-     *
-     * @return url of app hub
-     */
-    String getAppHubUrl();
+  /**
+   * Deletes the given app.
+   *
+   * @param app the app to delete.
+   * @param deleteAppData decide if associated data in dataStore should be deleted or not.
+   */
+  void deleteApp(App app, boolean deleteAppData);
 
-    /**
-     * Indicates whether the given app is accessible to the current user.
-     *
-     * @param app the app.
-     * @return true if app is accessible.
-     */
-    boolean isAccessible( App app );
+  /** Reload list of apps. */
+  void reloadApps();
 
-    /**
-     * Returns the app associated with the namespace, or null if no app is
-     * associated.
-     *
-     * @param namespace the namespace to check
-     * @return App or null
-     */
-    App getAppByNamespace( String namespace );
+  /**
+   * Returns the url of the app repository
+   *
+   * @return url of app hub
+   */
+  String getAppHubUrl();
 
-    /**
-     * Looks up and returns the file associated with the app and pageName, if it
-     * exists
-     *
-     * @param app the app to look up files for
-     * @param pageName the page requested
-     * @return the Resource representing the file, or null if no file was found
-     */
-    Resource getAppResource( App app, String pageName )
-        throws IOException;
+  /**
+   * Indicates whether the given app is accessible to the current user.
+   *
+   * @param app the app.
+   * @return true if app is accessible.
+   */
+  boolean isAccessible(App app);
 
-    /**
-     * Sets the app status to DELETION_IN_PROGRESS.
-     *
-     * @param app The app that has to be marked as deleted.
-     * @return true if the status was changed in this method.
-     */
-    boolean markAppToDelete( App app );
+  /**
+   * Looks up and returns the file associated with the app and pageName, if it exists
+   *
+   * @param app the app to look up files for
+   * @param pageName the page requested
+   * @return the Resource representing the file, or null if no file was found
+   */
+  Resource getAppResource(App app, String pageName) throws IOException;
 
-    // -------------------------------------------------------------------------
-    // Static methods for manipulating a collection of apps
-    // -------------------------------------------------------------------------
+  /**
+   * Sets the app status to DELETION_IN_PROGRESS.
+   *
+   * @param app The app that has to be marked as deleted.
+   * @return true if the status was changed in this method.
+   */
+  boolean markAppToDelete(App app);
 
-    /**
-     * Returns a list of all installed apps with AppType equal the given Type
-     *
-     * @return list of installed apps with given AppType
-     */
-    public static List<App> filterAppsByType( AppType appType, Collection<App> apps )
-    {
-        return apps.stream()
-            .filter( app -> app.getAppType() == appType )
-            .collect( Collectors.toList() );
-    }
+  // -------------------------------------------------------------------------
+  // Static methods for manipulating a collection of apps
+  // -------------------------------------------------------------------------
 
-    private static Boolean checkAppStringProperty( final String propertyValue, final String testValue,
-        final String operator )
-    {
-        return ("ilike".equalsIgnoreCase( operator ) && propertyValue.toLowerCase().contains( testValue.toLowerCase() ))
-            ||
-            ("eq".equalsIgnoreCase( operator ) && propertyValue.equals( testValue ));
-    }
+  /**
+   * Returns a list of all installed apps with AppType equal the given Type
+   *
+   * @return list of installed apps with given AppType
+   */
+  public static List<App> filterAppsByType(AppType appType, Collection<App> apps) {
+    return apps.stream().filter(app -> app.getAppType() == appType).collect(Collectors.toList());
+  }
 
-    /**
-     * Returns a list of all installed apps with name equal the given name and
-     * operator. Currently supports eq and ilike.
-     *
-     * @return list of installed apps with given name
-     */
-    public static List<App> filterAppsByName( final String name, Collection<App> apps, final String operator )
-    {
-        return apps.stream().filter(
-            app -> checkAppStringProperty( app.getName(), name, operator ) )
-            .collect( Collectors.toList() );
-    }
+  private static Boolean checkAppStringProperty(
+      final String propertyValue, final String testValue, final String operator) {
+    return ("ilike".equalsIgnoreCase(operator)
+            && propertyValue.toLowerCase().contains(testValue.toLowerCase()))
+        || ("eq".equalsIgnoreCase(operator) && propertyValue.equals(testValue));
+  }
 
-    /**
-     * Returns a list of all installed apps with shortName equal the given name
-     * and operator. Currently supports eq and ilike.
-     *
-     * @return list of installed apps with given name
-     */
-    public static List<App> filterAppsByShortName( final String name, Collection<App> apps, final String operator )
-    {
-        return apps.stream()
-            .filter( app -> checkAppStringProperty( app.getShortName(), name, operator ) )
-            .collect( Collectors.toList() );
-    }
+  /**
+   * Returns a list of all installed apps with name equal the given name and operator. Currently
+   * supports eq and ilike.
+   *
+   * @return list of installed apps with given name
+   */
+  public static List<App> filterAppsByName(
+      final String name, Collection<App> apps, final String operator) {
+    return apps.stream()
+        .filter(app -> checkAppStringProperty(app.getName(), name, operator))
+        .collect(Collectors.toList());
+  }
 
-    /**
-     * Returns a list of all installed apps which are either bundled or not
-     * bundled operator. Currently supports eq.
-     *
-     * @return list of installed apps with given isBundled property
-     */
-    public static List<App> filterAppsByIsBundled( final boolean isBundled, Collection<App> apps )
-    {
-        return apps
-            .stream()
-            .filter( app -> app.isBundled() == isBundled )
-            .collect( Collectors.toList() );
-    }
+  /**
+   * Returns a list of all installed apps with shortName equal the given name and operator.
+   * Currently supports eq and ilike.
+   *
+   * @return list of installed apps with given name
+   */
+  public static List<App> filterAppsByShortName(
+      final String name, Collection<App> apps, final String operator) {
+    return apps.stream()
+        .filter(app -> checkAppStringProperty(app.getShortName(), name, operator))
+        .collect(Collectors.toList());
+  }
 
-    /**
-     * Returns a list of all installed apps which have the given plugin type.
-     *
-     * @return list of installed apps with given isBundled property
-     */
-    public static List<App> filterAppsByPluginType( String pluginType, Collection<App> apps )
-    {
-        return apps.stream()
-            .filter( app -> app.getPluginType().equals( pluginType ) )
-            .collect( Collectors.toList() );
-    }
+  /**
+   * Returns a list of all installed apps which are either bundled or not bundled operator.
+   * Currently supports eq.
+   *
+   * @return list of installed apps with given isBundled property
+   */
+  public static List<App> filterAppsByIsBundled(final boolean isBundled, Collection<App> apps) {
+    return apps.stream().filter(app -> app.isBundled() == isBundled).collect(Collectors.toList());
+  }
+
+  /**
+   * Returns a list of all installed apps which have the given plugin type.
+   *
+   * @return list of installed apps with given isBundled property
+   */
+  public static List<App> filterAppsByPluginType(String pluginType, Collection<App> apps) {
+    return apps.stream()
+        .filter(app -> app.getPluginType().equals(pluginType))
+        .collect(Collectors.toList());
+  }
 }

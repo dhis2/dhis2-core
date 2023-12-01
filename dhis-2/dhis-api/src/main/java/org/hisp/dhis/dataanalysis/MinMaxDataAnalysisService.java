@@ -28,20 +28,17 @@
 package org.hisp.dhis.dataanalysis;
 
 import java.util.Collection;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-public interface MinMaxDataAnalysisService
-    extends DataAnalysisService
-{
-    /**
-     * Generate min-max values.
-     *
-     * @param parent the parent organisation unit.
-     * @param dataElements the data elements.
-     * @param stdDevFactor the std dev factor.
-     */
-    void generateMinMaxValues( OrganisationUnit parent,
-        Collection<DataElement> dataElements, Double stdDevFactor );
+public interface MinMaxDataAnalysisService extends DataAnalysisService {
+  /**
+   * Generate min-max values.
+   *
+   * @param parent the parent organisation unit.
+   * @param dataElements the data elements.
+   * @param stdDevFactor the std dev factor.
+   */
+  void generateMinMaxValues(
+      OrganisationUnit parent, Collection<DataElement> dataElements, Double stdDevFactor);
 }

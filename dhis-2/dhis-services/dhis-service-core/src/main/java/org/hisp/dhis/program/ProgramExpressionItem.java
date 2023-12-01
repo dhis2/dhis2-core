@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hisp.dhis.common.ValueType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.parser.expression.ParserUtils.castSql;
+import static org.hisp.dhis.parser.expression.ParserUtils.replaceSqlNull;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.analytics.DataType;
@@ -44,100 +47,81 @@ import org.hisp.dhis.system.util.ValidationUtils;
 
 /**
  * Program indicator expression item
- * <p/>
- * The only two methods that are used by program indicator-only items are
- * {@link ExpressionItem#getDescription} and {@link ExpressionItem#getSql}.
- * <p/>
- * getDescription checks the expression item syntax, and returns the expected
- * return data type. For data items, it also registers the translation of any
- * UIDs into human-readable object names.
+ *
+ * <p>The only two methods that are used by program indicator-only items are {@link
+ * ExpressionItem#getDescription} and {@link ExpressionItem#getSql}.
+ *
+ * <p>getDescription checks the expression item syntax, and returns the expected return data type.
+ * For data items, it also registers the translation of any UIDs into human-readable object names.
  *
  * @author Jim Grace
  */
-public abstract class ProgramExpressionItem
-    implements ExpressionItem
-{
-    private final static String COALESCE = "coalesce(";
+public abstract class ProgramExpressionItem implements ExpressionItem {
 
-    @Override
-    public final Object getExpressionInfo( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        throw new ParserExceptionWithoutContext(
-            "Internal parsing error: getExpressionInfo called for program indicator item " + ctx.getText() );
+  @Override
+  public final Object getExpressionInfo(ExprContext ctx, CommonExpressionVisitor visitor) {
+    throw new ParserExceptionWithoutContext(
+        "Internal parsing error: getExpressionInfo called for program indicator item "
+            + ctx.getText());
+  }
+
+  @Override
+  public final Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    throw new ParserExceptionWithoutContext(
+        "Internal parsing error: evaluate called for program indicator item " + ctx.getText());
+  }
+
+  /**
+   * Get the program expression item that matches the parsed arguments
+   *
+   * @param ctx the expression context
+   * @return the program expression item that can handle the parsed arguments
+   */
+  protected ProgramExpressionItem getProgramArgType(ExprContext ctx) {
+    if (ctx.psEventDate != null) {
+      return new ProgramItemPsEventdate();
     }
 
-    @Override
-    public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        throw new ParserExceptionWithoutContext(
-            "Internal parsing error: evaluate called for program indicator item " + ctx.getText() );
+    if (ctx.uid1 != null) {
+      return new ProgramItemStageElement();
     }
 
-    /**
-     * Get the program expression item that matches the parsed arguments
-     *
-     * @param ctx the expression context
-     * @return the program expression item that can handle the parsed arguments
-     */
-    protected ProgramExpressionItem getProgramArgType( ExprContext ctx )
-    {
-        if ( ctx.psEventDate != null )
-        {
-            return new ProgramItemPsEventdate();
-        }
-
-        if ( ctx.uid1 != null )
-        {
-            return new ProgramItemStageElement();
-        }
-
-        if ( ctx.uid0 != null )
-        {
-            return new ProgramItemAttribute();
-        }
-
-        if ( ctx.programVariable() != null )
-        {
-            return new ProgramVariableItem();
-        }
-
-        throw new ParserExceptionWithoutContext( "Illegal argument in program indicator expression: " + ctx.getText() );
+    if (ctx.uid0 != null) {
+      return new ProgramItemAttribute();
     }
 
-    /**
-     * Get a null replacement value, but if the type is boolean get a number.
-     *
-     * @param valueType type to get a null replacement value for
-     * @return the replacement value
-     */
-    protected Object getNullReplacementValue( ValueType valueType )
-    {
-        return ValidationUtils.getNullReplacementValue( (valueType == BOOLEAN)
-            ? NUMBER
-            : valueType );
+    if (ctx.programVariable() != null) {
+      return new ProgramVariableItem();
     }
 
-    /**
-     * Replace null SQL query values with 0 or '', depending on the value type.
-     *
-     * @param column the column (may be a subquery)
-     * @param valueType the type of value that might be null
-     * @return SQL to replace a null value with 0 or '' depending on type
-     */
-    protected String replaceNullSqlValues( String column, CommonExpressionVisitor visitor, ValueType valueType )
-    {
-        if ( valueType.isNumeric() || valueType.isBoolean() )
-        {
-            if ( visitor.getParams().getDataType() == DataType.BOOLEAN )
-            {
-                return COALESCE + column + "::numeric!=0,false)";
-            }
-            else
-            {
-                return COALESCE + column + "::numeric,0)";
-            }
-        }
+    throw new ParserExceptionWithoutContext(
+        "Illegal argument in program indicator expression: " + ctx.getText());
+  }
 
-        return COALESCE + column + "::text,'')";
+  /**
+   * Get a null replacement value, but if the type is boolean get a number.
+   *
+   * @param valueType type to get a null replacement value for
+   * @return the replacement value
+   */
+  protected Object getNullReplacementValue(ValueType valueType) {
+    return ValidationUtils.getNullReplacementValue(
+        (valueType == ValueType.BOOLEAN) ? NUMBER : valueType);
+  }
+
+  /**
+   * Replace null SQL query values with 0 or '', depending on the value type.
+   *
+   * @param column the column (may be a subquery)
+   * @param valueType the type of value that might be null
+   * @return SQL to replace a null value with 0 or '' depending on type
+   */
+  protected String replaceNullSqlValues(
+      String column, CommonExpressionVisitor visitor, ValueType valueType) {
+    DataType dataType = DataType.fromValueType(valueType);
+    if (dataType == NUMERIC || dataType == BOOLEAN) {
+      dataType = visitor.getParams().getDataType() == BOOLEAN ? BOOLEAN : NUMERIC;
     }
+    return replaceSqlNull(castSql(column, dataType), dataType);
+  }
 }

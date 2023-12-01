@@ -35,13 +35,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- *
  * @author markusbekken
  */
-@OpenApi.Tags( "tracker" )
+@OpenApi.Tags("tracker")
 @Controller
-@RequestMapping( value = ProgramRuleVariableSchemaDescriptor.API_ENDPOINT )
-public class ProgramRuleVariableController
-    extends AbstractCrudController<ProgramRuleVariable>
-{
-}
+@RequestMapping(value = ProgramRuleVariableSchemaDescriptor.API_ENDPOINT)
+public class ProgramRuleVariableController extends AbstractCrudController<ProgramRuleVariable> {}

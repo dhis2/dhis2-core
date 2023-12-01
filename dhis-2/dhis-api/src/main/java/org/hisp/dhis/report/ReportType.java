@@ -30,9 +30,8 @@ package org.hisp.dhis.report;
 /**
  * @author Lars Helge Overland
  */
-public enum ReportType
-{
-    JASPER_REPORT_TABLE,
-    JASPER_JDBC,
-    HTML
+public enum ReportType {
+  JASPER_REPORT_TABLE,
+  JASPER_JDBC,
+  HTML
 }

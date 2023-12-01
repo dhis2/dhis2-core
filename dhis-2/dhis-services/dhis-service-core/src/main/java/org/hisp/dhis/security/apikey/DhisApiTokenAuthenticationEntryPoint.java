@@ -31,13 +31,10 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpStatus;
@@ -51,83 +48,73 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
  */
 @Component
 @Slf4j
-public class DhisApiTokenAuthenticationEntryPoint implements AuthenticationEntryPoint, ApplicationContextAware
-{
-    private String realmName;
+public class DhisApiTokenAuthenticationEntryPoint
+    implements AuthenticationEntryPoint, ApplicationContextAware {
+  private String realmName;
 
-    private ApplicationContext applicationContext;
+  private ApplicationContext applicationContext;
 
-    @Override
-    public void setApplicationContext( ApplicationContext applicationContext )
-    {
-        this.applicationContext = applicationContext;
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) {
+    this.applicationContext = applicationContext;
+  }
+
+  public void setRealmName(String realmName) {
+    this.realmName = realmName;
+  }
+
+  @Override
+  public void commence(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      AuthenticationException authException)
+      throws IOException, ServletException {
+    _commence(response);
+
+    HandlerExceptionResolver handlerExceptionResolver;
+    try {
+      handlerExceptionResolver =
+          (HandlerExceptionResolver) applicationContext.getBean("handlerExceptionResolver");
+      handlerExceptionResolver.resolveException(request, response, null, authException);
+    } catch (Exception e) {
+      log.error("Could not find a HandlerExceptionResolver bean!");
+    }
+  }
+
+  public void _commence(HttpServletResponse response) {
+    HttpStatus status = HttpStatus.UNAUTHORIZED;
+    LinkedHashMap<String, String> parameters = new LinkedHashMap<>();
+
+    if (this.realmName != null) {
+      parameters.put("realm", this.realmName);
     }
 
-    public void setRealmName( String realmName )
-    {
-        this.realmName = realmName;
-    }
+    String wwwAuthenticate = computeWWWAuthenticateHeaderValue(parameters);
 
-    @Override
-    public void commence( HttpServletRequest request, HttpServletResponse response,
-        AuthenticationException authException )
-        throws IOException,
-        ServletException
-    {
-        _commence( response );
+    response.addHeader("WWW-Authenticate", wwwAuthenticate);
+    response.setStatus(status.value());
+  }
 
-        HandlerExceptionResolver handlerExceptionResolver;
-        try
-        {
-            handlerExceptionResolver = (HandlerExceptionResolver) applicationContext
-                .getBean( "handlerExceptionResolver" );
-            handlerExceptionResolver.resolveException( request, response, null, authException );
+  private static String computeWWWAuthenticateHeaderValue(Map<String, String> parameters) {
+    StringBuilder wwwAuthenticate = new StringBuilder();
+    wwwAuthenticate.append("ApiToken");
+
+    if (!parameters.isEmpty()) {
+      wwwAuthenticate.append(" ");
+      int i = 0;
+
+      for (Iterator<Map.Entry<String, String>> iterator = parameters.entrySet().iterator();
+          iterator.hasNext();
+          ++i) {
+        Map.Entry<String, String> entry = iterator.next();
+
+        wwwAuthenticate.append(entry.getKey()).append("=\"").append(entry.getValue()).append("\"");
+        if (i != parameters.size() - 1) {
+          wwwAuthenticate.append(", ");
         }
-        catch ( Exception e )
-        {
-            log.error( "Could not find a HandlerExceptionResolver bean!" );
-        }
+      }
     }
 
-    public void _commence( HttpServletResponse response )
-    {
-        HttpStatus status = HttpStatus.UNAUTHORIZED;
-        LinkedHashMap<String, String> parameters = new LinkedHashMap<>();
-
-        if ( this.realmName != null )
-        {
-            parameters.put( "realm", this.realmName );
-        }
-
-        String wwwAuthenticate = computeWWWAuthenticateHeaderValue( parameters );
-
-        response.addHeader( "WWW-Authenticate", wwwAuthenticate );
-        response.setStatus( status.value() );
-    }
-
-    private static String computeWWWAuthenticateHeaderValue( Map<String, String> parameters )
-    {
-        StringBuilder wwwAuthenticate = new StringBuilder();
-        wwwAuthenticate.append( "ApiToken" );
-
-        if ( !parameters.isEmpty() )
-        {
-            wwwAuthenticate.append( " " );
-            int i = 0;
-
-            for ( Iterator<Map.Entry<String, String>> iterator = parameters.entrySet().iterator(); iterator
-                .hasNext(); ++i )
-            {
-                Map.Entry<String, String> entry = iterator.next();
-
-                wwwAuthenticate.append( entry.getKey() ).append( "=\"" ).append( entry.getValue() ).append( "\"" );
-                if ( i != parameters.size() - 1 )
-                {
-                    wwwAuthenticate.append( ", " );
-                }
-            }
-        }
-
-        return wwwAuthenticate.toString();
-    }
+    return wwwAuthenticate.toString();
+  }
 }

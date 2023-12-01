@@ -29,18 +29,17 @@ package org.hisp.dhis.scheduling;
 
 import java.io.Serializable;
 import java.util.Optional;
-
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
- * Interface for job specific parameters. Serializable so that we can store the
- * object in the database.
+ * Interface for job specific parameters. Serializable so that we can store the object in the
+ * database.
  *
  * @author Henning Håkonsen
  */
-public interface JobParameters
-    extends Serializable, EmbeddedObject
-{
-    Optional<ErrorReport> validate();
+public interface JobParameters extends Serializable, EmbeddedObject {
+  default Optional<ErrorReport> validate() {
+    return Optional.empty();
+  }
 }

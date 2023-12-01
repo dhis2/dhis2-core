@@ -34,66 +34,113 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
-
+import java.util.Optional;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public interface FileResourceService
-{
-    FileResource getFileResource( String uid );
+public interface FileResourceService {
 
-    List<FileResource> getFileResources( @Nonnull List<String> uids );
+  @CheckForNull
+  FileResource getFileResource(String uid);
 
-    List<FileResource> getOrphanedFileResources();
+  /**
+   * Get the {@link FileResource} with the given ID
+   *
+   * @param uid the resource to fetch
+   * @return the file resource
+   * @throws NotFoundException when no such file resource exits
+   */
+  @Nonnull
+  FileResource getExistingFileResource(String uid) throws NotFoundException;
 
-    void saveFileResource( FileResource fileResource, File file );
+  /**
+   * Lookup a {@link FileResource} by uid and {@link FileResourceDomain}.
+   *
+   * @param uid file resource uid to lookup
+   * @param domain file resource domain to lookup
+   * @return the {@link FileResource} associated with the given uid and domain
+   */
+  Optional<FileResource> getFileResource(String uid, FileResourceDomain domain);
 
-    String saveFileResource( FileResource fileResource, byte[] bytes );
+  List<FileResource> getFileResources(@Nonnull List<String> uids);
 
-    void deleteFileResource( String uid );
+  List<FileResource> getOrphanedFileResources();
 
-    void deleteFileResource( FileResource fileResource );
+  /**
+   * Lookup a {@link FileResource} by storage key property.
+   *
+   * @param storageKey key to look up
+   * @return the {@link FileResource} associated with the given storage key
+   */
+  Optional<FileResource> findByStorageKey(@CheckForNull String storageKey);
 
-    InputStream getFileResourceContent( FileResource fileResource );
+  /**
+   * Reverse lookup the objects associated with a {@link FileResource} by the storage key property.
+   *
+   * @param storageKey key to look up
+   * @return list of objects that are associated with the {@link FileResource} of the given storage
+   *     key. This is either none, most often one, but in theory can also be more than one. For
+   *     example when the same data value would be associated with the same file resource value.
+   */
+  List<FileResourceOwner> findOwnersByStorageKey(@CheckForNull String storageKey);
 
-    /**
-     * Copy fileResource content to outputStream and Return File content length
-     *
-     * @param fileResource
-     * @param outputStream
-     * @return
-     * @throws IOException
-     * @throws NoSuchElementException
-     */
-    void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
-        throws IOException,
-        NoSuchElementException;
+  /**
+   * Creates the provided file resource and stores the file content asynchronously.
+   *
+   * @param fileResource the resource to create
+   * @param file the content stored asynchronously
+   */
+  void asyncSaveFileResource(FileResource fileResource, File file);
 
-    /**
-     * Copy fileResource content to a byte array
-     *
-     * @param fileResource
-     * @return a byte array of the content
-     * @throws IOException
-     * @throws NoSuchElementException
-     */
-    byte[] copyFileResourceContent( FileResource fileResource )
-        throws IOException,
-        NoSuchElementException;
+  /**
+   * Creates the provided file resource and stores the content asynchronously.
+   *
+   * @param fileResource the resource to create
+   * @param bytes the content stored asynchronously
+   * @return the UID of the created file resource
+   */
+  String asyncSaveFileResource(FileResource fileResource, byte[] bytes);
 
-    boolean fileResourceExists( String uid );
+  /**
+   * Creates the provided file resource and stores the content synchronously.
+   *
+   * @param fileResource the resource to create
+   * @param bytes the content stored asynchronously
+   * @return the UID of the created file resource
+   */
+  String syncSaveFileResource(FileResource fileResource, byte[] bytes) throws ConflictException;
 
-    void updateFileResource( FileResource fileResource );
+  void deleteFileResource(String uid);
 
-    URI getSignedGetFileResourceContentUri( String uid );
+  void deleteFileResource(FileResource fileResource);
 
-    URI getSignedGetFileResourceContentUri( FileResource fileResource );
+  @Nonnull
+  InputStream getFileResourceContent(FileResource fileResource) throws ConflictException;
 
-    List<FileResource> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy );
+  /** Copy fileResource content to outputStream and Return File content length */
+  void copyFileResourceContent(FileResource fileResource, OutputStream outputStream)
+      throws IOException, NoSuchElementException;
 
-    List<FileResource> getAllUnProcessedImagesFiles();
+  /** Copy fileResource content to a byte array */
+  byte[] copyFileResourceContent(FileResource fileResource)
+      throws IOException, NoSuchElementException;
 
-    long getFileResourceContentLength( FileResource fileResource );
+  boolean fileResourceExists(String uid);
+
+  void updateFileResource(FileResource fileResource);
+
+  URI getSignedGetFileResourceContentUri(String uid);
+
+  URI getSignedGetFileResourceContentUri(FileResource fileResource);
+
+  List<FileResource> getExpiredFileResources(FileResourceRetentionStrategy retentionStrategy);
+
+  List<FileResource> getAllUnProcessedImagesFiles();
+
+  long getFileResourceContentLength(FileResource fileResource);
 }

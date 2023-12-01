@@ -28,113 +28,109 @@
 package org.hisp.dhis.common;
 
 import java.util.List;
-
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 
 /**
  * @author Lars Helge Overland
  */
-public interface GenericStore<T>
-{
-    /**
-     * Class of the object for this store.
-     */
-    @Nonnull
-    Class<T> getClazz();
+public interface GenericStore<T> {
+  /** Class of the object for this store. */
+  @Nonnull
+  Class<T> getClazz();
 
-    /**
-     * Saves the given object instance, with clear sharing set to true.
-     *
-     * @param object the object instance.
-     */
-    void save( @Nonnull T object );
+  /**
+   * Saves the given object instance, with clear sharing set to true.
+   *
+   * @param object the object instance.
+   */
+  void save(@Nonnull T object);
 
-    /**
-     * Updates the given object instance.
-     *
-     * @param object the object instance.
-     */
-    void update( @Nonnull T object );
+  /**
+   * Updates the given object instance.
+   *
+   * @param object the object instance.
+   */
+  void update(@Nonnull T object);
 
-    /**
-     * Removes the given object instance.
-     *
-     * @param object the object instance to delete.
-     */
-    void delete( @Nonnull T object );
+  /**
+   * Removes the given object instance.
+   *
+   * @param object the object instance to delete.
+   */
+  void delete(@Nonnull T object);
 
-    /**
-     * Retrieves the object with the given identifier. This method will first
-     * look in the current Session, then hit the database if not existing.
-     *
-     * @param id the object identifier.
-     * @return the object identified by the given identifier or null
-     */
-    @CheckForNull
-    T get( long id );
+  /**
+   * Retrieves the object with the given identifier. This method will first look in the current
+   * Session, then hit the database if not existing.
+   *
+   * @param id the object identifier.
+   * @return the object identified by the given identifier or null
+   */
+  @CheckForNull
+  T get(long id);
 
-    long countAllValuesByAttributes( @Nonnull List<Attribute> attributes );
+  long countAllValuesByAttributes(@Nonnull List<Attribute> attributes);
 
-    @Nonnull
-    List<AttributeValue> getAttributeValueByAttribute( @Nonnull Attribute attribute );
+  @Nonnull
+  List<AttributeValue> getAttributeValueByAttribute(@Nonnull Attribute attribute);
 
-    /**
-     * Gets the count of objects.
-     *
-     * @return the count of objects.
-     */
-    int getCount();
+  /**
+   * Gets the count of objects.
+   *
+   * @return the count of objects.
+   */
+  int getCount();
 
-    /**
-     * Retrieves a List of all objects.
-     *
-     * @return a List of all objects.
-     */
-    @Nonnull
-    List<T> getAll();
+  /**
+   * Retrieves a List of all objects.
+   *
+   * @return a List of all objects.
+   */
+  @Nonnull
+  List<T> getAll();
 
-    @Nonnull
-    List<T> getByAttribute( @Nonnull Attribute attribute );
+  @Nonnull
+  List<T> getByAttribute(@Nonnull Attribute attribute);
 
-    @Nonnull
-    List<T> getByAttributeAndValue( @Nonnull Attribute attribute, String value );
+  @Nonnull
+  List<T> getByAttributeAndValue(@Nonnull Attribute attribute, String value);
 
-    @Nonnull
-    List<T> getAllByAttributes( @Nonnull List<Attribute> attributes );
+  @Nonnull
+  List<T> getAllByAttributes(@Nonnull List<Attribute> attributes);
 
-    @Nonnull
-    List<AttributeValue> getAllValuesByAttributes( @Nonnull List<Attribute> attributes );
+  @Nonnull
+  List<AttributeValue> getAllValuesByAttributes(@Nonnull List<Attribute> attributes);
 
-    @Nonnull
-    List<AttributeValue> getAttributeValueByAttributeAndValue( @Nonnull Attribute attribute, @Nonnull String value );
+  @Nonnull
+  List<AttributeValue> getAttributeValueByAttributeAndValue(
+      @Nonnull Attribute attribute, @Nonnull String value);
 
-    @Nonnull
-    List<T> getByAttributeValue( @Nonnull AttributeValue attributeValue );
+  @Nonnull
+  List<T> getByAttributeValue(@Nonnull AttributeValue attributeValue);
 
-    boolean isAttributeValueUnique( @Nonnull T object, @Nonnull AttributeValue attributeValue );
+  boolean isAttributeValueUnique(@Nonnull T object, @Nonnull AttributeValue attributeValue);
 
-    boolean isAttributeValueUnique( @Nonnull T object, @Nonnull Attribute attribute, @Nonnull String value );
+  boolean isAttributeValueUnique(
+      @Nonnull T object, @Nonnull Attribute attribute, @Nonnull String value);
 
-    @Nonnull
-    List<T> getAllByAttributeAndValues( @Nonnull Attribute attribute, @Nonnull List<String> values );
+  @Nonnull
+  List<T> getAllByAttributeAndValues(@Nonnull Attribute attribute, @Nonnull List<String> values);
 
-    /**
-     * Update a specific attribute of all objects.
-     *
-     * This can be used to both set (init) or clear a particular attribute.
-     *
-     * @param attribute the attribute to update for all objects
-     * @param newValue the attribute value to store (might override existing
-     *        value for that attribute)
-     * @param createMissing true, if a attribute should be created should it not
-     *        yet exist, false to skip such objects
-     * @return number of objects affected (note that this will not distinguish
-     *         between attribute values that changed by this update and those
-     *         that stay the same)
-     */
-    int updateAllAttributeValues( @Nonnull Attribute attribute, @Nonnull String newValue, boolean createMissing );
+  /**
+   * Update a specific attribute of all objects.
+   *
+   * <p>This can be used to both set (init) or clear a particular attribute.
+   *
+   * @param attribute the attribute to update for all objects
+   * @param newValue the attribute value to store (might override existing value for that attribute)
+   * @param createMissing true, if a attribute should be created should it not yet exist, false to
+   *     skip such objects
+   * @return number of objects affected (note that this will not distinguish between attribute
+   *     values that changed by this update and those that stay the same)
+   */
+  int updateAllAttributeValues(
+      @Nonnull Attribute attribute, @Nonnull String newValue, boolean createMissing);
 }

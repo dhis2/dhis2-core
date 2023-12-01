@@ -30,9 +30,7 @@ package org.hisp.dhis.dxf2.datavalueset;
 import static org.hisp.dhis.commons.util.TextUtils.valueOf;
 
 import java.io.UncheckedIOException;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.staxwax.writer.XMLWriter;
 
 /**
@@ -41,53 +39,48 @@ import org.hisp.staxwax.writer.XMLWriter;
  * @author Jan Bernitt
  */
 @AllArgsConstructor
-final class XmlDataValueSetWriter implements DataValueSetWriter
-{
-    private final XMLWriter writer;
+final class XmlDataValueSetWriter implements DataValueSetWriter {
+  private final XMLWriter writer;
 
-    @Override
-    public void writeHeader()
-    {
-        writer.openDocument();
-        writer.openElement( "dataValueSet" );
-        writer.writeAttribute( "xmlns", "http://dhis2.org/schema/dxf/2.0" );
-    }
+  @Override
+  public void writeHeader() {
+    writer.openDocument();
+    writer.openElement("dataValueSet");
+    writer.writeAttribute("xmlns", "http://dhis2.org/schema/dxf/2.0");
+  }
 
-    @Override
-    public void writeHeader( String dataSetId, String completeDate, String isoPeriod, String orgUnitId )
-    {
-        writeHeader();
-        writer.writeAttribute( "dataSet", dataSetId );
-        writer.writeAttribute( "completeDate", completeDate );
-        writer.writeAttribute( "period", isoPeriod );
-        writer.writeAttribute( "orgUnit", orgUnitId );
-    }
+  @Override
+  public void writeHeader(
+      String dataSetId, String completeDate, String isoPeriod, String orgUnitId) {
+    writeHeader();
+    writer.writeAttribute("dataSet", dataSetId);
+    writer.writeAttribute("completeDate", completeDate);
+    writer.writeAttribute("period", isoPeriod);
+    writer.writeAttribute("orgUnit", orgUnitId);
+  }
 
-    @Override
-    public void writeValue( DataValueEntry entry )
-    {
-        writer.openElement( "dataValue" );
-        writer.writeAttribute( "dataElement", entry.getDataElement() );
-        writer.writeAttribute( "period", entry.getPeriod() );
-        writer.writeAttribute( "orgUnit", entry.getOrgUnit() );
-        writer.writeAttribute( "categoryOptionCombo", entry.getCategoryOptionCombo() );
-        writer.writeAttribute( "attributeOptionCombo", entry.getAttributeOptionCombo() );
-        writer.writeAttribute( "value", entry.getValue() );
-        writer.writeAttribute( "storedBy", entry.getStoredBy() );
-        writer.writeAttribute( "created", entry.getCreated() );
-        writer.writeAttribute( "lastUpdated", entry.getLastUpdated() );
-        writer.writeAttribute( "comment", entry.getComment() );
-        writer.writeAttribute( "followUp", valueOf( entry.getFollowup() ) );
-        writer.writeAttribute( "deleted", valueOf( entry.getDeleted() ) );
-        writer.closeElement();
-    }
+  @Override
+  public void writeValue(DataValueEntry entry) {
+    writer.openElement("dataValue");
+    writer.writeAttribute("dataElement", entry.getDataElement());
+    writer.writeAttribute("period", entry.getPeriod());
+    writer.writeAttribute("orgUnit", entry.getOrgUnit());
+    writer.writeAttribute("categoryOptionCombo", entry.getCategoryOptionCombo());
+    writer.writeAttribute("attributeOptionCombo", entry.getAttributeOptionCombo());
+    writer.writeAttribute("value", entry.getValue());
+    writer.writeAttribute("storedBy", entry.getStoredBy());
+    writer.writeAttribute("created", entry.getCreated());
+    writer.writeAttribute("lastUpdated", entry.getLastUpdated());
+    writer.writeAttribute("comment", entry.getComment());
+    writer.writeAttribute("followUp", valueOf(entry.getFollowup()));
+    writer.writeAttribute("deleted", valueOf(entry.getDeleted()));
+    writer.closeElement();
+  }
 
-    @Override
-    public void close()
-        throws UncheckedIOException
-    {
-        writer.closeElement();
-        writer.closeDocument();
-        writer.closeWriter();
-    }
+  @Override
+  public void close() throws UncheckedIOException {
+    writer.closeElement();
+    writer.closeDocument();
+    writer.closeWriter();
+  }
 }

@@ -27,76 +27,42 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Optional;
-
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Jan Bernitt
  */
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class DisableInactiveUsersJobParameters implements JobParameters
-{
-    private static final long serialVersionUID = -5877578172615705990L;
+@Getter
+@Setter
+@NoArgsConstructor
+public class DisableInactiveUsersJobParameters implements JobParameters {
+  @JsonProperty(required = true)
+  private int inactiveMonths;
 
-    private int inactiveMonths;
+  @JsonProperty private Integer reminderDaysBefore;
 
-    private Integer reminderDaysBefore;
+  public DisableInactiveUsersJobParameters(int inactiveMonths) {
+    this.inactiveMonths = inactiveMonths;
+  }
 
-    public DisableInactiveUsersJobParameters()
-    {
-
+  @Override
+  public Optional<ErrorReport> validate() {
+    if (inactiveMonths < 1 || inactiveMonths > 24) {
+      return Optional.of(
+          new ErrorReport(getClass(), ErrorCode.E4008, "inactiveMonths", 1, 24, inactiveMonths));
     }
-
-    public DisableInactiveUsersJobParameters( int inactiveMonths )
-    {
-        this.inactiveMonths = inactiveMonths;
+    if (reminderDaysBefore != null && (reminderDaysBefore < 1 || reminderDaysBefore > 28)) {
+      return Optional.of(
+          new ErrorReport(
+              getClass(), ErrorCode.E4008, "reminderDaysBefore", 1, 28, reminderDaysBefore));
     }
-
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getInactiveMonths()
-    {
-        return inactiveMonths;
-    }
-
-    public void setInactiveMonths( int inactiveMonths )
-    {
-        this.inactiveMonths = inactiveMonths;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getReminderDaysBefore()
-    {
-        return reminderDaysBefore;
-    }
-
-    public void setReminderDaysBefore( Integer reminderDaysBefore )
-    {
-        this.reminderDaysBefore = reminderDaysBefore;
-    }
-
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        if ( inactiveMonths < 1 || inactiveMonths > 24 )
-        {
-            return Optional.of(
-                new ErrorReport( getClass(), ErrorCode.E4008, "inactiveMonths", 1, 24, inactiveMonths ) );
-        }
-        if ( reminderDaysBefore != null && (reminderDaysBefore < 1 || reminderDaysBefore > 28) )
-        {
-            return Optional.of(
-                new ErrorReport( getClass(), ErrorCode.E4008, "reminderDaysBefore", 1, 28, reminderDaysBefore ) );
-        }
-        return Optional.empty();
-    }
+    return Optional.empty();
+  }
 }

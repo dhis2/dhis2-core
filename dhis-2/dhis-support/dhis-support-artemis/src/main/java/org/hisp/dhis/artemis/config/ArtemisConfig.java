@@ -31,11 +31,9 @@ import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.jms.ConnectionFactory;
 import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
-
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.config.CoreAddressConfiguration;
@@ -64,209 +62,196 @@ import org.springframework.util.SocketUtils;
  */
 @EnableJms
 @Configuration
-public class ArtemisConfig
-{
-    private final DhisConfigurationProvider dhisConfig;
+public class ArtemisConfig {
+  private final DhisConfigurationProvider dhisConfig;
 
-    private final LocationManager locationManager;
+  private final LocationManager locationManager;
 
-    private final Environment environment;
+  private final Environment environment;
 
-    public ArtemisConfig(
-        DhisConfigurationProvider dhisConfig,
-        LocationManager locationManager,
-        Environment environment )
-    {
-        this.dhisConfig = dhisConfig;
-        this.locationManager = locationManager;
-        this.environment = environment;
+  public ArtemisConfig(
+      DhisConfigurationProvider dhisConfig,
+      LocationManager locationManager,
+      Environment environment) {
+    this.dhisConfig = dhisConfig;
+    this.locationManager = locationManager;
+    this.environment = environment;
+  }
+
+  @Bean
+  public ConnectionFactory jmsConnectionFactory(ArtemisConfigData artemisConfigData)
+      throws JMSException {
+    ActiveMQJMSConnectionFactory connectionFactory = new ActiveMQJMSConnectionFactory();
+
+    if (artemisConfigData.isEmbedded()) {
+      connectionFactory.setBrokerURL("vm://0?broker.persistent=true");
+    } else {
+      connectionFactory.setBrokerURL(
+          String.format("tcp://%s:%d", artemisConfigData.getHost(), artemisConfigData.getPort()));
+
+      connectionFactory.setUser(artemisConfigData.getUsername());
+      connectionFactory.setPassword(artemisConfigData.getPassword());
     }
 
-    @Bean
-    public ConnectionFactory jmsConnectionFactory( ArtemisConfigData artemisConfigData )
-        throws JMSException
-    {
-        ActiveMQJMSConnectionFactory connectionFactory = new ActiveMQJMSConnectionFactory();
+    return connectionFactory;
+  }
 
-        if ( artemisConfigData.isEmbedded() )
-        {
-            connectionFactory.setBrokerURL( "vm://0?broker.persistent=true" );
-        }
-        else
-        {
-            connectionFactory.setBrokerURL(
-                String.format( "tcp://%s:%d", artemisConfigData.getHost(), artemisConfigData.getPort() ) );
+  @Bean
+  public JmsTemplate jmsTopicTemplate(
+      ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver) {
+    JmsTemplate template = new JmsTemplate(connectionFactory);
+    template.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+    template.setDestinationResolver(nameDestinationResolver);
+    // set to true, since we only use topics and we want to resolve names to
+    // topic destination
+    template.setPubSubDomain(true);
 
-            connectionFactory.setUser( artemisConfigData.getUsername() );
-            connectionFactory.setPassword( artemisConfigData.getPassword() );
-        }
+    return template;
+  }
 
-        return connectionFactory;
+  @Bean
+  public JmsTemplate jmsQueueTemplate(
+      ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver) {
+    JmsTemplate template = new JmsTemplate(connectionFactory);
+    template.setDeliveryMode(DeliveryMode.PERSISTENT);
+    template.setDestinationResolver(nameDestinationResolver);
+    template.setPubSubDomain(false);
+
+    return template;
+  }
+
+  @Bean // configured for topics
+  public DefaultJmsListenerContainerFactory jmsListenerContainerFactory(
+      ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver) {
+    DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+    factory.setConnectionFactory(connectionFactory);
+    factory.setDestinationResolver(nameDestinationResolver);
+    // set to true, since we only use topics and we want to resolve names to
+    // topic destination
+    factory.setPubSubDomain(true);
+    // 1 forces the listener to use only one consumer, to avoid duplicated
+    // messages
+    factory.setConcurrency("1");
+
+    return factory;
+  }
+
+  @Bean // configured for queues
+  public DefaultJmsListenerContainerFactory jmsQueueListenerContainerFactory(
+      ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver) {
+    DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+    factory.setConnectionFactory(connectionFactory);
+    factory.setDestinationResolver(nameDestinationResolver);
+    factory.setPubSubDomain(false);
+    factory.setConcurrency("5-10");
+
+    return factory;
+  }
+
+  @Bean
+  public EmbeddedActiveMQ createEmbeddedServer(ArtemisConfigData artemisConfigData)
+      throws Exception {
+    EmbeddedActiveMQ server = new EmbeddedActiveMQ();
+
+    org.apache.activemq.artemis.core.config.Configuration config = new ConfigurationImpl();
+
+    ArtemisEmbeddedConfig embeddedConfig = artemisConfigData.getEmbedded();
+
+    config.addAcceptorConfiguration(
+        "in-vm",
+        String.format(
+            "vm://0?jms.useAsyncSend=%s&nioRemotingThreads=%d",
+            artemisConfigData.isSendAsync(), embeddedConfig.getNioRemotingThreads()));
+
+    config.setSecurityEnabled(embeddedConfig.isSecurity());
+    config.setPersistenceEnabled(embeddedConfig.isPersistence());
+
+    if (locationManager.externalDirectorySet() && embeddedConfig.isPersistence()) {
+      String dataDir = locationManager.getExternalDirectoryPath();
+      config.setJournalDirectory(dataDir + "/artemis/journal");
+
+      config.setJournalType(JournalType.NIO);
+      config.setLargeMessagesDirectory(dataDir + "/artemis/largemessages");
+      config.setBindingsDirectory(dataDir + "/artemis/bindings");
+      config.setPagingDirectory(dataDir + "/artemis/paging");
     }
 
-    @Bean
-    public JmsTemplate jmsTopicTemplate( ConnectionFactory connectionFactory,
-        NameDestinationResolver nameDestinationResolver )
-    {
-        JmsTemplate template = new JmsTemplate( connectionFactory );
-        template.setDeliveryMode( DeliveryMode.NON_PERSISTENT );
-        template.setDestinationResolver( nameDestinationResolver );
-        // set to true, since we only use topics and we want to resolve names to
-        // topic destination
-        template.setPubSubDomain( true );
+    config.addAddressesSetting(
+        "#",
+        new AddressSettings()
+            .setDeadLetterAddress(SimpleString.toSimpleString("DLQ"))
+            .setExpiryAddress(SimpleString.toSimpleString("ExpiryQueue")));
 
-        return template;
+    config.addAddressConfiguration(
+        new CoreAddressConfiguration()
+            .setName("DLQ")
+            .addRoutingType(RoutingType.ANYCAST)
+            .addQueueConfiguration(
+                new CoreQueueConfiguration().setName("DLQ").setRoutingType(RoutingType.ANYCAST)));
+
+    config.addAddressConfiguration(
+        new CoreAddressConfiguration()
+            .setName("ExpiryQueue")
+            .addRoutingType(RoutingType.ANYCAST)
+            .addQueueConfiguration(
+                new CoreQueueConfiguration()
+                    .setName("ExpiryQueue")
+                    .setRoutingType(RoutingType.ANYCAST)));
+
+    server.setConfiguration(config);
+
+    return server;
+  }
+
+  @Bean
+  public ArtemisConfigData getArtemisConfig() {
+    ArtemisConfigData artemisConfigData = new ArtemisConfigData();
+    artemisConfigData.setMode(
+        ArtemisMode.valueOf((dhisConfig.getProperty(ConfigurationKey.ARTEMIS_MODE)).toUpperCase()));
+    artemisConfigData.setHost(dhisConfig.getProperty(ConfigurationKey.ARTEMIS_HOST));
+
+    artemisConfigData.setPort(
+        Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.ARTEMIS_PORT)));
+
+    if (isTestRun(this.environment.getActiveProfiles())) {
+      artemisConfigData.setPort(SocketUtils.findAvailableTcpPort(3000));
     }
 
-    @Bean
-    public JmsTemplate jmsQueueTemplate( ConnectionFactory connectionFactory,
-        NameDestinationResolver nameDestinationResolver )
-    {
-        JmsTemplate template = new JmsTemplate( connectionFactory );
-        template.setDeliveryMode( DeliveryMode.PERSISTENT );
-        template.setDestinationResolver( nameDestinationResolver );
-        template.setPubSubDomain( false );
+    artemisConfigData.setUsername(dhisConfig.getProperty(ConfigurationKey.ARTEMIS_USERNAME));
+    artemisConfigData.setPassword(dhisConfig.getProperty(ConfigurationKey.ARTEMIS_PASSWORD));
 
-        return template;
-    }
+    ArtemisEmbeddedConfig artemisEmbeddedConfig = new ArtemisEmbeddedConfig();
+    artemisEmbeddedConfig.setSecurity(
+        dhisConfig.isEnabled(ConfigurationKey.ARTEMIS_EMBEDDED_SECURITY));
+    artemisEmbeddedConfig.setPersistence(
+        dhisConfig.isEnabled(ConfigurationKey.ARTEMIS_EMBEDDED_PERSISTENCE));
+    artemisEmbeddedConfig.setNioRemotingThreads(
+        Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.ARTEMIS_EMBEDDED_THREADS)));
 
-    @Bean // configured for topics
-    public DefaultJmsListenerContainerFactory jmsListenerContainerFactory( ConnectionFactory connectionFactory,
-        NameDestinationResolver nameDestinationResolver )
-    {
-        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory( connectionFactory );
-        factory.setDestinationResolver( nameDestinationResolver );
-        // set to true, since we only use topics and we want to resolve names to
-        // topic destination
-        factory.setPubSubDomain( true );
-        // 1 forces the listener to use only one consumer, to avoid duplicated
-        // messages
-        factory.setConcurrency( "1" );
+    artemisConfigData.setEmbedded(artemisEmbeddedConfig);
 
-        return factory;
-    }
+    return artemisConfigData;
+  }
 
-    @Bean // configured for queues
-    public DefaultJmsListenerContainerFactory jmsQueueListenerContainerFactory( ConnectionFactory connectionFactory,
-        NameDestinationResolver nameDestinationResolver )
-    {
-        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory( connectionFactory );
-        factory.setDestinationResolver( nameDestinationResolver );
-        factory.setPubSubDomain( false );
-        factory.setConcurrency( "5-10" );
+  /**
+   * Holds a Map of AuditScope -> Topic Name so that a Producer can resolve the topic name from the
+   * scope
+   */
+  @Bean
+  public Map<AuditScope, String> scopeToDestinationMap() {
+    Map<AuditScope, String> scopeDestinationMap = new HashMap<>();
 
-        return factory;
-    }
+    scopeDestinationMap.put(AuditScope.METADATA, Topics.METADATA_TOPIC_NAME);
+    scopeDestinationMap.put(AuditScope.AGGREGATE, Topics.AGGREGATE_TOPIC_NAME);
+    scopeDestinationMap.put(AuditScope.TRACKER, Topics.TRACKER_TOPIC_NAME);
 
-    @Bean
-    public EmbeddedActiveMQ createEmbeddedServer( ArtemisConfigData artemisConfigData )
-        throws Exception
-    {
-        EmbeddedActiveMQ server = new EmbeddedActiveMQ();
+    return scopeDestinationMap;
+  }
 
-        org.apache.activemq.artemis.core.config.Configuration config = new ConfigurationImpl();
-
-        ArtemisEmbeddedConfig embeddedConfig = artemisConfigData.getEmbedded();
-
-        config.addAcceptorConfiguration( "in-vm",
-            String.format( "vm://0?jms.useAsyncSend=%s&nioRemotingThreads=%d",
-                artemisConfigData.isSendAsync(),
-                embeddedConfig.getNioRemotingThreads() ) );
-
-        config.setSecurityEnabled( embeddedConfig.isSecurity() );
-        config.setPersistenceEnabled( embeddedConfig.isPersistence() );
-
-        if ( locationManager.externalDirectorySet() && embeddedConfig.isPersistence() )
-        {
-            String dataDir = locationManager.getExternalDirectoryPath();
-            config.setJournalDirectory( dataDir + "/artemis/journal" );
-
-            config.setJournalType( JournalType.NIO );
-            config.setLargeMessagesDirectory( dataDir + "/artemis/largemessages" );
-            config.setBindingsDirectory( dataDir + "/artemis/bindings" );
-            config.setPagingDirectory( dataDir + "/artemis/paging" );
-        }
-
-        config.addAddressesSetting( "#",
-            new AddressSettings()
-                .setDeadLetterAddress( SimpleString.toSimpleString( "DLQ" ) )
-                .setExpiryAddress( SimpleString.toSimpleString( "ExpiryQueue" ) ) );
-
-        config.addAddressConfiguration(
-            new CoreAddressConfiguration()
-                .setName( "DLQ" )
-                .addRoutingType( RoutingType.ANYCAST )
-                .addQueueConfiguration(
-                    new CoreQueueConfiguration()
-                        .setName( "DLQ" )
-                        .setRoutingType( RoutingType.ANYCAST ) ) );
-
-        config.addAddressConfiguration(
-            new CoreAddressConfiguration()
-                .setName( "ExpiryQueue" )
-                .addRoutingType( RoutingType.ANYCAST )
-                .addQueueConfiguration(
-                    new CoreQueueConfiguration()
-                        .setName( "ExpiryQueue" )
-                        .setRoutingType( RoutingType.ANYCAST ) ) );
-
-        server.setConfiguration( config );
-
-        return server;
-    }
-
-    @Bean
-    public ArtemisConfigData getArtemisConfig()
-    {
-        ArtemisConfigData artemisConfigData = new ArtemisConfigData();
-        artemisConfigData
-            .setMode( ArtemisMode.valueOf( (dhisConfig.getProperty( ConfigurationKey.ARTEMIS_MODE )).toUpperCase() ) );
-        artemisConfigData.setHost( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_HOST ) );
-
-        artemisConfigData.setPort( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PORT ) ) );
-
-        if ( isTestRun( this.environment.getActiveProfiles() ) )
-        {
-            artemisConfigData.setPort( SocketUtils.findAvailableTcpPort( 3000 ) );
-        }
-
-        artemisConfigData.setUsername( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_USERNAME ) );
-        artemisConfigData.setPassword( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PASSWORD ) );
-
-        ArtemisEmbeddedConfig artemisEmbeddedConfig = new ArtemisEmbeddedConfig();
-        artemisEmbeddedConfig.setSecurity( dhisConfig.isEnabled( ConfigurationKey.ARTEMIS_EMBEDDED_SECURITY ) );
-        artemisEmbeddedConfig.setPersistence( dhisConfig.isEnabled( ConfigurationKey.ARTEMIS_EMBEDDED_PERSISTENCE ) );
-        artemisEmbeddedConfig.setNioRemotingThreads(
-            Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_THREADS ) ) );
-
-        artemisConfigData.setEmbedded( artemisEmbeddedConfig );
-
-        return artemisConfigData;
-    }
-
-    /**
-     * Holds a Map of AuditScope -> Topic Name so that a Producer can resolve
-     * the topic name from the scope
-     */
-    @Bean
-    public Map<AuditScope, String> scopeToDestinationMap()
-    {
-        Map<AuditScope, String> scopeDestinationMap = new HashMap<>();
-
-        scopeDestinationMap.put( AuditScope.METADATA, Topics.METADATA_TOPIC_NAME );
-        scopeDestinationMap.put( AuditScope.AGGREGATE, Topics.AGGREGATE_TOPIC_NAME );
-        scopeDestinationMap.put( AuditScope.TRACKER, Topics.TRACKER_TOPIC_NAME );
-
-        return scopeDestinationMap;
-    }
-
-    @Bean
-    public AuditProducerConfiguration producerConfiguration()
-    {
-        return AuditProducerConfiguration.builder()
-            .useQueue( dhisConfig.isEnabled( ConfigurationKey.AUDIT_USE_IN_MEMORY_QUEUE_ENABLED ) )
-            .build();
-    }
+  @Bean
+  public AuditProducerConfiguration producerConfiguration() {
+    return AuditProducerConfiguration.builder()
+        .useQueue(dhisConfig.isEnabled(ConfigurationKey.AUDIT_USE_IN_MEMORY_QUEUE_ENABLED))
+        .build();
+  }
 }

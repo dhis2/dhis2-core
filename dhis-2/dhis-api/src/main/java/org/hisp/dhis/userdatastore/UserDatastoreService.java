@@ -28,70 +28,100 @@
 package org.hisp.dhis.userdatastore;
 
 import java.util.List;
-
+import java.util.function.Function;
+import java.util.stream.Stream;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.datastore.DatastoreFields;
+import org.hisp.dhis.datastore.DatastoreQuery;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.user.User;
 
 /**
  * @author Stian Sandvold
  */
-public interface UserDatastoreService
-{
+public interface UserDatastoreService {
 
-    /**
-     * Retrieves a KeyJsonValue based on a user and key
-     *
-     * @param user the user where the key is associated
-     * @param namespace the namespace associated with the key
-     * @param key the key referencing the value @return the UserKeyJsonValue
-     *        matching the key and namespace
-     */
-    UserDatastoreEntry getUserEntry( User user, String namespace, String key );
+  boolean isUsedNamespace(User user, String namespace);
 
-    /**
-     * Adds a new UserKeyJsonValue
-     *
-     * @param entry the UserKeyJsonValue to be stored
-     * @return the id of the UserKeyJsonValue stored
-     */
-    long addUserEntry( UserDatastoreEntry entry );
+  /**
+   * Retrieves a KeyJsonValue based on a user and key
+   *
+   * @param user the user where the key is associated
+   * @param namespace the namespace associated with the key
+   * @param key the key referencing the value @return the UserKeyJsonValue matching the key and
+   *     namespace
+   */
+  UserDatastoreEntry getUserEntry(User user, String namespace, String key);
 
-    /**
-     * Updates a UserKeyJsonValue
-     *
-     * @param entry the updated UserKeyJsonValue
-     */
-    void updateUserEntry( UserDatastoreEntry entry );
+  /**
+   * Adds a new UserKeyJsonValue
+   *
+   * @param entry the UserKeyJsonValue to be stored
+   * @return the id of the UserKeyJsonValue stored
+   */
+  long addEntry(UserDatastoreEntry entry) throws ConflictException, BadRequestException;
 
-    /**
-     * Deletes a UserKeyJsonValue
-     *
-     * @param entry the UserKeyJsonValue to be deleted.
-     */
-    void deleteUserEntry( UserDatastoreEntry entry );
+  /**
+   * Updates a UserKeyJsonValue
+   *
+   * @param entry the updated UserKeyJsonValue
+   */
+  void updateEntry(UserDatastoreEntry entry) throws BadRequestException;
 
-    /**
-     * Returns a list of namespaces connected to the given user
-     *
-     * @param user the user connected to the namespaces
-     * @return List of strings representing namespaces or an empty list if no
-     *         namespaces are found
-     */
-    List<String> getNamespacesByUser( User user );
+  /**
+   * Deletes a UserKeyJsonValue
+   *
+   * @param entry the UserKeyJsonValue to be deleted.
+   */
+  void deleteEntry(UserDatastoreEntry entry);
 
-    /**
-     * Returns a list of keys in the given namespace connected to the given user
-     *
-     * @param user connected to keys
-     * @param namespace to fetch keys from
-     * @return a list of keys or an empty list if no keys are found
-     */
-    List<String> getKeysByUserAndNamespace( User user, String namespace );
+  /**
+   * Returns a list of namespaces connected to the given user
+   *
+   * @param user the user connected to the namespaces
+   * @return List of strings representing namespaces or an empty list if no namespaces are found
+   */
+  List<String> getNamespacesByUser(User user);
 
-    /**
-     * Deletes all keys associated with a given user and namespace
-     *
-     * @param user the user associated with namespace to delete
-     * @param namespace the namespace to delete
-     */
-    void deleteNamespaceFromUser( User user, String namespace );
+  /**
+   * Returns a list of keys in the given namespace connected to the given user
+   *
+   * @param user connected to keys
+   * @param namespace to fetch keys from
+   * @return a list of keys or an empty list if no keys are found
+   */
+  List<String> getKeysByUserAndNamespace(User user, String namespace);
+
+  /**
+   * Deletes all keys associated with a given user and namespace
+   *
+   * @param user the user associated with namespace to delete
+   * @param namespace the namespace to delete
+   */
+  void deleteNamespace(User user, String namespace);
+
+  /**
+   * Validates and plans a {@link DatastoreQuery}. This might correct or otherwise update the
+   * provided query.
+   *
+   * @param query to validate and plan
+   * @throws IllegalQueryException when the query is not valid
+   */
+  DatastoreQuery plan(DatastoreQuery query) throws ConflictException;
+
+  /**
+   * Stream the matching entry fields to a transformer or consumer function.
+   *
+   * <p>Note that this API cannot return the {@link Stream} since it has to be processed within the
+   * transaction bounds of the function call. For the same reason a transformer function has to
+   * process the stream in a way that actually will evaluate the stream.
+   *
+   * @param query query parameters
+   * @param transform transformer or consumer for the stream of matches
+   * @param <T> type of the transformed stream
+   * @return the transformed stream
+   */
+  <T> T getEntries(User user, DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
+      throws ConflictException;
 }

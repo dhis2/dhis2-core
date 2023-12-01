@@ -28,11 +28,8 @@
 package org.hisp.dhis.category;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
-public interface CategoryOptionGroupStore
-    extends IdentifiableObjectStore<CategoryOptionGroup>
-{
-    List<CategoryOptionGroup> getCategoryOptionGroups( CategoryOptionGroupSet groupSet );
+public interface CategoryOptionGroupStore extends IdentifiableObjectStore<CategoryOptionGroup> {
+  List<CategoryOptionGroup> getCategoryOptionGroups(CategoryOptionGroupSet groupSet);
 }

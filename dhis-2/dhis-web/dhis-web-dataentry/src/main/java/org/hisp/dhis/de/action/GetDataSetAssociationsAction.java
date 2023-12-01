@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.de.action;
 
+import com.opensymphony.xwork2.Action;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
@@ -46,70 +46,61 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author Lars Helge Overland
  */
-public class GetDataSetAssociationsAction
-    implements Action
-{
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+public class GetDataSetAssociationsAction implements Action {
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private IdentifiableObjectManager identifiableObjectManager;
+  @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private CurrentUserService currentUserService;
 
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
 
-    private List<Set<String>> dataSetAssociationSets = new ArrayList<>();
+  private List<Set<String>> dataSetAssociationSets = new ArrayList<>();
 
-    public List<Set<String>> getDataSetAssociationSets()
-    {
-        return dataSetAssociationSets;
+  public List<Set<String>> getDataSetAssociationSets() {
+    return dataSetAssociationSets;
+  }
+
+  private Map<String, Integer> organisationUnitAssociationSetMap = new HashMap<>();
+
+  public Map<String, Integer> getOrganisationUnitAssociationSetMap() {
+    return organisationUnitAssociationSetMap;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() {
+    User user = currentUserService.getCurrentUser();
+
+    Integer level = organisationUnitService.getOfflineOrganisationUnitLevels();
+
+    Date lastUpdated =
+        DateUtils.max(
+            identifiableObjectManager.getLastUpdated(DataSet.class),
+            identifiableObjectManager.getLastUpdated(OrganisationUnit.class));
+
+    String tag = ContextUtils.getEtag(lastUpdated, user);
+
+    if (ContextUtils.isNotModified(
+        ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag)) {
+      return SUCCESS;
     }
 
-    private Map<String, Integer> organisationUnitAssociationSetMap = new HashMap<>();
+    OrganisationUnitDataSetAssociationSet organisationUnitSet =
+        organisationUnitService.getOrganisationUnitDataSetAssociationSet(level);
 
-    public Map<String, Integer> getOrganisationUnitAssociationSetMap()
-    {
-        return organisationUnitAssociationSetMap;
-    }
+    dataSetAssociationSets = organisationUnitSet.getDataSetAssociationSets();
 
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
+    organisationUnitAssociationSetMap = organisationUnitSet.getOrganisationUnitAssociationSetMap();
 
-    @Override
-    public String execute()
-    {
-        User user = currentUserService.getCurrentUser();
-
-        Integer level = organisationUnitService.getOfflineOrganisationUnitLevels();
-
-        Date lastUpdated = DateUtils.max(
-            identifiableObjectManager.getLastUpdated( DataSet.class ),
-            identifiableObjectManager.getLastUpdated( OrganisationUnit.class ) );
-
-        String tag = ContextUtils.getEtag( lastUpdated, user );
-
-        if ( ContextUtils.isNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag ) )
-        {
-            return SUCCESS;
-        }
-
-        OrganisationUnitDataSetAssociationSet organisationUnitSet = organisationUnitService
-            .getOrganisationUnitDataSetAssociationSet( level );
-
-        dataSetAssociationSets = organisationUnitSet.getDataSetAssociationSets();
-
-        organisationUnitAssociationSetMap = organisationUnitSet.getOrganisationUnitAssociationSetMap();
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

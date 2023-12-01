@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.Event" table="event">
+
+    <id name="id" column="eventid">
+      <generator class="sequence">
+        <param name="sequence_name">programstageinstance_sequence</param>
+      </generator>
+    </id>
+
+    <property name="uid" column="uid" unique="true" length="11" />
+
+    <property name="code" column="code" not-null="false" unique="true" length="50" />
+
+    <property name="created" type="timestamp" not-null="true" />
+
+    <property name="createdByUserInfo" type="jbUserInfoSnapshot" column="createdbyuserinfo" />
+
+    <property name="lastUpdated" type="timestamp" not-null="true" />
+
+    <property name="lastUpdatedByUserInfo" type="jbUserInfoSnapshot" column="lastupdatedbyuserinfo" />
+
+    <property name="createdAtClient" type="timestamp" />
+
+    <property name="lastUpdatedAtClient" type="timestamp" />
+
+    <property name="lastSynchronized" column="lastsynchronized" type="timestamp" not-null="false" />
+
+    <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
+                 column="enrollmentid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid"
+                 index="programstageinstance_programinstanceid" />
+
+    <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+      column="programstageid" not-null="true" foreign-key="fk_programstageinstance_programstageid" />
+
+    <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo"
+      column="attributeoptioncomboid" foreign-key="fk_programstageinstance_attributeoptioncomboid" />
+
+    <property name="deleted" column="deleted" />
+
+    <property name="storedBy" />
+
+    <property name="scheduledDate" column="scheduleddate" />
+
+    <property name="occurredDate" column="occurreddate" type="timestamp" index="programstageinstance_executiondate" />
+
+    <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
+      foreign-key="fk_programstageinstance_organisationunitid" index="programstageinstance_organisationunitid" />
+
+    <property name="status" column="status" type="org.hisp.dhis.program.EventStatusUserType" not-null="true" />
+
+    <property name="completedBy" />
+
+    <property name="completedDate" />
+
+    <property name="geometry" />
+
+    <many-to-one name="assignedUser" class="org.hisp.dhis.user.User" column="assigneduserid"
+                 foreign-key="fk_programstageinstance_assigneduserid" />
+
+    <property name="eventDataValues" type="jsbEventDataValues" />
+
+    <list name="notes" table="event_notes" cascade="all-delete-orphan">
+      <key column="eventid" foreign-key="fk_programstageinstancecomments_programstageinstanceid" />
+      <list-index column="sort_order" base="1" />
+      <many-to-many class="org.hisp.dhis.note.Note" column="noteid"
+                    unique="true" foreign-key="fk_programstageinstancecomments_trackedentitycommentid" />
+    </list>
+
+    <set name="relationshipItems" inverse="true">
+      <key column="eventid" />
+      <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
+    </set>
+
+  </class>
+
+</hibernate-mapping>

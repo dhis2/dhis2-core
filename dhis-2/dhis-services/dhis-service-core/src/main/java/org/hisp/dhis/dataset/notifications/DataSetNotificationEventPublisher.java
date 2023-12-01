@@ -33,24 +33,19 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-/**
- * Created by zubair@dhis2.org on 18.01.18.
- */
-@Component( "org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher" )
-public class DataSetNotificationEventPublisher
-{
-    private final ApplicationEventPublisher publisher;
+/** Created by zubair@dhis2.org on 18.01.18. */
+@Component("org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher")
+public class DataSetNotificationEventPublisher {
+  private final ApplicationEventPublisher publisher;
 
-    public DataSetNotificationEventPublisher( ApplicationEventPublisher publisher )
-    {
-        checkNotNull( publisher );
+  public DataSetNotificationEventPublisher(ApplicationEventPublisher publisher) {
+    checkNotNull(publisher);
 
-        this.publisher = publisher;
-    }
+    this.publisher = publisher;
+  }
 
-    public void publishEvent( CompleteDataSetRegistration registration )
-    {
-        DataSetNotificationEvent event = new DataSetNotificationEvent( this, registration );
-        publisher.publishEvent( event );
-    }
+  public void publishEvent(CompleteDataSetRegistration registration) {
+    DataSetNotificationEvent event = new DataSetNotificationEvent(this, registration);
+    publisher.publishEvent(event);
+  }
 }

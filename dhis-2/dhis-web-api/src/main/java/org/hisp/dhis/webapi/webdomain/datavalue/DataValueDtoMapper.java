@@ -40,81 +40,73 @@ import org.hisp.dhis.minmax.MinMaxDataElement;
  *
  * @author Lars Helge Overland
  */
-public class DataValueDtoMapper
-{
-    DataValueDtoMapper()
-    {
-    }
+public class DataValueDtoMapper {
+  DataValueDtoMapper() {}
 
-    /**
-     * Converts a {@link DataValueAudit} object to a {@link DataValueAuditDto}.
-     *
-     * @param audit the {@link DataValueAudit}.
-     * @return a {@link DataValueAuditDto}.
-     */
-    public static DataValueAuditDto toDto( DataValueAudit audit )
-    {
-        return new DataValueAuditDto()
-            .setDataElement( audit.getDataElement().getUid() )
-            .setPeriod( audit.getPeriod().getIsoDate() )
-            .setOrgUnit( audit.getOrganisationUnit().getUid() )
-            .setCategoryOptionCombo( audit.getCategoryOptionCombo().getUid() )
-            .setAttributeOptionCombo( audit.getAttributeOptionCombo().getUid() )
-            .setValue( audit.getValue() )
-            .setModifiedBy( audit.getModifiedBy() )
-            .setCreated( audit.getCreated() )
-            .setAuditType( audit.getAuditType() );
-    }
+  /**
+   * Converts a {@link DataValueAudit} object to a {@link DataValueAuditDto}.
+   *
+   * @param audit the {@link DataValueAudit}.
+   * @return a {@link DataValueAuditDto}.
+   */
+  public static DataValueAuditDto toDto(DataValueAudit audit) {
+    return new DataValueAuditDto()
+        .setDataElement(audit.getDataElement().getUid())
+        .setPeriod(audit.getPeriod().getIsoDate())
+        .setOrgUnit(audit.getOrganisationUnit().getUid())
+        .setCategoryOptionCombo(audit.getCategoryOptionCombo().getUid())
+        .setAttributeOptionCombo(audit.getAttributeOptionCombo().getUid())
+        .setValue(audit.getValue())
+        .setModifiedBy(audit.getModifiedBy())
+        .setCreated(audit.getCreated())
+        .setAuditType(audit.getAuditType());
+  }
 
-    /**
-     * Converts a {@link DataValue} object to a {@link DataValueDto}.
-     *
-     * @param value the {@link DataValue}.
-     * @return a {@link DataValueDto}.
-     */
-    public static DataValueDto toDto( DataValue value )
-    {
-        return new DataValueDto()
-            .setDataElement( value.getDataElement().getUid() )
-            .setPeriod( value.getPeriod().getIsoDate() )
-            .setOrgUnit( value.getSource().getUid() )
-            .setCategoryOptionCombo( value.getCategoryOptionCombo().getUid() )
-            .setAttribute( toDto( value.getAttributeOptionCombo() ) )
-            .setValue( value.getValue() )
-            .setComment( value.getComment() )
-            .setFollowUp( value.isFollowup() )
-            .setStoredBy( value.getStoredBy() )
-            .setCreated( value.getCreated() )
-            .setLastUpdated( value.getLastUpdated() );
-    }
+  /**
+   * Converts a {@link DataValue} object to a {@link DataValueDto}.
+   *
+   * @param value the {@link DataValue}.
+   * @return a {@link DataValueDto}.
+   */
+  public static DataValueDto toDto(DataValue value) {
+    return new DataValueDto()
+        .setDataElement(value.getDataElement().getUid())
+        .setPeriod(value.getPeriod().getIsoDate())
+        .setOrgUnit(value.getSource().getUid())
+        .setCategoryOptionCombo(value.getCategoryOptionCombo().getUid())
+        .setAttribute(toDto(value.getAttributeOptionCombo()))
+        .setValue(value.getValue())
+        .setComment(value.getComment())
+        .setFollowUp(value.isFollowup())
+        .setStoredBy(value.getStoredBy())
+        .setCreated(value.getCreated())
+        .setLastUpdated(value.getLastUpdated());
+  }
 
-    /**
-     * Converts an attribute {@link CategoryOptionCombo} object to a
-     * {@link DataValueCategoryDto}.
-     *
-     * @param attribute the attribute {@link CategoryOptionCombo}.
-     * @return a {@link DataValueCategoryDto}.
-     */
-    public static DataValueCategoryDto toDto( CategoryOptionCombo attribute )
-    {
-        return new DataValueCategoryDto()
-            .setCombo( attribute.getCategoryCombo().getUid() )
-            .setOptions( mapToSet( attribute.getCategoryOptions(), CategoryOption::getUid ) );
-    }
+  /**
+   * Converts an attribute {@link CategoryOptionCombo} object to a {@link DataValueCategoryDto}.
+   *
+   * @param attribute the attribute {@link CategoryOptionCombo}.
+   * @return a {@link DataValueCategoryDto}.
+   */
+  public static DataValueCategoryDto toDto(CategoryOptionCombo attribute) {
+    return new DataValueCategoryDto()
+        .setCombo(attribute.getCategoryCombo().getUid())
+        .setOptions(mapToSet(attribute.getCategoryOptions(), CategoryOption::getUid));
+  }
 
-    /**
-     * Converts a {@link MinMaxDataElement} object to a {@link MinMaxValueDto}.
-     *
-     * @param value the {@link MinMaxDataElement}.
-     * @return a {@link MinMaxValueDto}.
-     */
-    public static MinMaxValueDto toDto( MinMaxDataElement value )
-    {
-        return new MinMaxValueDto()
-            .setDataElement( value.getDataElement().getUid() )
-            .setOrgUnit( value.getSource().getUid() )
-            .setCategoryOptionCombo( value.getOptionCombo().getUid() )
-            .setMinValue( value.getMin() )
-            .setMaxValue( value.getMax() );
-    }
+  /**
+   * Converts a {@link MinMaxDataElement} object to a {@link MinMaxValueDto}.
+   *
+   * @param value the {@link MinMaxDataElement}.
+   * @return a {@link MinMaxValueDto}.
+   */
+  public static MinMaxValueDto toDto(MinMaxDataElement value) {
+    return new MinMaxValueDto()
+        .setDataElement(value.getDataElement().getUid())
+        .setOrgUnit(value.getSource().getUid())
+        .setCategoryOptionCombo(value.getOptionCombo().getUid())
+        .setMinValue(value.getMin())
+        .setMaxValue(value.getMax());
+  }
 }

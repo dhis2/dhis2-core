@@ -29,117 +29,91 @@ package org.hisp.dhis.databrowser;
 
 /**
  * @author joakibj
- *
- *         Class to hold Metadata for DataBrowserTable. All fields are optional
- *         but name should not be null for proper behavior.
+ *     <p>Class to hold Metadata for DataBrowserTable. All fields are optional but name should not
+ *     be null for proper behavior.
  */
-public class MetaValue
-{
-    /**
-     * Id for row/column
-     */
-    private Integer id;
+public class MetaValue {
+  /** Id for row/column */
+  private Integer id;
 
-    /**
-     * Name for row/column
-     */
-    private String name;
+  /** Name for row/column */
+  private String name;
 
-    /**
-     * Any other metadata associated to id or name
-     */
-    private String metaValue = "";
+  /** Any other metadata associated to id or name */
+  private String metaValue = "";
 
-    public MetaValue()
-    {
+  public MetaValue() {}
+
+  public MetaValue(String name) {
+    this.name = name;
+  }
+
+  public MetaValue(String name, String metaValue) {
+    this.name = name;
+    this.metaValue = metaValue;
+  }
+
+  public MetaValue(Integer id, String name) {
+    this.id = id;
+    this.name = name;
+  }
+
+  public MetaValue(Integer id, String name, String metaValue) {
+    this.id = id;
+    this.name = name;
+    this.metaValue = metaValue;
+  }
+
+  public Integer getId() {
+    return id;
+  }
+
+  public void setId(Integer id) {
+    this.id = id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getMetaValue() {
+    return metaValue;
+  }
+
+  public void setMetaValue(String metaValue) {
+    this.metaValue = metaValue;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
 
-    public MetaValue( String name )
-    {
-        this.name = name;
+    if (o == null) {
+      return false;
     }
 
-    public MetaValue( String name, String metaValue )
-    {
-        this.name = name;
-        this.metaValue = metaValue;
+    if (!(o instanceof MetaValue)) {
+      return false;
     }
 
-    public MetaValue( Integer id, String name )
-    {
-        this.id = id;
-        this.name = name;
-    }
+    final MetaValue other = (MetaValue) o;
 
-    public MetaValue( Integer id, String name, String metaValue )
-    {
-        this.id = id;
-        this.name = name;
-        this.metaValue = metaValue;
-    }
+    return name.equals(other.getName());
+  }
 
-    public Integer getId()
-    {
-        return id;
-    }
+  @Override
+  public int hashCode() {
+    return name.hashCode();
+  }
 
-    public void setId( Integer id )
-    {
-        this.id = id;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    public String getMetaValue()
-    {
-        return metaValue;
-    }
-
-    public void setMetaValue( String metaValue )
-    {
-        this.metaValue = metaValue;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null )
-        {
-            return false;
-        }
-
-        if ( !(o instanceof MetaValue) )
-        {
-            return false;
-        }
-
-        final MetaValue other = (MetaValue) o;
-
-        return name.equals( other.getName() );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return name.hashCode();
-    }
-
-    @Override
-    public String toString()
-    {
-        return name;
-    }
+  @Override
+  public String toString() {
+    return name;
+  }
 }

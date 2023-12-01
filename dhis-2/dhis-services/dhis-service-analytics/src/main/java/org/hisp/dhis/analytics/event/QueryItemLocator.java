@@ -27,39 +27,45 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import java.util.Optional;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.program.Program;
 
 /**
- * This class is responsible for parsing a String containing a dimension
- * definition and returning a {@link QueryItem} containing the element matching
- * the dimension.
+ * This class is responsible for parsing a String containing a dimension definition and returning a
+ * {@link QueryItem} containing the element matching the dimension.
  *
  * @author Luciano Fiandesio
  */
-public interface QueryItemLocator
-{
-    /**
-     * This method accepts a dimension definition and transforms it into a
-     * {@link QueryItem}.
-     * <p>
-     * The dimension definition String can be composed of the following
-     * elements:
-     * <p>
-     * - Data Element [{de uid}] - Data Element + Legendset [{de uid}-{legendset
-     * uid}] - Program Stage + Data Element [{ps uid}.{de uid}] - Program Stage
-     * + Data Element + Legendset [{ps uid}.{de uid}-{legendset uid}] - Tracked
-     * Entity Instance [{tei uid}] - Program Indicator [{pi uid}] - Relationship
-     * Type + Program Indicator [{rt uid}.{pi uid}]
-     * <p>
-     * If the provided dimension String is not matching any of the above
-     * elements, then a {@link IllegalQueryException} is thrown
-     *
-     * @param dimension the dimension string.
-     * @param program the {@link Program}.
-     * @param type the {@link EventOutputType}.
-     * @return a {@link QueryItem}.
-     */
-    QueryItem getQueryItemFromDimension( String dimension, Program program, EventOutputType type );
+public interface QueryItemLocator {
+  /**
+   * This method accepts a dimension definition and transforms it into a {@link QueryItem}.
+   *
+   * <p>The dimension definition String can be composed of the following elements:
+   *
+   * <p>- Data Element [{de uid}] - Data Element + Legendset [{de uid}-{legendset uid}] - Program
+   * Stage + Data Element [{ps uid}.{de uid}] - Program Stage + Data Element + Legendset [{ps
+   * uid}.{de uid}-{legendset uid}] - Tracked Entity Instance [{tei uid}] - Program Indicator [{pi
+   * uid}] - Relationship Type + Program Indicator [{rt uid}.{pi uid}]
+   *
+   * <p>If the provided dimension String is not matching any of the above elements, then a {@link
+   * org.hisp.dhis.common.IllegalQueryException} is thrown
+   *
+   * @param dimension the dimension string.
+   * @param program the {@link Program}.
+   * @param type the {@link EventOutputType}.
+   * @return a {@link QueryItem}.
+   */
+  QueryItem getQueryItemFromDimension(String dimension, Program program, EventOutputType type);
+
+  /**
+   * Same as {@link #getQueryItemFromDimension(String, Program, EventOutputType)} but without
+   * program. Used by Cross program linelisting application to get the query item for the tracked
+   * entity attribute.
+   *
+   * @param dimension the dimension string representing a tracked entity attribute uid.
+   * @return an Optional {@link QueryItem}. Empty if not found.
+   */
+  Optional<QueryItem> getQueryItemForTrackedEntityAttribute(String dimension);
 }

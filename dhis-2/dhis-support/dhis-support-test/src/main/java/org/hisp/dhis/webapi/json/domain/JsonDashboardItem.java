@@ -36,111 +36,88 @@ import org.hisp.dhis.jsontree.JsonList;
  *
  * @author Jan Bernitt
  */
-public interface JsonDashboardItem extends JsonIdentifiableObject
-{
-    default DashboardItemType getType()
-    {
-        return getString( "type" ).parsed( DashboardItemType::valueOf );
-    }
+public interface JsonDashboardItem extends JsonIdentifiableObject {
+  default DashboardItemType getType() {
+    return getString("type").parsed(DashboardItemType::valueOf);
+  }
 
-    default int getInterpretationCount()
-    {
-        return getNumber( "interpretationCount" ).intValue();
-    }
+  default int getInterpretationCount() {
+    return getNumber("interpretationCount").intValue();
+  }
 
-    default int getInterpretationLikeCount()
-    {
-        return getNumber( "interpretationLikeCount" ).intValue();
-    }
+  default int getInterpretationLikeCount() {
+    return getNumber("interpretationLikeCount").intValue();
+  }
 
-    default int getContentCount()
-    {
-        return getNumber( "contentCount" ).intValue();
-    }
+  default int getContentCount() {
+    return getNumber("contentCount").intValue();
+  }
 
-    default String getText()
-    {
-        return getString( "text" ).string();
-    }
+  default String getText() {
+    return getString("text").string();
+  }
 
-    default Boolean getMessages()
-    {
-        return getBoolean( "messages" ).bool();
-    }
+  default Boolean getMessages() {
+    return getBoolean("messages").bool();
+  }
 
-    default String getAppKey()
-    {
-        return getString( "appKey" ).string();
-    }
+  default String getAppKey() {
+    return getString("appKey").string();
+  }
 
-    default DashboardItemShape getShape()
-    {
-        return getString( "shape" ).parsed( DashboardItemShape::valueOf );
-    }
+  default DashboardItemShape getShape() {
+    return getString("shape").parsed(DashboardItemShape::valueOf);
+  }
 
-    default Number getX()
-    {
-        return getNumber( "x" ).number();
-    }
+  default Number getX() {
+    return getNumber("x").number();
+  }
 
-    default Number getY()
-    {
-        return getNumber( "y" ).number();
-    }
+  default Number getY() {
+    return getNumber("y").number();
+  }
 
-    default Number getHeight()
-    {
-        return getNumber( "height" ).number();
-    }
+  default Number getHeight() {
+    return getNumber("height").number();
+  }
 
-    default Number getWidth()
-    {
-        return getNumber( "width" ).number();
-    }
+  default Number getWidth() {
+    return getNumber("width").number();
+  }
 
-    default JsonIdentifiableObject getVisualization()
-    {
-        return get( "visualization", JsonIdentifiableObject.class );
-    }
+  default JsonIdentifiableObject getVisualization() {
+    return get("visualization", JsonIdentifiableObject.class);
+  }
 
-    default JsonIdentifiableObject getChart()
-    {
-        return get( "chart", JsonIdentifiableObject.class );
-    }
+  default JsonIdentifiableObject getChart() {
+    return get("chart", JsonIdentifiableObject.class);
+  }
 
-    default JsonIdentifiableObject getReportTable()
-    {
-        return get( "reportTable", JsonIdentifiableObject.class );
-    }
+  default JsonIdentifiableObject getReportTable() {
+    return get("reportTable", JsonIdentifiableObject.class);
+  }
 
-    default JsonIdentifiableObject getEventChart()
-    {
-        return get( "eventChart", JsonIdentifiableObject.class );
-    }
+  default JsonIdentifiableObject getEventChart() {
+    return get("eventChart", JsonIdentifiableObject.class);
+  }
 
-    default JsonIdentifiableObject getMap()
-    {
-        return get( "map", JsonIdentifiableObject.class );
-    }
+  default JsonIdentifiableObject getMap() {
+    return get("map", JsonIdentifiableObject.class);
+  }
 
-    default JsonIdentifiableObject getEventReport()
-    {
-        return get( "eventReport", JsonIdentifiableObject.class );
-    }
+  default JsonIdentifiableObject getEventReport() {
+    return get("eventReport", JsonIdentifiableObject.class);
+  }
 
-    default JsonList<JsonUser> getUsers()
-    {
-        return getList( "users", JsonUser.class );
-    }
+  default JsonList<JsonUser> getUsers() {
+    return getList("users", JsonUser.class);
+  }
 
-    default JsonList<JsonIdentifiableObject> getReports()
-    {
-        return getList( "reports", JsonIdentifiableObject.class );
-    }
+  default JsonList<JsonIdentifiableObject> getReports() {
+    return getList("reports", JsonIdentifiableObject.class);
+  }
 
-    default JsonList<JsonIdentifiableObject> getResources()
-    {
-        return getList( "resources", JsonIdentifiableObject.class );
-    }
-
+  default JsonList<JsonIdentifiableObject> getResources() {
+    return getList("resources", JsonIdentifiableObject.class);
+  }
 }

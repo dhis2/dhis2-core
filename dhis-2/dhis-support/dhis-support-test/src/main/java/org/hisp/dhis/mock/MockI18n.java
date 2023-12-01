@@ -33,12 +33,8 @@ import org.hisp.dhis.i18n.I18n;
  * @author Dang Duy Hieu
  * @version $Id$
  */
-public class MockI18n
-    extends I18n
-{
-    public MockI18n()
-    {
-        super( null, null );
-    }
-
+public class MockI18n extends I18n {
+  public MockI18n() {
+    super(null, null);
+  }
 }

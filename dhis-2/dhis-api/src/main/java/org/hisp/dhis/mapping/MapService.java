@@ -30,10 +30,11 @@ package org.hisp.dhis.mapping;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public enum MapService
-{
-    WMS,
-    TMS,
-    XYZ,
-    VECTOR_STYLE
+public enum MapService {
+  WMS,
+  TMS,
+  XYZ,
+  VECTOR_STYLE,
+  GEOJSON_URL,
+  ARCGIS_FEATURE
 }

@@ -30,11 +30,8 @@ package org.hisp.dhis.dxf2.metadata;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class MetadataImportException
-    extends RuntimeException
-{
-    public MetadataImportException( String message )
-    {
-        super( message );
-    }
+public class MetadataImportException extends RuntimeException {
+  public MetadataImportException(String message) {
+    super(message);
+  }
 }

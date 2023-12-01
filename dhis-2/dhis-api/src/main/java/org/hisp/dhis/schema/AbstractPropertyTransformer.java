@@ -30,19 +30,15 @@ package org.hisp.dhis.schema;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public abstract class AbstractPropertyTransformer<T>
-    implements PropertyTransformer
-{
-    private final Class<?> klass;
+public abstract class AbstractPropertyTransformer<T> implements PropertyTransformer {
+  private final Class<?> klass;
 
-    public AbstractPropertyTransformer( Class<?> klass )
-    {
-        this.klass = klass;
-    }
+  public AbstractPropertyTransformer(Class<?> klass) {
+    this.klass = klass;
+  }
 
-    @Override
-    public Class<?> getKlass()
-    {
-        return klass;
-    }
+  @Override
+  public Class<?> getKlass() {
+    return klass;
+  }
 }

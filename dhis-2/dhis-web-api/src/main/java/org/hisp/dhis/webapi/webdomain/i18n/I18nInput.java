@@ -32,6 +32,4 @@ import java.util.ArrayList;
 /**
  * @author Morten Olav Hansen
  */
-public class I18nInput extends ArrayList<String>
-{
-}
+public class I18nInput extends ArrayList<String> {}

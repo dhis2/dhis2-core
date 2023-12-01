@@ -30,14 +30,11 @@ package org.hisp.dhis.deletedobject.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hisp.dhis.cacheinvalidation.debezium.KnownTransactionsService;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
@@ -48,64 +45,46 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class DeletedObjectPostInsertEventListener
-    implements PostCommitInsertEventListener
-{
-    private final DeletedObjectService deletedObjectService;
+public class DeletedObjectPostInsertEventListener implements PostCommitInsertEventListener {
+  private final DeletedObjectService deletedObjectService;
 
-    private final transient KnownTransactionsService knownTransactionsService;
+  public DeletedObjectPostInsertEventListener(DeletedObjectService deletedObjectService) {
+    checkNotNull(deletedObjectService);
+    this.deletedObjectService = deletedObjectService;
+  }
 
-    public DeletedObjectPostInsertEventListener( DeletedObjectService deletedObjectService,
-        KnownTransactionsService knownTransactionsService )
-    {
-        checkNotNull( deletedObjectService );
-        checkNotNull( knownTransactionsService );
-        this.deletedObjectService = deletedObjectService;
-        this.knownTransactionsService = knownTransactionsService;
+  @Override
+  public boolean requiresPostCommitHanding(EntityPersister persister) {
+    return true;
+  }
+
+  @Override
+  public void onPostInsert(PostInsertEvent event) {
+    if (IdentifiableObject.class.isInstance(event.getEntity())
+        && MetadataObject.class.isInstance(event.getEntity())
+        && !EmbeddedObject.class.isInstance(event.getEntity())) {
+      StatelessSession session = event.getPersister().getFactory().openStatelessSession();
+      session.beginTransaction();
+
+      try {
+        List<DeletedObject> deletedObjects =
+            deletedObjectService.getDeletedObjects(
+                new DeletedObjectQuery((IdentifiableObject) event.getEntity()));
+
+        deletedObjects.forEach(session::delete);
+
+        session.getTransaction().commit();
+      } catch (Exception ex) {
+        log.error("Failed to delete DeletedObject for:" + event.getEntity());
+        session.getTransaction().rollback();
+      } finally {
+        session.close();
+      }
     }
+  }
 
-    @Override
-    public boolean requiresPostCommitHanding( EntityPersister persister )
-    {
-        return true;
-    }
-
-    @Override
-    public void onPostInsert( PostInsertEvent event )
-    {
-        if ( IdentifiableObject.class.isInstance( event.getEntity() )
-            && MetadataObject.class.isInstance( event.getEntity() )
-            && !EmbeddedObject.class.isInstance( event.getEntity() ) )
-        {
-            StatelessSession session = event.getPersister().getFactory().openStatelessSession();
-            session.beginTransaction();
-
-            try
-            {
-                List<DeletedObject> deletedObjects = deletedObjectService
-                    .getDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) event.getEntity() ) );
-
-                deletedObjects.forEach( session::delete );
-
-                knownTransactionsService.registerEvent( event );
-
-                session.getTransaction().commit();
-            }
-            catch ( Exception ex )
-            {
-                log.error( "Failed to delete DeletedObject for:" + event.getEntity() );
-                session.getTransaction().rollback();
-            }
-            finally
-            {
-                session.close();
-            }
-        }
-    }
-
-    @Override
-    public void onPostInsertCommitFailed( PostInsertEvent event )
-    {
-        log.debug( "onPostInsertCommitFailed: " + event );
-    }
+  @Override
+  public void onPostInsertCommitFailed(PostInsertEvent event) {
+    log.debug("onPostInsertCommitFailed: " + event);
+  }
 }

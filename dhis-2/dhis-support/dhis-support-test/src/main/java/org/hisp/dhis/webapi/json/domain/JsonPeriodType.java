@@ -32,25 +32,20 @@ import org.hisp.dhis.jsontree.JsonObject;
 /**
  * @author Morten Olav Hansen
  */
-public interface JsonPeriodType extends JsonObject
-{
-    default String getName()
-    {
-        return getString( "name" ).string();
-    }
+public interface JsonPeriodType extends JsonObject {
+  default String getName() {
+    return getString("name").string();
+  }
 
-    default String getIsoDuration()
-    {
-        return getString( "isoDuration" ).string();
-    }
+  default String getIsoDuration() {
+    return getString("isoDuration").string();
+  }
 
-    default String getIsoFormat()
-    {
-        return getString( "isoFormat" ).string();
-    }
+  default String getIsoFormat() {
+    return getString("isoFormat").string();
+  }
 
-    default Number getFrequencyOrder()
-    {
-        return getNumber( "frequencyOrder" ).number();
-    }
+  default Number getFrequencyOrder() {
+    return getNumber("frequencyOrder").number();
+  }
 }

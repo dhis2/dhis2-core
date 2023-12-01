@@ -7,11 +7,8 @@
       "href": "https://play.dhis2.org/dev/api/userRoles/xJZBzAHI88H",
       "id": "xJZBzAHI88H",
       "displayName": "User manager",
-      "publicAccess": "--------",
       "description": "User manager",
-      "externalAccess": false,
       "favorite": false,
-      "userGroupAccesses": [],
       "attributeValues": [],
       "authorities": [
         "M_dhis-web-maintenance-user",
@@ -19,20 +16,24 @@
         "M_dhis-web-dashboard",
         "F_USER_DELETE",
         "F_USER_ADD"
-      ]
+      ],
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
       "dataSets": [],
-      "publicAccess": "--------",
       "name": "Superuser",
       "programs": [],
       "lastUpdated": "2016-03-12T06:18:41.386+0000",
       "created": "2016-03-12T06:18:41.386+0000",
-      "userGroupAccesses": [],
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
-        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
         "F_TRACKED_ENTITY_INSTANCE_DELETE",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
         "F_MAP_PUBLIC_ADD",
@@ -50,7 +51,6 @@
         "F_EVENT_VISUALIZATION_EXTERNAL",
         "F_VIEW_UNAPPROVED_DATA",
         "F_VISUALIZATION_EXTERNAL",
-        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
         "F_METADATA_EXPORT",
         "F_PROGRAM_UNENROLLMENT",
         "F_APPROVE_DATA",
@@ -59,12 +59,18 @@
         "F_USERGROUP_PUBLIC_ADD",
         "F_OAUTH2_CLIENT_MANAGE",
         "F_TRACKED_ENTITY_DATAVALUE_ADD",
-        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
         "F_MAP_EXTERNAL",
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_TRACKED_ENTITY_DATAVALUE_DELETE"
       ],
-      "id": "tHEWGwIMsJk"
+      "id": "tHEWGwIMsJk",
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "date": "2016-03-12T06:21:34.667+0000",

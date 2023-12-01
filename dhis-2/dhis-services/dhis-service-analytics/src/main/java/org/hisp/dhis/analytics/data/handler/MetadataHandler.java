@@ -48,144 +48,142 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
+import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
+import org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Sets;
-
-/**
- * Component that populates the Grid metadata.
- */
+/** Component that populates the Grid metadata. */
 @Component
 @RequiredArgsConstructor
-public class MetadataHandler
-{
-    private final DataQueryService dataQueryService;
+public class MetadataHandler {
+  private final DataQueryService dataQueryService;
 
-    private final SchemaIdResponseMapper schemaIdResponseMapper;
+  private final SchemeIdResponseMapper schemeIdResponseMapper;
 
-    /**
-     * Adds meta data values to the given grid based on the given data query
-     * parameters.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @param grid the {@link Grid}.
-     */
-    void addMetaData( DataQueryParams params, Grid grid )
-    {
-        if ( !params.isSkipMeta() )
-        {
-            Map<String, Object> metaData = new HashMap<>();
-            Map<String, Object> internalMetaData = new HashMap<>();
+  private final CurrentUserService currentUserService;
 
-            // -----------------------------------------------------------------
-            // Items / names element
-            // -----------------------------------------------------------------
+  /**
+   * Adds meta data values to the given grid based on the given data query parameters.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @param grid the {@link Grid}.
+   */
+  @Transactional(readOnly = true)
+  public void addMetaData(DataQueryParams params, Grid grid) {
+    if (!params.isSkipMeta()) {
+      Map<String, Object> metaData = new HashMap<>();
+      Map<String, Object> internalMetaData = new HashMap<>();
 
-            Map<String, String> cocNameMap = getCocNameMap( params );
+      // -----------------------------------------------------------------
+      // Items / names element
+      // -----------------------------------------------------------------
 
-            metaData.put( ITEMS.getKey(), getDimensionMetadataItemMap( params, grid ) );
+      Map<String, Object> items = new HashMap<>(getDimensionMetadataItemMap(params, grid));
 
-            // -----------------------------------------------------------------
-            // Item order elements
-            // -----------------------------------------------------------------
+      AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems(
+              currentUserService.getCurrentUser(), params.getUserOrganisationUnitsCriteria())
+          .forEach(items::putAll);
 
-            Map<String, Object> dimensionItems = new HashMap<>();
+      metaData.put(ITEMS.getKey(), items);
 
-            Calendar calendar = PeriodType.getCalendar();
+      // -----------------------------------------------------------------
+      // Item order elements
+      // -----------------------------------------------------------------
+      Map<String, String> cocNameMap = getCocNameMap(params);
 
-            List<String> periodUids = calendar.isIso8601()
-                ? getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) )
-                : getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
+      Map<String, Object> dimensionItems = new HashMap<>();
 
-            dimensionItems.put( PERIOD_DIM_ID, periodUids );
-            dimensionItems.put( CATEGORYOPTIONCOMBO_DIM_ID, Sets.newHashSet( cocNameMap.keySet() ) );
+      Calendar calendar = PeriodType.getCalendar();
 
-            for ( DimensionalObject dim : params.getDimensionsAndFilters() )
-            {
-                if ( !dimensionItems.containsKey( dim.getDimension() ) )
-                {
-                    dimensionItems.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
-                }
-            }
+      List<String> periodUids =
+          calendar.isIso8601()
+              ? getUids(params.getDimensionOrFilterItems(PERIOD_DIM_ID))
+              : getLocalPeriodIdentifiers(
+                  params.getDimensionOrFilterItems(PERIOD_DIM_ID), calendar);
 
-            metaData.put( DIMENSIONS.getKey(), dimensionItems );
+      dimensionItems.put(PERIOD_DIM_ID, periodUids);
+      dimensionItems.put(CATEGORYOPTIONCOMBO_DIM_ID, Sets.newHashSet(cocNameMap.keySet()));
 
-            // -----------------------------------------------------------------
-            // Organisation unit hierarchy
-            // -----------------------------------------------------------------
-
-            List<OrganisationUnit> organisationUnits = asTypedList(
-                params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
-
-            List<OrganisationUnit> roots = dataQueryService.getUserOrgUnits( params, null );
-
-            List<OrganisationUnit> activeOrgUnits = OrgUnitHelper.getActiveOrganisationUnits( grid, organisationUnits );
-
-            if ( params.isHierarchyMeta() )
-            {
-                metaData.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap(
-                    activeOrgUnits, roots ) );
-            }
-
-            if ( params.isShowHierarchy() )
-            {
-                Map<Object, List<?>> ancestorMap = activeOrgUnits.stream()
-                    .collect( toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots, true ) ) );
-
-                internalMetaData.put( ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
-                metaData.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
-                    getParentNameGraphMap( activeOrgUnits, roots, true ) );
-            }
-
-            grid.setMetaData( copyOf( metaData ) );
-            grid.setInternalMetaData( copyOf( internalMetaData ) );
+      for (DimensionalObject dim : params.getDimensionsAndFilters()) {
+        if (!dimensionItems.containsKey(dim.getDimension())) {
+          dimensionItems.put(dim.getDimension(), getDimensionalItemIds(dim.getItems()));
         }
-    }
+      }
 
-    /**
-     * Prepares the given grid to be converted to a data value set, given that
-     * the output format is of type DATA_VALUE_SET.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @param grid the {@link Grid}.
-     */
-    void handleDataValueSet( DataQueryParams params, Grid grid )
-    {
-        if ( params.isOutputFormat( DATA_VALUE_SET ) && !params.isSkipHeaders() )
-        {
-            handleGridForDataValueSet( params, grid );
-        }
-    }
+      metaData.put(DIMENSIONS.getKey(), dimensionItems);
 
-    /**
-     * Substitutes the meta data of the grid with the identifier scheme meta
-     * data property indicated in the query.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @param grid the {@link Grid}.
-     */
-    void applyIdScheme( DataQueryParams params, Grid grid )
-    {
-        if ( !params.isSkipMeta() )
-        {
-            if ( params.hasCustomIdSchemaSet() )
-            {
-                grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
-            }
-        }
+      // -----------------------------------------------------------------
+      // Organisation unit hierarchy
+      // -----------------------------------------------------------------
+
+      List<OrganisationUnit> organisationUnits =
+          asTypedList(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID));
+
+      List<OrganisationUnit> roots = dataQueryService.getUserOrgUnits(params, null);
+
+      List<OrganisationUnit> activeOrgUnits =
+          OrgUnitHelper.getActiveOrganisationUnits(grid, organisationUnits);
+
+      if (params.isHierarchyMeta()) {
+        metaData.put(ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap(activeOrgUnits, roots));
+      }
+
+      if (params.isShowHierarchy()) {
+        Map<Object, List<?>> ancestorMap =
+            (params.isDownload() ? organisationUnits : activeOrgUnits)
+                .stream()
+                    .collect(
+                        toMap(OrganisationUnit::getUid, ou -> ou.getAncestorNames(roots, true)));
+
+        internalMetaData.put(ORG_UNIT_ANCESTORS.getKey(), ancestorMap);
+        metaData.put(
+            ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap(activeOrgUnits, roots, true));
+      }
+
+      grid.setMetaData(copyOf(metaData));
+      grid.setInternalMetaData(copyOf(internalMetaData));
     }
+  }
+
+  /**
+   * Prepares the given grid to be converted to a data value set, given that the output format is of
+   * type DATA_VALUE_SET.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @param grid the {@link Grid}.
+   */
+  void handleDataValueSet(DataQueryParams params, Grid grid) {
+    if (params.isOutputFormat(DATA_VALUE_SET) && !params.isSkipHeaders()) {
+      handleGridForDataValueSet(params, grid);
+    }
+  }
+
+  /**
+   * Substitutes the meta data of the grid with the identifier scheme meta data property indicated
+   * in the query.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @param grid the {@link Grid}.
+   */
+  void applyIdScheme(DataQueryParams params, Grid grid) {
+    if (!params.isSkipMeta()) {
+      if (params.hasCustomIdSchemeSet()) {
+        grid.substituteMetaData(schemeIdResponseMapper.getSchemeIdResponseMap(params));
+      }
+    }
+  }
 }

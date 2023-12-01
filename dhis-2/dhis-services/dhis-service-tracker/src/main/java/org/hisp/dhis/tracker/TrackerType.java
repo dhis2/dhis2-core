@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -40,21 +39,19 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum TrackerType
-{
-    TRACKED_ENTITY( "trackedEntity", 1 ),
-    ENROLLMENT( "enrollment", 2 ),
-    EVENT( "event", 3 ),
-    RELATIONSHIP( "relationship", 4 );
+public enum TrackerType {
+  TRACKED_ENTITY("trackedEntity", 1),
+  ENROLLMENT("enrollment", 2),
+  EVENT("event", 3),
+  RELATIONSHIP("relationship", 4);
 
-    private final String name;
+  private final String name;
 
-    private final Integer priority;
+  private final Integer priority;
 
-    public static List<TrackerType> getOrderedByPriority()
-    {
-        return Arrays.stream( values() )
-            .sorted( Comparator.comparing( TrackerType::getPriority ) )
-            .collect( Collectors.toList() );
-    }
+  public static List<TrackerType> getOrderedByPriority() {
+    return Arrays.stream(values())
+        .sorted(Comparator.comparing(TrackerType::getPriority))
+        .collect(Collectors.toList());
+  }
 }

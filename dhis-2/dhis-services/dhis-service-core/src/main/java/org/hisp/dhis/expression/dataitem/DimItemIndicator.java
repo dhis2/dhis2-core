@@ -38,13 +38,9 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Luciano Fiandesio
  */
-public class DimItemIndicator
-    extends DimensionalItem
-{
-    @Override
-    public DimensionalItemId getDimensionalItemId( ExprContext ctx,
-        CommonExpressionVisitor visitor )
-    {
-        return new DimensionalItemId( INDICATOR, ctx.uid0.getText(), visitor.getState().getQueryMods() );
-    }
+public class DimItemIndicator extends DimensionalItem {
+  @Override
+  public DimensionalItemId getDimensionalItemId(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return new DimensionalItemId(INDICATOR, ctx.uid0.getText(), visitor.getState().getQueryMods());
+  }
 }

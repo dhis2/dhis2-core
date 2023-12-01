@@ -5,15 +5,18 @@
       "lastUpdated": "2019-04-15T14:40:58.215",
       "name": "TA user group updated",
       "id": "OPVIvvXzNTw",
-      "userGroupAccesses": [
-      ],
-      "publicAccess": "rw------",
       "attributeValues": [],
       "managedGroups": [],
       "translations": [],
-      "userAccesses": [],
       "user": {
         "id": "userabcdefA"
+      },
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "userabcdefA",
+        "users": {},
+        "userGroups": {}
       }
     }
   ]

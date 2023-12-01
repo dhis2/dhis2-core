@@ -40,140 +40,129 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-class LabelMapperTest
-{
-    public static final String EVENT_DATE = "Event date";
+class LabelMapperTest {
+  public static final String EVENT_DATE = "Event date";
 
-    public static final String INCIDENT_DATE = "Incident date";
+  public static final String INCIDENT_DATE = "Incident date";
 
-    public static final String ENROLLMENT_DATE = "Enrollment date";
+  public static final String ENROLLMENT_DATE = "Enrollment date";
 
-    private static final String NAME_SCHEDULED_DATE = "Scheduled date";
+  private static final String NAME_SCHEDULED_DATE = "Scheduled date";
 
-    @Test
-    void testGetHeaderNameFor_NAME_EVENT_DATE()
-    {
-        ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
+  @Test
+  void testGetHeaderNameFor_NAME_EVENT_DATE() {
+    ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
 
-        String actualName = LabelMapper.getEventDateLabel( aMockedProgramStageWithLabels, EVENT_DATE );
+    String actualName = LabelMapper.getEventDateLabel(aMockedProgramStageWithLabels, EVENT_DATE);
 
-        assertThat( actualName, is( aMockedProgramStageWithLabels.getDisplayExecutionDateLabel() ) );
-    }
+    assertThat(actualName, is(aMockedProgramStageWithLabels.getDisplayExecutionDateLabel()));
+  }
 
-    @Test
-    void testGetHeaderNameFor_NAME_SCHEDULED_DATE()
-    {
-        ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
+  @Test
+  void testGetHeaderNameFor_NAME_SCHEDULED_DATE() {
+    ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
 
-        String actualName = LabelMapper.getScheduledDateLabel( aMockedProgramStageWithLabels,
-            NAME_SCHEDULED_DATE );
+    String actualName =
+        LabelMapper.getScheduledDateLabel(aMockedProgramStageWithLabels, NAME_SCHEDULED_DATE);
 
-        assertThat( actualName, is( aMockedProgramStageWithLabels.getDisplayDueDateLabel() ) );
-    }
+    assertThat(actualName, is(aMockedProgramStageWithLabels.getDisplayDueDateLabel()));
+  }
 
-    @Test
-    void testGetHeaderNameFor_NAME_ENROLLMENT_DATE()
-    {
-        Program aMockedProgramWithLabels = mockProgramWithLabels();
+  @Test
+  void testGetHeaderNameFor_NAME_ENROLLMENT_DATE() {
+    Program aMockedProgramWithLabels = mockProgramWithLabels();
 
-        String actualName = LabelMapper.getEnrollmentDateLabel( aMockedProgramWithLabels, ENROLLMENT_DATE );
+    String actualName =
+        LabelMapper.getEnrollmentDateLabel(aMockedProgramWithLabels, ENROLLMENT_DATE);
 
-        assertThat( actualName, is( aMockedProgramWithLabels.getDisplayEnrollmentDateLabel() ) );
-    }
+    assertThat(actualName, is(aMockedProgramWithLabels.getDisplayEnrollmentDateLabel()));
+  }
 
-    @Test
-    void testGetHeaderNameFor_NAME_INCIDENT_DATE()
-    {
-        Program aMockedProgramWithLabels = mockProgramWithLabels();
+  @Test
+  void testGetHeaderNameFor_NAME_INCIDENT_DATE() {
+    Program aMockedProgramWithLabels = mockProgramWithLabels();
 
-        String actualName = LabelMapper.getIncidentDateLabel( aMockedProgramWithLabels, INCIDENT_DATE );
+    String actualName = LabelMapper.getIncidentDateLabel(aMockedProgramWithLabels, INCIDENT_DATE);
 
-        assertThat( actualName, is( aMockedProgramWithLabels.getDisplayIncidentDateLabel() ) );
-    }
+    assertThat(actualName, is(aMockedProgramWithLabels.getDisplayIncidentDateLabel()));
+  }
 
-    @Test
-    void testGetHeaderNameWhenNoLabelIsSetFor_NAME_EVENT_DATE()
-    {
-        ProgramStage aMockedProgramStageWithNoLabels = mockProgramStageWithoutLabels();
+  @Test
+  void testGetHeaderNameWhenNoLabelIsSetFor_NAME_EVENT_DATE() {
+    ProgramStage aMockedProgramStageWithNoLabels = mockProgramStageWithoutLabels();
 
-        String actualName = LabelMapper.getEventDateLabel( aMockedProgramStageWithNoLabels, EVENT_DATE );
+    String actualName = LabelMapper.getEventDateLabel(aMockedProgramStageWithNoLabels, EVENT_DATE);
 
-        assertThat( actualName, is( EVENT_DATE ) );
-    }
+    assertThat(actualName, is(EVENT_DATE));
+  }
 
-    @Test
-    void testGetHeaderNameWhenNoLabelIsSetFor_NAME_SCHEDULED_DATE()
-    {
-        ProgramStage aMockedProgramStageWithNoLabels = mockProgramStageWithoutLabels();
+  @Test
+  void testGetHeaderNameWhenNoLabelIsSetFor_NAME_SCHEDULED_DATE() {
+    ProgramStage aMockedProgramStageWithNoLabels = mockProgramStageWithoutLabels();
 
-        String actualName = LabelMapper.getEventDateLabel( aMockedProgramStageWithNoLabels, NAME_SCHEDULED_DATE );
+    String actualName =
+        LabelMapper.getEventDateLabel(aMockedProgramStageWithNoLabels, NAME_SCHEDULED_DATE);
 
-        assertThat( actualName, is( NAME_SCHEDULED_DATE ) );
-    }
+    assertThat(actualName, is(NAME_SCHEDULED_DATE));
+  }
 
-    @Test
-    void testGetHeaderNameWhenNoLabelIsSetFor_NAME_ENROLLMENT_DATE()
-    {
-        Program aMockedProgramWithLabels = mockProgramWithoutLabels();
+  @Test
+  void testGetHeaderNameWhenNoLabelIsSetFor_NAME_ENROLLMENT_DATE() {
+    Program aMockedProgramWithLabels = mockProgramWithoutLabels();
 
-        String actualName = LabelMapper.getEnrollmentDateLabel( aMockedProgramWithLabels, ENROLLMENT_DATE );
+    String actualName =
+        LabelMapper.getEnrollmentDateLabel(aMockedProgramWithLabels, ENROLLMENT_DATE);
 
-        assertThat( actualName, is( ENROLLMENT_DATE ) );
-    }
+    assertThat(actualName, is(ENROLLMENT_DATE));
+  }
 
-    @Test
-    void testGetHeaderNameWhenNoLabelIsSetFor_NAME_INCIDENT_DATE()
-    {
-        Program aMockedProgramWithLabels = mockProgramWithoutLabels();
+  @Test
+  void testGetHeaderNameWhenNoLabelIsSetFor_NAME_INCIDENT_DATE() {
+    Program aMockedProgramWithLabels = mockProgramWithoutLabels();
 
-        String actualName = LabelMapper.getIncidentDateLabel( aMockedProgramWithLabels, INCIDENT_DATE );
+    String actualName = LabelMapper.getIncidentDateLabel(aMockedProgramWithLabels, INCIDENT_DATE);
 
-        assertThat( actualName, is( INCIDENT_DATE ) );
-    }
+    assertThat(actualName, is(INCIDENT_DATE));
+  }
 
-    @Test
-    void testGetHeaderNameWhenProgramIsNull()
-    {
-        Program nullProgram = null;
+  @Test
+  void testGetHeaderNameWhenProgramIsNull() {
+    Program nullProgram = null;
 
-        String actualName = LabelMapper.getEnrollmentDateLabel( nullProgram, ENROLLMENT_DATE );
+    String actualName = LabelMapper.getEnrollmentDateLabel(nullProgram, ENROLLMENT_DATE);
 
-        assertThat( actualName, is( ENROLLMENT_DATE ) );
-    }
+    assertThat(actualName, is(ENROLLMENT_DATE));
+  }
 
-    private Program mockProgramWithLabels()
-    {
-        Program program = new Program();
-        program.setEnrollmentDateLabel( "enrollment date label" );
-        program.setIncidentDateLabel( "incident date label" );
+  private Program mockProgramWithLabels() {
+    Program program = new Program();
+    program.setEnrollmentDateLabel("enrollment date label");
+    program.setIncidentDateLabel("incident date label");
 
-        return program;
-    }
+    return program;
+  }
 
-    private Program mockProgramWithoutLabels()
-    {
-        Program program = new Program();
-        return program;
-    }
+  private Program mockProgramWithoutLabels() {
+    Program program = new Program();
+    return program;
+  }
 
-    private ProgramStage mockProgramStageWithLabels()
-    {
-        ProgramStage programStage = new ProgramStage();
-        programStage.setExecutionDateLabel( "execution date label" );
-        programStage.setDueDateLabel( "scheduled date label" );
+  private ProgramStage mockProgramStageWithLabels() {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setExecutionDateLabel("execution date label");
+    programStage.setDueDateLabel("scheduled date label");
 
-        Program program = new Program();
-        program.setEnrollmentDateLabel( "enrollment date label" );
-        program.setIncidentDateLabel( "incident date label" );
-        programStage.setProgram( program );
-        return programStage;
-    }
+    Program program = new Program();
+    program.setEnrollmentDateLabel("enrollment date label");
+    program.setIncidentDateLabel("incident date label");
+    programStage.setProgram(program);
+    return programStage;
+  }
 
-    private ProgramStage mockProgramStageWithoutLabels()
-    {
-        final ProgramStage programStage = new ProgramStage();
-        final Program program = new Program();
-        programStage.setProgram( program );
-        return programStage;
-    }
+  private ProgramStage mockProgramStageWithoutLabels() {
+    final ProgramStage programStage = new ProgramStage();
+    final Program program = new Program();
+    programStage.setProgram(program);
+    return programStage;
+  }
 }

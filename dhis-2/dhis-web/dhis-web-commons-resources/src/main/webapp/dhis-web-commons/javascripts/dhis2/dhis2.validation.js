@@ -77,10 +77,10 @@ dhis2.validation.isZeroOrPositiveInt = function(value) {
  */
 dhis2.validation.isCoordinate = function(value) {
   try {
-	var m = value.match(/^([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)$/);
+	var m = value.match(/^\[\s*([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)\s*\]$/);
    	var lng = parseFloat(m[1]);
     var lat = parseFloat(m[2]);
-    return lng >= -180 && lng <= 180 && lat >= -180 && lat <= 90;
+    return lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90;
   } 
   catch (_) {
     return false;

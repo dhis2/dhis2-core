@@ -27,28 +27,16 @@
  */
 package org.hisp.dhis.fileresource.events;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * @Author Zubair Asghar.
  */
-public class BinaryFileSavedEvent
-{
-    private String fileResource;
+@Getter
+@RequiredArgsConstructor
+public class BinaryFileSavedEvent {
 
-    private byte[] bytes;
-
-    public BinaryFileSavedEvent( String fileResource, byte[] bytes )
-    {
-        this.fileResource = fileResource;
-        this.bytes = bytes;
-    }
-
-    public String getFileResource()
-    {
-        return fileResource;
-    }
-
-    public byte[] getBytes()
-    {
-        return bytes;
-    }
+  private final String fileResource;
+  private final byte[] bytes;
 }

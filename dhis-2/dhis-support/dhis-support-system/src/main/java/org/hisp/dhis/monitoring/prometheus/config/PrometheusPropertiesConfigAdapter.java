@@ -27,42 +27,35 @@
  */
 package org.hisp.dhis.monitoring.prometheus.config;
 
-import java.time.Duration;
-
 import io.micrometer.prometheus.PrometheusConfig;
+import java.time.Duration;
 
 /**
  * @author Luciano Fiandesio
  */
-public class PrometheusPropertiesConfigAdapter
-    extends PropertiesConfigAdapter<PrometheusProperties>
-    implements PrometheusConfig
-{
-    /**
-     * Create a new {@link PropertiesConfigAdapter} instance.
-     *
-     * @param properties the source properties
-     */
-    public PrometheusPropertiesConfigAdapter( PrometheusProperties properties )
-    {
-        super( properties );
-    }
+public class PrometheusPropertiesConfigAdapter extends PropertiesConfigAdapter<PrometheusProperties>
+    implements PrometheusConfig {
+  /**
+   * Create a new {@link PropertiesConfigAdapter} instance.
+   *
+   * @param properties the source properties
+   */
+  public PrometheusPropertiesConfigAdapter(PrometheusProperties properties) {
+    super(properties);
+  }
 
-    @Override
-    public String get( String key )
-    {
-        return null;
-    }
+  @Override
+  public String get(String key) {
+    return null;
+  }
 
-    @Override
-    public boolean descriptions()
-    {
-        return get( PrometheusProperties::isDescriptions, PrometheusConfig.super::descriptions );
-    }
+  @Override
+  public boolean descriptions() {
+    return get(PrometheusProperties::isDescriptions, PrometheusConfig.super::descriptions);
+  }
 
-    @Override
-    public Duration step()
-    {
-        return get( PrometheusProperties::getStep, PrometheusConfig.super::step );
-    }
+  @Override
+  public Duration step() {
+    return get(PrometheusProperties::getStep, PrometheusConfig.super::step);
+  }
 }

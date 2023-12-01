@@ -6,7 +6,7 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.category.Category" table="dataelementcategory">
+  <class name="org.hisp.dhis.category.Category" table="category">
 
     <cache usage="read-write"/>
 
@@ -39,13 +39,12 @@
                     foreign-key="fk_category_categoryoptionid"/>
     </list>
 
-    <list name="categoryCombos" table="categorycombos_categories" inverse="true">
+    <set name="categoryCombos" table="categorycombos_categories" inverse="true">
       <cache usage="read-write" />
       <key column="categoryid" foreign-key="fk_categorycombo_categoryid" />
-      <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.category.CategoryCombo" column="categorycomboid"
         foreign-key="fk_categorycombos_categories_categorycomboid" />
-    </list>
+    </set>
 
     <property name="dataDimension" column="datadimension" not-null="true" />
 

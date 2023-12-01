@@ -27,32 +27,28 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryStore;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
-@Repository( "org.hisp.dhis.program.ProgramOwnershipHistoryStore" )
-public class HibernateProgramOwnershipHistoryStore implements ProgramOwnershipHistoryStore
-{
-    private SessionFactory sessionFactory;
+@Repository("org.hisp.dhis.program.ProgramOwnershipHistoryStore")
+public class HibernateProgramOwnershipHistoryStore implements ProgramOwnershipHistoryStore {
+  private EntityManager entityManager;
 
-    public HibernateProgramOwnershipHistoryStore( SessionFactory sessionFactory )
-    {
-        this.sessionFactory = sessionFactory;
-    }
+  public HibernateProgramOwnershipHistoryStore(EntityManager entityManager) {
+    this.entityManager = entityManager;
+  }
 
-    // -------------------------------------------------------------------------
-    // ProgramOwnershipHistoryStore implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ProgramOwnershipHistoryStore implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public void addProgramOwnershipHistory( ProgramOwnershipHistory programOwnershipHistory )
-    {
-        sessionFactory.getCurrentSession().save( programOwnershipHistory );
-    }
+  @Override
+  public void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory) {
+    entityManager.persist(programOwnershipHistory);
+  }
 }

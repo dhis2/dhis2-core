@@ -29,109 +29,105 @@ package org.hisp.dhis.predictor;
 
 import java.util.List;
 
-/**
- * Created by haase on 6/12/16.
- */
-public interface PredictorService
-{
-    String ID = PredictorService.class.getName();
+/** Created by haase on 6/12/16. */
+public interface PredictorService {
+  String ID = PredictorService.class.getName();
 
-    // -------------------------------------------------------------------------
-    // Predictor
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Predictor
+  // -------------------------------------------------------------------------
 
-    /**
-     * Add a predictor to the database.
-     *
-     * @param predictor the Predictor to add.
-     * @return the generated unique identifier for the predictor.
-     */
-    long addPredictor( Predictor predictor );
+  /**
+   * Add a predictor to the database.
+   *
+   * @param predictor the Predictor to add.
+   * @return the generated unique identifier for the predictor.
+   */
+  long addPredictor(Predictor predictor);
 
-    /**
-     * Update a predictor in the database.
-     *
-     * @param predictor the predictor to update.
-     */
-    void updatePredictor( Predictor predictor );
+  /**
+   * Update a predictor in the database.
+   *
+   * @param predictor the predictor to update.
+   */
+  void updatePredictor(Predictor predictor);
 
-    /**
-     * Delete a predictor from the database.
-     *
-     * @param predictor the predictor to delete.
-     */
-    void deletePredictor( Predictor predictor );
+  /**
+   * Delete a predictor from the database.
+   *
+   * @param predictor the predictor to delete.
+   */
+  void deletePredictor(Predictor predictor);
 
-    /**
-     * Get predictor with the given identifier.
-     *
-     * @param id the unique identifier of the predictor.
-     * @return the predictor or null if it doesn't exist.
-     */
-    Predictor getPredictor( long id );
+  /**
+   * Get predictor with the given identifier.
+   *
+   * @param id the unique identifier of the predictor.
+   * @return the predictor or null if it doesn't exist.
+   */
+  Predictor getPredictor(long id);
 
-    /**
-     * Get predictor with the given uid.
-     *
-     * @param uid the unique identifier of the predictor.
-     * @return the predictor or null if it doesn't exist.
-     */
-    Predictor getPredictor( String uid );
+  /**
+   * Get predictor with the given uid.
+   *
+   * @param uid the unique identifier of the predictor.
+   * @return the predictor or null if it doesn't exist.
+   */
+  Predictor getPredictor(String uid);
 
-    /**
-     * Get all predictors.
-     *
-     * @return a List of predictors or null if there are no predictors.
-     */
-    List<Predictor> getAllPredictors();
+  /**
+   * Get all predictors.
+   *
+   * @return a List of predictors or null if there are no predictors.
+   */
+  List<Predictor> getAllPredictors();
 
-    // -------------------------------------------------------------------------
-    // Predictor Group
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Predictor Group
+  // -------------------------------------------------------------------------
 
-    /**
-     * Adds a predictor group to the database.
-     *
-     * @param predictorGroup the predictor group to add.
-     * @return the generated unique identifier for the predictor group.
-     */
-    long addPredictorGroup( PredictorGroup predictorGroup );
+  /**
+   * Adds a predictor group to the database.
+   *
+   * @param predictorGroup the predictor group to add.
+   * @return the generated unique identifier for the predictor group.
+   */
+  long addPredictorGroup(PredictorGroup predictorGroup);
 
-    /**
-     * Delete a predictor group from the database.
-     *
-     * @param predictorGroup the predictor group to delete.
-     */
-    void deletePredictorGroup( PredictorGroup predictorGroup );
+  /**
+   * Delete a predictor group from the database.
+   *
+   * @param predictorGroup the predictor group to delete.
+   */
+  void deletePredictorGroup(PredictorGroup predictorGroup);
 
-    /**
-     * Update a predictor group with the given identifiers.
-     *
-     * @param predictorGroup the predictor group to update.
-     */
-    void updatePredictorGroup( PredictorGroup predictorGroup );
+  /**
+   * Update a predictor group with the given identifiers.
+   *
+   * @param predictorGroup the predictor group to update.
+   */
+  void updatePredictorGroup(PredictorGroup predictorGroup);
 
-    /**
-     * Get predictor group with the given identifier.
-     *
-     * @param id the unique identifier of the predictor group.
-     * @return the predictor group or null if it doesn't exist.
-     */
-    PredictorGroup getPredictorGroup( long id );
+  /**
+   * Get predictor group with the given identifier.
+   *
+   * @param id the unique identifier of the predictor group.
+   * @return the predictor group or null if it doesn't exist.
+   */
+  PredictorGroup getPredictorGroup(long id);
 
-    /**
-     * Get predictor group with the given uid.
-     *
-     * @param uid the unique identifier of the predictor group.
-     * @return the predictor group or null if it doesn't exist.
-     */
-    PredictorGroup getPredictorGroup( String uid );
+  /**
+   * Get predictor group with the given uid.
+   *
+   * @param uid the unique identifier of the predictor group.
+   * @return the predictor group or null if it doesn't exist.
+   */
+  PredictorGroup getPredictorGroup(String uid);
 
-    /**
-     * Get all predictor groups.
-     *
-     * @return a List of predictor groups or null if it there are no predictor
-     *         groups.
-     */
-    List<PredictorGroup> getAllPredictorGroups();
+  /**
+   * Get all predictor groups.
+   *
+   * @return a List of predictor groups or null if it there are no predictor groups.
+   */
+  List<PredictorGroup> getAllPredictorGroups();
 }

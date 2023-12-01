@@ -31,71 +31,59 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Class which wraps an object to make it easy to sort. This class provides a
- * numeric for sorting and implements the Comparable interface.
+ * Class which wraps an object to make it easy to sort. This class provides a numeric for sorting
+ * and implements the Comparable interface.
  *
  * @author Lars Helge Overland
  */
-public class NumericSortWrapper<T>
-    implements Comparable<NumericSortWrapper<T>>
-{
-    private T object;
+public class NumericSortWrapper<T> implements Comparable<NumericSortWrapper<T>> {
+  private T object;
 
-    private Double number;
+  private Double number;
 
-    private int sortOrder;
+  private int sortOrder;
 
-    /**
-     * @param object the object to wrap.
-     * @param number the number to use as basis for sorting.
-     * @param sortOrder the sort order, negative
-     */
-    public NumericSortWrapper( T object, Double number, int sortOrder )
-    {
-        this.object = object;
-        this.number = number;
-        this.sortOrder = sortOrder;
+  /**
+   * @param object the object to wrap.
+   * @param number the number to use as basis for sorting.
+   * @param sortOrder the sort order, negative
+   */
+  public NumericSortWrapper(T object, Double number, int sortOrder) {
+    this.object = object;
+    this.number = number;
+    this.sortOrder = sortOrder;
+  }
+
+  @Override
+  public int compareTo(NumericSortWrapper<T> other) {
+    if (sortOrder < 0) {
+      return number != null ? other != null ? number.compareTo(other.getNumber()) : 1 : -1;
+    } else {
+      return other != null && other.getNumber() != null
+          ? number != null ? other.getNumber().compareTo(number) : 1
+          : -1;
+    }
+  }
+
+  public T getObject() {
+    return object;
+  }
+
+  public Double getNumber() {
+    return number;
+  }
+
+  public static <T> List<T> getObjectList(List<NumericSortWrapper<T>> wrapperList) {
+    List<T> list = new ArrayList<>();
+
+    for (NumericSortWrapper<T> wrapper : wrapperList) {
+      list.add(wrapper.getObject());
     }
 
-    @Override
-    public int compareTo( NumericSortWrapper<T> other )
-    {
-        if ( sortOrder < 0 )
-        {
-            return number != null ? other != null ? number.compareTo( other.getNumber() ) : 1 : -1;
-        }
-        else
-        {
-            return other != null && other.getNumber() != null
-                ? number != null ? other.getNumber().compareTo( number ) : 1
-                : -1;
-        }
-    }
+    return list;
+  }
 
-    public T getObject()
-    {
-        return object;
-    }
-
-    public Double getNumber()
-    {
-        return number;
-    }
-
-    public static <T> List<T> getObjectList( List<NumericSortWrapper<T>> wrapperList )
-    {
-        List<T> list = new ArrayList<>();
-
-        for ( NumericSortWrapper<T> wrapper : wrapperList )
-        {
-            list.add( wrapper.getObject() );
-        }
-
-        return list;
-    }
-
-    public String toString()
-    {
-        return "[Number: " + number + ", object: " + object + "]";
-    }
+  public String toString() {
+    return "[Number: " + number + ", object: " + object + "]";
+  }
 }

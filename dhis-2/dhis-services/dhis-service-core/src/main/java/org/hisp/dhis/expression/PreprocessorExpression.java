@@ -31,9 +31,7 @@ import static java.lang.String.format;
 
 import java.util.List;
 import java.util.regex.Pattern;
-
 import lombok.Getter;
-
 import org.hisp.dhis.antlr.ParserException;
 
 /**
@@ -42,95 +40,83 @@ import org.hisp.dhis.antlr.ParserException;
  * @author Jim Grace
  */
 @Getter
-public abstract class PreprocessorExpression
-{
-    /**
-     * The entire expression including the preprocessor prefix.
-     */
-    protected final String expression;
+public abstract class PreprocessorExpression {
+  /** The entire expression including the preprocessor prefix. */
+  protected final String expression;
 
-    /**
-     * The prefix to the main expression.
-     */
-    protected final String prefix;
+  /** The prefix to the main expression. */
+  protected final String prefix;
 
-    /**
-     * The parts (separated by spaces) of the prefix.
-     */
-    protected final List<String> parts;
+  /** The parts (separated by spaces) of the prefix. */
+  protected final List<String> parts;
 
-    /**
-     * The main expression.
-     */
-    protected final String main;
+  /** The main expression. */
+  protected final String main;
 
-    private static final Pattern VARIABLE_PATTERN = Pattern.compile( "^\\?[A-Za-z][A-Za-z0-9]*$" );
+  private static final Pattern VARIABLE_PATTERN = Pattern.compile("^\\?[A-Za-z][A-Za-z0-9]*$");
 
-    public static final Pattern UID_PATTERN = Pattern.compile( "^[A-Za-z][A-Za-z0-9]{10}$" );
+  public static final Pattern UID_PATTERN = Pattern.compile("^[A-Za-z][A-Za-z0-9]{10}$");
 
-    public static final String PREPROCESSOR_SEPARATOR = " --> ";
+  public static final String PREPROCESSOR_SEPARATOR = " --> ";
 
-    public static final int PREPROCESSOR_SEPARATOR_LENGTH = PREPROCESSOR_SEPARATOR.length();
+  public static final int PREPROCESSOR_SEPARATOR_LENGTH = PREPROCESSOR_SEPARATOR.length();
 
-    /**
-     * Accepts an expression with a preprocessor prefix. Parses it into the
-     * prefix (also broken down into parts) and the main expression.
-     *
-     * @param expression the expression to parse for preprocessing.
-     */
-    protected PreprocessorExpression( String expression )
-    {
-        this.expression = expression;
+  /**
+   * Accepts an expression with a preprocessor prefix. Parses it into the prefix (also broken down
+   * into parts) and the main expression.
+   *
+   * @param expression the expression to parse for preprocessing.
+   */
+  protected PreprocessorExpression(String expression) {
+    this.expression = expression;
 
-        int mainSplit = expression.indexOf( PREPROCESSOR_SEPARATOR );
+    int mainSplit = expression.indexOf(PREPROCESSOR_SEPARATOR);
 
-        if ( mainSplit < 0 )
-        {
-            throw new ParserException(
-                format( "Couldn't find preprocessor termination '%s' in '%s'", PREPROCESSOR_SEPARATOR, expression ) );
-        }
-
-        prefix = expression.substring( 0, mainSplit );
-        parts = List.of( prefix.split( " " ) );
-        main = expression.substring( mainSplit + PREPROCESSOR_SEPARATOR_LENGTH );
+    if (mainSplit < 0) {
+      throw new ParserException(
+          format(
+              "Couldn't find preprocessor termination '%s' in '%s'",
+              PREPROCESSOR_SEPARATOR, expression));
     }
 
-    /**
-     * Validates that variable name starts with a '?', followed by a letter, and
-     * optionally followed by more letters or numbers.
-     *
-     * @param variable the variable name to validate.
-     * @param expression the full expression.
-     */
-    protected void validateVariable( String variable, String expression )
-    {
-        if ( !VARIABLE_PATTERN.matcher( variable ).matches() )
-        {
-            if ( !variable.startsWith( "?" ) )
-            {
-                throw new ParserException(
-                    format( "Variable '%s' must start with '?' in '%s'", variable, expression ) );
-            }
+    prefix = expression.substring(0, mainSplit);
+    parts = List.of(prefix.split(" "));
+    main = expression.substring(mainSplit + PREPROCESSOR_SEPARATOR_LENGTH);
+  }
 
-            throw new ParserException( format(
-                "Variable '%s' must start with a letter and contain only letters and numbers in '%s'", variable,
-                expression ) );
-        }
-    }
+  /**
+   * Validates that variable name starts with a '?', followed by a letter, and optionally followed
+   * by more letters or numbers.
+   *
+   * @param variable the variable name to validate.
+   * @param expression the full expression.
+   */
+  protected void validateVariable(String variable, String expression) {
+    if (!VARIABLE_PATTERN.matcher(variable).matches()) {
+      if (!variable.startsWith("?")) {
+        throw new ParserException(
+            format("Variable '%s' must start with '?' in '%s'", variable, expression));
+      }
 
-    /**
-     * Validates a UID.
-     *
-     * @param uid the UID to validate.
-     * @param expression the full expression.
-     */
-    protected void validateUid( String uid, String expression )
-    {
-        if ( !UID_PATTERN.matcher( uid ).matches() )
-        {
-            throw new ParserException( format(
-                "UID '%s' must start with a letter and contain 10 more letters and numbers in '%s'", uid,
-                expression ) );
-        }
+      throw new ParserException(
+          format(
+              "Variable '%s' must start with a letter and contain only letters and numbers in '%s'",
+              variable, expression));
     }
+  }
+
+  /**
+   * Validates a UID.
+   *
+   * @param uid the UID to validate.
+   * @param expression the full expression.
+   */
+  protected void validateUid(String uid, String expression) {
+    if (!UID_PATTERN.matcher(uid).matches()) {
+      throw new ParserException(
+          format(
+              "UID '%s' must start with a letter and contain 10 more letters and numbers in '%s'",
+              uid, expression));
+    }
+  }
 }

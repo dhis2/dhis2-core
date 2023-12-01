@@ -32,123 +32,87 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.system.util.ValidationUtils;
 
 /**
  * Current state of an expression during evaluation.
- * <p>
- * This class holds values that can change as an expression is evaluated. These
- * values can affect how parsing is done in a subtree, or how final results are
- * computed.
+ *
+ * <p>This class holds values that can change as an expression is evaluated. These values can affect
+ * how parsing is done in a subtree, or how final results are computed.
  *
  * @author Jim Grace
  */
 @Getter
 @Setter
-@Builder( toBuilder = true )
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExpressionState
-{
-    /**
-     * By default, replace nulls with a default value.
-     */
-    @Builder.Default
-    private boolean replaceNulls = true;
+public class ExpressionState {
+  /** By default, replace nulls with a default value. */
+  @Builder.Default private boolean replaceNulls = true;
 
-    /**
-     * Item query modifiers, if any, in effect during parsing.
-     */
-    @Builder.Default
-    private QueryModifiers queryMods = null;
+  /** Item query modifiers, if any, in effect during parsing. */
+  @Builder.Default private QueryModifiers queryMods = null;
 
-    /**
-     * Current program stage offset in effect.
-     */
-    @Builder.Default
-    private int stageOffset = Integer.MIN_VALUE;
+  /** Current program stage offset in effect. */
+  @Builder.Default private int stageOffset = Integer.MIN_VALUE;
 
-    /**
-     * Flag to check if a null date was found.
-     */
-    @Builder.Default
-    private boolean unprotectedNullDateFound = false;
+  /** Flag to check if a null date was found. */
+  @Builder.Default private boolean unprotectedNullDateFound = false;
 
-    /**
-     * Count of dimension items found.
-     */
-    @Builder.Default
-    private int itemsFound = 0;
+  /** Count of dimension items found. */
+  @Builder.Default private int itemsFound = 0;
 
-    /**
-     * Count of dimension item values found.
-     */
-    @Builder.Default
-    private int itemValuesFound = 0;
+  /** Count of dimension item values found. */
+  @Builder.Default private int itemValuesFound = 0;
 
-    /**
-     * True if we are currently within a subexpression.
-     */
-    @Builder.Default
-    private boolean inSubexpression = false;
+  /** True if we are currently within a subexpression. */
+  @Builder.Default private boolean inSubexpression = false;
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    /**
-     * Returns a {@see QueryModifiersBuilder} that can be used to add modifiers
-     * to be be applied while parsing. If there are no query modifiers at
-     * present, returns a fresh builder. If there are query modifiers at
-     * present, returns a builder based on current modifiers.
-     *
-     * @return a {@see QueryModifiersBuilder}
-     */
-    public QueryModifiers.QueryModifiersBuilder getQueryModsBuilder()
-    {
-        return (queryMods == null)
-            ? QueryModifiers.builder()
-            : queryMods.toBuilder();
+  /**
+   * Returns a {@see QueryModifiersBuilder} that can be used to add modifiers to be be applied while
+   * parsing. If there are no query modifiers at present, returns a fresh builder. If there are
+   * query modifiers at present, returns a builder based on current modifiers.
+   *
+   * @return a {@see QueryModifiersBuilder}
+   */
+  public QueryModifiers.QueryModifiersBuilder getQueryModsBuilder() {
+    return (queryMods == null) ? QueryModifiers.builder() : queryMods.toBuilder();
+  }
+
+  /**
+   * Handles nulls and missing values.
+   *
+   * <p>If we should replace nulls with the default value, then do so, and remember how many items
+   * found, and how many of them had values, for subsequent MissingValueStrategy analysis.
+   *
+   * <p>If we should not replace nulls with the default value, then don't, as this is likely for
+   * some function that is testing for nulls, and a missing value should not count towards the
+   * MissingValueStrategy.
+   *
+   * @param value the (possibly null) value.
+   * @param valueType the type of value to substitute if null.
+   * @return the value we should return.
+   */
+  public Object handleNulls(Object value, ValueType valueType) {
+    if (replaceNulls) {
+      itemsFound++;
+      if (value == null && valueType.isDate()) {
+        unprotectedNullDateFound = true;
+        return null;
+      } else if (value == null) {
+        return ValidationUtils.getNullReplacementValue(valueType);
+      } else {
+        itemValuesFound++;
+      }
     }
 
-    /**
-     * Handles nulls and missing values.
-     * <p>
-     * If we should replace nulls with the default value, then do so, and
-     * remember how many items found, and how many of them had values, for
-     * subsequent MissingValueStrategy analysis.
-     * <p>
-     * If we should not replace nulls with the default value, then don't, as
-     * this is likely for some function that is testing for nulls, and a missing
-     * value should not count towards the MissingValueStrategy.
-     *
-     * @param value the (possibly null) value.
-     * @param valueType the type of value to substitute if null.
-     * @return the value we should return.
-     */
-    public Object handleNulls( Object value, ValueType valueType )
-    {
-        if ( replaceNulls )
-        {
-            itemsFound++;
-            if ( value == null && valueType.isDate() )
-            {
-                unprotectedNullDateFound = true;
-                return null;
-            }
-            else if ( value == null )
-            {
-                return ValidationUtils.getNullReplacementValue( valueType );
-            }
-            else
-            {
-                itemValuesFound++;
-            }
-        }
-
-        return value;
-    }
+    return value;
+  }
 }

@@ -32,22 +32,17 @@ import org.hisp.dhis.audit.AuditAttribute;
 /**
  * @author Luciano Fiandesio
  */
-public class TestImplementation
-    implements org.hisp.dhis.artemis.audit.listener.TestInterface
-{
-    @AuditAttribute
-    private String testAttribute1;
+public class TestImplementation implements org.hisp.dhis.artemis.audit.listener.TestInterface {
+  @AuditAttribute private String testAttribute1;
 
-    private String testAttribute2;
+  private String testAttribute2;
 
-    public String getTestAttribute1()
-    {
-        return testAttribute1;
-    }
+  public String getTestAttribute1() {
+    return testAttribute1;
+  }
 
-    @AuditAttribute
-    public String getTestAttribute2()
-    {
-        return testAttribute2;
-    }
+  @AuditAttribute
+  public String getTestAttribute2() {
+    return testAttribute2;
+  }
 }

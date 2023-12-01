@@ -32,11 +32,10 @@ package org.hisp.dhis.common;
  *
  * @author Jan Bernitt
  */
-public interface RequestInfoService
-{
+public interface RequestInfoService {
 
-    /**
-     * @return the info for the current request (thread)
-     */
-    RequestInfo getCurrentInfo();
+  /**
+   * @return the info for the current request (thread)
+   */
+  RequestInfo getCurrentInfo();
 }

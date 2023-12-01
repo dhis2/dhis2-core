@@ -27,27 +27,25 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
-import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
  * @author Kristian Wærstad
  */
-public class IconSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "icon";
+public class IconSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "icon";
 
-    public static final String PLURAL = "icons";
+  public static final String PLURAL = "icons";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( Icon.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(IconResponse.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
 
-        return schema;
-    }
+    return schema;
+  }
 }

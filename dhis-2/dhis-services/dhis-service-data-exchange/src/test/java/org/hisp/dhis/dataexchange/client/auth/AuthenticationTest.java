@@ -32,41 +32,38 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 
-class AuthenticationTest
-{
-    @Test
-    void testBasicAuthHeaderValue()
-    {
-        Authentication auth = new BasicAuthentication( "admin", "district" );
+class AuthenticationTest {
+  @Test
+  void testBasicAuthHeaderValue() {
+    Authentication auth = new BasicAuthentication("admin", "district");
 
-        HttpHeaders headers = new HttpHeaders();
+    HttpHeaders headers = new HttpHeaders();
 
-        auth.withAuthentication( headers );
+    auth.withAuthentication(headers);
 
-        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", headers.getFirst( HttpHeaders.AUTHORIZATION ) );
-    }
+    assertEquals("Basic YWRtaW46ZGlzdHJpY3Q=", headers.getFirst(HttpHeaders.AUTHORIZATION));
+  }
 
-    @Test
-    void testAccessTokenHeaderValue()
-    {
-        Authentication auth = new AccessTokenAuthentication( "d2pat_5xVA12xyUbWNedQxy4ohH77WlxR" );
+  @Test
+  void testAccessTokenHeaderValue() {
+    Authentication auth = new AccessTokenAuthentication("d2pat_5xVA12xyUbWNedQxy4ohH77WlxR");
 
-        HttpHeaders headers = new HttpHeaders();
+    HttpHeaders headers = new HttpHeaders();
 
-        auth.withAuthentication( headers );
+    auth.withAuthentication(headers);
 
-        assertEquals( "ApiToken d2pat_5xVA12xyUbWNedQxy4ohH77WlxR", headers.getFirst( HttpHeaders.AUTHORIZATION ) );
-    }
+    assertEquals(
+        "ApiToken d2pat_5xVA12xyUbWNedQxy4ohH77WlxR", headers.getFirst(HttpHeaders.AUTHORIZATION));
+  }
 
-    @Test
-    void testCookieValue()
-    {
-        Authentication auth = new CookieAuthentication( "HKIJ7KJHB3JHG2KJ8PRE7T" );
+  @Test
+  void testCookieValue() {
+    Authentication auth = new CookieAuthentication("HKIJ7KJHB3JHG2KJ8PRE7T");
 
-        HttpHeaders headers = new HttpHeaders();
+    HttpHeaders headers = new HttpHeaders();
 
-        auth.withAuthentication( headers );
+    auth.withAuthentication(headers);
 
-        assertEquals( "JSESSIONID=HKIJ7KJHB3JHG2KJ8PRE7T", headers.getFirst( HttpHeaders.COOKIE ) );
-    }
+    assertEquals("JSESSIONID=HKIJ7KJHB3JHG2KJ8PRE7T", headers.getFirst(HttpHeaders.COOKIE));
+  }
 }

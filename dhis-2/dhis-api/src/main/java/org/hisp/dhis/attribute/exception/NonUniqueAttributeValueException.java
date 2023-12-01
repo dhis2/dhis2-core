@@ -32,17 +32,24 @@ import org.hisp.dhis.attribute.AttributeValue;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NonUniqueAttributeValueException extends RuntimeException
-{
-    public NonUniqueAttributeValueException( AttributeValue attributeValue )
-    {
-        super( "Value " + attributeValue.getValue() + " already exists for attribute "
-            + "(" + attributeValue.getAttribute() + ")" );
-    }
+public class NonUniqueAttributeValueException extends RuntimeException {
+  public NonUniqueAttributeValueException(AttributeValue attributeValue) {
+    super(
+        "Value "
+            + attributeValue.getValue()
+            + " already exists for attribute "
+            + "("
+            + attributeValue.getAttribute()
+            + ")");
+  }
 
-    public NonUniqueAttributeValueException( AttributeValue attributeValue, String value )
-    {
-        super( "Value " + value + " already exists for attribute "
-            + "(" + attributeValue.getAttribute() + ")" );
-    }
+  public NonUniqueAttributeValueException(AttributeValue attributeValue, String value) {
+    super(
+        "Value "
+            + value
+            + " already exists for attribute "
+            + "("
+            + attributeValue.getAttribute()
+            + ")");
+  }
 }

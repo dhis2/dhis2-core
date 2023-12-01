@@ -28,9 +28,7 @@
 package org.hisp.dhis.predictor;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -41,107 +39,93 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jim Grace
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.predictor.PredictorService" )
-public class DefaultPredictorService
-    implements PredictorService
-{
-    private final PredictorStore predictorStore;
+@Service("org.hisp.dhis.predictor.PredictorService")
+public class DefaultPredictorService implements PredictorService {
+  private final PredictorStore predictorStore;
 
-    @Qualifier( "org.hisp.dhis.predictor.PredictorGroupStore" )
-    private final IdentifiableObjectStore<PredictorGroup> predictorGroupStore;
+  @Qualifier("org.hisp.dhis.predictor.PredictorGroupStore")
+  private final IdentifiableObjectStore<PredictorGroup> predictorGroupStore;
 
-    // -------------------------------------------------------------------------
-    // Predictor
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Predictor
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public long addPredictor( Predictor predictor )
-    {
-        predictorStore.save( predictor );
-        return predictor.getId();
-    }
+  @Override
+  @Transactional
+  public long addPredictor(Predictor predictor) {
+    predictorStore.save(predictor);
+    return predictor.getId();
+  }
 
-    @Override
-    @Transactional
-    public void updatePredictor( Predictor predictor )
-    {
-        predictorStore.update( predictor );
-    }
+  @Override
+  @Transactional
+  public void updatePredictor(Predictor predictor) {
+    predictorStore.update(predictor);
+  }
 
-    @Override
-    @Transactional
-    public void deletePredictor( Predictor predictor )
-    {
-        predictorStore.delete( predictor );
-    }
+  @Override
+  @Transactional
+  public void deletePredictor(Predictor predictor) {
+    predictorStore.delete(predictor);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Predictor getPredictor( long id )
-    {
-        return predictorStore.get( id );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public Predictor getPredictor(long id) {
+    return predictorStore.get(id);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Predictor getPredictor( String uid )
-    {
-        return predictorStore.getByUid( uid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public Predictor getPredictor(String uid) {
+    return predictorStore.getByUid(uid);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<Predictor> getAllPredictors()
-    {
-        return predictorStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<Predictor> getAllPredictors() {
+    return predictorStore.getAll();
+  }
 
-    // -------------------------------------------------------------------------
-    // Predictor group
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Predictor group
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public long addPredictorGroup( PredictorGroup predictorGroup )
-    {
-        predictorGroupStore.save( predictorGroup );
+  @Override
+  @Transactional
+  public long addPredictorGroup(PredictorGroup predictorGroup) {
+    predictorGroupStore.save(predictorGroup);
 
-        return predictorGroup.getId();
-    }
+    return predictorGroup.getId();
+  }
 
-    @Override
-    @Transactional
-    public void deletePredictorGroup( PredictorGroup predictorGroup )
-    {
-        predictorGroupStore.delete( predictorGroup );
-    }
+  @Override
+  @Transactional
+  public void deletePredictorGroup(PredictorGroup predictorGroup) {
+    predictorGroupStore.delete(predictorGroup);
+  }
 
-    @Override
-    @Transactional
-    public void updatePredictorGroup( PredictorGroup predictorGroup )
-    {
-        predictorGroupStore.update( predictorGroup );
-    }
+  @Override
+  @Transactional
+  public void updatePredictorGroup(PredictorGroup predictorGroup) {
+    predictorGroupStore.update(predictorGroup);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public PredictorGroup getPredictorGroup( long id )
-    {
-        return predictorGroupStore.get( id );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public PredictorGroup getPredictorGroup(long id) {
+    return predictorGroupStore.get(id);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public PredictorGroup getPredictorGroup( String uid )
-    {
-        return predictorGroupStore.getByUid( uid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public PredictorGroup getPredictorGroup(String uid) {
+    return predictorGroupStore.getByUid(uid);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<PredictorGroup> getAllPredictorGroups()
-    {
-        return predictorGroupStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<PredictorGroup> getAllPredictorGroups() {
+    return predictorGroupStore.getAll();
+  }
 }

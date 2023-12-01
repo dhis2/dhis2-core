@@ -28,10 +28,8 @@
 package org.hisp.dhis.dataelement.hibernate;
 
 import java.util.List;
-
 import javax.annotation.Nonnull;
-
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
@@ -44,31 +42,37 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository( "org.hisp.dhis.dataelement.DataElementOperandStore" )
+@Repository("org.hisp.dhis.dataelement.DataElementOperandStore")
 public class HibernateDataElementOperandStore
     extends HibernateIdentifiableObjectStore<DataElementOperand>
-    implements DataElementOperandStore
-{
-    public HibernateDataElementOperandStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, DataElementOperand.class, currentUserService, aclService,
-            false );
+    implements DataElementOperandStore {
+  public HibernateDataElementOperandStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        entityManager,
+        jdbcTemplate,
+        publisher,
+        DataElementOperand.class,
+        currentUserService,
+        aclService,
+        false);
 
-        transientIdentifiableProperties = true;
-    }
+    transientIdentifiableProperties = true;
+  }
 
-    @Nonnull
-    @Override
-    public List<DataElementOperand> getAllOrderedName()
-    {
-        return getQuery( "from DataElementOperand d" ).list();
-    }
+  @Nonnull
+  @Override
+  public List<DataElementOperand> getAllOrderedName() {
+    return getQuery("from DataElementOperand d").list();
+  }
 
-    @Nonnull
-    @Override
-    public List<DataElementOperand> getAllOrderedName( int first, int max )
-    {
-        return getQuery( "from DataElementOperand d" ).setFirstResult( first ).setMaxResults( max ).list();
-    }
+  @Nonnull
+  @Override
+  public List<DataElementOperand> getAllOrderedName(int first, int max) {
+    return getQuery("from DataElementOperand d").setFirstResult(first).setMaxResults(max).list();
+  }
 }

@@ -2,7 +2,6 @@
   "dataElements": [
     {
       "id": "cNkTt6mJQyO",
-      "userGroupAccesses": [],
       "user": {
         "id": "GOLswS44mh8"
       },
@@ -15,7 +14,6 @@
         "id": "pQYCiuosBnZ"
       },
       "valueType": "NUMBER",
-      "publicAccess": "rw------",
       "formName": "Yebo",
       "categoryCombo": {
         "id": "p0KPaWEg3cf"
@@ -24,7 +22,14 @@
       "aggregationType": "SUM",
       "domainType": "TRACKER",
       "aggregationLevels": [],
-      "name": "Yebo"
+      "name": "Yebo",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "GOLswS44mh8",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ]
 }

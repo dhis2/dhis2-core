@@ -28,12 +28,11 @@
 package org.hisp.dhis.analytics.resolver;
 
 /**
- * A component that can analyze analytics expressions so that each expression
- * can be resolved to its final "shape".
+ * A component that can analyze analytics expressions so that each expression can be resolved to its
+ * final "shape".
  *
  * @author Luciano Fiandesio
  */
-public interface ExpressionResolver
-{
-    String resolve( String expression );
+public interface ExpressionResolver {
+  String resolve(String expression);
 }

@@ -34,7 +34,6 @@ import static org.hisp.dhis.analytics.util.ReportRatesHelper.getCalculatedTarget
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -46,66 +45,83 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-class ReportRatesHelperTest
-{
-    @Test
-    void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInDimension()
-    {
-        Double theTarget = 10d;
-        List<DimensionalItemObject> theFilterPeriods = asList( stubPeriod() );
-        PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
-        // Relates to "aDailyDataPeriodRow" objects
-        int anyPositivePeriodInDimensionIndex = 1;
-        List<String> aDailyDataPeriodRow = asList( "TuL8IOPzpHh", "20210415" );
-        int anyTimeUnits = 2;
-        PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
+class ReportRatesHelperTest {
+  @Test
+  void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInDimension() {
+    Double theTarget = 10d;
+    List<DimensionalItemObject> theFilterPeriods = asList(stubPeriod());
+    PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase("Daily");
+    // Relates to "aDailyDataPeriodRow" objects
+    int anyPositivePeriodInDimensionIndex = 1;
+    List<String> aDailyDataPeriodRow = asList("TuL8IOPzpHh", "20210415");
+    int anyTimeUnits = 2;
+    PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase("Daily");
 
-        Double actualResult = getCalculatedTarget( anyPositivePeriodInDimensionIndex, anyTimeUnits,
-            aDailyDataPeriodRow, theTarget, theDailyPeriodType, aDataSetDailyPeriodType, theFilterPeriods );
+    Double actualResult =
+        getCalculatedTarget(
+            anyPositivePeriodInDimensionIndex,
+            anyTimeUnits,
+            aDailyDataPeriodRow,
+            theTarget,
+            theDailyPeriodType,
+            aDataSetDailyPeriodType,
+            theFilterPeriods);
 
-        assertThat( actualResult, is( 20.0d ) );
-    }
+    assertThat(actualResult, is(20.0d));
+  }
 
-    @Test
-    void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInFilter()
-    {
-        Double theTarget = 10d;
-        List<DimensionalItemObject> theFilterPeriods = asList( stubPeriod() );
-        PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
-        int anyNegativePeriodInDimensionIndex = -1;
-        int anyTimeUnits = 1;
-        List<String> anyDataRow = asList( "TuL8IOPzpHh" );
-        PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
+  @Test
+  void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInFilter() {
+    Double theTarget = 10d;
+    List<DimensionalItemObject> theFilterPeriods = asList(stubPeriod());
+    PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase("Daily");
+    int anyNegativePeriodInDimensionIndex = -1;
+    int anyTimeUnits = 1;
+    List<String> anyDataRow = asList("TuL8IOPzpHh");
+    PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase("Daily");
 
-        Double actualResult = getCalculatedTarget( anyNegativePeriodInDimensionIndex, anyTimeUnits, anyDataRow,
-            theTarget, theDailyPeriodType, aDataSetDailyPeriodType, theFilterPeriods );
+    Double actualResult =
+        getCalculatedTarget(
+            anyNegativePeriodInDimensionIndex,
+            anyTimeUnits,
+            anyDataRow,
+            theTarget,
+            theDailyPeriodType,
+            aDataSetDailyPeriodType,
+            theFilterPeriods);
 
-        assertThat( actualResult, is( 10.0d ) );
-    }
+    assertThat(actualResult, is(10.0d));
+  }
 
-    @Test
-    void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInFilterAndMultiplePeriods()
-    {
-        Double theTarget = 10d;
-        List<DimensionalItemObject> multipleFilterPeriods = asList( stubPeriod(), stubPeriod(), stubPeriod() );
-        PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
-        int anyNegativePeriodInDimensionIndex = -1;
-        int anyTimeUnits = 2;
-        List<String> anyDataRow = asList( "TuL8IOPzpHh" );
-        PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
+  @Test
+  void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInFilterAndMultiplePeriods() {
+    Double theTarget = 10d;
+    List<DimensionalItemObject> multipleFilterPeriods =
+        asList(stubPeriod(), stubPeriod(), stubPeriod());
+    PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase("Daily");
+    int anyNegativePeriodInDimensionIndex = -1;
+    int anyTimeUnits = 2;
+    List<String> anyDataRow = asList("TuL8IOPzpHh");
+    PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase("Daily");
 
-        Double actualResult = getCalculatedTarget( anyNegativePeriodInDimensionIndex, anyTimeUnits, anyDataRow,
-            theTarget, theDailyPeriodType, aDataSetDailyPeriodType, multipleFilterPeriods );
+    Double actualResult =
+        getCalculatedTarget(
+            anyNegativePeriodInDimensionIndex,
+            anyTimeUnits,
+            anyDataRow,
+            theTarget,
+            theDailyPeriodType,
+            aDataSetDailyPeriodType,
+            multipleFilterPeriods);
 
-        assertThat( actualResult, is( 60.0d ) );
-    }
+    assertThat(actualResult, is(60.0d));
+  }
 
-    public Period stubPeriod()
-    {
-        Period p = new Period();
-        p.setStartDate( new Date() );
-        p.setEndDate( new Date() );
-        p.setPeriodType( DailyPeriodType.getByNameIgnoreCase( "daily" ) );
-        return p;
-    }
+  public Period stubPeriod() {
+    Period p = new Period();
+    p.setStartDate(new Date());
+    p.setEndDate(new Date());
+    p.setPeriodType(DailyPeriodType.getByNameIgnoreCase("daily"));
+    return p;
+  }
 }

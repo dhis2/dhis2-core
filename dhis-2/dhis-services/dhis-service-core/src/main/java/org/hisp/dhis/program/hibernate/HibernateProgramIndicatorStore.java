@@ -28,10 +28,8 @@
 package org.hisp.dhis.program.hibernate;
 
 import java.util.List;
-
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorStore;
@@ -44,23 +42,30 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Chau Thu Tran
  */
-@Repository( "org.hisp.dhis.program.ProgramIndicatorStore" )
+@Repository("org.hisp.dhis.program.ProgramIndicatorStore")
 public class HibernateProgramIndicatorStore
-    extends HibernateIdentifiableObjectStore<ProgramIndicator>
-    implements ProgramIndicatorStore
-{
-    public HibernateProgramIndicatorStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramIndicator.class, currentUserService, aclService, true );
-    }
+    extends HibernateIdentifiableObjectStore<ProgramIndicator> implements ProgramIndicatorStore {
+  public HibernateProgramIndicatorStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        entityManager,
+        jdbcTemplate,
+        publisher,
+        ProgramIndicator.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public List<ProgramIndicator> getProgramIndicatorsWithNoExpression()
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<ProgramIndicator> getProgramIndicatorsWithNoExpression() {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.isNull( root.get( "expression" ) ) ) );
-    }
+    return getList(
+        builder, newJpaParameters().addPredicate(root -> builder.isNull(root.get("expression"))));
+  }
 }

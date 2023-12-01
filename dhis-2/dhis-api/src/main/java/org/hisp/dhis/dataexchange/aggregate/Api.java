@@ -27,17 +27,14 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.apache.commons.lang3.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * See {@link ApiSerializer} for JSON serialization.
@@ -47,54 +44,43 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @NoArgsConstructor
-@Accessors( chain = true )
-public class Api
-    implements Serializable
-{
-    @JsonProperty
-    private String url;
+@Accessors(chain = true)
+public class Api implements Serializable {
+  @JsonProperty private String url;
 
-    /**
-     * Access token. For Personal Access Token (PAT) authentication. The access
-     * token is encrypted and must be decrypted before used to authenticate with
-     * external systems. Sensitive, do not expose in API output.
-     */
-    @JsonProperty
-    private String accessToken;
+  /**
+   * Access token. For Personal Access Token (PAT) authentication. The access token is encrypted and
+   * must be decrypted before used to authenticate with external systems. Sensitive, do not expose
+   * in API output.
+   */
+  @JsonProperty private String accessToken;
 
-    /**
-     * Username. For basic authentication.
-     */
-    @JsonProperty
-    private String username;
+  /** Username. For basic authentication. */
+  @JsonProperty private String username;
 
-    /**
-     * Password. For basic authentication. The password is encrypted and must be
-     * decrypted before used to authenticate with external systems. Sensitive,
-     * do not expose in API output.
-     */
-    @JsonProperty
-    private String password;
+  /**
+   * Password. For basic authentication. The password is encrypted and must be decrypted before used
+   * to authenticate with external systems. Sensitive, do not expose in API output.
+   */
+  @JsonProperty private String password;
 
-    /**
-     * Indicates if API is configured for access token based authentication.
-     *
-     * @return true if API is configured for access token based authentication.
-     */
-    @JsonIgnore
-    public boolean isAccessTokenAuth()
-    {
-        return StringUtils.isNotBlank( accessToken );
-    }
+  /**
+   * Indicates if API is configured for access token based authentication.
+   *
+   * @return true if API is configured for access token based authentication.
+   */
+  @JsonIgnore
+  public boolean isAccessTokenAuth() {
+    return StringUtils.isNotBlank(accessToken);
+  }
 
-    /**
-     * Indicates if API is configured for basic authentication.
-     *
-     * @return true if API is configured for basic authentication.
-     */
-    @JsonIgnore
-    public boolean isBasicAuth()
-    {
-        return StringUtils.isNoneBlank( username, password );
-    }
+  /**
+   * Indicates if API is configured for basic authentication.
+   *
+   * @return true if API is configured for basic authentication.
+   */
+  @JsonIgnore
+  public boolean isBasicAuth() {
+    return StringUtils.isNoneBlank(username, password);
+  }
 }

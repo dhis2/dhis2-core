@@ -33,7 +33,6 @@ package org.hisp.dhis.split.orgunit;
  * @author Lars Helge Overland
  */
 @FunctionalInterface
-public interface OrgUnitSplitHandler
-{
-    public void split( OrgUnitSplitRequest request );
+public interface OrgUnitSplitHandler {
+  public void split(OrgUnitSplitRequest request);
 }

@@ -27,176 +27,154 @@
  */
 package org.hisp.dhis.sms.config;
 
-import java.io.Serializable;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * Super class for gateway configurations
  *
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@JacksonXmlRootElement( localName = "smsgatewayconfig", namespace = DxfNamespaces.DXF_2_0 )
-@JsonInclude( JsonInclude.Include.NON_NULL )
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
-@JsonSubTypes( { @JsonSubTypes.Type( value = BulkSmsGatewayConfig.class, name = "bulksms" ),
-    @JsonSubTypes.Type( value = GenericHttpGatewayConfig.class, name = "http" ),
-    @JsonSubTypes.Type( value = ClickatellGatewayConfig.class, name = "clickatell" ),
-    @JsonSubTypes.Type( value = SMPPGatewayConfig.class, name = "smpp" ) } )
-public abstract class SmsGatewayConfig
-    implements Serializable
-{
-    private static final long serialVersionUID = -4288220735161151632L;
+@JacksonXmlRootElement(localName = "smsgatewayconfig", namespace = DxfNamespaces.DXF_2_0)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes({
+  @JsonSubTypes.Type(value = BulkSmsGatewayConfig.class, name = "bulksms"),
+  @JsonSubTypes.Type(value = GenericHttpGatewayConfig.class, name = "http"),
+  @JsonSubTypes.Type(value = ClickatellGatewayConfig.class, name = "clickatell"),
+  @JsonSubTypes.Type(value = SMPPGatewayConfig.class, name = "smpp")
+})
+public abstract class SmsGatewayConfig implements Serializable {
+  private static final long serialVersionUID = -4288220735161151632L;
 
-    @JsonProperty
-    private String uid;
+  @JsonProperty private String uid;
 
-    @JsonProperty
-    private String name;
+  @JsonProperty private String name;
 
-    @JsonProperty
-    private String username;
+  @JsonProperty private String username;
 
-    @JsonProperty
-    private String password;
+  @JsonProperty private String password;
 
-    private boolean isDefault;
+  private boolean isDefault;
 
-    @JsonProperty
-    private boolean sendUrlParameters;
+  @JsonProperty private boolean sendUrlParameters;
 
-    @JsonProperty
-    private String urlTemplate;
+  @JsonProperty private String urlTemplate;
 
-    @JsonProperty
-    private String maxSmsLength;
+  @JsonProperty private String maxSmsLength;
 
-    public String getUrlTemplate()
-    {
-        return urlTemplate;
+  public String getUrlTemplate() {
+    return urlTemplate;
+  }
+
+  public void setUrlTemplate(String urlTemplate) {
+    this.urlTemplate = urlTemplate;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @JsonProperty("isDefault")
+  public boolean isDefault() {
+    return isDefault;
+  }
+
+  public void setDefault(boolean isDefault) {
+    this.isDefault = isDefault;
+  }
+
+  @JsonProperty
+  public String getId() {
+    return uid;
+  }
+
+  public String getUid() {
+    return uid;
+  }
+
+  public void setUid(String uid) {
+    this.uid = uid;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
+  }
+
+  public boolean isSendUrlParameters() {
+    return sendUrlParameters;
+  }
+
+  public void setSendUrlParameters(boolean sendUrlParameters) {
+    this.sendUrlParameters = sendUrlParameters;
+  }
+
+  public String getMaxSmsLength() {
+    return maxSmsLength;
+  }
+
+  public void setMaxSmsLength(String maxSmsLength) {
+    this.maxSmsLength = maxSmsLength;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
 
-    public void setUrlTemplate( String urlTemplate )
-    {
-        this.urlTemplate = urlTemplate;
+    if (!(o instanceof SmsGatewayConfig)) {
+      return false;
     }
 
-    public String getName()
-    {
-        return name;
-    }
+    final SmsGatewayConfig other = (SmsGatewayConfig) o;
 
-    public void setName( String name )
-    {
-        this.name = name;
-    }
+    return uid.equals(other.getUid());
+  }
 
-    @JsonProperty( "isDefault" )
-    public boolean isDefault()
-    {
-        return isDefault;
-    }
+  @Override
+  public int hashCode() {
+    return uid.hashCode();
+  }
 
-    public void setDefault( boolean isDefault )
-    {
-        this.isDefault = isDefault;
-    }
-
-    @JsonProperty
-    public String getId()
-    {
-        return uid;
-    }
-
-    public String getUid()
-    {
-        return uid;
-    }
-
-    public void setUid( String uid )
-    {
-        this.uid = uid;
-    }
-
-    public String getPassword()
-    {
-        return password;
-    }
-
-    public void setPassword( String password )
-    {
-        this.password = password;
-    }
-
-    public String getUsername()
-    {
-        return username;
-    }
-
-    public void setUsername( String username )
-    {
-        this.username = username;
-    }
-
-    public boolean isSendUrlParameters()
-    {
-        return sendUrlParameters;
-    }
-
-    public void setSendUrlParameters( boolean sendUrlParameters )
-    {
-        this.sendUrlParameters = sendUrlParameters;
-    }
-
-    public String getMaxSmsLength()
-    {
-        return maxSmsLength;
-    }
-
-    public void setMaxSmsLength( String maxSmsLength )
-    {
-        this.maxSmsLength = maxSmsLength;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( !(o instanceof SmsGatewayConfig) )
-        {
-            return false;
-        }
-
-        final SmsGatewayConfig other = (SmsGatewayConfig) o;
-
-        return uid.equals( other.getUid() );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return uid.hashCode();
-    }
-
-    @Override
-    public String toString()
-    {
-        return "SmsGatewayConfig{" +
-            "uid='" + uid + '\'' +
-            ", name='" + name + '\'' +
-            ", username='" + username + '\'' +
-            ", isDefault=" + isDefault +
-            ", urlTemplate='" + urlTemplate + '\'' +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "SmsGatewayConfig{"
+        + "uid='"
+        + uid
+        + '\''
+        + ", name='"
+        + name
+        + '\''
+        + ", username='"
+        + username
+        + '\''
+        + ", isDefault="
+        + isDefault
+        + ", urlTemplate='"
+        + urlTemplate
+        + '\''
+        + '}';
+  }
 }

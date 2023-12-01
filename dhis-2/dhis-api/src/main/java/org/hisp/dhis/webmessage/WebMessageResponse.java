@@ -30,6 +30,4 @@ package org.hisp.dhis.webmessage;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface WebMessageResponse
-{
-}
+public interface WebMessageResponse {}

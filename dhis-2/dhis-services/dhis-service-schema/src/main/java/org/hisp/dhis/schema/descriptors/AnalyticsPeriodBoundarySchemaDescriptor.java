@@ -34,17 +34,15 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Markus Bekken
  */
-public class AnalyticsPeriodBoundarySchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "analyticsPeriodBoundary";
+public class AnalyticsPeriodBoundarySchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "analyticsPeriodBoundary";
 
-    public static final String PLURAL = "analyticsPeriodBoundaries";
+  public static final String PLURAL = "analyticsPeriodBoundaries";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( AnalyticsPeriodBoundary.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(AnalyticsPeriodBoundary.class, SINGULAR, PLURAL);
+  }
 }

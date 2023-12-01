@@ -34,21 +34,17 @@ import org.hisp.dhis.jsontree.JsonObject;
  *
  * @author Jan Bernitt
  */
-public interface JsonTranslation extends JsonObject
-{
+public interface JsonTranslation extends JsonObject {
 
-    default String getLocale()
-    {
-        return getString( "locale" ).string();
-    }
+  default String getLocale() {
+    return getString("locale").string();
+  }
 
-    default String getProperty()
-    {
-        return getString( "property" ).string();
-    }
+  default String getProperty() {
+    return getString("property").string();
+  }
 
-    default String getValue()
-    {
-        return getString( "value" ).string();
-    }
+  default String getValue() {
+    return getString("value").string();
+  }
 }

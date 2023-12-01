@@ -27,28 +27,21 @@
  */
 package org.hisp.dhis.utils;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.system.startup.StartupRoutineExecutor;
 import org.springframework.context.ApplicationContext;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class TestUtils
-{
-    public static void executeStartupRoutines( ApplicationContext applicationContext )
-        throws NoSuchMethodException,
-        InvocationTargetException,
-        IllegalAccessException
-    {
-        String id = "org.hisp.dhis.system.startup.StartupRoutineExecutor";
-
-        if ( applicationContext.containsBean( id ) )
-        {
-            Object object = applicationContext.getBean( id );
-            Method method = object.getClass().getMethod( "executeForTesting" );
-            method.invoke( object );
-        }
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class TestUtils {
+  public static void executeStartupRoutines(ApplicationContext applicationContext) {
+    try {
+      applicationContext.getBean(StartupRoutineExecutor.class).executeForTesting();
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
     }
+  }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.query.operators;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
@@ -40,41 +39,56 @@ import org.hisp.dhis.query.planner.QueryPath;
 /**
  * @author Henning Håkonsen
  */
-public class TokenOperator<T extends Comparable<? super T>> extends Operator<T>
-{
-    private final boolean caseSensitive;
+public class TokenOperator<T extends Comparable<? super T>> extends Operator<T> {
+  private final boolean caseSensitive;
 
-    private final org.hibernate.criterion.MatchMode matchMode;
+  private final org.hibernate.criterion.MatchMode matchMode;
 
-    public TokenOperator( T arg, boolean caseSensitive, MatchMode matchMode )
-    {
-        super( "token", Typed.from( String.class ), arg );
-        this.caseSensitive = caseSensitive;
-        this.matchMode = getMatchMode( matchMode );
+  public TokenOperator(T arg, boolean caseSensitive, MatchMode matchMode) {
+    super("token", Typed.from(String.class), arg);
+    this.caseSensitive = caseSensitive;
+    this.matchMode = getMatchMode(matchMode);
+  }
+
+  @Override
+  public Criterion getHibernateCriterion(QueryPath queryPath) {
+    String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
+
+    return Restrictions.sqlRestriction(
+        "c_." + queryPath.getPath() + " ~* '" + TokenUtils.createRegex(value) + "'");
+  }
+
+  @Override
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
+    String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
+
+    Predicate defaultSearch =
+        builder.equal(
+            builder.function(
+                JsonbFunctions.REGEXP_SEARCH,
+                Boolean.class,
+                root.get(queryPath.getPath()),
+                builder.literal(TokenUtils.createRegex(value).toString())),
+            true);
+
+    if (queryPath.getLocale() == null
+        || !queryPath.getProperty().isTranslatable()
+        || queryPath.getProperty().getTranslationKey() == null) {
+      return defaultSearch;
     }
+    return builder.equal(
+        builder.function(
+            JsonbFunctions.SEARCH_TRANSLATION_TOKEN,
+            Boolean.class,
+            root.get("translations"),
+            builder.literal("{" + queryPath.getProperty().getTranslationKey() + "}"),
+            builder.literal(queryPath.getLocale().getLanguage()),
+            builder.literal(TokenUtils.createRegex(value).toString())),
+        true);
+  }
 
-    @Override
-    public Criterion getHibernateCriterion( QueryPath queryPath )
-    {
-        String value = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
-
-        return Restrictions
-            .sqlRestriction( "c_." + queryPath.getPath() + " ~* '" + TokenUtils.createRegex( value ) + "'" );
-    }
-
-    @Override
-    public <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, QueryPath queryPath )
-    {
-        String value = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
-
-        return builder
-            .equal( builder.function( JsonbFunctions.REGEXP_SEARCH, Boolean.class, root.get( queryPath.getPath() ),
-                builder.literal( TokenUtils.createRegex( value ).toString() ) ), true );
-    }
-
-    @Override
-    public boolean test( Object value )
-    {
-        return TokenUtils.test( value, getValue( String.class ), caseSensitive, matchMode );
-    }
+  @Override
+  public boolean test(Object value) {
+    return TokenUtils.test(value, getValue(String.class), caseSensitive, matchMode);
+  }
 }

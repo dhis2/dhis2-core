@@ -28,29 +28,28 @@
 package org.hisp.dhis.attribute;
 
 import java.util.List;
-
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface AttributeValueStore
-    extends GenericStore<AttributeValue>
-{
-    List<AttributeValue> getAllByAttributes( List<Attribute> attributes );
+public interface AttributeValueStore extends GenericStore<AttributeValue> {
+  @Nonnull
+  List<AttributeValue> getAllByAttributes(@Nonnull List<Attribute> attributes);
 
-    List<AttributeValue> getAllByAttribute( Attribute attribute );
+  List<AttributeValue> getAllByAttribute(Attribute attribute);
 
-    List<AttributeValue> getAllByAttributeAndValue( Attribute attribute, String value );
+  List<AttributeValue> getAllByAttributeAndValue(Attribute attribute, String value);
 
-    /**
-     * Is attribute value unique, the value must either not exist, or just exist
-     * in given object.
-     *
-     * @param object Object
-     * @param attributeValue AV to check for
-     * @return true/false depending on uniqueness of AV
-     */
-    <T extends IdentifiableObject> boolean isAttributeValueUnique( T object, AttributeValue attributeValue );
+  /**
+   * Is attribute value unique, the value must either not exist, or just exist in given object.
+   *
+   * @param object Object
+   * @param attributeValue AV to check for
+   * @return true/false depending on uniqueness of AV
+   */
+  <T extends IdentifiableObject> boolean isAttributeValueUnique(
+      T object, AttributeValue attributeValue);
 }

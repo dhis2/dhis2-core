@@ -36,14 +36,9 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * Created by zubair@dhis2.org on 18.08.17.
- */
-@OpenApi.Tags( "messaging" )
+/** Created by zubair@dhis2.org on 18.08.17. */
+@OpenApi.Tags("messaging")
 @Controller
-@RequestMapping( value = SmsCommandSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class SmsCommandController
-    extends AbstractCrudController<SMSCommand>
-{
-}
+@RequestMapping(value = SmsCommandSchemaDescriptor.API_ENDPOINT)
+@ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class SmsCommandController extends AbstractCrudController<SMSCommand> {}

@@ -32,7 +32,4 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface AttributeStore
-    extends IdentifiableObjectStore<Attribute>
-{
-}
+public interface AttributeStore extends IdentifiableObjectStore<Attribute> {}

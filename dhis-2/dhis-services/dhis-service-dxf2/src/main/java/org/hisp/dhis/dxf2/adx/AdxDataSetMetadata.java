@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.xerces.util.XMLChar;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -44,74 +43,69 @@ import org.hisp.dhis.dataset.DataSetElement;
 /**
  * @author bobj
  */
-public class AdxDataSetMetadata
-{
-    // Lookup category options per cat option combo
+public class AdxDataSetMetadata {
+  // Lookup category options per cat option combo
 
-    private final Map<Long, Map<String, String>> categoryOptionMap;
+  private final Map<Long, Map<String, String>> categoryOptionMap;
 
-    AdxDataSetMetadata( DataSet dataSet, IdSchemes idSchemes )
-        throws AdxException
-    {
-        categoryOptionMap = new HashMap<>();
+  AdxDataSetMetadata(DataSet dataSet, IdSchemes idSchemes) throws AdxException {
+    categoryOptionMap = new HashMap<>();
 
-        Set<CategoryCombo> catCombos = new HashSet<>();
+    Set<CategoryCombo> catCombos = new HashSet<>();
 
-        catCombos.add( dataSet.getCategoryCombo() );
+    catCombos.add(dataSet.getCategoryCombo());
 
-        for ( DataSetElement element : dataSet.getDataSetElements() )
-        {
-            catCombos.add( element.getResolvedCategoryCombo() );
-        }
-
-        for ( CategoryCombo categoryCombo : catCombos )
-        {
-            for ( CategoryOptionCombo catOptCombo : categoryCombo.getOptionCombos() )
-            {
-                addExplodedCategoryAttributes( catOptCombo, idSchemes );
-            }
-        }
+    for (DataSetElement element : dataSet.getDataSetElements()) {
+      catCombos.add(element.getResolvedCategoryCombo());
     }
 
-    private void addExplodedCategoryAttributes( CategoryOptionCombo coc, IdSchemes idSchemes )
-        throws AdxException
-    {
-        Map<String, String> categoryAttributes = new HashMap<>();
+    for (CategoryCombo categoryCombo : catCombos) {
+      for (CategoryOptionCombo catOptCombo : categoryCombo.getOptionCombos()) {
+        addExplodedCategoryAttributes(catOptCombo, idSchemes);
+      }
+    }
+  }
 
-        IdScheme cScheme = idSchemes.getCategoryIdScheme();
-        IdScheme coScheme = idSchemes.getCategoryOptionIdScheme();
+  private void addExplodedCategoryAttributes(CategoryOptionCombo coc, IdSchemes idSchemes)
+      throws AdxException {
+    Map<String, String> categoryAttributes = new HashMap<>();
 
-        if ( !coc.isDefault() )
-        {
-            for ( Category category : coc.getCategoryCombo().getCategories() )
-            {
-                String categoryId = category.getPropertyValue( cScheme );
+    IdScheme cScheme = idSchemes.getCategoryIdScheme();
+    IdScheme coScheme = idSchemes.getCategoryOptionIdScheme();
 
-                if ( categoryId == null || !XMLChar.isValidName( categoryId ) )
-                {
-                    throw new AdxException(
-                        "Category " + cScheme.name() + " for " + category.getName() + " is missing or invalid: "
-                            + categoryId );
-                }
+    if (!coc.isDefault()) {
+      for (Category category : coc.getCategoryCombo().getCategories()) {
+        String categoryId = category.getPropertyValue(cScheme);
 
-                String catOptId = category.getCategoryOption( coc ).getPropertyValue( coScheme );
-
-                if ( catOptId == null || catOptId.isEmpty() )
-                {
-                    throw new AdxException(
-                        "CategoryOption " + coScheme.name() + " for " + category.getCategoryOption( coc ).getName()
-                            + " is missing" );
-                }
-
-                categoryAttributes.put( categoryId, catOptId );
-            }
+        if (categoryId == null || !XMLChar.isValidName(categoryId)) {
+          throw new AdxException(
+              "Category "
+                  + cScheme.name()
+                  + " for "
+                  + category.getName()
+                  + " is missing or invalid: "
+                  + categoryId);
         }
 
-        categoryOptionMap.put( coc.getId(), categoryAttributes );
+        String catOptId = category.getCategoryOption(coc).getPropertyValue(coScheme);
+
+        if (catOptId == null || catOptId.isEmpty()) {
+          throw new AdxException(
+              "CategoryOption "
+                  + coScheme.name()
+                  + " for "
+                  + category.getCategoryOption(coc).getName()
+                  + " is missing");
+        }
+
+        categoryAttributes.put(categoryId, catOptId);
+      }
     }
 
-    public Map<String, String> getExplodedCategoryAttributes( long cocId )
-    {
-        return this.categoryOptionMap.get( cocId );
-    }
+    categoryOptionMap.put(coc.getId(), categoryAttributes);
+  }
+
+  public Map<String, String> getExplodedCategoryAttributes(long cocId) {
+    return this.categoryOptionMap.get(cocId);
+  }
 }

@@ -41,43 +41,43 @@ import org.hisp.dhis.system.callable.PeriodCallable;
 /**
  * @author Lars Helge Overland
  */
-class MetadataCallables
-{
-    private final IdentifiableObjectCallable<DataSet> dataSetCallable;
+class MetadataCallables {
+  private final IdentifiableObjectCallable<DataSet> dataSetCallable;
 
-    private final IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable;
+  private final IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable;
 
-    private final IdentifiableObjectCallable<CategoryOptionCombo> optionComboCallable;
+  private final IdentifiableObjectCallable<CategoryOptionCombo> optionComboCallable;
 
-    private final IdentifiableObjectCallable<Period> periodCallable;
+  private final IdentifiableObjectCallable<Period> periodCallable;
 
-    MetadataCallables( ImportConfig config, IdentifiableObjectManager idObjManager, PeriodService periodService,
-        CategoryService categoryService )
-    {
-        dataSetCallable = new IdentifiableObjectCallable<>( idObjManager, DataSet.class, config.getDsScheme(), null );
-        orgUnitCallable = new IdentifiableObjectCallable<>( idObjManager, OrganisationUnit.class, config.getOuScheme(),
-            null );
-        optionComboCallable = new CategoryOptionComboCallable( categoryService, config.getAocScheme(), null );
-        periodCallable = new PeriodCallable( periodService, null, null );
-    }
+  MetadataCallables(
+      ImportConfig config,
+      IdentifiableObjectManager idObjManager,
+      PeriodService periodService,
+      CategoryService categoryService) {
+    dataSetCallable =
+        new IdentifiableObjectCallable<>(idObjManager, DataSet.class, config.getDsScheme(), null);
+    orgUnitCallable =
+        new IdentifiableObjectCallable<>(
+            idObjManager, OrganisationUnit.class, config.getOuScheme(), null);
+    optionComboCallable =
+        new CategoryOptionComboCallable(categoryService, config.getAocScheme(), null);
+    periodCallable = new PeriodCallable(periodService, null, null);
+  }
 
-    IdentifiableObjectCallable<DataSet> getDataSetCallable()
-    {
-        return dataSetCallable;
-    }
+  IdentifiableObjectCallable<DataSet> getDataSetCallable() {
+    return dataSetCallable;
+  }
 
-    IdentifiableObjectCallable<OrganisationUnit> getOrgUnitCallable()
-    {
-        return orgUnitCallable;
-    }
+  IdentifiableObjectCallable<OrganisationUnit> getOrgUnitCallable() {
+    return orgUnitCallable;
+  }
 
-    IdentifiableObjectCallable<CategoryOptionCombo> getOptionComboCallable()
-    {
-        return optionComboCallable;
-    }
+  IdentifiableObjectCallable<CategoryOptionCombo> getOptionComboCallable() {
+    return optionComboCallable;
+  }
 
-    IdentifiableObjectCallable<Period> getPeriodCallable()
-    {
-        return periodCallable;
-    }
+  IdentifiableObjectCallable<Period> getPeriodCallable() {
+    return periodCallable;
+  }
 }

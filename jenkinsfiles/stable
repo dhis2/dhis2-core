@@ -1,10 +1,27 @@
 #!/usr/bin/env groovy
 
+/*
+# This pipeline can be tested by executing the following steps
+* Create a branch with a non-existing version name such as "patch/4.1.2.3"
+* Update all the pom files with the same version (4.1.2.3)
+* Commit the pom files
+* Tag the commit from above with "4.1.2.3"
+* Push
+* Update the "Filter by name (with regular expression)" field under "Branch Sources" (here)[https://ci.dhis2.org/view/dhis2-core/job/dhis2-core-stable/configure] to include your version.
+  An example of such regular expression could be: ^2[.]\d+[.]\d+$|^2[.]\d+[.]\d+-(?i)embargoed$|^patch\/2[.]\d+[.]\d+$|^patch\/(2|4)[.]\d+[.]\d+[.]\d+$|^2[.]\d+[.]\d+[.]\d+$
+* Schedule a build for your branch here... https://ci.dhis2.org/view/dhis2-core/job/dhis2-core-stable/
+
+# Clean up
+* Restore the regular expression previously updated to include your branch
+* Delete the war file from S3: aws s3 rm s3://releases.dhis2.org/...
+* Delete the docker image from the repository
+*/
+
 @Library('pipeline-library') _
 
 pipeline {
     agent {
-        label 'ec2-jdk11'
+        label 'ec2-jdk17'
     }
 
     options {
@@ -18,7 +35,7 @@ pipeline {
         DOCKER_IMAGE_NAME_DEV = "${DOCKER_HUB_OWNER}/core-dev"
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_OWNER}/core"
         DOCKER_IMAGE_TAG = "${env.DHIS2_VERSION.replace('SNAPSHOT', 'rc')}"
-        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "tomcat:9.0-jre11" // source of image to publish to Dockerhub (one of the matrix axes)
+        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "tomcat:9.0-jre17" // source of image to publish to Dockerhub (one of the matrix axes)
         DOCKER_IMAGE_NAME_PUBLISH_TARGET = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}" // used to publish to Dockerhub
     }
 
@@ -54,7 +71,7 @@ pipeline {
                 axes {
                     axis {
                         name 'DOCKER_IMAGE_TAG_BASE'
-                        values '9.0-jre11', '8.5-jre11'
+                        values '9.0-jre17', '8.5-jre17'
                     }
                 }
 
@@ -80,7 +97,7 @@ pipeline {
                     stage('Run tests') {
                         steps {
                             script {
-                                dir("dhis-2/dhis-e2e-test") {
+                                dir("dhis-2/dhis-test-e2e") {
                                     sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
                                     sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
                                 }
@@ -90,7 +107,7 @@ pipeline {
                         post {
                             always {
                                 script {
-                                    dir("dhis-2/dhis-e2e-test") {
+                                    dir("dhis-2/dhis-test-e2e") {
                                         archiveArtifacts artifacts: "coverage.csv", allowEmptyArchive: true
                                     }
                                 }
@@ -98,7 +115,7 @@ pipeline {
 
                             failure {
                                 script {
-                                    dir("dhis-2/dhis-e2e-test") {
+                                    dir("dhis-2/dhis-test-e2e") {
                                         sh "docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} logs web > ${DOCKER_IMAGE_TAG_BASE}_logs.txt"
                                         archiveArtifacts artifacts: "${DOCKER_IMAGE_TAG_BASE}_logs.txt"
                                     }
@@ -129,6 +146,69 @@ pipeline {
                 sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
                 sh 'chmod +x copy-war-s3.sh'
                 sh './copy-war-s3.sh stable ${GIT_BRANCH}'
+            }
+        }
+
+        stage('Update IM Play instance') {
+            when {
+                expression { !env.DOCKER_IMAGE_TAG.endsWith("rc") }
+            }
+
+            environment {
+                HTTP = "http --check-status"
+                IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
+                IM_HOST = "https://api.im.dhis2.org"
+                INSTANCE_URL = "https://play.im.dhis2.org"
+                IMAGE_REPOSITORY = "core"
+                IMAGE_PULL_POLICY = "Always"
+                FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
+                FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
+                INSTANCE_TTL = "315360000"
+                STARTUP_PROBE_FAILURE_THRESHOLD = "50"
+                LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
+                READINESS_PROBE_TIMEOUT_SECONDS = "3"
+            }
+
+            steps {
+                echo 'Creating DHIS2 instance on IM...'
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
+                        dir('im-manager') {
+                            gitHelper.sparseCheckout(IM_REPO_URL, "${gitHelper.getLatestTag(IM_REPO_URL)}", '/scripts')
+
+                            def version = env.GIT_BRANCH
+                            if (version.startsWith("patch/")) {
+                                version = version.split("/")[1]
+                            }
+                            env.IMAGE_TAG = version
+                            def instanceName = "stable-${version.replace(".", "-")}"
+
+                            // If version contains more than 2 dots... It's a hotfix
+                            def isHotfix = version.length() - version.replace(".", "").length() > 2
+                            if (isHotfix) {
+                                def endIndex = version.lastIndexOf(".")
+                                version = version.substring(0, endIndex)
+                            }
+
+                            dir('scripts/databases') {
+                                env.DATABASE_ID = sh(
+                                        returnStdout: true,
+                                        script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${version}.sql.gz\") | .slug'"
+                                ).trim()
+                            }
+
+                            sh '[ -n "$DATABASE_ID" ]'
+                            echo "Database: ${env.DATABASE_ID}"
+
+                            dir('scripts/instances') {
+                                sh "(./findByName.sh play ${instanceName} && ./restart.sh play ${instanceName}) || ./deploy-dhis2.sh play ${instanceName}"
+                                timeout(5) {
+                                    waitFor.statusOk("${env.INSTANCE_URL}/${instanceName}")
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

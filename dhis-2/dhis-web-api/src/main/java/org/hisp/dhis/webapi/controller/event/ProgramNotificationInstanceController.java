@@ -27,13 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
+
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
@@ -50,66 +53,70 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Zubair Asghar
  */
-@OpenApi.Tags( "tracker" )
+@OpenApi.Tags("tracker")
 @Controller
-@RequestMapping( value = ProgramNotificationInstanceSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ProgramNotificationInstanceController
-{
-    private final ProgramNotificationInstanceService programNotificationInstanceService;
+@RequestMapping(value = ProgramNotificationInstanceSchemaDescriptor.API_ENDPOINT)
+@ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class ProgramNotificationInstanceController {
+  private final ProgramNotificationInstanceService programNotificationInstanceService;
 
-    private final ProgramInstanceService programInstanceService;
+  private final EnrollmentService enrollmentService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+  private final EventService eventService;
 
-    public ProgramNotificationInstanceController(
-        ProgramNotificationInstanceService programNotificationInstanceService,
-        ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService )
-    {
-        this.programNotificationInstanceService = programNotificationInstanceService;
-        this.programInstanceService = programInstanceService;
-        this.programStageInstanceService = programStageInstanceService;
+  public ProgramNotificationInstanceController(
+      ProgramNotificationInstanceService programNotificationInstanceService,
+      EnrollmentService enrollmentService,
+      EventService eventService) {
+    this.programNotificationInstanceService = programNotificationInstanceService;
+    this.enrollmentService = enrollmentService;
+    this.eventService = eventService;
+  }
+
+  @PreAuthorize("hasRole('ALL')")
+  @GetMapping(produces = {"application/json"})
+  public @ResponseBody PagingWrapper<ProgramNotificationInstance> getScheduledMessage(
+      @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
+      @RequestParam(required = false) UID enrollment,
+      @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
+      @RequestParam(required = false) UID event,
+      @RequestParam(required = false) Date scheduledAt,
+      @RequestParam(required = false) boolean skipPaging,
+      @RequestParam(required = false, defaultValue = "0") int page,
+      @RequestParam(required = false, defaultValue = "50") int pageSize)
+      throws BadRequestException {
+    UID enrollmentUid =
+        validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
+    UID eventUid =
+        validateDeprecatedParameter("programStageInstance", programStageInstance, "event", event);
+
+    ProgramNotificationInstanceParam params =
+        ProgramNotificationInstanceParam.builder()
+            .enrollment(
+                enrollmentService.getEnrollment(
+                    enrollmentUid == null ? null : enrollmentUid.getValue()))
+            .event(eventService.getEvent(eventUid == null ? null : eventUid.getValue()))
+            .skipPaging(skipPaging)
+            .page(page)
+            .pageSize(pageSize)
+            .scheduledAt(scheduledAt)
+            .build();
+
+    PagingWrapper<ProgramNotificationInstance> instancePagingWrapper = new PagingWrapper<>();
+
+    if (!skipPaging) {
+      long total = programNotificationInstanceService.countProgramNotificationInstances(params);
+
+      instancePagingWrapper =
+          instancePagingWrapper.withPager(
+              PagingWrapper.Pager.builder().page(page).pageSize(pageSize).total(total).build());
     }
 
-    // -------------------------------------------------------------------------
-    // GET
-    // -------------------------------------------------------------------------
+    programNotificationInstanceService.validateQueryParameters(params);
 
-    @PreAuthorize( "hasRole('ALL')" )
-    @GetMapping( produces = { "application/json" } )
-    public @ResponseBody PagingWrapper<ProgramNotificationInstance> getScheduledMessage(
-        @RequestParam( required = false ) String programInstance,
-        @RequestParam( required = false ) String programStageInstance,
-        @RequestParam( required = false ) Date scheduledAt,
-        @RequestParam( required = false ) boolean skipPaging,
-        @RequestParam( required = false, defaultValue = "0" ) int page,
-        @RequestParam( required = false, defaultValue = "50" ) int pageSize )
-    {
-        ProgramNotificationInstanceParam params = ProgramNotificationInstanceParam.builder()
-            .programInstance( programInstanceService.getProgramInstance( programInstance ) )
-            .programStageInstance( programStageInstanceService.getProgramStageInstance( programStageInstance ) )
-            .skipPaging( skipPaging )
-            .page( page )
-            .pageSize( pageSize )
-            .scheduledAt( scheduledAt ).build();
+    List<ProgramNotificationInstance> instances =
+        programNotificationInstanceService.getProgramNotificationInstances(params);
 
-        PagingWrapper<ProgramNotificationInstance> instancePagingWrapper = new PagingWrapper<>();
-
-        if ( !skipPaging )
-        {
-            long total = programNotificationInstanceService.countProgramNotificationInstances( params );
-
-            instancePagingWrapper = instancePagingWrapper.withPager(
-                PagingWrapper.Pager.builder().page( page ).pageSize( pageSize )
-                    .total( total ).build() );
-        }
-
-        programNotificationInstanceService.validateQueryParameters( params );
-
-        List<ProgramNotificationInstance> instances = programNotificationInstanceService
-            .getProgramNotificationInstances( params );
-
-        return instancePagingWrapper.withInstances( instances );
-    }
+    return instancePagingWrapper.withInstances(instances);
+  }
 }

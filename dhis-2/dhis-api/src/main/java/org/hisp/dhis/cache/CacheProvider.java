@@ -138,7 +138,5 @@ public interface CacheProvider
 
     <V> Cache<V> createDataIntegrityDetailsCache();
 
-    <V> Cache<V> createSubExpressionCache();
-
     <V> Cache<V> createQueryAliasCache();
 }

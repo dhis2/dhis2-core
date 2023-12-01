@@ -30,7 +30,6 @@ package org.hisp.dhis.sms.config;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.BulkSmsRequestEntity;
@@ -42,38 +41,38 @@ import org.springframework.stereotype.Component;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Component( "org.hisp.dhis.sms.config.BulkSmsGateway" )
-public class BulkSmsHttpGateway
-    extends SmsGateway
-{
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+@Component("org.hisp.dhis.sms.config.BulkSmsGateway")
+public class BulkSmsHttpGateway extends SmsGateway {
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public boolean accept( SmsGatewayConfig gatewayConfig )
-    {
-        return gatewayConfig instanceof BulkSmsGatewayConfig;
-    }
+  @Override
+  public boolean accept(SmsGatewayConfig gatewayConfig) {
+    return gatewayConfig instanceof BulkSmsGatewayConfig;
+  }
 
-    @Override
-    public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch smsBatch, SmsGatewayConfig config )
-    {
-        return smsBatch.getMessages().stream()
-            .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
-            .collect( Collectors.toList() );
-    }
+  @Override
+  public List<OutboundMessageResponse> sendBatch(
+      OutboundMessageBatch smsBatch, SmsGatewayConfig config) {
+    return smsBatch.getMessages().stream()
+        .map(m -> send(m.getSubject(), m.getText(), m.getRecipients(), config))
+        .collect(Collectors.toList());
+  }
 
-    @Override
-    public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
-    {
-        BulkSmsGatewayConfig bulkSmsGatewayConfig = (BulkSmsGatewayConfig) config;
+  @Override
+  public OutboundMessageResponse send(
+      String subject, String text, Set<String> recipients, SmsGatewayConfig config) {
+    BulkSmsGatewayConfig bulkSmsGatewayConfig = (BulkSmsGatewayConfig) config;
 
-        HttpEntity<BulkSmsRequestEntity> request = new HttpEntity<>( new BulkSmsRequestEntity( text, recipients ),
-            getAuthenticationHeaderParameters( bulkSmsGatewayConfig ) );
+    HttpEntity<BulkSmsRequestEntity> request =
+        new HttpEntity<>(
+            new BulkSmsRequestEntity(text, recipients),
+            getAuthenticationHeaderParameters(bulkSmsGatewayConfig));
 
-        HttpStatus httpStatus = send( bulkSmsGatewayConfig.getUrlTemplate(), request, HttpMethod.POST, String.class );
+    HttpStatus httpStatus =
+        send(bulkSmsGatewayConfig.getUrlTemplate(), request, HttpMethod.POST, String.class);
 
-        return wrapHttpStatus( httpStatus );
-    }
+    return wrapHttpStatus(httpStatus);
+  }
 }

@@ -36,30 +36,27 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 /**
  * @author Lars Helge Overland
  */
-public class ModelUpgrader
-    extends TransactionContextStartupRoutine
-{
-    private final OrganisationUnitService organisationUnitService;
+public class ModelUpgrader extends TransactionContextStartupRoutine {
+  private final OrganisationUnitService organisationUnitService;
 
-    private final CategoryService categoryService;
+  private final CategoryService categoryService;
 
-    public ModelUpgrader( OrganisationUnitService organisationUnitService, CategoryService categoryService )
-    {
-        checkNotNull( organisationUnitService );
-        checkNotNull( categoryService );
-        this.organisationUnitService = organisationUnitService;
-        this.categoryService = categoryService;
-    }
+  public ModelUpgrader(
+      OrganisationUnitService organisationUnitService, CategoryService categoryService) {
+    checkNotNull(organisationUnitService);
+    checkNotNull(categoryService);
+    this.organisationUnitService = organisationUnitService;
+    this.categoryService = categoryService;
+  }
 
-    // -------------------------------------------------------------------------
-    // Execute
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Execute
+  // -------------------------------------------------------------------------
 
-    @Override
-    public void executeInTransaction()
-    {
-        organisationUnitService.updatePaths();
+  @Override
+  public void executeInTransaction() {
+    organisationUnitService.updatePaths();
 
-        categoryService.updateCategoryOptionComboNames();
-    }
+    categoryService.updateCategoryOptionComboNames();
+  }
 }

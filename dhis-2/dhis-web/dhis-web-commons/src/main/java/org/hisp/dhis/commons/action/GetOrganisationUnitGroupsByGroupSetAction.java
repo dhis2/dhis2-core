@@ -27,73 +27,67 @@
  */
 package org.hisp.dhis.commons.action;
 
+import com.opensymphony.xwork2.Action;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.user.User;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author Jan Henrik Overland
  */
-public class GetOrganisationUnitGroupsByGroupSetAction extends BaseAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetOrganisationUnitGroupsByGroupSetAction extends BaseAction implements Action {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private OrganisationUnitGroupService organisationUnitGroupService;
+  private OrganisationUnitGroupService organisationUnitGroupService;
 
-    public void setOrganisationUnitGroupService( OrganisationUnitGroupService organisationUnitGroupService )
-    {
-        this.organisationUnitGroupService = organisationUnitGroupService;
+  public void setOrganisationUnitGroupService(
+      OrganisationUnitGroupService organisationUnitGroupService) {
+    this.organisationUnitGroupService = organisationUnitGroupService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input
+  // -------------------------------------------------------------------------
+
+  private Integer id;
+
+  public void setId(Integer id) {
+    this.id = id;
+  }
+
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
+
+  private List<OrganisationUnitGroup> organisationUnitGroups;
+
+  public List<OrganisationUnitGroup> getOrganisationUnitGroups() {
+    return organisationUnitGroups;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() throws Exception {
+    canReadType(OrganisationUnitGroup.class);
+
+    if (id != null) {
+      organisationUnitGroups =
+          new ArrayList<>(
+              organisationUnitGroupService
+                  .getOrganisationUnitGroupSet(id)
+                  .getOrganisationUnitGroups());
     }
 
-    // -------------------------------------------------------------------------
-    // Input
-    // -------------------------------------------------------------------------
+    User currentUser = currentUserService.getCurrentUser();
+    organisationUnitGroups.forEach(instance -> canReadInstance(instance, currentUser));
 
-    private Integer id;
-
-    public void setId( Integer id )
-    {
-        this.id = id;
-    }
-
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
-
-    private List<OrganisationUnitGroup> organisationUnitGroups;
-
-    public List<OrganisationUnitGroup> getOrganisationUnitGroups()
-    {
-        return organisationUnitGroups;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        canReadType( OrganisationUnitGroup.class );
-
-        if ( id != null )
-        {
-            organisationUnitGroups = new ArrayList<>( organisationUnitGroupService
-                .getOrganisationUnitGroupSet( id ).getOrganisationUnitGroups() );
-        }
-
-        User currentUser = currentUserService.getCurrentUser();
-        organisationUnitGroups.forEach( instance -> canReadInstance( instance, currentUser ) );
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

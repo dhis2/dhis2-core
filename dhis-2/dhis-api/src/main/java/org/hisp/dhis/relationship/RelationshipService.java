@@ -29,105 +29,102 @@ package org.hisp.dhis.relationship;
 
 import java.util.List;
 import java.util.Optional;
-
 import javax.annotation.Nonnull;
-
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
  * @author Abyot Asalefew
  */
-public interface RelationshipService
-{
-    String ID = RelationshipService.class.getName();
+public interface RelationshipService {
+  String ID = RelationshipService.class.getName();
 
-    boolean relationshipExists( String uid );
+  boolean relationshipExists(String uid);
 
-    /**
-     * Adds an {@link Relationship}
-     *
-     * @param relationship the relationship.
-     * @return id of the added relationship.
-     */
-    long addRelationship( Relationship relationship );
+  /**
+   * Adds an {@link Relationship}
+   *
+   * @param relationship the relationship.
+   * @return id of the added relationship.
+   */
+  long addRelationship(Relationship relationship);
 
-    /**
-     * Returns a {@link Relationship}.
-     *
-     * @param relationship the relationship.
-     */
-    void deleteRelationship( Relationship relationship );
+  /**
+   * Returns a {@link Relationship}.
+   *
+   * @param relationship the relationship.
+   */
+  void deleteRelationship(Relationship relationship);
 
-    /**
-     * Updates a {@link Relationship}.
-     *
-     * @param relationship the relationship.
-     */
-    void updateRelationship( Relationship relationship );
+  /**
+   * Updates a {@link Relationship}.
+   *
+   * @param relationship the relationship.
+   */
+  void updateRelationship(Relationship relationship);
 
-    /**
-     * Returns a {@link Relationship}.
-     *
-     * @param id the id of the relationship to return.
-     * @return the relationship with the given identifier.
-     */
-    Relationship getRelationship( long id );
+  /**
+   * Returns a {@link Relationship}.
+   *
+   * @param id the id of the relationship to return.
+   * @return the relationship with the given identifier.
+   */
+  Relationship getRelationship(long id);
 
-    /**
-     * Checks if relationship for given UID exists (including deleted
-     * relationships).
-     *
-     * @param uid Relationship UID to check for.
-     * @return return true if relationship exists, false otherwise.
-     */
-    boolean relationshipExistsIncludingDeleted( String uid );
+  /**
+   * Checks if relationship for given UID exists (including deleted relationships).
+   *
+   * @param uid Relationship UID to check for.
+   * @return return true if relationship exists, false otherwise.
+   */
+  boolean relationshipExistsIncludingDeleted(String uid);
 
-    /**
-     * Fetches a {@link Relationship} based on a relationship identifying
-     * attributes:
-     *
-     * - relationship type - from - to
-     *
-     * @param relationship A valid Relationship
-     * @return an Optional Relationship
-     */
-    Optional<Relationship> getRelationshipByRelationship( Relationship relationship );
+  /**
+   * Fetches a {@link Relationship} based on a relationship identifying attributes:
+   *
+   * <p>- relationship type - from - to
+   *
+   * @param relationship A valid Relationship
+   * @return an Optional Relationship
+   */
+  Optional<Relationship> getRelationshipByRelationship(Relationship relationship);
 
-    Relationship getRelationship( String uid );
+  Relationship getRelationship(String uid);
 
-    Relationship getRelationshipIncludeDeleted( String uid );
+  Relationship getRelationshipIncludeDeleted(String uid);
 
-    List<Relationship> getRelationships( @Nonnull List<String> uids );
+  List<Relationship> getRelationships(@Nonnull List<String> uids);
 
-    default List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
-        boolean skipAccessValidation )
-    {
-        return getRelationshipsByTrackedEntityInstance( tei, null, skipAccessValidation );
-    }
+  default List<Relationship> getRelationshipsByTrackedEntity(
+      TrackedEntity trackedEntity, boolean skipAccessValidation) {
+    return getRelationshipsByTrackedEntity(trackedEntity, null, skipAccessValidation);
+  }
 
-    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-        boolean skipAccessValidation );
+  List<Relationship> getRelationshipsByTrackedEntity(
+      TrackedEntity te,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean skipAccessValidation);
 
-    default List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
-    {
-        return getRelationshipsByProgramInstance( pi, null, skipAccessValidation );
-    }
+  default List<Relationship> getRelationshipsByEnrollment(
+      Enrollment enrollment, boolean skipAccessValidation) {
+    return getRelationshipsByEnrollment(enrollment, null, skipAccessValidation);
+  }
 
-    List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter, boolean skipAccessValidation );
+  List<Relationship> getRelationshipsByEnrollment(
+      Enrollment enrollment,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean skipAccessValidation);
 
-    default List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
-        boolean skipAccessValidation )
-    {
-        return getRelationshipsByProgramStageInstance( psi, null, skipAccessValidation );
-    }
+  default List<Relationship> getRelationshipsByEvent(Event event, boolean skipAccessValidation) {
+    return getRelationshipsByEvent(event, null, skipAccessValidation);
+  }
 
-    List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter, boolean skipAccessValidation );
+  List<Relationship> getRelationshipsByEvent(
+      Event event,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean skipAccessValidation);
 
-    List<Relationship> getRelationshipsByRelationshipType( RelationshipType relationshipType );
+  List<Relationship> getRelationshipsByRelationshipType(RelationshipType relationshipType);
 }

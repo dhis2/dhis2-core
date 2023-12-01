@@ -27,102 +27,49 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.predictor.Predictor;
+import org.hisp.dhis.predictor.PredictorGroup;
+import org.hisp.dhis.scheduling.JobParameters;
 
 /**
  * @author Henning Håkonsen
  */
-@JacksonXmlRootElement( localName = "predictorJobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class PredictorJobParameters
-    implements JobParameters
-{
-    private static final long serialVersionUID = 5526554074518768146L;
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class PredictorJobParameters implements JobParameters {
+  /** Today plus n days (n can be negative) */
+  @JsonProperty private int relativeStart;
 
-    private int relativeStart;
+  /** Today plus n days (n can be negative) */
+  @JsonProperty private int relativeEnd;
 
-    private int relativeEnd;
+  @JsonProperty
+  @OpenApi.Property({UID[].class, Predictor.class})
+  private List<String> predictors = new ArrayList<>();
 
-    private List<String> predictors = new ArrayList<>();
+  @JsonProperty
+  @OpenApi.Property({UID[].class, PredictorGroup.class})
+  private List<String> predictorGroups = new ArrayList<>();
 
-    private List<String> predictorGroups = new ArrayList<>();
+  // programmatically used only
 
-    public PredictorJobParameters()
-    {
-    }
+  /** When set overrides the {@link #relativeStart} */
+  private Date startDate;
 
-    public PredictorJobParameters( int relativeStart, int relativeEnd, List<String> predictors,
-        List<String> predictorGroups )
-    {
-        this.relativeStart = relativeStart;
-        this.relativeEnd = relativeEnd;
-        this.predictors = predictors;
-        this.predictorGroups = predictorGroups;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getRelativeStart()
-    {
-        return relativeStart;
-    }
-
-    public void setRelativeStart( int relativeStart )
-    {
-        this.relativeStart = relativeStart;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getRelativeEnd()
-    {
-        return relativeEnd;
-    }
-
-    public void setRelativeEnd( int relativeEnd )
-    {
-        this.relativeEnd = relativeEnd;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "predictors", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "predictor", namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getPredictors()
-    {
-        return predictors;
-    }
-
-    public void setPredictors( List<String> predictors )
-    {
-        this.predictors = predictors;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "predictorGroups", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "predictorGroup", namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getPredictorGroups()
-    {
-        return predictorGroups;
-    }
-
-    public void setPredictorGroups( List<String> predictorGroups )
-    {
-        this.predictorGroups = predictorGroups;
-    }
-
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        return Optional.empty();
-    }
+  /** When set overrides the {@link #relativeEnd} */
+  private Date endDate;
 }

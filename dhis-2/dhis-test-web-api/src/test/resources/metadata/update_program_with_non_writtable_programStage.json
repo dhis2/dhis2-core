@@ -1,0 +1,142 @@
+{
+  "programs":
+  [
+    {
+      "name": "test",
+      "created": "2023-05-18T15:24:15.623",
+      "lastUpdated": "2023-05-18T15:24:15.623",
+      "translations":
+      [],
+      "createdBy":
+      {
+        "id": "M5zQapPyTZI",
+        "code": null,
+        "name": "Tom Wakiki",
+        "displayName": "Tom Wakiki",
+        "username": "system"
+      },
+      "lastUpdatedBy":
+      {
+        "id": "M5zQapPyTZI",
+        "code": null,
+        "name": "Tom Wakiki",
+        "displayName": "Tom Wakiki",
+        "username": "system"
+      },
+      "sharing":
+      {
+        "owner": "M5zQapPyTZI",
+        "external": false,
+        "users":
+        {},
+        "userGroups":
+        {},
+        "public": "rw------"
+      },
+      "shortName": "test",
+      "version": 0,
+      "programType": "WITH_REGISTRATION",
+      "displayIncidentDate": true,
+      "ignoreOverdueEvents": false,
+      "onlyEnrollOnce": false,
+      "notificationTemplates":
+      [],
+      "selectEnrollmentDatesInFuture": false,
+      "selectIncidentDatesInFuture": false,
+      "trackedEntityType":
+      {
+        "id": "nEenWmSyUEp"
+      },
+      "categoryCombo":
+      {
+        "id": "bjDvmb4bfuf"
+      },
+      "skipOffline": false,
+      "displayFrontPageList": false,
+      "useFirstStageDuringRegistration": false,
+      "expiryDays": 0,
+      "completeEventsExpiryDays": 0,
+      "openDaysAfterCoEndDate": 0,
+      "minAttributesRequiredToSearch": 1,
+      "maxTeiCountToReturn": 0,
+      "accessLevel": "OPEN",
+      "id": "SkV0iNXNJ2S",
+      "attributeValues":
+      [],
+      "organisationUnits":
+      [],
+      "programStages":
+      [
+        {
+          "id": "LloQNgtkrbt"
+        }
+      ],
+      "programSections":
+      [],
+      "programTrackedEntityAttributes":
+      []
+    }
+  ],
+  "programStages":
+  [
+    {
+      "name": "test",
+      "created": "2023-05-18T15:24:15.573",
+      "lastUpdated": "2023-05-18T15:24:55.934",
+      "translations":
+      [],
+      "createdBy":
+      {
+        "id": "M5zQapPyTZI",
+        "code": null,
+        "name": "Tom Wakiki",
+        "displayName": "Tom Wakiki",
+        "username": "system"
+      },
+      "lastUpdatedBy":
+      {
+        "id": "M5zQapPyTZI",
+        "code": null,
+        "name": "Tom Wakiki",
+        "displayName": "Tom Wakiki",
+        "username": "system"
+      },
+      "sharing":
+      {
+        "owner": "M5zQapPyTZI",
+        "external": false,
+        "users":
+        {},
+        "userGroups":
+        {},
+        "public": "rw------"
+      },
+      "minDaysFromStart": 0,
+      "program":
+      {
+        "id": "SkV0iNXNJ2S"
+      },
+      "autoGenerateEvent": true,
+      "validationStrategy": "ON_COMPLETE",
+      "displayGenerateEventBox": true,
+      "blockEntryForm": false,
+      "preGenerateUID": false,
+      "remindCompleted": false,
+      "generatedByEnrollmentDate": false,
+      "allowGenerateNextVisit": false,
+      "openAfterEnrollment": false,
+      "sortOrder": 1,
+      "hideDueDate": false,
+      "enableUserAssignment": false,
+      "referral": false,
+      "id": "LloQNgtkrbt",
+      "attributeValues":
+      [],
+      "repeatable": false,
+      "programStageSections":
+      [],
+      "notificationTemplates":
+      []
+    }
+  ]
+}

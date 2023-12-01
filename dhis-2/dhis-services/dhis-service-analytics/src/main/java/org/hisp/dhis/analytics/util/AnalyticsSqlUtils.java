@@ -35,229 +35,196 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
 
 /**
- * Utilities for analytics SQL operations, compatible with PostgreSQL and H2
- * database platforms.
+ * Utilities for analytics SQL operations, compatible with PostgreSQL and H2 database platforms.
  *
  * @author Lars Helge Overland
  */
-public class AnalyticsSqlUtils
-{
-    public static final String QUOTE = "\"";
+public class AnalyticsSqlUtils {
+  public static final String QUOTE = "\"";
 
-    public static final String SINGLE_QUOTE = "'";
+  public static final String SINGLE_QUOTE = "'";
 
-    public static final String ANALYTICS_TBL_ALIAS = "ax";
+  public static final String ANALYTICS_TBL_ALIAS = "ax";
 
-    public static final String OWNERSHIP_TBL_ALIAS = "own";
+  public static final String OWNERSHIP_TBL_ALIAS = "own";
 
-    public static final String DATE_PERIOD_STRUCT_ALIAS = "ps";
+  public static final String DATE_PERIOD_STRUCT_ALIAS = "ps";
 
-    public static final String ORG_UNIT_STRUCT_ALIAS = "ous";
+  public static final String ORG_UNIT_STRUCT_ALIAS = "ous";
 
-    public static final String ORG_UNIT_GROUPSET_STRUCT_ALIAS = "ougs";
+  public static final String ORG_UNIT_GROUPSET_STRUCT_ALIAS = "ougs";
 
-    private static final String SEPARATOR = ".";
+  private static final String SEPARATOR = ".";
 
-    /**
-     * Quotes the given relation (typically a column). Quotes part of the given
-     * relation are encoded (replaced by double quotes that is).
-     *
-     * @param relation the relation (typically a column).
-     * @return the quoted relation.
-     */
-    public static String quote( String relation )
-    {
-        Assert.notNull( relation, "Relation must be specified" );
+  /**
+   * Quotes the given relation (typically a column). Quotes part of the given relation are encoded
+   * (replaced by double quotes that is).
+   *
+   * @param relation the relation (typically a column).
+   * @return the quoted relation.
+   */
+  public static String quote(String relation) {
+    Assert.notNull(relation, "Relation must be specified");
 
-        String rel = relation.replaceAll( QUOTE, (QUOTE + QUOTE) );
+    String rel = relation.replaceAll(QUOTE, (QUOTE + QUOTE));
 
-        return QUOTE + rel + QUOTE;
+    return QUOTE + rel + QUOTE;
+  }
+
+  public static List<String> quotedListOf(String... relation) {
+    return Arrays.asList(relation).stream().map(AnalyticsSqlUtils::quote).collect(toList());
+  }
+
+  /**
+   * Quotes and qualifies the given relation (typically a column). Quotes part of the given relation
+   * are encoded (replaced by double quotes that is).
+   *
+   * @param relation the relation (typically a column).
+   * @return the quoted relation.
+   */
+  public static String quote(String alias, String relation) {
+    Assert.notNull(alias, "Alias must be specified");
+
+    return alias + SEPARATOR + quote(relation);
+  }
+
+  /**
+   * Quotes and qualifies the given relation (typically a column). Quotes part of the given relation
+   * are encoded (replaced by double quotes that is). The alias used is {@link
+   * AnalyticsSqlUtils#ANALYTICS_TBL_ALIAS}.
+   *
+   * @return the quoted and qualified relation.
+   */
+  public static String quoteAlias(String relation) {
+    return ANALYTICS_TBL_ALIAS + SEPARATOR + quote(relation);
+  }
+
+  /**
+   * Removes all quotes from the given relation.
+   *
+   * @param relation the relation (typically a column).
+   * @return the unquoted relation.
+   */
+  public static String removeQuote(String relation) {
+    Assert.notNull(relation, "Relation must be specified");
+
+    return relation.replaceAll(AnalyticsSqlUtils.QUOTE, EMPTY);
+  }
+
+  /**
+   * Returns a concatenated string of the given collection items separated by comma where each item
+   * is quoted and aliased.
+   *
+   * @param items the collection of items.
+   * @return a string.
+   */
+  public static String quoteAliasCommaSeparate(Collection<String> items) {
+    return items.stream().map(AnalyticsSqlUtils::quoteAlias).collect(Collectors.joining(","));
+  }
+
+  public static String quoteWithFunction(String function, String... items) {
+    return Arrays.asList(items).stream()
+        .map(item -> String.format("%s(%s) as %s", function, quote(item), quote(item)))
+        .collect(Collectors.joining(","));
+  }
+
+  /**
+   * Encodes and quotes the given value.
+   *
+   * @param value the value.
+   * @return the encoded and quoted value.
+   */
+  public static String encode(String value) {
+    return encode(value, true);
+  }
+
+  /**
+   * Encodes the given value.
+   *
+   * @param value the value.
+   * @param quote whether to quote the value.
+   * @return the encoded value.
+   */
+  public static String encode(String value, boolean quote) {
+    if (value != null) {
+      value = value.endsWith("\\") ? value.substring(0, value.length() - 1) : value;
+      value = value.replaceAll(SINGLE_QUOTE, SINGLE_QUOTE + SINGLE_QUOTE);
     }
 
-    public static List<String> quotedListOf( String... relation )
-    {
-        return Arrays.asList( relation ).stream().map( AnalyticsSqlUtils::quote ).collect( toList() );
+    return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;
+  }
+
+  /**
+   * Returns a string containing closing parenthesis. The number of parenthesis is based on the
+   * number of missing closing parenthesis in the argument string.
+   *
+   * <p>Example:
+   *
+   * <p>{@code} input: "((( ))" -> output: ")" {@code}
+   *
+   * @param str a string.
+   * @return a String containing 0 or more "closing" parenthesis
+   */
+  public static String getClosingParentheses(String str) {
+    if (StringUtils.isEmpty(str)) {
+      return EMPTY;
     }
 
-    /**
-     * Quotes and qualifies the given relation (typically a column). Quotes part
-     * of the given relation are encoded (replaced by double quotes that is).
-     *
-     * @param relation the relation (typically a column).
-     * @return the quoted relation.
-     */
-    public static String quote( String alias, String relation )
-    {
-        Assert.notNull( alias, "Alias must be specified" );
+    int open = 0;
 
-        return alias + SEPARATOR + quote( relation );
-    }
-
-    /**
-     * Quotes and qualifies the given relation (typically a column). Quotes part
-     * of the given relation are encoded (replaced by double quotes that is).
-     * The alias used is {@link AnalyticsSqlUtils#ANALYTICS_TBL_ALIAS}.
-     *
-     * @return the quoted and qualified relation.
-     */
-    public static String quoteAlias( String relation )
-    {
-        return ANALYTICS_TBL_ALIAS + SEPARATOR + quote( relation );
-    }
-
-    /**
-     * Removes all quotes from the given relation.
-     *
-     * @param relation the relation (typically a column).
-     * @return the unquoted relation.
-     */
-    public static String removeQuote( String relation )
-    {
-        Assert.notNull( relation, "Relation must be specified" );
-
-        return relation.replaceAll( AnalyticsSqlUtils.QUOTE, EMPTY );
-    }
-
-    /**
-     * Returns a concatenated string of the given collection items separated by
-     * comma where each item is quoted and aliased.
-     *
-     * @param items the collection of items.
-     * @return a string.
-     */
-    public static String quoteAliasCommaSeparate( Collection<String> items )
-    {
-        return items.stream()
-            .map( AnalyticsSqlUtils::quoteAlias )
-            .collect( Collectors.joining( "," ) );
-    }
-
-    public static String quoteWithFunction( String function, String... items )
-    {
-        return Arrays.asList( items ).stream()
-            .map( item -> String.format( "%s(%s) as %s", function, quote( item ), quote( item ) ) )
-            .collect( Collectors.joining( "," ) );
-    }
-
-    /**
-     * Encodes and quotes the given value.
-     *
-     * @param value the value.
-     * @return the encoded and quoted value.
-     */
-    public static String encode( String value )
-    {
-        return encode( value, true );
-    }
-
-    /**
-     * Encodes the given value.
-     *
-     * @param value the value.
-     * @param quote whether to quote the value.
-     * @return the encoded value.
-     */
-    public static String encode( String value, boolean quote )
-    {
-        if ( value != null )
-        {
-            value = value.endsWith( "\\" ) ? value.substring( 0, value.length() - 1 ) : value;
-            value = value.replaceAll( SINGLE_QUOTE, SINGLE_QUOTE + SINGLE_QUOTE );
+    for (int i = 0; i < str.length(); i++) {
+      if (str.charAt(i) == '(') {
+        open++;
+      } else if (str.charAt(i) == ')') {
+        if (open >= 1) {
+          open--;
         }
-
-        return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;
+      }
     }
 
-    /**
-     * <p>
-     * Returns a string containing closing parenthesis. The number of
-     * parenthesis is based on the number of missing closing parenthesis in the
-     * argument string.
-     *
-     * <p>
-     * Example:
-     *
-     * {@code} input: "((( ))" -> output: ")" {@code}
-     *
-     * @param str a string.
-     *
-     * @return a String containing 0 or more "closing" parenthesis
-     */
-    public static String getClosingParentheses( String str )
-    {
-        if ( StringUtils.isEmpty( str ) )
-        {
-            return EMPTY;
-        }
+    return StringUtils.repeat(")", open);
+  }
 
-        int open = 0;
-
-        for ( int i = 0; i < str.length(); i++ )
-        {
-            if ( str.charAt( i ) == '(' )
-            {
-                open++;
-            }
-            else if ( str.charAt( i ) == ')' )
-            {
-                if ( open >= 1 )
-                {
-                    open--;
-                }
-            }
-        }
-
-        return StringUtils.repeat( ")", open );
+  /**
+   * The method creates the coalesce function for coordinates fallback.
+   *
+   * @param fields Collection of coordinate fields.
+   * @param defaultColumnName Default coordinate field
+   * @return Example: ST_AsGeoJSON(coalesce(ax."psigeometry",ax."pigeometry",ax."ougeometry"). or
+   *     default coordinate field.
+   */
+  public static String getCoalesce(List<String> fields, String defaultColumnName) {
+    if (fields == null) {
+      return defaultColumnName;
     }
 
-    /**
-     * The method creates the coalesce function for coordinates fallback.
-     *
-     * @param fields Collection of coordinate fields.
-     * @param defaultColumnName Default coordinate field
-     * @return Example:
-     *         ST_AsGeoJSON(coalesce(ax."psigeometry",ax."pigeometry",ax."ougeometry").
-     *         or default coordinate field.
-     */
-    public static String getCoalesce( List<String> fields, String defaultColumnName )
-    {
-        if ( fields == null )
-        {
-            return defaultColumnName;
-        }
+    String args =
+        fields.stream()
+            .filter(f -> f != null && !f.isBlank())
+            .map(AnalyticsSqlUtils::quoteAlias)
+            .collect(Collectors.joining(","));
 
-        String args = fields.stream()
-            .filter( f -> f != null && !f.isBlank() )
-            .map( AnalyticsSqlUtils::quoteAlias )
-            .collect( Collectors.joining( "," ) );
+    return args.isEmpty() ? defaultColumnName : "coalesce(" + args + ")";
+  }
 
-        return args.isEmpty() ? defaultColumnName
-            : "coalesce(" + args + ")";
+  /**
+   * This method will simply prefix the given "collate" with the collate function. ie: Posix ->
+   * collate "Posix"
+   *
+   * <p>The final statement is surrounded by blank spaces to make its usage safet to the caller.
+   *
+   * @param collate the type of collate to be used.
+   * @return the collate statement, or blank if the given "collate" is null/blank.
+   */
+  public static String getCollate(String collate) {
+    if (isNotBlank(collate)) {
+      return " collate \"" + collate + "\" ";
     }
 
-    /**
-     * This method will simply prefix the given "collate" with the collate
-     * function. ie: Posix -> collate "Posix"
-     *
-     * The final statement is surrounded by blank spaces to make its usage safet
-     * to the caller.
-     *
-     * @param collate the type of collate to be used.
-     * @return the collate statement, or blank if the given "collate" is
-     *         null/blank.
-     */
-    public static String getCollate( String collate )
-    {
-        if ( isNotBlank( collate ) )
-        {
-            return " collate \"" + collate + "\" ";
-        }
-
-        return EMPTY;
-    }
+    return EMPTY;
+  }
 }

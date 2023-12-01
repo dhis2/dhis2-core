@@ -29,68 +29,51 @@ package org.hisp.dhis.visualization;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import org.hisp.dhis.common.EmbeddedObject;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.EmbeddedObject;
 
-/**
- * This class represents the axis number associated with any given element.
- */
-@JacksonXmlRootElement( localName = "axis", namespace = DXF_2_0 )
-public class Axis
-    implements EmbeddedObject
-{
-    /**
-     * The primary key.
-     */
-    private long id;
+/** This class represents the axis number associated with any given element. */
+@JacksonXmlRootElement(localName = "axis", namespace = DXF_2_0)
+public class Axis implements EmbeddedObject {
+  /** The primary key. */
+  private long id;
 
-    /**
-     * The uid of the dimensional item.
-     */
-    private String dimensionalItem;
+  /** The uid of the dimensional item. */
+  private String dimensionalItem;
 
-    private Integer axis;
+  private Integer axis;
 
-    public Axis()
-    {
-    }
+  public Axis() {}
 
-    @JsonIgnore
-    public long getId()
-    {
-        return id;
-    }
+  @JsonIgnore
+  public long getId() {
+    return id;
+  }
 
-    public void setId( long id )
-    {
-        this.id = id;
-    }
+  public void setId(long id) {
+    this.id = id;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public String getDimensionalItem()
-    {
-        return dimensionalItem;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public String getDimensionalItem() {
+    return dimensionalItem;
+  }
 
-    public void setDimensionalItem( String dimensionalItem )
-    {
-        this.dimensionalItem = dimensionalItem;
-    }
+  public void setDimensionalItem(String dimensionalItem) {
+    this.dimensionalItem = dimensionalItem;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Integer getAxis()
-    {
-        return axis;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Integer getAxis() {
+    return axis;
+  }
 
-    public void setAxis( Integer axis )
-    {
-        this.axis = axis;
-    }
+  public void setAxis(Integer axis) {
+    this.axis = axis;
+  }
 }

@@ -53,62 +53,55 @@ import org.springframework.security.access.AccessDeniedException;
  *
  * @author Volker Schmidt
  */
-@ExtendWith( MockitoExtension.class )
-class SharingControllerTest
-{
+@ExtendWith(MockitoExtension.class)
+class SharingControllerTest {
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private IdentifiableObjectManager manager;
+  @Mock private IdentifiableObjectManager manager;
 
-    @Mock
-    private AclService aclService;
+  @Mock private AclService aclService;
 
-    private MockHttpServletRequest request = new MockHttpServletRequest();
+  private MockHttpServletRequest request = new MockHttpServletRequest();
 
-    @InjectMocks
-    private SharingController sharingController;
+  @InjectMocks private SharingController sharingController;
 
-    @Test
-    void notSystemDefaultMetadataNoAccess()
-    {
-        final OrganisationUnit organisationUnit = new OrganisationUnit();
+  @Test
+  void notSystemDefaultMetadataNoAccess() {
+    final OrganisationUnit organisationUnit = new OrganisationUnit();
 
-        doReturn( OrganisationUnit.class ).when( aclService ).classForType( eq( "organisationUnit" ) );
-        when( aclService.isClassShareable( eq( OrganisationUnit.class ) ) ).thenReturn( true );
-        doReturn( organisationUnit ).when( manager ).getNoAcl( eq( OrganisationUnit.class ), eq( "kkSjhdhks" ) );
-        assertThrows( AccessDeniedException.class,
-            () -> sharingController.postSharing( "organisationUnit", "kkSjhdhks", request ) );
-    }
+    doReturn(OrganisationUnit.class).when(aclService).classForType(eq("organisationUnit"));
+    when(aclService.isClassShareable(eq(OrganisationUnit.class))).thenReturn(true);
+    doReturn(organisationUnit).when(manager).getNoAcl(eq(OrganisationUnit.class), eq("kkSjhdhks"));
+    assertThrows(
+        AccessDeniedException.class,
+        () -> sharingController.postSharing("organisationUnit", "kkSjhdhks", request));
+  }
 
-    @Test
-    void systemDefaultMetadataNoAccess()
-    {
-        final Category category = new Category();
-        category.setName( Category.DEFAULT_NAME + "x" );
+  @Test
+  void systemDefaultMetadataNoAccess() {
+    final Category category = new Category();
+    category.setName(Category.DEFAULT_NAME + "x");
 
-        doReturn( Category.class ).when( aclService ).classForType( eq( "category" ) );
-        when( aclService.isClassShareable( eq( Category.class ) ) ).thenReturn( true );
-        when( manager.getNoAcl( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
-        assertThrows( AccessDeniedException.class,
-            () -> sharingController.postSharing( "category", "kkSjhdhks", request ) );
-    }
+    doReturn(Category.class).when(aclService).classForType(eq("category"));
+    when(aclService.isClassShareable(eq(Category.class))).thenReturn(true);
+    when(manager.getNoAcl(eq(Category.class), eq("kkSjhdhks"))).thenReturn(category);
+    assertThrows(
+        AccessDeniedException.class,
+        () -> sharingController.postSharing("category", "kkSjhdhks", request));
+  }
 
-    @Test
-    void systemDefaultMetadata()
-        throws Exception
-    {
-        final Category category = new Category();
-        category.setName( Category.DEFAULT_NAME );
+  @Test
+  void systemDefaultMetadata() throws Exception {
+    final Category category = new Category();
+    category.setName(Category.DEFAULT_NAME);
 
-        doReturn( Category.class ).when( aclService ).classForType( eq( "category" ) );
-        when( aclService.isClassShareable( eq( Category.class ) ) ).thenReturn( true );
-        when( manager.getNoAcl( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
+    doReturn(Category.class).when(aclService).classForType(eq("category"));
+    when(aclService.isClassShareable(eq(Category.class))).thenReturn(true);
+    when(manager.getNoAcl(eq(Category.class), eq("kkSjhdhks"))).thenReturn(category);
 
-        WebMessage message = sharingController.postSharing( "category", "kkSjhdhks", request );
-        assertThat( message.getMessage(),
-            containsString( "Sharing settings of system default metadata object" ) );
-    }
+    WebMessage message = sharingController.postSharing("category", "kkSjhdhks", request);
+    assertThat(
+        message.getMessage(), containsString("Sharing settings of system default metadata object"));
+  }
 }

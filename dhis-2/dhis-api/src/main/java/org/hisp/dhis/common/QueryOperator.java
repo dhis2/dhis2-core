@@ -31,8 +31,8 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.replaceOnce;
 
+import java.util.EnumSet;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -41,68 +41,71 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum QueryOperator
-{
-    EQ( "=", true ),
-    GT( ">" ),
-    GE( ">=" ),
-    LT( "<" ),
-    LE( "<=" ),
-    LIKE( "like" ),
-    IN( "in", true ),
-    SW( "sw" ),
-    EW( "ew" ),
-    // Analytics specifics
-    IEQ( "==", true ),
-    @Deprecated // Prefer NEQ instead
-    NE( "!=", true ),
-    NEQ( "!=", true ),
-    NIEQ( "!==", true ),
-    NLIKE( "not like" ),
-    ILIKE( "ilike" ),
-    NILIKE( "not ilike" );
+public enum QueryOperator {
+  EQ("=", true),
+  GT(">"),
+  GE(">="),
+  LT("<"),
+  LE("<="),
+  LIKE("like"),
+  IN("in", true),
+  SW("sw"),
+  EW("ew"),
+  // Analytics specifics
+  IEQ("==", true),
+  @Deprecated // Prefer NEQ instead
+  NE("!=", true),
+  NEQ("!=", true),
+  NIEQ("!==", true),
+  NLIKE("not like"),
+  ILIKE("ilike"),
+  NILIKE("not ilike");
 
-    private static final Set<QueryOperator> EQ_OPERATORS = Set.of( EQ, NE, NEQ, IEQ, NIEQ );
+  private static final Set<QueryOperator> EQ_OPERATORS = EnumSet.of(EQ, NE, NEQ, IEQ, NIEQ);
 
-    private static final Set<QueryOperator> LIKE_OPERATORS = Set.of( LIKE, NLIKE, ILIKE, NILIKE );
+  private static final Set<QueryOperator> LIKE_OPERATORS = EnumSet.of(LIKE, NLIKE, ILIKE, NILIKE);
 
-    private final String value;
+  private static final Set<QueryOperator> COMPARISON_OPERATORS = EnumSet.of(GT, GE, LT, LE);
 
-    private final boolean nullAllowed;
+  private final String value;
 
-    QueryOperator( String value )
-    {
-        this.value = value;
-        this.nullAllowed = false;
+  private final boolean nullAllowed;
+
+  QueryOperator(String value) {
+    this.value = value;
+    this.nullAllowed = false;
+  }
+
+  public static QueryOperator fromString(String string) {
+    if (isBlank(string)) {
+      return null;
     }
 
-    public static QueryOperator fromString( String string )
-    {
-        if ( isBlank( string ) )
-        {
-            return null;
-        }
-
-        if ( string.trim().startsWith( "!" ) )
-        {
-            return valueOf( "N" + replaceOnce( string, "!", EMPTY ).toUpperCase() );
-        }
-
-        return valueOf( string.toUpperCase() );
+    if (string.trim().startsWith("!")) {
+      return valueOf("N" + replaceOnce(string, "!", EMPTY).toUpperCase());
     }
 
-    public boolean isEqualTo()
-    {
-        return EQ_OPERATORS.contains( this );
+    // To still support NE operator until it gets removed
+    if (string.trim().equals("NE")) {
+      return NEQ;
     }
 
-    public boolean isLike()
-    {
-        return LIKE_OPERATORS.contains( this );
-    }
+    return valueOf(string.toUpperCase());
+  }
 
-    public boolean isIn()
-    {
-        return IN == this;
-    }
+  public boolean isEqualTo() {
+    return EQ_OPERATORS.contains(this);
+  }
+
+  public boolean isLike() {
+    return LIKE_OPERATORS.contains(this);
+  }
+
+  public boolean isIn() {
+    return IN == this;
+  }
+
+  public boolean isComparison() {
+    return COMPARISON_OPERATORS.contains(this);
+  }
 }

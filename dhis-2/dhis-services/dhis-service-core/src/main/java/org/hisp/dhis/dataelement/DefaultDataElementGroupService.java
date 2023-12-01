@@ -28,24 +28,20 @@
 package org.hisp.dhis.dataelement;
 
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Stian Sandvold
  */
-@Transactional( readOnly = true )
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.dataelement.DataElementGroupService" )
-public class DefaultDataElementGroupService
-    implements DataElementGroupService
-{
-    private final DataElementGroupStore dataElementGroupStore;
+@Service("org.hisp.dhis.dataelement.DataElementGroupService")
+public class DefaultDataElementGroupService implements DataElementGroupService {
+  private final DataElementGroupStore dataElementGroupStore;
 
-    @Override
-    public DataElementGroup getDataElementGroupByUid( String uid )
-    {
-        return dataElementGroupStore.getByUid( uid );
-    }
+  @Override
+  public DataElementGroup getDataElementGroupByUid(String uid) {
+    return dataElementGroupStore.getByUid(uid);
+  }
 }

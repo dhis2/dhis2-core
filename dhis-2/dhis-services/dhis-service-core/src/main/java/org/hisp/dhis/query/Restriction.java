@@ -32,7 +32,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.QueryPath;
 
@@ -40,46 +39,36 @@ import org.hisp.dhis.query.planner.QueryPath;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Getter
-@Accessors( chain = true )
-@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
-public final class Restriction implements Criterion
-{
-    /**
-     * Path to property you want to restrict only, one first-level properties
-     * are currently supported.
-     */
-    private final String path;
+@Accessors(chain = true)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class Restriction implements Criterion {
+  /**
+   * Path to property you want to restrict only, one first-level properties are currently supported.
+   */
+  private final String path;
 
-    /**
-     * Operator for restriction.
-     */
-    private final Operator<?> operator;
+  /** Operator for restriction. */
+  private final Operator<?> operator;
 
-    /**
-     * Indicates that the {@link #path} is a attribute UID. This also means the
-     * {@link Restriction} is an in-memory filter.
-     */
-    private final boolean attribute;
+  /**
+   * Indicates that the {@link #path} is a attribute UID. This also means the {@link Restriction} is
+   * an in-memory filter.
+   */
+  private final boolean attribute;
 
-    /**
-     * Query Path used in persistent part of a query.
-     */
-    @Setter
-    private QueryPath queryPath;
+  /** Query Path used in persistent part of a query. */
+  @Setter private QueryPath queryPath;
 
-    public Restriction( String path, Operator<?> operator )
-    {
-        this( path, operator, false );
-    }
+  public Restriction(String path, Operator<?> operator) {
+    this(path, operator, false);
+  }
 
-    public Restriction asAttribute()
-    {
-        return new Restriction( path, operator, true );
-    }
+  public Restriction asAttribute() {
+    return new Restriction(path, operator, true);
+  }
 
-    @Override
-    public String toString()
-    {
-        return "[" + path + ", op: " + operator + "]";
-    }
+  @Override
+  public String toString() {
+    return "[" + path + ", op: " + operator + "]";
+  }
 }

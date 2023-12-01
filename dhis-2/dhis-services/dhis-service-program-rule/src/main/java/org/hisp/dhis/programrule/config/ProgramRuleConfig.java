@@ -29,7 +29,12 @@ package org.hisp.dhis.programrule.config;
 
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.programrule.engine.*;
+import org.hisp.dhis.programrule.engine.NotificationImplementableRuleService;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngineListener;
+import org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService;
+import org.hisp.dhis.programrule.engine.ServerSideImplementableRuleService;
+import org.hisp.dhis.programrule.engine.SupplementaryDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,43 +42,42 @@ import org.springframework.context.annotation.Configuration;
 /**
  * @author Enrico Colasante
  */
-@Configuration( "ruleEngineConfig" )
-public class ProgramRuleConfig
-{
-    @Autowired
-    private ProgramRuleEntityMapperService programRuleEntityMapperService;
+@Configuration("ruleEngineConfig")
+public class ProgramRuleConfig {
+  @Autowired private ProgramRuleEntityMapperService programRuleEntityMapperService;
 
-    @Autowired
-    private ProgramRuleVariableService programRuleVariableService;
+  @Autowired private ProgramRuleVariableService programRuleVariableService;
 
-    @Autowired
-    private SupplementaryDataProvider supplementaryDataProvider;
+  @Autowired private SupplementaryDataProvider supplementaryDataProvider;
 
-    @Autowired
-    private ConstantService constantService;
+  @Autowired private ConstantService constantService;
 
-    /**
-     * This bean is used in the system when an event is intercepted by
-     * {@link ProgramRuleEngineListener}. Only the notification rule actions are
-     * executed.
-     */
-    @Bean( "notificationRuleEngine" )
-    public ProgramRuleEngine notificationRuleEngine(
-        NotificationImplementableRuleService notificationImplementableRuleService )
-    {
-        return new ProgramRuleEngine( programRuleEntityMapperService, programRuleVariableService, constantService,
-            notificationImplementableRuleService, supplementaryDataProvider );
-    }
+  /**
+   * This bean is used in the system when an event is intercepted by {@link
+   * ProgramRuleEngineListener}. Only the notification rule actions are executed.
+   */
+  @Bean("notificationRuleEngine")
+  public ProgramRuleEngine notificationRuleEngine(
+      NotificationImplementableRuleService notificationImplementableRuleService) {
+    return new ProgramRuleEngine(
+        programRuleEntityMapperService,
+        programRuleVariableService,
+        constantService,
+        notificationImplementableRuleService,
+        supplementaryDataProvider);
+  }
 
-    /**
-     * This bean is used when the new importer is called. All the relevant rule
-     * actions are executed.
-     */
-    @Bean( "serviceTrackerRuleEngine" )
-    public ProgramRuleEngine serverSideRuleEngine(
-        ServerSideImplementableRuleService serverSideImplementableRuleService )
-    {
-        return new ProgramRuleEngine( programRuleEntityMapperService, programRuleVariableService, constantService,
-            serverSideImplementableRuleService, supplementaryDataProvider );
-    }
+  /**
+   * This bean is used when the new importer is called. All the relevant rule actions are executed.
+   */
+  @Bean("serviceTrackerRuleEngine")
+  public ProgramRuleEngine serverSideRuleEngine(
+      ServerSideImplementableRuleService serverSideImplementableRuleService) {
+    return new ProgramRuleEngine(
+        programRuleEntityMapperService,
+        programRuleVariableService,
+        constantService,
+        serverSideImplementableRuleService,
+        supplementaryDataProvider);
+  }
 }

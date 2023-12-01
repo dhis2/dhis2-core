@@ -28,29 +28,16 @@
 package org.hisp.dhis.fileresource.events;
 
 import java.io.File;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @Author Zubair Asghar.
  */
-public class FileSavedEvent
-{
-    private String fileResource;
+@Getter
+@RequiredArgsConstructor
+public class FileSavedEvent {
 
-    private File file;
-
-    public FileSavedEvent( String fileResource, File file )
-    {
-        this.fileResource = fileResource;
-        this.file = file;
-    }
-
-    public String getFileResource()
-    {
-        return fileResource;
-    }
-
-    public File getFile()
-    {
-        return file;
-    }
+  private final String fileResource;
+  private final File file;
 }

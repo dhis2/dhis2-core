@@ -31,7 +31,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
@@ -43,297 +46,82 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.preheat.PreheatParams;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
-
-import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ObjectBundleParams
-{
-    private User user;
+@Getter
+@Setter
+@Accessors(chain = true)
+@ToString
+public class ObjectBundleParams {
 
-    private UserOverrideMode userOverrideMode = UserOverrideMode.NONE;
+  @ToString.Exclude private User user;
 
-    private User overrideUser;
+  @ToString.Exclude private User overrideUser;
 
-    private ObjectBundleMode objectBundleMode = ObjectBundleMode.COMMIT;
+  @ToString.Exclude
+  private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects =
+      new HashMap<>();
 
-    private PreheatIdentifier preheatIdentifier = PreheatIdentifier.UID;
+  private UserOverrideMode userOverrideMode = UserOverrideMode.NONE;
+  private ObjectBundleMode objectBundleMode = ObjectBundleMode.COMMIT;
+  private PreheatIdentifier preheatIdentifier = PreheatIdentifier.UID;
+  private PreheatMode preheatMode = PreheatMode.REFERENCE;
+  private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
+  private AtomicMode atomicMode = AtomicMode.ALL;
+  private MergeMode mergeMode = MergeMode.REPLACE;
+  private FlushMode flushMode = FlushMode.AUTO;
+  private ImportReportMode importReportMode = ImportReportMode.ERRORS;
 
-    private PreheatMode preheatMode = PreheatMode.REFERENCE;
+  private boolean skipSharing;
+  private boolean skipTranslation;
+  private boolean skipValidation;
+  private boolean metadataSyncImport;
 
-    private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
+  public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> getObjects() {
+    return objects;
+  }
 
-    private AtomicMode atomicMode = AtomicMode.ALL;
+  public ObjectBundleParams setObjects(
+      Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects) {
+    this.objects = objects;
+    return this;
+  }
 
-    private MergeMode mergeMode = MergeMode.REPLACE;
-
-    private FlushMode flushMode = FlushMode.AUTO;
-
-    private ImportReportMode importReportMode = ImportReportMode.ERRORS;
-
-    private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = new HashMap<>();
-
-    private boolean skipSharing;
-
-    private boolean skipTranslation;
-
-    private boolean skipValidation;
-
-    private boolean metadataSyncImport;
-
-    private JobConfiguration jobId;
-
-    public ObjectBundleParams()
-    {
-
+  public ObjectBundleParams addObject(
+      Class<? extends IdentifiableObject> klass, IdentifiableObject object) {
+    if (object == null) {
+      return this;
     }
 
-    public User getUser()
-    {
-        return user;
+    if (!objects.containsKey(klass)) {
+      objects.put(klass, new ArrayList<>());
     }
 
-    public ObjectBundleParams setUser( User user )
-    {
-        this.user = user;
-        return this;
+    objects.get(klass).add(object);
+
+    return this;
+  }
+
+  @SuppressWarnings({"unchecked"})
+  public ObjectBundleParams addObject(IdentifiableObject object) {
+    if (object == null) {
+      return this;
     }
 
-    public UserOverrideMode getUserOverrideMode()
-    {
-        return userOverrideMode;
-    }
+    Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass(object);
 
-    public ObjectBundleParams setUserOverrideMode( UserOverrideMode userOverrideMode )
-    {
-        this.userOverrideMode = userOverrideMode;
-        return this;
-    }
+    objects.computeIfAbsent(realClass, k -> new ArrayList<>()).add(object);
 
-    public User getOverrideUser()
-    {
-        return overrideUser;
-    }
+    return this;
+  }
 
-    public ObjectBundleParams setOverrideUser( User overrideUser )
-    {
-        this.overrideUser = overrideUser;
-        return this;
-    }
-
-    public ObjectBundleMode getObjectBundleMode()
-    {
-        return objectBundleMode;
-    }
-
-    public ObjectBundleParams setObjectBundleMode( ObjectBundleMode objectBundleMode )
-    {
-        this.objectBundleMode = objectBundleMode;
-        return this;
-    }
-
-    public PreheatIdentifier getPreheatIdentifier()
-    {
-        return preheatIdentifier;
-    }
-
-    public ObjectBundleParams setPreheatIdentifier( PreheatIdentifier preheatIdentifier )
-    {
-        this.preheatIdentifier = preheatIdentifier;
-        return this;
-    }
-
-    public PreheatMode getPreheatMode()
-    {
-        return preheatMode;
-    }
-
-    public ObjectBundleParams setPreheatMode( PreheatMode preheatMode )
-    {
-        this.preheatMode = preheatMode;
-        return this;
-    }
-
-    public ImportStrategy getImportStrategy()
-    {
-        return importStrategy;
-    }
-
-    public ObjectBundleParams setImportStrategy( ImportStrategy importStrategy )
-    {
-        this.importStrategy = importStrategy;
-        return this;
-    }
-
-    public AtomicMode getAtomicMode()
-    {
-        return atomicMode;
-    }
-
-    public ObjectBundleParams setAtomicMode( AtomicMode atomicMode )
-    {
-        this.atomicMode = atomicMode;
-        return this;
-    }
-
-    public MergeMode getMergeMode()
-    {
-        return mergeMode;
-    }
-
-    public ObjectBundleParams setMergeMode( MergeMode mergeMode )
-    {
-        this.mergeMode = mergeMode;
-        return this;
-    }
-
-    public FlushMode getFlushMode()
-    {
-        return flushMode;
-    }
-
-    public ObjectBundleParams setFlushMode( FlushMode flushMode )
-    {
-        this.flushMode = flushMode;
-        return this;
-    }
-
-    public ImportReportMode getImportReportMode()
-    {
-        return importReportMode;
-    }
-
-    public ObjectBundleParams setImportReportMode( ImportReportMode importReportMode )
-    {
-        this.importReportMode = importReportMode;
-        return this;
-    }
-
-    public boolean isSkipSharing()
-    {
-        return skipSharing;
-    }
-
-    public ObjectBundleParams setSkipSharing( boolean skipSharing )
-    {
-        this.skipSharing = skipSharing;
-        return this;
-    }
-
-    public boolean isSkipTranslation()
-    {
-        return skipTranslation;
-    }
-
-    public ObjectBundleParams setSkipTranslation( boolean skipTranslation )
-    {
-        this.skipTranslation = skipTranslation;
-        return this;
-    }
-
-    public boolean isSkipValidation()
-    {
-        return skipValidation;
-    }
-
-    public ObjectBundleParams setSkipValidation( boolean skipValidation )
-    {
-        this.skipValidation = skipValidation;
-        return this;
-    }
-
-    public boolean isMetadataSyncImport()
-    {
-        return metadataSyncImport;
-    }
-
-    public void setMetadataSyncImport( boolean metadataSyncImport )
-    {
-        this.metadataSyncImport = metadataSyncImport;
-    }
-
-    public JobConfiguration getJobId()
-    {
-        return jobId;
-    }
-
-    public ObjectBundleParams setJobId( JobConfiguration jobId )
-    {
-        this.jobId = jobId;
-        return this;
-    }
-
-    public boolean haveJobId()
-    {
-        return jobId != null;
-    }
-
-    public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> getObjects()
-    {
-        return objects;
-    }
-
-    public ObjectBundleParams setObjects( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
-    {
-        this.objects = objects;
-        return this;
-    }
-
-    public ObjectBundleParams addObject( Class<? extends IdentifiableObject> klass, IdentifiableObject object )
-    {
-        if ( object == null )
-        {
-            return this;
-        }
-
-        if ( !objects.containsKey( klass ) )
-        {
-            objects.put( klass, new ArrayList<>() );
-        }
-
-        objects.get( klass ).add( object );
-
-        return this;
-    }
-
-    @SuppressWarnings( { "unchecked" } )
-    public ObjectBundleParams addObject( IdentifiableObject object )
-    {
-        if ( object == null )
-        {
-            return this;
-        }
-
-        Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
-
-        objects.computeIfAbsent( realClass, k -> new ArrayList<>() ).add( object );
-
-        return this;
-    }
-
-    public PreheatParams getPreheatParams()
-    {
-        PreheatParams params = new PreheatParams();
-        params.setPreheatIdentifier( preheatIdentifier );
-        params.setPreheatMode( preheatMode );
-
-        return params;
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "user", user )
-            .add( "objectBundleMode", objectBundleMode )
-            .add( "preheatIdentifier", preheatIdentifier )
-            .add( "preheatMode", preheatMode )
-            .add( "importStrategy", importStrategy )
-            .add( "mergeMode", mergeMode )
-            .toString();
-    }
+  public PreheatParams getPreheatParams() {
+    PreheatParams params = new PreheatParams();
+    params.setPreheatIdentifier(preheatIdentifier);
+    params.setPreheatMode(preheatMode);
+    return params;
+  }
 }

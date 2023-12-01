@@ -27,62 +27,54 @@
  */
 package org.hisp.dhis.commons.action;
 
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementService;
-
-import com.opensymphony.xwork2.Action;
 
 /**
  * @author Tran Thanh Tri
  */
-public class GetDataElementGroupSetAction extends BaseAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetDataElementGroupSetAction extends BaseAction implements Action {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private DataElementService dataElementService;
+  private DataElementService dataElementService;
 
-    public void setDataElementService( DataElementService dataElementService )
-    {
-        this.dataElementService = dataElementService;
+  public void setDataElementService(DataElementService dataElementService) {
+    this.dataElementService = dataElementService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input & Output
+  // -------------------------------------------------------------------------
+
+  private Integer id;
+
+  public void setId(Integer id) {
+    this.id = id;
+  }
+
+  private DataElementGroupSet dataElementGroupSet;
+
+  public DataElementGroupSet getDataElementGroupSet() {
+    return dataElementGroupSet;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() {
+    canReadType(DataElementGroupSet.class);
+
+    if (id != null) {
+      dataElementGroupSet = dataElementService.getDataElementGroupSet(id);
     }
 
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
+    canReadInstance(dataElementGroupSet, currentUserService.getCurrentUser());
 
-    private Integer id;
-
-    public void setId( Integer id )
-    {
-        this.id = id;
-    }
-
-    private DataElementGroupSet dataElementGroupSet;
-
-    public DataElementGroupSet getDataElementGroupSet()
-    {
-        return dataElementGroupSet;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-    {
-        canReadType( DataElementGroupSet.class );
-
-        if ( id != null )
-        {
-            dataElementGroupSet = dataElementService.getDataElementGroupSet( id );
-        }
-
-        canReadInstance( dataElementGroupSet, currentUserService.getCurrentUser() );
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

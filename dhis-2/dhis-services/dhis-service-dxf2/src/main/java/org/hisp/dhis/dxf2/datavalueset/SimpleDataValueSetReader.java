@@ -28,36 +28,30 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import javax.annotation.Nonnull;
-
 import lombok.AllArgsConstructor;
 
 /**
- * Simple implementation of {@link DataValueSetReader} which wraps an in-memory
- * {@link DataValueSet}.
+ * Simple implementation of {@link DataValueSetReader} which wraps an in-memory {@link
+ * DataValueSet}.
  *
  * @author Lars Helge Overland
  */
 @AllArgsConstructor
-public class SimpleDataValueSetReader implements DataValueSetReader
-{
-    @Nonnull
-    private final DataValueSet dataValueSet;
+public class SimpleDataValueSetReader implements DataValueSetReader {
+  @Nonnull private final DataValueSet dataValueSet;
 
-    @Override
-    public DataValueSet readHeader()
-    {
-        return dataValueSet;
-    }
+  @Override
+  public DataValueSet readHeader() {
+    return dataValueSet;
+  }
 
-    @Override
-    public DataValueEntry readNext()
-    {
-        return null; // Not relevant
-    }
+  @Override
+  public DataValueEntry readNext() {
+    return null; // Not relevant
+  }
 
-    @Override
-    public void close()
-    {
-        // Not relevant
-    }
+  @Override
+  public void close() {
+    // Not relevant
+  }
 }

@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.Builder;
 import lombok.Data;
 
@@ -40,27 +39,20 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class EventHookContext
-{
-    @Builder.Default
-    Map<String, List<Handler>> targets = new HashMap<>();
+public class EventHookContext {
+  @Builder.Default Map<String, List<Handler>> targets = new HashMap<>();
 
-    @Builder.Default
-    List<EventHook> eventHooks = new ArrayList<>();
+  @Builder.Default List<EventHook> eventHooks = new ArrayList<>();
 
-    public boolean hasTarget( String uid )
-    {
-        return targets.containsKey( uid ) || targets.get( uid ).isEmpty();
-    }
+  public boolean hasTarget(String uid) {
+    return targets.containsKey(uid) || targets.get(uid).isEmpty();
+  }
 
-    public List<Handler> getTarget( String uid )
-    {
-        return targets.get( uid );
-    }
+  public List<Handler> getTarget(String uid) {
+    return targets.get(uid);
+  }
 
-    public void closeTargets()
-    {
-        targets.values()
-            .forEach( handlers -> handlers.forEach( Handler::close ) );
-    }
+  public void closeTargets() {
+    targets.values().forEach(handlers -> handlers.forEach(Handler::close));
+  }
 }

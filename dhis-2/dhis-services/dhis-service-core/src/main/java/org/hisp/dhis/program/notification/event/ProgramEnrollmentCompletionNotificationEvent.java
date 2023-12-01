@@ -32,18 +32,15 @@ import org.springframework.context.ApplicationEvent;
 /**
  * @author Zubair Asghar.
  */
-public class ProgramEnrollmentCompletionNotificationEvent extends ApplicationEvent
-{
-    private long programInstance;
+public class ProgramEnrollmentCompletionNotificationEvent extends ApplicationEvent {
+  private final long enrollmentId;
 
-    public ProgramEnrollmentCompletionNotificationEvent( Object source, long programInstance )
-    {
-        super( source );
-        this.programInstance = programInstance;
-    }
+  public ProgramEnrollmentCompletionNotificationEvent(Object source, long enrollmentId) {
+    super(source);
+    this.enrollmentId = enrollmentId;
+  }
 
-    public long getProgramInstance()
-    {
-        return programInstance;
-    }
+  public long getEnrollmentId() {
+    return enrollmentId;
+  }
 }

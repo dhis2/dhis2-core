@@ -34,17 +34,15 @@ import org.hisp.dhis.user.UserCredentialsDto;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class UserCredentialsSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "userCredentials";
+public class UserCredentialsSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "userCredentials";
 
-    public static final String PLURAL = "userCredentials";
+  public static final String PLURAL = "userCredentials";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( UserCredentialsDto.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(UserCredentialsDto.class, SINGULAR, PLURAL);
+  }
 }

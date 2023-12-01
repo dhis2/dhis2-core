@@ -34,7 +34,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -42,13 +41,13 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.Relationship;
@@ -57,254 +56,228 @@ import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class RelationshipStoreTest extends TransactionalIntegrationTest
-{
-    @Autowired
-    private RelationshipService relationshipService;
+class RelationshipStoreTest extends TransactionalIntegrationTest {
+  @Autowired private RelationshipService relationshipService;
 
-    @Autowired
-    private RelationshipTypeService relationshipTypeService;
+  @Autowired private RelationshipTypeService relationshipTypeService;
 
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+  @Autowired private EventService eventService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+  @Autowired private EnrollmentService enrollmentService;
 
-    @Autowired
-    private ProgramStageService programStageService;
+  @Autowired private ProgramStageService programStageService;
 
-    @Autowired
-    private AttributeService attributeService;
+  @Autowired private AttributeService attributeService;
 
-    private TrackedEntityInstance trackedEntityInstanceA;
+  private TrackedEntity trackedEntityA;
 
-    private TrackedEntityInstance trackedEntityInstanceB;
+  private TrackedEntity trackedEntityB;
 
-    private RelationshipType relationshipType;
+  private RelationshipType relationshipType;
 
-    private OrganisationUnit organisationUnit;
+  private OrganisationUnit organisationUnit;
 
-    @Override
-    public void setUpTest()
-    {
-        relationshipType = createRelationshipType( 'A' );
-        relationshipTypeService.addRelationshipType( relationshipType );
-        organisationUnit = createOrganisationUnit( "testOU" );
-        organisationUnitService.addOrganisationUnit( organisationUnit );
-    }
+  @Override
+  public void setUpTest() {
+    relationshipType = createRelationshipType('A');
+    relationshipTypeService.addRelationshipType(relationshipType);
+    organisationUnit = createOrganisationUnit("testOU");
+    organisationUnitService.addOrganisationUnit(organisationUnit);
+  }
 
-    @Test
-    void testGetByTrackedEntityInstance()
-    {
-        Relationship teiRelationship = addTeiToTeiRelationship();
+  @Test
+  void testGetByTrackedEntity() {
+    Relationship teiRelationship = addTeiToTeiRelationship();
 
-        List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByTrackedEntityInstance( trackedEntityInstanceA, true );
+    List<Relationship> relationshipList =
+        relationshipService.getRelationshipsByTrackedEntity(trackedEntityA, true);
 
-        assertEquals( 1, relationshipList.size() );
-        assertTrue( relationshipList.contains( teiRelationship ) );
-    }
+    assertEquals(1, relationshipList.size());
+    assertTrue(relationshipList.contains(teiRelationship));
+  }
 
-    @Test
-    void testGetByProgramStageInstance()
-    {
-        Program programA = addProgram();
+  @Test
+  void testGetByEvent() {
+    Program programA = addProgram();
 
-        ProgramInstance programInstance = addProgramInstance( programA );
+    Enrollment enrollment = addEnrollment(programA);
 
-        ProgramStage programStageA = addProgramStage( programA );
+    ProgramStage programStageA = addProgramStage(programA);
 
-        ProgramStageInstance programStageInstance = addProgramStageInstance( programInstance, programStageA );
+    Event event = addEvent(enrollment, programStageA);
 
-        trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
+    trackedEntityA = createTrackedEntity(organisationUnit);
+    trackedEntityService.addTrackedEntity(trackedEntityA);
 
-        Relationship relationshipA = addTeiToProgramStageInstanceRelationship( trackedEntityInstanceA,
-            programStageInstance );
+    Relationship relationshipA = addTeiToEventRelationship(trackedEntityA, event);
 
-        List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByProgramStageInstance( programStageInstance, true );
+    List<Relationship> relationshipList = relationshipService.getRelationshipsByEvent(event, true);
 
-        assertEquals( 1, relationshipList.size() );
-        assertTrue( relationshipList.contains( relationshipA ) );
+    assertEquals(1, relationshipList.size());
+    assertTrue(relationshipList.contains(relationshipA));
 
-        assertTrue( relationshipService.getRelationshipByRelationship( relationshipA ).isPresent() );
-    }
+    assertTrue(relationshipService.getRelationshipByRelationship(relationshipA).isPresent());
+  }
 
-    @Test
-    void testGetByProgramInstance()
-    {
-        trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
+  @Test
+  void testGetByEnrollment() {
+    trackedEntityA = createTrackedEntity(organisationUnit);
+    trackedEntityService.addTrackedEntity(trackedEntityA);
 
-        Program programA = addProgram();
+    Program programA = addProgram();
 
-        ProgramInstance programInstance = addProgramInstance( programA );
+    Enrollment enrollment = addEnrollment(programA);
 
-        Relationship relationshipA = addTeiToProgramInstanceRelationship( trackedEntityInstanceA,
-            programInstance );
+    Relationship relationshipA = addTeiToEnrollmentRelationship(trackedEntityA, enrollment);
 
-        List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByProgramInstance( programInstance, true );
+    List<Relationship> relationshipList =
+        relationshipService.getRelationshipsByEnrollment(enrollment, true);
 
-        assertEquals( 1, relationshipList.size() );
-        assertTrue( relationshipList.contains( relationshipA ) );
+    assertEquals(1, relationshipList.size());
+    assertTrue(relationshipList.contains(relationshipA));
 
-        assertTrue( relationshipService.getRelationshipByRelationship( relationshipA ).isPresent() );
-    }
+    assertTrue(relationshipService.getRelationshipByRelationship(relationshipA).isPresent());
+  }
 
-    @Test
-    void testGetByRelationshipType()
-    {
-        Relationship teiRelationship = addTeiToTeiRelationship();
+  @Test
+  void testGetByRelationshipType() {
+    Relationship teiRelationship = addTeiToTeiRelationship();
 
-        List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByRelationshipType( relationshipType );
+    List<Relationship> relationshipList =
+        relationshipService.getRelationshipsByRelationshipType(relationshipType);
 
-        assertEquals( 1, relationshipList.size() );
-        assertTrue( relationshipList.contains( teiRelationship ) );
-    }
+    assertEquals(1, relationshipList.size());
+    assertTrue(relationshipList.contains(teiRelationship));
+  }
 
-    @Test
-    void testGetByRelationship()
-    {
-        Relationship teiRelationship = addTeiToTeiRelationship();
+  @Test
+  void testGetByRelationship() {
+    Relationship teiRelationship = addTeiToTeiRelationship();
 
-        Optional<Relationship> existing = relationshipService.getRelationshipByRelationship( teiRelationship );
+    Optional<Relationship> existing =
+        relationshipService.getRelationshipByRelationship(teiRelationship);
 
-        assertTrue( existing.isPresent() );
-    }
+    assertTrue(existing.isPresent());
+  }
 
-    @Test
-    void testAddRelationshipTypeWithAttribute()
-    {
-        Attribute attribute = createAttribute( 'A' );
-        attribute.setRelationshipTypeAttribute( true );
-        attribute.setValueType( ValueType.TEXT );
-        attributeService.addAttribute( attribute );
+  @Test
+  void testAddRelationshipTypeWithAttribute() {
+    Attribute attribute = createAttribute('A');
+    attribute.setRelationshipTypeAttribute(true);
+    attribute.setValueType(ValueType.TEXT);
+    attributeService.addAttribute(attribute);
 
-        relationshipType = createRelationshipType( 'A' );
-        relationshipType.getAttributeValues().add( new AttributeValue( attribute, "test" ) );
-        relationshipTypeService.addRelationshipType( relationshipType );
+    relationshipType = createRelationshipType('A');
+    relationshipType.getAttributeValues().add(new AttributeValue(attribute, "test"));
+    relationshipTypeService.addRelationshipType(relationshipType);
 
-        RelationshipType saved = relationshipTypeService.getRelationshipType( relationshipType.getId() );
-        assertEquals( "test", saved.getAttributeValue( attribute ).getValue() );
-    }
+    RelationshipType saved = relationshipTypeService.getRelationshipType(relationshipType.getId());
+    assertEquals("test", saved.getAttributeValue(attribute).getValue());
+  }
 
-    private Relationship addTeiToTeiRelationship()
-    {
-        trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstanceB = createTrackedEntityInstance( organisationUnit );
+  private Relationship addTeiToTeiRelationship() {
+    trackedEntityA = createTrackedEntity(organisationUnit);
+    trackedEntityB = createTrackedEntity(organisationUnit);
 
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceB );
+    trackedEntityService.addTrackedEntity(trackedEntityA);
+    trackedEntityService.addTrackedEntity(trackedEntityB);
 
-        Relationship teiRelationship = new Relationship();
+    Relationship teiRelationship = new Relationship();
 
-        RelationshipItem relationshipItemFrom = new RelationshipItem();
-        RelationshipItem relationshipItemTo = new RelationshipItem();
-        relationshipItemFrom.setTrackedEntityInstance( trackedEntityInstanceA );
-        relationshipItemTo.setTrackedEntityInstance( trackedEntityInstanceB );
+    RelationshipItem relationshipItemFrom = new RelationshipItem();
+    RelationshipItem relationshipItemTo = new RelationshipItem();
+    relationshipItemFrom.setTrackedEntity(trackedEntityA);
+    relationshipItemTo.setTrackedEntity(trackedEntityB);
 
-        teiRelationship.setRelationshipType( relationshipType );
-        teiRelationship.setFrom( relationshipItemFrom );
-        teiRelationship.setTo( relationshipItemTo );
-        teiRelationship.setKey( RelationshipUtils.generateRelationshipKey( teiRelationship ) );
-        teiRelationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( teiRelationship ) );
-        relationshipService.addRelationship( teiRelationship );
-        return teiRelationship;
-    }
+    teiRelationship.setRelationshipType(relationshipType);
+    teiRelationship.setFrom(relationshipItemFrom);
+    teiRelationship.setTo(relationshipItemTo);
+    teiRelationship.setKey(RelationshipUtils.generateRelationshipKey(teiRelationship));
+    teiRelationship.setInvertedKey(
+        RelationshipUtils.generateRelationshipInvertedKey(teiRelationship));
+    relationshipService.addRelationship(teiRelationship);
+    return teiRelationship;
+  }
 
-    private Relationship addTeiToProgramStageInstanceRelationship( TrackedEntityInstance entityInstance,
-        ProgramStageInstance programStageInstance )
-    {
-        RelationshipItem relationshipItemFrom = new RelationshipItem();
-        relationshipItemFrom.setTrackedEntityInstance( entityInstance );
-        RelationshipItem relationshipItemTo = new RelationshipItem();
-        relationshipItemTo.setProgramStageInstance( programStageInstance );
+  private Relationship addTeiToEventRelationship(TrackedEntity entityInstance, Event event) {
+    RelationshipItem relationshipItemFrom = new RelationshipItem();
+    relationshipItemFrom.setTrackedEntity(entityInstance);
+    RelationshipItem relationshipItemTo = new RelationshipItem();
+    relationshipItemTo.setEvent(event);
 
-        Relationship relationshipA = new Relationship();
-        relationshipA.setRelationshipType( relationshipType );
-        relationshipA.setFrom( relationshipItemFrom );
-        relationshipA.setTo( relationshipItemTo );
-        relationshipA.setKey( RelationshipUtils.generateRelationshipKey( relationshipA ) );
-        relationshipA.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationshipA ) );
+    Relationship relationshipA = new Relationship();
+    relationshipA.setRelationshipType(relationshipType);
+    relationshipA.setFrom(relationshipItemFrom);
+    relationshipA.setTo(relationshipItemTo);
+    relationshipA.setKey(RelationshipUtils.generateRelationshipKey(relationshipA));
+    relationshipA.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationshipA));
 
-        relationshipService.addRelationship( relationshipA );
-        return relationshipA;
-    }
+    relationshipService.addRelationship(relationshipA);
+    return relationshipA;
+  }
 
-    private Relationship addTeiToProgramInstanceRelationship( TrackedEntityInstance entityInstance,
-        ProgramInstance programInstance )
-    {
-        RelationshipItem relationshipItemFrom = new RelationshipItem();
-        relationshipItemFrom.setTrackedEntityInstance( entityInstance );
-        RelationshipItem relationshipItemTo = new RelationshipItem();
-        relationshipItemTo.setProgramInstance( programInstance );
+  private Relationship addTeiToEnrollmentRelationship(
+      TrackedEntity entityInstance, Enrollment enrollment) {
+    RelationshipItem relationshipItemFrom = new RelationshipItem();
+    relationshipItemFrom.setTrackedEntity(entityInstance);
+    RelationshipItem relationshipItemTo = new RelationshipItem();
+    relationshipItemTo.setEnrollment(enrollment);
 
-        Relationship relationshipA = new Relationship();
-        relationshipA.setRelationshipType( relationshipType );
-        relationshipA.setFrom( relationshipItemFrom );
-        relationshipA.setTo( relationshipItemTo );
-        relationshipA.setKey( RelationshipUtils.generateRelationshipKey( relationshipA ) );
-        relationshipA.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationshipA ) );
+    Relationship relationshipA = new Relationship();
+    relationshipA.setRelationshipType(relationshipType);
+    relationshipA.setFrom(relationshipItemFrom);
+    relationshipA.setTo(relationshipItemTo);
+    relationshipA.setKey(RelationshipUtils.generateRelationshipKey(relationshipA));
+    relationshipA.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationshipA));
 
-        relationshipService.addRelationship( relationshipA );
-        return relationshipA;
-    }
+    relationshipService.addRelationship(relationshipA);
+    return relationshipA;
+  }
 
-    private ProgramStageInstance addProgramStageInstance( ProgramInstance programInstance, ProgramStage programStageA )
-    {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setProgramStage( programStageA );
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setAutoFields();
+  private Event addEvent(Enrollment enrollment, ProgramStage programStageA) {
+    Event event = new Event();
+    event.setOrganisationUnit(organisationUnit);
+    event.setProgramStage(programStageA);
+    event.setEnrollment(enrollment);
+    event.setAutoFields();
 
-        programStageInstanceService.addProgramStageInstance( programStageInstance );
-        return programStageInstance;
-    }
+    eventService.addEvent(event);
+    return event;
+  }
 
-    private ProgramStage addProgramStage( Program programA )
-    {
-        ProgramStage programStageA = createProgramStage( 'S', programA );
-        programStageA.setProgram( programA );
-        programStageService.saveProgramStage( programStageA );
-        programA.getProgramStages().add( programStageA );
-        return programStageA;
-    }
+  private ProgramStage addProgramStage(Program programA) {
+    ProgramStage programStageA = createProgramStage('S', programA);
+    programStageA.setProgram(programA);
+    programStageService.saveProgramStage(programStageA);
+    programA.getProgramStages().add(programStageA);
+    return programStageA;
+  }
 
-    private ProgramInstance addProgramInstance( Program programA )
-    {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setProgram( programA );
-        programInstance.setAutoFields();
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setStatus( ProgramStatus.ACTIVE );
-        programInstanceService.addProgramInstance( programInstance );
-        return programInstance;
-    }
+  private Enrollment addEnrollment(Program programA) {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setProgram(programA);
+    enrollment.setAutoFields();
+    enrollment.setEnrollmentDate(new Date());
+    enrollment.setOccurredDate(new Date());
+    enrollment.setStatus(ProgramStatus.ACTIVE);
+    enrollmentService.addEnrollment(enrollment);
+    return enrollment;
+  }
 
-    private Program addProgram()
-    {
-        Program programA = createProgram( 'A', new HashSet<>(), organisationUnit );
-        programService.addProgram( programA );
-        return programA;
-    }
+  private Program addProgram() {
+    Program programA = createProgram('A', new HashSet<>(), organisationUnit);
+    programService.addProgram(programA);
+    return programA;
+  }
 }

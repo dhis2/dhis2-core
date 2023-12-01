@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.security;
 
+import com.opensymphony.xwork2.config.Configuration;
+import com.opensymphony.xwork2.config.entities.ActionConfig;
+import com.opensymphony.xwork2.config.entities.PackageConfig;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.struts2.dispatcher.Dispatcher;
 import org.hisp.dhis.security.authority.RequiredAuthoritiesProvider;
 import org.springframework.security.access.AccessDecisionManager;
@@ -39,103 +41,86 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.opensymphony.xwork2.config.Configuration;
-import com.opensymphony.xwork2.config.entities.ActionConfig;
-import com.opensymphony.xwork2.config.entities.PackageConfig;
-
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: SpringSecurityActionAccessResolver.java 3160 2007-03-24
- *          20:15:06Z torgeilo $
+ * @version $Id: SpringSecurityActionAccessResolver.java 3160 2007-03-24 20:15:06Z torgeilo $
  */
 @Slf4j
-public class SpringSecurityActionAccessResolver
-    implements ActionAccessResolver
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class SpringSecurityActionAccessResolver implements ActionAccessResolver {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private RequiredAuthoritiesProvider requiredAuthoritiesProvider;
+  private RequiredAuthoritiesProvider requiredAuthoritiesProvider;
 
-    public void setRequiredAuthoritiesProvider( RequiredAuthoritiesProvider requiredAuthoritiesProvider )
-    {
-        this.requiredAuthoritiesProvider = requiredAuthoritiesProvider;
+  public void setRequiredAuthoritiesProvider(
+      RequiredAuthoritiesProvider requiredAuthoritiesProvider) {
+    this.requiredAuthoritiesProvider = requiredAuthoritiesProvider;
+  }
+
+  private AccessDecisionManager accessDecisionManager;
+
+  public void setAccessDecisionManager(AccessDecisionManager accessDecisionManager) {
+    this.accessDecisionManager = accessDecisionManager;
+  }
+
+  // -------------------------------------------------------------------------
+  // ActionAccessResolver implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public boolean hasAccess(String module, String name) {
+    // ---------------------------------------------------------------------
+    // Get ObjectDefinitionSource
+    // ---------------------------------------------------------------------
+
+    Configuration config = Dispatcher.getInstance().getConfigurationManager().getConfiguration();
+
+    PackageConfig packageConfig = config.getPackageConfig(module);
+
+    if (packageConfig == null) {
+      throw new IllegalArgumentException("Module doesn't exist: '" + module + "'");
     }
 
-    private AccessDecisionManager accessDecisionManager;
+    ActionConfig actionConfig = packageConfig.getActionConfigs().get(name);
 
-    public void setAccessDecisionManager( AccessDecisionManager accessDecisionManager )
-    {
-        this.accessDecisionManager = accessDecisionManager;
+    if (actionConfig == null) {
+      throw new IllegalArgumentException(
+          "Module " + module + " doesn't have an action named: '" + name + "'");
     }
 
-    // -------------------------------------------------------------------------
-    // ActionAccessResolver implementation
-    // -------------------------------------------------------------------------
+    SecurityMetadataSource securityMetadataSource =
+        requiredAuthoritiesProvider.createSecurityMetadataSource(actionConfig);
 
-    @Override
-    public boolean hasAccess( String module, String name )
-    {
-        // ---------------------------------------------------------------------
-        // Get ObjectDefinitionSource
-        // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // Test access
+    // ---------------------------------------------------------------------
 
-        Configuration config = Dispatcher.getInstance().getConfigurationManager().getConfiguration();
+    SecurityContext securityContext = SecurityContextHolder.getContext();
 
-        PackageConfig packageConfig = config.getPackageConfig( module );
+    Authentication authentication = securityContext.getAuthentication();
 
-        if ( packageConfig == null )
-        {
-            throw new IllegalArgumentException( "Module doesn't exist: '" + module + "'" );
+    try {
+      if (securityMetadataSource.getAttributes(actionConfig) != null) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+          return false;
         }
 
-        ActionConfig actionConfig = packageConfig.getActionConfigs().get( name );
+        accessDecisionManager.decide(
+            authentication, actionConfig, securityMetadataSource.getAttributes(actionConfig));
+      }
 
-        if ( actionConfig == null )
-        {
-            throw new IllegalArgumentException( "Module " + module + " doesn't have an action named: '" + name + "'" );
-        }
+      log.debug("Access to [" + module + ", " + name + "]: TRUE");
 
-        SecurityMetadataSource securityMetadataSource = requiredAuthoritiesProvider
-            .createSecurityMetadataSource( actionConfig );
+      return true;
+    } catch (AccessDeniedException e) {
+      log.debug("Access to [" + module + ", " + name + "]: FALSE (access denied)");
 
-        // ---------------------------------------------------------------------
-        // Test access
-        // ---------------------------------------------------------------------
+      return false;
+    } catch (InsufficientAuthenticationException e) {
+      log.debug("Access to [" + module + ", " + name + "]: FALSE (insufficient authentication)");
 
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-
-        Authentication authentication = securityContext.getAuthentication();
-
-        try
-        {
-            if ( securityMetadataSource.getAttributes( actionConfig ) != null )
-            {
-                if ( authentication == null || !authentication.isAuthenticated() )
-                {
-                    return false;
-                }
-
-                accessDecisionManager.decide( authentication, actionConfig, securityMetadataSource
-                    .getAttributes( actionConfig ) );
-            }
-
-            log.debug( "Access to [" + module + ", " + name + "]: TRUE" );
-
-            return true;
-        }
-        catch ( AccessDeniedException e )
-        {
-            log.debug( "Access to [" + module + ", " + name + "]: FALSE (access denied)" );
-
-            return false;
-        }
-        catch ( InsufficientAuthenticationException e )
-        {
-            log.debug( "Access to [" + module + ", " + name + "]: FALSE (insufficient authentication)" );
-
-            return false;
-        }
+      return false;
     }
+  }
 }

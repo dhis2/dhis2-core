@@ -36,28 +36,21 @@ import org.flywaydb.core.api.output.MigrateResult;
  * Customised Flyway to optionally run repair before migrate based on a flag.
  *
  * @author Ameen Mohamed
- *
  */
-public class DhisFlyway
-    extends Flyway
-{
-    private boolean repairBeforeMigrate;
+public class DhisFlyway extends Flyway {
+  private boolean repairBeforeMigrate;
 
-    public DhisFlyway( Configuration configuration, boolean repairBeforeMigrate )
-    {
-        super( configuration );
-        this.repairBeforeMigrate = repairBeforeMigrate;
+  public DhisFlyway(Configuration configuration, boolean repairBeforeMigrate) {
+    super(configuration);
+    this.repairBeforeMigrate = repairBeforeMigrate;
+  }
+
+  @Override
+  public MigrateResult migrate() throws FlywayException {
+    if (repairBeforeMigrate) {
+      super.repair();
     }
 
-    @Override
-    public MigrateResult migrate()
-        throws FlywayException
-    {
-        if ( repairBeforeMigrate )
-        {
-            super.repair();
-        }
-
-        return super.migrate();
-    }
+    return super.migrate();
+  }
 }

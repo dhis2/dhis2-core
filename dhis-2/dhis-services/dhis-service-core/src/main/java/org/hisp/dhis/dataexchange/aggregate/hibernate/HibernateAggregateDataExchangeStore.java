@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataexchange.aggregate.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeStore;
@@ -37,15 +37,23 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-@Repository( "org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeStore" )
+@Repository("org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeStore")
 public class HibernateAggregateDataExchangeStore
     extends HibernateIdentifiableObjectStore<AggregateDataExchange>
-    implements AggregateDataExchangeStore
-{
-    public HibernateAggregateDataExchangeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher,
-            AggregateDataExchange.class, currentUserService, aclService, false );
-    }
+    implements AggregateDataExchangeStore {
+  public HibernateAggregateDataExchangeStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        entityManager,
+        jdbcTemplate,
+        publisher,
+        AggregateDataExchange.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 }

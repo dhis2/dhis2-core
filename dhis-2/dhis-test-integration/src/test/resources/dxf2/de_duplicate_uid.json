@@ -1,36 +1,46 @@
 {
   "dataElements": [
     {
-      "attributeValues": [ ],
-      "userGroupAccesses": [ ],
+      "attributeValues": [],
       "valueType": "TEXT",
       "aggregationType": "SUM",
       "created": "2016-02-17T06:15:06.079+0000",
       "shortName": "DataElementShortB",
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "id": "CCwk5Yx440o",
       "domainType": "AGGREGATE",
       "lastUpdated": "2016-02-17T06:15:59.378+0000",
       "zeroIsSignificant": false,
-      "publicAccess": "rw------",
       "code": "DataElementCodeB",
-      "name": "DataElementB"
+      "name": "DataElementB",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
       "code": "DataElementCodeA",
-      "publicAccess": "rw------",
       "name": "DataElementA",
-      "attributeValues": [ ],
-      "userGroupAccesses": [ ],
+      "attributeValues": [],
       "valueType": "TEXT",
       "aggregationType": "SUM",
       "shortName": "DataElementShortA",
       "created": "2016-02-17T06:15:49.487+0000",
       "id": "CCwk5Yx440o",
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "domainType": "AGGREGATE",
       "lastUpdated": "2016-02-17T06:16:08.180+0000",
-      "zeroIsSignificant": false
+      "zeroIsSignificant": false,
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ]
 }

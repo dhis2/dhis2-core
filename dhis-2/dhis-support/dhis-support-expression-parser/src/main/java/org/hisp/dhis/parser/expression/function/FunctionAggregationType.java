@@ -33,37 +33,36 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.ExpressionItemWithSql;
 
 /**
  * Function aggregationType (for indicator expressions)
- * <p>
- * Overrides the default aggregation type of {@see DimensionalItemObject}.
+ *
+ * <p>Overrides the default aggregation type of {@see DimensionalItemObject}.
  *
  * @author Jim Grace
  */
-public class FunctionAggregationType
-    implements ExpressionItem
-{
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        AggregationType aggregationType = parseAggregationType( ctx.aggregationType.getText() );
+public class FunctionAggregationType implements ExpressionItemWithSql {
+  @Override
+  public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    AggregationType aggregationType = parseAggregationType(ctx.aggregationType.getText());
 
-        QueryModifiers queryMods = visitor.getState().getQueryModsBuilder().aggregationType( aggregationType ).build();
+    QueryModifiers queryMods =
+        visitor.getState().getQueryModsBuilder().aggregationType(aggregationType).build();
 
-        return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
+    return visitor.visitWithQueryMods(ctx.expr(0), queryMods);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /** Parses the aggregation type */
+  private AggregationType parseAggregationType(String text) {
+    try {
+      return AggregationType.valueOf(text);
+    } catch (IllegalArgumentException e) {
+      throw new ParserExceptionWithoutContext("Invalid aggregation type: " + text);
     }
-
-    private AggregationType parseAggregationType( String text )
-    {
-        try
-        {
-            return AggregationType.valueOf( text );
-        }
-        catch ( IllegalArgumentException e )
-        {
-            throw new ParserExceptionWithoutContext( "Invalid aggregation type: " + text );
-        }
-    }
+  }
 }

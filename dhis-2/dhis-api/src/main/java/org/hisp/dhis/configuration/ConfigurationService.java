@@ -32,35 +32,31 @@ import org.hisp.dhis.user.User;
 /**
  * @author Lars Helge Overland
  */
-public interface ConfigurationService
-{
-    String ID = ConfigurationService.class.getName();
+public interface ConfigurationService {
+  String ID = ConfigurationService.class.getName();
 
-    /**
-     * Sets the configuration.
-     *
-     * @param configuration the configuration.
-     */
-    void setConfiguration( Configuration configuration );
+  /**
+   * Sets the configuration.
+   *
+   * @param configuration the configuration.
+   */
+  void setConfiguration(Configuration configuration);
 
-    /**
-     * Gets the configuration.
-     *
-     * @return the configuration.
-     */
-    Configuration getConfiguration();
+  /**
+   * Gets the configuration.
+   *
+   * @return the configuration.
+   */
+  Configuration getConfiguration();
 
-    /**
-     * Indicates whether the given origin is CORS white listed.
-     *
-     * @param origin the origin.
-     * @return true if the given origin is CORS white listed.
-     */
-    boolean isCorsWhitelisted( String origin );
+  /**
+   * Indicates whether the given origin is CORS white listed.
+   *
+   * @param origin the origin.
+   * @return true if the given origin is CORS white listed.
+   */
+  boolean isCorsWhitelisted(String origin);
 
-    /**
-     * Indicates whether the current user is part of the feedback Recipients
-     * group
-     */
-    boolean isUserInFeedbackRecipientUserGroup( User user );
+  /** Indicates whether the current user is part of the feedback Recipients group */
+  boolean isUserInFeedbackRecipientUserGroup(User user);
 }

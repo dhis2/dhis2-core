@@ -39,41 +39,36 @@ import java.util.zip.ZipEntry;
 /**
  * @author Austin McGee
  */
-public class ZipFileUtils
-{
-    private static final Pattern TOP_LEVEL_DIRECTORY_PREFIX_PATTERN = Pattern.compile( "^([^/\\\\]+[/\\\\]).*" );
+public class ZipFileUtils {
+  private static final Pattern TOP_LEVEL_DIRECTORY_PREFIX_PATTERN =
+      Pattern.compile("^([^/\\\\]+[/\\\\]).*");
 
-    private ZipFileUtils()
-    {
-        throw new UnsupportedOperationException( "util" );
+  private ZipFileUtils() {
+    throw new UnsupportedOperationException("util");
+  }
+
+  public static String getTopLevelDirectory(Iterator<? extends ZipEntry> zipEntries) {
+    if (!zipEntries.hasNext()) {
+      return "";
     }
 
-    public static String getTopLevelDirectory( Iterator<? extends ZipEntry> zipEntries )
-    {
-        if ( !zipEntries.hasNext() )
-        {
-            return "";
-        }
+    ZipEntry firstEntry = zipEntries.next();
 
-        ZipEntry firstEntry = zipEntries.next();
+    Matcher m = TOP_LEVEL_DIRECTORY_PREFIX_PATTERN.matcher(firstEntry.getName());
+    if (m.find()) {
+      final String prefix = m.group(1);
 
-        Matcher m = TOP_LEVEL_DIRECTORY_PREFIX_PATTERN.matcher( firstEntry.getName() );
-        if ( m.find() )
-        {
-            final String prefix = m.group( 1 );
+      Stream<ZipEntry> stream =
+          StreamSupport.stream(
+              Spliterators.spliteratorUnknownSize(zipEntries, Spliterator.ORDERED), false);
 
-            Stream<ZipEntry> stream = StreamSupport.stream(
-                Spliterators.spliteratorUnknownSize( zipEntries, Spliterator.ORDERED ),
-                false );
+      boolean allMatch = stream.allMatch((ZipEntry ze) -> ze.getName().startsWith(prefix));
 
-            boolean allMatch = stream.allMatch( ( ZipEntry ze ) -> ze.getName().startsWith( prefix ) );
-
-            if ( allMatch )
-            {
-                return prefix;
-            }
-        }
-
-        return "";
+      if (allMatch) {
+        return prefix;
+      }
     }
+
+    return "";
+  }
 }

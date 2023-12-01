@@ -27,129 +27,138 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
+import static org.hisp.dhis.analytics.AnalyticsTableType.COMPLETENESS;
+import static org.hisp.dhis.analytics.AnalyticsTableType.COMPLETENESS_TARGET;
+import static org.hisp.dhis.analytics.AnalyticsTableType.DATA_VALUE;
+import static org.hisp.dhis.analytics.AnalyticsTableType.ENROLLMENT;
+import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
+import static org.hisp.dhis.analytics.AnalyticsTableType.OWNERSHIP;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
+import static org.hisp.dhis.common.DhisApiVersion.ALL;
+import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
+import static org.hisp.dhis.scheduling.JobType.MONITORING;
+import static org.hisp.dhis.scheduling.JobType.RESOURCE_TABLE;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import lombok.AllArgsConstructor;
-
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobStatus;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * @author Lars Helge Overland
+ * @author Lars Helge Overland. This is the AnalyticsExportController
  */
-@OpenApi.Tags( "analytics" )
+@OpenApi.Tags("analytics")
 @Controller
-@RequestMapping( value = ResourceTableController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-@AllArgsConstructor
-public class ResourceTableController
-{
-    public static final String RESOURCE_PATH = "/resourceTables";
+@RequestMapping(value = "/resourceTables")
+@ApiVersion({DEFAULT, ALL})
+@RequiredArgsConstructor
+public class ResourceTableController {
 
-    private final SchedulingManager schedulingManager;
+  private final CurrentUserService currentUserService;
+  private final JobConfigurationService jobConfigurationService;
+  private final JobSchedulerService jobSchedulerService;
 
-    private final CurrentUserService currentUserService;
+  @RequestMapping(
+      value = "/analytics",
+      method = {PUT, POST})
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @ResponseBody
+  public WebMessage analytics(
+      @RequestParam(defaultValue = "false") Boolean skipResourceTables,
+      @RequestParam(defaultValue = "false") Boolean skipAggregate,
+      @RequestParam(defaultValue = "false") Boolean skipEvents,
+      @RequestParam(defaultValue = "false") Boolean skipEnrollment,
+      @RequestParam(defaultValue = "false") Boolean skipTrackedEntities,
+      @RequestParam(defaultValue = "false") Boolean skipOrgUnitOwnership,
+      @RequestParam(required = false) Integer lastYears,
+      @RequestParam(defaultValue = "false") Boolean skipOutliers)
+      throws ConflictException, @OpenApi.Ignore NotFoundException {
+    Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
+    Set<String> skipPrograms = new HashSet<>();
 
-    @RequestMapping( value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @ResponseBody
-    public WebMessage analytics(
-        @RequestParam( required = false ) boolean skipResourceTables,
-        @RequestParam( required = false ) boolean skipAggregate,
-        @RequestParam( required = false ) boolean skipEvents,
-        @RequestParam( required = false ) boolean skipEnrollment,
-        @RequestParam( required = false ) boolean skipOrgUnitOwnership,
-        @RequestParam( required = false ) Integer lastYears )
-    {
-        Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
-        Set<String> skipPrograms = new HashSet<>();
-
-        if ( skipAggregate )
-        {
-            skipTableTypes.add( AnalyticsTableType.DATA_VALUE );
-            skipTableTypes.add( AnalyticsTableType.COMPLETENESS );
-            skipTableTypes.add( AnalyticsTableType.COMPLETENESS_TARGET );
-        }
-
-        if ( skipEvents )
-        {
-            skipTableTypes.add( AnalyticsTableType.EVENT );
-        }
-
-        if ( skipEnrollment )
-        {
-            skipTableTypes.add( AnalyticsTableType.ENROLLMENT );
-        }
-
-        if ( skipOrgUnitOwnership )
-        {
-            skipTableTypes.add( AnalyticsTableType.OWNERSHIP );
-        }
-
-        AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes,
-            skipPrograms, skipResourceTables );
-
-        JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", JobType.ANALYTICS_TABLE, "",
-            analyticsJobParameters, true, true );
-        analyticsTableJob.setUserUid( currentUserService.getCurrentUser().getUid() );
-
-        return execute( analyticsTableJob );
+    if (isTrue(skipAggregate)) {
+      skipTableTypes.add(DATA_VALUE);
+      skipTableTypes.add(COMPLETENESS);
+      skipTableTypes.add(COMPLETENESS_TARGET);
     }
 
-    @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @ResponseBody
-    public WebMessage resourceTables()
-    {
-        JobConfiguration resourceTableJob = new JobConfiguration( "inMemoryResourceTableJob",
-            JobType.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid(), true );
-
-        return execute( resourceTableJob );
+    if (isTrue(skipEvents)) {
+      skipTableTypes.add(EVENT);
     }
 
-    @RequestMapping( value = "/monitoring", method = { RequestMethod.PUT, RequestMethod.POST } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @ResponseBody
-    public WebMessage monitoring()
-    {
-        JobConfiguration monitoringJob = new JobConfiguration( "inMemoryMonitoringJob", JobType.MONITORING, "",
-            new MonitoringJobParameters(), true, true );
-
-        return execute( monitoringJob );
+    if (isTrue(skipEnrollment)) {
+      skipTableTypes.add(ENROLLMENT);
     }
 
-    private WebMessage execute( JobConfiguration configuration )
-    {
-        boolean success = schedulingManager.executeNow( configuration );
-        if ( !success )
-        {
-            configuration.setJobStatus( JobStatus.FAILED );
-            return createWebMessage( "Job of type " + configuration.getJobType() + " is already running", Status.ERROR,
-                HttpStatus.CONFLICT ).setResponse( new JobConfigurationWebMessageResponse( configuration ) );
-        }
-        return jobConfigurationReport( configuration );
+    if (isTrue(skipOrgUnitOwnership)) {
+      skipTableTypes.add(OWNERSHIP);
     }
+
+    if (isTrue(skipTrackedEntities)) {
+      skipTableTypes.add(TRACKED_ENTITY_INSTANCE);
+      skipTableTypes.add(TRACKED_ENTITY_INSTANCE_EVENTS);
+      skipTableTypes.add(TRACKED_ENTITY_INSTANCE_ENROLLMENTS);
+    }
+
+    JobConfiguration config = new JobConfiguration(ANALYTICS_TABLE);
+    config.setExecutedBy(currentUserService.getCurrentUser().getUid());
+    config.setJobParameters(
+        new AnalyticsJobParameters(
+            lastYears, skipTableTypes, skipPrograms, skipResourceTables, skipOutliers));
+
+    return execute(config);
+  }
+
+  @RequestMapping(method = {PUT, POST})
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @ResponseBody
+  public WebMessage resourceTables(@CurrentUser User currentUser)
+      throws ConflictException, @OpenApi.Ignore NotFoundException {
+    JobConfiguration config = new JobConfiguration(RESOURCE_TABLE);
+    config.setExecutedBy(currentUser.getUid());
+    return execute(config);
+  }
+
+  @RequestMapping(
+      value = "/monitoring",
+      method = {PUT, POST})
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @ResponseBody
+  public WebMessage monitoring() throws ConflictException, @OpenApi.Ignore NotFoundException {
+    JobConfiguration config = new JobConfiguration(MONITORING);
+    config.setJobParameters(new MonitoringJobParameters());
+    return execute(config);
+  }
+
+  private WebMessage execute(JobConfiguration configuration)
+      throws ConflictException, NotFoundException {
+    jobSchedulerService.executeNow(jobConfigurationService.create(configuration));
+
+    return jobConfigurationReport(configuration);
+  }
 }

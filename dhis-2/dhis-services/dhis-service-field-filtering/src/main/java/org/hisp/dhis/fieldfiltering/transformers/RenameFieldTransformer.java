@@ -27,47 +27,41 @@
  */
 package org.hisp.dhis.fieldfiltering.transformers;
 
-import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
-import org.hisp.dhis.fieldfiltering.FieldTransformer;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
+import org.hisp.dhis.fieldfiltering.FieldTransformer;
 
 /**
  * Field transformer that renames property keys.
  *
- * Usage: "?fields=id::(i),name::rename(n)"
+ * <p>Usage: "?fields=id::(i),name::rename(n)"
  *
  * @author Morten Olav Hansen
  */
-public class RenameFieldTransformer implements FieldTransformer
-{
-    private final FieldPathTransformer fieldPathTransformer;
+public class RenameFieldTransformer implements FieldTransformer {
+  private final FieldPathTransformer fieldPathTransformer;
 
-    public RenameFieldTransformer( FieldPathTransformer fieldPathTransformer )
-    {
-        this.fieldPathTransformer = fieldPathTransformer;
+  public RenameFieldTransformer(FieldPathTransformer fieldPathTransformer) {
+    this.fieldPathTransformer = fieldPathTransformer;
+  }
+
+  @Override
+  public JsonNode apply(String path, JsonNode value, JsonNode parent) {
+    if (fieldPathTransformer.getParameters().isEmpty() && !parent.isObject()) {
+      return value;
     }
 
-    @Override
-    public JsonNode apply( String path, JsonNode value, JsonNode parent )
-    {
-        if ( fieldPathTransformer.getParameters().isEmpty() && !parent.isObject() )
-        {
-            return value;
-        }
+    String fieldName = getFieldName(path);
 
-        String fieldName = getFieldName( path );
+    value = ((ObjectNode) parent).remove(fieldName);
+    ((ObjectNode) parent).set(fieldPathTransformer.getParameters().get(0), value);
 
-        value = ((ObjectNode) parent).remove( fieldName );
-        ((ObjectNode) parent).set( fieldPathTransformer.getParameters().get( 0 ), value );
+    return value;
+  }
 
-        return value;
-    }
-
-    @Override
-    public int getOrder()
-    {
-        return 10; // rename needs to happen last
-    }
+  @Override
+  public int getOrder() {
+    return 10; // rename needs to happen last
+  }
 }

@@ -30,11 +30,8 @@ package org.hisp.dhis.textpattern;
 /**
  * @author Stian Sandvold
  */
-public class TextPatternGenerationException
-    extends Exception
-{
-    public TextPatternGenerationException( String message )
-    {
-        super( "Could not generate value: " + message );
-    }
+public class TextPatternGenerationException extends Exception {
+  public TextPatternGenerationException(String message) {
+    super("Could not generate value: " + message);
+  }
 }

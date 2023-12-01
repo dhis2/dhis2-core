@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.split.orgunit;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Data;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Encapsulation of a web API request for org unit split.
@@ -40,17 +38,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Lars Helge Overland
  */
 @Data
-public class OrgUnitSplitQuery
-{
-    @JsonProperty
-    private String source;
+public class OrgUnitSplitQuery {
+  @JsonProperty private String source;
 
-    @JsonProperty
-    private List<String> targets = new ArrayList<>();
+  @JsonProperty private List<String> targets = new ArrayList<>();
 
-    @JsonProperty
-    private String primaryTarget;
+  @JsonProperty private String primaryTarget;
 
-    @JsonProperty
-    private Boolean deleteSource;
+  @JsonProperty private Boolean deleteSource;
 }

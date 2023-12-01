@@ -37,23 +37,19 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class CopticCalendar extends ChronologyBasedCalendar
-{
-    private static final Calendar SELF = new CopticCalendar();
+public class CopticCalendar extends ChronologyBasedCalendar {
+  private static final Calendar SELF = new CopticCalendar();
 
-    public static Calendar getInstance()
-    {
-        return SELF;
-    }
+  public static Calendar getInstance() {
+    return SELF;
+  }
 
-    protected CopticCalendar()
-    {
-        super( CopticChronology.getInstance( DateTimeZone.getDefault() ) );
-    }
+  protected CopticCalendar() {
+    super(CopticChronology.getInstance(DateTimeZone.getDefault()));
+  }
 
-    @Override
-    public String name()
-    {
-        return "coptic";
-    }
+  @Override
+  public String name() {
+    return "coptic";
+  }
 }

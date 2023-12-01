@@ -33,7 +33,6 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtil
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -55,110 +54,121 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen
  */
 @Component
-public class NotOwnerReferencesCheck implements ValidationCheck
-{
-    @Override
-    public <T extends IdentifiableObject> TypeReport check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx )
-    {
-        if ( (persistedObjects.isEmpty() && nonPersistedObjects.isEmpty())
-            || ImportReportMode.ERRORS_NOT_OWNER != bundle.getImportReportMode() )
-        {
-            return TypeReport.empty( klass );
-        }
-
-        TypeReport typeReport = new TypeReport( klass );
-
-        for ( IdentifiableObject object : joinObjects( persistedObjects, nonPersistedObjects ) )
-        {
-            List<PreheatErrorReport> errorReports = checkReferences( object, bundle.getPreheatIdentifier(), ctx );
-
-            if ( !errorReports.isEmpty() && object != null )
-            {
-                ObjectReport objectReport = new ObjectReport( object, bundle );
-                objectReport.addErrorReports( errorReports );
-                typeReport.addObjectReport( objectReport );
-            }
-        }
-
-        if ( typeReport.hasErrorReports() && AtomicMode.ALL == bundle.getAtomicMode() )
-        {
-            typeReport.getStats().incIgnored();
-        }
-
-        return typeReport;
+public class NotOwnerReferencesCheck implements ValidationCheck {
+  @Override
+  public <T extends IdentifiableObject> TypeReport check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext ctx) {
+    if ((persistedObjects.isEmpty() && nonPersistedObjects.isEmpty())
+        || ImportReportMode.ERRORS_NOT_OWNER != bundle.getImportReportMode()) {
+      return TypeReport.empty(klass);
     }
 
-    private List<PreheatErrorReport> checkReferences( IdentifiableObject object, PreheatIdentifier identifier,
-        ValidationContext ctx )
-    {
-        if ( object == null )
-        {
-            return emptyList();
-        }
+    TypeReport typeReport = new TypeReport(klass);
 
-        List<PreheatErrorReport> preheatErrorReports = new ArrayList<>();
+    for (IdentifiableObject object : joinObjects(persistedObjects, nonPersistedObjects)) {
+      List<PreheatErrorReport> errorReports =
+          checkReferences(object, bundle.getPreheatIdentifier(), ctx);
 
-        Schema schema = ctx.getSchemaService().getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
-
-        schema.getProperties().stream().filter( p -> !p.isOwner() && p.isWritable()
-            && (PropertyType.REFERENCE == p.getPropertyType() && schema.getKlass() != p.getKlass()
-                || PropertyType.REFERENCE == p.getItemPropertyType() && schema.getKlass() != p.getItemKlass()) )
-            .forEach( p -> {
-                if ( !p.isCollection() )
-                {
-                    checkReference( object, identifier, preheatErrorReports, p );
-                }
-                else
-                {
-                    checkCollection( object, identifier, preheatErrorReports, p );
-                }
-            } );
-
-        return preheatErrorReports;
+      if (!errorReports.isEmpty() && object != null) {
+        ObjectReport objectReport = new ObjectReport(object, bundle);
+        objectReport.addErrorReports(errorReports);
+        typeReport.addObjectReport(objectReport);
+      }
     }
 
-    private void checkReference( IdentifiableObject object, PreheatIdentifier identifier,
-        List<PreheatErrorReport> preheatErrorReports, Property p )
-    {
-        // This is a temporary solution needed since we have overloaded the
-        // "user" object in IdObject will be removed when we complete move over
-        // to the new sharing payload.
-        if ( "user".equals( p.getName() ) )
-        {
-            return;
-        }
-
-        IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
-
-        if ( refObject != null )
-        {
-            preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
-                ErrorCode.E5006, identifier.getIdentifiersWithName( refObject ),
-                identifier.getIdentifiersWithName( object ), p.getName() ) );
-        }
+    if (typeReport.hasErrorReports() && AtomicMode.ALL == bundle.getAtomicMode()) {
+      typeReport.getStats().incIgnored();
     }
 
-    private void checkCollection( IdentifiableObject object, PreheatIdentifier identifier,
-        List<PreheatErrorReport> preheatErrorReports, Property p )
-    {
-        Collection<IdentifiableObject> refObjects = ReflectionUtils.invokeMethod( object,
-            p.getGetterMethod() );
+    return typeReport;
+  }
 
-        if ( refObjects == null )
-        {
-            return;
-        }
-
-        for ( IdentifiableObject refObject : refObjects )
-        {
-            if ( refObject != null )
-            {
-                preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
-                    ErrorCode.E5006, identifier.getIdentifiersWithName( refObject ),
-                    identifier.getIdentifiersWithName( object ), p.getCollectionName() ) );
-            }
-        }
+  private List<PreheatErrorReport> checkReferences(
+      IdentifiableObject object, PreheatIdentifier identifier, ValidationContext ctx) {
+    if (object == null) {
+      return emptyList();
     }
+
+    List<PreheatErrorReport> preheatErrorReports = new ArrayList<>();
+
+    Schema schema =
+        ctx.getSchemaService().getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+
+    schema.getProperties().stream()
+        .filter(
+            p ->
+                !p.isOwner()
+                    && p.isWritable()
+                    && (PropertyType.REFERENCE == p.getPropertyType()
+                            && schema.getKlass() != p.getKlass()
+                        || PropertyType.REFERENCE == p.getItemPropertyType()
+                            && schema.getKlass() != p.getItemKlass()))
+        .forEach(
+            p -> {
+              if (!p.isCollection()) {
+                checkReference(object, identifier, preheatErrorReports, p);
+              } else {
+                checkCollection(object, identifier, preheatErrorReports, p);
+              }
+            });
+
+    return preheatErrorReports;
+  }
+
+  private void checkReference(
+      IdentifiableObject object,
+      PreheatIdentifier identifier,
+      List<PreheatErrorReport> preheatErrorReports,
+      Property p) {
+    // This is a temporary solution needed since we have overloaded the
+    // "user" object in IdObject will be removed when we complete move over
+    // to the new sharing payload.
+    if ("user".equals(p.getName())) {
+      return;
+    }
+
+    IdentifiableObject refObject = ReflectionUtils.invokeMethod(object, p.getGetterMethod());
+
+    if (refObject != null) {
+      preheatErrorReports.add(
+          new PreheatErrorReport(
+              identifier,
+              object.getClass(),
+              ErrorCode.E5006,
+              identifier.getIdentifiersWithName(refObject),
+              identifier.getIdentifiersWithName(object),
+              p.getName()));
+    }
+  }
+
+  private void checkCollection(
+      IdentifiableObject object,
+      PreheatIdentifier identifier,
+      List<PreheatErrorReport> preheatErrorReports,
+      Property p) {
+    Collection<IdentifiableObject> refObjects =
+        ReflectionUtils.invokeMethod(object, p.getGetterMethod());
+
+    if (refObjects == null) {
+      return;
+    }
+
+    for (IdentifiableObject refObject : refObjects) {
+      if (refObject != null) {
+        preheatErrorReports.add(
+            new PreheatErrorReport(
+                identifier,
+                object.getClass(),
+                ErrorCode.E5006,
+                identifier.getIdentifiersWithName(refObject),
+                identifier.getIdentifiersWithName(object),
+                p.getCollectionName()));
+      }
+    }
+  }
 }

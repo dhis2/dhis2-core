@@ -38,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.Set;
-
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,111 +45,108 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 
-class AssignedUserQueryParamTest
-{
-    public static final String CURRENT_USER_UID = "Kj6vYde4LHh";
+class AssignedUserQueryParamTest {
+  public static final String CURRENT_USER_UID = "Kj6vYde4LHh";
 
-    public static final String NON_CURRENT_USER_UID = "f1AyMswryyX";
+  public static final String NON_CURRENT_USER_UID = "f1AyMswryyX";
 
-    public static final Set<String> NON_CURRENT_USER_UIDS = Set.of( NON_CURRENT_USER_UID );
+  public static final Set<String> NON_CURRENT_USER_UIDS = Set.of(NON_CURRENT_USER_UID);
 
-    private User current;
+  private User current;
 
-    @BeforeEach
-    void setUp()
-    {
-        current = new User();
-        current.setUid( CURRENT_USER_UID );
-    }
+  @BeforeEach
+  void setUp() {
+    current = new User();
+    current.setUid(CURRENT_USER_UID);
+  }
 
-    @Test
-    void testUserWithAssignedUsersGivenUsersAndModeProvided()
-    {
+  @Test
+  void testUserWithAssignedUsersGivenUsersAndModeProvided() {
 
-        AssignedUserQueryParam param = new AssignedUserQueryParam( PROVIDED, null,
-            NON_CURRENT_USER_UIDS );
+    AssignedUserQueryParam param =
+        new AssignedUserQueryParam(PROVIDED, null, NON_CURRENT_USER_UIDS);
 
-        assertEquals( PROVIDED, param.getMode() );
-        assertEquals( NON_CURRENT_USER_UIDS, param.getAssignedUsers() );
-        assertTrue( param.hasAssignedUsers() );
-    }
+    assertEquals(PROVIDED, param.getMode());
+    assertEquals(NON_CURRENT_USER_UIDS, param.getAssignedUsers());
+    assertTrue(param.hasAssignedUsers());
+  }
 
-    @Test
-    void testUserWithAssignedUsersGivenUsersAndNoMode()
-    {
+  @Test
+  void testUserWithAssignedUsersGivenUsersAndNoMode() {
 
-        AssignedUserQueryParam param = new AssignedUserQueryParam( null, current,
-            NON_CURRENT_USER_UIDS );
+    AssignedUserQueryParam param = new AssignedUserQueryParam(null, current, NON_CURRENT_USER_UIDS);
 
-        assertEquals( PROVIDED, param.getMode() );
-        assertEquals( NON_CURRENT_USER_UIDS, param.getAssignedUsers() );
-        assertTrue( param.hasAssignedUsers() );
-    }
+    assertEquals(PROVIDED, param.getMode());
+    assertEquals(NON_CURRENT_USER_UIDS, param.getAssignedUsers());
+    assertTrue(param.hasAssignedUsers());
+  }
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    void testUserWithAssignedUsersGivenNoModeAndNoUsers( Set<String> users )
-    {
+  @ParameterizedTest
+  @NullAndEmptySource
+  void testUserWithAssignedUsersGivenNoModeAndNoUsers(Set<String> users) {
 
-        AssignedUserQueryParam param = new AssignedUserQueryParam( null, current, users );
+    AssignedUserQueryParam param = new AssignedUserQueryParam(null, current, users);
 
-        assertEquals( ALL, param.getMode() );
-        assertIsEmpty( param.getAssignedUsers() );
-        assertFalse( param.hasAssignedUsers() );
-    }
+    assertEquals(ALL, param.getMode());
+    assertIsEmpty(param.getAssignedUsers());
+    assertFalse(param.hasAssignedUsers());
+  }
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    void testUserWithAssignedUsersFailsGivenNoUsersAndProvided( Set<String> users )
-    {
+  @ParameterizedTest
+  @NullAndEmptySource
+  void testUserWithAssignedUsersFailsGivenNoUsersAndProvided(Set<String> users) {
 
-        assertThrows( IllegalQueryException.class,
-            () -> new AssignedUserQueryParam( PROVIDED, current, users ) );
-    }
+    assertThrows(
+        IllegalQueryException.class, () -> new AssignedUserQueryParam(PROVIDED, current, users));
+  }
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    void testUserWithAssignedUsersGivenCurrentUserAndModeCurrentAndUsersNull( Set<String> users )
-    {
+  @ParameterizedTest
+  @NullAndEmptySource
+  void testUserWithAssignedUsersGivenCurrentUserAndModeCurrentAndUsersNull(Set<String> users) {
 
-        AssignedUserQueryParam param = new AssignedUserQueryParam( CURRENT, current, users );
+    AssignedUserQueryParam param = new AssignedUserQueryParam(CURRENT, current, users);
 
-        assertEquals( PROVIDED, param.getMode() );
-        assertEquals( Set.of( CURRENT_USER_UID ), param.getAssignedUsers() );
-        assertTrue( param.hasAssignedUsers() );
-    }
+    assertEquals(PROVIDED, param.getMode());
+    assertEquals(Set.of(CURRENT_USER_UID), param.getAssignedUsers());
+    assertTrue(param.hasAssignedUsers());
+  }
 
-    @Test
-    void testUserWithAssignedUsersFailsGivenNoCurrentUserAndModeCurrent()
-    {
+  @Test
+  void testUserWithAssignedUsersFailsGivenNoCurrentUserAndModeCurrent() {
 
-        assertThrows( IllegalQueryException.class, () -> new AssignedUserQueryParam( CURRENT, null, null ) );
-    }
+    assertThrows(
+        IllegalQueryException.class, () -> new AssignedUserQueryParam(CURRENT, null, null));
+  }
 
-    @ParameterizedTest
-    @EnumSource( value = AssignedUserSelectionMode.class, mode = EnumSource.Mode.EXCLUDE, names = "PROVIDED" )
-    void testUserWithAssignedUsersFailsGivenUsersAndModeOtherThanProvided( AssignedUserSelectionMode mode )
-    {
+  @ParameterizedTest
+  @EnumSource(
+      value = AssignedUserSelectionMode.class,
+      mode = EnumSource.Mode.EXCLUDE,
+      names = "PROVIDED")
+  void testUserWithAssignedUsersFailsGivenUsersAndModeOtherThanProvided(
+      AssignedUserSelectionMode mode) {
 
-        assertThrows( IllegalQueryException.class,
-            () -> new AssignedUserQueryParam( mode, current, NON_CURRENT_USER_UIDS ) );
-    }
+    assertThrows(
+        IllegalQueryException.class,
+        () -> new AssignedUserQueryParam(mode, current, NON_CURRENT_USER_UIDS));
+  }
 
-    @ParameterizedTest
-    @EnumSource( value = AssignedUserSelectionMode.class, mode = EnumSource.Mode.EXCLUDE, names = { "PROVIDED",
-        "CURRENT" } )
-    void testUserWithAssignedUsersGivenNullUsersAndModeOtherThanProvided( AssignedUserSelectionMode mode )
-    {
-        AssignedUserQueryParam param = new AssignedUserQueryParam( mode, current, null );
+  @ParameterizedTest
+  @EnumSource(
+      value = AssignedUserSelectionMode.class,
+      mode = EnumSource.Mode.EXCLUDE,
+      names = {"PROVIDED", "CURRENT"})
+  void testUserWithAssignedUsersGivenNullUsersAndModeOtherThanProvided(
+      AssignedUserSelectionMode mode) {
+    AssignedUserQueryParam param = new AssignedUserQueryParam(mode, current, null);
 
-        assertEquals( mode, param.getMode() );
-        assertIsEmpty( param.getAssignedUsers() );
-        assertFalse( param.hasAssignedUsers() );
-    }
+    assertEquals(mode, param.getMode());
+    assertIsEmpty(param.getAssignedUsers());
+    assertFalse(param.hasAssignedUsers());
+  }
 
-    private static void assertIsEmpty( Collection<?> actual )
-    {
-        assertNotNull( actual );
-        assertTrue( actual.isEmpty(), actual.toString() );
-    }
+  private static void assertIsEmpty(Collection<?> actual) {
+    assertNotNull(actual);
+    assertTrue(actual.isEmpty(), actual.toString());
+  }
 }

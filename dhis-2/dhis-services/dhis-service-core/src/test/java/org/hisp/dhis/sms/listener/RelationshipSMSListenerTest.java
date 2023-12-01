@@ -43,10 +43,10 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipService;
@@ -57,7 +57,7 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -67,143 +67,138 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class RelationshipSMSListenerTest extends
-    CompressionSMSListenerTest
-{
+@ExtendWith(MockitoExtension.class)
+class RelationshipSMSListenerTest extends CompressionSMSListenerTest {
 
-    @Mock
-    private UserService userService;
+  @Mock private UserService userService;
 
-    @Mock
-    private IncomingSmsService incomingSmsService;
+  @Mock private IncomingSmsService incomingSmsService;
 
-    @Mock
-    private MessageSender smsSender;
+  @Mock private MessageSender smsSender;
 
-    @Mock
-    private DataElementService dataElementService;
+  @Mock private DataElementService dataElementService;
 
-    @Mock
-    private TrackedEntityTypeService trackedEntityTypeService;
+  @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Mock
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Mock
-    private ProgramService programService;
+  @Mock private ProgramService programService;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private CategoryService categoryService;
+  @Mock private CategoryService categoryService;
 
-    @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+  @Mock private EventService eventService;
 
-    @Mock
-    private IdentifiableObjectManager identifiableObjectManager;
+  @Mock private IdentifiableObjectManager identifiableObjectManager;
 
-    private User user;
+  private User user;
 
-    private OutboundMessageResponse response = new OutboundMessageResponse();
+  private OutboundMessageResponse response = new OutboundMessageResponse();
 
-    private IncomingSms updatedIncomingSms;
+  private IncomingSms updatedIncomingSms;
 
-    private String message = "";
+  private String message = "";
 
-    // Needed for this test
+  // Needed for this test
 
-    RelationshipSMSListener subject;
+  RelationshipSMSListener subject;
 
-    private IncomingSms incomingSmsRelationship;
+  private IncomingSms incomingSmsRelationship;
 
-    @Mock
-    private RelationshipService relationshipService;
+  @Mock private RelationshipService relationshipService;
 
-    @Mock
-    private RelationshipTypeService relationshipTypeService;
+  @Mock private RelationshipTypeService relationshipTypeService;
 
-    @Mock
-    private ProgramInstanceService programInstanceService;
+  @Mock private EnrollmentService enrollmentService;
 
-    @Mock
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Mock private TrackedEntityService trackedEntityService;
 
-    private ProgramInstance programInstance;
+  private Enrollment enrollment;
 
-    private RelationshipType relationshipType;
+  private RelationshipType relationshipType;
 
-    @BeforeEach
-    public void initTest()
-        throws SmsCompressionException
-    {
-        subject = new RelationshipSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
-            trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, relationshipService, relationshipTypeService, trackedEntityInstanceService,
-            programInstanceService, identifiableObjectManager );
+  @BeforeEach
+  public void initTest() throws SmsCompressionException {
+    subject =
+        new RelationshipSMSListener(
+            incomingSmsService,
+            smsSender,
+            userService,
+            trackedEntityTypeService,
+            trackedEntityAttributeService,
+            programService,
+            organisationUnitService,
+            categoryService,
+            dataElementService,
+            eventService,
+            relationshipService,
+            relationshipTypeService,
+            trackedEntityService,
+            enrollmentService,
+            identifiableObjectManager);
 
-        setUpInstances();
+    setUpInstances();
 
-        when( userService.getUser( anyString() ) ).thenReturn( user );
-        when( smsSender.isConfigured() ).thenReturn( true );
-        when( smsSender.sendMessage( any(), any(), anyString() ) ).thenAnswer( invocation -> {
-            message = (String) invocation.getArguments()[1];
-            return response;
-        } );
+    when(userService.getUser(anyString())).thenReturn(user);
+    when(smsSender.isConfigured()).thenReturn(true);
+    when(smsSender.sendMessage(any(), any(), anyString()))
+        .thenAnswer(
+            invocation -> {
+              message = (String) invocation.getArguments()[1];
+              return response;
+            });
 
-        when( relationshipTypeService.getRelationshipType( anyString() ) ).thenReturn( relationshipType );
-        when( programInstanceService.getProgramInstance( anyString() ) ).thenReturn( programInstance );
+    when(relationshipTypeService.getRelationshipType(anyString())).thenReturn(relationshipType);
+    when(enrollmentService.getEnrollment(anyString())).thenReturn(enrollment);
 
-        doAnswer( invocation -> {
-            updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
-            return updatedIncomingSms;
-        } ).when( incomingSmsService ).update( any() );
-    }
+    doAnswer(
+            invocation -> {
+              updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
+              return updatedIncomingSms;
+            })
+        .when(incomingSmsService)
+        .update(any());
+  }
 
-    @Test
-    void testRelationship()
-    {
-        subject.receive( incomingSmsRelationship );
+  @Test
+  void testRelationship() {
+    subject.receive(incomingSmsRelationship);
 
-        assertNotNull( updatedIncomingSms );
-        assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( SUCCESS_MESSAGE, message );
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(SUCCESS_MESSAGE, message);
 
-        verify( incomingSmsService, times( 1 ) ).update( any() );
-    }
+    verify(incomingSmsService, times(1)).update(any());
+  }
 
-    private void setUpInstances()
-        throws SmsCompressionException
-    {
-        user = makeUser( "U" );
-        user.setPhoneNumber( ORIGINATOR );
+  private void setUpInstances() throws SmsCompressionException {
+    user = makeUser("U");
+    user.setPhoneNumber(ORIGINATOR);
 
-        programInstance = new ProgramInstance();
-        programInstance.setAutoFields();
+    enrollment = new Enrollment();
+    enrollment.setAutoFields();
 
-        relationshipType = new RelationshipType();
-        relationshipType.setAutoFields();
-        RelationshipConstraint relConstraint = new RelationshipConstraint();
-        relConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
-        relationshipType.setToConstraint( relConstraint );
-        relationshipType.setFromConstraint( relConstraint );
+    relationshipType = new RelationshipType();
+    relationshipType.setAutoFields();
+    RelationshipConstraint relConstraint = new RelationshipConstraint();
+    relConstraint.setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
+    relationshipType.setToConstraint(relConstraint);
+    relationshipType.setFromConstraint(relConstraint);
 
-        incomingSmsRelationship = createSMSFromSubmission( createRelationshipSubmission() );
-    }
+    incomingSmsRelationship = createSMSFromSubmission(createRelationshipSubmission());
+  }
 
-    private RelationshipSmsSubmission createRelationshipSubmission()
-    {
-        RelationshipSmsSubmission subm = new RelationshipSmsSubmission();
+  private RelationshipSmsSubmission createRelationshipSubmission() {
+    RelationshipSmsSubmission subm = new RelationshipSmsSubmission();
 
-        subm.setUserId( user.getUid() );
-        subm.setRelationshipType( relationshipType.getUid() );
-        subm.setRelationship( "uf3svrmpzOj" );
-        subm.setFrom( programInstance.getUid() );
-        subm.setTo( programInstance.getUid() );
-        subm.setSubmissionId( 1 );
+    subm.setUserId(user.getUid());
+    subm.setRelationshipType(relationshipType.getUid());
+    subm.setRelationship("uf3svrmpzOj");
+    subm.setFrom(enrollment.getUid());
+    subm.setTo(enrollment.getUid());
+    subm.setSubmissionId(1);
 
-        return subm;
-    }
+    return subm;
+  }
 }

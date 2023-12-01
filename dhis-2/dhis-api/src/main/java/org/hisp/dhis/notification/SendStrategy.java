@@ -30,15 +30,12 @@ package org.hisp.dhis.notification;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * Created by zubair on 06.04.17.
- */
+/** Created by zubair on 06.04.17. */
 @Getter
 @AllArgsConstructor
-public enum SendStrategy
-{
-    COLLECTIVE_SUMMARY( "Summary" ),
-    SINGLE_NOTIFICATION( "Single" );
+public enum SendStrategy {
+  COLLECTIVE_SUMMARY("Summary"),
+  SINGLE_NOTIFICATION("Single");
 
-    private final String description;
+  private final String description;
 }

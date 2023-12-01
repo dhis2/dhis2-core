@@ -4,7 +4,7 @@
 
 pipeline {
     agent {
-        label 'ec2-jdk11'
+        label 'ec2-jdk17'
     }
 
     triggers {
@@ -13,7 +13,7 @@ pipeline {
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
-        timeout(time: 30)
+        timeout(time: 45)
     }
 
     environment {
@@ -41,6 +41,7 @@ pipeline {
                 }
             }
         }
+
         stage ('Build') {
             steps {
                 echo 'Building DHIS2 ...'
@@ -71,29 +72,57 @@ pipeline {
             }
         }
 
-        stage ('Generate Javadocs') {
+        stage('Update IM Play instance') {
+            environment {
+                HTTP = "http --check-status"
+                IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
+                IM_HOST = "https://api.im.dhis2.org"
+                INSTANCE_URL = "https://play.im.dhis2.org/nightly"
+                IMAGE_REPOSITORY = "core-canary"
+                IMAGE_PULL_POLICY = "Always"
+                FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
+                FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
+                INSTANCE_TTL = "315360000"
+                STARTUP_PROBE_FAILURE_THRESHOLD = "50"
+                LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
+                READINESS_PROBE_TIMEOUT_SECONDS = "3"
+            }
+
             steps {
-                echo 'Generating Javadocs ...'
                 script {
-                    withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh 'mvn --batch-mode --no-transfer-progress clean install javadoc:aggregate -Pjavadoc -DskipTests=true -Dmaven.test.skip=true -f dhis-2/pom.xml'
+                    withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
+                        dir('im-manager') {
+                            gitHelper.sparseCheckout(IM_REPO_URL, "${gitHelper.getLatestTag(IM_REPO_URL)}", '/scripts')
+
+                            echo 'Creating DHIS2 instance on IM...'
+                            def branch = ""
+                            if (env.GIT_BRANCH == 'master') {
+                                env.IMAGE_TAG = "latest"
+                                env.DATABASE_ID = "test-dbs-sierra-leone-dev-sql-gz"
+                            } else {
+                                env.IMAGE_TAG = env.GIT_BRANCH
+                                branch = "-${env.GIT_BRANCH.replace(".", "-")}"
+
+                                dir('scripts/databases') {
+                                    env.DATABASE_ID = sh(
+                                            returnStdout: true,
+                                            script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${env.GIT_BRANCH}.sql.gz\") | .slug'"
+                                    ).trim()
+                                }
+                            }
+
+                            sh '[ -n "$DATABASE_ID" ]'
+                            echo "Database: ${env.DATABASE_ID}"
+
+                            dir('scripts/instances') {
+                                sh "(./findByName.sh play nightly${branch} && ./restart.sh play nightly${branch}) || ./deploy-dhis2.sh play nightly${branch}"
+                                timeout(10) {
+                                    waitFor.statusOk("${env.INSTANCE_URL}${branch}")
+                                }
+                            }
+                        }
                     }
                 }
-            }
-
-            post {
-                success {
-                    javadoc javadocDir: 'dhis-2/target/site/apidocs', keepAll: false
-                }
-            }
-        }
-
-        stage ('Sync Javadocs') {
-            steps {
-                echo 'Syncing Javadocs ...'
-                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/sync-javadocs-s3.sh" -O'
-                sh 'chmod +x sync-javadocs-s3.sh'
-                sh './sync-javadocs-s3.sh ${GIT_BRANCH}'
             }
         }
     }
