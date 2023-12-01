@@ -122,8 +122,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_DATA_SETS.getName()));
     this.dataElementsWithoutGroups =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_GROUPS.getName()));
+        listOfDisplayNameWithUid(detailsByName.get("data_elements_aggregate_no_groups"));
     this.invalidCategoryCombos =
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.CATEGORY_COMBOS_BEING_INVALID.getName()));
