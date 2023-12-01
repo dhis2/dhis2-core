@@ -677,7 +677,8 @@ class TrackedEntityOperationParamsMapperTest {
   void shouldFailWhenGlobalSearchAndNoAttributeSpecified() {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+
+    //    when(currentUserService.getCurrentUser()).thenReturn(user);
     when(aclService.canDataRead(user, program)).thenReturn(true);
 
     TrackedEntityOperationParams operationParams =
@@ -699,7 +700,7 @@ class TrackedEntityOperationParamsMapperTest {
   void shouldFailWhenGlobalSearchAndMaxTeLimitReached() {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(currentUserService.getCurrentUser()).thenReturn(user);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     program.setMinAttributesRequiredToSearch(0);
     program.setMaxTeiCountToReturn(1);
@@ -724,7 +725,7 @@ class TrackedEntityOperationParamsMapperTest {
   void shouldFailWhenUserHasNoAccessToAnyTrackedEntityType() {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(currentUserService.getCurrentUser()).thenReturn(user);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     program.setMinAttributesRequiredToSearch(0);
     program.setMaxTeiCountToReturn(1);

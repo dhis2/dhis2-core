@@ -577,7 +577,10 @@ class EventOperationParamsMapperTest {
     userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
     user.setUserRoles(Set.of(userRole));
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+    when(userService.getUserByUsername(anyString())).thenReturn(user);
+    //    when(currentUserService.getCurrentUser()).thenReturn(user);
+
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
     when(aclService.canDataRead(user, program)).thenReturn(false);

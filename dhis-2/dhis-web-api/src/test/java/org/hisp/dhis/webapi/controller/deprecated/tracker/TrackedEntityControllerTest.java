@@ -42,7 +42,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.deprecated.tracker.imports.impl.TrackedEntityInstanceAsyncStrategyImpl;
@@ -101,8 +100,9 @@ class TrackedEntityControllerTest {
 
     mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
-//    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
-//    when(user.getUid()).thenReturn("userId");
+    //
+    // when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+    //    when(user.getUid()).thenReturn("userId");
   }
 
   @Test
