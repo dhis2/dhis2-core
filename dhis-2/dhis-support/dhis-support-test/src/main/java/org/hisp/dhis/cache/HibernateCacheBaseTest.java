@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.cache;
 
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.core.io.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.BaseSpringTest;
+import org.hisp.dhis.IntegrationTest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-/**
- * @author Lars Helge Overland
- * @version $Id$
- */
-public class HibernateMappingJarLocationsFactoryBean implements FactoryBean<Object[]> {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
-  private HibernateConfigurationProvider hibernateConfigurationProvider;
-
-  public void setHibernateConfigurationProvider(
-      HibernateConfigurationProvider hibernateConfigurationProvider) {
-    this.hibernateConfigurationProvider = hibernateConfigurationProvider;
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {HibernateCacheTestConfig.class})
+@ActiveProfiles("test-postgres")
+@IntegrationTest
+@Slf4j
+public class HibernateCacheBaseTest extends BaseSpringTest {
+  @BeforeEach
+  public final void before() throws Exception {
+    integrationTestBefore();
   }
 
-  // -------------------------------------------------------------------------
-  // FactoryBean implementation
-  // -------------------------------------------------------------------------
+  @AfterEach
+  public final void after() throws Exception {
+    clearSecurityContext();
 
-  @Override
-  public Object[] getObject() throws Exception {
-    return hibernateConfigurationProvider.getJarResources().toArray();
-  }
+    tearDownTest();
 
-  @Override
-  public Class<Resource> getObjectType() {
-    return Resource.class;
-  }
-
-  @Override
-  public boolean isSingleton() {
-    return true;
+    try {
+      dbmsManager.clearSession();
+    } catch (Exception e) {
+      log.info("Failed to clear hibernate session, reason:" + e.getMessage());
+    }
   }
 }

@@ -31,7 +31,8 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
 import org.jasypt.salt.RandomSaltGenerator;
@@ -50,13 +51,14 @@ public class HibernateEncryptionConfig {
 
   public static final String AES_128_STRING_ENCRYPTOR = "aes128StringEncryptor";
 
-  @Autowired private HibernateConfigurationProvider hibernateConfigurationProvider;
+  @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
 
   private String password;
 
   @PostConstruct
   public void init() {
-    password = (String) getConnectionProperty("encryption.password", "J7GhAs287hsSQlKd9g5");
+    password =
+        (String) getConnectionProperty(ConfigurationKey.ENCRYPTION_PASSWORD, "J7GhAs287hsSQlKd9g5");
   }
 
   /** Used only for SystemSettings (due to bug with JCE policy restrictions in Jasypt. */
@@ -64,6 +66,7 @@ public class HibernateEncryptionConfig {
   public PooledPBEStringEncryptor tripleDesStringEncryptor() {
     PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
     encryptor.setAlgorithm("PBEWithSHA1AndDESede");
+    // TODO: MAS re enable password
     //    encryptor.setPassword(password);
     encryptor.setPassword("J7GhAs287hsSQlKd9g5");
     encryptor.setPoolSize(4);
@@ -79,6 +82,7 @@ public class HibernateEncryptionConfig {
   public PooledPBEStringEncryptor aes128StringEncryptor() {
     PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
     encryptor.setAlgorithm("PBEWITHSHA256AND128BITAES-CBC-BC");
+    // TODO: MAS re enable password
     //    encryptor.setPassword(password);
     encryptor.setPassword("J7GhAs287hsSQlKd9g5");
     encryptor.setPoolSize(4);
@@ -101,8 +105,8 @@ public class HibernateEncryptionConfig {
     return methodInvokingFactoryBean;
   }
 
-  private Object getConnectionProperty(String key, String defaultValue) {
-    String value = hibernateConfigurationProvider.getConfiguration().getProperty(key);
+  private Object getConnectionProperty(ConfigurationKey key, String defaultValue) {
+    String value = dhisConfigurationProvider.getPropertyOrDefault(key, defaultValue);
 
     return StringUtils.defaultIfEmpty(value, defaultValue);
   }

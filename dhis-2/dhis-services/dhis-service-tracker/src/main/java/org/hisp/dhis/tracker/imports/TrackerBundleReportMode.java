@@ -38,5 +38,5 @@ public enum TrackerBundleReportMode {
   ERRORS,
 
   /** Returns tracker bundle report with warnings but without errors and timings. */
-  WARNINGS;
+  WARNINGS
 }

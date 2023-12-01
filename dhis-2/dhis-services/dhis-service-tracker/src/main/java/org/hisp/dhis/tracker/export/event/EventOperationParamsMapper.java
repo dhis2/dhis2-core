@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
 import java.util.List;
@@ -195,9 +194,7 @@ class EventOperationParamsMapper {
       User user, Program program, ProgramStage programStage, OrganisationUnit requestedOrgUnit)
       throws ForbiddenException {
 
-    if (user == null
-        || user.isSuper()
-        || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
+    if (user == null || user.isSuper()) {
       return;
     }
     if (program != null && !aclService.canDataRead(user, program)) {

@@ -543,6 +543,9 @@ class EventOperationParamsMapperTest {
 
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
+    when(organisationUnitService.isInUserHierarchy(
+            searchScopeChildOrgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(true);
 
     EventOperationParams operationParams =
         eventBuilder
@@ -553,6 +556,45 @@ class EventOperationParamsMapperTest {
 
     EventQueryParams queryParams = mapper.map(operationParams);
     assertEquals(searchScopeChildOrgUnit, queryParams.getOrgUnit());
+  }
+
+  @Test
+  void shouldFailWhenModeAllRequestedOrgUnitInSearchScopeAndUserHasNoAccessToProgram()
+      throws ForbiddenException, BadRequestException {
+    Program program = new Program();
+    program.setAccessLevel(OPEN);
+    program.setUid("programUid");
+
+    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
+    OrganisationUnit searchScopeChildOrgUnit = createOrgUnit("searchScopeChildOrgUnit", "uid5");
+    searchScopeOrgUnit.setChildren(Set.of(searchScopeChildOrgUnit));
+    searchScopeChildOrgUnit.setParent(searchScopeOrgUnit);
+
+    User user = new User();
+    user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit", "uid")));
+    user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
+    UserRole userRole = new UserRole();
+    userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
+    user.setUserRoles(Set.of(userRole));
+
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
+        .thenReturn(searchScopeChildOrgUnit);
+    when(aclService.canDataRead(user, program)).thenReturn(false);
+    when(programService.getProgram(program.getUid())).thenReturn(program);
+
+    EventOperationParams operationParams =
+        eventBuilder
+            .programUid(program.getUid())
+            .orgUnitUid(searchScopeChildOrgUnit.getUid())
+            .orgUnitMode(ALL)
+            .build();
+
+    Exception forbiddenException =
+        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
+    assertEquals(
+        String.format("User has no access to program: %s", program.getUid()),
+        forbiddenException.getMessage());
   }
 
   @ParameterizedTest

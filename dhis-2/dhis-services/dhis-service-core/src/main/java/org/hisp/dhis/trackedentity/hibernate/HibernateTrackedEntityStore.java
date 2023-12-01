@@ -46,7 +46,6 @@ import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.POTENTIAL_DUP
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.PROGRAM_INSTANCE_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_TYPE_ID;
-import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 
@@ -622,8 +621,8 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       if (params.hasLastUpdatedEndDate()) {
         trackedEntity
             .append(whereAnd.whereAnd())
-            .append(" TE.lastupdated < '")
-            .append(getLongDateString(addDays(params.getLastUpdatedEndDate(), 1)))
+            .append(" TE.lastupdated <='")
+            .append(getLongDateString(params.getLastUpdatedEndDate()))
             .append(SINGLE_QUOTE);
       }
     }

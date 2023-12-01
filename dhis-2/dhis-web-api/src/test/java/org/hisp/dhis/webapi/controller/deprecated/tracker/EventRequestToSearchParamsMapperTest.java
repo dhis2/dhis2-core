@@ -465,6 +465,26 @@ class EventRequestToSearchParamsMapperTest {
     assertNull(eventSearchParams.getOrgUnit());
   }
 
+  @Test
+  void shouldFailWhenUserHasSearchInAllAuthorityButNoAccessToProgram() {
+    Program program = new Program();
+    program.setAccessLevel(OPEN);
+
+    User user = new User();
+    UserRole userRole = new UserRole();
+    userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
+    user.setUserRoles(Set.of(userRole));
+
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(aclService.canDataRead(user, program)).thenReturn(false);
+
+    Exception illegalQueryException =
+        assertThrows(org.hisp.dhis.common.IllegalQueryException.class, () -> map(ALL));
+    assertEquals(
+        String.format("User has no access to program: %s", program.getUid()),
+        illegalQueryException.getMessage());
+  }
+
   @ParameterizedTest
   @EnumSource(value = OrganisationUnitSelectionMode.class)
   void shouldFailWhenRequestedOrgUnitOutsideOfSearchScope(

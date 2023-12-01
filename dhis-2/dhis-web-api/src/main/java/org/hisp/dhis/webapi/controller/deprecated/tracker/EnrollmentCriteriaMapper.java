@@ -116,10 +116,10 @@ public class EnrollmentCriteriaMapper {
 
     Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    User user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (currentUser != null) {
-      possibleSearchOrgUnits = currentUser.getTeiSearchOrganisationUnitsWithFallback();
+    if (user != null) {
+      possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
     }
 
     if (ou != null) {
@@ -137,8 +137,8 @@ public class EnrollmentCriteriaMapper {
           throw new IllegalQueryException("Organisation unit does not exist: " + orgUnit);
         }
 
-        if (currentUser != null
-            && !currentUser.isSuper()
+        if (user != null
+            && !user.isSuper()
             && !organisationUnitService.isInUserHierarchy(
                 organisationUnit.getUid(), possibleSearchOrgUnits)) {
           throw new IllegalQueryException(
@@ -150,9 +150,7 @@ public class EnrollmentCriteriaMapper {
     }
 
     if (ouMode == ALL
-        && (currentUser != null
-            && !currentUser.isSuper()
-            && !currentUser.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS))) {
+        && (user != null && !user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS))) {
       throw new IllegalQueryException(
           "Current user is not authorized to query across all organisation units");
     }
@@ -197,7 +195,7 @@ public class EnrollmentCriteriaMapper {
     params.setTotalPages(totalPages);
     params.setSkipPaging(skipPaging);
     params.setIncludeDeleted(includeDeleted);
-    params.setCurrentUserDetails(CurrentUserDetailsImpl.fromUser(currentUser));
+    params.setCurrentUserDetails(CurrentUserDetailsImpl.fromUser(user));
     params.setOrder(toOrderParams(orderCriteria));
 
     return params;

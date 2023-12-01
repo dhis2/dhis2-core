@@ -68,7 +68,6 @@ import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
@@ -1485,9 +1484,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(userWithSearchInAllAuthority)
             .build();
 
-    IllegalQueryException ex =
+    ForbiddenException ex =
         assertThrows(
-            IllegalQueryException.class,
+            ForbiddenException.class,
             () -> trackedEntityService.getTrackedEntities(operationParams));
 
     assertContains(

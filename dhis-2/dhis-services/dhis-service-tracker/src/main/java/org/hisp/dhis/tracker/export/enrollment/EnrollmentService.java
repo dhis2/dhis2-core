@@ -45,11 +45,11 @@ public interface EnrollmentService {
 
   /** Get all enrollments matching given params. */
   List<Enrollment> getEnrollments(EnrollmentOperationParams params)
-      throws BadRequestException, ForbiddenException, NotFoundException;
+      throws BadRequestException, ForbiddenException;
 
   /** Get a page of enrollments matching given params. */
   Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
-      throws BadRequestException, ForbiddenException, NotFoundException;
+      throws BadRequestException, ForbiddenException;
 
   /**
    * Fields the {@link #getEnrollments(EnrollmentOperationParams)} can order enrollments by.

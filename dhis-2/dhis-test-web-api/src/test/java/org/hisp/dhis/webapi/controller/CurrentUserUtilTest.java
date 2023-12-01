@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.webapi.controller;
 
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.core.io.Resource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.Test;
 
 /**
- * @author Lars Helge Overland
+ * @author david mackessy
  */
-public class HibernateMappingDirectoryLocationsFactoryBean implements FactoryBean<Object[]> {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+class CurrentUserUtilTest extends DhisControllerConvenienceTest {
 
-  private HibernateConfigurationProvider hibernateConfigurationProvider;
-
-  public void setHibernateConfigurationProvider(
-      HibernateConfigurationProvider hibernateConfigurationProvider) {
-    this.hibernateConfigurationProvider = hibernateConfigurationProvider;
+  @Test
+  void testCurrentUserDetailsIsSuper() {
+    switchToNewUser("newSuperuser", "ALL");
+    CurrentUserDetails newSuperuser = CurrentUserUtil.getCurrentUserDetails();
+    assertNotNull(newSuperuser);
+    assertEquals("newSuperuser", newSuperuser.getUsername());
+    assertTrue(newSuperuser.isSuper());
   }
 
-  // -------------------------------------------------------------------------
-  // FactoryBean implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  public Object[] getObject() throws Exception {
-    return hibernateConfigurationProvider.getDirectoryResources().toArray();
-  }
-
-  @Override
-  public Class<Resource> getObjectType() {
-    return Resource.class;
-  }
-
-  @Override
-  public boolean isSingleton() {
-    return true;
+  @Test
+  void testCurrentUserDetailsIsNotSuper() {
+    switchToNewUser("basicUser", "NONE");
+    CurrentUserDetails basicUser = CurrentUserUtil.getCurrentUserDetails();
+    assertNotNull(basicUser);
+    assertEquals("basicUser", basicUser.getUsername());
+    assertFalse(basicUser.isSuper());
   }
 }
