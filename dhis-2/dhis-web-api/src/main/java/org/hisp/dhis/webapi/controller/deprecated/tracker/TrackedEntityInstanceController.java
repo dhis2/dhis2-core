@@ -432,7 +432,11 @@ public class TrackedEntityInstanceController {
     // For in memory Jobs
     JobConfiguration jobId =
         new JobConfiguration(
-            "inMemoryEventImport", TEI_IMPORT, CurrentUserUtil.getCurrentUserDetails().getUid());
+            "inMemoryEventImport",
+            TEI_IMPORT,
+            CurrentUserUtil.getCurrentUserDetails() != null
+                ? CurrentUserUtil.getCurrentUserDetails().getUid()
+                : null);
 
     TrackerEntityInstanceRequest trackerEntityInstanceRequest =
         TrackerEntityInstanceRequest.builder()

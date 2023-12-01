@@ -288,7 +288,10 @@ public class HibernatePotentialDuplicateStore
     enrollmentList.forEach(duplicate.getEnrollments()::remove);
 
     User currentUser =
-        entityManager.getReference(User.class, CurrentUserUtil.getCurrentUserDetails());
+        CurrentUserUtil.getCurrentUserDetails() == null
+            ? null
+            : entityManager.getReference(
+                User.class, CurrentUserUtil.getCurrentUserDetails().getId());
 
     enrollmentList.forEach(
         e -> {

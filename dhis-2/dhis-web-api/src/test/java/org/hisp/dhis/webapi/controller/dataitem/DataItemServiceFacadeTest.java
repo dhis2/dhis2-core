@@ -38,6 +38,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
 import static org.hisp.dhis.dataitem.query.QueryableDataItem.getEntities;
+
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
@@ -57,6 +58,8 @@ import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -66,6 +69,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Unit tests for DataItemServiceFacade.
@@ -86,6 +93,8 @@ class DataItemServiceFacadeTest {
     dataItemServiceFacade = new DataItemServiceFacade(userService, queryExecutor);
   }
 
+
+
   @Test
   void testRetrieveDataItemEntities() {
     // Given
@@ -103,6 +112,7 @@ class DataItemServiceFacadeTest {
 
     // When
     when(userService.getUserByUsername(currentUser.getUsername())).thenReturn(currentUser);
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(currentUser));
 
     when(queryExecutor.find(anySet(), any(MapSqlParameterSource.class)))
         .thenReturn(expectedItemsFound);
@@ -114,6 +124,15 @@ class DataItemServiceFacadeTest {
     assertThat(actualDimensionalItems, hasSize(2));
     assertThat(actualDimensionalItems.get(0).getDimensionItemType(), is(INDICATOR));
     assertThat(actualDimensionalItems.get(1).getDimensionItemType(), is(INDICATOR));
+  }
+
+  public static void injectSecurityContext(CurrentUserDetails currentUserDetails) {
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(
+            currentUserDetails, "", currentUserDetails.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
   }
 
   @Test

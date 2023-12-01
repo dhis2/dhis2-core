@@ -100,9 +100,9 @@ class TrackedEntityControllerTest {
             userService);
 
     mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
-    //    when(getCurrentUser()).thenReturn(user);
-    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
-    when(user.getUid()).thenReturn("userId");
+
+//    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+//    when(user.getUid()).thenReturn("userId");
   }
 
   @Test
