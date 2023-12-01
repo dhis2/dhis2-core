@@ -39,7 +39,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudi
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
-import org.hisp.dhis.tracker.imports.converter.TrackerSideEffectConverterService;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
@@ -53,21 +52,17 @@ public class EnrollmentPersister
   private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
       enrollmentConverter;
 
-  private final TrackerSideEffectConverterService sideEffectConverterService;
-
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   public EnrollmentPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
           enrollmentConverter,
-      TrackerSideEffectConverterService sideEffectConverterService,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
       TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService) {
     super(reservedValueService, trackedEntityAttributeValueAuditService);
 
     this.enrollmentConverter = enrollmentConverter;
-    this.sideEffectConverterService = sideEffectConverterService;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 
@@ -124,8 +119,7 @@ public class EnrollmentPersister
       TrackerBundle bundle, Enrollment enrollment) {
     return TrackerSideEffectDataBundle.builder()
         .klass(Enrollment.class)
-        .enrollmentRuleEffects(
-            sideEffectConverterService.toTrackerSideEffects(bundle.getEnrollmentRuleEffects()))
+        .enrollmentRuleEffects(bundle.getEnrollmentRuleEffects())
         .eventRuleEffects(new HashMap<>())
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
