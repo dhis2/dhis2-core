@@ -34,8 +34,8 @@ import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.field
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.PI_UID;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_UID;
-import static org.hisp.dhis.analytics.tei.query.context.querybuilder.ContextUtils.enrollmentSelect;
-import static org.hisp.dhis.analytics.tei.query.context.querybuilder.ContextUtils.eventSelect;
+import static org.hisp.dhis.analytics.tei.query.context.querybuilder.SqlQueryHelper.enrollmentSelect;
+import static org.hisp.dhis.analytics.tei.query.context.querybuilder.SqlQueryHelper.eventSelect;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 

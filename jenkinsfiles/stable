@@ -40,14 +40,14 @@ pipeline {
     }
 
     stages {
-        stage ('Patch') {
+        stage('Patch') {
             steps {
                 echo 'Patching DHIS2 ...'
                 sh './run-cve-patcher.sh'
             }
         }
 
-        stage ('Build') {
+        stage('Build') {
             steps {
                 echo 'Building DHIS2 ...'
                 script {
@@ -76,8 +76,10 @@ pipeline {
                 }
 
                 environment {
-                    DOCKER_IMAGE_NAME_BASE_FULL = "${DOCKER_IMAGE_NAME_BASE}:${DOCKER_IMAGE_TAG_BASE}"
                     DOCKER_IMAGE_NAME_FULL = "${DOCKER_IMAGE_NAME_DEV}:${DOCKER_IMAGE_TAG}-${DOCKER_IMAGE_TAG_BASE}" // used to test against different Tomcat variants
+                    BASE_IMAGE = "${DOCKER_IMAGE_NAME_BASE}:${DOCKER_IMAGE_TAG_BASE}"
+                    IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME_DEV"
+                    UNARCHIVED_WAR_DIR = "dhis2-war-$DOCKER_IMAGE_TAG_BASE" // this needs to be different for the two matrix stages, as they run in parallel
                 }
 
                 stages {
@@ -85,10 +87,7 @@ pipeline {
                         steps {
                             withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                                 withMaven(options: [artifactsPublisher(disabled: true)]) {
-                                    sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
-                                            -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
-                                            -Djib.from.image=${DOCKER_IMAGE_NAME_BASE_FULL} -Djib.to.image=${DOCKER_IMAGE_NAME_FULL} \
-                                            -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
+                                    sh './dhis-2/build-docker-image.sh -t "${DOCKER_IMAGE_TAG}-${DOCKER_IMAGE_TAG_BASE}" -d'
                                 }
                             }
                         }
@@ -128,19 +127,44 @@ pipeline {
         }
 
         stage('Publish images') {
+            environment {
+                BASE_IMAGE = "$DOCKER_IMAGE_NAME_PUBLISH_SOURCE"
+                IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
+            }
+
             steps {
-                withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
-                    withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
-                                            -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
-                                            -Djib.from.image=${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} -Djib.to.image=${DOCKER_IMAGE_NAME_PUBLISH_TARGET} \
-                                            -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
+                script {
+                    def imageTag = env.DOCKER_IMAGE_TAG
+
+                    // Remove -rc suffix in case it's there, will be added later if needed.
+                    imageTag = imageTag.replace("-rc", "")
+
+                    // If version contains more than 2 dots... It's a hotfix.
+                    boolean isHotfix = imageTag.length() - imageTag.replace(".", "").length() > 2
+
+                    if (!isHotfix) {
+                        imageTag = "$imageTag.0"
+                    }
+
+                    def newImageTagFormat = imageTag.replaceFirst(/^2\./, "")
+
+                    withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+                        withMaven(options: [artifactsPublisher(disabled: true)]) {
+                            if (env.DOCKER_IMAGE_TAG.endsWith("-rc")) {
+                                newImageTagFormat = "$newImageTagFormat-rc"
+
+                                // Release candidates don't need immutable and rolling tags.
+                                sh "./dhis-2/build-docker-image.sh -t $newImageTagFormat -d"
+                            } else {
+                                sh "./dhis-2/build-docker-image.sh -t $newImageTagFormat"
+                            }
+                        }
                     }
                 }
             }
         }
 
-        stage ('Sync WAR') {
+        stage('Sync WAR') {
             steps {
                 echo 'Syncing WAR ...'
                 sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
@@ -183,8 +207,6 @@ pipeline {
                             env.IMAGE_TAG = version
                             def instanceName = "stable-${version.replace(".", "-")}"
 
-                            // If version contains more than 2 dots... It's a hotfix
-                            def isHotfix = version.length() - version.replace(".", "").length() > 2
                             if (isHotfix) {
                                 def endIndex = version.lastIndexOf(".")
                                 version = version.substring(0, endIndex)

@@ -31,6 +31,10 @@ import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.DATA_ELEMENT;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT_GROUP;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT_GROUP_SET;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT_LEVEL;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PERIOD;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
@@ -76,7 +80,15 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class CommonParamsSecurityManager {
   private static final Collection<DimensionParamObjectType> SECURITY_CHECK_SKIP_TYPES =
-      List.of(PROGRAM_ATTRIBUTE, DATA_ELEMENT, PROGRAM_INDICATOR, PERIOD);
+      List.of(
+          PROGRAM_ATTRIBUTE,
+          DATA_ELEMENT,
+          PROGRAM_INDICATOR,
+          PERIOD,
+          ORGANISATION_UNIT,
+          ORGANISATION_UNIT_GROUP,
+          ORGANISATION_UNIT_GROUP_SET,
+          ORGANISATION_UNIT_LEVEL);
 
   private final AnalyticsSecurityManager securityManager;
 

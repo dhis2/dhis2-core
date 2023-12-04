@@ -35,12 +35,15 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.relationDoesNotExist;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
+import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SQL_SYNTAX_ERROR;
+import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_TABLE_NOT_EXISTING;
+import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
 import static org.springframework.util.Assert.isTrue;
 
 import com.google.common.collect.Lists;
@@ -123,15 +126,6 @@ public class AnalyticsUtils {
 
   private static final Pattern OU_LEVEL_PATTERN =
       Pattern.compile(DataQueryParams.PREFIX_ORG_UNIT_LEVEL + "(\\d+)");
-
-  public static final String ERR_MSG_TABLE_NOT_EXISTING =
-      "Query failed, likely because the requested analytics table does not exist: ";
-
-  public static final String ERR_MSG_SQL_SYNTAX_ERROR =
-      "An error occurred during the execution of an analytics query: ";
-
-  public static final String ERR_MSG_SILENT_FALLBACK =
-      "An exception occurred - silently fallback since it's multiple analytics query: ";
 
   /**
    * Returns an SQL statement for retrieving raw data values for an aggregate query.
