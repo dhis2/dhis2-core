@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.config;
+package org.hisp.dhis.analytics.common.query;
 
-import java.util.List;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.springframework.core.convert.converter.Converter;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * String to Order Criterias converter for MVC requests
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-class StringToOrderCriteriaListConverter implements Converter<String, List<OrderCriteria>> {
-  @Override
-  public List<OrderCriteria> convert(String source) {
-    return OrderCriteria.fromOrderString(source);
+import org.junit.jupiter.api.Test;
+
+class NotConditionRendererTest {
+
+  @Test
+  void testInWithSingleValueProduceCorrectSql() {
+    Renderable renderable = () -> "test";
+    assertEquals("not (test)", NotConditionRenderer.of(renderable).render());
   }
 }

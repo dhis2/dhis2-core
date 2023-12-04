@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
+import org.hisp.dhis.analytics.common.params.dimension.AnalyticsQueryOperator;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -63,6 +64,16 @@ class BinaryConditionRendererTest {
         List.of("v1"),
         ValueTypeMapping.STRING,
         "\"field\" = :1",
+        List.of(getQueryContextAssertEqualsConsumer("v1")));
+  }
+
+  @Test
+  void testNegatedInWithSingleValueProduceCorrectSql() {
+    genericTestExecutor(
+        AnalyticsQueryOperator.of(IN).negate(),
+        List.of("v1"),
+        ValueTypeMapping.STRING,
+        "not (\"field\" = :1)",
         List.of(getQueryContextAssertEqualsConsumer("v1")));
   }
 
@@ -290,10 +301,25 @@ class BinaryConditionRendererTest {
       ValueTypeMapping valueTypeMapping,
       String expectedSql,
       List<Consumer<QueryContext>> queryContextConsumers) {
+    genericTestExecutor(
+        AnalyticsQueryOperator.of(operator),
+        values,
+        valueTypeMapping,
+        expectedSql,
+        queryContextConsumers);
+  }
+
+  private void genericTestExecutor(
+      AnalyticsQueryOperator analyticsQueryOperator,
+      List<String> values,
+      ValueTypeMapping valueTypeMapping,
+      String expectedSql,
+      List<Consumer<QueryContext>> queryContextConsumers) {
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
     QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
     String render =
-        BinaryConditionRenderer.of(of("field"), operator, values, valueTypeMapping, queryContext)
+        BinaryConditionRenderer.of(
+                of("field"), analyticsQueryOperator, values, valueTypeMapping, queryContext)
             .render();
     assertEquals(expectedSql, render);
     queryContextConsumers.forEach(
