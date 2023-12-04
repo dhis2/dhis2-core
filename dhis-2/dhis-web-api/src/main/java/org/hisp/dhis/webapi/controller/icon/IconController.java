@@ -105,7 +105,7 @@ public class IconController {
   public void getIconData(
       HttpServletResponse response, HttpServletRequest request, @PathVariable String iconKey)
       throws IOException {
-    String location = response.encodeRedirectURL("/" + iconKey + "/icon");
+    String location = response.encodeRedirectURL("/icons/" + iconKey + "/icon");
     response.sendRedirect(ContextUtils.getRootPath(request) + location);
   }
 
