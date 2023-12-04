@@ -99,8 +99,8 @@ class DataIntegrityGroupSizeUserGroupsControllerTest extends AbstractDataIntegri
   private static User createUser(String uniquePart) {
     User user = new User();
     user.setCode("Code" + uniquePart);
-    user.setFirstName(FIRST_NAME + uniquePart);
-    user.setSurname(SURNAME + uniquePart);
+    user.setFirstName("FirstName" + uniquePart);
+    user.setSurname("Surname" + uniquePart);
     user.setUsername("username" + uniquePart);
     return user;
   }
