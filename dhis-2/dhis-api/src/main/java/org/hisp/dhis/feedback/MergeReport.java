@@ -52,6 +52,7 @@ public class MergeReport implements ErrorMessageContainer {
   @JsonProperty private final List<ErrorMessage> mergeErrors = new ArrayList<>();
   @JsonProperty private MergeType mergeType;
   @JsonProperty private Set<String> sourcesDeleted = new HashSet<>();
+  @JsonProperty private String message;
 
   public MergeReport(MergeType mergeType) {
     this.mergeType = mergeType;

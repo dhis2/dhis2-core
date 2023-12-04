@@ -1,5 +1,6 @@
 package org.hisp.dhis.merge;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.MergeReport;
 
@@ -25,19 +26,16 @@ public class MergeQueryProcessor<T extends BaseIdentifiableObject> {
 
   private final MergeService<T> mergeService;
 
-  public MergeReport processMergeRequest(MergeQuery query, MergeType mergeType) {
-    MergeReport mergeReport = new MergeReport(mergeType);
-    return processMerge(query, mergeReport);
-  }
-
   /**
    * Processes a merge query in full, using the implemented {@link MergeService} provided.
    *
    * @param mergeQuery {@link MergeQuery} to process
-   * @param mergeReport {@link MergeReport} to update with any errors
+   * @param mergeType {@link MergeType}
    * @return updated {@link MergeReport} with any errors
    */
-  public MergeReport processMerge(MergeQuery mergeQuery, MergeReport mergeReport) {
+  public MergeReport processMergeQuery(
+      @Nonnull MergeQuery mergeQuery, @Nonnull MergeType mergeType) {
+    MergeReport mergeReport = new MergeReport(mergeType);
     MergeRequest<T> mergeRequest = mergeService.transform(mergeQuery, mergeReport);
     if (mergeReport.hasErrorMessages()) return mergeReport;
 

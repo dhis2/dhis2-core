@@ -38,14 +38,13 @@ import org.hisp.dhis.webmessage.WebMessageResponse;
  */
 public class MergeWebResponse implements WebMessageResponse {
   @JsonProperty private MergeReport mergeReport;
-  @JsonProperty private String message;
 
   public MergeWebResponse(@Nonnull MergeReport mergeReport) {
     this.mergeReport = mergeReport;
     MergeType mergeType = mergeReport.getMergeType();
-    message =
+    this.mergeReport.setMessage(
         mergeReport.hasErrorMessages()
             ? "%s merge has errors".formatted(mergeType)
-            : "%s merge complete".formatted(mergeType);
+            : "%s merge complete".formatted(mergeType));
   }
 }

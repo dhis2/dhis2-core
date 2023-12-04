@@ -35,7 +35,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -114,10 +113,11 @@ public class IndicatorTypeMergeService implements MergeService<IndicatorType> {
   }
 
   /**
-   * Retrieves the {@link IndicatorType} with the given identifier. Throws an {@link
-   * IllegalQueryException} if it does not exist.
+   * Retrieves the {@link IndicatorType} with the given identifier. If a valid {@link IndicatorType}
+   * is not found then an empty {@link Optional} is returned and an error is added to the report.
    *
    * @param uid the indicator type identifier
+   * @return {@link Optional<IndicatorType>}
    */
   private Optional<IndicatorType> getAndVerifyIndicatorType(
       UID uid, MergeReport mergeReport, String indType) {

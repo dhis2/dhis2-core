@@ -71,7 +71,7 @@ public class IndicatorTypeController extends AbstractCrudController<IndicatorTyp
 
     MergeReport report =
         new MergeQueryProcessor<>(indicatorTypeMergeService)
-            .processMergeRequest(query, MergeType.INDICATOR_TYPE);
+            .processMergeQuery(query, MergeType.INDICATOR_TYPE);
 
     log.info("Indicator type merge request processed: {}", report);
     return WebMessageUtils.mergeReport(report);

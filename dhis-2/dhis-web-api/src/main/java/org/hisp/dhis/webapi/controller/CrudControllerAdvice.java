@@ -530,8 +530,8 @@ public class CrudControllerAdvice {
    * Exception handler handling {@link UID} instantiation errors (from {@link String} to {@link
    * UID}) received in web requests. The error message is checked to see if it contains 'UID' & ';'
    * so it can be formatted more nicely for client consumption, otherwise too much extraneous
-   * exception info is included. See e2e {@link IndicatorTypeMergeTest#} for example response
-   * expected.
+   * exception info is included. See e2e {@link IndicatorTypeMergeTest#testInvalidSourceUid} for
+   * example response expected.
    *
    * @param ex exception
    * @return web message
