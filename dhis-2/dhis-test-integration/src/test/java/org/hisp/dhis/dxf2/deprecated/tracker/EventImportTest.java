@@ -321,16 +321,6 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertNotNull(eventDataValueB.getLastUpdated());
   }
 
-  private org.hisp.dhis.dxf2.deprecated.tracker.event.Event createEventJson(
-      String program, String programStage, String orgUnit, String person) {
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent(null);
-    event.setProgram(program);
-    event.setProgramStage(programStage);
-    event.setOrgUnit(orgUnit);
-    event.setTrackedEntityInstance(person);
-    return event;
-  }
-
   @Test
   void testAddEventOnProgramWithoutRegistration() throws IOException {
     InputStream is =
