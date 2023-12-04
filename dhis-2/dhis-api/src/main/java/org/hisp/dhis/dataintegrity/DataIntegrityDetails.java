@@ -50,6 +50,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 public class DataIntegrityDetails implements Serializable {
   @JsonUnwrapped private final DataIntegrityCheck check;
 
+  @JsonProperty private final Date startTime;
+
   @JsonProperty private final Date finishedTime;
 
   @JsonProperty private final String error;
