@@ -67,7 +67,7 @@ public class IndicatorTypeController extends AbstractCrudController<IndicatorTyp
   @PreAuthorize("hasRole('ALL') or hasRole('F_INDICATOR_TYPE_MERGE')")
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody WebMessage mergeIndicatorTypes(@RequestBody MergeQuery query) {
-    log.info("Indicator type merge request received: {}", query);
+    log.info("Indicator type merge request received");
 
     MergeReport report =
         new MergeQueryProcessor<>(indicatorTypeMergeService)
