@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.common.params.dimension;
 
-import java.util.Arrays;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.QueryOperator;
 
-@Getter
-@AllArgsConstructor
-public enum SortDirection {
-  ASC("asc"),
-  DESC("desc");
+@Data
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class AnalyticsQueryOperator {
 
-  private final String value;
+  private final QueryOperator queryOperator;
+  private final boolean negated;
 
-  public static SortDirection of(String value) {
-    return Arrays.stream(values())
-        .filter(sortDirection -> sortDirection.getValue().equalsIgnoreCase(value))
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException(
-                    "'"
-                        + value
-                        + "' is not a valid sort direction. Valid values are: "
-                        + Arrays.toString(SortDirection.values())
-                        + "."));
+  public AnalyticsQueryOperator negate() {
+    return new AnalyticsQueryOperator(queryOperator, !negated);
   }
 
-  public boolean isAscending() {
-    return this == ASC;
+  public static AnalyticsQueryOperator of(QueryOperator queryOperator) {
+    return new AnalyticsQueryOperator(queryOperator, false);
   }
 }

@@ -118,9 +118,9 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     String ouId = addOrganisationUnit("noGroupSet");
     // should not match:
     addOrganisationUnitGroup("group", addOrganisationUnit("hasGroupSet"));
-    assertEquals(
-        singletonList("noGroupSet:" + ouId),
-        getDataIntegrityReport().getOrganisationUnitsWithoutGroups().toList(JsonString::string));
+    List<String> results =
+        getDataIntegrityReport().getOrganisationUnitsWithoutGroups().toList(JsonString::string);
+    assertEquals(singletonList("noGroupSet:" + ouId), results);
   }
 
   @Test
