@@ -61,8 +61,8 @@ import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -293,7 +293,7 @@ public class DefaultAppManager implements AppManager {
         log.info(String.format("No version found for id %s", appHubId));
         return AppStatus.NOT_FOUND;
       }
-      JsonString downloadUrlNode = JsonMixed.of(versionJson).getString("downloadUrl");
+      JsonString downloadUrlNode = JsonValue.of(versionJson).asObject().getString("downloadUrl");
       if (downloadUrlNode.isUndefined()) {
         log.info(
             String.format(
