@@ -11,8 +11,7 @@ JIB_BUILD_FILE=${JIB_BUILD_FILE:-'jib.yaml'}
 
 downloaded_war_name='downloaded-dhis2.war'
 old_version_schema_prefix='2'
-# TODO change to https://releases.dhis2.org/v1/versions/stable.json
-stable_versions_json="$(curl -fsSL "https://raw.githubusercontent.com/dhis2/dhis2-releases/master/downloads/v1/versions/stable.json")"
+stable_versions_json="$(curl -fsSL "https://releases.dhis2.org/v1/versions/stable.json")"
 
 function help() {
    echo 'Available options:'
