@@ -27,55 +27,13 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
-import java.time.LocalDateTime;
-import org.hisp.dhis.jsontree.Expected;
-import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonString;
 
 /**
- * JSON API equivalent of the {@link org.hisp.dhis.dataintegrity.DataIntegrityDetails}.
- *
- * @author Jan Bernitt
+ * @author Jason Pickering
  */
-public interface JsonDataIntegrityDetails extends JsonDataIntegrityCheck {
-  @Expected
-  default LocalDateTime getFinishedTime() {
-    return get("finishedTime", JsonDate.class).date();
-  }
-
-  @Expected
-  default LocalDateTime getStartTime() {
-    return get("startTime", JsonDate.class).date();
-  }
-
-  default String getError() {
-    return getString("error").string(null);
-  }
-
-  @Expected
-  default JsonList<JsonDataIntegrityIssue> getIssues() {
-    return getList("issues", JsonDataIntegrityIssue.class);
-  }
-
-  interface JsonDataIntegrityIssue extends JsonObject {
-    @Expected
-    default String getId() {
-      return getString("id").string();
-    }
-
-    @Expected
-    default String getName() {
-      return getString("name").string();
-    }
-
-    default JsonString getComment() {
-      return getString("comment");
-    }
-
-    default JsonList<JsonString> getRefs() {
-      return getList("refs", JsonString.class);
-    }
+public interface JsonOptionSet extends JsonIdentifiableObject {
+  default JsonList<JsonOption> getOptions() {
+    return getList("options", JsonOption.class);
   }
 }

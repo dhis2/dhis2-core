@@ -27,55 +27,30 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
-import java.time.LocalDateTime;
-import org.hisp.dhis.jsontree.Expected;
-import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonString;
 
-/**
- * JSON API equivalent of the {@link org.hisp.dhis.dataintegrity.DataIntegrityDetails}.
- *
- * @author Jan Bernitt
- */
-public interface JsonDataIntegrityDetails extends JsonDataIntegrityCheck {
-  @Expected
-  default LocalDateTime getFinishedTime() {
-    return get("finishedTime", JsonDate.class).date();
+public interface JsonIndicator extends JsonIdentifiableObject {
+  default String getNumerator() {
+    return getString("numerator").string();
   }
 
-  @Expected
-  default LocalDateTime getStartTime() {
-    return get("startTime", JsonDate.class).date();
+  default String getNumeratorDescription() {
+    return getString("numeratorDescription").string();
   }
 
-  default String getError() {
-    return getString("error").string(null);
+  default String getDenominator() {
+    return getString("denominator").string();
   }
 
-  @Expected
-  default JsonList<JsonDataIntegrityIssue> getIssues() {
-    return getList("issues", JsonDataIntegrityIssue.class);
+  default String getDenominatorDescription() {
+    return getString("denominatorDescription").string();
   }
 
-  interface JsonDataIntegrityIssue extends JsonObject {
-    @Expected
-    default String getId() {
-      return getString("id").string();
-    }
+  default Boolean isAnnualized() {
+    return Boolean.valueOf(getString("annualized").string());
+  }
 
-    @Expected
-    default String getName() {
-      return getString("name").string();
-    }
-
-    default JsonString getComment() {
-      return getString("comment");
-    }
-
-    default JsonList<JsonString> getRefs() {
-      return getList("refs", JsonString.class);
-    }
+  default JsonList<JsonIndicatorGroup> getIndicatorGroups() {
+    return getList("indicatorGroups", JsonIndicatorGroup.class);
   }
 }
