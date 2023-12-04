@@ -209,6 +209,37 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
                 + "}"));
   }
 
+  @Test
+  void testDataElementsNoGroups() {
+
+    String dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+
+    String dataElementB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataElementGroups",
+            "{ 'name': 'ANC', 'shortName': 'ANC' , 'dataElements' : [{'id' : '"
+                + dataElementA
+                + "'}]}"));
+    List<String> results =
+        getDataIntegrityReport().getDataElementsWithoutGroups().toList(JsonString::string);
+    assertEquals(singletonList("ANC2" + ":" + dataElementB), results);
+  }
+
   private JsonDataIntegrityReport getDataIntegrityReport() {
     return getDataIntegrityReport("/dataIntegrity");
   }
