@@ -301,7 +301,8 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
     // Restrict by the user's organisation unit sub-trees, if any
     // ---------------------------------------------------------------------
 
-    User user = userService.getUserByUsername(currentUserDetails.getUsername());
+    String username = currentUserDetails.getUsername();
+    User user = userService.getUserByUsername(username);
     Set<OrganisationUnit> userOrgUnits = user.getDataViewOrganisationUnitsWithFallback();
 
     if (!userOrgUnits.isEmpty()) {

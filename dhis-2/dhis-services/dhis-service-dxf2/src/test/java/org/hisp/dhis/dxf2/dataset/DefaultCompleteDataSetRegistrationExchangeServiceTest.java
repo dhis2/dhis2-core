@@ -48,7 +48,6 @@ import com.google.common.collect.Sets;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.cache.DefaultCacheBuilderProvider;
@@ -91,7 +90,6 @@ import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRetrievalStore;
-import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
@@ -101,11 +99,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.core.env.Environment;
 
 /**
  * @author Luciano Fiandesio
  */
+@MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   @Mock private CompleteDataSetRegistrationExchangeStore cdsrStore;
@@ -125,8 +126,6 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   @Mock private CategoryService categoryService;
 
   @Mock private PeriodService periodService;
-
-  //  @Mock private CurrentUserService currentUserService;
 
   @Mock private CompleteDataSetRegistrationService registrationService;
 
@@ -172,12 +171,6 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   public void setUp() {
     user = new User();
     user.setUsername("test");
-    UserRole all = new UserRole();
-    all.setAuthorities(Collections.singleton(UserRole.AUTHORITY_ALL));
-    user.setUserRoles(Set.of(all));
-
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
-    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
     when(environment.getActiveProfiles()).thenReturn(new String[] {"test"});
     when(dhisConfigurationProvider.getProperty(ConfigurationKey.SYSTEM_CACHE_MAX_SIZE_FACTOR))
@@ -215,6 +208,9 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
 
   @Test
   void verifyUserHasNoWritePermissionOnCategoryOption() {
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     DataSet dataSetA = createDataSet('A', new MonthlyPeriodType());
     CategoryCombo categoryCombo = createCategoryCombo('A');
@@ -266,9 +262,12 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
           .thenReturn(categoryOptionCombo);
 
       // force error on access check for Category Option Combo
-      when(aclService.canDataWrite(user, dataSetA)).thenReturn(true);
-      when(aclService.canDataWrite(user, categoryOptionA)).thenReturn(false);
-      when(aclService.canDataWrite(user, categoryOptionB)).thenReturn(true);
+      when(aclService.canDataWrite(CurrentUserUtil.getCurrentUserDetails(), dataSetA))
+          .thenReturn(true);
+      when(aclService.canDataWrite(CurrentUserUtil.getCurrentUserDetails(), categoryOptionA))
+          .thenReturn(false);
+      when(aclService.canDataWrite(CurrentUserUtil.getCurrentUserDetails(), categoryOptionB))
+          .thenReturn(true);
 
       when(systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_PERIODS))
           .thenReturn(false);
@@ -280,10 +279,6 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
       when(systemSettingManager.getBoolSetting(
               SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO))
           .thenReturn(false);
-
-      // TODO: MAS: why use getCurrentUserOrganisationUnits() here?
-      //      when(user.getOrganisationUnits())
-      //          .thenReturn(Collections.singleton(createOrganisationUnit('A')));
 
       user.setOrganisationUnits(Collections.singleton(createOrganisationUnit('A')));
 

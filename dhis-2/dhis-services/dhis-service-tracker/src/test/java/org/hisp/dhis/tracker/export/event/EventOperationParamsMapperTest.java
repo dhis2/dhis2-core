@@ -571,6 +571,7 @@ class EventOperationParamsMapperTest {
     searchScopeChildOrgUnit.setParent(searchScopeOrgUnit);
 
     User user = new User();
+    user.setUsername("testB");
     user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit", "uid")));
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
     UserRole userRole = new UserRole();
@@ -579,7 +580,6 @@ class EventOperationParamsMapperTest {
 
     injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
     when(userService.getUserByUsername(anyString())).thenReturn(user);
-    //    when(currentUserService.getCurrentUser()).thenReturn(user);
 
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);

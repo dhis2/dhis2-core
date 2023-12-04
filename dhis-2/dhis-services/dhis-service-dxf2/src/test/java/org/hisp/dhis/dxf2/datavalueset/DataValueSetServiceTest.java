@@ -69,6 +69,9 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.Test;
@@ -156,6 +159,11 @@ class DataValueSetServiceTest extends DhisConvenienceTest {
     // simulate that the imported DataValue already exists and is identical
     // (no changes)
     when(batchHandler.findObject(any())).then(AdditionalAnswers.returnsFirstArg());
+
+    User user = new User();
+    user.setUsername("test");
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
     ImportSummary summary =
         dataValueSetService.importDataValueSetXml(
