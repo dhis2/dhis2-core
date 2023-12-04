@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.events.event.persistence;
 
-import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -126,16 +125,16 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
     de.setDataElement(null); // de uid is used as a key in the json, so we don't need it here
 
     String query =
-        format(
-            "UPDATE programstageinstance SET "
-                + "eventdatavalues= (CASE"
-                + "        WHEN eventdatavalues->:de IS NOT NULL"
-                + "        THEN jsonb_set(eventdatavalues, '{%1$s}', (eventdatavalues->:de) || '%2$s')"
-                + "        WHEN eventdatavalues->:de IS NULL"
-                + "        THEN jsonb_insert(eventdatavalues, '{%1$s}', '%2$s')"
-                + "    END) ,"
-                + " lastupdated = current_timestamp "
-                + "WHERE  uid = :event",
+        String.format(
+            " UPDATE programstageinstance SET"
+                + " eventdatavalues= (CASE"
+                + " WHEN eventdatavalues->:de IS NOT NULL"
+                + " THEN jsonb_set(eventdatavalues, '{%1$s}', (eventdatavalues->:de) || '%2$s')"
+                + " WHEN eventdatavalues->:de IS NULL"
+                + " THEN jsonb_insert(eventdatavalues, '{%1$s}', '%2$s')"
+                + " END) ,"
+                + " lastupdated = current_timestamp"
+                + " WHERE  uid = :event",
             uid, mapper.writeValueAsString(de));
 
     entityManager
