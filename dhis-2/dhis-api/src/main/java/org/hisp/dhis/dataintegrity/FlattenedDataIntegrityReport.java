@@ -122,8 +122,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_DATA_SETS.getName()));
     this.dataElementsWithoutGroups =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_GROUPS.getName()));
+        listOfDisplayNameWithUid(detailsByName.get("data_elements_aggregate_no_groups"));
     this.invalidCategoryCombos =
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.CATEGORY_COMBOS_BEING_INVALID.getName()));
@@ -143,9 +142,9 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
     this.orphanedOrganisationUnits =
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.ORG_UNITS_BEING_ORPHANED.getName()));
+    // Replaced with SQL based equivalent
     this.organisationUnitsWithoutGroups =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.ORG_UNITS_WITHOUT_GROUPS.getName()));
+        listOfDisplayNameWithUid(detailsByName.get("organisation_units_without_groups"));
     this.organisationUnitGroupsWithoutGroupSets =
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS.getName()));
@@ -252,6 +251,14 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
         ? null
         : details.getIssues().stream()
             .map(DataIntegrityIssue::getName)
+            .collect(toUnmodifiableList());
+  }
+
+  private List<String> listOfDisplayNameWithUid(DataIntegrityDetails details) {
+    return details == null
+        ? null
+        : details.getIssues().stream()
+            .map(issue -> issue.getName() + ":" + issue.getId())
             .collect(toUnmodifiableList());
   }
 

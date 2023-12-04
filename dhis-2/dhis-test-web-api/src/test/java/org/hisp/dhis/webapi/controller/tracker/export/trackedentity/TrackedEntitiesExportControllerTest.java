@@ -167,6 +167,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
     trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
     manager.save(trackedEntityType, false);
+    program.setTrackedEntityType(trackedEntityType);
+    manager.save(program, false);
 
     softDeletedTrackedEntity = createTrackedEntity(orgUnit);
     softDeletedTrackedEntity.setDeleted(true);
@@ -178,8 +180,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     injectSecurityContext(user);
 
     assertEquals(
-        "Either Program or Tracked entity type should be specified",
-        GET("/tracker/trackedEntities").error(HttpStatus.CONFLICT).getMessage());
+        "Either `program`, `trackedEntityType` or `trackedEntities` should be specified",
+        GET("/tracker/trackedEntities").error(HttpStatus.BAD_REQUEST).getMessage());
   }
 
   @Test
@@ -187,9 +189,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     this.switchContextToUser(user);
 
     assertEquals(
-        "Either Program or Tracked entity type should be specified",
+        "Either `program`, `trackedEntityType` or `trackedEntities` should be specified",
         GET("/tracker/trackedEntities?orgUnit={ou}", orgUnit.getUid())
-            .error(HttpStatus.CONFLICT)
+            .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
 

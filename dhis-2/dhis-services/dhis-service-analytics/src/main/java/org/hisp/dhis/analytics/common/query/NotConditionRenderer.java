@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.common.query;
 
-import java.util.Arrays;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
-@Getter
-@AllArgsConstructor
-public enum SortDirection {
-  ASC("asc"),
-  DESC("desc");
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
-  private final String value;
+@RequiredArgsConstructor(staticName = "of")
+public class NotConditionRenderer extends BaseRenderable {
+  private final Renderable renderable;
 
-  public static SortDirection of(String value) {
-    return Arrays.stream(values())
-        .filter(sortDirection -> sortDirection.getValue().equalsIgnoreCase(value))
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException(
-                    "'"
-                        + value
-                        + "' is not a valid sort direction. Valid values are: "
-                        + Arrays.toString(SortDirection.values())
-                        + "."));
-  }
-
-  public boolean isAscending() {
-    return this == ASC;
+  @Nonnull
+  @Override
+  public String render() {
+    String rendered = renderable.render();
+    if (StringUtils.isEmpty(rendered)) {
+      return EMPTY;
+    }
+    return "not (" + rendered + ")";
   }
 }

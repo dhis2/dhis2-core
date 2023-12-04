@@ -444,10 +444,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     return toSimpleIssueList(organisationUnitService.getOrphanedOrganisationUnits().stream());
   }
 
-  List<DataIntegrityIssue> getOrganisationUnitsWithoutGroups() {
-    return toSimpleIssueList(organisationUnitService.getOrganisationUnitsWithoutGroups().stream());
-  }
-
   List<DataIntegrityIssue> getOrganisationUnitsViolatingExclusiveGroupSets() {
     return toIssueList(
         organisationUnitService.getOrganisationUnitsViolatingExclusiveGroupSets().stream(),
@@ -551,10 +547,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataElement.class,
         this::getDataElementsWithoutDataSet);
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_GROUPS,
-        DataElement.class,
-        this::getDataElementsWithoutGroups);
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.DATA_ELEMENTS_ASSIGNED_TO_DATA_SETS_WITH_DIFFERENT_PERIOD_TYPES,
         DataElement.class,
         this::getDataElementsAssignedToDataSetsWithDifferentPeriodTypes);
@@ -610,10 +602,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         OrganisationUnit.class,
         this::getOrphanedOrganisationUnits);
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.ORG_UNITS_WITHOUT_GROUPS,
-        OrganisationUnit.class,
-        this::getOrganisationUnitsWithoutGroups);
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS,
         OrganisationUnit.class,
         this::getOrganisationUnitsViolatingExclusiveGroupSets);
@@ -621,7 +609,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS,
         OrganisationUnitGroup.class,
         this::getOrganisationUnitGroupsWithoutGroupSets);
-
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.VALIDATION_RULES_WITHOUT_GROUPS,
         ValidationRule.class,
@@ -697,7 +684,10 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       checks =
           Arrays.stream(DataIntegrityCheckType.values())
               .map(DataIntegrityCheckType::getName)
-              .collect(toUnmodifiableSet());
+              .collect(Collectors.toSet());
+      // Add additional SQL based checks here
+      checks.add("organisation_units_without_groups");
+      checks.add("data_elements_aggregate_no_groups");
     }
     runDetailsChecks(checks, progress);
     return new FlattenedDataIntegrityReport(getDetails(checks, -1L));
