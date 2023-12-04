@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.metadata.programs;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.emptyArray;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;

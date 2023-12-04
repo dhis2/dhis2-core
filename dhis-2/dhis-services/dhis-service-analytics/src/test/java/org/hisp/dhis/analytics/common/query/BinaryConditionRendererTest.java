@@ -28,9 +28,20 @@
 package org.hisp.dhis.analytics.common.query;
 
 import static org.hisp.dhis.analytics.common.query.Field.of;
-import static org.hisp.dhis.common.QueryOperator.*;
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.GE;
+import static org.hisp.dhis.common.QueryOperator.GT;
+import static org.hisp.dhis.common.QueryOperator.ILIKE;
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.LE;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hisp.dhis.common.QueryOperator.LIKE;
+import static org.hisp.dhis.common.QueryOperator.LT;
+import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.hisp.dhis.common.QueryOperator.NILIKE;
+import static org.hisp.dhis.common.QueryOperator.NLIKE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -38,6 +49,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
+import org.hisp.dhis.analytics.common.params.dimension.AnalyticsQueryOperator;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -52,6 +64,16 @@ class BinaryConditionRendererTest {
         List.of("v1"),
         ValueTypeMapping.STRING,
         "\"field\" = :1",
+        List.of(getQueryContextAssertEqualsConsumer("v1")));
+  }
+
+  @Test
+  void testNegatedInWithSingleValueProduceCorrectSql() {
+    genericTestExecutor(
+        AnalyticsQueryOperator.of(IN).negate(),
+        List.of("v1"),
+        ValueTypeMapping.STRING,
+        "not (\"field\" = :1)",
         List.of(getQueryContextAssertEqualsConsumer("v1")));
   }
 
@@ -279,10 +301,25 @@ class BinaryConditionRendererTest {
       ValueTypeMapping valueTypeMapping,
       String expectedSql,
       List<Consumer<QueryContext>> queryContextConsumers) {
+    genericTestExecutor(
+        AnalyticsQueryOperator.of(operator),
+        values,
+        valueTypeMapping,
+        expectedSql,
+        queryContextConsumers);
+  }
+
+  private void genericTestExecutor(
+      AnalyticsQueryOperator analyticsQueryOperator,
+      List<String> values,
+      ValueTypeMapping valueTypeMapping,
+      String expectedSql,
+      List<Consumer<QueryContext>> queryContextConsumers) {
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
     QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
     String render =
-        BinaryConditionRenderer.of(of("field"), operator, values, valueTypeMapping, queryContext)
+        BinaryConditionRenderer.of(
+                of("field"), analyticsQueryOperator, values, valueTypeMapping, queryContext)
             .render();
     assertEquals(expectedSql, render);
     queryContextConsumers.forEach(

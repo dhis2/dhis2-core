@@ -318,9 +318,9 @@ public abstract class AbstractEnrollmentService
     enrollment.setProgram(programInstance.getProgram().getUid());
     enrollment.setStatus(EnrollmentStatus.fromProgramStatus(programInstance.getStatus()));
     enrollment.setEnrollmentDate(programInstance.getEnrollmentDate());
-    enrollment.setIncidentDate(programInstance.getIncidentDate());
+    enrollment.setIncidentDate(programInstance.getOccurredDate());
     enrollment.setFollowup(programInstance.getFollowup());
-    enrollment.setCompletedDate(programInstance.getEndDate());
+    enrollment.setCompletedDate(programInstance.getCompletedDate());
     enrollment.setCompletedBy(programInstance.getCompletedBy());
     enrollment.setStoredBy(programInstance.getStoredBy());
     enrollment.setCreatedByUserInfo(programInstance.getCreatedByUserInfo());
@@ -598,7 +598,7 @@ public abstract class AbstractEnrollmentService
       }
 
       programInstance.setCompletedBy(user);
-      programInstance.setEndDate(date);
+      programInstance.setCompletedDate(date);
     }
 
     programInstance.setCreatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
@@ -668,7 +668,7 @@ public abstract class AbstractEnrollmentService
       return importSummary;
     }
 
-    if (program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null) {
+    if (program.getDisplayIncidentDate() && programInstance.getOccurredDate() == null) {
       importSummary.setStatus(ImportStatus.ERROR);
       importSummary.setDescription("DisplayIncidentDate is true but IncidentDate is null ");
       importSummary.incrementIgnored();
@@ -676,12 +676,12 @@ public abstract class AbstractEnrollmentService
       return importSummary;
     }
 
-    if (programInstance.getIncidentDate() != null
+    if (programInstance.getOccurredDate() != null
         && !DateUtils.dateIsValid(
-            DateUtils.getMediumDateString(programInstance.getIncidentDate()))) {
+            DateUtils.getMediumDateString(programInstance.getOccurredDate()))) {
       importSummary.setStatus(ImportStatus.ERROR);
       importSummary.setDescription(
-          "Invalid enollment incident date:  " + programInstance.getIncidentDate());
+          "Invalid enollment incident date:  " + programInstance.getOccurredDate());
       importSummary.incrementIgnored();
 
       return importSummary;
@@ -936,7 +936,7 @@ public abstract class AbstractEnrollmentService
     programInstance.setProgram(program);
 
     if (enrollment.getIncidentDate() != null) {
-      programInstance.setIncidentDate(enrollment.getIncidentDate());
+      programInstance.setOccurredDate(enrollment.getIncidentDate());
     }
 
     if (enrollment.getEnrollmentDate() != null) {
@@ -951,7 +951,7 @@ public abstract class AbstractEnrollmentService
 
     programInstance.setFollowup(enrollment.getFollowup());
 
-    if (program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null) {
+    if (program.getDisplayIncidentDate() && programInstance.getOccurredDate() == null) {
       return new ImportSummary(
               ImportStatus.ERROR, "DisplayIncidentDate is true but IncidentDate is null")
           .incrementIgnored();
@@ -973,11 +973,11 @@ public abstract class AbstractEnrollmentService
       }
 
       if (EnrollmentStatus.CANCELLED == enrollment.getStatus()) {
-        programInstance.setEndDate(endDate);
+        programInstance.setCompletedDate(endDate);
 
         enrollmentService.cancelEnrollmentStatus(programInstance);
       } else if (EnrollmentStatus.COMPLETED == enrollment.getStatus()) {
-        programInstance.setEndDate(endDate);
+        programInstance.setCompletedDate(endDate);
         programInstance.setCompletedBy(user);
 
         enrollmentService.completeEnrollmentStatus(programInstance);

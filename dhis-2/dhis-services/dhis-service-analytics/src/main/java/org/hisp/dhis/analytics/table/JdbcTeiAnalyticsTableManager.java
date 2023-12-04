@@ -77,7 +77,7 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -107,7 +107,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
       AnalyticsTableHookService tableHookService,
       StatementBuilder statementBuilder,
       PartitionManager partitionManager,
-      DatabaseInfo databaseInfo,
+      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
@@ -123,7 +123,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         tableHookService,
         statementBuilder,
         partitionManager,
-        databaseInfo,
+        databaseInfoProvider,
         jdbcTemplate,
         settings,
         periodDataProvider);

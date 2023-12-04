@@ -32,7 +32,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.note.NoteStore;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.NoteMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
@@ -48,8 +47,7 @@ public class NoteStrategy implements ClassBasedSupplierStrategy {
   @Nonnull private final NoteStore noteStore;
 
   @Override
-  public void add(
-      TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
+  public void add(List<List<String>> splitList, TrackerPreheat preheat) {
     splitList.forEach(
         ids ->
             preheat.putNotes(

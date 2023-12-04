@@ -68,10 +68,10 @@ public class OrderCriteria {
         .collect(Collectors.toList());
   }
 
-  private static OrderCriteria toOrderCriteria(String s1) {
+  public static OrderCriteria toOrderCriteria(String s1) {
     String[] props = s1.split(":");
     if (props.length == 2) {
-      return OrderCriteria.of(props[0], SortDirection.of(props[1]));
+      return OrderCriteria.of(props[0], SortDirection.of(props[1].trim()));
     }
     if (props.length == 1) {
       return OrderCriteria.of(props[0], SortDirection.ASC);

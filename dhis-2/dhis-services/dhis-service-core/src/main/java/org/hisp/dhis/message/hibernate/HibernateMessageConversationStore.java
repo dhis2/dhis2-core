@@ -32,7 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -62,14 +62,14 @@ public class HibernateMessageConversationStore
   private final StatementBuilder statementBuilder;
 
   public HibernateMessageConversationStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService,
       StatementBuilder statementBuilder) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         MessageConversation.class,

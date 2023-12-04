@@ -28,10 +28,10 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.security.acl.AclService;
@@ -49,14 +49,14 @@ public class HibernateTrackedEntityTypeAttributeStore
     extends HibernateIdentifiableObjectStore<TrackedEntityTypeAttribute>
     implements TrackedEntityTypeAttributeStore {
   public HibernateTrackedEntityTypeAttributeStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService,
       StatementBuilder statementBuilder) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         TrackedEntityTypeAttribute.class,

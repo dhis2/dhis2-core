@@ -30,7 +30,6 @@ package org.hisp.dhis.artemis.audit.listener;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
@@ -65,7 +64,7 @@ public class HibernateListenerConfigurer implements ApplicationContextAware {
     this.applicationContext = applicationContext;
   }
 
-  @PersistenceUnit private EntityManagerFactory emf;
+  @Nonnull private final EntityManagerFactory emf;
 
   @Nonnull private final PostInsertAuditListener postInsertAuditListener;
 

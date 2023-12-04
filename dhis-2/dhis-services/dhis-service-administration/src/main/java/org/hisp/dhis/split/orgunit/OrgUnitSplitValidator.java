@@ -83,7 +83,7 @@ public class OrgUnitSplitValidator {
       return new ErrorMessage(ErrorCode.E1514);
     }
     for (OrganisationUnit target : request.getTargets()) {
-      if (organisationUnitService.isDescendant(target, request.getSource())) {
+      if (target.isDescendant(request.getSource())) {
         return new ErrorMessage(ErrorCode.E1516, target.getUid());
       }
     }

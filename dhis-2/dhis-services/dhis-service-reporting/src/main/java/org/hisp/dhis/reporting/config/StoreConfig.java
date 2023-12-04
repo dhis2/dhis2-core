@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.reporting.config;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.security.acl.AclService;
@@ -44,13 +44,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class StoreConfig {
   @Bean("org.hisp.dhis.pushanalysis.PushAnalysisStore")
   public HibernateIdentifiableObjectStore<PushAnalysis> indicatorTypeStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     return new HibernateIdentifiableObjectStore<PushAnalysis>(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         PushAnalysis.class,

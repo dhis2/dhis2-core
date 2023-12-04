@@ -52,9 +52,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,10 +97,10 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest {
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .build();
     List<Event> events = List.of(event);
-    TrackerImportParams params =
-        TrackerImportParams.builder().idSchemes(identifierParams).events(events).build();
+    TrackerObjects params = TrackerObjects.builder().events(events).build();
 
     when(preheat.getProgram(event.getProgram())).thenReturn(program);
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
     options.forEach(
         o ->
             when(preheat.getCategoryOption(identifierParams.toMetadataIdentifier(o)))
@@ -142,9 +142,9 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest {
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .build();
     List<Event> events = List.of(event);
-    TrackerImportParams params =
-        TrackerImportParams.builder().idSchemes(identifierParams).events(events).build();
+    TrackerObjects params = TrackerObjects.builder().events(events).build();
 
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(stage);
     options.forEach(
         o ->
@@ -183,9 +183,9 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest {
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .build();
     List<Event> events = List.of(event, event);
-    TrackerImportParams params =
-        TrackerImportParams.builder().idSchemes(identifierParams).events(events).build();
+    TrackerObjects params = TrackerObjects.builder().events(events).build();
 
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgram(event.getProgram())).thenReturn(program);
     options.forEach(
         o ->
@@ -228,9 +228,9 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest {
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .build();
     List<Event> events = List.of(event, event);
-    TrackerImportParams params =
-        TrackerImportParams.builder().idSchemes(identifierParams).events(events).build();
+    TrackerObjects params = TrackerObjects.builder().events(events).build();
 
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgram(event.getProgram())).thenReturn(program);
     options.forEach(
         o ->
@@ -271,9 +271,9 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest {
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .build();
     List<Event> events = List.of(event);
-    TrackerImportParams params =
-        TrackerImportParams.builder().idSchemes(identifierParams).events(events).build();
+    TrackerObjects params = TrackerObjects.builder().events(events).build();
 
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgram(event.getProgram())).thenReturn(program);
     when(categoryService.getCategoryOptionCombo(categoryCombo, aoc.getCategoryOptions()))
         .thenReturn(aoc);
@@ -304,8 +304,9 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest {
             .programStage(MetadataIdentifier.EMPTY_UID)
             .build();
     List<Event> events = List.of(event);
-    TrackerImportParams params =
-        TrackerImportParams.builder().idSchemes(identifierParams).events(events).build();
+    TrackerObjects params = TrackerObjects.builder().events(events).build();
+
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
 
     supplier.preheatAdd(params, preheat);
 
@@ -335,8 +336,9 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest {
             .programStage(MetadataIdentifier.EMPTY_UID)
             .build();
     List<Event> events = List.of(event);
-    TrackerImportParams params =
-        TrackerImportParams.builder().idSchemes(identifierParams).events(events).build();
+    TrackerObjects params = TrackerObjects.builder().events(events).build();
+
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
 
     options.forEach(
         o ->
@@ -374,9 +376,9 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest {
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .build();
     List<Event> events = List.of(event);
-    TrackerImportParams params =
-        TrackerImportParams.builder().idSchemes(identifierParams).events(events).build();
+    TrackerObjects params = TrackerObjects.builder().events(events).build();
 
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(stage);
     options.forEach(
         o ->
@@ -412,9 +414,9 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest {
             .attributeOptionCombo(identifierParams.toMetadataIdentifier(aoc))
             .build();
     List<Event> events = List.of(event);
-    TrackerImportParams params =
-        TrackerImportParams.builder().idSchemes(identifierParams).events(events).build();
+    TrackerObjects params = TrackerObjects.builder().events(events).build();
 
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgram(event.getProgram())).thenReturn(program);
 
     supplier.preheatAdd(params, preheat);
@@ -443,9 +445,9 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest {
             .attributeOptionCombo(identifierParams.toMetadataIdentifier(aoc))
             .build();
     List<Event> events = List.of(event);
-    TrackerImportParams params =
-        TrackerImportParams.builder().idSchemes(identifierParams).events(events).build();
+    TrackerObjects params = TrackerObjects.builder().events(events).build();
 
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgram(event.getProgram())).thenReturn(program);
 
     supplier.preheatAdd(params, preheat);
@@ -474,9 +476,9 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest {
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))
             .build();
     List<Event> events = List.of(event);
-    TrackerImportParams params =
-        TrackerImportParams.builder().idSchemes(identifierParams).events(events).build();
+    TrackerObjects params = TrackerObjects.builder().events(events).build();
 
+    when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgram(event.getProgram())).thenReturn(program);
 
     supplier.preheatAdd(params, preheat);

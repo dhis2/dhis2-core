@@ -123,9 +123,9 @@ class DefaultEnrollmentService
     result.setProgram(enrollment.getProgram());
     result.setStatus(enrollment.getStatus());
     result.setEnrollmentDate(enrollment.getEnrollmentDate());
-    result.setIncidentDate(enrollment.getIncidentDate());
+    result.setOccurredDate(enrollment.getOccurredDate());
     result.setFollowup(enrollment.getFollowup());
-    result.setEndDate(enrollment.getEndDate());
+    result.setCompletedDate(enrollment.getCompletedDate());
     result.setCompletedBy(enrollment.getCompletedBy());
     result.setStoredBy(enrollment.getStoredBy());
     result.setCreatedByUserInfo(enrollment.getCreatedByUserInfo());
@@ -193,7 +193,7 @@ class DefaultEnrollmentService
 
   @Override
   public List<Enrollment> getEnrollments(EnrollmentOperationParams params)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
     decideAccess(queryParams);
@@ -208,14 +208,6 @@ class DefaultEnrollmentService
     } else if (user != null && queryParams.isOrganisationUnitMode(CAPTURE)) {
       queryParams.setOrganisationUnits(user.getOrganisationUnits());
       queryParams.setOrganisationUnitMode(DESCENDANTS);
-    } else if (queryParams.isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> organisationUnits = new HashSet<>(queryParams.getOrganisationUnits());
-
-      for (OrganisationUnit organisationUnit : queryParams.getOrganisationUnits()) {
-        organisationUnits.addAll(organisationUnit.getChildren());
-      }
-
-      queryParams.setOrganisationUnits(organisationUnits);
     }
 
     return getEnrollments(
@@ -226,7 +218,7 @@ class DefaultEnrollmentService
 
   @Override
   public Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
     decideAccess(queryParams);

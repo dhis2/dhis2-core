@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.attribute.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeStore;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -46,13 +46,13 @@ public class HibernateAttributeStore extends HibernateIdentifiableObjectStore<At
     implements AttributeStore {
   @Autowired
   public HibernateAttributeStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         Attribute.class,

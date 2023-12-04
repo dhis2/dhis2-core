@@ -47,7 +47,7 @@ public class vEventDate extends ProgramDateVariable {
               .getStatementBuilder()
               .getProgramIndicatorEventColumnSql(
                   null,
-                  "executiondate",
+                  "occurreddate",
                   params.getReportingStartDate(),
                   params.getReportingEndDate(),
                   params.getProgramIndicator());
@@ -55,11 +55,11 @@ public class vEventDate extends ProgramDateVariable {
       return maybeAppendEventStatusFilterIntoWhere(sqlStatement);
     }
 
-    return "executiondate";
+    return "occurreddate";
   }
 
   private String maybeAppendEventStatusFilterIntoWhere(String sqlStatement) {
-    int index = sqlStatement.indexOf("order by executiondate");
+    int index = sqlStatement.indexOf("order by occurreddate");
 
     if (index == -1) {
       return sqlStatement;

@@ -275,7 +275,7 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals(1, params.getFilterPeriods().size());
     assertEquals(deA, params.getValue());
     assertEquals(1, params.getDesc().size());
-    assertEquals("executiondate", params.getDesc().get(0).getItem().getName());
+    assertEquals("occurreddate", params.getDesc().get(0).getItem().getName());
     assertEquals(AnalyticsAggregationType.AVERAGE, params.getAggregationType());
   }
 

@@ -79,5 +79,6 @@ public interface TrackedEntityStore {
    * @param ctx aggregate context
    * @return Tei uids mapped to a list of program uids to which user has ownership
    */
-  Multimap<String, String> getOwnedTeis(List<Long> ids, Context ctx);
+  Multimap<String, String> getOwnedTeis(
+      List<Long> ids, Context ctx, boolean skipUserScopeValidation);
 }

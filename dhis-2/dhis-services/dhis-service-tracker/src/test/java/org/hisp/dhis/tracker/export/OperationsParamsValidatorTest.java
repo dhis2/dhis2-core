@@ -69,7 +69,7 @@ class OperationsParamsValidatorTest {
         Assertions.assertThrows(
             BadRequestException.class, () -> validateOrgUnitMode(CAPTURE, new User(), program));
 
-    assertEquals("User needs to be assigned data capture orgunits", exception.getMessage());
+    assertEquals("User needs to be assigned data capture org units", exception.getMessage());
   }
 
   @ParameterizedTest

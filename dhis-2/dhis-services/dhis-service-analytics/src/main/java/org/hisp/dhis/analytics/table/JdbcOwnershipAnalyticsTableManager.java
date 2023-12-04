@@ -64,7 +64,7 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.quick.JdbcConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -97,7 +97,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       AnalyticsTableHookService tableHookService,
       StatementBuilder statementBuilder,
       PartitionManager partitionManager,
-      DatabaseInfo databaseInfo,
+      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       JdbcConfiguration jdbcConfiguration,
       AnalyticsExportSettings analyticsExportSettings,
@@ -112,7 +112,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
         tableHookService,
         statementBuilder,
         partitionManager,
-        databaseInfo,
+        databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
         periodDataProvider);
@@ -178,30 +178,32 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     List<String> columnNames =
         getDimensionColumns().stream().map(AnalyticsTableColumn::getName).collect(toList());
 
-    MappingBatchHandler batchHandler =
+    try (MappingBatchHandler batchHandler =
         MappingBatchHandler.builder()
             .jdbcConfiguration(jdbcConfiguration)
             .tableName(partition.getTempTableName())
             .columns(columnNames)
-            .build();
+            .build()) {
+      batchHandler.init();
 
-    batchHandler.init();
+      JdbcOwnershipWriter writer = JdbcOwnershipWriter.getInstance(batchHandler);
+      AtomicInteger queryRowCount = new AtomicInteger();
 
-    JdbcOwnershipWriter writer = JdbcOwnershipWriter.getInstance(batchHandler);
-    AtomicInteger queryRowCount = new AtomicInteger();
+      jdbcTemplate.query(
+          sql,
+          resultSet -> {
+            writer.write(getRowMap(columnNames, resultSet));
+            queryRowCount.getAndIncrement();
+          });
 
-    jdbcTemplate.query(
-        sql,
-        resultSet -> {
-          writer.write(getRowMap(columnNames, resultSet));
-          queryRowCount.getAndIncrement();
-        });
-
-    log.info(
-        "OwnershipAnalytics query row count was {} for {}",
-        queryRowCount,
-        partition.getTempTableName());
-    batchHandler.flush();
+      log.info(
+          "OwnershipAnalytics query row count was {} for {}",
+          queryRowCount,
+          partition.getTempTableName());
+      batchHandler.flush();
+    } catch (Exception ex) {
+      log.error("Failed to alter table ownership: ", ex);
+    }
   }
 
   private String getInputSql(Program program) {

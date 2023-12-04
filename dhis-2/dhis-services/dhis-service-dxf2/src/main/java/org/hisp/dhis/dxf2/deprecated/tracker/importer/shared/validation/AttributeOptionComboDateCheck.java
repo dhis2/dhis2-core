@@ -51,10 +51,10 @@ public class AttributeOptionComboDateCheck implements Checker {
   public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
     CategoryOptionCombo attributeOptionCombo = ctx.getCategoryOptionComboMap().get(event.getUid());
 
-    Date executionDate = null;
+    Date occurreddate = null;
 
     if (event.getEventDate() != null) {
-      executionDate = DateUtils.parseDate(event.getEventDate());
+      occurreddate = DateUtils.parseDate(event.getEventDate());
     }
 
     Date dueDate = new Date();
@@ -63,7 +63,7 @@ public class AttributeOptionComboDateCheck implements Checker {
       dueDate = DateUtils.parseDate(event.getDueDate());
     }
 
-    Date eventDate = executionDate != null ? executionDate : dueDate;
+    Date eventDate = occurreddate != null ? occurreddate : dueDate;
 
     if (eventDate == null) {
       return error("Event date can not be empty", event.getEvent());

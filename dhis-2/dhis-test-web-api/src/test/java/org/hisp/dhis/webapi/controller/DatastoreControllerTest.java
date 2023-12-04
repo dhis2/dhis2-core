@@ -551,13 +551,11 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
 
   private void setUpNamespaceProtection(
       String namespace, ProtectionType readWrite, String... authorities) {
-    service.addProtection(
-        new DatastoreNamespaceProtection(namespace, readWrite, false, authorities));
+    service.addProtection(new DatastoreNamespaceProtection(namespace, readWrite, authorities));
   }
 
   private void setUpNamespaceProtectionWithSharing(
       String namespace, ProtectionType readWrite, String... authorities) {
-    service.addProtection(
-        new DatastoreNamespaceProtection(namespace, readWrite, true, authorities));
+    service.addProtection(new DatastoreNamespaceProtection(namespace, readWrite, authorities));
   }
 }

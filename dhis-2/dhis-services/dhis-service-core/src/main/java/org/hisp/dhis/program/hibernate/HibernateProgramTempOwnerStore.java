@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTempOwner;
@@ -45,10 +45,8 @@ import org.springframework.stereotype.Repository;
 public class HibernateProgramTempOwnerStore extends HibernateGenericStore<ProgramTempOwner>
     implements ProgramTempOwnerStore {
   public HibernateProgramTempOwnerStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher) {
-    super(sessionFactory, jdbcTemplate, publisher, ProgramTempOwner.class, false);
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, ProgramTempOwner.class, false);
   }
 
   // -------------------------------------------------------------------------
@@ -57,7 +55,7 @@ public class HibernateProgramTempOwnerStore extends HibernateGenericStore<Progra
 
   @Override
   public void addProgramTempOwner(ProgramTempOwner programTempOwner) {
-    sessionFactory.getCurrentSession().save(programTempOwner);
+    getSession().save(programTempOwner);
   }
 
   @Override

@@ -34,20 +34,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.hibernate.SessionFactory;
+import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -59,31 +60,30 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
 
   private final QueryPlanner queryPlanner;
 
-  private final List<InternalHibernateGenericStore<T>> hibernateGenericStores;
+  private final List<IdentifiableObjectStore<T>> hibernateGenericStores;
 
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
 
   private final QueryCacheManager queryCacheManager;
 
-  private Map<Class<?>, InternalHibernateGenericStore<T>> stores = new HashMap<>();
+  private Map<Class<?>, IdentifiableObjectStore<T>> stores = new HashMap<>();
 
-  @Autowired
   public JpaCriteriaQueryEngine(
       CurrentUserService currentUserService,
       QueryPlanner queryPlanner,
-      List<InternalHibernateGenericStore<T>> hibernateGenericStores,
-      SessionFactory sessionFactory,
-      QueryCacheManager queryCacheManager) {
+      List<IdentifiableObjectStore<T>> hibernateGenericStores,
+      QueryCacheManager queryCacheManager,
+      EntityManager entityManager) {
     checkNotNull(currentUserService);
     checkNotNull(queryPlanner);
     checkNotNull(hibernateGenericStores);
-    checkNotNull(sessionFactory);
+    checkNotNull(entityManager);
 
     this.currentUserService = currentUserService;
     this.queryPlanner = queryPlanner;
     this.hibernateGenericStores = hibernateGenericStores;
-    this.sessionFactory = sessionFactory;
     this.queryCacheManager = queryCacheManager;
+    this.entityManager = entityManager;
   }
 
   @Override
@@ -107,7 +107,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
       query = queryPlan.getPersistedQuery();
     }
 
-    CriteriaBuilder builder = sessionFactory.getCriteriaBuilder();
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
     CriteriaQuery<T> criteriaQuery = builder.createQuery(klass);
     Root<T> root = criteriaQuery.from(klass);
@@ -124,7 +124,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
       }
       criteriaQuery.where(predicate);
 
-      TypedQuery<T> typedQuery = sessionFactory.getCurrentSession().createQuery(criteriaQuery);
+      TypedQuery<T> typedQuery = entityManager.createQuery(criteriaQuery);
 
       typedQuery.setFirstResult(query.getFirstResult());
       typedQuery.setMaxResults(query.getMaxResults());
@@ -154,15 +154,15 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
               .collect(Collectors.toList()));
     }
 
-    TypedQuery<T> typedQuery = sessionFactory.getCurrentSession().createQuery(criteriaQuery);
+    TypedQuery<T> typedQuery = entityManager.createQuery(criteriaQuery);
 
     typedQuery.setFirstResult(query.getFirstResult());
     typedQuery.setMaxResults(query.getMaxResults());
 
     if (query.isCacheable()) {
-      typedQuery.setHint("org.hibernate.cacheable", true);
+      typedQuery.setHint(QueryHints.HINT_CACHEABLE, true);
       typedQuery.setHint(
-          "org.hibernate.cacheRegion",
+          QueryHints.HINT_CACHE_REGION,
           queryCacheManager.getQueryCacheRegionName(klass, typedQuery));
     }
 
@@ -190,7 +190,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
       query = queryPlan.getPersistedQuery();
     }
 
-    CriteriaBuilder builder = sessionFactory.getCriteriaBuilder();
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
     CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
     Root<T> root = criteriaQuery.from(klass);
@@ -219,7 +219,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
               .collect(Collectors.toList()));
     }
 
-    TypedQuery<Long> typedQuery = sessionFactory.getCurrentSession().createQuery(criteriaQuery);
+    TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
 
     return typedQuery.getSingleResult();
   }
@@ -229,12 +229,12 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
       return;
     }
 
-    for (InternalHibernateGenericStore<T> store : hibernateGenericStores) {
+    for (IdentifiableObjectStore<T> store : hibernateGenericStores) {
       stores.put(store.getClazz(), store);
     }
   }
 
-  private InternalHibernateGenericStore<?> getStore(Class<? extends IdentifiableObject> klass) {
+  private IdentifiableObjectStore<?> getStore(Class<? extends IdentifiableObject> klass) {
     initStoreMap();
     return stores.get(klass);
   }

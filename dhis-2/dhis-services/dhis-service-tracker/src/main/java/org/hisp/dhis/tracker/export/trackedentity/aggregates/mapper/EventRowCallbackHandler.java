@@ -68,8 +68,8 @@ public class EventRowCallbackHandler extends AbstractMapper<Event> {
     event.setId(rs.getLong(EventQuery.getColumnName(COLUMNS.ID)));
 
     event.setStatus(EventStatus.valueOf(rs.getString(EventQuery.getColumnName(COLUMNS.STATUS))));
-    event.setOccurredDate(rs.getTimestamp(EventQuery.getColumnName(COLUMNS.EXECUTION_DATE)));
-    event.setScheduledDate(rs.getTimestamp(EventQuery.getColumnName(COLUMNS.DUE_DATE)));
+    event.setOccurredDate(rs.getTimestamp(EventQuery.getColumnName(COLUMNS.OCCURRED_DATE)));
+    event.setScheduledDate(rs.getTimestamp(EventQuery.getColumnName(COLUMNS.SCHEDULED_DATE)));
     event.setStoredBy(rs.getString(EventQuery.getColumnName(COLUMNS.STOREDBY)));
     event.setCompletedBy(rs.getString(EventQuery.getColumnName(COLUMNS.COMPLETEDBY)));
     event.setCompletedDate(rs.getTimestamp(EventQuery.getColumnName(COLUMNS.COMPLETEDDATE)));

@@ -27,17 +27,24 @@
  */
 package org.hisp.dhis.tracker.imports.preheat;
 
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface TrackerPreheatService {
+
   /**
    * Preheat a set of pre-defined classes. If size == 0, then preheat all metadata classes
    * automatically.
    *
-   * @param params Params for preheating
+   * @param trackerObjects list of payload entities
+   * @param idSchemeParams id schema identifier
+   * @param user current user
+   * @return
    */
-  TrackerPreheat preheat(TrackerImportParams params);
+  TrackerPreheat preheat(
+      TrackerObjects trackerObjects, TrackerIdSchemeParams idSchemeParams, User user);
 }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static org.hisp.dhis.jsontree.JsonBuilder.createArray;
+import static org.hisp.dhis.scheduling.JobType.TRACKER_IMPORT_JOB;
 import static org.hisp.dhis.scheduling.JobType.values;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -40,6 +42,8 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -50,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -60,13 +65,18 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonNode;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.scheduling.JobType.Defaults;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -119,7 +129,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
               FileResourceDomain.JOB_DATA);
       fr.setUid(uid);
       fr.setAssigned(true);
-      fileResourceService.saveFileResource(fr, data);
+      fileResourceService.syncSaveFileResource(fr, data);
     } catch (IOException ex) {
       throw new ConflictException("Failed to create job data file resource: " + ex.getMessage());
     }
@@ -245,6 +255,75 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
           60 * systemSettings.getIntSetting(SettingKey.JOBS_RESCHEDULE_STALE_FOR_MINUTES);
     }
     return jobConfigurationStore.getStaleConfigurations(staleForSeconds);
+  }
+
+  @Nonnull
+  @Override
+  @Transactional(readOnly = true)
+  public List<JsonObject> findJobRunErrors(@Nonnull JobRunErrorsParams params) {
+    return jobConfigurationStore
+        .findJobRunErrors(params)
+        .map(json -> errorEntryWithMessages(json, params))
+        .toList();
+  }
+
+  private JsonObject errorEntryWithMessages(String json, JobRunErrorsParams params) {
+    JsonObject entry = JsonMixed.of(json);
+    List<JsonNode> flatErrors = new ArrayList<>();
+    JobType type = entry.getString("type").parsed(JobType::valueOf);
+    String fileResourceId = entry.getString("file").string();
+    JsonObject errors = entry.getObject("errors");
+    String errorCodeNamespace =
+        type == TRACKER_IMPORT_JOB
+            ? ValidationCode.class.getSimpleName()
+            : ErrorCode.class.getSimpleName();
+    errors
+        .node()
+        .members()
+        .forEach(
+            byObject ->
+                byObject
+                    .getValue()
+                    .members()
+                    .forEach(
+                        byCode ->
+                            byCode
+                                .getValue()
+                                .elements()
+                                .forEach(error -> flatErrors.add(errorWithMessage(type, error)))));
+
+    return JsonMixed.of(
+        errors
+            .node()
+            .replaceWith(createArray(arr -> flatErrors.forEach(arr::addElement)))
+            .addMembers(
+                obj ->
+                    obj.addString("codes", errorCodeNamespace)
+                        .addMember("input", getJobInput(params, fileResourceId))));
+  }
+
+  private JsonNode getJobInput(JobRunErrorsParams params, String fileResourceId) {
+    if (!params.isIncludeInput()) return JsonNode.of("null");
+    try {
+      byte[] bytes =
+          fileResourceService.copyFileResourceContent(
+              fileResourceService.getFileResource(fileResourceId));
+      return JsonNode.of(new String(bytes, StandardCharsets.UTF_8));
+    } catch (IOException ex) {
+      log.warn("Could not copy file content to error info for file: " + fileResourceId, ex);
+      return JsonNode.of("\"" + ex.getMessage() + "\"");
+    }
+  }
+
+  private static JsonNode errorWithMessage(JobType type, JsonNode error) {
+    String codeName = JsonMixed.of(error).getString("code").string();
+    String template =
+        type == TRACKER_IMPORT_JOB
+            ? ValidationCode.valueOf(codeName).getMessage()
+            : ErrorCode.valueOf(codeName).getMessage();
+    Object[] args = JsonMixed.of(error).getArray("args").stringValues().toArray(new String[0]);
+    String msg = MessageFormat.format(template, args);
+    return error.extract().addMembers(e -> e.addString("message", msg));
   }
 
   @Override

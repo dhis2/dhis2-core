@@ -1,5 +1,22 @@
 #!/usr/bin/env groovy
 
+/*
+# This pipeline can be tested by executing the following steps
+* Create a branch with a non-existing version name such as "patch/4.1.2.3"
+* Update all the pom files with the same version (4.1.2.3)
+* Commit the pom files
+* Tag the commit from above with "4.1.2.3"
+* Push
+* Update the "Filter by name (with regular expression)" field under "Branch Sources" (here)[https://ci.dhis2.org/view/dhis2-core/job/dhis2-core-stable/configure] to include your version.
+  An example of such regular expression could be: ^2[.]\d+[.]\d+$|^2[.]\d+[.]\d+-(?i)embargoed$|^patch\/2[.]\d+[.]\d+$|^patch\/(2|4)[.]\d+[.]\d+[.]\d+$|^2[.]\d+[.]\d+[.]\d+$
+* Schedule a build for your branch here... https://ci.dhis2.org/view/dhis2-core/job/dhis2-core-stable/
+
+# Clean up
+* Restore the regular expression previously updated to include your branch
+* Delete the war file from S3: aws s3 rm s3://releases.dhis2.org/...
+* Delete the docker image from the repository
+*/
+
 @Library('pipeline-library') _
 
 pipeline {

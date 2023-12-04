@@ -33,7 +33,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.fileresource.FileResource;
@@ -53,13 +53,13 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
       Set.of("image/jpg", "image/png", "image/jpeg");
 
   public HibernateFileResourceStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         FileResource.class,
