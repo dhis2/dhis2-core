@@ -11,8 +11,10 @@
 # Supported tags
 
 * [`dhis2/core`](https://hub.docker.com/r/dhis2/core) - images of the release and release-candidate
-  DHIS2 versions. These images represent the **stable** DHIS2 versions, meaning they won't be
-  rebuilt in the future.
+  DHIS2 versions. These images represent the **stable** DHIS2 versions and have immutable tags
+  like `40.1.0-20231109T170534Z` that are never rebuilt, as well as rolling tags
+  like `40.1.0`, `2.40.1.0`, `40.1`, `2.40.1`, `40` and `2.40` that point
+  to the latest immutable tag for the respective version and are regularly rebuilt.
 
 * [`dhis2/core-dev`](https://hub.docker.com/r/dhis2/core-dev) - images of _the latest development_
   DHIS2 versions - branches `master` (tagged as `latest`) and the previous 3 supported major
