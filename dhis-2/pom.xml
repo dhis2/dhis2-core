@@ -2047,6 +2047,7 @@ jasperreports.version=${jasperreports.version}
               <!-- Setting the scope to test makes the build fail -->
               <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>io.debezium:debezium-connector-postgres</ignoredNonTestScopedDependency>
+              <ignoredNonTestScopedDependency>org.springframework.security:spring-security-core</ignoredNonTestScopedDependency>
             </ignoredNonTestScopedDependencies>
           </configuration>
         </plugin>
