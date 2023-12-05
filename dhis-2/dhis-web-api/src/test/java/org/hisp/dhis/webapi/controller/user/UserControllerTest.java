@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -165,21 +166,14 @@ class UserControllerTest {
     currentUser2.setUid("def2");
 
     when(userService.getUser("def2")).thenReturn(user);
-
     when(userService.getUserByUsername(any())).thenReturn(currentUser);
+
     if (isInStatusUpdatedOK(createReportWith(Status.OK, Stats::incUpdated))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    when(userService.canAddOrUpdateUser(any())).thenReturn(true);
-    when(userService.getUserByUsername(any())).thenReturn(currentUser2);
-
     // TODO: MAS: Not sure what is wrong here
-    verify(userGroupService)
-        .updateUserGroups(
-            same(user),
-            (Collection<String>) argThat(containsInAnyOrder("abc1", "abc2")),
-            same(currentUser2));
+    verify(userGroupService).updateUserGroups(user, Set.of("abc1", "abc2"), currentUser2);
   }
 
   private ImportReport createReportWith(Status status, Consumer<Stats> operation) {

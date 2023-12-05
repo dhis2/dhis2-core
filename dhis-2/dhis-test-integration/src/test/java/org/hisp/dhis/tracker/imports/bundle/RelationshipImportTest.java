@@ -70,16 +70,18 @@ class RelationshipImportTest extends TrackerTest {
 
   @Test
   void successImportingRelationships() throws IOException {
+    userA = userService.getUser("M5zQapPyTZI");
+    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
     ImportReport importReport =
-        trackerImportService.importTracker(
-            new TrackerImportParams(), fromJson("tracker/relationships.json"));
+        trackerImportService.importTracker(params, fromJson("tracker/relationships.json"));
     assertThat(importReport.getStatus(), is(Status.OK));
     assertThat(importReport.getStats().getCreated(), is(2));
   }
 
   @Test
   void successUpdateRelationships() throws IOException {
-    TrackerImportParams trackerImportParams = new TrackerImportParams();
+    TrackerImportParams trackerImportParams =
+        TrackerImportParams.builder().userId(userA.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/relationships.json");
     trackerImportService.importTracker(trackerImportParams, trackerObjects);
     trackerObjects = fromJson("tracker/relationshipToUpdate.json");

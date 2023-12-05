@@ -53,6 +53,8 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -61,8 +63,6 @@ import org.springframework.util.MimeTypeUtils;
 class IconTest extends TrackerTest {
   @Autowired private FileResourceService fileResourceService;
 
-  //  @Autowired private CurrentUserService currentUserService;
-
   @Autowired private IconService iconService;
 
   private final String[] keywords = {"k1", "k2", "k3"};
@@ -70,6 +70,10 @@ class IconTest extends TrackerTest {
   @SneakyThrows
   @Override
   protected void initTest() throws IOException {
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
+    injectSecurityContextUser(currentUser);
+
     FileResource fileResource = createAndPersistFileResource('A');
     iconService.addCustomIcon(
         new CustomIcon(

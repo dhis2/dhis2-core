@@ -1041,11 +1041,12 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     User currentUser = userService.getUserByUsername(currentUsername);
+    List<User> allUsers = userService.getAllUsers();
     if (currentUser == null) {
+      // TODO: MAS this should be an exception
       log.error("User with username " + currentUsername + " not found");
       throw new IllegalArgumentException("User with username " + currentUsername + " not found");
     }
-    List<User> allUsers = userService.getAllUsers();
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     boolean auditEnabled = config.isEnabled(CHANGELOG_AGGREGATE);

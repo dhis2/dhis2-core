@@ -52,6 +52,7 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
@@ -285,16 +286,16 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     // Get validation criteria
     // ---------------------------------------------------------------------
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
+
     final String strArrayUserGroups =
         (currentUser == null || CollectionUtils.isEmpty(currentUser.getGroups()))
             ? null
             : "{"
                 + String.join(
                     ",",
-                    currentUser.getGroups().stream()
-                        .map(group -> group.getUid())
-                        .collect(Collectors.toList()))
+                    currentUser.getGroups().stream().map(BaseIdentifiableObject::getUid).toList())
                 + "}";
 
     final String co_group_sharing_check_query =
@@ -376,7 +377,9 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     boolean acceptanceRequiredForApproval =
         systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);
 
-    final boolean isSuperUser = CurrentUserUtil.getCurrentUserDetails().isSuper();
+    final boolean isSuperUser =
+        CurrentUserUtil.getCurrentUserDetails() != null
+            && CurrentUserUtil.getCurrentUserDetails().isSuper();
 
     final String startDate = DateUtils.getMediumDateString(period.getStartDate());
     final String endDate = DateUtils.getMediumDateString(period.getEndDate());

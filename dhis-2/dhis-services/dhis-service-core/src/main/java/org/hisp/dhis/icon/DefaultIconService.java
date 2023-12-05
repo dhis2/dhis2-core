@@ -44,6 +44,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserService;
 import org.springframework.core.io.ClassPathResource;
@@ -141,7 +142,8 @@ public class DefaultIconService implements IconService {
   public void addCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException {
     validateIconDoesNotExists(customIcon.getKey());
     FileResource fileResource = getFileResource(customIcon.getFileResourceUid());
-    customIconStore.save(customIcon, fileResource, CurrentUserUtil.getCurrentUserDetails());
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    customIconStore.save(customIcon, fileResource, currentUserDetails);
   }
 
   @Override

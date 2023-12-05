@@ -71,14 +71,15 @@ class IconServiceTest {
     when(customIconStore.getIconByKey(uniqueKey)).thenReturn(null);
     when(fileResourceService.getFileResource(fileResourceUid, CUSTOM_ICON))
         .thenReturn(Optional.of(new FileResource()));
+
     User user = new User();
     user.setId(1234);
+    user.setUsername("user");
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
 
     iconService.addCustomIcon(
         new CustomIcon(
             uniqueKey, "description", new String[] {"keyword1"}, fileResourceUid, "userUid"));
-
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
 
     verify(customIconStore, times(1))
         .save(any(CustomIcon.class), any(FileResource.class), any(CurrentUserDetails.class));

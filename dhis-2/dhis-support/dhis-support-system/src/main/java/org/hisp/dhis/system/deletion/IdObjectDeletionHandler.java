@@ -28,6 +28,7 @@
 package org.hisp.dhis.system.deletion;
 
 import java.lang.reflect.ParameterizedType;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.user.User;
@@ -38,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * IdObjectDeletionHandler#allowDeleteUser(User)} by default. If there is any object has property
  * createdBy or lastUpdatedBy linked to deleting {@link User} then the deletion is vetoed.
  */
+@Slf4j
 public abstract class IdObjectDeletionHandler<T extends IdentifiableObject>
     extends JdbcDeletionHandler {
   protected final DeletionVeto VETO;
@@ -68,6 +70,7 @@ public abstract class IdObjectDeletionHandler<T extends IdentifiableObject>
   protected abstract void registerHandler();
 
   private DeletionVeto allowDeleteUser(User user) {
+    log.error("allowDeleteUser klass>" + klass.getSimpleName());
     return idObjectManager.existsByUser(klass, user) ? VETO : DeletionVeto.ACCEPT;
   }
 }

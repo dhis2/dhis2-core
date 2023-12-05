@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.user;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUidsAsSet;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
@@ -42,6 +43,7 @@ import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -660,7 +662,7 @@ public class UserController extends AbstractCrudController<User> {
       currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     }
 
-    List<String> uids = getUids(parsed.getGroups());
+    Collection<String> uids = getUidsAsSet(parsed.getGroups());
 
     userGroupService.updateUserGroups(user, uids, currentUser);
   }

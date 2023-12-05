@@ -55,6 +55,7 @@ import java.util.Set;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -81,6 +82,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
+  @Autowired private DataElementService dataElementService;
   private OrganisationUnit unitA;
 
   private OrganisationUnit unitB;
@@ -199,6 +201,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void testDeleteLastUpdatedByUser() {
     User userA = createUserWithAuth("A", "ALL");
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(userA));
 
     DataElement dataElement = createDataElement('A');
     idObjectManager.save(dataElement);

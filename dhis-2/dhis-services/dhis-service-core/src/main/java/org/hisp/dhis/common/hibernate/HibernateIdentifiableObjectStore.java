@@ -168,7 +168,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   public void update(@Nonnull T object) {
-    update(object, CurrentUserUtil.getCurrentUserDetails());
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    update(object, currentUserDetails);
   }
 
   @Override

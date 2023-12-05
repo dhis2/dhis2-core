@@ -252,6 +252,9 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
     categoryComboA.getOptionCombos().add(categoryOptionCombo);
 
     categoryService.updateCategoryCombo(categoryComboA);
+
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
   }
 
   @Test
@@ -334,12 +337,16 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
           categoryOptionB.setStartDate(new DateTime(2020, 2, 1, 0, 0).toDate());
           categoryOptionB.setEndDate(new DateTime(2020, 6, 30, 0, 0).toDate());
 
+          clearSecurityContext();
+
           categoryService.updateCategoryOption(categoryOptionA);
           categoryService.updateCategoryOption(categoryOptionB);
 
           dbmsManager.clearSession();
           return null;
         });
+
+    injectSecurityContextUser(userA);
 
     assertEquals(
         0,
@@ -368,7 +375,10 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
     dataSetA.setOpenPeriodsAfterCoEndDate(1);
 
+    clearSecurityContext();
     dataSetService.updateDataSet(dataSetA);
+
+    injectSecurityContextUser(userA);
 
     assertEquals(
         0,
