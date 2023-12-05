@@ -146,7 +146,7 @@
     <jclouds.version>2.5.0</jclouds.version>
 
     <!-- Reporting -->
-    <jasperreports.version>6.20.6</jasperreports.version>
+    <jasperreports.version>6.21.0</jasperreports.version>
     <jfreechart.version>1.5.4</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
@@ -232,7 +232,7 @@
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.4.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
-    <dependency-check-maven.version>8.4.3</dependency-check-maven.version>
+    <dependency-check-maven.version>9.0.2</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.8.1.0</spotbugs-maven-plugin.version>
     <spotless.version>2.40.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>

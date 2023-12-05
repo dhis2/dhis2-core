@@ -696,6 +696,32 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertThat(psi2.getEventDataValues().size(), is(0));
   }
 
+  @Test
+  void testVerifyEventUpdatedForEventDateHasActiveStatus() {
+    String eventUid = CodeGenerator.generateUid();
+
+    org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment =
+        createEnrollment(programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance());
+    ImportSummary importSummary = enrollmentService.addEnrollment(enrollment, null, null);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
+        createScheduledTrackerEvent(
+            eventUid, programA, programStageA, EventStatus.SCHEDULE, organisationUnitA);
+
+    ImportSummary summary = eventService.addEvent(event, null, false);
+    assertEquals(ImportStatus.SUCCESS, summary.getStatus());
+
+    event.setEventDate(EVENT_DATE);
+
+    eventService.updateEventForEventDate(event);
+
+    dbmsManager.clearSession();
+
+    Event psi = programStageInstanceService.getEvent(eventUid);
+    assertThat(psi.getStatus(), is(EventStatus.ACTIVE));
+  }
+
   private void cleanSession() {
     entityManager.flush();
     entityManager.clear();
