@@ -63,6 +63,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -127,9 +128,11 @@ class EventSecurityImportValidationTest extends TrackerTest {
     injectAdminUser();
     assertNoErrors(
         trackerImportService.importTracker(
+            new TrackerImportParams(),
             fromJson("tracker/validations/enrollments_te_te-data.json")));
     assertNoErrors(
         trackerImportService.importTracker(
+            new TrackerImportParams(),
             fromJson("tracker/validations/enrollments_te_enrollments-data.json")));
     manager.flush();
   }
@@ -217,14 +220,14 @@ class EventSecurityImportValidationTest extends TrackerTest {
   @Test
   void testNoWriteAccessToProgramStage() throws IOException {
     setupMetadata();
-    TrackerImportParams trackerBundleParams =
+    TrackerObjects trackerObjects =
         fromJson("tracker/validations/events_error-no-programStage-access.json");
+    TrackerImportParams params = new TrackerImportParams();
     User user = userService.getUser(USER_3);
-    trackerBundleParams.setUser(user);
+    params.setUserId(user.getUid());
     user.addOrganisationUnit(organisationUnitA);
     manager.update(user);
-    trackerBundleParams.setUser(user);
-    ImportReport importReport = trackerImportService.importTracker(trackerBundleParams);
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasOnlyErrors(importReport, ValidationCode.E1095, ValidationCode.E1096);
   }
@@ -232,16 +235,15 @@ class EventSecurityImportValidationTest extends TrackerTest {
   @Test
   void testNoUncompleteEventAuth() throws IOException {
     setupMetadata();
-    TrackerImportParams params = fromJson("tracker/validations/events_error-no-uncomplete.json");
+    TrackerObjects trackerObjects = fromJson("tracker/validations/events_error-no-uncomplete.json");
+    TrackerImportParams params = new TrackerImportParams();
     params.setImportStrategy(TrackerImportStrategy.CREATE);
-    ImportReport importReport = trackerImportService.importTracker(params);
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
     // Change just inserted Event to status COMPLETED...
     Event zwwuwNp6gVd = programStageServiceInstance.getEvent("ZwwuwNp6gVd");
     zwwuwNp6gVd.setStatus(EventStatus.COMPLETED);
     manager.update(zwwuwNp6gVd);
-    TrackerImportParams trackerBundleParams =
-        fromJson("tracker/validations/events_error-no-uncomplete.json");
     programA.setPublicAccess(AccessStringHelper.FULL);
     manager.update(programA);
     programStageA.setPublicAccess(AccessStringHelper.FULL);
@@ -253,9 +255,9 @@ class EventSecurityImportValidationTest extends TrackerTest {
     manager.update(user);
     manager.flush();
     manager.clear();
-    trackerBundleParams.setUserId(user.getUid());
-    trackerBundleParams.setImportStrategy(TrackerImportStrategy.UPDATE);
-    importReport = trackerImportService.importTracker(trackerBundleParams);
+    params.setUserId(user.getUid());
+    params.setImportStrategy(TrackerImportStrategy.UPDATE);
+    importReport = trackerImportService.importTracker(params, trackerObjects);
     assertHasOnlyErrors(importReport, ValidationCode.E1083);
   }
 }

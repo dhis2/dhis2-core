@@ -39,8 +39,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManagerFactory;
 import org.hamcrest.Matchers;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.NoOpCache;
@@ -75,7 +75,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class DefaultFieldFilterServiceTest {
-  @Mock private SessionFactory sessionFactory;
+  @Mock private EntityManagerFactory entityManagerFactory;
 
   @Mock private AclService aclService;
 
@@ -97,7 +97,7 @@ class DefaultFieldFilterServiceTest {
     final SchemaService schemaService =
         new DefaultSchemaService(
             new DefaultPropertyIntrospectorService(new JacksonPropertyIntrospector()),
-            sessionFactory);
+            entityManagerFactory);
 
     CacheProvider cacheProvider = mock(CacheProvider.class);
     when(cacheProvider.createPropertyTransformerCache()).thenReturn(new NoOpCache<>());

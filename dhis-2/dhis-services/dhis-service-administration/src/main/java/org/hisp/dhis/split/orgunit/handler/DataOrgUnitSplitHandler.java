@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.split.orgunit.handler;
 
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +46,7 @@ public class DataOrgUnitSplitHandler {
 
   private static final String PARAM_SOURCE = "source";
 
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
 
   @Transactional
   public void splitData(OrgUnitSplitRequest request) {
@@ -74,8 +74,7 @@ public class DataOrgUnitSplitHandler {
 
     log.debug("Update data HQL: '{}'", hql);
 
-    sessionFactory
-        .getCurrentSession()
+    entityManager
         .createQuery(hql)
         .setParameter("source", request.getSource())
         .setParameter("target", request.getPrimaryTarget())

@@ -205,9 +205,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   void testUpdateEnrollment() {
     long idA = enrollmentService.addEnrollment(enrollmentA);
     assertNotNull(enrollmentService.getEnrollment(idA));
-    enrollmentA.setIncidentDate(enrollmentDate);
+    enrollmentA.setOccurredDate(enrollmentDate);
     enrollmentService.updateEnrollment(enrollmentA);
-    assertEquals(enrollmentDate, enrollmentService.getEnrollment(idA).getIncidentDate());
+    assertEquals(enrollmentDate, enrollmentService.getEnrollment(idA).getOccurredDate());
   }
 
   @Test

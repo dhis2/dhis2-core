@@ -28,8 +28,8 @@
 package org.hisp.dhis.sms.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.query.JpaQueryUtils;
@@ -46,13 +46,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateIncomingSmsStore extends HibernateIdentifiableObjectStore<IncomingSms>
     implements IncomingSmsStore {
   public HibernateIncomingSmsStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         IncomingSms.class,

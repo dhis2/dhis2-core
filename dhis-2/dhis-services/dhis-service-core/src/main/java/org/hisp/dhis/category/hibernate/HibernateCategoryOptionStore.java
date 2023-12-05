@@ -28,8 +28,8 @@
 package org.hisp.dhis.category.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionStore;
@@ -48,13 +48,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateCategoryOptionStore extends HibernateIdentifiableObjectStore<CategoryOption>
     implements CategoryOptionStore {
   public HibernateCategoryOptionStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         CategoryOption.class,

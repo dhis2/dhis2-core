@@ -30,11 +30,11 @@ package org.hisp.dhis.period.hibernate;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.Cache;
@@ -65,20 +65,14 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
   private final Cache<Long> periodIdCache;
 
   public HibernatePeriodStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService,
       CacheProvider cacheProvider) {
     super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        Period.class,
-        currentUserService,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, Period.class, currentUserService, aclService, true);
 
     transientIdentifiableProperties = true;
     this.periodIdCache = cacheProvider.createPeriodIdCache();
@@ -173,7 +167,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
 
   @Override
   public Period reloadPeriod(Period period) {
-    Session session = sessionFactory.getCurrentSession();
+    Session session = getSession();
 
     if (session.contains(period)) {
       return period; // Already in session, no reload needed
@@ -214,23 +208,17 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
 
   @Override
   public int addPeriodType(PeriodType periodType) {
-    Session session = sessionFactory.getCurrentSession();
-
-    return (Integer) session.save(periodType);
+    return (Integer) getSession().save(periodType);
   }
 
   @Override
   public void deletePeriodType(PeriodType periodType) {
-    Session session = sessionFactory.getCurrentSession();
-
-    session.delete(periodType);
+    getSession().delete(periodType);
   }
 
   @Override
   public PeriodType getPeriodType(int id) {
-    Session session = sessionFactory.getCurrentSession();
-
-    return session.get(PeriodType.class, id);
+    return getSession().get(PeriodType.class, id);
   }
 
   @Override
@@ -255,9 +243,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
 
   @Override
   public PeriodType reloadPeriodType(PeriodType periodType) {
-    Session session = sessionFactory.getCurrentSession();
-
-    if (periodType == null || session.contains(periodType)) {
+    if (periodType == null || getSession().contains(periodType)) {
       return periodType;
     }
 
@@ -273,7 +259,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
 
   @Override
   public Period insertIsoPeriodInStatelessSession(Period period) {
-    StatelessSession session = sessionFactory.openStatelessSession();
+    StatelessSession session = getSession().getSessionFactory().openStatelessSession();
     try {
       Serializable id = session.insert(period);
       periodIdCache.put(period.getCacheKey(), (Long) id);
@@ -294,6 +280,6 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
 
   @Override
   public void deleteRelativePeriods(RelativePeriods relativePeriods) {
-    sessionFactory.getCurrentSession().delete(relativePeriods);
+    getSession().delete(relativePeriods);
   }
 }

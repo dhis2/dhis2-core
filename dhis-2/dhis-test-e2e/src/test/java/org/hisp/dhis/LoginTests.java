@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis;
 
-import static org.hamcrest.Matchers.*;
-
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.utils.DataGenerator;

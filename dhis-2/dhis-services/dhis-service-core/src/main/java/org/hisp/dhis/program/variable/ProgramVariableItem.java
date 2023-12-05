@@ -27,7 +27,29 @@
  */
 package org.hisp.dhis.program.variable;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_ANALYTICS_PERIOD_END;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_ANALYTICS_PERIOD_START;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_COMPLETED_DATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_CREATION_DATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_CURRENT_DATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_DUE_DATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_ENROLLMENT_COUNT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_ENROLLMENT_DATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_ENROLLMENT_STATUS;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_EVENT_COUNT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_EVENT_DATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_EVENT_STATUS;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_EXECUTION_DATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_INCIDENT_DATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_ORG_UNIT_COUNT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_PROGRAM_STAGE_NAME;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_SCHEDULED_DATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_SCHEDULED_EVENT_COUNT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_SYNC_DATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_TEI_COUNT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_VALUE_COUNT;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_ZERO_POS_VALUE_COUNT;
 
 import com.google.common.collect.ImmutableMap;

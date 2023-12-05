@@ -50,9 +50,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.persistence.EntityManager;
 import org.exparity.hamcrest.date.DateMatchers;
 import org.hamcrest.CoreMatchers;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -121,7 +121,7 @@ class EventImportTest extends TransactionalIntegrationTest {
 
   @Autowired private UserService _userService;
 
-  @Autowired private SessionFactory sessionFactory;
+  @Autowired private EntityManager entityManager;
 
   @Autowired JdbcTemplate jdbcTemplate;
 
@@ -241,7 +241,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     manager.update(programB);
     enrollment = new Enrollment();
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setProgram(programB);
     enrollment.setStatus(ProgramStatus.ACTIVE);
     enrollment.setStoredBy("test");
@@ -305,7 +305,7 @@ class EventImportTest extends TransactionalIntegrationTest {
   void testAddEventOnProgramWithoutRegistrationAndExistingEnrollment() throws IOException {
     Enrollment dbEnrollment = new Enrollment();
     dbEnrollment.setEnrollmentDate(new Date());
-    dbEnrollment.setIncidentDate(new Date());
+    dbEnrollment.setOccurredDate(new Date());
     dbEnrollment.setProgram(programB);
     dbEnrollment.setStatus(ProgramStatus.ACTIVE);
     dbEnrollment.setStoredBy("test");
@@ -723,8 +723,8 @@ class EventImportTest extends TransactionalIntegrationTest {
   }
 
   private void cleanSession() {
-    sessionFactory.getCurrentSession().flush();
-    sessionFactory.getCurrentSession().clear();
+    entityManager.flush();
+    entityManager.clear();
   }
 
   private InputStream createEventsJsonInputStream(

@@ -28,12 +28,15 @@
 package org.hisp.dhis.webapi.controller.deduplication;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.web.HttpStatus;
@@ -74,6 +77,26 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
         new PotentialDuplicate(origin.getUid(), duplicate.getUid());
     assertStatus(
         HttpStatus.OK, POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
+  }
+
+  @Test
+  void shouldContainsDefaultFieldsWhenGetPotentialDuplicates() {
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(origin.getUid(), duplicate.getUid());
+    save(potentialDuplicate);
+
+    JsonList<JsonPotentialDuplicate> list =
+        GET(ENDPOINT, HttpStatus.OK)
+            .content()
+            .getList("potentialDuplicates", JsonPotentialDuplicate.class);
+
+    JsonPotentialDuplicate jsonPotentialDuplicate = list.get(0);
+    assertEquals(potentialDuplicate.getUid(), jsonPotentialDuplicate.getUid());
+    assertEquals(potentialDuplicate.getStatus().name(), jsonPotentialDuplicate.getStatus());
+    assertEquals(potentialDuplicate.getOriginal(), jsonPotentialDuplicate.getOriginal());
+    assertEquals(potentialDuplicate.getDuplicate(), jsonPotentialDuplicate.getDuplicate());
+    assertNotNull(potentialDuplicate.getCreated());
+    assertNotNull(potentialDuplicate.getLastUpdated());
   }
 
   @Test

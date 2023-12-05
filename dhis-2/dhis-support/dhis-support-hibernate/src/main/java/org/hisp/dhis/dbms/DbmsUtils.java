@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.dbms;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import org.hibernate.StatelessSession;
 import org.hisp.dhis.commons.util.DebugUtils;
-import org.springframework.orm.hibernate5.SessionFactoryUtils;
-import org.springframework.orm.hibernate5.SessionHolder;
+import org.springframework.orm.jpa.EntityManagerFactoryUtils;
+import org.springframework.orm.jpa.EntityManagerHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
@@ -40,17 +40,17 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * @version $Id$
  */
 public class DbmsUtils {
-  public static void bindSessionToThread(SessionFactory sessionFactory) {
-    Session session = sessionFactory.openSession();
-
-    TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(session));
+  public static void bindSessionToThread(EntityManagerFactory entityManagerFactory) {
+    EntityManager entityManager = entityManagerFactory.createEntityManager();
+    TransactionSynchronizationManager.bindResource(
+        entityManagerFactory, new EntityManagerHolder(entityManager));
   }
 
-  public static void unbindSessionFromThread(SessionFactory sessionFactory) {
-    SessionHolder sessionHolder =
-        (SessionHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
-
-    SessionFactoryUtils.closeSession(sessionHolder.getSession());
+  public static void unbindSessionFromThread(EntityManagerFactory entityManagerFactory) {
+    EntityManagerHolder entityManagerHolder =
+        (EntityManagerHolder)
+            TransactionSynchronizationManager.unbindResource(entityManagerFactory);
+    EntityManagerFactoryUtils.closeEntityManager(entityManagerHolder.getEntityManager());
   }
 
   public static void closeStatelessSession(StatelessSession session) {

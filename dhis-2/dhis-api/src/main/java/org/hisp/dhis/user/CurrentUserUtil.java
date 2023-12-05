@@ -94,10 +94,6 @@ public class CurrentUserUtil {
     // Principal being a string implies anonymous authentication
     // This is the state before the user is authenticated.
     if (principal instanceof String) {
-      if (!"anonymousUser".equals(principal)) {
-        return null;
-      }
-
       return null;
     }
 

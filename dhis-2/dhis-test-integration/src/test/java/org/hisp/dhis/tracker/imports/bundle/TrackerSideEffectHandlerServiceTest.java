@@ -36,6 +36,7 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.junit.jupiter.api.Disabled;
@@ -61,6 +62,7 @@ class TrackerSideEffectHandlerServiceTest extends TrackerTest {
   void testRuleEngineSideEffectHandlerService() throws IOException {
     ImportReport importReport =
         trackerImportService.importTracker(
+            new TrackerImportParams(),
             fromJson("tracker/enrollment_data_with_program_rule_side_effects.json"));
     assertNoErrors(importReport);
 

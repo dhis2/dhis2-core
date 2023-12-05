@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.hisp.dhis.analytics.AnalyticsTableType.COMPLETENESS;
 import static org.hisp.dhis.analytics.AnalyticsTableType.COMPLETENESS_TARGET;
 import static org.hisp.dhis.analytics.AnalyticsTableType.DATA_VALUE;
@@ -69,7 +70,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * @author Lars Helge Overland
+ * @author Lars Helge Overland. This is the AnalyticsExportController
  */
 @OpenApi.Tags("analytics")
 @Controller
@@ -88,36 +89,37 @@ public class ResourceTableController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseBody
   public WebMessage analytics(
-      @RequestParam(required = false) boolean skipResourceTables,
-      @RequestParam(required = false) boolean skipAggregate,
-      @RequestParam(required = false) boolean skipEvents,
-      @RequestParam(required = false) boolean skipEnrollment,
-      @RequestParam(required = false) boolean executeTei,
-      @RequestParam(required = false) boolean skipOrgUnitOwnership,
-      @RequestParam(required = false) Integer lastYears)
+      @RequestParam(defaultValue = "false") Boolean skipResourceTables,
+      @RequestParam(defaultValue = "false") Boolean skipAggregate,
+      @RequestParam(defaultValue = "false") Boolean skipEvents,
+      @RequestParam(defaultValue = "false") Boolean skipEnrollment,
+      @RequestParam(defaultValue = "false") Boolean skipTrackedEntities,
+      @RequestParam(defaultValue = "false") Boolean skipOrgUnitOwnership,
+      @RequestParam(required = false) Integer lastYears,
+      @RequestParam(defaultValue = "false") Boolean skipOutliers)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
     Set<String> skipPrograms = new HashSet<>();
 
-    if (skipAggregate) {
+    if (isTrue(skipAggregate)) {
       skipTableTypes.add(DATA_VALUE);
       skipTableTypes.add(COMPLETENESS);
       skipTableTypes.add(COMPLETENESS_TARGET);
     }
 
-    if (skipEvents) {
+    if (isTrue(skipEvents)) {
       skipTableTypes.add(EVENT);
     }
 
-    if (skipEnrollment) {
+    if (isTrue(skipEnrollment)) {
       skipTableTypes.add(ENROLLMENT);
     }
 
-    if (skipOrgUnitOwnership) {
+    if (isTrue(skipOrgUnitOwnership)) {
       skipTableTypes.add(OWNERSHIP);
     }
 
-    if (!executeTei) {
+    if (isTrue(skipTrackedEntities)) {
       skipTableTypes.add(TRACKED_ENTITY_INSTANCE);
       skipTableTypes.add(TRACKED_ENTITY_INSTANCE_EVENTS);
       skipTableTypes.add(TRACKED_ENTITY_INSTANCE_ENROLLMENTS);
@@ -126,7 +128,8 @@ public class ResourceTableController {
     JobConfiguration config = new JobConfiguration(ANALYTICS_TABLE);
     config.setExecutedBy(currentUserService.getCurrentUser().getUid());
     config.setJobParameters(
-        new AnalyticsJobParameters(lastYears, skipTableTypes, skipPrograms, skipResourceTables));
+        new AnalyticsJobParameters(
+            lastYears, skipTableTypes, skipPrograms, skipResourceTables, skipOutliers));
 
     return execute(config);
   }

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.relationship.hibernate;
 
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeStore;
@@ -45,13 +45,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateRelationshipTypeStore
     extends HibernateIdentifiableObjectStore<RelationshipType> implements RelationshipTypeStore {
   public HibernateRelationshipTypeStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         RelationshipType.class,

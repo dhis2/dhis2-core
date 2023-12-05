@@ -30,10 +30,10 @@ package org.hisp.dhis.common.hibernate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.hibernate.SharingHibernateGenericStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -50,15 +50,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     extends InternalHibernateGenericStoreImpl<T> implements SharingHibernateGenericStore<T> {
   public SharingHibernateGenericStoreImpl(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       Class<T> clazz,
       AclService aclService,
       CurrentUserService currentUserService,
       boolean cacheable) {
-    super(
-        sessionFactory, jdbcTemplate, publisher, clazz, aclService, currentUserService, cacheable);
+    super(entityManager, jdbcTemplate, publisher, clazz, aclService, currentUserService, cacheable);
   }
 
   @Override

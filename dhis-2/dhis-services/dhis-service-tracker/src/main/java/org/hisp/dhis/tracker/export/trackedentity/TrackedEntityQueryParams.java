@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import static java.lang.Boolean.TRUE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -170,15 +169,6 @@ public class TrackedEntityQueryParams {
     } else if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
       setOrgUnits(user.getOrganisationUnits());
       setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> organisationUnits = new HashSet<>(getOrgUnits());
-
-      for (OrganisationUnit organisationUnit : getOrgUnits()) {
-        organisationUnits.addAll(organisationUnit.getChildren());
-      }
-
-      setOrgUnits(organisationUnits);
-      setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
     }
   }
 
@@ -594,7 +584,9 @@ public class TrackedEntityQueryParams {
     return trackedEntityTypes;
   }
 
-  public void setTrackedEntityTypes(List<TrackedEntityType> trackedEntityTypes) {
+  public TrackedEntityQueryParams setTrackedEntityTypes(
+      List<TrackedEntityType> trackedEntityTypes) {
     this.trackedEntityTypes = trackedEntityTypes;
+    return this;
   }
 }

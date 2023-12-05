@@ -110,7 +110,7 @@ class EventXmlImportTest extends TransactionalIntegrationTest {
     enrollment.setProgram(programA);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setStatus(ProgramStatus.ACTIVE);
     enrollmentService.addEnrollment(enrollment);
     programStageA.getProgramStageDataElements().add(programStageDataElement);

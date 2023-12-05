@@ -35,13 +35,16 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
+import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
+import java.util.Map;
+import net.minidev.json.JSONObject;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.analytics.AnalyticsTeiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.junit.jupiter.api.Disabled;
+import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -1810,15 +1813,15 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
-  @Disabled("Fails in CI. Remove this annotation when test will be fixed")
-  public void queryWithProgramAndEnrollmentDateAndPositiveEnrollmentOffset() {
+  public void queryWithProgramAndEnrollmentDateOffset() throws JSONException {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
+            .add("headers=ouname,w75KJ2mc4zz,zDhUuAYrxNC")
+            .add("enrollmentDate=IpHINAT79UW[0].LAST_YEAR")
             .add("program=IpHINAT79UW")
-            .add("enrollmentDate=IpHINAT79UW[1].LAST_MONTH")
-            .add("desc=lastupdated")
-            .add("headers=ouname,IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC");
+            .add("desc=w75KJ2mc4zz,lastupdated,zDhUuAYrxNC")
+            .add("relativePeriodDate=2023-01-01");
 
     // When
     ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
@@ -1833,55 +1836,71 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
-    // Validate headers
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":false},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2022\":{\"name\":\"2022\"},\"LAST_YEAR\":{\"name\":\"Last year\"},\"cejWyOfXge6\":{\"name\":\"Gender\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[\"2022\"],\"w75KJ2mc4zz\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
     validateHeader(
         response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response,
-        1,
-        "IpHINAT79UW.w75KJ2mc4zz",
-        "First name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 1, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response,
-        2,
-        "IpHINAT79UW.zDhUuAYrxNC",
-        "Last name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 2, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
 
-    // Validate the first three rows, as samples.
-    validateRow(response, 0, List.of("Ngelehun CHC", "John", "Kelly"));
-
-    validateRow(response, 1, List.of("Jangalor MCHP", "Antonio", "Ruiz"));
-
-    validateRow(response, 2, List.of("Bureh MCHP", "Ralph", "Smith"));
-  }
-
-  @Test
-  public void queryWithProgramAndEnrollmentDateAndInvalidEnrollmentOffset() {
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("program=IpHINAT79UW")
-            .add("enrollmentDate=IpHINAT79UW[0].LAST_YEAR")
-            .add("headers=ouname,IpHINAT79UW.w75KJ2mc4zz,IpHINAT79UW.zDhUuAYrxNC");
-
-    // When
-    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
-
-    // Then
-    response
-        .validate()
-        .statusCode(409)
-        .body("status", equalTo("ERROR"))
-        .body("message", equalTo("Invalid offset: `IpHINAT79UW[0]`"))
-        .body("errorCode", equalTo("E7138"));
+    // Assert rows.
+    validateRow(response, 0, List.of("Gbongongor CHP", "Willie", "Bell"));
+    validateRow(response, 1, List.of("Nafaya MCHP", "Willie", "Williams"));
+    validateRow(response, 2, List.of("Serabu Hospital Mission", "Willie", "Hawkins"));
+    validateRow(response, 3, List.of("Motorbong MCHP", "Willie", "Hunt"));
+    validateRow(response, 4, List.of("Talia (Nongowa) CHC", "Willie", "Mcdonald"));
+    validateRow(response, 5, List.of("Deima MCHP", "Willie", "Bradley"));
+    validateRow(response, 6, List.of("Senehun CHC", "Willie", "Hanson"));
+    validateRow(response, 7, List.of("Nyangbe-Bo MCHP", "Willie", "Long"));
+    validateRow(response, 8, List.of("Bunabu MCHP", "Willie", "Jenkins"));
+    validateRow(response, 9, List.of("Gao MCHP", "Willie", "Cole"));
+    validateRow(response, 10, List.of("Mano Gbonjeima CHC", "Willie", "Hernandez"));
+    validateRow(response, 11, List.of("Bandajuma Sinneh MCHP", "Willie", "Stephens"));
+    validateRow(response, 12, List.of("Gbentu CHP", "Willie", "Bradley"));
+    validateRow(response, 13, List.of("Jormu CHP", "Willie", "Little"));
+    validateRow(response, 14, List.of("Patama MCHP", "Willie", "Morgan"));
+    validateRow(response, 15, List.of("Motuo CHC", "Willie", "Jacobs"));
+    validateRow(response, 16, List.of("Small Sefadu MCHP", "Willie", "Garza"));
+    validateRow(response, 17, List.of("Gbamani CHP", "Willie", "Hall"));
+    validateRow(response, 18, List.of("Rokupr CHC", "Willie", "Dixon"));
+    validateRow(response, 19, List.of("Nyandehun Nguvoihun CHP", "Willie", "Stone"));
+    validateRow(response, 20, List.of("Kainkordu CHC", "Willie", "Harvey"));
+    validateRow(response, 21, List.of("Ngolahun CHC", "Willie", "Reyes"));
+    validateRow(response, 22, List.of("Magbeni MCHP", "Willie", "Gibson"));
+    validateRow(response, 23, List.of("Warima MCHP", "Willie", "Nichols"));
+    validateRow(response, 24, List.of("Modonkor CHP", "Willie", "Henry"));
+    validateRow(response, 25, List.of("Mamanso Kafla MCHP", "Willie", "Collins"));
+    validateRow(response, 26, List.of("Gbindi CHP", "Willie", "Payne"));
+    validateRow(response, 27, List.of("Manjama MCHP", "Willie", "Dixon"));
+    validateRow(response, 28, List.of("Kumrabai Yoni MCHP", "Willie", "Fisher"));
+    validateRow(response, 29, List.of("Kent CHP", "Willie", "Gilbert"));
+    validateRow(response, 30, List.of("Bumpeh Perri CHC", "Willie", "Stevens"));
+    validateRow(response, 31, List.of("Maborie MCHP", "Willie", "Harvey"));
+    validateRow(response, 32, List.of("Yengema CHC", "Willie", "Jordan"));
+    validateRow(response, 33, List.of("Degbuama MCHP", "Willie", "Gonzales"));
+    validateRow(response, 34, List.of("Mokongbetty MCHP", "Willie", "Mason"));
+    validateRow(response, 35, List.of("Catholic Clinic", "Willie", "Hughes"));
+    validateRow(response, 36, List.of("Yataya CHP", "Willie", "Martin"));
+    validateRow(response, 37, List.of("Fanima CHP", "Willie", "Chapman"));
+    validateRow(response, 38, List.of("Masongbo Limba MCHP", "Willie", "Collins"));
+    validateRow(response, 39, List.of("Teko Barracks Clinic", "Willie", "Price"));
+    validateRow(response, 40, List.of("Gbaneh Bana MCHP", "Willie", "Sims"));
+    validateRow(response, 41, List.of("Ngelehun MCHP", "Willie", "Stone"));
+    validateRow(response, 42, List.of("Kantia CHP", "Willie", "Jacobs"));
+    validateRow(response, 43, List.of("Magbeni MCHP", "Willie", "Richards"));
+    validateRow(response, 44, List.of("Masongbo Limba MCHP", "Willie", "Bell"));
+    validateRow(response, 45, List.of("Senekedugu MCHP", "Willie", "Williams"));
+    validateRow(response, 46, List.of("Njala University Hospital", "Willie", "Hawkins"));
+    validateRow(response, 47, List.of("Loreto Clinic", "Willie", "Green"));
+    validateRow(response, 48, List.of("Makaba MCHP", "Willie", "Phillips"));
+    validateRow(response, 49, List.of("Bandajuma Clinic CHC", "Willie", "Thompson"));
   }
 
   @Test
@@ -2694,5 +2713,70 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Female",
             "",
             "COMPLETED"));
+  }
+
+  @Test
+  public void queryProgramIndicator() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("program=IpHINAT79UW")
+            .add(
+                "dimension=IpHINAT79UW.GxdhnY5wmHq,w75KJ2mc4zz:eq:Justin,zDhUuAYrxNC:eq:Hayes,ou:eqPIdr5yD1Q")
+            .add("desc=IpHINAT79UW.GxdhnY5wmHq")
+            .add("lastUpdated=LAST_YEAR")
+            .add("relativePeriodDate=2016-01-01");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
+        .body("width", equalTo(17))
+        .body("headerWidth", equalTo(17))
+        .body("headers", hasSize(equalTo(17)))
+        .body("metaData.pager.page", equalTo(1))
+        .body("metaData.pager.pageSize", equalTo(50))
+        .body("metaData.pager.isLastPage", is(true))
+        .body("metaData.pager", not(hasKey("total")))
+        .body("metaData.pager", not(hasKey("pageCount")))
+        .body("metaData.items.GxdhnY5wmHq.name", equalTo("Average weight (g)"))
+        .body("metaData.dimensions", hasKey("pe"));
+
+    validateHeader(
+        response,
+        16,
+        "IpHINAT79UW.GxdhnY5wmHq",
+        "Average weight (g)",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        true);
+
+    validateRow(
+        response,
+        0,
+        List.of(
+            "a04hYxjC8lM",
+            "2015-08-06 21:20:52.547",
+            "",
+            "2015-08-06 21:20:52.547",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Rokolon MCHP",
+            "OU_707826",
+            "Sierra Leone / Moyamba / Ribbi / Rokolon MCHP",
+            "Justin",
+            "Hayes",
+            "Male",
+            "",
+            "2994.5"));
   }
 }

@@ -78,7 +78,7 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -102,7 +102,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
       AnalyticsTableHookService tableHookService,
       StatementBuilder statementBuilder,
       PartitionManager partitionManager,
-      DatabaseInfo databaseInfo,
+      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
       AnalyticsExportSettings settings,
@@ -117,7 +117,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         tableHookService,
         statementBuilder,
         partitionManager,
-        databaseInfo,
+        databaseInfoProvider,
         jdbcTemplate,
         settings,
         periodDataProvider);
@@ -134,10 +134,10 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
           new AnalyticsTableColumn(quote("programinstanceuid"), CHARACTER_11, NULL, "pi.uid"),
           new AnalyticsTableColumn(quote("programstageuid"), CHARACTER_11, NULL, "ps.uid"),
           new AnalyticsTableColumn(quote("programstageinstanceuid"), CHARACTER_11, NULL, "psi.uid"),
-          new AnalyticsTableColumn(quote("executiondate"), TIMESTAMP, "psi.executiondate"),
+          new AnalyticsTableColumn(quote("occurreddate"), TIMESTAMP, "psi.occurreddate"),
           new AnalyticsTableColumn(quote("lastupdated"), TIMESTAMP, "psi.lastupdated"),
           new AnalyticsTableColumn(quote("created"), TIMESTAMP, "psi.created"),
-          new AnalyticsTableColumn(quote("duedate"), TIMESTAMP, "psi.duedate"),
+          new AnalyticsTableColumn(quote("scheduleddate"), TIMESTAMP, "psi.scheduleddate"),
           new AnalyticsTableColumn(quote("status"), VARCHAR_50, "psi.status"),
           new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry")
               .withIndexType(GIST),

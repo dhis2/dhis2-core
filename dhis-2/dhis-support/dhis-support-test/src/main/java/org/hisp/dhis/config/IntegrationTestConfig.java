@@ -33,6 +33,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
@@ -77,6 +79,11 @@ public class IntegrationTestConfig {
   }
 
   @Bean
+  public static SessionRegistry sessionRegistry() {
+    return new SessionRegistryImpl();
+  }
+
+  @Bean
   public LdapAuthenticator ldapAuthenticator() {
     return authentication -> null;
   }
@@ -95,7 +102,7 @@ public class IntegrationTestConfig {
   public DhisConfigurationProvider dhisConfigurationProvider() {
 
     PostgresDhisConfigurationProvider dhisConfigurationProvider =
-        new PostgresDhisConfigurationProvider();
+        new PostgresDhisConfigurationProvider(getConfigurationFile());
 
     Properties properties = new Properties();
     properties.setProperty(
@@ -107,5 +114,9 @@ public class IntegrationTestConfig {
     dhisConfigurationProvider.addProperties(properties);
 
     return dhisConfigurationProvider;
+  }
+
+  protected String getConfigurationFile() {
+    return "postgresTestConfig.conf";
   }
 }

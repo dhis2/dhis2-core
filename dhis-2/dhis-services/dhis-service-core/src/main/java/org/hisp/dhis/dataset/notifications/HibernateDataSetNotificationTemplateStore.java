@@ -28,11 +28,10 @@
 package org.hisp.dhis.dataset.notifications;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -45,13 +44,13 @@ public class HibernateDataSetNotificationTemplateStore
     extends HibernateIdentifiableObjectStore<DataSetNotificationTemplate>
     implements DataSetNotificationTemplateStore {
   public HibernateDataSetNotificationTemplateStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         DataSetNotificationTemplate.class,
@@ -73,7 +72,8 @@ public class HibernateDataSetNotificationTemplateStore
   }
 
   @Override
-  public List<DataSetNotificationTemplate> getScheduledNotifications(NotificationTrigger trigger) {
+  public List<DataSetNotificationTemplate> getScheduledNotifications(
+      DataSetNotificationTrigger trigger) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     return getList(
