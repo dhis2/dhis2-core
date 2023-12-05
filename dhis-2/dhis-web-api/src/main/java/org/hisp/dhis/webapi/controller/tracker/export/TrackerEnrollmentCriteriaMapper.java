@@ -169,7 +169,8 @@ public class TrackerEnrollmentCriteriaMapper {
   }
 
   private void validateOrgUnitMode(TrackerEnrollmentCriteria criteria) throws ForbiddenException {
-    if (criteria.getOuMode().equals(ALL)
+    if (criteria.getOuMode() != null
+        && criteria.getOuMode().equals(ALL)
         && !currentUserService.currentUserIsAuthorized(
             Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name())) {
       throw new ForbiddenException(
