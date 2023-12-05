@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.outlierdetection.processor;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.outlierdetection.Order.MEAN_ABS_DEV;
+import static org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm.MOD_Z_SCORE;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.DATA_ELEMENT_IDS;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.END_DATE;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.MAX_RESULTS;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.START_DATE;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.THRESHOLD;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.outlierdetection.Order;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.outlierdetection.OutliersSqlParamName;
 import org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -71,83 +71,78 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
     if (request == null) {
-      return StringUtils.EMPTY;
+      return EMPTY;
     }
 
     String ouPathClause = OutlierDetectionUtils.getOrgUnitPathClause(request.getOrgUnits(), "ax");
 
-    boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
+    boolean modifiedZ = request.getAlgorithm() == MOD_Z_SCORE;
 
-    String middleValue = modifiedZ ? " ax.percentile_middle_value" : " ax.avg_middle_value";
+    String middleValue = modifiedZ ? " ax.percentilemiddlevalue" : " ax.avgmiddlevalue";
 
     String order =
-        request.getOrderBy() == Order.MEAN_ABS_DEV
-            ? "middle_value_abs_dev"
-            : request.getOrderBy().getKey();
-    String thresholdParam = OutliersSqlParamName.THRESHOLD.getKey();
+        request.getOrderBy() == MEAN_ABS_DEV ? "middlevalueabsdev" : request.getOrderBy().getKey();
+    String thresholdParam = THRESHOLD.getKey();
 
     String sql =
         "select * from (select "
             + "ax.dataelementid, "
-            + "ax.de_uid, "
-            + "ax.ou_uid, "
-            + "ax.coc_uid, "
-            + "ax.aoc_uid, "
+            + "ax.dx, "
+            + "ax.ou, "
+            + "ax.co, "
+            + "ax.ao, "
             + "ax.de_name, "
             + "ax.ou_name, "
             + "ax.coc_name, "
             + "ax.aoc_name, "
             + "ax.value, "
-            + "ax.pestartdate as pe_start_date, "
-            + "ax.pt_name, "
+            + "ax.pestartdate, "
+            + "ax.petype, "
             + middleValue
-            + " as middle_value, "
-            + "ax.std_dev as std_dev, "
+            + " as middlevalue, "
+            + "ax.stddev, "
             + "ax.mad as mad, "
             + "abs(ax.value::double precision - "
             + middleValue
-            + ") as middle_value_abs_dev, ";
+            + ") as middlevalueabsdev, ";
     if (modifiedZ) {
       sql +=
           "(case when ax.mad = 0 then 0 "
               + "      else 0.6745 * abs(ax.value::double precision - "
               + middleValue
               + " ) / ax.mad "
-              + "       end) as z_score, ";
+              + "       end) as zscore, ";
     } else {
       sql +=
-          "(case when ax.std_dev = 0 then 0 "
+          "(case when ax.stddev = 0 then 0 "
               + "      else abs(ax.value::double precision - "
               + middleValue
-              + " ) / ax.std_dev "
-              + "       end) as z_score, ";
+              + " ) / ax.stddev "
+              + "       end) as zscore, ";
     }
     sql +=
         middleValue
-            + " - (ax.std_dev * :"
+            + " - (ax.stddev * :"
             + thresholdParam
-            + ") as lower_bound, "
+            + ") as lowerbound, "
             + middleValue
-            + " + (ax.std_dev * :"
+            + " + (ax.stddev * :"
             + thresholdParam
-            + ") as upper_bound "
+            + ") as upperbound "
             + "from analytics ax "
             + "where dataelementid in  (:"
             + DATA_ELEMENT_IDS.getKey()
             + ") "
             + "and "
             + ouPathClause
-            + " "
-            + "and ax.pestartdate >= :"
+            + " and ax.pestartdate >= :"
             + START_DATE.getKey()
-            + " "
-            + "and ax.peenddate <= :"
+            + " and ax.peenddate <= :"
             + END_DATE.getKey()
             + ") t1 "
-            + "where t1.z_score > :"
+            + "where t1.zscore > :"
             + thresholdParam
-            + " "
-            + "order by "
+            + " order by "
             + order
             + " desc "
             + "limit :"

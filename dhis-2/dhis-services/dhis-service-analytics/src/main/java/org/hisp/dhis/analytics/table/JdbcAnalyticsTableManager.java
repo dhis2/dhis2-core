@@ -561,33 +561,33 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private List<AnalyticsTableColumn> getOutlierStatsColumns() {
     return List.of(
-        new AnalyticsTableColumn(quote("de_uid"), CHARACTER_11, NOT_NULL, "de.uid"),
-        new AnalyticsTableColumn(quote("coc_uid"), CHARACTER_11, NOT_NULL, "co.uid"),
-        new AnalyticsTableColumn(quote("aoc_uid"), CHARACTER_11, NOT_NULL, "ao.uid"),
-        new AnalyticsTableColumn(quote("ou_uid"), CHARACTER_11, NOT_NULL, "ou.uid"),
-        new AnalyticsTableColumn(quote("dataelementid"), INTEGER, NOT_NULL, "dv.dataelementid")
-            .withIndexColumns(List.of(quote("dataelementid"))),
+
+        // TODO: Do not export IDs into analytics. We work only with UIDs.
         new AnalyticsTableColumn(quote("sourceid"), INTEGER, NOT_NULL, "dv.sourceid"),
         new AnalyticsTableColumn(quote("periodid"), INTEGER, NOT_NULL, "dv.periodid"),
         new AnalyticsTableColumn(
             quote("categoryoptioncomboid"), INTEGER, NOT_NULL, "dv.categoryoptioncomboid"),
         new AnalyticsTableColumn(
             quote("attributeoptioncomboid"), INTEGER, NOT_NULL, "dv.attributeoptioncomboid"),
+        new AnalyticsTableColumn(quote("dataelementid"), INTEGER, NOT_NULL, "dv.dataelementid")
+            .withIndexColumns(List.of(quote("dataelementid"))),
+
+        // TODO: Remove all these name columns from here. Analytics tables should not have them.
         new AnalyticsTableColumn(quote("de_name"), VARCHAR_255, "de.name"),
         new AnalyticsTableColumn(quote("ou_name"), VARCHAR_255, "ou.name"),
         new AnalyticsTableColumn(quote("coc_name"), VARCHAR_255, "co.name"),
         new AnalyticsTableColumn(quote("aoc_name"), VARCHAR_255, "ao.name"),
-        new AnalyticsTableColumn(quote("pt_name"), VARCHAR_255, "pt.name"),
+        new AnalyticsTableColumn(quote("petype"), VARCHAR_255, "pt.name"),
         new AnalyticsTableColumn(quote("path"), VARCHAR_255, "ou.path"),
         // mean
-        new AnalyticsTableColumn(quote("avg_middle_value"), DOUBLE, "stats.avg_middle_value"),
+        new AnalyticsTableColumn(quote("avgmiddlevalue"), DOUBLE, "stats.avgmiddlevalue"),
         // median
         new AnalyticsTableColumn(
-            quote("percentile_middle_value"), DOUBLE, "stats.percentile_middle_value"),
+            quote("percentilemiddlevalue"), DOUBLE, "stats.percentilemiddlevalue"),
         // median of absolute deviations "MAD"
         new AnalyticsTableColumn(quote("mad"), DOUBLE, "stats.mad"),
         // standard deviation
-        new AnalyticsTableColumn(quote("std_dev"), DOUBLE, "stats.std_dev"));
+        new AnalyticsTableColumn(quote("stddev"), DOUBLE, "stats.stddev"));
   }
 
   /**
@@ -690,18 +690,18 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "                           t3.attributeoptioncomboid, "
         // median of absolute deviations "mad" (median(xi - median(xi)))
         + "                           percentile_cont(0.5) "
-        + "                           within group (order by abs(t3.value::double precision - t3.percentile_middle_value)) as MAD, "
+        + "                           within group (order by abs(t3.value::double precision - t3.percentilemiddlevalue)) as MAD, "
         // mean
-        + "                           avg(t3.value::double precision)                                                 as avg_middle_value, "
+        + "                           avg(t3.value::double precision)                                                 as avgmiddlevalue, "
         // median of the samples (median(xi))
         + "                           percentile_cont(0.5) "
-        + "                           within group (order by t3.value::double precision)                              as percentile_middle_value, "
+        + "                           within group (order by t3.value::double precision)                              as percentilemiddlevalue, "
         // standard deviation of the normal distribution
-        + "                           stddev_pop(t3.value::double precision)                                          as std_dev "
+        + "                           stddev_pop(t3.value::double precision)                                          as stddev "
         // Table "t3" is the composition of the tables "t2" (median of xi) and "t3" (values xi).
-        // For Z-Score  the mean (avg_middle_value) and standard deviation (std_dev) is used ((xi -
-        // mean(x))/std_dev).
-        // For modified Z-Score the median (percentile_middle_value) and the median of absolute
+        // For Z-Score  the mean (avgmiddlevalue) and standard deviation (stddev) is used ((xi -
+        // mean(x))/stddev).
+        // For modified Z-Score the median (percentilemiddlevalue) and the median of absolute
         // deviations (mad) is used (0.6745*(xi - median(x)/mad)).
         // The factor 0.6745 is the 0.75 quartile of the normal distribution, to which the "mad"
         // converges to.
@@ -709,7 +709,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "                                 t1.sourceid, "
         + "                                 t1.categoryoptioncomboid, "
         + "                                 t1.attributeoptioncomboid, "
-        + "                                 t1.percentile_middle_value, "
+        + "                                 t1.percentilemiddlevalue, "
         + "                                 t2.value "
         // Table "t1" retrieving the median of all data element (dataelementid) values belongs to
         // the same organisation (sourceid)
@@ -720,7 +720,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "                                       dv1.attributeoptioncomboid                          as attributeoptioncomboid, "
         // median
         + "                                       percentile_cont(0.5) "
-        + "                                       within group (order by dv1.value::double precision) as percentile_middle_value "
+        + "                                       within group (order by dv1.value::double precision) as percentilemiddlevalue "
         + "                                from datavalue dv1 "
         + "                                         inner join period pe on dv1.periodid = pe.periodid "
         + "                                         inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
@@ -742,7 +742,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "                                from datavalue dv1 "
         + "                                         inner join period pe on dv1.periodid = pe.periodid "
         + "                                         inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
-        // Only numeric values (varchars) can be used for stats calculation.
+        // Only numeric values can be used for stats calculation. The regex ensures that.
         + "                                where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
         + "                                group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
         + "                                         dv1.attributeoptioncomboid, dv1.value, dv1.periodid) t2 "

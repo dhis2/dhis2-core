@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.outlierdetection.service;
 
+import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm.MOD_Z_SCORE;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -36,8 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.hisp.dhis.outlierdetection.OutlierValue;
@@ -125,27 +127,24 @@ public class AnalyticsOutlierDetectionService {
   }
 
   private void setHeaders(Grid grid, OutlierDetectionRequest request) {
-    boolean isModifiedZScore = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
+    boolean isModifiedZScore = request.getAlgorithm() == MOD_Z_SCORE;
 
-    grid.addHeader(new GridHeader("data element", ValueType.TEXT));
-    grid.addHeader(new GridHeader("data element name", ValueType.TEXT));
-    grid.addHeader(new GridHeader("period", ValueType.TEXT));
-    grid.addHeader(new GridHeader("organisation unit", ValueType.TEXT));
-    grid.addHeader(new GridHeader("organisation unit name", ValueType.TEXT));
-    grid.addHeader(new GridHeader("category option", ValueType.TEXT));
-    grid.addHeader(new GridHeader("category option name", ValueType.TEXT));
-    grid.addHeader(new GridHeader("attribute option", ValueType.TEXT));
-    grid.addHeader(new GridHeader("attribute option name", ValueType.TEXT));
-    grid.addHeader(new GridHeader("value", ValueType.NUMBER));
-    grid.addHeader(new GridHeader(isModifiedZScore ? "median" : "mean", ValueType.NUMBER));
-    grid.addHeader(
-        new GridHeader(
-            isModifiedZScore ? "median absolute deviation" : "stdDev", ValueType.NUMBER));
-    grid.addHeader(new GridHeader("absDev", ValueType.NUMBER));
-    grid.addHeader(
-        new GridHeader(isModifiedZScore ? "modified zScore" : "zScore", ValueType.NUMBER));
-    grid.addHeader(new GridHeader("lowerBound", ValueType.NUMBER));
-    grid.addHeader(new GridHeader("upperBound", ValueType.NUMBER));
+    grid.addHeader(new GridHeader("dx", TEXT));
+    grid.addHeader(new GridHeader("dxname", TEXT));
+    grid.addHeader(new GridHeader("pe", TEXT));
+    grid.addHeader(new GridHeader("ou", TEXT));
+    grid.addHeader(new GridHeader("ouname", TEXT));
+    grid.addHeader(new GridHeader("co", TEXT));
+    grid.addHeader(new GridHeader("coname", TEXT));
+    grid.addHeader(new GridHeader("ao", TEXT));
+    grid.addHeader(new GridHeader("aoname", TEXT));
+    grid.addHeader(new GridHeader("value", NUMBER));
+    grid.addHeader(new GridHeader(isModifiedZScore ? "median" : "mean", NUMBER));
+    grid.addHeader(new GridHeader(isModifiedZScore ? "medianabsdeviation" : "stddev", NUMBER));
+    grid.addHeader(new GridHeader("absdev", NUMBER));
+    grid.addHeader(new GridHeader(isModifiedZScore ? "modifiedzscore" : "zscore", NUMBER));
+    grid.addHeader(new GridHeader("lowerbound", NUMBER));
+    grid.addHeader(new GridHeader("upperbound", NUMBER));
   }
 
   private void setMetaData(
@@ -161,8 +160,7 @@ public class AnalyticsOutlierDetectionService {
       Grid grid, List<OutlierValue> outlierValues, OutlierDetectionRequest request) {
     outlierValues.forEach(
         v -> {
-          boolean isModifiedZScore =
-              request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
+          boolean isModifiedZScore = request.getAlgorithm() == MOD_Z_SCORE;
           grid.addRow();
           grid.addValue(v.getDe());
           grid.addValue(v.getDeName());

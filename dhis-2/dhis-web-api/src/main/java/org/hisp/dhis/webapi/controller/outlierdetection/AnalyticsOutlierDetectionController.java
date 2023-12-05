@@ -72,7 +72,13 @@ public class AnalyticsOutlierDetectionController {
   public Grid getOutliersJson(OutlierDetectionQuery query) {
     OutlierDetectionRequest request = getFromQuery(query);
 
-    return outlierService.getOutlierValues(request);
+    Grid grid = outlierService.getOutlierValues(request);
+
+    if (query.hasHeaders()) {
+      grid.retainColumns(query.getHeaders());
+    }
+
+    return grid;
   }
 
   @GetMapping(value = RESOURCE_PATH + ".csv")
