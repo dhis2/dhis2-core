@@ -102,6 +102,7 @@ public class IconController {
   }
 
   @GetMapping("/{iconKey}/icon.svg")
+  @Deprecated
   public void getIconData(
       HttpServletResponse response, HttpServletRequest request, @PathVariable String iconKey)
       throws IOException {
