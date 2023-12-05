@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,6 +54,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -265,5 +267,17 @@ class TrackerEnrollmentCriteriaMapperTest {
     ProgramInstanceQueryParams params = mapper.map(criteria);
 
     assertIsEmpty(params.getOrder());
+  }
+
+  @Test
+  void shouldFailWhenUserNotAuthorizedToUseOrgUnitModeAll() {
+    TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
+    criteria.setOuMode(ALL);
+
+    Exception forbiddenException =
+        Assert.assertThrows(ForbiddenException.class, () -> mapper.map(criteria));
+    assertEquals(
+        "Current user is not authorized to query across all organisation units",
+        forbiddenException.getMessage());
   }
 }

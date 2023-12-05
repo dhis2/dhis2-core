@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -330,25 +329,6 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
             () -> programInstanceService.getProgramInstances(queryParams));
 
     assertEquals("At least one organisation unit must be specified", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenOrgUnitModeAllAndUserNotAuthorized() {
-    User user = new User();
-    user.setOrganisationUnits(Set.of(organisationUnitA));
-    programInstanceService.addProgramInstance(programInstanceA);
-
-    ProgramInstanceQueryParams queryParams =
-        new ProgramInstanceQueryParams().setOrganisationUnitMode(ALL).setUser(user);
-
-    IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class,
-            () -> programInstanceService.getProgramInstances(queryParams));
-
-    assertEquals(
-        "Current user is not authorized to query across all organisation units",
-        exception.getMessage());
   }
 
   @Test

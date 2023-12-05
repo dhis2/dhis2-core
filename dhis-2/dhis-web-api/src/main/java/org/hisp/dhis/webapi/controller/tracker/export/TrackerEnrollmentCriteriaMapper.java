@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
@@ -46,6 +47,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -93,6 +95,7 @@ public class TrackerEnrollmentCriteriaMapper {
     User user = currentUserService.getCurrentUser();
     Set<String> orgUnitIds = parseUids(criteria.getOrgUnit());
     Set<OrganisationUnit> orgUnits = validateOrgUnits(user, orgUnitIds);
+    validateOrgUnitMode(criteria);
 
     ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
     params.setProgram(program);
@@ -163,5 +166,14 @@ public class TrackerEnrollmentCriteriaMapper {
     }
 
     return orgUnits;
+  }
+
+  private void validateOrgUnitMode(TrackerEnrollmentCriteria criteria) throws ForbiddenException {
+    if (criteria.getOuMode().equals(ALL)
+        && !currentUserService.currentUserIsAuthorized(
+            Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name())) {
+      throw new ForbiddenException(
+          "Current user is not authorized to query across all organisation units");
+    }
   }
 }

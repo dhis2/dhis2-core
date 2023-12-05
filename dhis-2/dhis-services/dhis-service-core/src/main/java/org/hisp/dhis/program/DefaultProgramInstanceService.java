@@ -47,7 +47,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -226,13 +225,6 @@ public class DefaultProgramInstanceService implements ProgramInstanceService {
   @Override
   @Transactional(readOnly = true)
   public void decideAccess(ProgramInstanceQueryParams params) {
-    if (params.isOrganisationUnitMode(ALL)
-        && !currentUserService.currentUserIsAuthorized(
-            Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name())) {
-      throw new IllegalQueryException(
-          "Current user is not authorized to query across all organisation units");
-    }
-
     if (params.hasProgram()) {
       if (!aclService.canDataRead(params.getUser(), params.getProgram())) {
         throw new IllegalQueryException(
