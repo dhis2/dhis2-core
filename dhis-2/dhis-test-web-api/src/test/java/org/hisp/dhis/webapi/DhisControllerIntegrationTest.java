@@ -96,7 +96,6 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     dbmsManager.clearSession();
 
     this.currentUser = userService.getUserByUsername(this.currentUser.getUsername());
-    //    switchContextToUser(this.currentUser);
     injectSecurityContextUser(this.currentUser);
 
     dbmsManager.flushSession();

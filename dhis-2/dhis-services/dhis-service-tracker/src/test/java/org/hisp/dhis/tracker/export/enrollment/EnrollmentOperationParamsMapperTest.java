@@ -219,6 +219,8 @@ class EnrollmentOperationParamsMapperTest {
       throws ForbiddenException, BadRequestException {
     User superuser = createUser("ALL");
     //    when(getCurrentUser()).thenReturn(superuser);
+    injectSecurityContext(CurrentUserDetailsImpl.fromUser(superuser));
+    when(userService.getUserByUsername(anyString())).thenReturn(superuser);
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()

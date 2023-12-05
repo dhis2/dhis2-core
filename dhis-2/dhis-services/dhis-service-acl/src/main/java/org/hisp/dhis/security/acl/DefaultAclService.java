@@ -768,6 +768,10 @@ public class DefaultAclService implements AclService {
    */
   private boolean checkSharingPermission(
       CurrentUserDetails userDetails, IdentifiableObject object, Permission permission) {
+    // throw null pointer if userDetails is null
+    if (userDetails == null) {
+      throw new IllegalArgumentException("userDetails is null");
+    }
 
     Sharing sharing = object.getSharing();
     if (AccessStringHelper.isEnabled(sharing.getPublicAccess(), permission)) {
@@ -775,7 +779,7 @@ public class DefaultAclService implements AclService {
     }
 
     if (sharing.getUserGroups() != null
-        && !CollectionUtils.isEmpty(userDetails.getAllAuthorities())) {
+        && !CollectionUtils.isEmpty(userDetails.getUserGroupIds())) {
       for (UserGroupAccess userGroupAccess : sharing.getUserGroups().values()) {
         // Check if user is allowed to read this object through group
         // access

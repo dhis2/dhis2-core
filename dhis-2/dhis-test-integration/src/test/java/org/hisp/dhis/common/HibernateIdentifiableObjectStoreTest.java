@@ -89,6 +89,7 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest 
   @Test
   void testMetadataRead() {
     User admin = createAndInjectAdminUser();
+
     User user1 = createAndAddUser("A");
     User user2 = createAndAddUser("B");
     User user3 = createAndAddUser("C");
@@ -135,15 +136,18 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest 
     assertEquals(2, dataElement.getSharing().getUserGroups().size());
     assertEquals(4, dataElement.getSharing().getUsers().size());
 
-    // User1 can't access but it belong to UserGroup1 which has access
-    assertNotNull(dataElementStore.getDataElement(dataElement.getUid(), user1));
+    DataElement dataElement1 = dataElementStore.getDataElement(dataElement.getUid(), user1);
+    assertNotNull(dataElement1);
     // User2 has access to DEA
-    assertNotNull(dataElementStore.getDataElement(dataElement.getUid(), user2));
+    DataElement dataElement2 = dataElementStore.getDataElement(dataElement.getUid(), user2);
+    assertNotNull(dataElement2);
     // User3 doesn't have access and also does't belong to any groups
-    assertNull(dataElementStore.getDataElement(dataElement.getUid(), user3));
+    DataElement dataElement3 = dataElementStore.getDataElement(dataElement.getUid(), user3);
+    assertNull(dataElement3);
     // User4 doesn't have access and it belong to UserGroup2 which also
     // doesn't have access
-    assertNull(dataElementStore.getDataElement(dataElement.getUid(), user4));
+    DataElement dataElement4 = dataElementStore.getDataElement(dataElement.getUid(), user4);
+    assertNull(dataElement4);
   }
 
   @Test

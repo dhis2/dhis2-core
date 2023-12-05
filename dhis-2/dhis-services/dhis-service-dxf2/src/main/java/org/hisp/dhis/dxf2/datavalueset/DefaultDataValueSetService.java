@@ -110,7 +110,9 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -576,6 +578,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
   @Transactional
   public ImportSummary importDataValueSetXml(
       InputStream in, ImportOptions options, JobConfiguration id) {
+    List<User> allUsers = userService.getAllUsers();
     return importDataValueSet(
         options,
         id,
@@ -1036,11 +1039,19 @@ public class DefaultDataValueSetService implements DataValueSetService {
       BatchHandler<DataValue> dataValueBatchHandler,
       BatchHandler<DataValueAudit> auditBatchHandler) {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
+    if (currentUser == null) {
+      log.error("User with username " + currentUsername + " not found");
+      throw new IllegalArgumentException("User with username " + currentUsername + " not found");
+    }
+    List<User> allUsers = userService.getAllUsers();
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     boolean auditEnabled = config.isEnabled(CHANGELOG_AGGREGATE);
     boolean hasSkipAuditAuth =
-        currentUser != null && currentUser.isAuthorized(Authorities.F_SKIP_DATA_IMPORT_AUDIT);
+        currentUserDetails != null
+            && currentUserDetails.isAuthorized(Authorities.F_SKIP_DATA_IMPORT_AUDIT.name());
     boolean skipAudit = (options.isSkipAudit() && hasSkipAuditAuth) || !auditEnabled;
 
     SystemSettingManager settings = systemSettingManager;
@@ -1057,6 +1068,9 @@ public class DefaultDataValueSetService implements DataValueSetService {
             IdSchemes::getCategoryOptionComboIdScheme);
     IdScheme dataSetIdScheme =
         createIdScheme(data.getDataSetIdSchemeProperty(), options, IdSchemes::getDataSetIdScheme);
+
+    CurrentUserGroupInfo currentUserGroupInfo =
+        userService.getCurrentUserGroupInfo(currentUser.getUid());
 
     return ImportContext.builder()
         .importOptions(options)

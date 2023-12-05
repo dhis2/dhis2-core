@@ -38,11 +38,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
+import java.util.List;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Tests the {@link DataValueSetController} using (mocked) REST requests.
@@ -77,6 +81,13 @@ class DataValueSetControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testPostAdxDataValueSet() {
+
+    //    when(userService.getUserByUsername(currentUser.getUsername())).thenReturn(currentUser);
+    //    injectSecurityContext(CurrentUserDetailsImpl.fromUser(currentUser));
+    SecurityContext context = SecurityContextHolder.getContext();
+
+    List<User> allUsers = userService.getAllUsers();
+
     String content =
         POST(
                 "/38/dataValueSets/",
@@ -89,6 +100,8 @@ class DataValueSetControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testPostAdxDataValueSet_Async() {
+    List<User> allUsers = userService.getAllUsers();
+
     String content =
         POST(
                 "/dataValueSets?async=true",

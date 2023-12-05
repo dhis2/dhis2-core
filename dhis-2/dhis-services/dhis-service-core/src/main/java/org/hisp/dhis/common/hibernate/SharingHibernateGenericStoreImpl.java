@@ -29,15 +29,18 @@ package org.hisp.dhis.common.hibernate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.hibernate.SharingHibernateGenericStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,6 +49,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * This class contains methods for generating predicates which are used for validating sharing
  * access permission.
  */
+@Slf4j
 public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     extends InternalHibernateGenericStoreImpl<T> implements SharingHibernateGenericStore<T> {
   public SharingHibernateGenericStoreImpl(
@@ -67,7 +71,16 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
       CriteriaBuilder builder, CurrentUserDetails user, String access) {
-    return getDataSharingPredicates(builder, user.getUid(), user.getUserGroupIds(), access);
+
+    Set<String> userGroupIds = user.getUserGroupIds();
+    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(user.getUid());
+
+    if (userGroupIds.size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+      log.error("userGroupIds.size()!=currentUserGroupInfo.getUserGroupUIDs().size()");
+    }
+
+    return getDataSharingPredicates(
+        builder, user.getUid(), currentUserGroupInfo.getUserGroupUIDs(), access);
   }
 
   @Override
@@ -77,19 +90,35 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
       return new ArrayList<>();
     }
 
-    return getSharingPredicates(builder, user.getUid(), user.getUserGroupIds(), access);
+    Set<String> userGroupIds = user.getUserGroupIds();
+    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(user.getUid());
+
+    if (userGroupIds.size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+      log.error("userGroupIds.size()!=currentUserGroupInfo.getUserGroupUIDs().size()");
+    }
+
+    return getSharingPredicates(
+        builder, user.getUid(), currentUserGroupInfo.getUserGroupUIDs(), access);
   }
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(CriteriaBuilder builder) {
-    return getSharingPredicates(
-        builder, CurrentUserUtil.getCurrentUserDetails(), AclService.LIKE_READ_METADATA);
+    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    if (currentUserDetails == null) {
+      //      return List.of();
+      log.error("currentUserDetails is null");
+    }
+    return getSharingPredicates(builder, currentUserDetails, AclService.LIKE_READ_METADATA);
   }
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
       CriteriaBuilder builder, CurrentUserDetails user) {
     if (user == null) {
+      return List.of();
+    }
+
+    if (!sharingEnabled(user.isSuper())) {
       return List.of();
     }
 
@@ -100,6 +129,11 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
       CriteriaBuilder builder, CurrentUserDetails user) {
+
+    if (!sharingEnabled(user.isSuper())) {
+      return List.of();
+    }
+
     return getDataSharingPredicates(
         builder, user.getUid(), user.getUserGroupIds(), AclService.LIKE_READ_METADATA);
   }

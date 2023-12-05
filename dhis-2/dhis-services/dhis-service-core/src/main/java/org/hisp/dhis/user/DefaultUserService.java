@@ -1493,4 +1493,9 @@ public class DefaultUserService implements UserService {
     return !aclService.isSupported(identifiableObject)
         || aclService.canDataRead(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
   }
+
+  @Override
+  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
+    return userStore.getCurrentUserGroupInfo(userUID);
+  }
 }

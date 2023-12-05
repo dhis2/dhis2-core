@@ -215,6 +215,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
 
     // Given
     final User user = createUserWithAuth("user1");
+
     final ProgramStage programStage = createProgramStage('A', 1);
     programStage.setPublicAccess(AccessStringHelper.DEFAULT);
     UserGroup userGroup = new UserGroup("test-group-programstage", singleton(user));
@@ -236,10 +237,9 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
         programSupplier.get(getDefaultImportOptions(), singletonList(event));
     // Then
     assertThat(programs.keySet(), hasSize(1));
-    assertTrue(
-        aclService.canDataWrite(
-            CurrentUserDetailsImpl.fromUser(user),
-            getProgramStage(programs.get(program.getUid()))));
+
+    ProgramStage programStage1 = getProgramStage(programs.get(program.getUid()));
+    assertTrue(aclService.canDataWrite(CurrentUserDetailsImpl.fromUser(user), programStage1));
   }
 
   @Test

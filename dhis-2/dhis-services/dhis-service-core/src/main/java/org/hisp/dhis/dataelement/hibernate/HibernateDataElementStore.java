@@ -28,8 +28,11 @@
 package org.hisp.dhis.dataelement.hibernate;
 
 import java.util.List;
+import java.util.function.Function;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -139,10 +142,13 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CurrentUserDetails currentUserDetails = CurrentUserDetailsImpl.fromUser(user);
+
+    List<Function<Root<DataElement>, Predicate>> sharingPredicates =
+        getSharingPredicates(builder, currentUserDetails, AclService.LIKE_READ_METADATA);
+
     JpaQueryParameters<DataElement> param =
         new JpaQueryParameters<DataElement>()
-            .addPredicates(
-                getSharingPredicates(builder, currentUserDetails, AclService.LIKE_READ_METADATA))
+            .addPredicates(sharingPredicates)
             .addPredicate(root -> builder.equal(root.get("uid"), uid));
 
     return getSingleResult(builder, param);

@@ -128,12 +128,9 @@ public class CurrentUserDetailsImpl implements CurrentUserDetails {
             .map(BaseIdentifiableObject::getUid)
             .collect(Collectors.toSet()));
 
-    userDetails.setUserGroupIds(
-        user.getUid() == null
-            ? Set.of()
-            : user.getGroups().stream()
-                .map(BaseIdentifiableObject::getUid)
-                .collect(Collectors.toSet()));
+    Set<String> groupIds =
+        user.getGroups().stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet());
+    userDetails.setUserGroupIds(user.getUid() == null ? Set.of() : groupIds);
 
     userDetails.setUserOrgUnitIds(
         user.getOrganisationUnits().stream()
