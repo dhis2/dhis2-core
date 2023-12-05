@@ -104,7 +104,6 @@ public class IndicatorTypeMergeService implements MergeService<IndicatorType> {
 
   private void handleDeleteSources(MergeRequest<IndicatorType> request, MergeReport mergeReport) {
     if (request.isDeleteSources()) {
-
       for (IndicatorType source : request.getSources()) {
         mergeReport.addDeletedSource(source.getUid());
         idObjectManager.delete(source);

@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataMergeMode;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
@@ -149,7 +149,7 @@ class CsvMetadataImportTest extends SingleSetupIntegrationTestBase {
             "metadata/optionSet_update.csv",
             CsvImportClass.OPTION_SET,
             null,
-            params -> params.setMergeMode(MergeMode.MERGE));
+            params -> params.setMetadataMergeMode(MetadataMergeMode.MERGE));
     assertEquals(2, importReport.getStats().getCreated());
     OptionSet optionSet = optionService.getOptionSetByCode("COLOR");
     // Total 5 options added
@@ -169,7 +169,7 @@ class CsvMetadataImportTest extends SingleSetupIntegrationTestBase {
             null,
             params -> {
               params.setIdentifier(PreheatIdentifier.CODE);
-              params.setMergeMode(MergeMode.MERGE);
+              params.setMetadataMergeMode(MetadataMergeMode.MERGE);
             });
     // Only 2 new Options are added
     assertEquals(2, importReport.getStats().getCreated());

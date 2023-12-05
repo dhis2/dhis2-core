@@ -52,7 +52,7 @@ Combine filters with `AND` (default) or `OR`
 ### `*.parameter.ImportOptions.preheatCache`
 Turn cache-map preheating on/off. This is on by default, turning this off will make initial load time for importer much shorter (but will make the import itself slower). This is mostly used for cases where you have a small XML/JSON file you want to import, and don't want to wait for cache-map preheating.
 
-### `*.parameter.ImportOptions.mergeMode`
+### `*.parameter.ImportOptions.metadataMergeMode`
 Strategy for merging of objects when doing updates. REPLACE will just overwrite the property with the new value provided, MERGE will only set the property if it is not null (only if the property was provided).
 
 ### `*.parameter.ImportOptions.importStrategy`
@@ -76,7 +76,7 @@ Sets import strategy, `CREATE_AND_UPDATE` will try and match on identifier, if i
 ### `*.parameter.MetadataImportParams.atomicMode`
 Sets atomic mode, in the old importer we always did a best effort import, which means that even if some references did not exist, we would still import (i.e. missing data elements on a data element group import). Default for new importer is to not allow this, and similar reject any validation errors. Setting the `NONE` mode emulated the old behavior.
 
-### `*.parameter.MetadataImportParams.mergeMode`
+### `*.parameter.MetadataImportParams.metadataMergeMode`
 Sets the merge mode, when doing updates we have two ways of merging the old object with the new one, `MERGE` mode will only overwrite the old property if the new one is not-null, for `REPLACE` mode all properties are overwritten regardless of null or not. (*)
 
 ### `*.parameter.MetadataImportParams.flushMode`

@@ -27,21 +27,60 @@
  */
 package org.hisp.dhis.schema;
 
+import java.util.Objects;
+import org.hisp.dhis.common.MetadataMergeMode;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface MergeService {
-  /**
-   * Merges source object into target object, requires a "schema friendly" class.
-   *
-   * @param mergeParams MergeParams instance containing source and target object
-   */
-  <T> T merge(MergeParams<T> mergeParams);
+public final class MetadataMergeParams<T> {
+  private final T source;
 
-  /**
-   * Creates a clone of given object and returns it.
-   *
-   * @param source Object to clone
-   */
-  <T> T clone(T source);
+  private final T target;
+
+  private MetadataMergeMode metadataMergeMode = MetadataMergeMode.REPLACE;
+
+  private boolean skipSharing;
+
+  private boolean skipTranslation;
+
+  public MetadataMergeParams(T source, T target) {
+    this.source = Objects.requireNonNull(source);
+    this.target = Objects.requireNonNull(target);
+  }
+
+  public T getSource() {
+    return source;
+  }
+
+  public T getTarget() {
+    return target;
+  }
+
+  public MetadataMergeMode getMergeMode() {
+    return metadataMergeMode;
+  }
+
+  public MetadataMergeParams<T> setMergeMode(MetadataMergeMode metadataMergeMode) {
+    this.metadataMergeMode = metadataMergeMode;
+    return this;
+  }
+
+  public boolean isSkipSharing() {
+    return skipSharing;
+  }
+
+  public MetadataMergeParams<T> setSkipSharing(boolean skipSharing) {
+    this.skipSharing = skipSharing;
+    return this;
+  }
+
+  public boolean isSkipTranslation() {
+    return skipTranslation;
+  }
+
+  public MetadataMergeParams<T> setSkipTranslation(boolean skipTranslation) {
+    this.skipTranslation = skipTranslation;
+    return this;
+  }
 }

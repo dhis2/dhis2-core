@@ -25,27 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.schema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum MergeMode {
-  MERGE_ALWAYS,
-  MERGE_IF_NOT_NULL,
-  MERGE,
-  REPLACE,
-  NONE;
+public interface MetadataMergeService {
+  /**
+   * Merges source object into target object, requires a "schema friendly" class.
+   *
+   * @param metadataMergeParams MergeParams instance containing source and target object
+   */
+  <T> T merge(MetadataMergeParams<T> metadataMergeParams);
 
-  public boolean isMerge() {
-    return this == MERGE_IF_NOT_NULL || this == MERGE;
-  }
-
-  public boolean isReplace() {
-    return this == MERGE_ALWAYS || this == REPLACE;
-  }
-
-  public boolean isNone() {
-    return this == NONE;
-  }
+  /**
+   * Creates a clone of given object and returns it.
+   *
+   * @param source Object to clone
+   */
+  <T> T clone(T source);
 }

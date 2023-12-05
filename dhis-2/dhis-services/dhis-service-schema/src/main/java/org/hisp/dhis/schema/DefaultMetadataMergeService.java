@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataMergeMode;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
@@ -43,23 +43,24 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.schema.MergeService")
 @Slf4j
-public class DefaultMergeService implements MergeService {
+public class DefaultMetadataMergeService implements MetadataMergeService {
   private final SchemaService schemaService;
 
   @Override
-  public <T> T merge(MergeParams<T> mergeParams) {
-    T source = mergeParams.getSource();
-    T target = mergeParams.getTarget();
+  public <T> T merge(MetadataMergeParams<T> metadataMergeParams) {
+    T source = metadataMergeParams.getSource();
+    T target = metadataMergeParams.getTarget();
 
     Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(source));
 
     for (Property property : schema.getProperties()) {
       if (schema.isIdentifiableObject()) {
-        if (mergeParams.isSkipSharing() && ReflectionUtils.isSharingProperty(property)) {
+        if (metadataMergeParams.isSkipSharing() && ReflectionUtils.isSharingProperty(property)) {
           continue;
         }
 
-        if (mergeParams.isSkipTranslation() && ReflectionUtils.isTranslationProperty(property)) {
+        if (metadataMergeParams.isSkipTranslation()
+            && ReflectionUtils.isTranslationProperty(property)) {
           continue;
         }
       }
@@ -83,7 +84,7 @@ public class DefaultMergeService implements MergeService {
           targetObject = ReflectionUtils.newCollectionInstance(property.getKlass());
         }
 
-        if (mergeParams.getMergeMode().isMerge()) {
+        if (metadataMergeParams.getMergeMode().isMerge()) {
           Collection<T> merged = ReflectionUtils.newCollectionInstance(property.getKlass());
           merged.addAll(targetObject);
           merged.addAll(
@@ -100,8 +101,8 @@ public class DefaultMergeService implements MergeService {
       } else {
         Object sourceObject = ReflectionUtils.invokeMethod(source, property.getGetterMethod());
 
-        if (mergeParams.getMergeMode().isReplace()
-            || (mergeParams.getMergeMode().isMerge() && sourceObject != null)) {
+        if (metadataMergeParams.getMergeMode().isReplace()
+            || (metadataMergeParams.getMergeMode().isMerge() && sourceObject != null)) {
           ReflectionUtils.invokeMethod(target, property.getSetterMethod(), sourceObject);
         }
       }
@@ -117,13 +118,13 @@ public class DefaultMergeService implements MergeService {
 
     try {
       return merge(
-          new MergeParams<>(
+          new MetadataMergeParams<>(
                   source,
                   (T)
                       HibernateProxyUtils.getRealClass(source)
                           .getDeclaredConstructor()
                           .newInstance())
-              .setMergeMode(MergeMode.REPLACE));
+              .setMergeMode(MetadataMergeMode.REPLACE));
     } catch (InstantiationException
         | IllegalAccessException
         | NoSuchMethodException

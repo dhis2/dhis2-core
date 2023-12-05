@@ -48,7 +48,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataMergeMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
@@ -591,7 +591,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
             new ClassPathResource("dxf2/dataset_with_accesses_merge_mode.json").getInputStream(),
             RenderFormat.JSON);
     params = createParams(ImportStrategy.CREATE_AND_UPDATE);
-    params.setMergeMode(MergeMode.REPLACE);
+    params.setMetadataMergeMode(MetadataMergeMode.REPLACE);
     params.setUser(UID.of(user));
     report = importService.importMetadata(params, new MetadataObjects(metadata));
     assertEquals(Status.OK, report.getStatus());

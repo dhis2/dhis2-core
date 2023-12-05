@@ -39,7 +39,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataMergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
@@ -88,7 +88,7 @@ public class ObjectBundle implements ObjectIndexProvider {
   private final AtomicMode atomicMode;
 
   /** Merge mode for object updates (default is REPLACE). */
-  private final MergeMode mergeMode;
+  private final MetadataMergeMode metadataMergeMode;
 
   /** Flush for every object or per type. */
   private final FlushMode flushMode;
@@ -145,7 +145,7 @@ public class ObjectBundle implements ObjectIndexProvider {
     this.importReportMode = params.getImportReportMode();
     this.atomicMode = params.getAtomicMode();
     this.preheatMode = params.getPreheatMode();
-    this.mergeMode = params.getMergeMode();
+    this.metadataMergeMode = params.getMetadataMergeMode();
     this.flushMode = params.getFlushMode();
     this.skipSharing = params.isSkipSharing();
     this.skipTranslation = params.isSkipTranslation();
@@ -200,8 +200,8 @@ public class ObjectBundle implements ObjectIndexProvider {
     return atomicMode;
   }
 
-  public MergeMode getMergeMode() {
-    return mergeMode;
+  public MetadataMergeMode getMergeMode() {
+    return metadataMergeMode;
   }
 
   public FlushMode getFlushMode() {

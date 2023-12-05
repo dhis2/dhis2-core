@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Date;
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataMergeMode;
 import org.hisp.dhis.dxf2.metadata.merge.Simple;
 import org.hisp.dhis.dxf2.metadata.merge.SimpleCollection;
 import org.hisp.dhis.indicator.Indicator;
@@ -40,8 +40,8 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.schema.MergeParams;
-import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.schema.MetadataMergeParams;
+import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -50,9 +50,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class MergeServiceTest extends SingleSetupIntegrationTestBase {
+class MetadataMergeServiceTest extends SingleSetupIntegrationTestBase {
 
-  @Autowired private MergeService mergeService;
+  @Autowired private MetadataMergeService metadataMergeService;
 
   @Override
   public void setUpTest() {}
@@ -62,7 +62,8 @@ class MergeServiceTest extends SingleSetupIntegrationTestBase {
     Date date = new Date();
     Simple source = new Simple("string", 10, date, false, 123, 2.5f);
     Simple target = new Simple();
-    mergeService.merge(new MergeParams<>(source, target).setMergeMode(MergeMode.REPLACE));
+    metadataMergeService.merge(
+        new MetadataMergeParams<>(source, target).setMergeMode(MetadataMergeMode.REPLACE));
     Assertions.assertEquals("string", target.getString());
     assertEquals(10, (int) target.getInteger());
     Assertions.assertEquals(date, target.getDate());
@@ -75,7 +76,8 @@ class MergeServiceTest extends SingleSetupIntegrationTestBase {
     Date date = new Date();
     Simple source = new Simple(null, 10, date, null, 123, 2.5f);
     Simple target = new Simple("hello", 20, date, true, 123, 2.5f);
-    mergeService.merge(new MergeParams<>(source, target).setMergeMode(MergeMode.MERGE));
+    metadataMergeService.merge(
+        new MetadataMergeParams<>(source, target).setMergeMode(MetadataMergeMode.MERGE));
     Assertions.assertEquals("hello", target.getString());
     assertEquals(10, (int) target.getInteger());
     Assertions.assertEquals(date, target.getDate());
@@ -90,7 +92,8 @@ class MergeServiceTest extends SingleSetupIntegrationTestBase {
     source.getSimples().add(new Simple("simple", 20, date, false, 123, 2.5f));
     source.getSimples().add(new Simple("simple", 30, date, false, 123, 2.5f));
     SimpleCollection target = new SimpleCollection("target");
-    mergeService.merge(new MergeParams<>(source, target).setMergeMode(MergeMode.MERGE));
+    metadataMergeService.merge(
+        new MetadataMergeParams<>(source, target).setMergeMode(MetadataMergeMode.MERGE));
     Assertions.assertEquals("name", target.getName());
     Assertions.assertEquals(3, target.getSimples().size());
     Assertions.assertTrue(target.getSimples().contains(source.getSimples().get(0)));
@@ -112,9 +115,9 @@ class MergeServiceTest extends SingleSetupIntegrationTestBase {
     organisationUnitGroupA.getMembers().add(organisationUnitD);
     OrganisationUnitGroupSet organisationUnitGroupSetA = createOrganisationUnitGroupSet('A');
     organisationUnitGroupSetA.addOrganisationUnitGroup(organisationUnitGroupA);
-    mergeService.merge(
-        new MergeParams<>(organisationUnitGroupA, organisationUnitGroupB)
-            .setMergeMode(MergeMode.REPLACE));
+    metadataMergeService.merge(
+        new MetadataMergeParams<>(organisationUnitGroupA, organisationUnitGroupB)
+            .setMergeMode(MetadataMergeMode.REPLACE));
     assertFalse(organisationUnitGroupB.getMembers().isEmpty());
     assertEquals(4, organisationUnitGroupB.getMembers().size());
     assertNotNull(organisationUnitGroupB.getGroupSets());
@@ -135,9 +138,9 @@ class MergeServiceTest extends SingleSetupIntegrationTestBase {
     OrganisationUnitGroupSet organisationUnitGroupSetA = createOrganisationUnitGroupSet('A');
     OrganisationUnitGroupSet organisationUnitGroupSetB = createOrganisationUnitGroupSet('B');
     organisationUnitGroupSetA.addOrganisationUnitGroup(organisationUnitGroupA);
-    mergeService.merge(
-        new MergeParams<>(organisationUnitGroupSetA, organisationUnitGroupSetB)
-            .setMergeMode(MergeMode.REPLACE));
+    metadataMergeService.merge(
+        new MetadataMergeParams<>(organisationUnitGroupSetA, organisationUnitGroupSetB)
+            .setMergeMode(MetadataMergeMode.REPLACE));
     assertFalse(organisationUnitGroupSetB.getOrganisationUnitGroups().isEmpty());
     assertEquals(organisationUnitGroupSetA.getName(), organisationUnitGroupSetB.getName());
     assertEquals(
@@ -154,7 +157,7 @@ class MergeServiceTest extends SingleSetupIntegrationTestBase {
   void testIndicatorClone() {
     IndicatorType indicatorType = createIndicatorType('A');
     Indicator indicator = createIndicator('A', indicatorType);
-    Indicator clone = mergeService.clone(indicator);
+    Indicator clone = metadataMergeService.clone(indicator);
     assertEquals(indicator.getName(), clone.getName());
     assertEquals(indicator.getUid(), clone.getUid());
     assertEquals(indicator.getCode(), clone.getCode());
