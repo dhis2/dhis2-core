@@ -547,10 +547,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataElement.class,
         this::getDataElementsWithoutDataSet);
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_GROUPS,
-        DataElement.class,
-        this::getDataElementsWithoutGroups);
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.DATA_ELEMENTS_ASSIGNED_TO_DATA_SETS_WITH_DIFFERENT_PERIOD_TYPES,
         DataElement.class,
         this::getDataElementsAssignedToDataSetsWithDifferentPeriodTypes);
@@ -691,6 +687,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
               .collect(Collectors.toSet());
       // Add additional SQL based checks here
       checks.add("organisation_units_without_groups");
+      checks.add("data_elements_aggregate_no_groups");
     }
     runDetailsChecks(checks, progress);
     return new FlattenedDataIntegrityReport(getDetails(checks, -1L));

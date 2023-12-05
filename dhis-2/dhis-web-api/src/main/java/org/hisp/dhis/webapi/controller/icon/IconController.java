@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +57,7 @@ import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
@@ -100,9 +102,12 @@ public class IconController {
   }
 
   @GetMapping("/{iconKey}/icon.svg")
-  public void getIconData(HttpServletResponse response, @PathVariable String iconKey)
-      throws IOException, NotFoundException {
-    downloadDefaultIcon(iconKey, response);
+  @Deprecated
+  public void getIconData(
+      HttpServletResponse response, HttpServletRequest request, @PathVariable String iconKey)
+      throws IOException {
+    String location = response.encodeRedirectURL("/icons/" + iconKey + "/icon");
+    response.sendRedirect(ContextUtils.getRootPath(request) + location);
   }
 
   @GetMapping(value = "/{key}/icon")
