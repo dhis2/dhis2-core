@@ -217,6 +217,15 @@ public final class WebMessageUtils {
         .setResponse(new ObjectReportWebMessageResponse(objectReport));
   }
 
+  public static WebMessage mergeReport(MergeReport mergeReport) {
+    if (!mergeReport.hasErrorMessages()) {
+      return ok().setResponse(new MergeWebResponse(mergeReport));
+    }
+    return new WebMessage(Status.WARNING, HttpStatus.CONFLICT)
+        .setMessage("One or more errors occurred, please see full details in merge report.")
+        .setResponse(new MergeWebResponse(mergeReport));
+  }
+
   public static WebMessage jobConfigurationReport(JobConfiguration config) {
     return ok("Initiated " + config.getName())
         .setResponse(new JobConfigurationWebMessageResponse(config))
@@ -228,13 +237,6 @@ public final class WebMessageUtils {
       return badRequest(null).setResponse(new ErrorReportsWebMessageResponse(errorReports));
     }
     return ok().setResponse(new ErrorReportsWebMessageResponse(errorReports));
-  }
-
-  public static WebMessage mergeReport(MergeReport mergeReport) {
-    if (mergeReport.hasErrorMessages()) {
-      return badRequest(null).setResponse(new MergeWebResponse(mergeReport));
-    }
-    return ok().setResponse(new MergeWebResponse(mergeReport));
   }
 
   public static TypeReport typeReport(Class<?> clazz, List<ErrorReport> errorReports) {

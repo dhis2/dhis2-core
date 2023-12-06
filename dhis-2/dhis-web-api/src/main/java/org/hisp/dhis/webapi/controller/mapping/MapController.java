@@ -141,7 +141,7 @@ public class MapController extends AbstractCrudController<Map> {
 
     metadataMergeService.merge(
         new MetadataMergeParams<>(newMap, map)
-            .setMergeMode(params.getMetadataMergeMode())
+            .setMergeMode(params.getMergeMode())
             .setSkipSharing(params.isSkipSharing())
             .setSkipTranslation(params.isSkipTranslation()));
     mappingService.updateMap(map);

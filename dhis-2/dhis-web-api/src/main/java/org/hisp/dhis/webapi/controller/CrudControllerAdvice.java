@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.mergeReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
@@ -176,6 +177,10 @@ public class CrudControllerAdvice {
   public WebMessage conflictException(org.hisp.dhis.feedback.ConflictException ex) {
     if (ex.getObjectReport() != null) {
       return objectReport(ex.getObjectReport());
+    }
+
+    if (ex.getMergeReport() != null) {
+      return mergeReport(ex.getMergeReport());
     }
     return conflict(ex.getMessage(), ex.getCode()).setDevMessage(ex.getDevMessage());
   }

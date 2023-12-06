@@ -43,7 +43,7 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
-import org.hisp.dhis.merge.MergeQuery;
+import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.merge.MergeType;
@@ -89,7 +89,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
       "Transform a valid merge query, producing a valid merge request and an error free merge report")
   void testGetFromQuery() {
     // given
-    MergeQuery query = new MergeQuery();
+    MergeParams query = new MergeParams();
     query.setSources(Set.of(uidA, uidB));
     query.setTarget(uidC);
     query.setDeleteSources(true);
@@ -111,7 +111,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
       "Transform a merge query with missing sources and target, producing an empty merge request and a merge report with errors")
   void testGetFromQueryWithErrors() {
     // given
-    MergeQuery query = new MergeQuery();
+    MergeParams query = new MergeParams();
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
@@ -133,7 +133,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
       "Transform a merge query with invalid source uid, producing an empty merge request and a merge report with an error")
   void testSourceNotFound() {
     // given
-    MergeQuery query = new MergeQuery();
+    MergeParams query = new MergeParams();
     query.setSources(Set.of(uidA, uidX));
     query.setTarget(uidC);
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
@@ -155,7 +155,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
       "Transform a merge query with invalid target uid, producing an empty merge request and a merge report with error")
   void testTargetNotFound() {
     // given
-    MergeQuery query = new MergeQuery();
+    MergeParams query = new MergeParams();
     query.setSources(Set.of(uidA, uidB));
     query.setTarget(uidX);
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);

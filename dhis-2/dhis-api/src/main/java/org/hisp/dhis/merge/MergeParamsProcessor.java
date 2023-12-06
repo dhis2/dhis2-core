@@ -27,33 +27,46 @@
  */
 package org.hisp.dhis.merge;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.MergeReport;
 
 /**
- * Encapsulation of a web API merge query. Contains source {@link UID}s to be merged and a target
- * {@link UID} to be merged in to. Also indicates whether sources should be deleted or not. <br>
- * All {@link UID}s should be verified.
+ * This interface is used to process merging of {@link IdentifiableObject}s uniformly, in a
+ * standardised fashion. It requires an implementation of {@link MergeService}, which will process
+ * the merging for its required use case. <br>
+ * It essentially calls each method of the {@link MergeService} in the following order:<br>
  *
- * @author david mackessy
+ * <ol>
+ *   <li>transform
+ *   <li>validate
+ *   <li>merge
+ * </ol>
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class MergeQuery {
-  @OpenApi.Property({UID[].class})
-  @JsonProperty
-  private Set<UID> sources = new HashSet<>();
+public interface MergeParamsProcessor {
 
-  @OpenApi.Property(UID.class)
-  @JsonProperty
-  private UID target;
+  /**
+   * Processes a merge query in full, using the implemented {@link MergeService} provided.
+   *
+   * @param mergeService implemented {@link MergeService} to process merge steps
+   * @param mergeParams {@link MergeParams} to process
+   * @param mergeType {@link MergeType}
+   * @return updated {@link MergeReport} with any errors
+   */
+  default MergeReport processMergeQuery(
+      @Nonnull MergeService mergeService,
+      @Nonnull MergeParams mergeParams,
+      @Nonnull MergeType mergeType)
+      throws ConflictException {
+    MergeReport mergeReport = new MergeReport(mergeType);
+    MergeRequest mergeRequest = mergeService.validate(mergeParams, mergeReport);
+    if (mergeReport.hasErrorMessages()) return mergeReport;
 
-  @OpenApi.Property @JsonProperty private boolean deleteSources;
+    MergeReport report = mergeService.merge(mergeRequest, mergeReport);
+    if (report.hasErrorMessages()) {
+      throw new ConflictException("merge error here");
+    }
+    return report;
+  }
 }

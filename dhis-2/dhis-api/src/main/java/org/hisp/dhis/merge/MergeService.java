@@ -28,37 +28,26 @@
 package org.hisp.dhis.merge;
 
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.MergeReport;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Interface for merging {@link BaseIdentifiableObject}s
+ * Interface for merging {@link IdentifiableObject}s
  *
- * @param <T> type extending {@link BaseIdentifiableObject}
  * @author david mackessy
  */
-public interface MergeService<T extends BaseIdentifiableObject> {
+public interface MergeService {
 
   /**
-   * This method transforms a {@link MergeQuery} to a {@link MergeRequest}. If there are any
-   * errors/issues with the query then the {@link MergeReport} should be updated.
+   * This method transforms a {@link MergeParams} to a {@link MergeRequest}. If there are any
+   * errors/issues with the params then the {@link MergeReport} should be updated.
    *
-   * @param query query to transform to {@link MergeRequest}
-   * @param mergeReport report to be updated if any issues/errors with the {@link MergeQuery}
+   * @param params params to transform to {@link MergeRequest}
+   * @param mergeReport report to be updated if any issues/errors with the {@link MergeParams}
    * @return {@link MergeRequest}
    */
-  MergeRequest<T> transform(@Nonnull MergeQuery query, @Nonnull MergeReport mergeReport);
-
-  /**
-   * This method validates a {@link MergeRequest}. If there are any errors/issues with the query
-   * then the {@link MergeReport} should be updated.
-   *
-   * @param request request to be validated
-   * @param mergeReport report to be updated if any issues/errors with the {@link MergeRequest}
-   * @return {@link MergeRequest}
-   */
-  MergeRequest<T> validate(@Nonnull MergeRequest<T> request, @Nonnull MergeReport mergeReport);
+  MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport);
 
   /**
    * This method merges a {@link MergeRequest}. If there are any errors/issues with the {@link
@@ -69,5 +58,5 @@ public interface MergeService<T extends BaseIdentifiableObject> {
    * @return {@link MergeReport}
    */
   @Transactional
-  MergeReport merge(@Nonnull MergeRequest<T> request, @Nonnull MergeReport mergeReport);
+  MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport);
 }

@@ -175,7 +175,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
             ImportStrategy.class, parameters, "importStrategy", ImportStrategy.CREATE_AND_UPDATE));
     params.setAtomicMode(
         getEnumWithDefault(AtomicMode.class, parameters, "atomicMode", AtomicMode.ALL));
-    params.setMetadataMergeMode(
+    params.setMergeMode(
         getEnumWithDefault(
             MetadataMergeMode.class, parameters, "mergeMode", MetadataMergeMode.REPLACE));
     params.setFlushMode(
@@ -219,7 +219,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
     params.setPreheatIdentifier(importParams.getIdentifier());
     params.setPreheatMode(importParams.getPreheatMode());
     params.setObjectBundleMode(importParams.getImportMode());
-    params.setMetadataMergeMode(importParams.getMetadataMergeMode());
+    params.setMetadataMergeMode(importParams.getMergeMode());
     params.setFlushMode(importParams.getFlushMode());
     params.setImportReportMode(importParams.getImportReportMode());
     params.setMetadataSyncImport(importParams.isMetadataSyncImport());

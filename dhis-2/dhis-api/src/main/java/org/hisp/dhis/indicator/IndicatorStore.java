@@ -28,7 +28,6 @@
 package org.hisp.dhis.indicator;
 
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
@@ -43,5 +42,5 @@ public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
 
   List<Indicator> getIndicatorsWithDataSets();
 
-  List<Indicator> getAssociatedIndicators(Set<IndicatorType> indicatorTypes);
+  List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes);
 }

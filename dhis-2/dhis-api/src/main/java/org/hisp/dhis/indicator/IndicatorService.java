@@ -28,7 +28,6 @@
 package org.hisp.dhis.indicator;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -56,7 +55,7 @@ public interface IndicatorService {
 
   List<Indicator> getIndicatorsWithDataSets();
 
-  List<Indicator> getAssociatedIndicators(Set<IndicatorType> indicatorTypes);
+  List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes);
 
   // -------------------------------------------------------------------------
   // IndicatorType
@@ -73,6 +72,8 @@ public interface IndicatorService {
   IndicatorType getIndicatorType(String uid);
 
   List<IndicatorType> getAllIndicatorTypes();
+
+  List<IndicatorType> getIndicatorTypesByUid(List<String> uids);
 
   // -------------------------------------------------------------------------
   // IndicatorGroup

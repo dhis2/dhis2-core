@@ -89,7 +89,7 @@ public class MetadataImportParams implements JobParameters {
   @JsonProperty private AtomicMode atomicMode = AtomicMode.ALL;
 
   /** Merge mode for object updates (default is REPLACE). */
-  @JsonProperty private MetadataMergeMode metadataMergeMode = MetadataMergeMode.REPLACE;
+  @JsonProperty private MetadataMergeMode mergeMode = MetadataMergeMode.REPLACE;
 
   /** Flush for every object or per type. */
   @JsonProperty private FlushMode flushMode = FlushMode.AUTO;

@@ -28,7 +28,6 @@
 package org.hisp.dhis.indicator.hibernate;
 
 import java.util.List;
-import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -89,7 +88,7 @@ public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<In
   }
 
   @Override
-  public List<Indicator> getAssociatedIndicators(Set<IndicatorType> indicatorTypes) {
+  public List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes) {
     TypedQuery<Indicator> query =
         entityManager.createQuery(
             "FROM Indicator i where i.indicatorType in :indicatorTypes", Indicator.class);

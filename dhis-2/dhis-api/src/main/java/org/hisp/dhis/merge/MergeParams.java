@@ -27,51 +27,25 @@
  */
 package org.hisp.dhis.merge;
 
-import com.google.common.base.MoreObjects;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashSet;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
+import lombok.Data;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 
 /**
- * Encapsulation of a merge request. Contains source types that extend {@link
- * BaseIdentifiableObject} to be merged into a target of the same type. Also indicates whether
- * sources should be deleted.
+ * Encapsulation of web API merge params. Contains source {@link UID}s to be merged and a target
+ * {@link UID} to be merged in to. Also indicates whether sources should be deleted or not. <br>
+ * All {@link UID}s should be verified.
  *
  * @author david mackessy
  */
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class MergeRequest<T extends BaseIdentifiableObject> {
-  @Builder.Default private Set<T> sources = new HashSet<>();
+@Data
+public class MergeParams {
+  @JsonProperty private final Set<UID> sources = new HashSet<>();
 
-  private T target;
+  @JsonProperty private UID target;
 
-  @Getter private boolean deleteSources;
-
-  public Set<T> getSources() {
-    return sources != null ? Set.copyOf(sources) : Set.of();
-  }
-
-  public T getTarget() {
-    return target;
-  }
-
-  public static <T extends BaseIdentifiableObject> MergeRequest<T> empty() {
-    return MergeRequest.<T>builder().build();
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("sources", IdentifiableObjectUtils.getUids(sources))
-        .add("target", target != null ? target.getUid() : null)
-        .add("deleteSources", deleteSources)
-        .toString();
-  }
+  @OpenApi.Property @JsonProperty private boolean deleteSources;
 }

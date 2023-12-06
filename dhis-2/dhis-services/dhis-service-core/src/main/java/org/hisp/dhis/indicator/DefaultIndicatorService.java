@@ -28,7 +28,6 @@
 package org.hisp.dhis.indicator;
 
 import java.util.List;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -114,7 +113,7 @@ public class DefaultIndicatorService implements IndicatorService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Indicator> getAssociatedIndicators(Set<IndicatorType> indicatorTypes) {
+  public List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes) {
     return indicatorStore.getAssociatedIndicators(indicatorTypes);
   }
 
@@ -158,6 +157,12 @@ public class DefaultIndicatorService implements IndicatorService {
   @Transactional(readOnly = true)
   public List<IndicatorType> getAllIndicatorTypes() {
     return indicatorTypeStore.getAll();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<IndicatorType> getIndicatorTypesByUid(List<String> uids) {
+    return indicatorTypeStore.getByUid(uids);
   }
 
   // -------------------------------------------------------------------------

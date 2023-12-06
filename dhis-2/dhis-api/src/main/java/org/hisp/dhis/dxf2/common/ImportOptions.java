@@ -90,7 +90,7 @@ public class ImportOptions implements JobParameters {
   private ImportStrategy importStrategy = DEFAULT_IMPORT_STRATEGY;
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
-  private MetadataMergeMode metadataMergeMode = DEFAULT_MERGE_MODE;
+  private MetadataMergeMode mergeMode = DEFAULT_MERGE_MODE;
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
   private ImportReportMode reportMode = DEFAULT_REPORT_MODE;

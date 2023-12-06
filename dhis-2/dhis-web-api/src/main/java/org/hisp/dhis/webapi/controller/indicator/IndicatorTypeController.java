@@ -34,10 +34,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.IndicatorType;
-import org.hisp.dhis.merge.MergeQuery;
-import org.hisp.dhis.merge.MergeQueryProcessor;
+import org.hisp.dhis.merge.MergeParams;
+import org.hisp.dhis.merge.MergeParamsProcessor;
 import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.schema.descriptors.IndicatorTypeSchemaDescriptor;
@@ -61,17 +62,18 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Slf4j
 public class IndicatorTypeController extends AbstractCrudController<IndicatorType> {
 
-  private final MergeService<IndicatorType> indicatorTypeMergeService;
+  private final MergeService indicatorTypeMergeService;
 
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize("hasRole('ALL') or hasRole('F_INDICATOR_TYPE_MERGE')")
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody WebMessage mergeIndicatorTypes(@RequestBody MergeQuery query) {
+  public @ResponseBody WebMessage mergeIndicatorTypes(@RequestBody MergeParams query)
+      throws ConflictException {
     log.info("Indicator type merge request received");
 
     MergeReport report =
-        new MergeQueryProcessor<>(indicatorTypeMergeService)
-            .processMergeQuery(query, MergeType.INDICATOR_TYPE);
+        (new MergeParamsProcessor() {}.processMergeQuery(
+            indicatorTypeMergeService, query, MergeType.INDICATOR_TYPE));
 
     log.info("Indicator type merge request processed: {}", report);
     return WebMessageUtils.mergeReport(report);

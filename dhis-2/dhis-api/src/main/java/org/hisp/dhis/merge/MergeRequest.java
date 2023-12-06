@@ -25,43 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.indicator;
+package org.hisp.dhis.merge;
 
-import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.MergeReport;
-import org.hisp.dhis.indicator.IndicatorType;
-import org.hisp.dhis.merge.MergeRequest;
-import org.hisp.dhis.merge.MergeValidator;
-import org.springframework.stereotype.Service;
+import com.google.common.base.MoreObjects;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 
 /**
- * Validator for {@link IndicatorType} {@link MergeRequest}.
+ * Encapsulation of a merge request. Contains source types that extend {@link IdentifiableObject} to
+ * be merged into a target of the same type. Also indicates whether sources should be deleted.
  *
  * @author david mackessy
  */
-@Service
-public class IndicatorTypeMergeValidator implements MergeValidator<IndicatorType> {
+@Builder
+@AllArgsConstructor
+public class MergeRequest {
+  @Builder.Default private final Set<UID> sources = new HashSet<>();
 
-  /**
-   * Validates the given {@link MergeRequest}. Any errors result in the {@link MergeReport} being
-   * updated and an empty {@link MergeRequest} returned.
-   *
-   * @param request the {@link MergeRequest} to be validated
-   * @param mergeReport the {@link MergeReport} to be updated with any errors
-   */
+  @Getter private final UID target;
+
+  @Getter private final boolean deleteSources;
+
+  public Set<UID> getSources() {
+    return Set.copyOf(sources);
+  }
+
+  public static <T extends IdentifiableObject> MergeRequest empty() {
+    return MergeRequest.builder().build();
+  }
+
   @Override
-  public MergeRequest<IndicatorType> validate(
-      MergeRequest<IndicatorType> request, MergeReport mergeReport) {
-    if (CollectionUtils.isEmpty(request.getSources())) {
-      addError(mergeReport, ErrorCode.E1530);
-    }
-    if (request.getTarget() == null) {
-      addError(mergeReport, ErrorCode.E1531);
-    } else if (request.getSources().contains(request.getTarget())) {
-      addError(mergeReport, ErrorCode.E1532);
-    }
-
-    return mergeReport.hasErrorMessages() ? MergeRequest.empty() : request;
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("sources", sources)
+        .add("target", target)
+        .add("deleteSources", deleteSources)
+        .toString();
   }
 }
