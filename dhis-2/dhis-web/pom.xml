@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.hisp.dhis</groupId>
@@ -16,7 +18,7 @@
     <module>dhis-web-commons-resources</module>
     <module>dhis-web-dataentry</module>
     <module>dhis-web-portal</module>
-        <module>dhis-web-apps</module>
+    <module>dhis-web-apps</module>
   </modules>
 
   <properties>
@@ -89,7 +91,9 @@
                 </property>
                 <property>
                   <name>log4j.configurationFile</name>
-                  <value>${project.baseUri}/../dhis-web-commons/src/main/resources/log4j2-jetty.xml</value>
+                  <value>
+                    ${project.baseUri}/../dhis-web-commons/src/main/resources/log4j2-jetty.xml
+                  </value>
                 </property>
               </properties>
             </configuration>
