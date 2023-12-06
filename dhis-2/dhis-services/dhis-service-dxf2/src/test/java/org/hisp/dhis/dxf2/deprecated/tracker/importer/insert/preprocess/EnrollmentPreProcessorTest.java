@@ -30,9 +30,9 @@ package org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.preprocess;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntity;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 

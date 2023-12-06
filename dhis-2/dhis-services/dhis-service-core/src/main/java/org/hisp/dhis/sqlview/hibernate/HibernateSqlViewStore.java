@@ -30,8 +30,8 @@ package org.hisp.dhis.sqlview.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
+import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -63,7 +63,7 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
   private final SystemSettingManager systemSettingManager;
 
   public HibernateSqlViewStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
@@ -72,7 +72,7 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
       @Qualifier("readOnlyJdbcTemplate") JdbcTemplate readOnlyJdbcTemplate,
       SystemSettingManager systemSettingManager) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         SqlView.class,

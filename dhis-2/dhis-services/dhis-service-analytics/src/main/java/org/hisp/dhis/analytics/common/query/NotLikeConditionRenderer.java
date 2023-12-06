@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import static org.hisp.dhis.common.QueryOperator.*;
+import static org.hisp.dhis.common.QueryOperator.NLIKE;
 
 public class NotLikeConditionRenderer extends AbstractLikeConditionRenderer {
   private NotLikeConditionRenderer(Renderable field, Renderable value) {

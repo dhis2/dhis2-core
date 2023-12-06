@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.fileresource.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.ExternalFileResourceStore;
@@ -45,13 +45,13 @@ public class HibernateExternalFileResourceStore
     extends HibernateIdentifiableObjectStore<ExternalFileResource>
     implements ExternalFileResourceStore {
   public HibernateExternalFileResourceStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         ExternalFileResource.class,

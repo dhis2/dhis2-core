@@ -34,9 +34,21 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.*;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -44,9 +56,14 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 
 /**
  *
@@ -142,12 +159,35 @@ public interface JobProgress {
   Error reporting API:
   */
 
-  default void addError(ErrorCode code, String uid, String type, Integer index, String... args) {
-    addError(code, uid, type, index, List.of(args));
+  default void addError(
+      @Nonnull ErrorCode code, @CheckForNull String uid, @Nonnull String type, String... args) {
+    addError(code, uid, type, List.of(args));
   }
 
-  default void addError(ErrorCode code, String uid, String type, Integer index, List<String> args) {
-    // default implementation is a NOOP, we don't remember or handle the error
+  default void addError(
+      @Nonnull ValidationCode code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      String... args) {
+    addError(code, uid, type, List.of(args));
+  }
+
+  default void addError(
+      @Nonnull ErrorCode code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      @Nonnull List<String> args) {
+    // is overridden by a tracker that collects errors
+    // default is to not collect errors
+  }
+
+  default void addError(
+      @Nonnull ValidationCode code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      @Nonnull List<String> args) {
+    // is overridden by a tracker that collects errors
+    // default is to not collect errors
   }
 
   /*
@@ -574,7 +614,7 @@ public interface JobProgress {
     @Nonnull
     @JsonProperty
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private final Map<String, Map<ErrorCode, Queue<Error>>> errors;
+    private final Map<String, Map<String, Queue<Error>>> errors;
 
     public Progress() {
       this.sequence = new ConcurrentLinkedDeque<>();
@@ -584,23 +624,26 @@ public interface JobProgress {
     @JsonCreator
     public Progress(
         @Nonnull @JsonProperty("sequence") Deque<Process> sequence,
-        @CheckForNull @JsonProperty("errors") Map<String, Map<ErrorCode, Queue<Error>>> errors) {
+        @CheckForNull @JsonProperty("errors") Map<String, Map<String, Queue<Error>>> errors) {
       this.sequence = sequence;
       this.errors = errors == null ? Map.of() : errors;
     }
 
     public void addError(Error error) {
-      errors
-          .computeIfAbsent(error.getId(), key -> new ConcurrentHashMap<>())
-          .computeIfAbsent(error.getCode(), key2 -> new ConcurrentLinkedQueue<>())
-          .add(error);
+      Queue<Error> sameObjectAndCode =
+          errors
+              .computeIfAbsent(error.getId(), key -> new ConcurrentHashMap<>())
+              .computeIfAbsent(error.getCode(), key2 -> new ConcurrentLinkedQueue<>());
+      if (sameObjectAndCode.stream().noneMatch(e -> e.args.equals(error.args))) {
+        sameObjectAndCode.add(error);
+      }
     }
 
     public boolean hasErrors() {
       return !errors.isEmpty();
     }
 
-    public Set<ErrorCode> getErrorCodes() {
+    public Set<String> getErrorCodes() {
       return errors.values().stream()
           .flatMap(e -> e.keySet().stream())
           .collect(toUnmodifiableSet());
@@ -611,20 +654,13 @@ public interface JobProgress {
   @Accessors(chain = true)
   final class Error {
 
-    @Nonnull @JsonProperty private final ErrorCode code;
+    @Nonnull @JsonProperty private final String code;
 
     /** The object that has the error */
     @Nonnull @JsonProperty private final String id;
 
     /** The type of the object identified by #id that has the error */
     @Nonnull @JsonProperty private final String type;
-
-    /**
-     * The row index in the payload of the import. This is the index in the list of objects of a
-     * single type. This means the same index occurs for each object type. For some imports this
-     * information is not available.
-     */
-    @CheckForNull @JsonProperty private final Integer index;
 
     /** The arguments used in the {@link #code}'s {@link ErrorCode#getMessage()} template */
     @Nonnull @JsonProperty private final List<String> args;
@@ -639,15 +675,13 @@ public interface JobProgress {
 
     @JsonCreator
     public Error(
-        @Nonnull @JsonProperty("code") ErrorCode code,
+        @Nonnull @JsonProperty("code") String code,
         @Nonnull @JsonProperty("id") String id,
         @Nonnull @JsonProperty("type") String type,
-        @CheckForNull @JsonProperty("index") Integer index,
         @Nonnull @JsonProperty("args") List<String> args) {
       this.code = code;
       this.id = id;
       this.type = type;
-      this.index = index;
       this.args = args;
     }
   }

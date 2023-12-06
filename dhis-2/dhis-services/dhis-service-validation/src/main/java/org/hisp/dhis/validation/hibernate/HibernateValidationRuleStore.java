@@ -31,8 +31,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -57,14 +57,14 @@ public class HibernateValidationRuleStore extends HibernateIdentifiableObjectSto
   private final PeriodService periodService;
 
   public HibernateValidationRuleStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService,
       PeriodService periodService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         ValidationRule.class,

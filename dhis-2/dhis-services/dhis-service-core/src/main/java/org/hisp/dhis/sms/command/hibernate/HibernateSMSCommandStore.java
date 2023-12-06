@@ -28,8 +28,8 @@
 package org.hisp.dhis.sms.command.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
@@ -46,13 +46,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateSMSCommandStore extends HibernateIdentifiableObjectStore<SMSCommand>
     implements SMSCommandStore {
   public HibernateSMSCommandStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         SMSCommand.class,

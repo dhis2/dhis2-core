@@ -28,7 +28,7 @@
 package org.hisp.dhis.common.hibernate;
 
 import java.util.List;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.AnalyticalObjectStore;
@@ -56,15 +56,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     extends HibernateIdentifiableObjectStore<T> implements AnalyticalObjectStore<T> {
   public HibernateAnalyticalObjectStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       Class<T> clazz,
       CurrentUserService currentUserService,
       AclService aclService,
       boolean cacheable) {
-    super(
-        sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, aclService, cacheable);
+    super(entityManager, jdbcTemplate, publisher, clazz, currentUserService, aclService, cacheable);
   }
 
   @Override

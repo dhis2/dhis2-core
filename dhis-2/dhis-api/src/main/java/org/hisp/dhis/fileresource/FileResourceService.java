@@ -37,12 +37,26 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 public interface FileResourceService {
+
+  @CheckForNull
   FileResource getFileResource(String uid);
+
+  /**
+   * Get the {@link FileResource} with the given ID
+   *
+   * @param uid the resource to fetch
+   * @return the file resource
+   * @throws NotFoundException when no such file resource exits
+   */
+  @Nonnull
+  FileResource getExistingFileResource(String uid) throws NotFoundException;
 
   /**
    * Lookup a {@link FileResource} by uid and {@link FileResourceDomain}.
@@ -75,15 +89,38 @@ public interface FileResourceService {
    */
   List<FileResourceOwner> findOwnersByStorageKey(@CheckForNull String storageKey);
 
-  void saveFileResource(FileResource fileResource, File file);
+  /**
+   * Creates the provided file resource and stores the file content asynchronously.
+   *
+   * @param fileResource the resource to create
+   * @param file the content stored asynchronously
+   */
+  void asyncSaveFileResource(FileResource fileResource, File file);
 
-  String saveFileResource(FileResource fileResource, byte[] bytes);
+  /**
+   * Creates the provided file resource and stores the content asynchronously.
+   *
+   * @param fileResource the resource to create
+   * @param bytes the content stored asynchronously
+   * @return the UID of the created file resource
+   */
+  String asyncSaveFileResource(FileResource fileResource, byte[] bytes);
+
+  /**
+   * Creates the provided file resource and stores the content synchronously.
+   *
+   * @param fileResource the resource to create
+   * @param bytes the content stored asynchronously
+   * @return the UID of the created file resource
+   */
+  String syncSaveFileResource(FileResource fileResource, byte[] bytes) throws ConflictException;
 
   void deleteFileResource(String uid);
 
   void deleteFileResource(FileResource fileResource);
 
-  InputStream getFileResourceContent(FileResource fileResource);
+  @Nonnull
+  InputStream getFileResourceContent(FileResource fileResource) throws ConflictException;
 
   /** Copy fileResource content to outputStream and Return File content length */
   void copyFileResourceContent(FileResource fileResource, OutputStream outputStream)

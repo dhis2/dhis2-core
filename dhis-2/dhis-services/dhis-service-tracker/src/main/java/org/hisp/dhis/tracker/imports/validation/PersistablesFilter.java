@@ -321,15 +321,15 @@ class PersistablesFilter {
   }
 
   private static Error error(ValidationCode code, TrackerDto notPersistable, TrackerDto reason) {
-    String message =
-        MessageFormat.format(
-            code.getMessage(),
-            notPersistable.getTrackerType().getName(),
-            notPersistable.getUid(),
-            reason.getTrackerType().getName(),
-            reason.getUid());
-
-    return new Error(message, code, notPersistable.getTrackerType(), notPersistable.getUid());
+    Object[] args = {
+      notPersistable.getTrackerType().getName(),
+      notPersistable.getUid(),
+      reason.getTrackerType().getName(),
+      reason.getUid()
+    };
+    String message = MessageFormat.format(code.getMessage(), args);
+    return new Error(
+        message, code, notPersistable.getTrackerType(), notPersistable.getUid(), List.of(args));
   }
 
   /**

@@ -39,7 +39,7 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Luciano Fiandesio
  */
-@Repository
+@Repository("org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.AclStore")
 public class DefaultAclStore implements AclStore {
   private final NamedParameterJdbcTemplate jdbcTemplate;
 

@@ -688,7 +688,6 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest {
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
-    dbmsManager.clearSession();
     Section section1 = manager.get(Section.class, "JwcV2ZifEQf");
     assertNotNull(section1.getDataSet());
     assertEquals(1, section1.getCategoryCombos().size());
@@ -710,10 +709,11 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest {
     params.setImportStrategy(ImportStrategy.UPDATE);
     params.setObjects(metadata);
     bundle = objectBundleService.create(params);
+    DataElement dataElement = manager.get(DataElement.class, "nHwIqKAudKN");
+    assertNotNull(dataElement);
     validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
-    manager.flush();
     List<DataSet> dataSets = manager.getAll(DataSet.class);
     List<Section> sections = manager.getAll(Section.class);
     List<OrganisationUnit> organisationUnits = manager.getAll(OrganisationUnit.class);

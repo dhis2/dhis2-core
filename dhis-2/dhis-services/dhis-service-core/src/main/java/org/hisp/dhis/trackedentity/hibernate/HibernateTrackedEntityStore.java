@@ -46,7 +46,6 @@ import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.POTENTIAL_DUP
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.PROGRAM_INSTANCE_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_TYPE_ID;
-import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 
@@ -62,12 +61,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -114,7 +113,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   private static final String LIMIT = "LIMIT";
 
-  private static final String EV_EXECUTIONDATE = "EV.executiondate";
+  private static final String EV_EXECUTIONDATE = "EV.occurreddate";
 
   private static final String EV_DUEDATE = "EV.scheduleddate";
 
@@ -146,7 +145,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   // TODO too many arguments in constructor. This needs to be refactored.
   public HibernateTrackedEntityStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
@@ -155,7 +154,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       OrganisationUnitStore organisationUnitStore,
       SystemSettingManager systemSettingManager) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         TrackedEntity.class,
@@ -359,7 +358,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
    * the program_constraint, we also have a subquery to deal with any event-related constraints.
    * These can either be constraints on any static properties, or user assignment. For user
    * assignment, we also join with the userinfo table. For events, we have an index (status,
-   * executiondate) which speeds up the lookup significantly order: Order is used both in the
+   * occurreddate) which speeds up the lookup significantly order: Order is used both in the
    * subquery and the main query. The sort depends on the params (see more info on the related
    * method). We order the subquery to make sure we get correct results before we limit. We order
    * the main query since the aggregation mixes up the order, so to return a consistent order, we
@@ -631,8 +630,8 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       if (params.hasLastUpdatedEndDate()) {
         trackedEntity
             .append(whereAnd.whereAnd())
-            .append(" TE.lastupdated < '")
-            .append(getLongDateString(addDays(params.getLastUpdatedEndDate(), 1)))
+            .append(" TE.lastupdated <='")
+            .append(getLongDateString(params.getLastUpdatedEndDate()))
             .append(SINGLE_QUOTE);
       }
     }
@@ -953,14 +952,14 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
     if (params.hasProgramIncidentStartDate()) {
       program
-          .append("AND EN.incidentdate >= '")
+          .append("AND EN.occurreddate >= '")
           .append(getLongDateString(params.getProgramIncidentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentEndDate()) {
       program
-          .append("AND EN.incidentdate <= '")
+          .append("AND EN.occurreddate <= '")
           .append(getLongDateString(params.getProgramIncidentEndDate()))
           .append("' ");
     }

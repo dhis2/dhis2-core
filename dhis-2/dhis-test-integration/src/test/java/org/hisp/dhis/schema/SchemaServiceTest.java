@@ -103,19 +103,19 @@ class SchemaServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void testCanScanJobParameters() {
     JobParameters parameters =
-        new AnalyticsJobParameters(10, new HashSet<>(), new HashSet<>(), true);
+        new AnalyticsJobParameters(10, new HashSet<>(), new HashSet<>(), true, true);
     Schema schema = schemaService.getDynamicSchema(parameters.getClass());
 
     assertNotNull(schema);
     assertFalse(schema.getProperties().isEmpty());
-    assertEquals(4, schema.getProperties().size());
+    assertEquals(5, schema.getProperties().size());
   }
 
   @Test
   void testCanScanJobConfigurationWithJobParameters() {
     JobConfiguration configuration = new JobConfiguration();
     configuration.setJobParameters(
-        new AnalyticsJobParameters(10, new HashSet<>(), new HashSet<>(), true));
+        new AnalyticsJobParameters(10, new HashSet<>(), new HashSet<>(), true, true));
 
     Schema schema = schemaService.getDynamicSchema(configuration.getClass());
     assertNotNull(schema);
@@ -131,6 +131,6 @@ class SchemaServiceTest extends SingleSetupIntegrationTestBase {
 
     assertNotNull(schema);
     assertFalse(schema.getProperties().isEmpty());
-    assertEquals(4, schema.getProperties().size());
+    assertEquals(5, schema.getProperties().size());
   }
 }

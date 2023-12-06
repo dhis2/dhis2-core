@@ -32,7 +32,6 @@ import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.util.DateUtils.addDays;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -161,7 +160,7 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_ENROLLMENT_DATE = "en_enrollmentdate";
   private static final String COLUMN_ORG_UNIT_UID = "orgunit_uid";
   private static final String COLUMN_TRACKEDENTITY_UID = "te_uid";
-  private static final String COLUMN_EVENT_EXECUTION_DATE = "ev_executiondate";
+  private static final String COLUMN_EVENT_OCCURRED_DATE = "ev_occurreddate";
   private static final String COLUMN_ENROLLMENT_FOLLOWUP = "en_followup";
   private static final String COLUMN_EVENT_STATUS = "ev_status";
   private static final String COLUMN_EVENT_SCHEDULED_DATE = "ev_scheduleddate";
@@ -169,7 +168,9 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_EVENT_LAST_UPDATED_BY = "ev_lastupdatedbyuserinfo";
   private static final String COLUMN_EVENT_CREATED_BY = "ev_createdbyuserinfo";
   private static final String COLUMN_EVENT_CREATED = "ev_created";
+  private static final String COLUMN_EVENT_CREATED_AT_CLIENT = "ev_createdatclient";
   private static final String COLUMN_EVENT_LAST_UPDATED = "ev_lastupdated";
+  private static final String COLUMN_EVENT_LAST_UPDATED_AT_CLIENT = "ev_lastupdatedatclient";
   private static final String COLUMN_EVENT_COMPLETED_BY = "ev_completedby";
   private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID = "coc_uid";
   private static final String COLUMN_EVENT_COMPLETED_DATE = "ev_completeddate";
@@ -198,7 +199,7 @@ class JdbcEventStore implements EventStore {
           entry("enrollment.enrollmentDate", COLUMN_ENROLLMENT_DATE),
           entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
           entry("enrollment.trackedEntity.uid", COLUMN_TRACKEDENTITY_UID),
-          entry("occurredDate", COLUMN_EVENT_EXECUTION_DATE),
+          entry("occurredDate", COLUMN_EVENT_OCCURRED_DATE),
           entry("enrollment.followUp", COLUMN_ENROLLMENT_FOLLOWUP),
           entry("status", COLUMN_EVENT_STATUS),
           entry("scheduledDate", COLUMN_EVENT_SCHEDULED_DATE),
@@ -206,7 +207,9 @@ class JdbcEventStore implements EventStore {
           entry("lastUpdatedBy", COLUMN_EVENT_LAST_UPDATED_BY),
           entry("createdBy", COLUMN_EVENT_CREATED_BY),
           entry("created", COLUMN_EVENT_CREATED),
+          entry("createdAtClient", COLUMN_EVENT_CREATED_AT_CLIENT),
           entry("lastUpdated", COLUMN_EVENT_LAST_UPDATED),
+          entry("lastUpdatedAtClient", COLUMN_EVENT_LAST_UPDATED_AT_CLIENT),
           entry("completedBy", COLUMN_EVENT_COMPLETED_BY),
           entry("attributeOptionCombo.uid", COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID),
           entry("completedDate", COLUMN_EVENT_COMPLETED_DATE),
@@ -327,12 +330,15 @@ class JdbcEventStore implements EventStore {
 
               event.setStoredBy(resultSet.getString(COLUMN_EVENT_STORED_BY));
               event.setScheduledDate(resultSet.getTimestamp(COLUMN_EVENT_SCHEDULED_DATE));
-              event.setOccurredDate(resultSet.getTimestamp(COLUMN_EVENT_EXECUTION_DATE));
+              event.setOccurredDate(resultSet.getTimestamp(COLUMN_EVENT_OCCURRED_DATE));
               event.setCreated(resultSet.getTimestamp(COLUMN_EVENT_CREATED));
+              event.setCreatedAtClient(resultSet.getTimestamp(COLUMN_EVENT_CREATED_AT_CLIENT));
               event.setCreatedByUserInfo(
                   EventUtils.jsonToUserInfo(
                       resultSet.getString(COLUMN_EVENT_CREATED_BY), jsonMapper));
               event.setLastUpdated(resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED));
+              event.setLastUpdatedAtClient(
+                  resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT));
               event.setLastUpdatedByUserInfo(
                   EventUtils.jsonToUserInfo(
                       resultSet.getString(COLUMN_EVENT_LAST_UPDATED_BY), jsonMapper));
@@ -733,8 +739,8 @@ class JdbcEventStore implements EventStore {
             .append(COLUMN_EVENT_ID)
             .append(", ev.status as ")
             .append(COLUMN_EVENT_STATUS)
-            .append(", ev.executiondate as ")
-            .append(COLUMN_EVENT_EXECUTION_DATE)
+            .append(", ev.occurreddate as ")
+            .append(COLUMN_EVENT_OCCURRED_DATE)
             .append(", ")
             .append("ev.eventdatavalues as ev_eventdatavalues, ev.scheduleddate as ")
             .append(COLUMN_EVENT_SCHEDULED_DATE)
@@ -745,10 +751,15 @@ class JdbcEventStore implements EventStore {
             .append(", ")
             .append("ev.created as ")
             .append(COLUMN_EVENT_CREATED)
+            .append(", ")
+            .append("ev.createdatclient as ")
+            .append(COLUMN_EVENT_CREATED_AT_CLIENT)
             .append(", ev.createdbyuserinfo as ")
             .append(COLUMN_EVENT_CREATED_BY)
             .append(", ev.lastupdated as ")
             .append(COLUMN_EVENT_LAST_UPDATED)
+            .append(", ev.lastupdatedatclient as ")
+            .append(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT)
             .append(", ev.lastupdatedbyuserinfo as ")
             .append(COLUMN_EVENT_LAST_UPDATED_BY)
             .append(", ")
@@ -791,7 +802,7 @@ class JdbcEventStore implements EventStore {
                 + COLUMN_ENROLLMENT_FOLLOWUP
                 + ", en.enrollmentdate as "
                 + COLUMN_ENROLLMENT_DATE
-                + ", en.incidentdate as en_incidentdate, ")
+                + ", en.occurreddate as en_occurreddate, ")
         .append("p.type as p_type, ")
         .append("te.trackedentityid as te_id, te.uid as ")
         .append(COLUMN_TRACKEDENTITY_UID)
@@ -914,13 +925,13 @@ class JdbcEventStore implements EventStore {
           "enrollmentOccurredBefore", params.getEnrollmentOccurredBefore(), Types.TIMESTAMP);
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (en.incidentdate <= :enrollmentOccurredBefore ) ");
+          .append(" (en.occurreddate <= :enrollmentOccurredBefore ) ");
     }
 
     if (params.getEnrollmentOccurredAfter() != null) {
       mapSqlParameterSource.addValue(
           "enrollmentOccurredAfter", params.getEnrollmentOccurredAfter(), Types.TIMESTAMP);
-      fromBuilder.append(hlp.whereAnd()).append(" (en.incidentdate >= :enrollmentOccurredAfter ) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (en.occurreddate >= :enrollmentOccurredAfter ) ");
     }
 
     if (params.getScheduleAtStartDate() != null) {
@@ -981,26 +992,25 @@ class JdbcEventStore implements EventStore {
     }
 
     if (params.getOccurredStartDate() != null) {
-      mapSqlParameterSource.addValue("startDate", params.getOccurredStartDate(), Types.DATE);
+      mapSqlParameterSource.addValue("startDate", params.getOccurredStartDate(), Types.TIMESTAMP);
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (ev.executiondate >= ")
+          .append(" (ev.occurreddate >= ")
           .append(":startDate")
-          .append(" or (ev.executiondate is null and ev.scheduleddate >= ")
+          .append(" or (ev.occurreddate is null and ev.scheduleddate >= ")
           .append(":startDate")
           .append(" )) ");
     }
 
     if (params.getOccurredEndDate() != null) {
-      mapSqlParameterSource.addValue(
-          "endDate", addDays(params.getOccurredEndDate(), 1), Types.DATE);
+      mapSqlParameterSource.addValue("endDate", params.getOccurredEndDate(), Types.TIMESTAMP);
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (ev.executiondate < ")
+          .append(" (ev.occurreddate <= ")
           .append(":endDate")
-          .append(" or (ev.executiondate is null and ev.scheduleddate < ")
+          .append(" or (ev.occurreddate is null and ev.scheduleddate <=")
           .append(":endDate")
           .append(" )) ");
     }
@@ -1372,7 +1382,7 @@ class JdbcEventStore implements EventStore {
             .append(hlp.whereAnd())
             .append(EVENT_STATUS_EQ)
             .append(":" + COLUMN_EVENT_STATUS)
-            .append(" and ev.executiondate is not null ");
+            .append(" and ev.occurreddate is not null ");
       } else if (params.getEventStatus() == EventStatus.OVERDUE) {
         mapSqlParameterSource.addValue(COLUMN_EVENT_STATUS, EventStatus.SCHEDULE.name());
 
@@ -1424,11 +1434,11 @@ class JdbcEventStore implements EventStore {
 
       if (params.hasUpdatedAtEndDate()) {
         mapSqlParameterSource.addValue(
-            "lastUpdatedEnd", addDays(params.getUpdatedAtEndDate(), 1), Types.TIMESTAMP);
+            "lastUpdatedEnd", params.getUpdatedAtEndDate(), Types.TIMESTAMP);
 
         sqlBuilder
             .append(hlp.whereAnd())
-            .append(" ev.lastupdated < ")
+            .append(" ev.lastupdated <= ")
             .append(":lastUpdatedEnd")
             .append(" ");
       }

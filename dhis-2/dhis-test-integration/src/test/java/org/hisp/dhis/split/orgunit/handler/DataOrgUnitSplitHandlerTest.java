@@ -31,7 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
 import java.util.stream.Stream;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -73,7 +74,7 @@ class DataOrgUnitSplitHandlerTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private DataOrgUnitSplitHandler handler;
 
-  @Autowired private SessionFactory sessionFactory;
+  @PersistenceContext private EntityManager entityManager;
 
   private DataElement deA;
 
@@ -167,20 +168,18 @@ class DataOrgUnitSplitHandlerTest extends SingleSetupIntegrationTestBase {
 
   private long getDataValueCount(OrganisationUnit target) {
     return (Long)
-        sessionFactory
-            .getCurrentSession()
+        entityManager
             .createQuery("select count(*) from DataValue dv where dv.source = :target")
             .setParameter("target", target)
-            .uniqueResult();
+            .getSingleResult();
   }
 
   private long getDataApprovalCount(OrganisationUnit target) {
     return (Long)
-        sessionFactory
-            .getCurrentSession()
+        entityManager
             .createQuery("select count(*) from DataApproval da where da.organisationUnit = :target")
             .setParameter("target", target)
-            .uniqueResult();
+            .getSingleResult();
   }
 
   private void addDataValues(DataValue... dataValues) {

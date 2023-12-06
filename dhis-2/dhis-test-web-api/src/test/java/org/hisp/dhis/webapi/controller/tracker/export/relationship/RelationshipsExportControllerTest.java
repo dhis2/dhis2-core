@@ -697,7 +697,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     Enrollment enrollment = new Enrollment(program, te, orgUnit);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setStatus(ProgramStatus.COMPLETED);
     manager.save(enrollment, false);
     te.setEnrollments(Set.of(enrollment));
@@ -805,7 +805,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     return r;
   }
 
-  private Relationship relationship(Enrollment from, Event to) {
+  private void relationship(Enrollment from, Event to) {
     Relationship r = new Relationship();
 
     RelationshipItem fromItem = new RelationshipItem();
@@ -830,7 +830,6 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     r.setAutoFields();
     r.getSharing().setOwner(owner);
     manager.save(r, false);
-    return r;
   }
 
   private Relationship relationship(Enrollment from, TrackedEntity to) {

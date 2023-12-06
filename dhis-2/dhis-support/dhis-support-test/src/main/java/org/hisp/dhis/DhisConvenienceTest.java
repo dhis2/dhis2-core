@@ -1631,7 +1631,7 @@ public abstract class DhisConvenienceTest {
     enrollment.setTrackedEntity(te);
     enrollment.setOrganisationUnit(organisationUnit);
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
 
     return enrollment;
   }
@@ -2277,16 +2277,19 @@ public abstract class DhisConvenienceTest {
       DataSetNotificationTrigger dataSetNotificationTrigger,
       Integer relativeScheduledDays,
       SendStrategy sendStrategy) {
-    return new DataSetNotificationTemplate(
-        Sets.newHashSet(),
-        Sets.newHashSet(),
-        "Message",
-        notificationRecipient,
-        dataSetNotificationTrigger,
-        "Subject",
-        null,
-        relativeScheduledDays,
-        sendStrategy);
+    DataSetNotificationTemplate dst =
+        new DataSetNotificationTemplate(
+            newHashSet(),
+            newHashSet(),
+            "Message",
+            notificationRecipient,
+            dataSetNotificationTrigger,
+            "Subject",
+            null,
+            relativeScheduledDays,
+            sendStrategy);
+    dst.setName(name);
+    return dst;
   }
 
   public static ValidationNotificationTemplate createValidationNotificationTemplate(String name) {

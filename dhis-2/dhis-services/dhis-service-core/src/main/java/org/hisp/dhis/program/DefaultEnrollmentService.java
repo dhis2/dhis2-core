@@ -336,7 +336,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
       Program program,
       ProgramStatus programStatus,
       Date enrollmentDate,
-      Date incidentDate,
+      Date occurredDate,
       OrganisationUnit organisationUnit,
       String uid) {
     if (program.getTrackedEntityType() != null
@@ -356,10 +356,10 @@ public class DefaultEnrollmentService implements EnrollmentService {
       enrollment.setEnrollmentDate(new Date());
     }
 
-    if (incidentDate != null) {
-      enrollment.setIncidentDate(incidentDate);
+    if (occurredDate != null) {
+      enrollment.setOccurredDate(occurredDate);
     } else {
-      enrollment.setIncidentDate(new Date());
+      enrollment.setOccurredDate(new Date());
     }
 
     enrollment.setStatus(programStatus);
@@ -373,13 +373,13 @@ public class DefaultEnrollmentService implements EnrollmentService {
       TrackedEntity trackedEntity,
       Program program,
       Date enrollmentDate,
-      Date incidentDate,
+      Date occurredDate,
       OrganisationUnit organisationUnit) {
     return enrollTrackedEntity(
         trackedEntity,
         program,
         enrollmentDate,
-        incidentDate,
+        occurredDate,
         organisationUnit,
         CodeGenerator.generateUid());
   }
@@ -390,7 +390,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
       TrackedEntity trackedEntity,
       Program program,
       Date enrollmentDate,
-      Date incidentDate,
+      Date occurredDate,
       OrganisationUnit organisationUnit,
       String uid) {
     // ---------------------------------------------------------------------
@@ -403,7 +403,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
             program,
             ProgramStatus.ACTIVE,
             enrollmentDate,
-            incidentDate,
+            occurredDate,
             organisationUnit,
             uid);
     addEnrollment(enrollment);
@@ -472,7 +472,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
         // Set status as skipped for overdue events, or delete
         // -------------------------------------------------------------
 
-        if (event.getScheduledDate().before(enrollment.getEndDate())) {
+        if (event.getScheduledDate().before(enrollment.getCompletedDate())) {
           event.setStatus(EventStatus.SKIPPED);
           eventStore.update(event);
         } else {
@@ -501,7 +501,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     // -----------------------------------------------------------------
 
     enrollment.setStatus(ProgramStatus.ACTIVE);
-    enrollment.setEndDate(null);
+    enrollment.setCompletedDate(null);
 
     updateEnrollment(enrollment);
   }

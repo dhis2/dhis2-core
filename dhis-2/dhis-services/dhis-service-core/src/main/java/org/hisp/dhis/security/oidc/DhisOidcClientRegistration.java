@@ -31,7 +31,11 @@ import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_I
 
 import com.nimbusds.jose.jwk.JWK;
 import java.security.interfaces.RSAPublicKey;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Data;

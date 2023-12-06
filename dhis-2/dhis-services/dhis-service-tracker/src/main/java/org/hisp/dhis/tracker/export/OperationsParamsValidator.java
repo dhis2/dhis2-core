@@ -62,9 +62,7 @@ public class OperationsParamsValidator {
   }
 
   private static void validateUserCanSearchOrgUnitModeALL(User user) throws BadRequestException {
-    if (user != null
-        && !(user.isSuper()
-            || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS))) {
+    if (user != null && !(user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS))) {
       throw new BadRequestException(
           "Current user is not authorized to query across all organisation units");
     }
@@ -93,7 +91,7 @@ public class OperationsParamsValidator {
     if (user == null) {
       throw new BadRequestException("User is required for orgUnitMode: " + CAPTURE);
     } else if (user.getOrganisationUnits().isEmpty()) {
-      throw new BadRequestException("User needs to be assigned data capture orgunits");
+      throw new BadRequestException("User needs to be assigned data capture org units");
     }
   }
 }

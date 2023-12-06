@@ -37,7 +37,6 @@ import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -142,9 +141,8 @@ public class ProgramRuleVariableObjectBundleHook
 
   private Query<ProgramRuleVariable> getProgramRuleVariableQuery(
       ProgramRuleVariable programRuleVariable) {
-    Session session = sessionFactory.getCurrentSession();
     Query<ProgramRuleVariable> query =
-        session.createQuery(FROM_PROGRAM_RULE_VARIABLE, ProgramRuleVariable.class);
+        getSession().createQuery(FROM_PROGRAM_RULE_VARIABLE, ProgramRuleVariable.class);
 
     query.setParameter("name", programRuleVariable.getName());
     query.setParameter("programUid", programRuleVariable.getProgram().getUid());

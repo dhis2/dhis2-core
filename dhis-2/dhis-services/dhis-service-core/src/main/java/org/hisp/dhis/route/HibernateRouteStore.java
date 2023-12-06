@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.route;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -42,18 +42,12 @@ import org.springframework.stereotype.Repository;
 public class HibernateRouteStore extends HibernateIdentifiableObjectStore<Route>
     implements RouteStore {
   public HibernateRouteStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        Route.class,
-        currentUserService,
-        aclService,
-        false);
+        entityManager, jdbcTemplate, publisher, Route.class, currentUserService, aclService, false);
   }
 }

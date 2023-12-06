@@ -30,7 +30,7 @@ package org.hisp.dhis.predictor.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nonnull;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.predictor.Predictor;
@@ -50,14 +50,14 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
   private final PeriodService periodService;
 
   public HibernatePredictorStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService,
       PeriodService periodService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         Predictor.class,

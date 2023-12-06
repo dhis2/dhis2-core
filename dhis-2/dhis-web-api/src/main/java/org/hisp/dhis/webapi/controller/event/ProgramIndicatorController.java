@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.springframework.http.MediaType.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
