@@ -55,7 +55,6 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
-import org.hisp.dhis.tracker.imports.converter.TrackerSideEffectConverterService;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -71,19 +70,15 @@ public class EventPersister
   private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event>
       eventConverter;
 
-  private final TrackerSideEffectConverterService sideEffectConverterService;
-
   private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
 
   public EventPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
-      TrackerSideEffectConverterService sideEffectConverterService,
       TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
       TrackedEntityDataValueAuditService trackedEntityDataValueAuditService) {
     super(reservedValueService, trackedEntityAttributeValueAuditService);
     this.eventConverter = eventConverter;
-    this.sideEffectConverterService = sideEffectConverterService;
     this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
   }
 
@@ -113,8 +108,7 @@ public class EventPersister
     return TrackerSideEffectDataBundle.builder()
         .klass(Event.class)
         .enrollmentRuleEffects(new HashMap<>())
-        .eventRuleEffects(
-            sideEffectConverterService.toTrackerSideEffects(bundle.getEventRuleEffects()))
+        .eventRuleEffects(bundle.getEventRuleEffects())
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())
