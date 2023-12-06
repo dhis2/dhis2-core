@@ -596,14 +596,6 @@ public interface UserService {
   @Nonnull
   List<User> getLinkedUserAccounts(@Nonnull User actingUser);
 
-  /**
-   * Get active linked user accounts for the given user
-   *
-   * @param actingUser the acting/current user
-   * @param activeUsername the username of the user to set as active
-   */
-  void setActiveLinkedAccounts(@Nonnull User actingUser, @Nonnull String activeUsername);
-
   void invalidateUserSessions(String uid);
 
   /**

@@ -29,7 +29,6 @@ package org.hisp.dhis.security;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserStore;
@@ -46,7 +45,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("ldapUserDetailsService")
 @RequiredArgsConstructor
 public class DefaultLdapUserDetailsService implements UserDetailsService {
-  //  private final UserService userService;
   private final UserStore userStore;
 
   @Override
@@ -65,7 +63,6 @@ public class DefaultLdapUserDetailsService implements UserDetailsService {
     String password = "EXTERNAL_LDAP_" + CodeGenerator.generateCode(10);
     user.setPassword(password);
 
-    CurrentUserDetails currentUserDetails = CurrentUserDetailsImpl.fromUser(user);
-    return currentUserDetails;
+    return CurrentUserDetailsImpl.fromUser(user);
   }
 }

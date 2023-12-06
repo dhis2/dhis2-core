@@ -32,7 +32,9 @@ import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
 import static java.util.stream.Collectors.toMap;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -548,5 +550,24 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     query.setParameter("usernames", usernames);
 
     return query.getResultList();
+  }
+
+  @Override
+  public void setActiveLinkedAccounts(
+      @Nonnull String actingUsername, @Nonnull String activeUsername) {
+
+    User actionUser = getUserByUsername(actingUsername, false);
+    Instant oneHourAgo = Instant.now().minus(1, ChronoUnit.HOURS);
+    Instant oneHourInTheFuture = Instant.now().plus(1, ChronoUnit.HOURS);
+
+    List<User> linkedUserAccounts = getLinkedUserAccounts(actionUser);
+    for (User user : linkedUserAccounts) {
+      user.setLastLogin(
+          user.getUsername().equals(activeUsername)
+              ? Date.from(oneHourInTheFuture)
+              : Date.from(oneHourAgo));
+
+      update(user);
+    }
   }
 }

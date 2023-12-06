@@ -40,7 +40,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
@@ -54,13 +53,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
-  private final DhisOidcProviderRepository dhisOidcProviderRepository;
 
   private final DhisConfigurationProvider config;
-
-  //  private final UserService userService;
-
   private final UserStore userStore;
+  private final DhisOidcProviderRepository dhisOidcProviderRepository;
+
   private SimpleUrlLogoutSuccessHandler handler;
 
   @PostConstruct
@@ -103,6 +100,7 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
   private void handleLinkedAccountsLogout(
       HttpServletRequest request, HttpServletResponse response, Authentication authentication)
       throws IOException, ServletException {
+
     String currentUsername = request.getParameter("current");
     String usernameToSwitchTo = request.getParameter("switch");
 
@@ -110,8 +108,7 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
       setOidcLogoutUrl();
     } else {
 
-      User currentUser = userStore.getUserByUsername(currentUsername, false);
-      //      userService.setActiveLinkedAccounts(currentUser, usernameToSwitchTo);
+      userStore.setActiveLinkedAccounts(currentUsername, usernameToSwitchTo);
 
       this.handler.setDefaultTargetUrl(config.getProperty(LINKED_ACCOUNTS_RELOGIN_URL));
     }

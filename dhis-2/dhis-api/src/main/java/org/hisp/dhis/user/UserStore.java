@@ -187,4 +187,12 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   // TODO: MAS: refactor, only used in tests
   /** Return CurrentUserGroupInfo used for ACL check in {@link IdentifiableObjectStore} */
   CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
+
+  /**
+   * Get active linked user accounts for the given user
+   *
+   * @param actingUser the acting/current user
+   * @param activeUsername the username of the user to set as active
+   */
+  void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername);
 }

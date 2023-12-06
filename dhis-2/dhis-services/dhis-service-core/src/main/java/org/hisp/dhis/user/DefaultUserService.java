@@ -39,9 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
@@ -1025,23 +1023,6 @@ public class DefaultUserService implements UserService {
   @Transactional(readOnly = true)
   public List<User> getLinkedUserAccounts(@Nonnull User actingUser) {
     return userStore.getLinkedUserAccounts(actingUser);
-  }
-
-  @Override
-  @Transactional
-  public void setActiveLinkedAccounts(@Nonnull User actingUser, @Nonnull String activeUsername) {
-    Instant oneHourAgo = Instant.now().minus(1, ChronoUnit.HOURS);
-    Instant oneHourInTheFuture = Instant.now().plus(1, ChronoUnit.HOURS);
-
-    List<User> linkedUserAccounts = getLinkedUserAccounts(actingUser);
-    for (User user : linkedUserAccounts) {
-      user.setLastLogin(
-          user.getUsername().equals(activeUsername)
-              ? Date.from(oneHourInTheFuture)
-              : Date.from(oneHourAgo));
-
-      updateUser(user);
-    }
   }
 
   public void invalidateUserSessions(String uid) {
