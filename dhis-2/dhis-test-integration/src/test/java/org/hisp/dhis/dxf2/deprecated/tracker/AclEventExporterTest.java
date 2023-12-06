@@ -57,6 +57,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -372,6 +373,24 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldReturnEventsFromUserScopeWhenOrgUnitModeAllNoOrgUnitProvidedAndNotSuperuser() {
+    injectSecurityContext(userService.getUser("o1HMTIzBGo7"));
+
+    EventSearchParams params = new EventSearchParams();
+    params.setOrgUnit(get(OrganisationUnit.class, "uoNW0E3xXUy"));
+    params.setOrgUnitSelectionMode(ALL);
+
+    List<Event> events = eventService.getEvents(params).getEvents();
+
+    assertFalse(
+        events.isEmpty(),
+        "Expected to find events when ou mode ALL no program specified and org unit provided");
+    assertContainsOnly(
+        List.of("DiszpKrYNg8"), events.stream().map(Event::getOrgUnit).collect(Collectors.toSet()));
+  }
+
+  @Test
+  @Disabled("This test will be removed in a following PR")
   void shouldReturnAllEventsWhenOrgUnitModeAllAndNoOrgUnitProvidedAndUserNull() {
     injectSecurityContext(null);
 

@@ -2367,7 +2367,8 @@
       },
       "authorities": [
         "M_dhis-web-capture",
-        "M_dhis-web-tracker-capture"
+        "M_dhis-web-tracker-capture",
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS"
       ],
       "translations": []
     }

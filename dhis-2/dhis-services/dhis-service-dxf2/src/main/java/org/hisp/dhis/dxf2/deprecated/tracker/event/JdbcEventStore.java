@@ -2130,7 +2130,7 @@ public class JdbcEventStore implements EventStore {
       case SELECTED:
         return createSelectedSql(user, params, mapSqlParameterSource);
       default:
-        return null;
+        return user.isSuper() ? null : createAccessibleSql(user, params, mapSqlParameterSource);
     }
   }
 

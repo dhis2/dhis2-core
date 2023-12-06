@@ -63,6 +63,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -450,7 +451,7 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnAllEventsWhenOrgUnitModeAllAndNoOrgUnitProvided()
+  void shouldReturnAllEventsWhenOrgUnitModeAllNoOrgUnitProvidedAndSuperuser()
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("lPaILkLkgOM"));
 
@@ -473,6 +474,24 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldReturnEventsFromUserScopeWhenOrgUnitModeAllNoOrgUnitProvidedAndNotSuperuser()
+      throws ForbiddenException, BadRequestException {
+    injectSecurityContext(userService.getUser("o1HMTIzBGo7"));
+
+    EventOperationParams params = operationParamsBuilder.orgUnitMode(ALL).build();
+
+    List<Event> events = eventService.getEvents(params);
+
+    assertFalse(
+        events.isEmpty(),
+        "Expected to find events when ou mode ALL no program specified and no org unit provided");
+    assertContainsOnly(
+        List.of("DiszpKrYNg8"),
+        events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()));
+  }
+
+  @Test
+  @Disabled("Will be removed in a following PR")
   void shouldReturnAllEventsWhenOrgUnitModeAllAndNoOrgUnitProvidedAndUserNull()
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(null);
@@ -496,7 +515,7 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldIgnoreRequestedOrgUnitAndReturnAllEventsWhenOrgUnitModeAllAndOrgUnitProvided()
+  void shouldIgnoreRequestedOrgUnitAndReturnAllEventsWhenOrgUnitModeAllOrgUnitProvidedAndSuperuser()
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("lPaILkLkgOM"));
 

@@ -1094,7 +1094,7 @@ class JdbcEventStore implements EventStore {
       case DESCENDANTS -> createDescendantsSql(user, params, mapSqlParameterSource);
       case CHILDREN -> createChildrenSql(user, params, mapSqlParameterSource);
       case SELECTED -> createSelectedSql(user, params, mapSqlParameterSource);
-      case ALL -> null;
+      case ALL -> user.isSuper() ? null : createAccessibleSql(user, params, mapSqlParameterSource);
     };
   }
 
