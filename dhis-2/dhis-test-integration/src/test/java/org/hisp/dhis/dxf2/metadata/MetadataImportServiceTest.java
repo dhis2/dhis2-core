@@ -591,7 +591,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
             new ClassPathResource("dxf2/dataset_with_accesses_merge_mode.json").getInputStream(),
             RenderFormat.JSON);
     params = createParams(ImportStrategy.CREATE_AND_UPDATE);
-    params.setMetadataMergeMode(MetadataMergeMode.REPLACE);
+    params.setMergeMode(MetadataMergeMode.REPLACE);
     params.setUser(UID.of(user));
     report = importService.importMetadata(params, new MetadataObjects(metadata));
     assertEquals(Status.OK, report.getStatus());

@@ -149,7 +149,7 @@ class CsvMetadataImportTest extends SingleSetupIntegrationTestBase {
             "metadata/optionSet_update.csv",
             CsvImportClass.OPTION_SET,
             null,
-            params -> params.setMetadataMergeMode(MetadataMergeMode.MERGE));
+            params -> params.setMergeMode(MetadataMergeMode.MERGE));
     assertEquals(2, importReport.getStats().getCreated());
     OptionSet optionSet = optionService.getOptionSetByCode("COLOR");
     // Total 5 options added
@@ -169,7 +169,7 @@ class CsvMetadataImportTest extends SingleSetupIntegrationTestBase {
             null,
             params -> {
               params.setIdentifier(PreheatIdentifier.CODE);
-              params.setMetadataMergeMode(MetadataMergeMode.MERGE);
+              params.setMergeMode(MetadataMergeMode.MERGE);
             });
     // Only 2 new Options are added
     assertEquals(2, importReport.getStats().getCreated());
