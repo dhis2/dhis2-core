@@ -46,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -240,10 +241,11 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     Instant endOfWindow = now.plusSeconds(dueInNextSeconds);
     Duration maxCronDelay =
         Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
+    ZoneId zone = ZoneId.systemDefault();
     Stream<JobConfiguration> dueJobs =
         jobConfigurationStore
             .getDueJobConfigurations(includeWaiting)
-            .filter(c -> c.isDueBetween(now, endOfWindow, maxCronDelay));
+            .filter(c -> c.isDueBetween(zone, now, endOfWindow, maxCronDelay));
     return dueJobs.toList();
   }
 

@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.toList;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import lombok.Value;
@@ -60,7 +61,8 @@ class SchedulerEntry {
   @JsonProperty List<SchedulerEntryJob> sequence;
 
   static SchedulerEntry of(JobConfiguration config, Duration maxCronDelay) {
-    Instant nextExecutionTime = config.nextExecutionTime(Instant.now(), maxCronDelay);
+    Instant nextExecutionTime =
+        config.nextExecutionTime(ZoneId.systemDefault(), Instant.now(), maxCronDelay);
     return new SchedulerEntry(
         config.getName(),
         config.getJobType().name(),
@@ -86,7 +88,8 @@ class SchedulerEntry {
             .filter(status -> status == JobStatus.RUNNING)
             .findAny()
             .orElse(trigger.getJobStatus());
-    Instant nextExecutionTime = trigger.nextExecutionTime(Instant.now(), maxCronDelay);
+    Instant nextExecutionTime =
+        trigger.nextExecutionTime(ZoneId.systemDefault(), Instant.now(), maxCronDelay);
     return new SchedulerEntry(
         trigger.getQueueName(),
         "Sequence",

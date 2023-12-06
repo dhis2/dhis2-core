@@ -202,7 +202,7 @@ public class JobScheduler implements Runnable, JobRunner {
   private Instant dueTime(Instant now, JobConfiguration config) {
     Duration maxCronDelay =
         Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
-    Instant dueTime = config.nextExecutionTime(now, maxCronDelay);
+    Instant dueTime = config.nextExecutionTime(ZoneId.systemDefault(), now, maxCronDelay);
     return dueTime != null && !dueTime.isAfter(now) ? dueTime : null;
   }
 
