@@ -47,7 +47,7 @@ public class vScheduledDate extends ProgramDateVariable {
               .getStatementBuilder()
               .getProgramIndicatorEventColumnSql(
                   null,
-                  "duedate",
+                  "scheduleddate",
                   params.getReportingStartDate(),
                   params.getReportingEndDate(),
                   params.getProgramIndicator());
@@ -55,11 +55,11 @@ public class vScheduledDate extends ProgramDateVariable {
       return maybeAppendEventStatusFilterIntoWhere(sqlStatement);
     }
 
-    return "duedate";
+    return "scheduleddate";
   }
 
   private String maybeAppendEventStatusFilterIntoWhere(String sqlStatement) {
-    int index = sqlStatement.indexOf("order by executiondate");
+    int index = sqlStatement.indexOf("order by occurreddate");
 
     if (index == -1) {
       return sqlStatement;

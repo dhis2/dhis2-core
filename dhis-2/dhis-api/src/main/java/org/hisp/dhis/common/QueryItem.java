@@ -85,6 +85,16 @@ public class QueryItem implements GroupableItem {
   // Constructors
   // -------------------------------------------------------------------------
 
+  public QueryItem(TrackedEntityAttribute item, LegendSet legendSet) {
+    this(
+        item,
+        null,
+        legendSet,
+        legendSet != null ? ValueType.TEXT : item.getValueType(),
+        item.getAggregationType(),
+        item.getOptionSet());
+  }
+
   public QueryItem(DimensionalItemObject item) {
     this.item = item;
   }

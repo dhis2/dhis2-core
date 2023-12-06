@@ -222,7 +222,7 @@ public abstract class CommandSMSListener extends BaseSMSListener {
     if (enrollments.isEmpty()) {
       Enrollment enrollment = new Enrollment();
       enrollment.setEnrollmentDate(new Date());
-      enrollment.setIncidentDate(new Date());
+      enrollment.setOccurredDate(new Date());
       enrollment.setProgram(smsCommand.getProgram());
       enrollment.setStatus(ProgramStatus.ACTIVE);
 
@@ -248,8 +248,8 @@ public abstract class CommandSMSListener extends BaseSMSListener {
     event.setOrganisationUnit(ous.iterator().next());
     event.setProgramStage(smsCommand.getProgramStage());
     event.setEnrollment(enrollment);
-    event.setExecutionDate(sms.getSentDate());
-    event.setDueDate(sms.getSentDate());
+    event.setOccurredDate(sms.getSentDate());
+    event.setScheduledDate(sms.getSentDate());
     event.setAttributeOptionCombo(dataElementCategoryService.getDefaultCategoryOptionCombo());
     event.setCompletedBy("DHIS 2");
     event.setStoredBy(currentUserInfo.getUsername());

@@ -55,7 +55,7 @@ import org.hisp.dhis.relationship.RelationshipType;
  * An example of a generated sub-query is:
  *
  * <pre>
- * avg((date_part('year', age(cast(executiondate as date), cast("iESIqZ0R0R0" as date)))))
+ * avg((date_part('year', age(cast(occurreddate as date), cast("iESIqZ0R0R0" as date)))))
  * FROM analytics_event_uy2gu8kt1jf as subax"
  * </pre>
  *

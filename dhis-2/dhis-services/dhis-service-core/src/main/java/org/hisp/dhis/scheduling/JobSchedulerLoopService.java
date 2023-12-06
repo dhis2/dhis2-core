@@ -45,6 +45,12 @@ import org.hisp.dhis.feedback.NotFoundException;
 public interface JobSchedulerLoopService {
 
   /**
+   * Make sure the {@link JobType#HOUSEKEEPING} entry exists as it is responsible for spawning the
+   * other system jobs when needed using {@link JobConfigurationService#createDefaultJobs()}.
+   */
+  void createHousekeepingJob();
+
+  /**
    * @return true, if node is or become the leader, else false
    */
   boolean tryBecomeLeader(int ttlSeconds);
@@ -62,6 +68,9 @@ public interface JobSchedulerLoopService {
    * @return only jobs that should start soon within the given number of seconds
    */
   List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds);
+
+  @CheckForNull
+  JobConfiguration getJobConfiguration(String jobId);
 
   @CheckForNull
   JobConfiguration getNextInQueue(String queue, int fromPosition);

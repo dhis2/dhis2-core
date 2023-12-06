@@ -90,7 +90,7 @@ class StrategyPreProcessorTest extends DhisConvenienceTest {
 
   private org.hisp.dhis.tracker.imports.domain.Relationship newPayloadRelationship;
 
-  private StrategyPreProcessor preProcessorToTest = new StrategyPreProcessor();
+  private final StrategyPreProcessor preProcessorToTest = new StrategyPreProcessor();
 
   @Mock private TrackerPreheat preheat;
 

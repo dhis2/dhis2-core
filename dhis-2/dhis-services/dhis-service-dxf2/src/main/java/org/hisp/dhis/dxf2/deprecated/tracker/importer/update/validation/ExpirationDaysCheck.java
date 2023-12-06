@@ -117,11 +117,11 @@ public class ExpirationDaysCheck implements Checker {
       if (programStageInstance != null) {
         Date today = new Date();
 
-        if (programStageInstance.getExecutionDate() == null) {
+        if (programStageInstance.getOccurredDate() == null) {
           return error("Event needs to have event date", event.getEvent());
         }
 
-        Period period = periodType.createPeriod(programStageInstance.getExecutionDate());
+        Period period = periodType.createPeriod(programStageInstance.getOccurredDate());
         if (!Period.isDateInTimeFrame(
             null, addDays(period.getEndDate(), program.getExpiryDays()), today)) {
           return error(

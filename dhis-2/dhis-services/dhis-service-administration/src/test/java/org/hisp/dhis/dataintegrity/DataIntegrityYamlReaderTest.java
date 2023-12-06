@@ -56,7 +56,7 @@ class DataIntegrityYamlReaderTest {
 
     List<DataIntegrityCheck> checks = new ArrayList<>();
     readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
-    assertEquals(63, checks.size());
+    assertEquals(64, checks.size());
 
     // Names should be unique
     List<String> allNames = checks.stream().map(DataIntegrityCheck::getName).toList();
@@ -102,7 +102,7 @@ class DataIntegrityYamlReaderTest {
             .getIssues()
             .get(0)
             .getComment()
-            .startsWith("SELECT uid,name from dataelementcategory"));
+            .startsWith("SELECT uid,name from category"));
   }
 
   @Test

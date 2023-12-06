@@ -183,6 +183,18 @@ abstract class EventAnalyticsTest {
     return params.build();
   }
 
+  protected EventQueryParams createRequestParamsWithMultipleQueries() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    ouA.setPath("/" + ouA.getUid());
+    EventQueryParams.Builder params = new EventQueryParams.Builder();
+    params.withPeriods(getList(createPeriod("2000Q1")), "quarterly");
+    params.withOrganisationUnits(getList(ouA));
+    params.withTableName(getTableName() + "_" + programA.getUid());
+    params.withProgram(programA);
+    params.withMultipleQueries(true);
+    return params.build();
+  }
+
   protected EventQueryParams createRequestParamsWithTimeField(String timeField) {
     OrganisationUnit ouA = createOrganisationUnit('A');
     ouA.setPath("/" + ouA.getUid());

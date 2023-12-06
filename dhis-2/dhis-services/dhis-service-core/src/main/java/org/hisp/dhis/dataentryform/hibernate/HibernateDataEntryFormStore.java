@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.dataentryform.hibernate;
 
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormStore;
@@ -46,13 +46,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateDataEntryFormStore extends HibernateIdentifiableObjectStore<DataEntryForm>
     implements DataEntryFormStore {
   public HibernateDataEntryFormStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         DataEntryForm.class,

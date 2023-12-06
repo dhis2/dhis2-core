@@ -38,8 +38,8 @@ import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.sideeffect.TrackerRuleEngineSideEffect;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -52,7 +52,7 @@ class TrackerSideEffectDataBundleTest {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         new org.hisp.dhis.tracker.imports.domain.Enrollment();
     enrollment.setEnrollment("test-enrollment");
-    Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();
+    Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
     enrollmentRuleEffects.put(enrollment.getEnrollment(), Lists.newArrayList());
     String enrollmentUid = CodeGenerator.generateUid();
     TrackerSideEffectDataBundle bundle =
@@ -76,7 +76,7 @@ class TrackerSideEffectDataBundleTest {
     org.hisp.dhis.tracker.imports.domain.Event event =
         new org.hisp.dhis.tracker.imports.domain.Event();
     event.setEvent("test-event");
-    Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
+    Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
     eventRuleEffects.put(event.getEvent(), Lists.newArrayList());
     Event expected = new Event();
     expected.setAutoFields();

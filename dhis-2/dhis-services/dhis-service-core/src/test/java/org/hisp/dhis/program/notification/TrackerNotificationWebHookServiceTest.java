@@ -139,7 +139,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest {
     enrollment.setProgram(programA);
     enrollment.setOrganisationUnit(organisationUnitA);
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setTrackedEntity(tei);
 
     event = new Event();
@@ -147,8 +147,8 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest {
     event.setProgramStage(programStageA);
     event.setOrganisationUnit(organisationUnitA);
     enrollment.setEnrollmentDate(new Date());
-    event.setExecutionDate(new Date());
-    event.setDueDate(new Date());
+    event.setOccurredDate(new Date());
+    event.setScheduledDate(new Date());
     event.setEnrollment(enrollment);
 
     dataValue = new EventDataValue();

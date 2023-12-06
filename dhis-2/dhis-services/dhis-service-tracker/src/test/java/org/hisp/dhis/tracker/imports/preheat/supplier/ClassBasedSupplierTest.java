@@ -36,8 +36,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import org.hisp.dhis.tracker.imports.TrackerIdentifierCollector;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.supplier.strategy.ClassBasedSupplierStrategy;
 import org.hisp.dhis.tracker.imports.preheat.supplier.strategy.GenericStrategy;
@@ -63,7 +63,7 @@ class ClassBasedSupplierTest {
 
   @Mock private GenericStrategy genericStrategy;
 
-  @Mock private TrackerImportParams trackerImportParams;
+  @Mock private TrackerObjects trackerObjects;
 
   @Mock private TrackerEntityStrategy trackerEntityStrategy;
 
@@ -74,7 +74,7 @@ class ClassBasedSupplierTest {
     classBasedSupplier = new ClassBasedSupplier(identifierCollector, strategiesMap);
     classBasedSupplier.setApplicationContext(applicationContext);
 
-    when(identifierCollector.collect(trackerImportParams))
+    when(identifierCollector.collect(trackerObjects))
         .thenReturn(
             new HashMap<>() {
               {
@@ -91,7 +91,7 @@ class ClassBasedSupplierTest {
     when(applicationContext.getBean(Constant.GENERIC_STRATEGY_BEAN, GenericStrategy.class))
         .thenReturn(genericStrategy);
 
-    classBasedSupplier.preheatAdd(trackerImportParams, new TrackerPreheat());
+    classBasedSupplier.preheatAdd(trackerObjects, new TrackerPreheat());
     verify(applicationContext).getBean(Constant.GENERIC_STRATEGY_BEAN, GenericStrategy.class);
   }
 
@@ -102,7 +102,7 @@ class ClassBasedSupplierTest {
     when(applicationContext.getBean(anyString(), eq(ClassBasedSupplierStrategy.class)))
         .thenReturn(trackerEntityStrategy);
 
-    classBasedSupplier.preheatAdd(trackerImportParams, new TrackerPreheat());
+    classBasedSupplier.preheatAdd(trackerObjects, new TrackerPreheat());
 
     verify(applicationContext).getBean("classbasedstrategy", ClassBasedSupplierStrategy.class);
   }

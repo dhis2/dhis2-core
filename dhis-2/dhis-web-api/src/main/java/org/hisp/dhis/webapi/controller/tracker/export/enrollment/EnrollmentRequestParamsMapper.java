@@ -27,16 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -49,8 +45,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * Maps operation parameters from {@link EnrollmentsExportController} stored in {@link
- * RequestParams} to {@link EnrollmentOperationParams} which is used to fetch enrollments from the
- * service.
+ * EnrollmentRequestParams} to {@link EnrollmentOperationParams} which is used to fetch enrollments
+ * from the service.
  */
 @Component
 @RequiredArgsConstructor
@@ -60,47 +56,60 @@ class EnrollmentRequestParamsMapper {
 
   private final EnrollmentFieldsParamMapper fieldsParamMapper;
 
-  public EnrollmentOperationParams map(RequestParams requestParams) throws BadRequestException {
+  public EnrollmentOperationParams map(EnrollmentRequestParams enrollmentRequestParams)
+      throws BadRequestException {
     Set<UID> orgUnits =
         validateDeprecatedUidsParameter(
-            "orgUnit", requestParams.getOrgUnit(), "orgUnits", requestParams.getOrgUnits());
+            "orgUnit",
+            enrollmentRequestParams.getOrgUnit(),
+            "orgUnits",
+            enrollmentRequestParams.getOrgUnits());
 
     OrganisationUnitSelectionMode orgUnitMode =
         validateDeprecatedParameter(
-            "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
+            "ouMode",
+            enrollmentRequestParams.getOuMode(),
+            "orgUnitMode",
+            enrollmentRequestParams.getOrgUnitMode());
 
-    validateOrgUnitMode(orgUnits, orgUnitMode);
+    orgUnitMode = validateOrgUnitModeForEnrollmentsAndEvents(orgUnits, orgUnitMode);
 
-    validateOrderParams(requestParams.getOrder(), ORDERABLE_FIELD_NAMES);
+    validateOrderParams(enrollmentRequestParams.getOrder(), ORDERABLE_FIELD_NAMES);
+
+    Set<UID> enrollmentUids =
+        validateDeprecatedUidsParameter(
+            "enrollment",
+            enrollmentRequestParams.getEnrollment(),
+            "enrollments",
+            enrollmentRequestParams.getEnrollments());
 
     EnrollmentOperationParamsBuilder builder =
         EnrollmentOperationParams.builder()
             .programUid(
-                requestParams.getProgram() != null ? requestParams.getProgram().getValue() : null)
-            .programStatus(requestParams.getProgramStatus())
-            .followUp(requestParams.getFollowUp())
-            .lastUpdated(requestParams.getUpdatedAfter())
-            .lastUpdatedDuration(requestParams.getUpdatedWithin())
-            .programStartDate(requestParams.getEnrolledAfter())
-            .programEndDate(requestParams.getEnrolledBefore())
+                enrollmentRequestParams.getProgram() != null
+                    ? enrollmentRequestParams.getProgram().getValue()
+                    : null)
+            .programStatus(enrollmentRequestParams.getProgramStatus())
+            .followUp(enrollmentRequestParams.getFollowUp())
+            .lastUpdated(enrollmentRequestParams.getUpdatedAfter())
+            .lastUpdatedDuration(enrollmentRequestParams.getUpdatedWithin())
+            .programStartDate(enrollmentRequestParams.getEnrolledAfter())
+            .programEndDate(enrollmentRequestParams.getEnrolledBefore())
             .trackedEntityTypeUid(
-                requestParams.getTrackedEntityType() != null
-                    ? requestParams.getTrackedEntityType().getValue()
+                enrollmentRequestParams.getTrackedEntityType() != null
+                    ? enrollmentRequestParams.getTrackedEntityType().getValue()
                     : null)
             .trackedEntityUid(
-                requestParams.getTrackedEntity() != null
-                    ? requestParams.getTrackedEntity().getValue()
+                enrollmentRequestParams.getTrackedEntity() != null
+                    ? enrollmentRequestParams.getTrackedEntity().getValue()
                     : null)
             .orgUnitUids(UID.toValueSet(orgUnits))
             .orgUnitMode(orgUnitMode)
-            .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
-            .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
-            .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
-            .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
-            .includeDeleted(requestParams.isIncludeDeleted())
-            .enrollmentParams(fieldsParamMapper.map(requestParams.getFields()));
+            .includeDeleted(enrollmentRequestParams.isIncludeDeleted())
+            .enrollmentUids(UID.toValueSet(enrollmentUids))
+            .enrollmentParams(fieldsParamMapper.map(enrollmentRequestParams.getFields()));
 
-    mapOrderParam(builder, requestParams.getOrder());
+    mapOrderParam(builder, enrollmentRequestParams.getOrder());
 
     return builder.build();
   }

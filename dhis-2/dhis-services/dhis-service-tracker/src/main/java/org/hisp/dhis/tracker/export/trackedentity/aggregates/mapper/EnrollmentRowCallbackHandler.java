@@ -91,15 +91,15 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment> {
     program.setUid(rs.getString(EnrollmentQuery.getColumnName(COLUMNS.PROGRAM_UID)));
     enrollment.setProgram(program);
 
-    final boolean followup = rs.getBoolean(EnrollmentQuery.getColumnName(COLUMNS.FOLLOWUP));
-    enrollment.setFollowup(rs.wasNull() ? null : followup);
+    final boolean followUp = rs.getBoolean(EnrollmentQuery.getColumnName(COLUMNS.FOLLOWUP));
+    enrollment.setFollowup(rs.wasNull() ? null : followUp);
     enrollment.setStatus(
         ProgramStatus.valueOf(rs.getString(EnrollmentQuery.getColumnName(COLUMNS.STATUS))));
     enrollment.setEnrollmentDate(
         rs.getTimestamp(EnrollmentQuery.getColumnName(COLUMNS.ENROLLMENTDATE)));
-    enrollment.setIncidentDate(
-        rs.getTimestamp(EnrollmentQuery.getColumnName(COLUMNS.INCIDENTDATE)));
-    enrollment.setEndDate(rs.getTimestamp(EnrollmentQuery.getColumnName(COLUMNS.COMPLETED)));
+    enrollment.setOccurredDate(
+        rs.getTimestamp(EnrollmentQuery.getColumnName(COLUMNS.OCCURREDDATE)));
+    enrollment.setCompletedDate(rs.getTimestamp(EnrollmentQuery.getColumnName(COLUMNS.COMPLETED)));
     enrollment.setCompletedBy(rs.getString(EnrollmentQuery.getColumnName(COLUMNS.COMPLETEDBY)));
     enrollment.setStoredBy(rs.getString(EnrollmentQuery.getColumnName(COLUMNS.STOREDBY)));
     enrollment.setDeleted(rs.getBoolean(EnrollmentQuery.getColumnName(COLUMNS.DELETED)));

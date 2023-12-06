@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -802,6 +805,60 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         entityInstanceService.getTrackedEntityCount(new TrackedEntityQueryParams(), true, true);
 
     assertEquals(0, trackedEntitiesCounter);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfTEWasUpdatedAfterPassedDateAndTime() {
+    Date oneHourBeforeLastUpdated =
+        Date.from(
+            entityInstanceA1
+                .getLastUpdated()
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime()
+                .minusHours(1)
+                .atZone(ZoneId.systemDefault())
+                .toInstant());
+    injectSecurityContext(superUser);
+    entityInstanceA1.setTrackedEntityType(trackedEntityType);
+    entityInstanceService.addTrackedEntity(entityInstanceA1);
+
+    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+    params.setOrgUnits(Set.of(organisationUnit));
+    params.setTrackedEntityType(trackedEntityType);
+    params.setLastUpdatedStartDate(oneHourBeforeLastUpdated);
+
+    List<TrackedEntity> trackedEntities =
+        entityInstanceService.getTrackedEntities(params, true, true);
+
+    assertContainsOnly(List.of(entityInstanceA1), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyIfTEWasUpdatedBeforePassedDateAndTime() {
+    Date oneHourAfterLastUpdated =
+        Date.from(
+            entityInstanceA1
+                .getLastUpdated()
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime()
+                .plusHours(1)
+                .atZone(ZoneId.systemDefault())
+                .toInstant());
+    injectSecurityContext(superUser);
+    entityInstanceA1.setTrackedEntityType(trackedEntityType);
+    entityInstanceService.addTrackedEntity(entityInstanceA1);
+
+    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+    params.setOrgUnits(Set.of(organisationUnit));
+    params.setTrackedEntityType(trackedEntityType);
+    params.setLastUpdatedStartDate(oneHourAfterLastUpdated);
+
+    List<TrackedEntity> trackedEntities =
+        entityInstanceService.getTrackedEntities(params, true, true);
+
+    assertIsEmpty(trackedEntities);
   }
 
   private void initializeEntityInstance(TrackedEntity entityInstance) {

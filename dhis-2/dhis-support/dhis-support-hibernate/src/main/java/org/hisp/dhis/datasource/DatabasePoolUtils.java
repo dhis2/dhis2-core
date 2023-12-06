@@ -33,6 +33,8 @@ import static java.lang.Long.parseLong;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_DRIVER_CLASS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_DELAY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_IDLE_CON_TEST_PERIOD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_INITIAL_SIZE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME;
@@ -50,6 +52,8 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_DRIVER_CLASS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_RETRY_DELAY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME;
@@ -85,7 +89,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -113,6 +116,10 @@ public class DatabasePoolUtils {
             .put(CONNECTION_POOL_VALIDATION_TIMEOUT, ANALYTICS_CONNECTION_POOL_VALIDATION_TIMEOUT)
             /* C3P0-specific */
             .put(CONNECTION_POOL_ACQUIRE_INCR, ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR)
+            .put(
+                CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS,
+                ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS)
+            .put(CONNECTION_POOL_ACQUIRE_RETRY_DELAY, ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_DELAY)
             .put(CONNECTION_POOL_MAX_IDLE_TIME, ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME)
             .put(CONNECTION_POOL_MIN_SIZE, ANALYTICS_CONNECTION_POOL_MIN_SIZE)
             .put(CONNECTION_POOL_INITIAL_SIZE, ANALYTICS_CONNECTION_POOL_INITIAL_SIZE)
@@ -135,7 +142,7 @@ public class DatabasePoolUtils {
     }
   }
 
-  public enum dbPoolTypes {
+  public enum DbPoolType {
     C3P0,
     HIKARI
   }
@@ -147,8 +154,6 @@ public class DatabasePoolUtils {
 
     private DhisConfigurationProvider dhisConfig;
 
-    private HibernateConfigurationProvider hibernateConfig;
-
     private String jdbcUrl;
 
     private String username;
@@ -158,6 +163,9 @@ public class DatabasePoolUtils {
     private String maxPoolSize;
 
     private String acquireIncrement;
+
+    private String acquireRetryAttempts;
+    private String acquireRetryDelay;
 
     private String maxIdleTime;
 
@@ -172,11 +180,11 @@ public class DatabasePoolUtils {
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
 
-    dbPoolTypes dbType = dbPoolTypes.valueOf(config.dbPoolType.toUpperCase());
+    DbPoolType dbType = DbPoolType.valueOf(config.dbPoolType.toUpperCase());
 
-    if (dbType == dbPoolTypes.C3P0) {
+    if (dbType == DbPoolType.C3P0) {
       return createC3p0DbPool(config);
-    } else if (dbType == dbPoolTypes.HIKARI) {
+    } else if (dbType == DbPoolType.HIKARI) {
       return createHikariDbPool(config);
     }
 
@@ -271,6 +279,17 @@ public class DatabasePoolUtils {
             firstNonNull(
                 config.getAcquireIncrement(),
                 dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_INCR))));
+    final int acquireRetryAttempts =
+        parseInt(
+            firstNonNull(
+                config.getAcquireRetryAttempts(),
+                dhisConfig.getProperty(
+                    mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS))));
+    final int acquireRetryDelay =
+        parseInt(
+            firstNonNull(
+                config.getAcquireRetryDelay(),
+                dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_RETRY_DELAY))));
     final int maxIdleTime =
         parseInt(
             firstNonNull(
@@ -304,6 +323,8 @@ public class DatabasePoolUtils {
     dataSource.setMinPoolSize(minPoolSize);
     dataSource.setInitialPoolSize(initialSize);
     dataSource.setAcquireIncrement(acquireIncrement);
+    dataSource.setAcquireRetryAttempts(acquireRetryAttempts);
+    dataSource.setAcquireRetryDelay(acquireRetryDelay);
     dataSource.setMaxIdleTime(maxIdleTime);
     dataSource.setTestConnectionOnCheckin(testOnCheckIn);
     dataSource.setTestConnectionOnCheckout(testOnCheckOut);
@@ -318,10 +339,12 @@ public class DatabasePoolUtils {
   }
 
   public static void testConnection(DataSource dataSource) throws SQLException {
-    Connection conn = dataSource.getConnection();
 
-    try (Statement stmt = conn.createStatement()) {
+    try (Connection conn = dataSource.getConnection();
+        Statement stmt = conn.createStatement()) {
       stmt.executeQuery("select 'connection_test' as connection_test;");
+    } catch (SQLException e) {
+      log.error(e.getMessage());
     }
   }
 }

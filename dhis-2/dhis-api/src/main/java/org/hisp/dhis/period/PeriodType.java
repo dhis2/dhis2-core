@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.hisp.dhis.cache.Cache;
@@ -321,7 +322,20 @@ public abstract class PeriodType implements Serializable {
    * @return the valid Period based on the given date
    */
   public Period createPeriod(Date date) {
-    return PERIOD_CACHE.get(getCacheKey(date), s -> createPeriod(date, getCalendar()));
+    Optional<Period> optional = PERIOD_CACHE.get(getCacheKey(date));
+    Period period;
+
+    if (optional.isPresent()) {
+      period = optional.get();
+      period.setDateField(null);
+
+      return optional.get();
+    } else {
+      period = createPeriod(date, getCalendar());
+      PERIOD_CACHE.put(getCacheKey(date), period);
+    }
+
+    return period;
   }
 
   /**
@@ -354,9 +368,20 @@ public abstract class PeriodType implements Serializable {
    * @return the valid Period based on the given date
    */
   public Period createPeriod(Date date, org.hisp.dhis.calendar.Calendar calendar) {
-    return PERIOD_CACHE.get(
-        getCacheKey(calendar, date),
-        p -> createPeriod(calendar.fromIso(DateTimeUnit.fromJdkDate(date)), calendar));
+    Optional<Period> optional = PERIOD_CACHE.get(getCacheKey(calendar, date));
+    Period period;
+
+    if (optional.isPresent()) {
+      period = optional.get();
+      period.setDateField(null);
+
+      return optional.get();
+    } else {
+      period = createPeriod(calendar.fromIso(DateTimeUnit.fromJdkDate(date)), calendar);
+      PERIOD_CACHE.put(getCacheKey(calendar, date), period);
+    }
+
+    return period;
   }
 
   /**

@@ -30,8 +30,8 @@ package org.hisp.dhis.program.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import com.google.common.collect.Lists;
@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -53,7 +54,6 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -92,13 +92,13 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
           NotificationTrigger.getAllScheduledTriggers());
 
   public HibernateEnrollmentStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         Enrollment.class,
@@ -156,10 +156,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
               + "'";
     } else if (params.hasLastUpdated()) {
       hql +=
-          hlp.whereAnd()
-              + "en.lastUpdated >= '"
-              + getMediumDateString(params.getLastUpdated())
-              + "'";
+          hlp.whereAnd() + "en.lastUpdated >= '" + getLongDateString(params.getLastUpdated()) + "'";
     }
 
     if (params.hasTrackedEntity()) {
@@ -212,7 +209,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
       hql +=
           hlp.whereAnd()
               + "en.enrollmentDate >= '"
-              + getMediumDateString(params.getProgramStartDate())
+              + getLongDateString(params.getProgramStartDate())
               + "'";
     }
 
@@ -220,7 +217,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
       hql +=
           hlp.whereAnd()
               + "en.enrollmentDate <= '"
-              + getMediumDateString(params.getProgramEndDate())
+              + getLongDateString(params.getProgramEndDate())
               + "'";
     }
 
@@ -425,7 +422,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
       return new ArrayList<>();
     }
 
-    CriteriaBuilder cb = sessionFactory.getCurrentSession().getCriteriaBuilder();
+    CriteriaBuilder cb = entityManager.getCriteriaBuilder();
     CriteriaQuery<Enrollment> cr = cb.createQuery(Enrollment.class);
     Root<Enrollment> enrollment = cr.from(Enrollment.class);
 
@@ -445,14 +442,14 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
 
     cr.select(enrollment).where(cb.or(predicates.toArray(new Predicate[] {})));
 
-    return sessionFactory.getCurrentSession().createQuery(cr).getResultList();
+    return entityManager.createQuery(cr).getResultList();
   }
 
   private String toDateProperty(NotificationTrigger trigger) {
     if (trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE) {
       return "enrollmentDate";
     } else if (trigger == NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE) {
-      return "incidentDate";
+      return "occurredDate";
     }
 
     return null;

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.jdbc.statementbuilder;
 
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_EVENT_DATE;
@@ -303,7 +304,7 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
       return getProgramIndicatorEventColumnSql(
           programStageUid, columnName, reportingStartDate, reportingEndDate, programIndicator);
     } else {
-      return columnName;
+      return getProgramIndicatorDataElementInEventSelectSql(columnName, programStageUid);
     }
   }
 
@@ -339,8 +340,13 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
           reportingEndDate,
           programIndicator);
     } else {
-      return columnName;
+      return getProgramIndicatorDataElementInEventSelectSql(columnName, programStageUid);
     }
+  }
+
+  private String getProgramIndicatorDataElementInEventSelectSql(
+      String columnName, String programStageUid) {
+    return format("case when ax.\"ps\" = '%s' then %s else null end", programStageUid, columnName);
   }
 
   private String getProgramIndicatorEventInEnrollmentSelectSql(
@@ -547,13 +553,14 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
 
   /**
    * This method is needed to keep the logic/code backward compatible. Previously, we didn't
-   * consider statuses, as we always based on the "executiondate" only (it means ACTIVE and
-   * COMPLETED status).
+   * consider statuses, as we always based on the "occurreddate" only (it means ACTIVE and COMPLETED
+   * status).
    *
    * <p>Now, we also need to support SCHEDULE status for events. For this reason this method
-   * compares the status. If the column is "duedate", it means we only want SCHEDULE status, so we
-   * return "duedate". In all other cases we assume any other status different from SCHEDULE (which
-   * makes it backward compatible). In this case the logic will remain based on "executiondate".
+   * compares the status. If the column is "scheduleddate", it means we only want SCHEDULE status,
+   * so we return "scheduleddate". In all other cases we assume any other status different from
+   * SCHEDULE (which makes it backward compatible). In this case the logic will remain based on
+   * "occurreddate".
    *
    * @param column
    * @return the backwards compatible column

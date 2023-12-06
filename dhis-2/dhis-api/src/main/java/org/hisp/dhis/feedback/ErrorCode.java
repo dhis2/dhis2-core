@@ -146,6 +146,9 @@ public enum ErrorCode {
   E2206("Max results exceeds the allowed max limit: `{0}`"),
   E2207("Data start date must be before data end date"),
   E2208("Non-numeric data values encountered during outlier value detection"),
+  E2209("Data start date not allowed"),
+  E2210("Data end date not allowed"),
+  E2211("Algorithm min-max values not allowed"),
 
   /* Followup analysis */
   E2300("At least one data element or data set must be specified"),
@@ -336,6 +339,8 @@ public enum ErrorCode {
   /* File resource */
   E6100("Filename not present"),
   E6101("File type not allowed"),
+  E6102("File content could not be stored"),
+  E6103("File resource appears to have no content"),
 
   /* Users */
   E6200("Feedback message recipients user group not defined"),
@@ -410,11 +415,10 @@ public enum ErrorCode {
   E7129("Program is specified but does not exist: `{0}`"),
   E7130("Program stage is specified but does not exist: `{0}`"),
   E7131("Query failed, likely because the query timed out"),
-  E7132("An indicator expression caused division by zero operation"),
+  E7132("Expression violation. Maybe an indicator caused division by zero?"),
   E7133("Query cannot be executed, possibly because of invalid types or invalid operation"),
   E7134("Cannot retrieve total value for data elements with skip total category combination"),
   E7135("Date time is not parsable: `{0}`"),
-  E7136("Program is not specified"),
   E7137("Expression is not parsable: `{0}`"),
   E7138("Invalid offset: `{0}`"),
   E7139("Parameters programStatus and enrollmentStatus cannot be used together"),

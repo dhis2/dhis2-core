@@ -35,11 +35,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.apache.commons.lang3.time.DateUtils;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.event.EventStatus;
@@ -69,19 +69,13 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
           NotificationTrigger.getAllScheduledTriggers());
 
   public HibernateEventStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        Event.class,
-        currentUserService,
-        aclService,
-        false);
+        entityManager, jdbcTemplate, publisher, Event.class, currentUserService, aclService, false);
   }
 
   @Override
@@ -209,10 +203,10 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
         "select distinct ev from Event as ev "
             + "inner join ev.programStage as ps "
             + "where :notificationTemplate in elements(ps.notificationTemplates) "
-            + "and ev.dueDate is not null "
-            + "and ev.executionDate is null "
+            + "and ev.scheduledDate is not null "
+            + "and ev.occurredDate is null "
             + "and ev.status != :skippedEventStatus "
-            + "and cast(:targetDate as date) = ev.dueDate "
+            + "and cast(:targetDate as date) = ev.scheduledDate "
             + "and ev.deleted is false";
 
     return getQuery(hql)

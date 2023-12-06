@@ -48,7 +48,6 @@ import org.hisp.dhis.db.migration.config.FlywayConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.h2.H2SqlFunction;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
 import org.hisp.dhis.security.Authorities;
@@ -69,7 +68,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
-import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
@@ -123,7 +122,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Order(10)
 public class WebTestConfiguration {
   @Bean
-  public static SessionRegistryImpl sessionRegistry() {
+  public static SessionRegistry sessionRegistry() {
     return new org.springframework.security.core.session.SessionRegistryImpl();
   }
 
@@ -138,8 +137,7 @@ public class WebTestConfiguration {
 
   @Bean(name = {"dataSource", "analyticsDataSource"})
   @Primary
-  public DataSource actualDataSource(
-      HibernateConfigurationProvider hibernateConfigurationProvider) {
+  public DataSource actualDataSource() {
     final DhisConfigurationProvider config = dhisConfigurationProvider;
     String jdbcUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
@@ -147,7 +145,6 @@ public class WebTestConfiguration {
 
     DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
     builder.dhisConfig(config);
-    builder.hibernateConfig(hibernateConfigurationProvider);
     builder.dbPoolType(dbPoolType);
 
     try {

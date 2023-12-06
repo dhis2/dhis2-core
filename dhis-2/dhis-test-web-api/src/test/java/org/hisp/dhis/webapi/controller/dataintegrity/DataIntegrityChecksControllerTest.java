@@ -59,6 +59,10 @@ class DataIntegrityChecksControllerTest extends AbstractDataIntegrityIntegration
     for (DataIntegrityCheckType type : DataIntegrityCheckType.values()) {
       assertCheckExists(type.getName(), checks);
     }
+    checks.stream()
+        .filter(JsonDataIntegrityCheck::getIsSlow)
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("There should be slow tests"));
   }
 
   @Test
@@ -89,7 +93,7 @@ class DataIntegrityChecksControllerTest extends AbstractDataIntegrityIntegration
   void testGetAvailableChecks_FilterUsingChecksPatterns() {
     JsonList<JsonDataIntegrityCheck> checks =
         GET("/dataIntegrity?checks=program*").content().asList(JsonDataIntegrityCheck.class);
-    assertTrue(checks.size() > 0, "there should be matches");
+    assertFalse(checks.isEmpty(), "there should be matches");
     checks.forEach(check -> assertTrue(check.getName().toLowerCase().startsWith("program")));
   }
 
@@ -97,8 +101,33 @@ class DataIntegrityChecksControllerTest extends AbstractDataIntegrityIntegration
   void testGetAvailableChecks_FilterUsingSection() {
     JsonList<JsonDataIntegrityCheck> checks =
         GET("/dataIntegrity?section=Program Rules").content().asList(JsonDataIntegrityCheck.class);
-    assertTrue(checks.size() > 0, "there should be matches");
+    assertFalse(checks.isEmpty(), "there should be matches");
     checks.forEach(check -> assertEquals("Program Rules", check.getSection()));
+  }
+
+  @Test
+  void testGetAvailableChecks_FilterUsingSlow() {
+    JsonList<JsonDataIntegrityCheck> checks =
+        GET("/dataIntegrity?slow=true").content().asList(JsonDataIntegrityCheck.class);
+    assertFalse(checks.isEmpty(), "there should be matches");
+    checks.forEach(check -> assertTrue(check.getIsSlow()));
+
+    checks = GET("/dataIntegrity?slow=false").content().asList(JsonDataIntegrityCheck.class);
+    assertFalse(checks.isEmpty(), "there should be matches");
+    checks.forEach(check -> assertFalse(check.getIsSlow()));
+  }
+
+  @Test
+  void testGetAvailableChecks_FilterUsingProgrammatic() {
+    JsonList<JsonDataIntegrityCheck> checks =
+        GET("/dataIntegrity?programmatic=true").content().asList(JsonDataIntegrityCheck.class);
+    assertFalse(checks.isEmpty(), "there should be matches");
+    checks.forEach(check -> assertTrue(check.getIsProgrammatic()));
+
+    checks =
+        GET("/dataIntegrity?programmatic=false").content().asList(JsonDataIntegrityCheck.class);
+    assertFalse(checks.isEmpty(), "there should be matches");
+    checks.forEach(check -> assertFalse(check.getIsProgrammatic()));
   }
 
   /**

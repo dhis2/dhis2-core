@@ -30,7 +30,9 @@ package org.hisp.dhis.scheduling;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.schema.Property;
 import org.springframework.util.MimeType;
 
@@ -55,11 +57,7 @@ public interface JobConfigurationService {
    */
   int createDefaultJobs();
 
-  /**
-   * Make sure the {@link JobType#HEARTBEAT} entry exists as it is responsible for spawning the
-   * other system jobs when needed using {@link #createDefaultJobs()}.
-   */
-  void createHeartbeatJob();
+  void createDefaultJob(JobType type);
 
   /**
    * Updates all {@link JobConfiguration}s that are not {@link JobConfiguration#isEnabled()} to
@@ -150,14 +148,11 @@ public interface JobConfigurationService {
    * Get all job configurations that should start within the next n seconds.
    *
    * @param dueInNextSeconds number of seconds from now the job should start
-   * @param limitToNext1 true, to only return a single config per {@link JobType}, false to return
-   *     all due jobs
    * @param includeWaiting true to also list jobs that cannot run because another job of the same
    *     type is already running
    * @return only jobs that should start soon within the given number of seconds
    */
-  List<JobConfiguration> getDueJobConfigurations(
-      int dueInNextSeconds, boolean limitToNext1, boolean includeWaiting);
+  List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds, boolean includeWaiting);
 
   /**
    * Finds stale jobs.
@@ -166,6 +161,13 @@ public interface JobConfigurationService {
    * @return all jobs that appear to be stale (hanging) considering the given timeout
    */
   List<JobConfiguration> getStaleConfigurations(int staleForSeconds);
+
+  /**
+   * @param params query parameters (criteria) to find
+   * @return all job configurations that match the query parameters
+   */
+  @Nonnull
+  List<JsonObject> findJobRunErrors(@Nonnull JobRunErrorsParams params);
 
   /**
    * Get a map of parameter classes with appropriate properties This can be used for a frontend app

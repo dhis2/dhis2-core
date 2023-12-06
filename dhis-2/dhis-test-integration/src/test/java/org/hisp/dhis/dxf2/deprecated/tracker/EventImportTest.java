@@ -50,9 +50,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.persistence.EntityManager;
 import org.exparity.hamcrest.date.DateMatchers;
 import org.hamcrest.CoreMatchers;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -121,7 +121,7 @@ class EventImportTest extends TransactionalIntegrationTest {
 
   @Autowired private UserService _userService;
 
-  @Autowired private SessionFactory sessionFactory;
+  @Autowired private EntityManager entityManager;
 
   @Autowired JdbcTemplate jdbcTemplate;
 
@@ -241,7 +241,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     manager.update(programB);
     enrollment = new Enrollment();
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setProgram(programB);
     enrollment.setStatus(ProgramStatus.ACTIVE);
     enrollment.setStoredBy("test");
@@ -293,7 +293,7 @@ class EventImportTest extends TransactionalIntegrationTest {
 
     Event psi = programStageInstanceService.getEvent(eventUid);
 
-    assertEquals(DUE_DATE, DateUtils.getLongDateString(psi.getDueDate()));
+    assertEquals(DUE_DATE, DateUtils.getLongDateString(psi.getScheduledDate()));
   }
 
   /**
@@ -305,7 +305,7 @@ class EventImportTest extends TransactionalIntegrationTest {
   void testAddEventOnProgramWithoutRegistrationAndExistingEnrollment() throws IOException {
     Enrollment dbEnrollment = new Enrollment();
     dbEnrollment.setEnrollmentDate(new Date());
-    dbEnrollment.setIncidentDate(new Date());
+    dbEnrollment.setOccurredDate(new Date());
     dbEnrollment.setProgram(programB);
     dbEnrollment.setStatus(ProgramStatus.ACTIVE);
     dbEnrollment.setStoredBy("test");
@@ -641,7 +641,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertThat(psi.getOrganisationUnit().getUid(), is(psi2.getOrganisationUnit().getUid()));
     assertThat(psi.getAttributeOptionCombo().getUid(), is(psi2.getAttributeOptionCombo().getUid()));
     assertThat(psi.getStatus().getValue(), is(psi2.getStatus().getValue()));
-    assertThat(psi.getExecutionDate(), is(psi2.getExecutionDate()));
+    assertThat(psi.getOccurredDate(), is(psi2.getOccurredDate()));
     assertThat(psi.getCompletedDate(), is(psi2.getCompletedDate()));
     assertThat(psi.getCompletedBy(), is(psi2.getCompletedBy()));
     assertThat(psi.isDeleted(), is(psi2.isDeleted()));
@@ -688,7 +688,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertThat(psi.getOrganisationUnit().getUid(), is(psi2.getOrganisationUnit().getUid()));
     assertThat(psi.getAttributeOptionCombo().getUid(), is(psi2.getAttributeOptionCombo().getUid()));
     assertThat(psi2.getStatus(), is(EventStatus.ACTIVE));
-    assertThat(psi.getExecutionDate(), is(psi2.getExecutionDate()));
+    assertThat(psi.getOccurredDate(), is(psi2.getOccurredDate()));
     assertThat(psi2.getCompletedDate(), is(nullValue()));
     assertThat(psi.getCompletedBy(), is(psi2.getCompletedBy()));
     assertThat(psi.isDeleted(), is(psi2.isDeleted()));
@@ -696,9 +696,35 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertThat(psi2.getEventDataValues().size(), is(0));
   }
 
+  @Test
+  void testVerifyEventUpdatedForEventDateHasActiveStatus() {
+    String eventUid = CodeGenerator.generateUid();
+
+    org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment =
+        createEnrollment(programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance());
+    ImportSummary importSummary = enrollmentService.addEnrollment(enrollment, null, null);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
+        createScheduledTrackerEvent(
+            eventUid, programA, programStageA, EventStatus.SCHEDULE, organisationUnitA);
+
+    ImportSummary summary = eventService.addEvent(event, null, false);
+    assertEquals(ImportStatus.SUCCESS, summary.getStatus());
+
+    event.setEventDate(EVENT_DATE);
+
+    eventService.updateEventForEventDate(event);
+
+    dbmsManager.clearSession();
+
+    Event psi = programStageInstanceService.getEvent(eventUid);
+    assertThat(psi.getStatus(), is(EventStatus.ACTIVE));
+  }
+
   private void cleanSession() {
-    sessionFactory.getCurrentSession().flush();
-    sessionFactory.getCurrentSession().clear();
+    entityManager.flush();
+    entityManager.clear();
   }
 
   private InputStream createEventsJsonInputStream(

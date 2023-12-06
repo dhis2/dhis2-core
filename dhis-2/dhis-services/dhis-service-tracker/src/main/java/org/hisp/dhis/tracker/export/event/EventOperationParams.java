@@ -75,9 +75,9 @@ public class EventOperationParams {
 
   private String trackedEntityUid;
 
-  private Date startDate;
+  private Date occurredAfter;
 
-  private Date endDate;
+  private Date occurredBefore;
 
   private EventStatus eventStatus;
 
@@ -147,9 +147,11 @@ public class EventOperationParams {
 
   private Set<String> enrollments;
 
+  private EventParams eventParams;
+
   public static class EventOperationParamsBuilder {
 
-    private List<Order> order = new ArrayList<>();
+    private final List<Order> order = new ArrayList<>();
 
     // Do not remove this unused method. This hides the order field from the builder which Lombok
     // does not support. The repeated order field and private order method prevent access to order

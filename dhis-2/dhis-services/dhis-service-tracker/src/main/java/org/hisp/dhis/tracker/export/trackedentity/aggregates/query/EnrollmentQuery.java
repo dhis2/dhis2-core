@@ -47,7 +47,7 @@ public class EnrollmentQuery {
     STATUS,
     GEOMETRY,
     ENROLLMENTDATE,
-    INCIDENTDATE,
+    OCCURREDDATE,
     FOLLOWUP,
     COMPLETED,
     COMPLETEDBY,
@@ -74,9 +74,9 @@ public class EnrollmentQuery {
           .put(COLUMNS.LAST_UPDATED_BY, new TableColumn("en", "lastupdatedbyuserinfo"))
           .put(COLUMNS.STATUS, new TableColumn("en", "status"))
           .put(COLUMNS.ENROLLMENTDATE, new TableColumn("en", "enrollmentdate"))
-          .put(COLUMNS.INCIDENTDATE, new TableColumn("en", "incidentdate"))
+          .put(COLUMNS.OCCURREDDATE, new TableColumn("en", "occurreddate"))
           .put(COLUMNS.FOLLOWUP, new TableColumn("en", "followup"))
-          .put(COLUMNS.COMPLETED, new TableColumn("en", "enddate"))
+          .put(COLUMNS.COMPLETED, new TableColumn("en", "completeddate"))
           .put(COLUMNS.COMPLETEDBY, new TableColumn("en", "completedby"))
           .put(COLUMNS.STOREDBY, new TableColumn("en", "storedby"))
           .put(COLUMNS.DELETED, new TableColumn("en", "deleted"))

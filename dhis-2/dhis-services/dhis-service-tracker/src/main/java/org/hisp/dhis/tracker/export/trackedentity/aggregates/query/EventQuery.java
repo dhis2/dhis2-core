@@ -45,8 +45,8 @@ public class EventQuery {
     ID(new TableColumn("ev", "eventid")),
     UID(new TableColumn("ev", "uid")),
     STATUS(new TableColumn("ev", "status")),
-    EXECUTION_DATE(new TableColumn("ev", "executiondate")),
-    DUE_DATE(new TableColumn("ev", "duedate")),
+    OCCURRED_DATE(new TableColumn("ev", "occurreddate")),
+    SCHEDULED_DATE(new TableColumn("ev", "scheduleddate")),
     STOREDBY(new TableColumn("ev", "storedby")),
     COMPLETEDBY(new TableColumn("ev", "completedby")),
     COMPLETEDDATE(new TableColumn("ev", "completeddate")),
@@ -71,7 +71,7 @@ public class EventQuery {
         new Subselect(
             "( "
                 + "SELECT string_agg(opt.uid::text, ';') "
-                + "FROM dataelementcategoryoption opt "
+                + "FROM categoryoption opt "
                 + "join categoryoptioncombos_categoryoptions ccc "
                 + "on opt.categoryoptionid = ccc.categoryoptionid "
                 + "WHERE coc.categoryoptioncomboid = ccc.categoryoptioncomboid )",

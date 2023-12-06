@@ -29,6 +29,10 @@ package org.hisp.dhis.scheduling;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -82,6 +86,12 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       // run "execute now" request directly when scheduling is not active (tests)
       jobRunner.runDueJob(job);
+    } else {
+      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
+      if (job.getJobType().isUsingContinuousExecution()) {
+        jobRunner.runIfDue(job);
+      }
     }
   }
 
@@ -109,6 +119,21 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   public Progress getProgress(@Nonnull String jobId) {
     String json = jobConfigurationStore.getProgress(jobId);
     return json == null ? null : mapToProgress(json);
+  }
+
+  @Nonnull
+  @Override
+  @Transactional(readOnly = true)
+  public List<JobProgress.Error> getErrors(@Nonnull String jobId) {
+    String json = jobConfigurationStore.getErrors(jobId);
+    if (json == null) return List.of();
+    Progress progress = mapToProgress("{\"sequence\":[],\"errors\":" + json + "}");
+    if (progress == null) return List.of();
+    Map<String, Map<String, Queue<JobProgress.Error>>> map = progress.getErrors();
+    if (map.isEmpty()) return List.of();
+    return map.values().stream()
+        .flatMap(e -> e.values().stream().flatMap(Collection::stream))
+        .toList();
   }
 
   @Override

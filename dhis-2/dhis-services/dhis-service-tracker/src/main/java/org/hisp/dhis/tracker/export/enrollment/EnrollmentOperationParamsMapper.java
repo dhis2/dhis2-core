@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
+
 import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -72,6 +74,7 @@ class EnrollmentOperationParamsMapper {
 
     User user = currentUserService.getCurrentUser();
     Set<OrganisationUnit> orgUnits = validateOrgUnits(operationParams.getOrgUnitUids(), user);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
     params.setProgram(program);
@@ -85,13 +88,10 @@ class EnrollmentOperationParamsMapper {
     params.setTrackedEntity(trackedEntity);
     params.addOrganisationUnits(orgUnits);
     params.setOrganisationUnitMode(operationParams.getOrgUnitMode());
-    params.setPage(operationParams.getPage());
-    params.setPageSize(operationParams.getPageSize());
-    params.setSkipPaging(operationParams.isSkipPaging());
-    params.setTotalPages(operationParams.isTotalPages());
     params.setIncludeDeleted(operationParams.isIncludeDeleted());
     params.setUser(user);
     params.setOrder(operationParams.getOrder());
+    params.setEnrollmentUids(operationParams.getEnrollmentUids());
 
     return params;
   }
@@ -137,10 +137,6 @@ class EnrollmentOperationParamsMapper {
 
   private Set<OrganisationUnit> validateOrgUnits(Set<String> orgUnitUids, User user)
       throws BadRequestException, ForbiddenException {
-    Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
-    if (user != null) {
-      possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
-    }
 
     Set<OrganisationUnit> orgUnits = new HashSet<>();
     if (orgUnitUids != null) {
@@ -153,7 +149,8 @@ class EnrollmentOperationParamsMapper {
 
         if (user != null
             && !user.isSuper()
-            && !organisationUnitService.isInUserHierarchy(orgUnitUid, possibleSearchOrgUnits)) {
+            && !organisationUnitService.isInUserHierarchy(
+                orgUnitUid, user.getTeiSearchOrganisationUnitsWithFallback())) {
           throw new ForbiddenException(
               "Organisation unit is not part of the search scope: " + orgUnitUid);
         }

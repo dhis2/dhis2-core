@@ -40,10 +40,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
-import org.hisp.dhis.datasource.DefaultReadOnlyDataSourceManager;
+import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -67,8 +66,7 @@ public class AnalyticsDataSourceConfig {
 
   @Bean("analyticsActualDataSource")
   public DataSource jdbcActualDataSource(
-      @Qualifier("actualDataSource") DataSource actualDataSource,
-      HibernateConfigurationProvider hibernateConfigurationProvider) {
+      @Qualifier("actualDataSource") DataSource actualDataSource) {
 
     String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
 
@@ -130,7 +128,7 @@ public class AnalyticsDataSourceConfig {
   @DependsOn("analyticsDataSource")
   public JdbcTemplate readOnlyJdbcTemplate(
       @Qualifier("analyticsDataSource") DataSource dataSource) {
-    DefaultReadOnlyDataSourceManager manager = new DefaultReadOnlyDataSourceManager(dhisConfig);
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(dhisConfig);
 
     JdbcTemplate jdbcTemplate =
         new JdbcTemplate(MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));

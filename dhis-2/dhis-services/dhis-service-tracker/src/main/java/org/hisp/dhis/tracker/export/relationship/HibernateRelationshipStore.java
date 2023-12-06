@@ -31,15 +31,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.function.IntSupplier;
+import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.program.Enrollment;
@@ -49,6 +51,8 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.springframework.context.ApplicationEventPublisher;
@@ -74,13 +78,13 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   private static final String EVENT = "event";
 
   public HibernateRelationshipStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         Relationship.class,
@@ -93,7 +97,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   public List<Relationship> getByTrackedEntity(
       TrackedEntity trackedEntity, RelationshipQueryParams queryParams) {
     TypedQuery<Relationship> relationshipTypedQuery =
-        getRelationshipTypedQuery(trackedEntity, queryParams);
+        getRelationshipTypedQuery(trackedEntity, queryParams, null);
 
     return getList(relationshipTypedQuery);
   }
@@ -102,20 +106,69 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   public List<Relationship> getByEnrollment(
       Enrollment enrollment, RelationshipQueryParams queryParams) {
     TypedQuery<Relationship> relationshipTypedQuery =
-        getRelationshipTypedQuery(enrollment, queryParams);
+        getRelationshipTypedQuery(enrollment, queryParams, null);
 
     return getList(relationshipTypedQuery);
   }
 
   @Override
   public List<Relationship> getByEvent(Event event, RelationshipQueryParams queryParams) {
-    TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery(event, queryParams);
+    TypedQuery<Relationship> relationshipTypedQuery =
+        getRelationshipTypedQuery(event, queryParams, null);
 
     return getList(relationshipTypedQuery);
   }
 
+  @Override
+  public Page<Relationship> getByTrackedEntity(
+      TrackedEntity trackedEntity,
+      RelationshipQueryParams queryParams,
+      @Nonnull PageParams pageParams) {
+    TypedQuery<Relationship> relationshipTypedQuery =
+        getRelationshipTypedQuery(trackedEntity, queryParams, pageParams);
+
+    return getPage(
+        pageParams, getList(relationshipTypedQuery), () -> countRelationships(queryParams));
+  }
+
+  @Override
+  public Page<Relationship> getByEnrollment(
+      Enrollment enrollment, RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
+    TypedQuery<Relationship> relationshipTypedQuery =
+        getRelationshipTypedQuery(enrollment, queryParams, pageParams);
+
+    return getPage(
+        pageParams, getList(relationshipTypedQuery), () -> countRelationships(queryParams));
+  }
+
+  @Override
+  public Page<Relationship> getByEvent(
+      Event event, RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
+    TypedQuery<Relationship> relationshipTypedQuery =
+        getRelationshipTypedQuery(event, queryParams, pageParams);
+
+    return getPage(
+        pageParams, getList(relationshipTypedQuery), () -> countRelationships(queryParams));
+  }
+
+  private int countRelationships(RelationshipQueryParams queryParams) {
+    if (queryParams.getEntity() instanceof TrackedEntity te) {
+      return getByTrackedEntity(te, null).size();
+    }
+
+    if (queryParams.getEntity() instanceof Enrollment en) {
+      return getByEnrollment(en, null).size();
+    }
+
+    if (queryParams.getEntity() instanceof Event ev) {
+      return getByEvent(ev, null).size();
+    }
+
+    throw new IllegalArgumentException("Unkown type");
+  }
+
   private <T extends IdentifiableObject> TypedQuery<Relationship> getRelationshipTypedQuery(
-      T entity, RelationshipQueryParams queryParams) {
+      T entity, RelationshipQueryParams queryParams, PageParams pageParams) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<Relationship> relationshipItemCriteriaQuery =
@@ -125,7 +178,8 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     setRelationshipItemCriteriaQueryExistsCondition(
         entity, builder, relationshipItemCriteriaQuery, root);
 
-    return getRelationshipTypedQuery(queryParams, builder, relationshipItemCriteriaQuery, root);
+    return getRelationshipTypedQuery(
+        queryParams, pageParams, builder, relationshipItemCriteriaQuery, root);
   }
 
   private <T extends IdentifiableObject> void setRelationshipItemCriteriaQueryExistsCondition(
@@ -172,15 +226,15 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   private TypedQuery<Relationship> getRelationshipTypedQuery(
       RelationshipQueryParams queryParams,
+      PageParams pageParams,
       CriteriaBuilder builder,
       CriteriaQuery<Relationship> relationshipItemCriteriaQuery,
       Root<Relationship> root) {
-    JpaQueryParameters<Relationship> jpaQueryParameters = newJpaParameters(queryParams, builder);
+    JpaQueryParameters<Relationship> jpaQueryParameters =
+        newJpaParameters(queryParams, pageParams, builder);
 
     relationshipItemCriteriaQuery.orderBy(
-        jpaQueryParameters.getOrders().stream()
-            .map(o -> o.apply(root))
-            .collect(Collectors.toList()));
+        jpaQueryParameters.getOrders().stream().map(o -> o.apply(root)).toList());
 
     TypedQuery<Relationship> relationshipTypedQuery =
         getSession().createQuery(relationshipItemCriteriaQuery);
@@ -197,7 +251,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   }
 
   private JpaQueryParameters<Relationship> newJpaParameters(
-      RelationshipQueryParams queryParams, CriteriaBuilder criteriaBuilder) {
+      RelationshipQueryParams queryParams, PageParams pageParams, CriteriaBuilder criteriaBuilder) {
 
     JpaQueryParameters<Relationship> jpaQueryParameters = newJpaParameters();
 
@@ -210,17 +264,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         addOrder(jpaQueryParameters, DEFAULT_ORDER, criteriaBuilder);
       }
 
-      if (!queryParams.isSkipPaging()) {
-        jpaQueryParameters.setFirstResult(queryParams.getOffset());
-        jpaQueryParameters.setMaxResults(queryParams.getPageSizeWithDefault());
-      }
-
-      // When the clients choose to not show the total of pages.
-      if (!queryParams.isTotalPages() && !queryParams.isSkipPaging()) {
-        // Get pageSize + 1, so we are able to know if there is another
-        // page available. It adds one additional element into the list,
-        // as consequence. The caller needs to remove the last element.
-        jpaQueryParameters.setMaxResults(queryParams.getPageSizeWithDefault() + 1);
+      if (pageParams != null) {
+        jpaQueryParameters.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
+        jpaQueryParameters.setMaxResults(pageParams.getPageSize());
       }
     }
 
@@ -234,6 +280,19 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
             order.getDirection().isAscending()
                 ? builder.asc(relationshipRoot.get((String) order.getField()))
                 : builder.desc(relationshipRoot.get((String) order.getField())));
+  }
+
+  private Page<Relationship> getPage(
+      PageParams pageParams, List<Relationship> relationships, IntSupplier enrollmentCount) {
+    if (pageParams.isPageTotal()) {
+      Pager pager =
+          new Pager(pageParams.getPage(), enrollmentCount.getAsInt(), pageParams.getPageSize());
+      return Page.of(relationships, pager);
+    }
+
+    Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
+    pager.force(pageParams.getPage(), pageParams.getPageSize());
+    return Page.of(relationships, pager);
   }
 
   @Override

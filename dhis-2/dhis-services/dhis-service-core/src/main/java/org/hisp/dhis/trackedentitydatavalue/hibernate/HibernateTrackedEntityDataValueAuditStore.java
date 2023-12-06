@@ -32,6 +32,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -39,7 +40,6 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
@@ -63,10 +63,10 @@ public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityD
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private SessionFactory sessionFactory;
+  private EntityManager entityManager;
 
-  public HibernateTrackedEntityDataValueAuditStore(SessionFactory sessionFactory) {
-    this.sessionFactory = sessionFactory;
+  public HibernateTrackedEntityDataValueAuditStore(EntityManager entityManager) {
+    this.entityManager = entityManager;
   }
 
   // -------------------------------------------------------------------------
@@ -76,15 +76,14 @@ public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityD
   @Override
   public void addTrackedEntityDataValueAudit(
       TrackedEntityDataValueAudit trackedEntityDataValueAudit) {
-    Session session = sessionFactory.getCurrentSession();
-    session.save(trackedEntityDataValueAudit);
+    entityManager.unwrap(Session.class).save(trackedEntityDataValueAudit);
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits(
       TrackedEntityDataValueAuditQueryParams params) {
-    CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<TrackedEntityDataValueAudit> criteria =
         builder.createQuery(TrackedEntityDataValueAudit.class);
     Root<TrackedEntityDataValueAudit> tedva = criteria.from(TrackedEntityDataValueAudit.class);
@@ -97,7 +96,7 @@ public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityD
     criteria.where(predicates.toArray(Predicate[]::new));
     criteria.orderBy(builder.desc(tedva.get(PROP_CREATED)));
 
-    Query query = sessionFactory.getCurrentSession().createQuery(criteria);
+    Query query = entityManager.createQuery(criteria);
 
     if (params.hasPaging()) {
       query
@@ -110,7 +109,7 @@ public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityD
 
   @Override
   public int countTrackedEntityDataValueAudits(TrackedEntityDataValueAuditQueryParams params) {
-    CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<Long> criteria = builder.createQuery(Long.class);
     Root<TrackedEntityDataValueAudit> tedva = criteria.from(TrackedEntityDataValueAudit.class);
     Join<TrackedEntityDataValueAudit, Event> event = tedva.join(PROP_PSI);
@@ -121,29 +120,21 @@ public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityD
         getTrackedEntityDataValueAuditCriteria(params, builder, tedva, event, ou);
     criteria.where(predicates.toArray(Predicate[]::new));
 
-    return sessionFactory.getCurrentSession().createQuery(criteria).getSingleResult().intValue();
+    return entityManager.createQuery(criteria).getSingleResult().intValue();
   }
 
   @Override
   public void deleteTrackedEntityDataValueAudit(DataElement dataElement) {
     String hql = "delete from TrackedEntityDataValueAudit d where d.dataElement = :de";
 
-    sessionFactory
-        .getCurrentSession()
-        .createQuery(hql)
-        .setParameter("de", dataElement)
-        .executeUpdate();
+    entityManager.createQuery(hql).setParameter("de", dataElement).executeUpdate();
   }
 
   @Override
   public void deleteTrackedEntityDataValueAudit(Event event) {
     String hql = "delete from TrackedEntityDataValueAudit d where d.event = :event";
 
-    sessionFactory
-        .getCurrentSession()
-        .createQuery(hql)
-        .setParameter("event", event)
-        .executeUpdate();
+    entityManager.createQuery(hql).setParameter("event", event).executeUpdate();
   }
 
   private List<Predicate> getTrackedEntityDataValueAuditCriteria(

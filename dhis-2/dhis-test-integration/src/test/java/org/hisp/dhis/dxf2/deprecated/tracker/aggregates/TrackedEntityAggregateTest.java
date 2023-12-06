@@ -52,7 +52,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.QueryItem;
@@ -85,7 +85,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class TrackedEntityAggregateTest extends TrackerTest {
   @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
-  @Autowired private SessionFactory sessionFactory;
+  @Autowired private EntityManager entityManager;
 
   @Autowired private TrackedEntityProgramOwnerService programOwnerService;
 
@@ -212,13 +212,13 @@ class TrackedEntityAggregateTest extends TrackerTest {
     queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setLastUpdatedStartDate(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)));
-    queryParams.setLastUpdatedEndDate(new Date());
+    queryParams.setLastUpdatedEndDate(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
     TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
     final List<TrackedEntityInstance> trackedEntityInstances =
         trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);
     assertThat(trackedEntityInstances, hasSize(4));
     assertThat(trackedEntityInstances.get(0).getEnrollments(), hasSize(0));
-    // Update last updated start date to today
+    // Update last updated start date to tomorrow
     queryParams.setLastUpdatedStartDate(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
     final List<TrackedEntityInstance> limitedTTrackedEntityInstances =
         trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);
@@ -706,8 +706,8 @@ class TrackedEntityAggregateTest extends TrackerTest {
         () -> {
           TrackedEntity t1 = this.persistTrackedEntity();
           TrackedEntity t2 = this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
-          sessionFactory.getCurrentSession().flush();
-          sessionFactory.getCurrentSession().clear();
+          entityManager.flush();
+          entityManager.clear();
           t2 = manager.getByUid(TrackedEntity.class, Collections.singletonList(t2.getUid())).get(0);
           Enrollment pi = t2.getEnrollments().iterator().next();
           final Event psi = pi.getEvents().iterator().next();

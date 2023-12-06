@@ -129,7 +129,7 @@ class EventBaseCheckTest extends BaseValidationTest {
     Enrollment enrollment = new Enrollment();
     enrollment.setStatus(ProgramStatus.COMPLETED);
     // Set enrollment end date to NOW - one month
-    enrollment.setEndDate(Date.from(ZonedDateTime.now().minusMonths(1).toInstant()));
+    enrollment.setCompletedDate(Date.from(ZonedDateTime.now().minusMonths(1).toInstant()));
     programInstanceMap.put(event.getUid(), enrollment);
     when(workContext.getProgramInstanceMap()).thenReturn(programInstanceMap);
     when(workContext.getImportOptions()).thenReturn(importOptions);

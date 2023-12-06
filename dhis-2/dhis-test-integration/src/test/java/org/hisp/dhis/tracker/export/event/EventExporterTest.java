@@ -72,9 +72,11 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -108,9 +110,9 @@ class EventExporterTest extends TrackerTest {
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
     importUser = userService.getUser("M5zQapPyTZI");
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     assertNoErrors(
-        trackerImportService.importTracker(
-            fromJson("tracker/event_and_enrollment.json", importUser.getUid())));
+        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
     program = programStage.getProgram();
@@ -130,7 +132,7 @@ class EventExporterTest extends TrackerTest {
     // expect to be run by admin
     injectAdminUser();
 
-    operationParamsBuilder = EventOperationParams.builder();
+    operationParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
     operationParamsBuilder.orgUnitUid(orgUnit.getUid()).orgUnitMode(SELECTED);
   }
 
@@ -152,7 +154,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWithRelationships() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        operationParamsBuilder.events(Set.of("pTzf9KYMk72")).includeRelationships(true).build();
+        operationParamsBuilder.events(Set.of("pTzf9KYMk72")).eventParams(EventParams.TRUE).build();
 
     List<Event> events = eventService.getEvents(params);
 
@@ -176,6 +178,62 @@ class EventExporterTest extends TrackerTest {
     assertAll(
         () -> assertNote(importUser, "comment value", notes.get(0)),
         () -> assertNote(importUser, "comment value", notes.get(1)));
+  }
+
+  @Test
+  void shouldOrderEventsByCreatedAtClientInAscOrder()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .programStageUid(programStage.getUid())
+            .orderBy("createdAtClient", SortDirection.ASC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByCreatedAtClientInDescOrder()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .programStageUid(programStage.getUid())
+            .orderBy("createdAtClient", SortDirection.DESC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByUpdatedAtClientInAscOrder()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .programStageUid(programStage.getUid())
+            .orderBy("lastUpdatedAtClient", SortDirection.ASC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldOrderEventsByUpdatedAtClientInDescOrder()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .programStageUid(programStage.getUid())
+            .orderBy("lastUpdatedAtClient", SortDirection.DESC)
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
   @Test
@@ -208,8 +266,8 @@ class EventExporterTest extends TrackerTest {
         operationParamsBuilder
             .enrollments(Set.of("TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
-            .startDate(getDate(2018, 1, 1))
-            .endDate(getDate(2020, 1, 29))
+            .occurredAfter(getDate(2018, 1, 1))
+            .occurredBefore(getDate(2020, 1, 29))
             .skipChangedBefore(getDate(2018, 1, 1))
             .build();
 
@@ -225,6 +283,52 @@ class EventExporterTest extends TrackerTest {
             .enrollments(Set.of("TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
             .updatedWithin("1d")
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldReturnEventsIfItOccurredBetweenPassedDateAndTime()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .enrollments(Set.of("TvctPPhpD8z"))
+            .programStageUid(programStage.getUid())
+            .occurredBefore(Date.from(getDate(2020, 1, 28).toInstant().plus(1, ChronoUnit.HOURS)))
+            .occurredAfter(Date.from(getDate(2020, 1, 28).toInstant().minus(1, ChronoUnit.HOURS)))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldReturnEventsIfItOccurredAtTheSameDateAndTimeOfOccurredBeforePassed()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .enrollments(Set.of("TvctPPhpD8z"))
+            .programStageUid(programStage.getUid())
+            .occurredBefore(getDate(2020, 1, 28))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldReturnEventsIfItOccurredAtTheSameDateAndTimeOfOccurredAfterPassed()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .enrollments(Set.of("TvctPPhpD8z"))
+            .programStageUid(programStage.getUid())
+            .occurredAfter(getDate(2020, 1, 28))
             .build();
 
     List<String> events = getEvents(params);
@@ -262,10 +366,7 @@ class EventExporterTest extends TrackerTest {
   void testExportEventsWithDatesIncludingTimeStamp()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .events(Set.of("pTzf9KYMk72"))
-            .build();
+        operationParamsBuilder.orgUnitMode(ACCESSIBLE).events(Set.of("pTzf9KYMk72")).build();
 
     List<Event> events = eventService.getEvents(params);
 
@@ -276,18 +377,19 @@ class EventExporterTest extends TrackerTest {
         () ->
             assertEquals(
                 "2019-01-25T12:10:38.100",
-                DateUtils.getIso8601NoTz(event.getExecutionDate()),
+                DateUtils.getIso8601NoTz(event.getOccurredDate()),
                 () ->
                     String.format(
                         "Expected %s to be in %s",
-                        event.getExecutionDate(), "2019-01-25T12:10:38.100")),
+                        event.getOccurredDate(), "2019-01-25T12:10:38.100")),
         () ->
             assertEquals(
                 "2019-01-28T12:32:38.100",
-                DateUtils.getIso8601NoTz(event.getDueDate()),
+                DateUtils.getIso8601NoTz(event.getScheduledDate()),
                 () ->
                     String.format(
-                        "Expected %s to be in %s", event.getDueDate(), "2019-01-28T12:32:38.100")),
+                        "Expected %s to be in %s",
+                        event.getScheduledDate(), "2019-01-28T12:32:38.100")),
         () -> assertHasTimeStamp(event.getCompletedDate()));
   }
 
@@ -413,7 +515,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsGivenCategoryOptionCombo() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .attributeCategoryCombo("O4VaNks6tta")
@@ -449,7 +551,7 @@ class EventExporterTest extends TrackerTest {
     IdSchemes idSchemes = new IdSchemes();
     idSchemes.setCategoryOptionComboIdScheme("ATTRIBUTE:GOLswS44mh8");
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)
@@ -471,7 +573,7 @@ class EventExporterTest extends TrackerTest {
     idSchemes.setCategoryOptionComboIdScheme("code");
 
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)
@@ -522,7 +624,7 @@ class EventExporterTest extends TrackerTest {
     idSchemes.setOrgUnitIdScheme("ATTRIBUTE:j45AR9cBQKc");
     idSchemes.setCategoryOptionComboIdScheme("ATTRIBUTE:j45AR9cBQKc");
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(SELECTED)
             .idSchemes(idSchemes)
@@ -842,6 +944,24 @@ class EventExporterTest extends TrackerTest {
             .collect(Collectors.toList());
 
     assertContainsOnly(List.of("TvctPPhpD8z"), enrollments);
+  }
+
+  @Test
+  void
+      shouldFilterOutEventsWithATrackedEntityWithoutThatAttributeWhenFilterAttributeHasNoQueryFilter()
+          throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .attributeFilters(Map.of("notUpdated0", List.of()))
+            .build();
+
+    List<String> trackedEntities =
+        eventService.getEvents(params).stream()
+            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
+            .collect(Collectors.toList());
+
+    assertContainsOnly(List.of("dUE514NMOlo"), trackedEntities);
   }
 
   @Test

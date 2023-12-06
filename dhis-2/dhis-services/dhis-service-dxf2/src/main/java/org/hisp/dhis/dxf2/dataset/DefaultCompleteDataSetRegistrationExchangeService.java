@@ -28,12 +28,14 @@
 package org.hisp.dhis.dxf2.dataset;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -76,7 +78,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -223,45 +224,48 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsXml(
       InputStream in, ImportOptions importOptions) {
-    return saveCompleteDataSetRegistrationsXml(in, importOptions, null);
+    return saveCompleteDataSetRegistrations(importOptions, () -> readRegistrationsFromXml(in));
   }
 
-  @Override
-  @Transactional
-  public ImportSummary saveCompleteDataSetRegistrationsXml(
-      InputStream in, ImportOptions importOptions, JobConfiguration jobId) {
-    try {
-      in = StreamUtils.wrapAndCheckCompressionFormat(in);
-      CompleteDataSetRegistrations completeDataSetRegistrations =
-          new StreamingXmlCompleteDataSetRegistrations(XMLFactory.getXMLReader(in));
-
-      return saveCompleteDataSetRegistrations(importOptions, completeDataSetRegistrations);
-    } catch (Exception ex) {
-      return handleImportError(ex);
-    }
+  @Nonnull
+  private static CompleteDataSetRegistrations readRegistrationsFromXml(InputStream in)
+      throws IOException {
+    in = StreamUtils.wrapAndCheckCompressionFormat(in);
+    return new StreamingXmlCompleteDataSetRegistrations(XMLFactory.getXMLReader(in));
   }
 
   @Override
   @Transactional
   public ImportSummary saveCompleteDataSetRegistrationsJson(
       InputStream in, ImportOptions importOptions) {
-    return saveCompleteDataSetRegistrationsJson(in, importOptions, null);
+    return saveCompleteDataSetRegistrations(importOptions, () -> readRegistrationsFromJson(in));
   }
 
-  @Override
-  @Transactional
-  public ImportSummary saveCompleteDataSetRegistrationsJson(
-      InputStream in, ImportOptions importOptions, JobConfiguration jobId) {
-    try {
-      in = StreamUtils.wrapAndCheckCompressionFormat(in);
+  private ImportSummary saveCompleteDataSetRegistrations(
+      ImportOptions importOptions,
+      Callable<CompleteDataSetRegistrations> deserializeRegistrations) {
 
-      CompleteDataSetRegistrations completeDataSetRegistrations =
-          jsonMapper.readValue(in, CompleteDataSetRegistrations.class);
+    try (BatchHandler<CompleteDataSetRegistration> batchHandler =
+        batchHandlerFactory.createBatchHandler(CompleteDataSetRegistrationBatchHandler.class)) {
+      CompleteDataSetRegistrations completeDataSetRegistrations = deserializeRegistrations.call();
+      ImportSummary summary =
+          saveCompleteDataSetRegistrations(
+              importOptions, completeDataSetRegistrations, batchHandler);
 
-      return saveCompleteDataSetRegistrations(importOptions, completeDataSetRegistrations);
+      batchHandler.flush();
+
+      return summary;
     } catch (Exception ex) {
+      log.error("Complete data set registrations could not be saved.");
       return handleImportError(ex);
     }
+  }
+
+  @Nonnull
+  private CompleteDataSetRegistrations readRegistrationsFromJson(InputStream in)
+      throws IOException {
+    in = StreamUtils.wrapAndCheckCompressionFormat(in);
+    return jsonMapper.readValue(in, CompleteDataSetRegistrations.class);
   }
 
   @Override
@@ -367,7 +371,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   private ImportSummary saveCompleteDataSetRegistrations(
-      ImportOptions importOptions, CompleteDataSetRegistrations completeRegistrations) {
+      ImportOptions importOptions,
+      CompleteDataSetRegistrations completeRegistrations,
+      BatchHandler<CompleteDataSetRegistration> batchHandler) {
     Clock clock =
         new Clock(log).startClock().logTime("Starting complete data set registration import");
 
@@ -406,7 +412,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     // ---------------------------------------------------------------------
 
     int totalCount =
-        batchImport(completeRegistrations, cfg, importSummary, metaDataCallables, caches);
+        batchImport(
+            completeRegistrations, cfg, importSummary, metaDataCallables, caches, batchHandler);
 
     ImportCount count = importSummary.getImportCount();
 
@@ -428,16 +435,14 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       ImportConfig config,
       ImportSummary summary,
       MetadataCallables mdCallables,
-      MetadataCaches mdCaches) {
+      MetadataCaches mdCaches,
+      BatchHandler<CompleteDataSetRegistration> batchHandler) {
     final User currentUser = currentUserService.getCurrentUser();
     final String currentUserName = currentUser.getUsername();
     final Set<OrganisationUnit> userOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
     final I18n i18n = i18nManager.getI18n();
 
-    BatchHandler<CompleteDataSetRegistration> batchHandler =
-        batchHandlerFactory
-            .createBatchHandler(CompleteDataSetRegistrationBatchHandler.class)
-            .init();
+    batchHandler.init();
 
     int importCount = 0, updateCount = 0, deleteCount = 0, totalCount = 0;
 
@@ -607,8 +612,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       }
     }
 
-    batchHandler.flush();
-
     finalizeSummary(summary, totalCount, importCount, updateCount, deleteCount);
 
     return totalCount;
@@ -663,9 +666,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     boolean inUserHierarchy =
         mdCaches
             .getOrgUnitInHierarchyMap()
-            .get(
-                mdProps.orgUnit.getUid(),
-                () -> organisationUnitService.isDescendant(mdProps.orgUnit, userOrgUnits));
+            .get(mdProps.orgUnit.getUid(), () -> mdProps.orgUnit.isDescendant(userOrgUnits));
 
     if (!inUserHierarchy) {
       throw new ImportConflictException(
@@ -723,8 +724,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 aocOrgUnitKey,
                 () -> {
                   Set<OrganisationUnit> aocOrgUnits = aoc.getOrganisationUnits();
-                  return aocOrgUnits == null
-                      || organisationUnitService.isDescendant(mdProps.orgUnit, aocOrgUnits);
+                  return aocOrgUnits == null || mdProps.orgUnit.isDescendant(aocOrgUnits);
                 });
 
     if (!isOrgUnitValidForAoc) {

@@ -27,14 +27,22 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 
 public interface RelationshipService {
 
-  Relationships getRelationships(RelationshipOperationParams params)
+  /** Get all relationships matching given params. */
+  List<Relationship> getRelationships(RelationshipOperationParams params)
+      throws ForbiddenException, NotFoundException;
+
+  /** Get a page of relationships matching given params. */
+  Page<Relationship> getRelationships(RelationshipOperationParams params, PageParams pageParams)
       throws ForbiddenException, NotFoundException;
 
   /**

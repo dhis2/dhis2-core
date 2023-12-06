@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hisp.dhis.common.ValueType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.parser.expression.ParserUtils.castSql;
+import static org.hisp.dhis.parser.expression.ParserUtils.replaceSqlNull;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.analytics.DataType;
@@ -54,7 +57,6 @@ import org.hisp.dhis.system.util.ValidationUtils;
  * @author Jim Grace
  */
 public abstract class ProgramExpressionItem implements ExpressionItem {
-  private static final String COALESCE = "coalesce(";
 
   @Override
   public final Object getExpressionInfo(ExprContext ctx, CommonExpressionVisitor visitor) {
@@ -103,7 +105,8 @@ public abstract class ProgramExpressionItem implements ExpressionItem {
    * @return the replacement value
    */
   protected Object getNullReplacementValue(ValueType valueType) {
-    return ValidationUtils.getNullReplacementValue((valueType == BOOLEAN) ? NUMBER : valueType);
+    return ValidationUtils.getNullReplacementValue(
+        (valueType == ValueType.BOOLEAN) ? NUMBER : valueType);
   }
 
   /**
@@ -115,14 +118,10 @@ public abstract class ProgramExpressionItem implements ExpressionItem {
    */
   protected String replaceNullSqlValues(
       String column, CommonExpressionVisitor visitor, ValueType valueType) {
-    if (valueType.isNumeric() || valueType.isBoolean()) {
-      if (visitor.getParams().getDataType() == DataType.BOOLEAN) {
-        return COALESCE + column + "::numeric!=0,false)";
-      } else {
-        return COALESCE + column + "::numeric,0)";
-      }
+    DataType dataType = DataType.fromValueType(valueType);
+    if (dataType == NUMERIC || dataType == BOOLEAN) {
+      dataType = visitor.getParams().getDataType() == BOOLEAN ? BOOLEAN : NUMERIC;
     }
-
-    return COALESCE + column + "::text,'')";
+    return replaceSqlNull(castSql(column, dataType), dataType);
   }
 }

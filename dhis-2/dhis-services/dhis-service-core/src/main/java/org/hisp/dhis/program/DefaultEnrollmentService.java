@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 import java.util.Date;
@@ -174,6 +175,9 @@ public class DefaultEnrollmentService implements EnrollmentService {
     if (user != null && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
       params.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
       params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    } else if (user != null && params.isOrganisationUnitMode(CAPTURE)) {
+      params.setOrganisationUnits(user.getOrganisationUnits());
+      params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (params.isOrganisationUnitMode(CHILDREN)) {
       Set<OrganisationUnit> organisationUnits = new HashSet<>(params.getOrganisationUnits());
 
@@ -252,7 +256,9 @@ public class DefaultEnrollmentService implements EnrollmentService {
     User user = params.getUser();
 
     if (!params.hasOrganisationUnits()
-        && !(params.isOrganisationUnitMode(ALL) || params.isOrganisationUnitMode(ACCESSIBLE))) {
+        && !(params.isOrganisationUnitMode(ALL)
+            || params.isOrganisationUnitMode(ACCESSIBLE)
+            || params.isOrganisationUnitMode(CAPTURE))) {
       violation = "At least one organisation unit must be specified";
     }
 
@@ -260,6 +266,11 @@ public class DefaultEnrollmentService implements EnrollmentService {
         && (user == null || !user.hasDataViewOrganisationUnitWithFallback())) {
       violation =
           "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
+    }
+
+    if (params.isOrganisationUnitMode(CAPTURE) && (user == null || !user.hasOrganisationUnit())) {
+      violation =
+          "Current user must be associated with at least one organisation unit when selection mode is CAPTURE";
     }
 
     if (params.hasProgram() && params.hasTrackedEntityType()) {
@@ -325,7 +336,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
       Program program,
       ProgramStatus programStatus,
       Date enrollmentDate,
-      Date incidentDate,
+      Date occurredDate,
       OrganisationUnit organisationUnit,
       String uid) {
     if (program.getTrackedEntityType() != null
@@ -345,10 +356,10 @@ public class DefaultEnrollmentService implements EnrollmentService {
       enrollment.setEnrollmentDate(new Date());
     }
 
-    if (incidentDate != null) {
-      enrollment.setIncidentDate(incidentDate);
+    if (occurredDate != null) {
+      enrollment.setOccurredDate(occurredDate);
     } else {
-      enrollment.setIncidentDate(new Date());
+      enrollment.setOccurredDate(new Date());
     }
 
     enrollment.setStatus(programStatus);
@@ -362,13 +373,13 @@ public class DefaultEnrollmentService implements EnrollmentService {
       TrackedEntity trackedEntity,
       Program program,
       Date enrollmentDate,
-      Date incidentDate,
+      Date occurredDate,
       OrganisationUnit organisationUnit) {
     return enrollTrackedEntity(
         trackedEntity,
         program,
         enrollmentDate,
-        incidentDate,
+        occurredDate,
         organisationUnit,
         CodeGenerator.generateUid());
   }
@@ -379,7 +390,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
       TrackedEntity trackedEntity,
       Program program,
       Date enrollmentDate,
-      Date incidentDate,
+      Date occurredDate,
       OrganisationUnit organisationUnit,
       String uid) {
     // ---------------------------------------------------------------------
@@ -392,7 +403,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
             program,
             ProgramStatus.ACTIVE,
             enrollmentDate,
-            incidentDate,
+            occurredDate,
             organisationUnit,
             uid);
     addEnrollment(enrollment);
@@ -456,12 +467,12 @@ public class DefaultEnrollmentService implements EnrollmentService {
     // ---------------------------------------------------------------------
 
     for (Event event : enrollment.getEvents()) {
-      if (event.getExecutionDate() == null) {
+      if (event.getOccurredDate() == null) {
         // -------------------------------------------------------------
         // Set status as skipped for overdue events, or delete
         // -------------------------------------------------------------
 
-        if (event.getDueDate().before(enrollment.getEndDate())) {
+        if (event.getScheduledDate().before(enrollment.getCompletedDate())) {
           event.setStatus(EventStatus.SKIPPED);
           eventStore.update(event);
         } else {
@@ -490,7 +501,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     // -----------------------------------------------------------------
 
     enrollment.setStatus(ProgramStatus.ACTIVE);
-    enrollment.setEndDate(null);
+    enrollment.setCompletedDate(null);
 
     updateEnrollment(enrollment);
   }

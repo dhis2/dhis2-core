@@ -30,7 +30,8 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
-import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.RequestParams.DEFAULT_FIELDS_PARAM;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_ZIP;
@@ -56,7 +57,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntities;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -130,24 +132,48 @@ class TrackedEntitiesExportController {
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   PagingWrapper<ObjectNode> getTrackedEntities(
-      RequestParams requestParams, @CurrentUser User currentUser)
+      TrackedEntityRequestParams trackedEntityRequestParams, @CurrentUser User currentUser)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
+    validatePaginationParameters(trackedEntityRequestParams);
+    TrackedEntityOperationParams operationParams =
+        paramsMapper.map(trackedEntityRequestParams, currentUser);
+    if (trackedEntityRequestParams.isPaged()) {
+      PageParams pageParams =
+          new PageParams(
+              trackedEntityRequestParams.getPage(),
+              trackedEntityRequestParams.getPageSize(),
+              trackedEntityRequestParams.getTotalPages());
 
-    TrackedEntities trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+      Page<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntityPage =
+          trackedEntityService.getTrackedEntities(operationParams, pageParams);
 
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
+      PagingWrapper.Pager.PagerBuilder pagerBuilder =
+          PagingWrapper.Pager.builder()
+              .page(trackedEntityPage.getPager().getPage())
+              .pageSize(trackedEntityPage.getPager().getPageSize());
 
-    if (requestParams.isPagingRequest()) {
-      pagingWrapper =
-          pagingWrapper.withPager(
-              PagingWrapper.Pager.fromLegacy(requestParams, trackedEntities.getPager()));
+      if (trackedEntityRequestParams.isPageTotal()) {
+        pagerBuilder
+            .pageCount(trackedEntityPage.getPager().getPageCount())
+            .total(trackedEntityPage.getPager().getTotal());
+      }
+
+      PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
+      pagingWrapper = pagingWrapper.withPager(pagerBuilder.build());
+      List<ObjectNode> objectNodes =
+          fieldFilterService.toObjectNodes(
+              TRACKED_ENTITY_MAPPER.fromCollection(trackedEntityPage.getItems()),
+              trackedEntityRequestParams.getFields());
+      return pagingWrapper.withInstances(objectNodes);
     }
 
+    List<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
-            TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities.getTrackedEntities()),
-            requestParams.getFields());
+            TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities),
+            trackedEntityRequestParams.getFields());
+    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
     return pagingWrapper.withInstances(objectNodes);
   }
 
@@ -159,18 +185,18 @@ class TrackedEntitiesExportController {
         CONTENT_TYPE_TEXT_CSV
       })
   void getTrackedEntitiesAsCsv(
-      RequestParams requestParams,
+      TrackedEntityRequestParams trackedEntityRequestParams,
       HttpServletResponse response,
       HttpServletRequest request,
       @CurrentUser User user,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
       throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams operationParams =
-        paramsMapper.map(requestParams, user, CSV_FIELDS);
+        paramsMapper.map(trackedEntityRequestParams, user, CSV_FIELDS);
 
     List<TrackedEntity> trackedEntities =
         TRACKED_ENTITY_MAPPER.fromCollection(
-            trackedEntityService.getTrackedEntities(operationParams).getTrackedEntities());
+            trackedEntityService.getTrackedEntities(operationParams));
 
     OutputStream outputStream = response.getOutputStream();
 

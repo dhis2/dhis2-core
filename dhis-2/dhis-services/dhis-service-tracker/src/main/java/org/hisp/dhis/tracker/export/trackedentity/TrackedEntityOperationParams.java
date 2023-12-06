@@ -149,9 +149,6 @@ public class TrackedEntityOperationParams {
   /** Indicates whether the search is for synchronization purposes (for Program Data sync job). */
   private boolean synchronizationQuery;
 
-  /** Indicates a point in the time used to decide the data that should not be synchronized */
-  private Date skipChangedBefore;
-
   /**
    * Potential Duplicate query parameter value. If null, we don't check whether a TE is a
    * potentialDuplicate or not
@@ -174,7 +171,7 @@ public class TrackedEntityOperationParams {
 
   public static class TrackedEntityOperationParamsBuilder {
 
-    private List<Order> order = new ArrayList<>();
+    private final List<Order> order = new ArrayList<>();
 
     // Do not remove this unused method. This hides the order field from the builder which Lombok
     // does not support. The repeated order field and private order method prevent access to order

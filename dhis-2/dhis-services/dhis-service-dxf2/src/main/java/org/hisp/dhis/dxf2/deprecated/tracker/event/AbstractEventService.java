@@ -595,8 +595,8 @@ public abstract class AbstractEventService
     event.setEnrollmentStatus(
         EnrollmentStatus.fromProgramStatus(programStageInstance.getEnrollment().getStatus()));
     event.setStatus(programStageInstance.getStatus());
-    event.setEventDate(DateUtils.getIso8601NoTz(programStageInstance.getExecutionDate()));
-    event.setDueDate(DateUtils.getIso8601NoTz(programStageInstance.getDueDate()));
+    event.setEventDate(DateUtils.getIso8601NoTz(programStageInstance.getOccurredDate()));
+    event.setDueDate(DateUtils.getIso8601NoTz(programStageInstance.getScheduledDate()));
     event.setStoredBy(programStageInstance.getStoredBy());
     event.setCompletedBy(programStageInstance.getCompletedBy());
     event.setCompletedDate(DateUtils.getIso8601NoTz(programStageInstance.getCompletedDate()));
@@ -800,20 +800,20 @@ public abstract class AbstractEventService
       return;
     }
 
-    Date executionDate = new Date();
+    Date occurreddate = new Date();
 
     if (event.getEventDate() != null) {
-      executionDate = DateUtils.parseDate(event.getEventDate());
+      occurreddate = DateUtils.parseDate(event.getEventDate());
     }
 
-    Date eventDate = executionDate != null ? executionDate : programStageInstance.getDueDate();
+    Date eventDate = occurreddate != null ? occurreddate : programStageInstance.getScheduledDate();
 
     validateAttributeOptionComboDate(programStageInstance.getAttributeOptionCombo(), eventDate);
 
     if (event.getStatus() == EventStatus.COMPLETED) {
       programStageInstance.setStatus(EventStatus.COMPLETED);
     } else {
-      programStageInstance.setStatus(EventStatus.VISITED);
+      programStageInstance.setStatus(EventStatus.ACTIVE);
     }
 
     ImportOptions importOptions = new ImportOptions();
@@ -826,7 +826,7 @@ public abstract class AbstractEventService
     }
 
     programStageInstance.setOrganisationUnit(organisationUnit);
-    programStageInstance.setExecutionDate(executionDate);
+    programStageInstance.setOccurredDate(occurreddate);
     eventService.updateEvent(programStageInstance);
   }
 

@@ -43,6 +43,8 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParenthes
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
+import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
+import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
@@ -80,7 +82,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -111,7 +113,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       AnalyticsTableHookService tableHookService,
       StatementBuilder statementBuilder,
       PartitionManager partitionManager,
-      DatabaseInfo databaseInfo,
+      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsExportSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
@@ -125,7 +127,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         tableHookService,
         statementBuilder,
         partitionManager,
-        databaseInfo,
+        databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
         periodDataProvider);
@@ -138,9 +140,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTableColumn(quote("ps"), CHARACTER_11, NOT_NULL, "ps.uid"),
           new AnalyticsTableColumn(quote("ao"), CHARACTER_11, NOT_NULL, "ao.uid"),
           new AnalyticsTableColumn(quote("enrollmentdate"), TIMESTAMP, "pi.enrollmentdate"),
-          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.incidentdate"),
-          new AnalyticsTableColumn(quote("executiondate"), TIMESTAMP, "psi.executiondate"),
-          new AnalyticsTableColumn(quote("duedate"), TIMESTAMP, "psi.duedate"),
+          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.occurreddate"),
+          new AnalyticsTableColumn(quote("occurreddate"), TIMESTAMP, "psi.occurreddate"),
+          new AnalyticsTableColumn(quote("scheduleddate"), TIMESTAMP, "psi.scheduleddate"),
           new AnalyticsTableColumn(quote("completeddate"), TIMESTAMP, "psi.completeddate"),
 
           /*
@@ -240,9 +242,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     log.info(
         format(
             "Get tables using earliest: %s, spatial support: %b",
-            params.getFromDate(), databaseInfo.isSpatialSupport()));
+            params.getFromDate(), isSpatialSupport()));
 
-    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+    List<Integer> availableDataYears =
+        periodDataProvider.getAvailableYears(
+            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
 
     return params.isLatestUpdate()
         ? getLatestAnalyticsTables(params)
@@ -258,7 +262,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    *     status
    */
   static String getDateLinkedToStatus() {
-    return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.duedate ELSE psi.executiondate END";
+    return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
   }
 
   /**
@@ -440,7 +444,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+    List<Integer> availableDataYears =
+        periodDataProvider.getAvailableYears(
+            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
@@ -588,8 +594,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       boolean withLegendSet) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    ColumnDataType dataType =
-        getColumnType(attribute.getValueType(), databaseInfo.isSpatialSupport());
+    ColumnDataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
     String dataClause =
         attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
     String select = getSelectClause(attribute.getValueType(), "value");
@@ -645,8 +650,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, boolean withLegendSet) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    ColumnDataType dataType =
-        getColumnType(dataElement.getValueType(), databaseInfo.isSpatialSupport());
+    ColumnDataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
     String dataClause = getDataClause(dataElement.getUid(), dataElement.getValueType());
     String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
     String select = getSelectClause(dataElement.getValueType(), columnName);
@@ -670,7 +674,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       TrackedEntityAttribute attribute, String dataClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    if (databaseInfo.isSpatialSupport()) {
+    if (isSpatialSupport()) {
       String geoSql =
           selectForInsert(
               attribute,
@@ -702,7 +706,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
 
-    if (databaseInfo.isSpatialSupport()) {
+    if (isSpatialSupport()) {
       String geoSql =
           selectForInsert(
               dataElement,

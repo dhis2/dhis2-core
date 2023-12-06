@@ -36,12 +36,12 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.isRelationDoesntExist;
 
 import com.google.common.collect.Sets;
 import java.util.Arrays;
@@ -56,7 +56,6 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -64,13 +63,11 @@ import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -78,8 +75,6 @@ import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.util.Assert;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -96,7 +91,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private static final String ANALYTICS_EVENT = "analytics_event_";
 
-  private static final String ORDER_BY_EXECUTION_DATE = "order by executiondate ";
+  private static final String ORDER_BY_EXECUTION_DATE = "order by occurreddate ";
 
   private static final String LIMIT_1 = "limit 1";
 
@@ -139,9 +134,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             : getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {
-      executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql);
+      withExceptionHandling(
+          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
     } else {
-      withExceptionHandling(() -> getEnrollments(params, grid, sql, maxLimit == 0));
+      withExceptionHandling(
+          () -> getEnrollments(params, grid, sql, maxLimit == 0), params.isMultipleQueries());
     }
   }
 
@@ -254,27 +251,19 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     long count = 0;
 
-    try {
-      log.debug("Analytics enrollment count SQL: " + sql);
+    log.debug("Analytics enrollment count SQL: " + sql);
 
-      if (params.analyzeOnly()) {
-        executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql);
-      } else {
-        count = jdbcTemplate.queryForObject(sql, Long.class);
-      }
-    } catch (BadSqlGrammarException ex) {
-      if (isRelationDoesntExist(ex.getSQLException())) {
-        log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
-        throw ex;
-      }
-      if (!params.isMultipleQueries()) {
-        log.warn(AnalyticsUtils.ERR_MSG_SQL_SYNTAX_ERROR, ex);
-        throw ex;
-      }
-      log.warn(AnalyticsUtils.ERR_MSG_SILENT_FALLBACK, ex);
-    } catch (DataAccessResourceFailureException ex) {
-      log.warn(ErrorCode.E7131.getMessage(), ex);
-      throw new QueryRuntimeException(ErrorCode.E7131);
+    final String finalSqlValue = sql;
+
+    if (params.analyzeOnly()) {
+      withExceptionHandling(
+          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue));
+    } else {
+      count =
+          withExceptionHandling(
+                  () -> jdbcTemplate.queryForObject(finalSqlValue, Long.class),
+                  params.isMultipleQueries())
+              .orElse(0l);
     }
 
     return count;
@@ -564,7 +553,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           && !item.getRepeatableStageParams().simpleStageValueExpected()) {
         return "(select json_agg(t1) from (select "
             + colName
-            + ", incidentdate, duedate, executiondate "
+            + ", incidentdate, scheduleddate, occurreddate "
             + " from "
             + eventTableName
             + " where "
@@ -651,14 +640,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     StringBuilder sb = new StringBuilder();
 
     if (startDate != null) {
-      sb.append(" and executiondate >= ");
+      sb.append(" and occurreddate >= ");
 
       sb.append(
           String.format("%s ", SqlUtils.singleQuote(DateUtils.getMediumDateString(startDate))));
     }
 
     if (endDate != null) {
-      sb.append(" and executiondate <= ");
+      sb.append(" and occurreddate <= ");
 
       sb.append(String.format("%s ", SqlUtils.singleQuote(DateUtils.getMediumDateString(endDate))));
     }

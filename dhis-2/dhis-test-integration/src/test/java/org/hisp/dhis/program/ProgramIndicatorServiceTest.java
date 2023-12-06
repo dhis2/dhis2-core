@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
@@ -475,11 +476,9 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
   @Test
   void testGetAnalyticsSQl() {
     String expected =
-        "coalesce(\""
-            + deAInteger.getUid()
-            + "\"::numeric,0) + coalesce(\""
-            + atA.getUid()
-            + "\"::numeric,0) > 10";
+        format(
+            "coalesce(case when ax.\"ps\" = '%s' then \"%s\" else null end::numeric,0) + coalesce(\"%s\"::numeric,0) > 10",
+            psA.getUid(), deAInteger.getUid(), atA.getUid());
     assertEquals(
         expected,
         programIndicatorService.getAnalyticsSql(
@@ -488,7 +487,7 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testGetAnalyticsSQl2() {
-    String expected = "((cast(incidentdate as date) - cast(enrollmentdate as date))) / 7.0";
+    String expected = "((cast(occurreddate as date) - cast(enrollmentdate as date))) / 7.0";
     assertEquals(
         expected,
         programIndicatorService.getAnalyticsSql(
@@ -549,26 +548,29 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testBooleanAsNumeric() {
-    assertEquals("coalesce(\"DataElmentG\"::numeric,0)", sql("#{ProgrmStagA.DataElmentG}"));
+    assertEquals(
+        "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric,0)",
+        sql("#{ProgrmStagA.DataElmentG}"));
   }
 
   @Test
   void testBooleanAsBoolean() {
     assertEquals(
-        "coalesce(\"DataElmentG\"::numeric!=0,false)", filter("#{ProgrmStagA.DataElmentG}"));
+        "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric!=0,false)",
+        filter("#{ProgrmStagA.DataElmentG}"));
   }
 
   @Test
   void testBooleanAsBooleanWithinIf() {
     assertEquals(
-        " case when coalesce(\"DataElmentG\"::numeric!=0,false) then 4 else 5 end",
+        " case when coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric!=0,false) then 4 else 5 end",
         sql("if(#{ProgrmStagA.DataElmentG},4,5)"));
   }
 
   @Test
   void testBooleanAsNumericWithinIf() {
     assertEquals(
-        " case when coalesce(\"DataElmentG\"::numeric,0) > 1 then 4 else 5 end",
+        " case when coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric,0) > 1 then 4 else 5 end",
         sql("if(#{ProgrmStagA.DataElmentG} > 1,4,5)"));
   }
 
@@ -589,7 +591,8 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testComparisonOperator() {
-    String expected = "coalesce(\"DataElmentA\"::numeric,0) = 'Ongoing'";
+    String expected =
+        "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0) = 'Ongoing'";
     String expression = "#{ProgrmStagA.DataElmentA} == 'Ongoing'";
     assertEquals(
         expected,
@@ -603,12 +606,12 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
     Date dateTo = getDate(2019, 12, 31);
     // Generated subquery, since indicatorF is type Enrollment
     String expected =
-        "coalesce((select \"DataElmentA\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentA\" is not null and executiondate < cast( '"
+        "coalesce((select \"DataElmentA\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentA\" is not null and occurreddate < cast( '"
             + "2020-01-11"
-            + "' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 )::numeric,0) - "
-            + "coalesce((select \"DataElmentC\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentC\" is not null and executiondate < cast( '"
+            + "' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 )::numeric,0) - "
+            + "coalesce((select \"DataElmentC\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentC\" is not null and occurreddate < cast( '"
             + "2020-01-11"
-            + "' as date ) and ps = 'ProgrmStagB' order by executiondate desc limit 1 )::numeric,0)";
+            + "' as date ) and ps = 'ProgrmStagB' order by occurreddate desc limit 1 )::numeric,0)";
     String expression = "#{ProgrmStagA.DataElmentA} - #{ProgrmStagB.DataElmentC}";
     assertEquals(
         expected,

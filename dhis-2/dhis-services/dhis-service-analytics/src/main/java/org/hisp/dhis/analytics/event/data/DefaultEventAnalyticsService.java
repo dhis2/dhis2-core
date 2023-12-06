@@ -93,9 +93,10 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
 
@@ -182,7 +183,7 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
 
   private final EventQueryPlanner queryPlanner;
 
-  private final DatabaseInfo databaseInfo;
+  private final boolean spatialSupport;
 
   private final AnalyticsCache analyticsCache;
 
@@ -194,18 +195,19 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
       AnalyticsSecurityManager securityManager,
       EventQueryPlanner queryPlanner,
       EventQueryValidator queryValidator,
-      DatabaseInfo databaseInfo,
+      DatabaseInfoProvider databaseInfoProvider,
       AnalyticsCache analyticsCache,
       EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-      SchemeIdResponseMapper schemeIdResponseMapper) {
-    super(securityManager, queryValidator, schemeIdResponseMapper);
+      SchemeIdResponseMapper schemeIdResponseMapper,
+      CurrentUserService currentUserService) {
+    super(securityManager, queryValidator, schemeIdResponseMapper, currentUserService);
 
     checkNotNull(dataElementService);
     checkNotNull(trackedEntityAttributeService);
     checkNotNull(eventAnalyticsManager);
     checkNotNull(eventDataQueryService);
     checkNotNull(queryPlanner);
-    checkNotNull(databaseInfo);
+    checkNotNull(databaseInfoProvider);
     checkNotNull(analyticsCache);
     checkNotNull(schemeIdResponseMapper);
 
@@ -214,7 +216,7 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
     this.eventAnalyticsManager = eventAnalyticsManager;
     this.eventDataQueryService = eventDataQueryService;
     this.queryPlanner = queryPlanner;
-    this.databaseInfo = databaseInfo;
+    this.spatialSupport = databaseInfoProvider.getDatabaseInfo().isSpatialSupport();
     this.analyticsCache = analyticsCache;
     this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
   }
@@ -639,7 +641,7 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
 
   @Override
   public Grid getEventClusters(EventQueryParams params) {
-    if (!databaseInfo.isSpatialSupport()) {
+    if (!spatialSupport) {
       throwIllegalQueryEx(ErrorCode.E7218);
     }
 
@@ -677,7 +679,7 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
 
   @Override
   public Rectangle getRectangle(EventQueryParams params) {
-    if (!databaseInfo.isSpatialSupport()) {
+    if (!spatialSupport) {
       throwIllegalQueryEx(ErrorCode.E7218);
     }
 
@@ -784,12 +786,14 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
     timer.getSplitTime("Planned event query, got partitions: " + params.getPartitions());
 
     long count = 0;
+    EventQueryParams immutableParams = new EventQueryParams.Builder(params).build();
 
     if (params.getPartitions().hasAny() || params.isSkipPartitioning()) {
-      eventAnalyticsManager.getEvents(params, grid, queryValidator.getMaxLimit());
+
+      eventAnalyticsManager.getEvents(immutableParams, grid, queryValidator.getMaxLimit());
 
       if (params.isPaging() && params.isTotalPages()) {
-        count = eventAnalyticsManager.getEventCount(params);
+        count = eventAnalyticsManager.getEventCount(immutableParams);
       }
 
       timer.getTime("Got events " + grid.getHeight());

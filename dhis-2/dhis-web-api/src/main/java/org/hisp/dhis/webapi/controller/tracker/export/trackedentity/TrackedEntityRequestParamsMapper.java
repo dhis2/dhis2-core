@@ -27,18 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
-import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -51,112 +47,185 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
 /**
  * Maps operation parameters from {@link TrackedEntitiesExportController} stored in {@link
- * RequestParams} to {@link TrackedEntityOperationParams} which is used to fetch tracked entities.
+ * TrackedEntityRequestParams} to {@link TrackedEntityOperationParams} which is used to fetch
+ * tracked entities.
  */
 @Component
 @RequiredArgsConstructor
 class TrackedEntityRequestParamsMapper {
-
   private static final Set<String> ORDERABLE_FIELD_NAMES =
       TrackedEntityMapper.ORDERABLE_FIELDS.keySet();
 
   private final TrackedEntityFieldsParamMapper fieldsParamMapper;
 
-  public TrackedEntityOperationParams map(RequestParams requestParams, User user)
-      throws BadRequestException {
-    return map(requestParams, user, requestParams.getFields());
+  public TrackedEntityOperationParams map(
+      TrackedEntityRequestParams trackedEntityRequestParams, User user) throws BadRequestException {
+    return map(trackedEntityRequestParams, user, trackedEntityRequestParams.getFields());
   }
 
   public TrackedEntityOperationParams map(
-      RequestParams requestParams, User user, List<FieldPath> fields) throws BadRequestException {
-    validateRemovedParameters(requestParams);
+      TrackedEntityRequestParams trackedEntityRequestParams, User user, List<FieldPath> fields)
+      throws BadRequestException {
+    validateRemovedParameters(trackedEntityRequestParams);
 
     Set<UID> assignedUsers =
         validateDeprecatedUidsParameter(
             "assignedUser",
-            requestParams.getAssignedUser(),
+            trackedEntityRequestParams.getAssignedUser(),
             "assignedUsers",
-            requestParams.getAssignedUsers());
+            trackedEntityRequestParams.getAssignedUsers());
 
     Set<UID> orgUnitUids =
         validateDeprecatedUidsParameter(
-            "orgUnit", requestParams.getOrgUnit(), "orgUnits", requestParams.getOrgUnits());
+            "orgUnit",
+            trackedEntityRequestParams.getOrgUnit(),
+            "orgUnits",
+            trackedEntityRequestParams.getOrgUnits());
 
     OrganisationUnitSelectionMode orgUnitMode =
         validateDeprecatedParameter(
-            "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
+            "ouMode",
+            trackedEntityRequestParams.getOuMode(),
+            "orgUnitMode",
+            trackedEntityRequestParams.getOrgUnitMode());
 
-    orgUnitMode = validateOrgUnitMode(orgUnitUids, orgUnitMode);
+    orgUnitMode =
+        validateOrgUnitModeForTrackedEntities(
+            orgUnitUids, orgUnitMode, trackedEntityRequestParams.getTrackedEntities());
 
     Set<UID> trackedEntities =
         validateDeprecatedUidsParameter(
             "trackedEntity",
-            requestParams.getTrackedEntity(),
+            trackedEntityRequestParams.getTrackedEntity(),
             "trackedEntities",
-            requestParams.getTrackedEntities());
-    validateOrderParams(requestParams.getOrder(), ORDERABLE_FIELD_NAMES, "attribute");
+            trackedEntityRequestParams.getTrackedEntities());
+    validateOrderParams(trackedEntityRequestParams.getOrder(), ORDERABLE_FIELD_NAMES, "attribute");
+    validateRequestParams(trackedEntityRequestParams, trackedEntities);
 
-    Map<String, List<QueryFilter>> filters = parseFilters(requestParams.getFilter());
+    Map<String, List<QueryFilter>> filters = parseFilters(trackedEntityRequestParams.getFilter());
 
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()
             .programUid(
-                requestParams.getProgram() == null ? null : requestParams.getProgram().getValue())
+                trackedEntityRequestParams.getProgram() == null
+                    ? null
+                    : trackedEntityRequestParams.getProgram().getValue())
             .programStageUid(
-                requestParams.getProgramStage() == null
+                trackedEntityRequestParams.getProgramStage() == null
                     ? null
-                    : requestParams.getProgramStage().getValue())
-            .programStatus(requestParams.getProgramStatus())
-            .followUp(requestParams.getFollowUp())
-            .lastUpdatedStartDate(requestParams.getUpdatedAfter())
-            .lastUpdatedEndDate(requestParams.getUpdatedBefore())
-            .lastUpdatedDuration(requestParams.getUpdatedWithin())
-            .programEnrollmentStartDate(requestParams.getEnrollmentEnrolledAfter())
-            .programEnrollmentEndDate(requestParams.getEnrollmentEnrolledBefore())
-            .programIncidentStartDate(requestParams.getEnrollmentOccurredAfter())
-            .programIncidentEndDate(requestParams.getEnrollmentOccurredBefore())
+                    : trackedEntityRequestParams.getProgramStage().getValue())
+            .programStatus(trackedEntityRequestParams.getProgramStatus())
+            .followUp(trackedEntityRequestParams.getFollowUp())
+            .lastUpdatedStartDate(trackedEntityRequestParams.getUpdatedAfter())
+            .lastUpdatedEndDate(trackedEntityRequestParams.getUpdatedBefore())
+            .lastUpdatedDuration(trackedEntityRequestParams.getUpdatedWithin())
+            .programEnrollmentStartDate(trackedEntityRequestParams.getEnrollmentEnrolledAfter())
+            .programEnrollmentEndDate(trackedEntityRequestParams.getEnrollmentEnrolledBefore())
+            .programIncidentStartDate(trackedEntityRequestParams.getEnrollmentOccurredAfter())
+            .programIncidentEndDate(trackedEntityRequestParams.getEnrollmentOccurredBefore())
             .trackedEntityTypeUid(
-                requestParams.getTrackedEntityType() == null
+                trackedEntityRequestParams.getTrackedEntityType() == null
                     ? null
-                    : requestParams.getTrackedEntityType().getValue())
+                    : trackedEntityRequestParams.getTrackedEntityType().getValue())
             .organisationUnits(UID.toValueSet(orgUnitUids))
             .orgUnitMode(orgUnitMode)
-            .eventStatus(requestParams.getEventStatus())
-            .eventStartDate(requestParams.getEventOccurredAfter())
-            .eventEndDate(requestParams.getEventOccurredBefore())
+            .eventStatus(trackedEntityRequestParams.getEventStatus())
+            .eventStartDate(trackedEntityRequestParams.getEventOccurredAfter())
+            .eventEndDate(trackedEntityRequestParams.getEventOccurredBefore())
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(
-                    requestParams.getAssignedUserMode(), user, UID.toValueSet(assignedUsers)))
+                    trackedEntityRequestParams.getAssignedUserMode(),
+                    user,
+                    UID.toValueSet(assignedUsers)))
             .user(user)
             .trackedEntityUids(UID.toValueSet(trackedEntities))
             .filters(filters)
-            .page(Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE))
-            .pageSize(Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE))
-            .totalPages(toBooleanDefaultIfNull(requestParams.isTotalPages(), false))
-            .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
-            .includeDeleted(requestParams.isIncludeDeleted())
-            .potentialDuplicate(requestParams.getPotentialDuplicate())
+            .includeDeleted(trackedEntityRequestParams.isIncludeDeleted())
+            .potentialDuplicate(trackedEntityRequestParams.getPotentialDuplicate())
             .trackedEntityParams(fieldsParamMapper.map(fields));
 
-    mapOrderParam(builder, requestParams.getOrder());
+    mapOrderParam(builder, trackedEntityRequestParams.getOrder());
 
     return builder.build();
   }
 
-  private void validateRemovedParameters(RequestParams requestParams) throws BadRequestException {
-    if (StringUtils.isNotBlank(requestParams.getQuery())) {
+  private void validateRequestParams(TrackedEntityRequestParams params, Set<UID> trackedEntities)
+      throws BadRequestException {
+
+    if (params.getProgram() != null && params.getTrackedEntityType() != null) {
+      throw new BadRequestException(
+          "`program` and `trackedEntityType` cannot be specified simultaneously");
+    }
+
+    if (params.getProgram() == null) {
+      if (trackedEntities.isEmpty() && params.getTrackedEntityType() == null) {
+        throw new BadRequestException(
+            "Either `program`, `trackedEntityType` or `trackedEntities` should be specified");
+      }
+
+      if (params.getProgramStatus() != null) {
+        throw new BadRequestException("`program` must be defined when `programStatus` is defined");
+      }
+
+      if (params.getFollowUp() != null) {
+        throw new BadRequestException("`program` must be defined when `followUp` is defined");
+      }
+
+      if (params.getEnrollmentEnrolledAfter() != null) {
+        throw new BadRequestException(
+            "`program` must be defined when `enrollmentEnrolledAfter` is specified");
+      }
+
+      if (params.getEnrollmentEnrolledBefore() != null) {
+        throw new BadRequestException(
+            "`program` must be defined when `enrollmentEnrolledBefore` is specified");
+      }
+
+      if (params.getEnrollmentOccurredAfter() != null) {
+        throw new BadRequestException(
+            "`program` must be defined when `enrollmentOccurredAfter` is specified");
+      }
+
+      if (params.getEnrollmentOccurredBefore() != null) {
+        throw new BadRequestException(
+            "`program` must be defined when `enrollmentOccurredBefore` is specified");
+      }
+    }
+
+    if (params.getEventStatus() != null
+        && (params.getEventOccurredAfter() == null || params.getEventOccurredBefore() == null)) {
+      throw new BadRequestException(
+          "`eventOccurredAfter` and `eventOccurredBefore` must be specified when `eventStatus` is specified");
+    }
+
+    if (params.getUpdatedWithin() != null
+        && (params.getUpdatedAfter() != null || params.getUpdatedBefore() != null)) {
+      throw new BadRequestException(
+          "`updatedAfter` or `updatedBefore` and `updatedWithin` cannot be specified simultaneously");
+    }
+
+    if (params.getUpdatedWithin() != null
+        && DateUtils.getDuration(params.getUpdatedWithin()) == null) {
+      throw new BadRequestException("`updatedWithin` is not valid: " + params.getUpdatedWithin());
+    }
+  }
+
+  private void validateRemovedParameters(TrackedEntityRequestParams trackedEntityRequestParams)
+      throws BadRequestException {
+    if (StringUtils.isNotBlank(trackedEntityRequestParams.getQuery())) {
       throw new BadRequestException("`query` parameter was removed in v41. Use `filter` instead.");
     }
-    if (StringUtils.isNotBlank(requestParams.getAttribute())) {
+    if (StringUtils.isNotBlank(trackedEntityRequestParams.getAttribute())) {
       throw new BadRequestException(
           "`attribute` parameter was removed in v41. Use `filter` instead.");
     }
-    if (StringUtils.isNotBlank(requestParams.getIncludeAllAttributes())) {
+    if (StringUtils.isNotBlank(trackedEntityRequestParams.getIncludeAllAttributes())) {
       throw new BadRequestException("`includeAllAttributes` parameter was removed in v41.");
     }
   }

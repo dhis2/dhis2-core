@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 
 public interface TrackedEntityService {
 
@@ -46,15 +49,13 @@ public interface TrackedEntityService {
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
-  /**
-   * Fetches {@see TrackedEntity}s based on the specified parameters.
-   *
-   * @param operationParams a {@see TrackedEntityOperationParams} instance with the operation
-   *     parameters
-   * @return {@see TrackedEntity}s
-   */
-  TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
-      throws ForbiddenException, NotFoundException, BadRequestException;
+  /** Get all tracked entities matching given params. */
+  List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
+      throws BadRequestException, ForbiddenException, NotFoundException;
+
+  /** Get a page of tracked entities matching given params. */
+  Page<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams params, PageParams pageParams)
+      throws BadRequestException, ForbiddenException, NotFoundException;
 
   /**
    * Fields the {@link #getTrackedEntities(TrackedEntityOperationParams)} can order tracked entities

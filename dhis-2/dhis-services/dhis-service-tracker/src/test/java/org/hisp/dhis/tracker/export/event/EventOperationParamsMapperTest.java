@@ -40,6 +40,7 @@ import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -153,7 +154,7 @@ class EventOperationParamsMapperTest {
 
     // By default set to ACCESSIBLE for tests that don't set an orgUnit. The orgUnitMode needs to be
     // set because its validation is in the EventRequestParamsMapper.
-    eventBuilder = eventBuilder.orgUnitMode(ACCESSIBLE);
+    eventBuilder = eventBuilder.orgUnitMode(ACCESSIBLE).eventParams(EventParams.FALSE);
 
     userMap.put("admin", createUserWithAuthority(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS));
     userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
@@ -365,7 +366,7 @@ class EventOperationParamsMapperTest {
             .orderBy(UID.of(TEA_1_UID), SortDirection.ASC)
             .orderBy("programStage.uid", SortDirection.DESC)
             .orderBy(UID.of(DE_1_UID), SortDirection.DESC)
-            .orderBy("dueDate", SortDirection.ASC)
+            .orderBy("scheduledDate", SortDirection.ASC)
             .build();
 
     EventQueryParams params = mapper.map(operationParams);
@@ -376,7 +377,7 @@ class EventOperationParamsMapperTest {
             new Order(tea1, SortDirection.ASC),
             new Order("programStage.uid", SortDirection.DESC),
             new Order(de1, SortDirection.DESC),
-            new Order("dueDate", SortDirection.ASC)),
+            new Order("scheduledDate", SortDirection.ASC)),
         params.getOrder());
   }
 
@@ -499,7 +500,7 @@ class EventOperationParamsMapperTest {
         .thenReturn(true);
 
     EventOperationParams operationParams =
-        EventOperationParams.builder()
+        eventBuilder
             .programUid(program.getUid())
             .orgUnitUid(searchScopeChildOrgUnit.getUid())
             .orgUnitMode(orgUnitMode)
@@ -530,9 +531,12 @@ class EventOperationParamsMapperTest {
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
+    when(organisationUnitService.isInUserHierarchy(
+            searchScopeChildOrgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(true);
 
     EventOperationParams operationParams =
-        EventOperationParams.builder()
+        eventBuilder
             .programUid(program.getUid())
             .orgUnitUid(searchScopeChildOrgUnit.getUid())
             .orgUnitMode(ALL)
@@ -540,6 +544,45 @@ class EventOperationParamsMapperTest {
 
     EventQueryParams queryParams = mapper.map(operationParams);
     assertEquals(searchScopeChildOrgUnit, queryParams.getOrgUnit());
+  }
+
+  @Test
+  void shouldFailWhenModeAllRequestedOrgUnitInSearchScopeAndUserHasNoAccessToProgram()
+      throws ForbiddenException, BadRequestException {
+    Program program = new Program();
+    program.setAccessLevel(OPEN);
+    program.setUid("programUid");
+
+    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
+    OrganisationUnit searchScopeChildOrgUnit = createOrgUnit("searchScopeChildOrgUnit", "uid5");
+    searchScopeOrgUnit.setChildren(Set.of(searchScopeChildOrgUnit));
+    searchScopeChildOrgUnit.setParent(searchScopeOrgUnit);
+
+    User user = new User();
+    user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit", "uid")));
+    user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
+    UserRole userRole = new UserRole();
+    userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
+    user.setUserRoles(Set.of(userRole));
+
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
+        .thenReturn(searchScopeChildOrgUnit);
+    when(aclService.canDataRead(user, program)).thenReturn(false);
+    when(programService.getProgram(program.getUid())).thenReturn(program);
+
+    EventOperationParams operationParams =
+        eventBuilder
+            .programUid(program.getUid())
+            .orgUnitUid(searchScopeChildOrgUnit.getUid())
+            .orgUnitMode(ALL)
+            .build();
+
+    Exception forbiddenException =
+        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
+    assertEquals(
+        String.format("User has no access to program: %s", program.getUid()),
+        forbiddenException.getMessage());
   }
 
   @ParameterizedTest
@@ -572,6 +615,28 @@ class EventOperationParamsMapperTest {
     EventQueryParams params = mapper.map(operationParams);
     assertNull(params.getOrgUnit());
     assertEquals(ALL, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldIncludeRelationshipsWhenFieldPathIncludeRelationships()
+      throws BadRequestException, ForbiddenException {
+    when(currentUserService.getCurrentUser()).thenReturn(userMap.get("admin"));
+
+    EventOperationParams operationParams =
+        eventBuilder.orgUnitMode(ALL).eventParams(EventParams.TRUE).build();
+    EventQueryParams params = mapper.map(operationParams);
+    assertTrue(params.isIncludeRelationships());
+  }
+
+  @Test
+  void shouldNotIncludeRelationshipsWhenFieldPathDoNotIncludeRelationships()
+      throws BadRequestException, ForbiddenException {
+    when(currentUserService.getCurrentUser()).thenReturn(userMap.get("admin"));
+
+    EventOperationParams operationParams =
+        eventBuilder.orgUnitMode(ALL).eventParams(EventParams.FALSE).build();
+    EventQueryParams params = mapper.map(operationParams);
+    assertFalse(params.isIncludeRelationships());
   }
 
   private User createUserWithAuthority(Authorities authority) {

@@ -28,6 +28,7 @@
 package org.hisp.dhis.scheduling;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.eventhook.EventUtils.schedulerCompleted;
 import static org.hisp.dhis.eventhook.EventUtils.schedulerFailed;
 import static org.hisp.dhis.eventhook.EventUtils.schedulerStart;
@@ -84,6 +85,19 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   private final Map<String, RecordingJobProgress> recordingsById = new ConcurrentHashMap<>();
 
   @Override
+  @Transactional
+  public void createHousekeepingJob() {
+    JobType.Defaults defaults = JobType.HOUSEKEEPING.getDefaults();
+    if (defaults == null) return;
+    JobConfiguration config = jobConfigurationStore.getByUid(defaults.uid());
+    if (config == null) {
+      jobConfigurationService.createDefaultJob(JobType.HOUSEKEEPING);
+    } else if (config.getJobStatus() != JobStatus.SCHEDULED) {
+      finishRunCancel(config.getUid());
+    }
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public int applyCancellation() {
     int c = 0;
@@ -111,7 +125,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   @Override
   @Transactional(readOnly = true)
   public List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds) {
-    return jobConfigurationService.getDueJobConfigurations(dueInNextSeconds, true, false);
+    return jobConfigurationService.getDueJobConfigurations(dueInNextSeconds, false);
   }
 
   @Override
@@ -119,6 +133,13 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   @Transactional(readOnly = true)
   public JobConfiguration getNextInQueue(String queue, int fromPosition) {
     return jobConfigurationStore.getNextInQueue(queue, fromPosition);
+  }
+
+  @CheckForNull
+  @Override
+  @Transactional(readOnly = true)
+  public JobConfiguration getJobConfiguration(String jobId) {
+    return jobConfigurationStore.getByUid(jobId);
   }
 
   @Override
@@ -178,10 +199,18 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
       doSafely("fail", "log.error", () -> logError(message, ex));
       doSafely("fail", "MDC.remove", () -> MDC.remove("sessionId"));
       doSafely("fail", "publishEvent", () -> events.publishEvent(schedulerFailed(job)));
-      doSafely(
-          "fail",
-          "sendSystemErrorNotification",
-          () -> messages.sendSystemErrorNotification(message, ex));
+      Exception cause = ex;
+      if (cause == null) {
+        RecordingJobProgress progress = recordingsById.get(jobId);
+        if (progress != null) cause = progress.getCause();
+      }
+      if (cause != null) {
+        Exception causeF = cause;
+        doSafely(
+            "fail",
+            "sendSystemErrorNotification",
+            () -> messages.asyncSendSystemErrorNotification(message, causeF));
+      }
       skipRestOfQueue(job);
     }
   }
@@ -253,9 +282,12 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     RecordingJobProgress job = recordingsById.get(jobId);
     if (job == null) return;
     try {
-      jobConfigurationStore.updateProgress(jobId, jsonMapper.writeValueAsString(job.getProgress()));
+      JobProgress.Progress progress = job.getProgress();
+      String errorCodes = progress.getErrorCodes().stream().sorted().collect(joining(" "));
+      jobConfigurationStore.updateProgress(
+          jobId, jsonMapper.writeValueAsString(progress), errorCodes);
     } catch (JsonProcessingException ex) {
-      jobConfigurationStore.updateProgress(jobId, null);
+      jobConfigurationStore.updateProgress(jobId, null, null);
       log.error("Failed to attach progress json", ex);
     }
   }

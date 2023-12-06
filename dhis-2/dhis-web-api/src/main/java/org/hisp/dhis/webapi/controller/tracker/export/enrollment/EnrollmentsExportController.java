@@ -29,14 +29,13 @@ package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.RequestParams.DEFAULT_FIELDS_PARAM;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
@@ -46,10 +45,11 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.enrollment.Enrollments;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
@@ -97,45 +97,47 @@ class EnrollmentsExportController {
 
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  PagingWrapper<ObjectNode> getEnrollments(RequestParams requestParams)
+  PagingWrapper<ObjectNode> getEnrollments(EnrollmentRequestParams enrollmentRequestParams)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
+    validatePaginationParameters(enrollmentRequestParams);
+    EnrollmentOperationParams operationParams = paramsMapper.map(enrollmentRequestParams);
 
-    List<org.hisp.dhis.program.Enrollment> enrollmentList;
+    if (enrollmentRequestParams.isPaged()) {
+      PageParams pageParams =
+          new PageParams(
+              enrollmentRequestParams.getPage(),
+              enrollmentRequestParams.getPageSize(),
+              enrollmentRequestParams.getTotalPages());
 
-    EnrollmentOperationParams operationParams = paramsMapper.map(requestParams);
+      Page<org.hisp.dhis.program.Enrollment> enrollmentPage =
+          enrollmentService.getEnrollments(operationParams, pageParams);
 
-    Set<UID> enrollmentUids =
-        validateDeprecatedUidsParameter(
-            "enrollment",
-            requestParams.getEnrollment(),
-            "enrollments",
-            requestParams.getEnrollments());
-    if (enrollmentUids.isEmpty()) {
-      Enrollments enrollments = enrollmentService.getEnrollments(operationParams);
+      PagingWrapper.Pager.PagerBuilder pagerBuilder =
+          PagingWrapper.Pager.builder()
+              .page(enrollmentPage.getPager().getPage())
+              .pageSize(enrollmentPage.getPager().getPageSize());
 
-      if (requestParams.isPagingRequest()) {
-        pagingWrapper =
-            pagingWrapper.withPager(
-                PagingWrapper.Pager.fromLegacy(requestParams, enrollments.getPager()));
+      if (enrollmentRequestParams.isPageTotal()) {
+        pagerBuilder
+            .pageCount(enrollmentPage.getPager().getPageCount())
+            .total(enrollmentPage.getPager().getTotal());
       }
 
-      enrollmentList = enrollments.getEnrollments();
-    } else {
-      List<org.hisp.dhis.program.Enrollment> list = new ArrayList<>();
-      for (UID uid : enrollmentUids) {
-        list.add(
-            enrollmentService.getEnrollment(
-                uid.getValue(),
-                operationParams.getEnrollmentParams(),
-                operationParams.isIncludeDeleted()));
-      }
-      enrollmentList = list;
+      PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
+      pagingWrapper = pagingWrapper.withPager(pagerBuilder.build());
+      List<ObjectNode> objectNodes =
+          fieldFilterService.toObjectNodes(
+              ENROLLMENT_MAPPER.fromCollection(enrollmentPage.getItems()),
+              enrollmentRequestParams.getFields());
+      return pagingWrapper.withInstances(objectNodes);
     }
 
+    Collection<org.hisp.dhis.program.Enrollment> enrollments =
+        enrollmentService.getEnrollments(operationParams);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
-            ENROLLMENT_MAPPER.fromCollection(enrollmentList), requestParams.getFields());
+            ENROLLMENT_MAPPER.fromCollection(enrollments), enrollmentRequestParams.getFields());
+    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
     return pagingWrapper.withInstances(objectNodes);
   }
 

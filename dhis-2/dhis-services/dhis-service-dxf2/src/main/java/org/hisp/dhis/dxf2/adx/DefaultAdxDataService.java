@@ -53,6 +53,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManagerFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -60,7 +61,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.xerces.util.XMLChar;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboMap;
@@ -121,7 +121,7 @@ public class DefaultAdxDataService implements AdxDataService {
 
   private final IdentifiableObjectManager identifiableObjectManager;
 
-  private final SessionFactory sessionFactory;
+  private final EntityManagerFactory entityManagerFactory;
 
   private final Notifier notifier;
 
@@ -382,7 +382,7 @@ public class DefaultAdxDataService implements AdxDataService {
       Future<ImportSummary> futureImportSummary =
           executor.submit(
               new AdxPipedImporter(
-                  dataValueSetService, adxImportOptions, dxfJobId, pipeOut, sessionFactory));
+                  dataValueSetService, adxImportOptions, dxfJobId, pipeOut, entityManagerFactory));
       XMLOutputFactory factory = XMLOutputFactory.newInstance();
       XMLStreamWriter dxfWriter = factory.createXMLStreamWriter(pipeOut);
 

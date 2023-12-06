@@ -27,6 +27,16 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static java.util.Collections.emptySet;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
+import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
+import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -65,6 +75,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -81,6 +92,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private User userWithoutOrgUnit;
 
+  private User authorizedUser;
+
   private Program programA;
 
   private ProgramStage programStageA;
@@ -88,6 +101,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   private Enrollment enrollmentA;
 
   private Enrollment enrollmentB;
+
+  private Enrollment enrollmentChildA;
+
+  private Enrollment enrollmentGrandchildA;
 
   private Event eventA;
 
@@ -101,22 +118,37 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private Relationship relationshipA;
 
+  private OrganisationUnit orgUnitA;
+
+  private OrganisationUnit orgUnitChildA;
+
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
     admin = preCreateInjectAdminUser();
 
-    OrganisationUnit orgUnitA = createOrganisationUnit('A');
+    orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
     OrganisationUnit orgUnitB = createOrganisationUnit('B');
     manager.save(orgUnitB, false);
     OrganisationUnit orgUnitC = createOrganisationUnit('C');
     manager.save(orgUnitC, false);
+    orgUnitChildA = createOrganisationUnit('D', orgUnitA);
+    manager.save(orgUnitChildA, false);
+    OrganisationUnit orgUnitGrandchildA = createOrganisationUnit('E', orgUnitChildA);
+    manager.save(orgUnitGrandchildA, false);
 
     User user =
         createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
     user.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
     userWithoutOrgUnit = createUserWithAuth("userWithoutOrgUnit");
+    authorizedUser =
+        createAndAddUser(
+            false,
+            "test user",
+            Set.of(orgUnitA, orgUnitB, orgUnitC),
+            emptySet(),
+            "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
 
     trackedEntityTypeA = createTrackedEntityType('A');
     trackedEntityTypeA.getSharing().setOwner(user);
@@ -133,6 +165,14 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC);
     trackedEntityC.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityC, false);
+
+    TrackedEntity trackedEntityChildA = createTrackedEntity(orgUnitChildA);
+    trackedEntityChildA.setTrackedEntityType(trackedEntityTypeA);
+    manager.save(trackedEntityChildA, false);
+
+    TrackedEntity trackedEntityGrandchildA = createTrackedEntity(orgUnitGrandchildA);
+    trackedEntityGrandchildA.setTrackedEntityType(trackedEntityTypeA);
+    manager.save(trackedEntityGrandchildA, false);
 
     programA = createProgram('A', new HashSet<>(), orgUnitA);
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
@@ -203,6 +243,14 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentB =
         programInstanceService.enrollTrackedEntity(
             trackedEntityB, programA, new Date(), new Date(), orgUnitB);
+
+    enrollmentChildA =
+        programInstanceService.enrollTrackedEntity(
+            trackedEntityChildA, programA, new Date(), new Date(), orgUnitChildA);
+
+    enrollmentGrandchildA =
+        programInstanceService.enrollTrackedEntity(
+            trackedEntityGrandchildA, programA, new Date(), new Date(), orgUnitGrandchildA);
 
     injectSecurityContext(user);
   }
@@ -365,7 +413,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldGetEnrollmentsWhenUserHasReadAccessToProgramAndSearchScopeAccessToOrgUnit()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
@@ -376,44 +424,98 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
             .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
             .build();
 
-    Enrollments enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
 
     assertNotNull(enrollments);
-    assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentB.getUid()), toUid(enrollments));
+    assertContainsOnly(
+        List.of(
+            enrollmentA.getUid(),
+            enrollmentB.getUid(),
+            enrollmentChildA.getUid(),
+            enrollmentGrandchildA.getUid()),
+        uids(enrollments));
   }
 
   @Test
   void shouldGetEnrollmentsWhenUserHasReadAccessToProgramAndNoOrgUnitNorOrgUnitModeSpecified()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
 
     EnrollmentOperationParams params =
-        EnrollmentOperationParams.builder().programUid(programA.getUid()).build();
+        EnrollmentOperationParams.builder()
+            .programUid(programA.getUid())
+            .orgUnitMode(ACCESSIBLE)
+            .build();
 
-    Enrollments enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
 
     assertNotNull(enrollments);
-    assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentB.getUid()), toUid(enrollments));
+    assertContainsOnly(
+        List.of(
+            enrollmentA.getUid(),
+            enrollmentB.getUid(),
+            enrollmentChildA.getUid(),
+            enrollmentGrandchildA.getUid()),
+        uids(enrollments));
+  }
+
+  @Test
+  void shouldGetEnrollmentsInCaptureScopeIfOrgUnitModeCapture()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+
+    manager.updateNoAcl(programA);
+
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder().orgUnitMode(CAPTURE).build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+
+    assertNotNull(enrollments);
+    assertContainsOnly(
+        List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
+        uids(enrollments));
+  }
+
+  @Test
+  void shouldGetEnrollmentWhenEnrollmentsAndOtherParamsAreSpecified()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+
+    manager.updateNoAcl(programA);
+
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder()
+            .programUid(programA.getUid())
+            .enrollmentUids(Set.of(enrollmentA.getUid()))
+            .orgUnitMode(ACCESSIBLE)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+
+    assertNotNull(enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
   void shouldGetEnrollmentsByTrackedEntityWhenUserHasAccessToTrackedEntityType()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);
 
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(trackedEntityA.getOrganisationUnit().getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUid(trackedEntityA.getUid())
             .build();
 
-    Enrollments enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
 
     assertNotNull(enrollments);
-    assertContainsOnly(List.of(enrollmentA.getUid()), toUid(enrollments));
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
@@ -428,6 +530,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(trackedEntityA.getOrganisationUnit().getUid()))
+            .orgUnitMode(SELECTED)
             .trackedEntityUid(trackedEntityA.getUid())
             .build();
 
@@ -436,10 +539,221 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     assertContains("access to tracked entity type", exception.getMessage());
   }
 
-  private static List<String> toUid(Enrollments enrollments) {
-    return enrollments.getEnrollments().stream()
-        .map(Enrollment::getUid)
-        .collect(Collectors.toList());
+  @Test
+  void shouldReturnEnrollmentIfEnrollmentWasUpdatedBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourBeforeLastUpdated = oneHourBefore(enrollmentA.getLastUpdated());
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .lastUpdated(oneHourBeforeLastUpdated)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+
+    assertContainsOnly(List.of(enrollmentA), enrollments);
+  }
+
+  @Test
+  void shouldReturnEmptyIfEnrollmentWasUpdatedAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Date oneHourAfterLastUpdated = oneHourAfter(enrollmentA.getLastUpdated());
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .lastUpdated(oneHourAfterLastUpdated)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+
+    assertIsEmpty(enrollments);
+  }
+
+  @Test
+  void shouldReturnEnrollmentIfEnrollmentStartedBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+    Date oneHourBeforeEnrollmentDate = oneHourBefore(enrollmentA.getEnrollmentDate());
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programUid(programA.getUid())
+            .programStartDate(oneHourBeforeEnrollmentDate)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+
+    assertContainsOnly(List.of(enrollmentA), enrollments);
+  }
+
+  @Test
+  void shouldReturnEmptyIfEnrollmentStartedAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+    Date oneHourAfterEnrollmentDate = oneHourAfter(enrollmentA.getEnrollmentDate());
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programUid(programA.getUid())
+            .programStartDate(oneHourAfterEnrollmentDate)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+
+    assertIsEmpty(enrollments);
+  }
+
+  @Test
+  void shouldReturnEnrollmentIfEnrollmentEndedAfterPassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+    Date oneHourAfterEnrollmentDate = oneHourAfter(enrollmentA.getEnrollmentDate());
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programUid(programA.getUid())
+            .programEndDate(oneHourAfterEnrollmentDate)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+
+    assertContainsOnly(List.of(enrollmentA), enrollments);
+  }
+
+  @Test
+  void shouldReturnEmptyIfEnrollmentEndedBeforePassedDateAndTime()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
+    Date oneHourBeforeEnrollmentDate = oneHourBefore(enrollmentA.getEnrollmentDate());
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programUid(programA.getUid())
+            .programEndDate(oneHourBeforeEnrollmentDate)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+
+    assertIsEmpty(enrollments);
+  }
+
+  @Test
+  void shouldReturnAllEnrollmentsWhenModeAllAndUserAuthorizedAndInSearchScope()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+
+    injectSecurityContext(authorizedUser);
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    assertContainsOnly(
+        List.of(
+            enrollmentA.getUid(),
+            enrollmentB.getUid(),
+            enrollmentChildA.getUid(),
+            enrollmentGrandchildA.getUid()),
+        uids(enrollments));
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitModeAllAndUserNotAuthorized() {
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
+
+    BadRequestException exception =
+        Assertions.assertThrows(
+            BadRequestException.class, () -> enrollmentService.getEnrollments(operationParams));
+    Assertions.assertEquals(
+        "Current user is not authorized to query across all organisation units",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnAllEnrollmentsWhenOrgUnitModeAllAndUserAuthorized()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContext(admin);
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    assertContainsOnly(
+        List.of(enrollmentA, enrollmentB, enrollmentChildA, enrollmentGrandchildA), enrollments);
+  }
+
+  @Test
+  void shouldReturnAllDescendantsOfSelectedOrgUnitWhenOrgUnitModeDescendants()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(DESCENDANTS)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    assertContainsOnly(
+        List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
+        uids(enrollments));
+  }
+
+  @Test
+  void shouldReturnChildrenOfRootOrgUnitWhenOrgUnitModeChildren()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(CHILDREN)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentChildA.getUid()), uids(enrollments));
+  }
+
+  @Test
+  void shouldReturnChildrenOfRequestedOrgUnitWhenOrgUnitModeChildren()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitChildA.getUid()))
+            .orgUnitMode(CHILDREN)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    assertContainsOnly(
+        List.of(enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()), uids(enrollments));
+  }
+
+  @Test
+  void
+      shouldReturnAllChildrenOfRequestedOrgUnitsWhenOrgUnitModeChildrenAndMultipleOrgUnitsRequested()
+          throws ForbiddenException, BadRequestException, NotFoundException {
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnitA.getUid(), orgUnitChildA.getUid()))
+            .orgUnitMode(CHILDREN)
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    assertContainsOnly(
+        List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
+        uids(enrollments));
   }
 
   private static List<String> attributeUids(Enrollment enrollment) {

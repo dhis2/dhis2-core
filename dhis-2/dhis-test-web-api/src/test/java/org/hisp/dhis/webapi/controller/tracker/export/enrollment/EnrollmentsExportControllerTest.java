@@ -252,6 +252,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     assertEquals(program.getUid(), event.getProgram());
 
     assertHasMember(event, "status");
+    assertHasMember(event, "followUp");
     assertHasMember(event, "followup");
     assertEquals(program.getUid(), event.getProgram());
     assertEquals(orgUnit.getUid(), event.getOrgUnit());
@@ -354,7 +355,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     Enrollment enrollment = new Enrollment(program, te, orgUnit);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setStatus(ProgramStatus.COMPLETED);
     enrollment.setFollowup(true);
     manager.save(enrollment, false);

@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import lombok.AllArgsConstructor;
-import org.hibernate.Session;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.dxf2.metadata.AnalyticalObjectImportHandler;
@@ -52,9 +51,9 @@ public class AnalyticalObjectObjectBundleHook extends AbstractObjectBundleHook<A
     BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
     Schema schema =
         schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(analyticalObject));
-    Session session = sessionFactory.getCurrentSession();
 
-    analyticalObjectImportHandler.handleAnalyticalObject(session, schema, analyticalObject, bundle);
+    analyticalObjectImportHandler.handleAnalyticalObject(
+        entityManager, schema, analyticalObject, bundle);
   }
 
   @Override
@@ -64,8 +63,8 @@ public class AnalyticalObjectObjectBundleHook extends AbstractObjectBundleHook<A
 
     Schema schema =
         schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(analyticalObject));
-    Session session = sessionFactory.getCurrentSession();
 
-    analyticalObjectImportHandler.handleAnalyticalObject(session, schema, analyticalObject, bundle);
+    analyticalObjectImportHandler.handleAnalyticalObject(
+        entityManager, schema, analyticalObject, bundle);
   }
 }

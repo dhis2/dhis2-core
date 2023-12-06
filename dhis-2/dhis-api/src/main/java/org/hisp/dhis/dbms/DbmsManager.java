@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dbms;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -47,10 +46,4 @@ public interface DbmsManager {
   boolean tableExists(String tableName);
 
   List<List<Object>> getTableContent(String table);
-
-  void evictObject(Object object);
-
-  boolean contains(Object object);
-
-  Serializable getIdentifier(Object object);
 }

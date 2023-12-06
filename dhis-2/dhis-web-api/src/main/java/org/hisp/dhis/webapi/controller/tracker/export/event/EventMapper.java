@@ -64,22 +64,25 @@ public interface EventMapper
           entry("completedAt", "completedDate"),
           entry("completedBy", "completedBy"),
           entry("createdAt", "created"),
+          entry("createdAtClient", "createdAtClient"),
           entry("createdBy", "createdBy"),
           entry("deleted", "deleted"),
           entry("enrolledAt", "enrollment.enrollmentDate"),
           entry("enrollment", "enrollment.uid"),
           entry("enrollmentStatus", "enrollment.status"),
           entry("event", "uid"),
-          entry("followup", "enrollment.followup"),
-          entry("occurredAt", "executionDate"),
+          entry("followUp", "enrollment.followUp"),
+          entry("followup", "enrollment.followUp"), // Deprecated 2.41
+          entry("occurredAt", "occurredDate"),
           entry("orgUnit", "organisationUnit.uid"),
           entry("program", "enrollment.program.uid"),
           entry("programStage", "programStage.uid"),
-          entry("scheduledAt", "dueDate"),
+          entry("scheduledAt", "scheduledDate"),
           entry("status", "status"),
           entry("storedBy", "storedBy"),
           entry("trackedEntity", "enrollment.trackedEntity.uid"),
           entry("updatedAt", "lastUpdated"),
+          entry("updatedAtClient", "lastUpdatedAtClient"),
           entry("updatedBy", "lastUpdatedBy"));
 
   @Mapping(target = "event", source = "uid")
@@ -88,9 +91,10 @@ public interface EventMapper
   @Mapping(target = "enrollment", source = "enrollment.uid")
   @Mapping(target = "trackedEntity", source = "enrollment.trackedEntity.uid")
   @Mapping(target = "orgUnit", source = "organisationUnit.uid")
-  @Mapping(target = "occurredAt", source = "executionDate")
-  @Mapping(target = "scheduledAt", source = "dueDate")
-  @Mapping(target = "followup", source = "enrollment.followup")
+  @Mapping(target = "occurredAt", source = "occurredDate")
+  @Mapping(target = "scheduledAt", source = "scheduledDate")
+  @Mapping(target = "legacyFollowUp", source = "enrollment.followup") // Deprecated 2.41
+  @Mapping(target = "followUp", source = "enrollment.followup")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")

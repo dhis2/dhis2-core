@@ -97,6 +97,8 @@ public class JsonAssertions {
         expected.getEnrollment().getUid(), jsonEvent.getEnrollment(), "event enrollment UID");
     assertFalse(
         jsonEvent.has("relationships"), "relationships is not returned within relationship items");
+    assertEquals(expected.getEnrollment().getFollowup(), jsonEvent.getFollowUp(), "followUp");
+    assertEquals(expected.getEnrollment().getFollowup(), jsonEvent.getLegacyFollowUp(), "followup");
   }
 
   public static void assertTrackedEntityWithinRelationshipItem(
@@ -131,6 +133,7 @@ public class JsonAssertions {
         jsonEnrollment.getTrackedEntity(),
         "trackedEntity UID");
     assertEquals(expected.getProgram().getUid(), jsonEnrollment.getProgram(), "program UID");
+    assertEquals(expected.getFollowup(), jsonEnrollment.getFollowUp(), "followUp");
     assertEquals(
         expected.getOrganisationUnit().getUid(), jsonEnrollment.getOrgUnit(), "orgUnit UID");
     assertTrue(jsonEnrollment.getArray("events").isEmpty(), "events should be empty");
@@ -151,12 +154,6 @@ public class JsonAssertions {
 
   public static void assertHasNoMember(JsonObject json, String name) {
     assertFalse(json.has(name), String.format("member \"%s\" should NOT be in %s", name, json));
-  }
-
-  public static void assertHasMembers(JsonObject json, String... names) {
-    for (String name : names) {
-      assertHasMember(json, name);
-    }
   }
 
   public static void assertHasMember(JsonObject json, String name) {

@@ -41,28 +41,15 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 @Builder(toBuilder = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class RelationshipOperationParams {
-
-  public static final int DEFAULT_PAGE = 1;
-
-  public static final int DEFAULT_PAGE_SIZE = 50;
-
   private TrackerType type;
 
   private String identifier;
-
-  private Integer page;
-
-  private Integer pageSize;
-
-  private boolean totalPages;
-
-  private boolean skipPaging;
 
   private List<Order> order;
 
   public static class RelationshipOperationParamsBuilder {
 
-    private List<Order> order = new ArrayList<>();
+    private final List<Order> order = new ArrayList<>();
 
     // Do not remove this unused method. This hides the order field from the builder which Lombok
     // does not support. The repeated order field and private order method prevent access to order

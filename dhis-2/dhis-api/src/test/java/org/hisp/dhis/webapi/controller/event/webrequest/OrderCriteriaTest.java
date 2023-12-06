@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.event.webrequest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
@@ -79,13 +80,7 @@ class OrderCriteriaTest {
 
   @Test
   void fromOrderStringDefaultsSortDirectionToAscGivenAnUnknownSortDirection() {
-
-    List<OrderCriteria> orderCriteria = OrderCriteria.fromOrderString("one:wrong");
-
-    assertNotNull(orderCriteria);
-    assertEquals(
-        1, orderCriteria.size(), String.format("Expected 1 item, instead got %s", orderCriteria));
-    assertEquals(OrderCriteria.of("one", SortDirection.ASC), orderCriteria.get(0));
+    assertThrows(IllegalArgumentException.class, () -> OrderCriteria.fromOrderString("one:wrong"));
   }
 
   @Test
