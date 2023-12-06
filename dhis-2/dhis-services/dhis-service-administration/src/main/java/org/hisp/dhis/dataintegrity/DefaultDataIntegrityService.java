@@ -853,7 +853,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     ensureConfigurationsAreLoaded();
     return checks.isEmpty()
         ? unmodifiableCollection(checksByName.values())
-        : expandChecks(checks).stream().map(checksByName::get).collect(toList());
+        : expandChecks(checks, false).stream().map(checksByName::get).collect(toList());
   }
 
   @Nonnull
@@ -868,7 +868,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   public void runSummaryChecks(@Nonnull Set<String> checks, JobProgress progress) {
     runDataIntegrityChecks(
         "Data Integrity summary checks",
-        expandChecks(checks),
+        expandChecks(checks, true),
         progress,
         summaryCache,
         runningSummaryChecks,
@@ -890,7 +890,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   public void runDetailsChecks(@Nonnull Set<String> checks, JobProgress progress) {
     runDataIntegrityChecks(
         "Data Integrity details checks",
-        expandChecks(checks),
+        expandChecks(checks, true),
         progress,
         detailsCache,
         runningDetailsChecks,
@@ -907,7 +907,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   }
 
   private <T> Map<String, T> getCached(Set<String> checks, long timeout, Cache<T> cache) {
-    Set<String> names = expandChecks(checks);
+    Set<String> names = expandChecks(checks, false);
     long giveUpTime = currentTimeMillis() + timeout;
     Map<String, T> resByName = new LinkedHashMap<>();
     boolean retry = false;
@@ -975,11 +975,11 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     }
   }
 
-  private Set<String> expandChecks(Set<String> names) {
+  private Set<String> expandChecks(Set<String> names, boolean restricted) {
     ensureConfigurationsAreLoaded();
 
     if (CollectionUtils.isEmpty(names)) {
-      return getDefaultChecks();
+      return getDefaultChecks(restricted);
     }
     Set<String> expanded = new LinkedHashSet<>();
 
@@ -1008,13 +1008,15 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     return expanded;
   }
 
-  private Set<String> getDefaultChecks() {
+  private Set<String> getDefaultChecks(boolean restricted) {
     ensureConfigurationsAreLoaded();
 
+    Predicate<DataIntegrityCheck> filter =
+        restricted ? not(DataIntegrityCheck::isSlow) : check -> true;
     return checksByName.values().stream()
-        .filter(not(DataIntegrityCheck::isSlow))
+        .filter(filter)
         .map(DataIntegrityCheck::getName)
-        .collect(Collectors.toUnmodifiableSet());
+        .collect(toUnmodifiableSet());
   }
 
   private void ensureConfigurationsAreLoaded() {
