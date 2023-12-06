@@ -113,7 +113,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
   @Override
   public void save(CustomIcon customIcon, FileResource fileResource, User createdByUser) {
     jdbcTemplate.update(
-        "INSERT INTO customicon (key, description, keywords, fileresourceid, createdby, created, lastupdated) VALUES (?, ?, ?, ?, ?,?,?,?)",
+        "INSERT INTO customicon (key, description, keywords, fileresourceid, createdby, created, lastupdated) VALUES (?, ?, ?, ?,?,?,?)",
         customIcon.getKey(),
         customIcon.getDescription(),
         customIcon.getKeywords(),
