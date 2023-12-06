@@ -33,6 +33,8 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 import static org.hisp.dhis.commons.collection.ListUtils.distinctUnion;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,7 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.Category;
@@ -71,11 +73,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
@@ -159,8 +156,8 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
     List<CategoryOption> categoryOptions =
         sortById(getCategoryOptions(dataElementCategories, dataSetCategories, user));
     List<OptionSet> optionSets = sortById(getOptionSets(dataElements));
-    
-    dataSetCategoryCombos.removeAll( dataElementCategoryCombos );
+
+    dataSetCategoryCombos.removeAll(dataElementCategoryCombos);
 
     expressionService.substituteIndicatorExpressions(indicators);
 
