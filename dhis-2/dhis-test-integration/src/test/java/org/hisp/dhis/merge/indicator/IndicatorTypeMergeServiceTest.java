@@ -57,7 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
-  @Autowired private MergeService<IndicatorType> service;
+  @Autowired private MergeService service;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -89,19 +89,17 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
       "Transform a valid merge query, producing a valid merge request and an error free merge report")
   void testGetFromQuery() {
     // given
-    MergeParams query = new MergeParams();
-    query.setSources(Set.of(uidA, uidB));
-    query.setTarget(uidC);
-    query.setDeleteSources(true);
+    MergeParams query =
+        MergeParams.builder().sources(Set.of(uidA, uidB)).target(uidC).deleteSources(true).build();
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
-    MergeRequest<IndicatorType> request = service.transform(query, mergeReport);
+    MergeRequest request = service.validate(query, mergeReport);
 
     // then
     assertEquals(2, request.getSources().size());
-    assertTrue(request.getSources().containsAll(List.of(itA, itB)));
-    assertEquals(itC, request.getTarget());
+    assertTrue(request.getSources().containsAll(List.of(uidA, uidB)));
+    assertEquals(uidC, request.getTarget());
     assertTrue(request.isDeleteSources());
     assertFalse(mergeReport.hasErrorMessages());
   }
@@ -111,11 +109,11 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
       "Transform a merge query with missing sources and target, producing an empty merge request and a merge report with errors")
   void testGetFromQueryWithErrors() {
     // given
-    MergeParams query = new MergeParams();
+    MergeParams query = MergeParams.builder().build();
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
-    MergeRequest<IndicatorType> request = service.transform(query, mergeReport);
+    MergeRequest request = service.validate(query, mergeReport);
 
     // then
     assertRequestIsEmpty(request);
@@ -133,17 +131,15 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
       "Transform a merge query with invalid source uid, producing an empty merge request and a merge report with an error")
   void testSourceNotFound() {
     // given
-    MergeParams query = new MergeParams();
-    query.setSources(Set.of(uidA, uidX));
-    query.setTarget(uidC);
+    MergeParams query = MergeParams.builder().sources(Set.of(uidA, uidX)).target(uidC).build();
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
-    MergeRequest<IndicatorType> request = service.transform(query, mergeReport);
+    MergeRequest request = service.validate(query, mergeReport);
 
     // then
     assertEquals(1, request.getSources().size());
-    assertEquals(BASE_IN_TYPE_UID + 'C', request.getTarget().getUid());
+    assertEquals(BASE_IN_TYPE_UID + 'C', request.getTarget().getValue());
     assertTrue(mergeReport.hasErrorMessages());
     assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1533));
     assertMatchesErrorMessages(
@@ -155,13 +151,11 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
       "Transform a merge query with invalid target uid, producing an empty merge request and a merge report with error")
   void testTargetNotFound() {
     // given
-    MergeParams query = new MergeParams();
-    query.setSources(Set.of(uidA, uidB));
-    query.setTarget(uidX);
+    MergeParams query = MergeParams.builder().sources(Set.of(uidA, uidB)).target(uidX).build();
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
-    MergeRequest<IndicatorType> request = service.transform(query, mergeReport);
+    MergeRequest request = service.validate(query, mergeReport);
 
     // then
     assertRequestIsEmpty(request);
@@ -188,16 +182,12 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     assertEquals(itA, iA.getIndicatorType());
     assertEquals(itB, iB.getIndicatorType());
     assertEquals(itC, iC.getIndicatorType());
-    MergeRequest<IndicatorType> request =
-        MergeRequest.<IndicatorType>builder()
-            .sources(Set.of(itA, itB))
-            .target(itC)
-            .deleteSources(true)
-            .build();
+    MergeParams params =
+        MergeParams.builder().sources(Set.of(uidA, uidB)).target(uidC).deleteSources(true).build();
 
     // when an indicator merge request is validated
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    service.validate(request, mergeReport);
+    service.validate(params, mergeReport);
 
     // then
     // source indicator types exist
@@ -219,16 +209,12 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
     assertNotNull(idObjectManager.get(IndicatorType.class, itC.getUid()));
     assertEquals(itC, iC.getIndicatorType());
-    MergeRequest<IndicatorType> request =
-        MergeRequest.<IndicatorType>builder()
-            .sources(Set.of())
-            .target(itC)
-            .deleteSources(true)
-            .build();
+    MergeParams params =
+        MergeParams.builder().sources(Set.of()).target(uidC).deleteSources(true).build();
 
     // when an indicator merge request is validated
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    MergeRequest<IndicatorType> validatedRequest = service.validate(request, mergeReport);
+    MergeRequest validatedRequest = service.validate(params, mergeReport);
 
     // then
     // and the target indicator exists
@@ -255,16 +241,12 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     assertNotNull(idObjectManager.get(IndicatorType.class, itB.getUid()));
     assertEquals(itA, iA.getIndicatorType());
     assertEquals(itB, iB.getIndicatorType());
-    MergeRequest<IndicatorType> request =
-        MergeRequest.<IndicatorType>builder()
-            .sources(Set.of(itA, itB))
-            .target(null)
-            .deleteSources(true)
-            .build();
+    MergeParams params =
+        MergeParams.builder().sources(Set.of(uidA, uidB)).target(null).deleteSources(true).build();
 
     // when an indicator merge request is validated
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    MergeRequest<IndicatorType> validatedRequest = service.validate(request, mergeReport);
+    MergeRequest validatedRequest = service.validate(params, mergeReport);
 
     // then
     // and the source indicators exists
@@ -295,12 +277,8 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     assertEquals(itA, iA.getIndicatorType());
     assertEquals(itB, iB.getIndicatorType());
     assertEquals(itC, iC.getIndicatorType());
-    MergeRequest<IndicatorType> request =
-        MergeRequest.<IndicatorType>builder()
-            .sources(Set.of(itA, itB))
-            .target(itC)
-            .deleteSources(true)
-            .build();
+    MergeRequest request =
+        MergeRequest.builder().sources(Set.of(uidA, uidB)).target(uidC).deleteSources(true).build();
 
     // when an indicator merge request is merged
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
@@ -342,10 +320,10 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     assertEquals(itA, iA.getIndicatorType());
     assertEquals(itB, iB.getIndicatorType());
     assertEquals(itC, iC.getIndicatorType());
-    MergeRequest<IndicatorType> request =
-        MergeRequest.<IndicatorType>builder()
-            .sources(Set.of(itA, itB))
-            .target(itC)
+    MergeRequest request =
+        MergeRequest.builder()
+            .sources(Set.of(uidA, uidB))
+            .target(uidC)
             .deleteSources(false)
             .build();
 
@@ -372,7 +350,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     assertEquals(Set.of(), completeReport.getSourcesDeleted());
   }
 
-  public static void assertRequestIsEmpty(MergeRequest<IndicatorType> request) {
+  public static void assertRequestIsEmpty(MergeRequest request) {
     assertEquals(0, request.getSources().size());
     assertNull(request.getTarget());
     assertFalse(request.isDeleteSources());

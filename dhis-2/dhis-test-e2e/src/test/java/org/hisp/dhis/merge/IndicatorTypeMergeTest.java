@@ -274,14 +274,14 @@ class IndicatorTypeMergeTest extends ApiTest {
     ApiResponse response =
         indicatorTypeApiActions
             .post("merge", getMergeBodyNoSources(indTypeUid1, true))
-            .validateStatus(400);
+            .validateStatus(409);
 
     // then a response with an error is received
     response
         .validate()
-        .statusCode(400)
-        .body("httpStatus", equalTo("Bad Request"))
-        .body("status", equalTo("ERROR"))
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("WARNING"))
         .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge has errors"))
         .body(
             "response.mergeReport.mergeErrors[0].message",
@@ -293,7 +293,7 @@ class IndicatorTypeMergeTest extends ApiTest {
 
   @Test
   @DisplayName("Invalid merge request with no target results in failure response")
-  void testInvalidMergeNoSourcesTarget() {
+  void testInvalidMergeNoTarget() {
     // given a valid source indicator type exists
     String indTypeUid1 =
         indicatorTypeApiActions
@@ -305,14 +305,14 @@ class IndicatorTypeMergeTest extends ApiTest {
     ApiResponse response =
         indicatorTypeApiActions
             .post("merge", getMergeBodyNoTarget(indTypeUid1, true))
-            .validateStatus(400);
+            .validateStatus(409);
 
     // then a response with an error is received
     response
         .validate()
-        .statusCode(400)
-        .body("httpStatus", equalTo("Bad Request"))
-        .body("status", equalTo("ERROR"))
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("WARNING"))
         .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge has errors"))
         .body(
             "response.mergeReport.mergeErrors[0].message",
@@ -346,14 +346,14 @@ class IndicatorTypeMergeTest extends ApiTest {
     ApiResponse response =
         indicatorTypeApiActions
             .post("merge", getMergeBody(indTypeUid1, indTypeUid3, indTypeUid3, true))
-            .validateStatus(400);
+            .validateStatus(409);
 
     // then a response with an error is received
     response
         .validate()
-        .statusCode(400)
-        .body("httpStatus", equalTo("Bad Request"))
-        .body("status", equalTo("ERROR"))
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("WARNING"))
         .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge has errors"))
         .body(
             "response.mergeReport.mergeErrors[0].message",
@@ -370,14 +370,14 @@ class IndicatorTypeMergeTest extends ApiTest {
     ApiResponse response =
         indicatorTypeApiActions
             .post("merge", getMergeBody("invalidUid1", "invalidUid2", "invalidUid3", false))
-            .validateStatus(400);
+            .validateStatus(409);
 
     // then a response with 3 errors is received (2 x sources, 1 x target)
     response
         .validate()
-        .statusCode(400)
-        .body("httpStatus", equalTo("Bad Request"))
-        .body("status", equalTo("ERROR"))
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("WARNING"))
         .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge has errors"))
         .body("response.mergeReport.mergeErrors.size()", equalTo(3))
         .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
@@ -429,7 +429,7 @@ class IndicatorTypeMergeTest extends ApiTest {
         .formatted(target, deleteSources);
   }
 
-  private String getMergeBodyNoTarget(String source, boolean deleteSources) {
+  private String getMergeBodyNoTarget(String target, boolean deleteSources) {
     return """
      {
         "sources": ["%s"],
@@ -437,7 +437,7 @@ class IndicatorTypeMergeTest extends ApiTest {
         "number": "%b"
      }
     """
-        .formatted(source, deleteSources);
+        .formatted(target, deleteSources);
   }
 
   private String createIndicatorType(String name, int factor, boolean isNumber) {

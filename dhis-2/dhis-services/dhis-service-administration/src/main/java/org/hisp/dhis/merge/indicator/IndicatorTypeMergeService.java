@@ -74,13 +74,23 @@ public class IndicatorTypeMergeService implements MergeService {
 
     // target
     Optional<UID> target = Optional.ofNullable(params.getTarget());
+    checkIsTargetInSources(sources, target, mergeReport);
+
     return target
         .map(t -> getTargetAndVerify(t, mergeReport, sources, params))
         .orElseGet(
             () -> {
-              mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1530));
+              mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1531));
               return MergeRequest.empty();
             });
+  }
+
+  private void checkIsTargetInSources(
+      Set<UID> sources, Optional<UID> target, MergeReport mergeReport) {
+    target.ifPresent(
+        t -> {
+          if (sources.contains(t)) mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1532));
+        });
   }
 
   @Override
