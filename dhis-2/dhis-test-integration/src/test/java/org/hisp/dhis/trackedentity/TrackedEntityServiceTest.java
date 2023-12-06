@@ -498,7 +498,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     entityInstanceService.updateTrackedEntity(entityInstanceA1);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-
+    // TODO: MAS flaky test
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("updatedAt", SortDirection.ASC)));
 

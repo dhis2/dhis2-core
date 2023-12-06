@@ -106,7 +106,8 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     if (currentUserDetails == null) {
       //      return List.of();
-      log.error("currentUserDetails is null");
+      //      log.error("currentUserDetails is null");
+      // TODO: MAS: should we throw exception here?
     }
     return getSharingPredicates(builder, currentUserDetails, AclService.LIKE_READ_METADATA);
   }

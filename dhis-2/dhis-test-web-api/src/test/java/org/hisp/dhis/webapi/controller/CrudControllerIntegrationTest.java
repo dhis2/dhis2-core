@@ -114,7 +114,7 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
     User userA = createAndAddUser("userA", null, "ALL");
     userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.ENGLISH, userA);
     injectSecurityContextUser(userA);
-
+    // TODO: MAS flaky test
     systemSettingManager.saveSystemSetting(SettingKey.DB_LOCALE, Locale.ENGLISH);
     assertTrue(
         GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets").isEmpty());
