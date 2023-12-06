@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
+import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.controller.DataIntegrityController;
@@ -48,6 +49,7 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegrationTest {
+
   @Test
   void testLegacyChecksHaveSummary() {
     for (DataIntegrityCheckType type : DataIntegrityCheckType.values()) {
@@ -56,6 +58,9 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
       JsonDataIntegritySummary summary = getSummary(check);
       assertTrue(summary.getCount() >= 0, "summary threw an exception");
     }
+    JsonMap<JsonDataIntegritySummary> checksByName =
+        GET("/dataIntegrity/summary?timeout=1000").content().asMap(JsonDataIntegritySummary.class);
+    assertEquals(31, checksByName.size());
   }
 
   @Test
