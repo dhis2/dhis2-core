@@ -60,7 +60,8 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
     }
     JsonMap<JsonDataIntegritySummary> checksByName =
         GET("/dataIntegrity/summary?timeout=1000").content().asMap(JsonDataIntegritySummary.class);
-    assertEquals(31, checksByName.size());
+    assertFalse(checksByName.isEmpty());
+    checksByName.forEach((name, summary) -> assertTrue(summary.getIsSlow()));
   }
 
   @Test
