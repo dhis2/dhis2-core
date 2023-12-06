@@ -89,7 +89,6 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserRetrievalStore;
 import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
@@ -159,8 +158,6 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
 
   @Mock private AclService aclService;
   @Mock private UserService userService;
-  @Mock private UserRetrievalStore userRetrievalStore;
-
   private User user;
 
   private DefaultCompleteDataSetRegistrationExchangeService subject;
@@ -182,7 +179,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
     InputUtils inputUtils = new InputUtils(categoryService, idObjManager, cacheContext);
 
     DefaultAggregateAccessManager aggregateAccessManager =
-        new DefaultAggregateAccessManager(aclService, cacheContext, userRetrievalStore);
+        new DefaultAggregateAccessManager(aclService, cacheContext);
 
     subject =
         new DefaultCompleteDataSetRegistrationExchangeService(

@@ -39,6 +39,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
 
 /**
@@ -54,6 +55,8 @@ public interface IdentifiableObjectManager {
   void save(@Nonnull List<IdentifiableObject> objects);
 
   void update(@Nonnull IdentifiableObject object);
+
+  void update(@Nonnull IdentifiableObject object, CurrentUserDetails currentUserDetails);
 
   void update(@Nonnull List<IdentifiableObject> objects);
 

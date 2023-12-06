@@ -860,6 +860,4 @@ public interface UserService {
    * @return true of false depending on outcome of DATA_READ check
    */
   boolean canDataRead(IdentifiableObject identifiableObject);
-
-  CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
 }

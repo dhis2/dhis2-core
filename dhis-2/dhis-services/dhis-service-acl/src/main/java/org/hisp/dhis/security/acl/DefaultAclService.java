@@ -48,7 +48,6 @@ import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserRetrievalStore;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -64,7 +63,6 @@ import org.springframework.stereotype.Service;
 public class DefaultAclService implements AclService {
 
   private final SchemaService schemaService;
-  private final UserRetrievalStore userRetrievalStore;
 
   @Override
   public boolean isSupported(String type) {

@@ -131,13 +131,6 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
     return organisationUnit.getId();
   }
 
-  //  @Override
-  //  @Transactional
-  //  public long saveOrganisationUnit(OrganisationUnit organisationUnit) {
-  //    organisationUnitStore.save(organisationUnit);
-  //    return organisationUnit.getId();
-  //  }
-
   @Override
   @Transactional
   public void updateOrganisationUnit(OrganisationUnit organisationUnit) {

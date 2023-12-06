@@ -130,6 +130,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -719,13 +720,14 @@ public abstract class AbstractEventService
     for (List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> _events : partitions) {
       reloadUser(importOptions);
       // prepareCaches( importOptions.getUser(), _events );
-
+      // TODO: MAS: Why is this?
       for (org.hisp.dhis.dxf2.deprecated.tracker.event.Event event : _events) {
         importSummaries.addImportSummary(updateEvent(event, singleValue, importOptions, true));
       }
 
       if (clearSession && events.size() >= FLUSH_FREQUENCY) {
         // clearSession( importOptions.getUser() );
+        // TODO: MAS: Why is this?
       }
     }
 
@@ -1007,7 +1009,8 @@ public abstract class AbstractEventService
   }
 
   private void updateEntities(User user) {
-    trackedEntityInstancesToUpdate.forEach(tei -> manager.update(tei));
+    trackedEntityInstancesToUpdate.forEach(
+        tei -> manager.update(tei, CurrentUserDetailsImpl.fromUser(user)));
     trackedEntityInstancesToUpdate.clear();
   }
 
@@ -1020,7 +1023,8 @@ public abstract class AbstractEventService
       if (event.getEnrollment() != null) {
         if (!bulkUpdate) {
           if (event.getEnrollment().getTrackedEntity() != null) {
-            manager.update(event.getEnrollment().getTrackedEntity());
+            manager.update(
+                event.getEnrollment().getTrackedEntity(), CurrentUserDetailsImpl.fromUser(user));
           }
         } else {
           if (event.getEnrollment().getTrackedEntity() != null) {

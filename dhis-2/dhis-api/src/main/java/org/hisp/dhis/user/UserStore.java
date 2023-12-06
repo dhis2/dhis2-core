@@ -104,9 +104,6 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   User getUser(long userId);
 
-  /** Return CurrentUserGroupInfo used for ACL check in {@link IdentifiableObjectStore} */
-  CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
-
   /**
    * Sets {@link User#setDisabled(boolean)} to {@code true} for all users where the {@link
    * User#getLastLogin()} is before or equal to the provided pivot {@link Date}.
@@ -186,4 +183,8 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<User> getHasAuthority(String authority);
 
   List<User> getLinkedUserAccounts(User currentUser);
+
+  // TODO: MAS: refactor, only used in tests
+  /** Return CurrentUserGroupInfo used for ACL check in {@link IdentifiableObjectStore} */
+  CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
 }

@@ -42,10 +42,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserRetrievalStore;
 import org.springframework.stereotype.Service;
 
 /**
@@ -57,26 +54,12 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
 
   private final AclService aclService;
 
-  private final UserRetrievalStore userRetrievalStore;
-
-  public DefaultAggregateAccessManager(
-      AclService aclService, CacheProvider cacheProvider, UserRetrievalStore userRetrievalStore) {
+  public DefaultAggregateAccessManager(AclService aclService, CacheProvider cacheProvider) {
     checkNotNull(aclService);
     checkNotNull(cacheProvider);
-    checkNotNull(userRetrievalStore);
 
-    this.userRetrievalStore = userRetrievalStore;
     this.aclService = aclService;
     this.canDataWriteCocCache = cacheProvider.createCanDataWriteCocCache();
-  }
-
-  private CurrentUserDetails getCurrentUserImpl(String username) {
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-    if (currentUsername != null && !currentUsername.equals(username)) {
-      User currentUser = userRetrievalStore.getUserByUsername(username);
-      return CurrentUserDetailsImpl.fromUser(currentUser);
-    }
-    return CurrentUserUtil.getCurrentUserDetails();
   }
 
   // ---------------------------------------------------------------------

@@ -172,6 +172,15 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
 
   @Override
   @Transactional
+  public void update(@Nonnull IdentifiableObject object, CurrentUserDetails currentUserDetails) {
+    IdentifiableObjectStore<? super IdentifiableObject> store = getIdentifiableObjectStore(object);
+    if (store != null) {
+      store.update(object, currentUserDetails);
+    }
+  }
+
+  @Override
+  @Transactional
   public void update(@Nonnull List<IdentifiableObject> objects) {
     if (objects.isEmpty()) {
       return;

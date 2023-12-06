@@ -49,7 +49,6 @@ import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -65,26 +64,22 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
 
   private final QueryCacheManager queryCacheManager;
 
-  private final UserService userService;
-
   private Map<Class<?>, IdentifiableObjectStore<T>> stores = new HashMap<>();
 
   public JpaCriteriaQueryEngine(
-      UserService userService,
       QueryPlanner queryPlanner,
       List<IdentifiableObjectStore<T>> hibernateGenericStores,
       QueryCacheManager queryCacheManager,
       EntityManager entityManager) {
+
     checkNotNull(queryPlanner);
     checkNotNull(hibernateGenericStores);
     checkNotNull(entityManager);
-    checkNotNull(userService);
 
     this.queryPlanner = queryPlanner;
     this.hibernateGenericStores = hibernateGenericStores;
     this.queryCacheManager = queryCacheManager;
     this.entityManager = entityManager;
-    this.userService = userService;
   }
 
   @Override
@@ -137,18 +132,19 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
       typedQuery.setFirstResult(query.getFirstResult());
       typedQuery.setMaxResults(query.getMaxResults());
 
-      try {
-        return typedQuery.getResultList();
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
+      return typedQuery.getResultList();
     }
 
     Predicate predicate = buildPredicates(builder, root, query);
     boolean shareable = schema.isShareable();
 
     //    !username.equals("system-process") &&
-    if (shareable && !query.isSkipSharing()) {
+    // TODO: MAS: verify system-process behavior with a test
+    String username =
+        CurrentUserUtil.getCurrentUsername() != null
+            ? CurrentUserUtil.getCurrentUsername()
+            : "system-process";
+    if (!username.equals("system-process") && shareable && !query.isSkipSharing()) {
 
       CurrentUserDetails userDetails =
           query.getCurrentUserDetails() != null

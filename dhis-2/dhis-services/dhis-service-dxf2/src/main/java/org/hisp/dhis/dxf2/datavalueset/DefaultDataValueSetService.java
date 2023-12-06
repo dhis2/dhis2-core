@@ -43,6 +43,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -112,7 +113,6 @@ import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserDetailsImpl;
-import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -578,7 +578,6 @@ public class DefaultDataValueSetService implements DataValueSetService {
   @Transactional
   public ImportSummary importDataValueSetXml(
       InputStream in, ImportOptions options, JobConfiguration id) {
-    List<User> allUsers = userService.getAllUsers();
     return importDataValueSet(
         options,
         id,
@@ -1041,12 +1040,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     User currentUser = userService.getUserByUsername(currentUsername);
-    List<User> allUsers = userService.getAllUsers();
-    if (currentUser == null) {
-      // TODO: MAS this should be an exception
-      log.error("User with username " + currentUsername + " not found");
-      throw new IllegalArgumentException("User with username " + currentUsername + " not found");
-    }
+    // TODO: MAS this should be an exception if current user is null?
+
     CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     boolean auditEnabled = config.isEnabled(CHANGELOG_AGGREGATE);
@@ -1070,9 +1065,6 @@ public class DefaultDataValueSetService implements DataValueSetService {
     IdScheme dataSetIdScheme =
         createIdScheme(data.getDataSetIdSchemeProperty(), options, IdSchemes::getDataSetIdScheme);
 
-    CurrentUserGroupInfo currentUserGroupInfo =
-        userService.getCurrentUserGroupInfo(currentUser.getUid());
-
     return ImportContext.builder()
         .importOptions(options)
         .summary(new ImportSummary().setImportOptions(options))
@@ -1080,7 +1072,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
         .skipLockExceptionCheck(!lockExceptionStore.anyExists())
         .i18n(i18nManager.getI18n())
         .currentUser(currentUser)
-        .currentOrgUnits(currentUser.getOrganisationUnits())
+        .currentOrgUnits(
+            currentUser != null ? currentUser.getOrganisationUnits() : Collections.emptySet())
         .hasSkipAuditAuth(hasSkipAuditAuth)
         .skipAudit(skipAudit)
         .idScheme(createIdScheme(data.getIdSchemeProperty(), options, IdSchemes::getIdScheme))

@@ -214,6 +214,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   }
 
   public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
+    // TODO: MAS: Analyze usage of this method and refactor it
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);
     Root<User> root = query.from(User.class);
@@ -246,6 +247,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
       CriteriaBuilder builder, CurrentUserDetails userDetails) {
+
     if (userDetails == null) {
       return List.of();
     }
@@ -273,10 +275,6 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
       CriteriaBuilder builder, CurrentUserDetails user, String access) {
-
-    if (user == null) {
-      return List.of();
-    }
 
     if (user == null || !sharingEnabled(user.isSuper())) {
       return List.of();

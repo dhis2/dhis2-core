@@ -102,4 +102,6 @@ public interface InternalHibernateGenericStore<T> extends GenericStore<T> {
    */
   List<Function<Root<T>, Predicate>> getDataSharingPredicates(
       CriteriaBuilder builder, CurrentUserDetails userDetails, String access);
+
+  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
 }
