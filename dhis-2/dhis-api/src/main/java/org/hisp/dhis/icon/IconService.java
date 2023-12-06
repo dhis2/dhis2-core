@@ -114,7 +114,7 @@ public interface IconService {
    * @throws BadRequestException when icon key is not specified
    * @throws NotFoundException when no icon with the provided key exists
    */
-  void updateCustomIcon(String key, String description, String[] keywords, boolean isCustom)
+  void updateCustomIcon(String key, String description, String[] keywords)
       throws BadRequestException, NotFoundException;
 
   void updateCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;

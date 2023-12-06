@@ -145,7 +145,7 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void updateCustomIcon(String key, String description, String[] keywords, boolean isCustom)
+  public void updateCustomIcon(String key, String description, String[] keywords)
       throws BadRequestException, NotFoundException {
     CustomIcon icon = validateCustomIconExists(key);
 
@@ -164,7 +164,6 @@ public class DefaultIconService implements IconService {
       icon.setKeywords(keywords);
     }
 
-    icon.setCustom(isCustom);
     icon.setAutoFields();
     customIconStore.update(icon);
   }
@@ -173,11 +172,7 @@ public class DefaultIconService implements IconService {
   @Transactional
   public void updateCustomIcon(CustomIcon customIcon)
       throws BadRequestException, NotFoundException {
-    updateCustomIcon(
-        customIcon.getKey(),
-        customIcon.getDescription(),
-        customIcon.getKeywords(),
-        customIcon.isCustom());
+    updateCustomIcon(customIcon.getKey(), customIcon.getDescription(), customIcon.getKeywords());
   }
 
   @Override

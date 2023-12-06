@@ -37,8 +37,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(
-    of = {"key", "description", "keywords", "fileResourceUid", "createdByUserUid", "custom"})
+@EqualsAndHashCode(of = {"key", "description", "keywords", "fileResourceUid", "createdByUserUid"})
 public class CustomIcon implements Icon {
   private String key;
 
@@ -50,8 +49,6 @@ public class CustomIcon implements Icon {
 
   private String createdByUserUid;
 
-  private boolean custom;
-
   private Date created;
 
   private Date lastUpdated;
@@ -61,14 +58,12 @@ public class CustomIcon implements Icon {
       String description,
       String[] keywords,
       String fileResourceUid,
-      String createdByUserUid,
-      boolean custom) {
+      String createdByUserUid) {
     this.key = key;
     this.description = description;
     this.keywords = keywords;
     this.fileResourceUid = fileResourceUid;
     this.createdByUserUid = createdByUserUid;
-    this.custom = custom;
     this.setAutoFields();
   }
 

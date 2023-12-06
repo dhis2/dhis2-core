@@ -61,7 +61,6 @@ public class IconMapper {
           ci.getFileResourceUid(),
           ci.getCreatedByUserUid(),
           getCustomIconReference(ci.getKey()),
-          icon.isCustom(),
           icon.getCreated(),
           icon.getLastUpdated());
     } else {
@@ -70,7 +69,6 @@ public class IconMapper {
           icon.getDescription(),
           icon.getKeywords(),
           getDefaultIconReference(icon.getKey()),
-          icon.isCustom(),
           icon.getCreated(),
           icon.getLastUpdated());
     }
@@ -89,8 +87,7 @@ public class IconMapper {
         iconDto.getDescription(),
         iconDto.getKeywords(),
         fileResource.get().getUid(),
-        currentUserService.getCurrentUser().getUid(),
-        iconDto.isCustom());
+        currentUserService.getCurrentUser().getUid());
   }
 
   private String getCustomIconReference(String fileResourceUid) {

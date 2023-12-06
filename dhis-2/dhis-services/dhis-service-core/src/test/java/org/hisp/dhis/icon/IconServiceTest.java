@@ -75,7 +75,7 @@ class IconServiceTest {
 
     iconService.addCustomIcon(
         new CustomIcon(
-            uniqueKey, "description", new String[] {"keyword1"}, fileResourceUid, "userUid", true));
+            uniqueKey, "description", new String[] {"keyword1"}, fileResourceUid, "userUid"));
 
     verify(customIconStore, times(1))
         .save(any(CustomIcon.class), any(FileResource.class), any(User.class));
@@ -95,8 +95,7 @@ class IconServiceTest {
                         "description",
                         new String[] {"keyword1"},
                         "fileResourceUid",
-                        "userUid",
-                        true)));
+                        "userUid")));
 
     String expectedMessage = "Icon key not specified.";
     assertEquals(expectedMessage, exception.getMessage());
@@ -120,8 +119,7 @@ class IconServiceTest {
                         "description",
                         new String[] {"keyword1"},
                         fileResourceUid,
-                        "userUid",
-                        true)));
+                        "userUid")));
 
     String expectedMessage = String.format("File resource %s does not exist", fileResourceUid);
     assertEquals(expectedMessage, exception.getMessage());
@@ -132,8 +130,7 @@ class IconServiceTest {
     String duplicatedKey = "custom key";
     when(customIconStore.getIconByKey(duplicatedKey))
         .thenReturn(
-            new CustomIcon(
-                "key", "description", new String[] {}, "fileResourceUid", "userUid", true));
+            new CustomIcon("key", "description", new String[] {}, "fileResourceUid", "userUid"));
 
     Exception exception =
         assertThrows(
@@ -145,8 +142,7 @@ class IconServiceTest {
                         "description",
                         new String[] {"keyword1"},
                         "fileResourceUid",
-                        "userUid",
-                        true)));
+                        "userUid")));
 
     String expectedMessage = "Icon with key " + duplicatedKey + " already exists.";
     assertEquals(expectedMessage, exception.getMessage());
@@ -156,7 +152,7 @@ class IconServiceTest {
   void shouldFailWhenSavingCustomIconWithNoFileResourceId() {
     String iconKey = "key";
     CustomIcon customIcon =
-        new CustomIcon(iconKey, "description", new String[] {"keyword1"}, null, "userUid", true);
+        new CustomIcon(iconKey, "description", new String[] {"keyword1"}, null, "userUid");
     Exception exception =
         assertThrows(BadRequestException.class, () -> iconService.addCustomIcon(customIcon));
 
@@ -170,7 +166,7 @@ class IconServiceTest {
     String uniqueKey = "key";
     when(customIconStore.getIconByKey(uniqueKey)).thenReturn(new CustomIcon());
 
-    iconService.updateCustomIcon(uniqueKey, "new description", new String[] {"k1", "k2"}, true);
+    iconService.updateCustomIcon(uniqueKey, "new description", new String[] {"k1", "k2"});
 
     verify(customIconStore, times(1)).update(any(CustomIcon.class));
   }
@@ -182,7 +178,7 @@ class IconServiceTest {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> iconService.updateCustomIcon(emptyKey, "new description", null, true));
+            () -> iconService.updateCustomIcon(emptyKey, "new description", null));
 
     String expectedMessage = "Icon key not specified.";
     assertEquals(expectedMessage, exception.getMessage());
@@ -196,7 +192,7 @@ class IconServiceTest {
     Exception exception =
         assertThrows(
             NotFoundException.class,
-            () -> iconService.updateCustomIcon(key, "new description", null, true));
+            () -> iconService.updateCustomIcon(key, "new description", null));
 
     String expectedMessage = String.format("Icon not found: %s", key);
     assertEquals(expectedMessage, exception.getMessage());
@@ -209,11 +205,10 @@ class IconServiceTest {
     when(customIconStore.getIconByKey(uniqueKey))
         .thenReturn(
             new CustomIcon(
-                uniqueKey, "description", new String[] {}, "fileResourceUid", "userUid", true));
+                uniqueKey, "description", new String[] {}, "fileResourceUid", "userUid"));
     Exception exception =
         assertThrows(
-            BadRequestException.class,
-            () -> iconService.updateCustomIcon(uniqueKey, null, null, true));
+            BadRequestException.class, () -> iconService.updateCustomIcon(uniqueKey, null, null));
 
     String expectedMessage =
         String.format(
@@ -229,7 +224,7 @@ class IconServiceTest {
     when(customIconStore.getIconByKey(uniqueKey))
         .thenReturn(
             new CustomIcon(
-                uniqueKey, "description", new String[] {}, "fileResourceUid", "userUid", true));
+                uniqueKey, "description", new String[] {}, "fileResourceUid", "userUid"));
     when(fileResourceService.getFileResource("fileResourceUid", CUSTOM_ICON))
         .thenReturn(Optional.of(new FileResource()));
 

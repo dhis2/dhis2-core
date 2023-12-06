@@ -113,8 +113,7 @@ class IconMapperTest {
             DESCRIPTION,
             KEYWORDS,
             fileResource.getUid(),
-            currentUserService.getCurrentUser().getUid(),
-            true);
+            currentUserService.getCurrentUser().getUid());
 
     IconResponse iconResponse = iconMapper.from(icon);
 

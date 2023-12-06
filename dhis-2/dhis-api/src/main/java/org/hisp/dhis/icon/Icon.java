@@ -36,8 +36,6 @@ public interface Icon {
 
   String[] getKeywords();
 
-  boolean isCustom();
-
   Date getCreated();
 
   Date getLastUpdated();

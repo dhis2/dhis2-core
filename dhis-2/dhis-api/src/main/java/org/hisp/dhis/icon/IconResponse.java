@@ -57,8 +57,6 @@ public class IconResponse {
   @JsonProperty("href")
   private String reference;
 
-  @JsonProperty private boolean custom;
-
   @JsonProperty private Date created;
 
   @JsonProperty private Date lastUpdated;
@@ -68,14 +66,12 @@ public class IconResponse {
       String description,
       String[] keywords,
       String reference,
-      boolean custom,
       Date created,
       Date lastUpdated) {
     this.key = key;
     this.description = description;
     this.keywords = keywords;
     this.reference = reference;
-    this.custom = custom;
     this.created = created;
     this.lastUpdated = lastUpdated;
   }
