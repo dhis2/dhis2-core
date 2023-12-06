@@ -187,8 +187,6 @@ public class DhisWebApiWebSecurityConfig {
 
   @Autowired private ApiTokenService apiTokenService;
 
-  //  @Autowired private UserService userService;
-
   @Autowired private CacheProvider cacheProvider;
 
   @Autowired
@@ -272,6 +270,7 @@ public class DhisWebApiWebSecurityConfig {
             httpSecuritySecurityContextConfigurer.requireExplicitSave(true));
 
     Set<String> providerIds = dhisOidcProviderRepository.getAllRegistrationId();
+
     http.securityMatcher(new AntPathRequestMatcher("/oauth2/**"))
         .authorizeHttpRequests(
             authorize -> {

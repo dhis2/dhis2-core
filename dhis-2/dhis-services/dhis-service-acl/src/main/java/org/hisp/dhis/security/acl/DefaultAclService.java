@@ -47,7 +47,6 @@ import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserDetailsImpl;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRetrievalStore;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -66,15 +65,6 @@ public class DefaultAclService implements AclService {
 
   private final SchemaService schemaService;
   private final UserRetrievalStore userRetrievalStore;
-
-  private CurrentUserDetails getCurrentUserImpl(String username) {
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-    if (currentUsername != null && !currentUsername.equals(username)) {
-      User currentUser = userRetrievalStore.getUserByUsername(username);
-      return CurrentUserDetailsImpl.fromUser(currentUser);
-    }
-    return CurrentUserUtil.getCurrentUserDetails();
-  }
 
   @Override
   public boolean isSupported(String type) {
@@ -636,11 +626,9 @@ public class DefaultAclService implements AclService {
     boolean canMakePrivate = canMakePrivate(userDetails, object);
     boolean canMakeExternal = canMakeExternal(userDetails, object);
 
-    if (object.getSharing().isExternal()) {
-      if (!canMakeExternal) {
-        errorReports.add(
-            new ErrorReport(object.getClass(), ErrorCode.E3006, userDetails, object.getClass()));
-      }
+    if (object.getSharing().isExternal() && !canMakeExternal) {
+      errorReports.add(
+          new ErrorReport(object.getClass(), ErrorCode.E3006, userDetails, object.getClass()));
     }
 
     errorReports.addAll(verifyImplicitSharing(userDetails, object));
