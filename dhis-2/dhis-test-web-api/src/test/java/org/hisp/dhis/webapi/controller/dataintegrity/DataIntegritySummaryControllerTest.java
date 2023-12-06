@@ -58,10 +58,21 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
       JsonDataIntegritySummary summary = getSummary(check);
       assertTrue(summary.getCount() >= 0, "summary threw an exception");
     }
+
+    // check if the summary map returns results for the programmatic checks
     JsonMap<JsonDataIntegritySummary> checksByName =
         GET("/dataIntegrity/summary?timeout=1000").content().asMap(JsonDataIntegritySummary.class);
     assertFalse(checksByName.isEmpty());
-    checksByName.forEach((name, summary) -> assertTrue(summary.getIsSlow()));
+    int checked = 0;
+    for (DataIntegrityCheckType type : DataIntegrityCheckType.values()) {
+      String name = type.getName().replace("-", "_");
+      JsonDataIntegritySummary summary = checksByName.get(name);
+      if (summary.exists()) { // not all checks might be done by now
+        assertTrue(summary.getIsSlow());
+        checked++;
+      }
+    }
+    assertTrue(checked > 0, "at least one of the slow test should have been completed");
   }
 
   @Test
