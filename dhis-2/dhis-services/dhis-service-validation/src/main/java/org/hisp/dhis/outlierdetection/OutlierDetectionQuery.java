@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.outlierdetection;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm.Z_SCORE;
 
 import java.util.Date;
@@ -72,6 +71,6 @@ public class OutlierDetectionQuery {
   private Set<String> headers = new HashSet<>();
 
   public boolean hasHeaders() {
-    return isNotEmpty(headers);
+    return headers != null && !headers.isEmpty();
   }
 }
