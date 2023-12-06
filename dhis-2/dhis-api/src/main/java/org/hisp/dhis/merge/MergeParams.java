@@ -29,9 +29,8 @@ package org.hisp.dhis.merge;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.UID;
 
 /**
@@ -42,11 +41,11 @@ import org.hisp.dhis.common.UID;
  * @author david mackessy
  */
 @Data
-@Builder
+@NoArgsConstructor
 public class MergeParams {
-  @JsonProperty @Nonnull private Set<UID> sources;
+  @JsonProperty private Set<UID> sources;
 
-  @JsonProperty @Nonnull private UID target;
+  @JsonProperty private UID target;
 
   @JsonProperty private boolean deleteSources;
 }

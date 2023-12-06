@@ -54,7 +54,7 @@ public interface MergeParamsProcessor {
    * @param mergeType {@link MergeType}
    * @return updated {@link MergeReport} with any errors
    */
-  default MergeReport processMergeQuery(
+  default MergeReport processMergeParams(
       @Nonnull MergeService mergeService,
       @Nonnull MergeParams mergeParams,
       @Nonnull MergeType mergeType)

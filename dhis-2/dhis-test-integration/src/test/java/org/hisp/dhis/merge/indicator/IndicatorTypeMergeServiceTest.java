@@ -86,15 +86,17 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
   @Test
   @DisplayName(
-      "Transform a valid merge query, producing a valid merge request and an error free merge report")
-  void testGetFromQuery() {
+      "Transform valid merge params, producing a valid merge request and an error free merge report")
+  void testGetFromParams() {
     // given
-    MergeParams query =
-        MergeParams.builder().sources(Set.of(uidA, uidB)).target(uidC).deleteSources(true).build();
+    MergeParams params = new MergeParams();
+    params.setSources(Set.of(uidA, uidB));
+    params.setTarget(uidC);
+    params.setDeleteSources(true);
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
-    MergeRequest request = service.validate(query, mergeReport);
+    MergeRequest request = service.validate(params, mergeReport);
 
     // then
     assertEquals(2, request.getSources().size());
@@ -106,14 +108,14 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
   @Test
   @DisplayName(
-      "Transform a merge query with missing sources and target, producing an empty merge request and a merge report with errors")
-  void testGetFromQueryWithErrors() {
+      "Transform merge params with missing sources and target, producing an empty merge request and a merge report with errors")
+  void testGetFromParamsWithErrors() {
     // given
-    MergeParams query = MergeParams.builder().build();
+    MergeParams params = new MergeParams();
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
-    MergeRequest request = service.validate(query, mergeReport);
+    MergeRequest request = service.validate(params, mergeReport);
 
     // then
     assertRequestIsEmpty(request);
@@ -128,14 +130,16 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
   @Test
   @DisplayName(
-      "Transform a merge query with invalid source uid, producing an empty merge request and a merge report with an error")
+      "Transform merge params with invalid source uid, producing an empty merge request and a merge report with an error")
   void testSourceNotFound() {
     // given
-    MergeParams query = MergeParams.builder().sources(Set.of(uidA, uidX)).target(uidC).build();
+    MergeParams params = new MergeParams();
+    params.setSources(Set.of(uidA, uidX));
+    params.setTarget(uidC);
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
-    MergeRequest request = service.validate(query, mergeReport);
+    MergeRequest request = service.validate(params, mergeReport);
 
     // then
     assertEquals(1, request.getSources().size());
@@ -148,14 +152,16 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
   @Test
   @DisplayName(
-      "Transform a merge query with invalid target uid, producing an empty merge request and a merge report with error")
+      "Transform merge params with invalid target uid, producing an empty merge request and a merge report with error")
   void testTargetNotFound() {
     // given
-    MergeParams query = MergeParams.builder().sources(Set.of(uidA, uidB)).target(uidX).build();
+    MergeParams params = new MergeParams();
+    params.setSources(Set.of(uidA, uidB));
+    params.setTarget(uidX);
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
-    MergeRequest request = service.validate(query, mergeReport);
+    MergeRequest request = service.validate(params, mergeReport);
 
     // then
     assertRequestIsEmpty(request);
@@ -182,8 +188,10 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     assertEquals(itA, iA.getIndicatorType());
     assertEquals(itB, iB.getIndicatorType());
     assertEquals(itC, iC.getIndicatorType());
-    MergeParams params =
-        MergeParams.builder().sources(Set.of(uidA, uidB)).target(uidC).deleteSources(true).build();
+    MergeParams params = new MergeParams();
+    params.setSources(Set.of(uidA, uidB));
+    params.setTarget(uidC);
+    params.setDeleteSources(true);
 
     // when an indicator merge request is validated
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
@@ -209,8 +217,10 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
     assertNotNull(idObjectManager.get(IndicatorType.class, itC.getUid()));
     assertEquals(itC, iC.getIndicatorType());
-    MergeParams params =
-        MergeParams.builder().sources(Set.of()).target(uidC).deleteSources(true).build();
+    MergeParams params = new MergeParams();
+    params.setSources(Set.of());
+    params.setTarget(uidC);
+    params.setDeleteSources(true);
 
     // when an indicator merge request is validated
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
@@ -222,7 +232,9 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
     // and the merge report has errors and the merge request is empty
     assertTrue(mergeReport.hasErrorMessages());
-    assertRequestIsEmpty(validatedRequest);
+    assertEquals(Set.of(), validatedRequest.getSources());
+    assertEquals(uidC, validatedRequest.getTarget());
+    assertTrue(validatedRequest.isDeleteSources());
     assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1530));
     assertMatchesErrorMessages(
         mergeReport, Set.of("At least one source indicator type must be specified"));
@@ -241,8 +253,10 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     assertNotNull(idObjectManager.get(IndicatorType.class, itB.getUid()));
     assertEquals(itA, iA.getIndicatorType());
     assertEquals(itB, iB.getIndicatorType());
-    MergeParams params =
-        MergeParams.builder().sources(Set.of(uidA, uidB)).target(null).deleteSources(true).build();
+    MergeParams params = new MergeParams();
+    params.setSources(Set.of(uidA, uidB));
+    params.setTarget(null);
+    params.setDeleteSources(true);
 
     // when an indicator merge request is validated
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);

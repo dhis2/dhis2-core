@@ -55,15 +55,15 @@ public class MergeRequest {
     return Set.copyOf(sources);
   }
 
-  public static <T extends IdentifiableObject> MergeRequest empty() {
+  public static MergeRequest empty() {
     return MergeRequest.builder().build();
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("sources", sources)
-        .add("target", target)
+        .add("sources", sources.toString())
+        .add("target", target.toString())
         .add("deleteSources", deleteSources)
         .toString();
   }

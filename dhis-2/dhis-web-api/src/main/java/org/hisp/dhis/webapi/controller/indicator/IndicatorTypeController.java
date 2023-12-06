@@ -67,15 +67,15 @@ public class IndicatorTypeController extends AbstractCrudController<IndicatorTyp
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize("hasRole('ALL') or hasRole('F_INDICATOR_TYPE_MERGE')")
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody WebMessage mergeIndicatorTypes(@RequestBody MergeParams query)
+  public @ResponseBody WebMessage mergeIndicatorTypes(@RequestBody MergeParams params)
       throws ConflictException {
-    log.info("Indicator type merge request received");
+    log.info("Indicator type merge received with params: {}", params);
 
     MergeReport report =
-        (new MergeParamsProcessor() {}.processMergeQuery(
-            indicatorTypeMergeService, query, MergeType.INDICATOR_TYPE));
+        (new MergeParamsProcessor() {}.processMergeParams(
+            indicatorTypeMergeService, params, MergeType.INDICATOR_TYPE));
 
-    log.info("Indicator type merge request processed: {}", report);
+    log.info("Indicator type merge processed with report: {}", report);
     return WebMessageUtils.mergeReport(report);
   }
 }

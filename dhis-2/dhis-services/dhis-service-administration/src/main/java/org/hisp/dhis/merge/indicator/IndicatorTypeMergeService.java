@@ -149,14 +149,14 @@ public class IndicatorTypeMergeService implements MergeService {
   }
 
   private MergeRequest getTargetAndVerify(
-      UID target, MergeReport report, Set<UID> indicatorTypes, MergeParams query) {
+      UID target, MergeReport report, Set<UID> indicatorTypes, MergeParams params) {
     return getAndVerifyIndicatorType(target, report, "Target")
         .map(
             t ->
-                MergeRequest.<IndicatorType>builder()
+                MergeRequest.builder()
                     .sources(indicatorTypes)
                     .target(t)
-                    .deleteSources(query.isDeleteSources())
+                    .deleteSources(params.isDeleteSources())
                     .build())
         .orElse(MergeRequest.empty());
   }
