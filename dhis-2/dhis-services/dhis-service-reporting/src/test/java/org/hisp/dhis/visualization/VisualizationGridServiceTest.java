@@ -65,8 +65,6 @@ class VisualizationGridServiceTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
-  //  @Mock private CurrentUserService currentUserService;
-
   @Mock private I18nManager i18nManager;
 
   @Mock private UserService userService;

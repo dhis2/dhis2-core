@@ -59,8 +59,6 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  //  @Autowired private CurrentUserService currentUserService;
-
   @Autowired private UserService _userService;
 
   // -------------------------------------------------------------------------

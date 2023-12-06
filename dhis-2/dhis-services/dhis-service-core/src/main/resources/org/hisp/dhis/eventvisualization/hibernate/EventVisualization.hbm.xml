@@ -296,7 +296,6 @@
         <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
                      foreign-key="fk_evisualization_userid"/>
 
-
         <property name="userOrgUnitType" length="12">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">org.hisp.dhis.common.UserOrgUnitType</param>

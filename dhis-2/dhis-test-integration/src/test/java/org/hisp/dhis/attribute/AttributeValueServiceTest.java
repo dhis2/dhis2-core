@@ -69,8 +69,6 @@ class AttributeValueServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  //  @Autowired private CurrentUserService currentUserService;
-
   private DataElement dataElementA;
 
   private DataElement dataElementB;

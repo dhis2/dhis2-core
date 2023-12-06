@@ -114,7 +114,6 @@ class DataElementOperandControllerTest {
 
   private QueryService queryService;
 
-  //  @Mock private CurrentUserService currentUserService;
   @Mock private UserService userService;
 
   private static final String ENDPOINT = "/dataElementOperands";

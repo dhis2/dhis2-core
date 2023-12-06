@@ -47,8 +47,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
   private static final String keywords = "[\"k1\",\"k2\"]";
 
-  //  @Autowired private CurrentUserService currentUserService;
-
   @Autowired private ContextService contextService;
 
   @Test

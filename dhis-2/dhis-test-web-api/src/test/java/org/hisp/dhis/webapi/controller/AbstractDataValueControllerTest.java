@@ -49,8 +49,6 @@ abstract class AbstractDataValueControllerTest extends DhisControllerConvenience
 
   protected String categoryOptionComboId;
 
-  //  @Autowired protected CurrentUserService currentUserService;
-
   @BeforeEach
   void setUp() {
     orgUnitId =

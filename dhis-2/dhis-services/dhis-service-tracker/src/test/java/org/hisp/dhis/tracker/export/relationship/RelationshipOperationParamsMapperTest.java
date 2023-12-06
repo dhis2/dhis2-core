@@ -80,7 +80,6 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
   @Mock private TrackerAccessManager accessManager;
 
-  //  @Mock private CurrentUserService currentUserService;
   @Mock private UserService userService;
 
   @InjectMocks private RelationshipOperationParamsMapper mapper;

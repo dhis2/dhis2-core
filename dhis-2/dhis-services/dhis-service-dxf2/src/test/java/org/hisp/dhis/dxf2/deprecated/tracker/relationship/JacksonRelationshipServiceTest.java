@@ -72,8 +72,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class JacksonRelationshipServiceTest {
   @Mock protected DbmsManager dbmsManager;
 
-  //  @Mock private CurrentUserService currentUserService;
-
   @Mock private SchemaService schemaService;
 
   @Mock private QueryService queryService;

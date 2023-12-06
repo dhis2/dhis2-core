@@ -273,7 +273,6 @@
         <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
                      foreign-key="fk_eventchart_userid"/>
 
-
         <property name="sharing" type="jsbObjectSharing"/>
 
         <property name="favorites" type="jbSet"/>

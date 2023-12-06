@@ -65,8 +65,6 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
 
   @Autowired private UserService _userService;
 
-  //  @Autowired protected CurrentUserService currentUserService;
-
   @Autowired protected IdentifiableObjectManager manager;
 
   @Autowired protected DbmsManager dbmsManager;

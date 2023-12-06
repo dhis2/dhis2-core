@@ -102,7 +102,6 @@ class EventImportRequestParamsMapperTest {
 
   private static final String PROGRAM_UID = "PlZSBEN7iZd";
 
-  //  @Mock private CurrentUserService currentUserService;
   @Mock private UserService userService;
 
   @Mock private ProgramService programService;

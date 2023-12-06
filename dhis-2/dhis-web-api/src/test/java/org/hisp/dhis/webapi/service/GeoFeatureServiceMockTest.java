@@ -64,8 +64,6 @@ class GeoFeatureServiceMockTest {
 
   @Mock private DefaultDataQueryService dataQueryService;
 
-  //  @Mock private CurrentUserService currentUserService;
-
   @Mock private UserService userService;
   @Mock private AttributeService attributeService;
 

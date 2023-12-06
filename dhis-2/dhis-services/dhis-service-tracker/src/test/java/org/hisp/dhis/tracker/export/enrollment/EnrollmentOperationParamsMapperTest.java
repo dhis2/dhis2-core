@@ -83,7 +83,6 @@ class EnrollmentOperationParamsMapperTest {
 
   private static final String TRACKED_ENTITY_UID = "DGbr8GHG4li";
 
-  //  @Mock private CurrentUserService currentUserService;
   @Mock private UserService userService;
 
   @Mock private OrganisationUnitService organisationUnitService;

@@ -107,8 +107,6 @@ class TrackedEntityOperationParamsMapperTest {
 
   private static final String TRACKED_ENTITY_TYPE_UID = "Dp8baZYrLtr";
 
-  //  @Mock private CurrentUserService currentUserService;
-
   @Mock private OrganisationUnitService organisationUnitService;
 
   @Mock private ProgramService programService;
@@ -678,7 +676,6 @@ class TrackedEntityOperationParamsMapperTest {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
 
-    //    when(currentUserService.getCurrentUser()).thenReturn(user);
     when(aclService.canDataRead(user, program)).thenReturn(true);
 
     TrackedEntityOperationParams operationParams =
@@ -700,7 +697,7 @@ class TrackedEntityOperationParamsMapperTest {
   void shouldFailWhenGlobalSearchAndMaxTeLimitReached() {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
-    //    when(currentUserService.getCurrentUser()).thenReturn(user);
+
     when(aclService.canDataRead(user, program)).thenReturn(true);
     program.setMinAttributesRequiredToSearch(0);
     program.setMaxTeiCountToReturn(1);
@@ -725,7 +722,6 @@ class TrackedEntityOperationParamsMapperTest {
   void shouldFailWhenUserHasNoAccessToAnyTrackedEntityType() {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
-    //    when(currentUserService.getCurrentUser()).thenReturn(user);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     program.setMinAttributesRequiredToSearch(0);
     program.setMaxTeiCountToReturn(1);

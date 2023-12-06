@@ -63,8 +63,6 @@ public abstract class TrackerTest extends SingleSetupIntegrationTestBase {
 
   @Autowired protected UserService _userService;
 
-  //  @Autowired protected CurrentUserService currentUserService;
-
   @Autowired private ObjectBundleService objectBundleService;
 
   @Autowired private ObjectBundleValidationService objectBundleValidationService;

@@ -83,8 +83,6 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
 
   @Autowired private TrackerOwnershipManager trackerOwnershipManager;
 
-  //  @Autowired private CurrentUserService currentUserService;
-
   private Program programB;
 
   private User superUser;

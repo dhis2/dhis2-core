@@ -18,7 +18,6 @@
         <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
                      foreign-key="fk_route_userid_userinfoid"/>
 
-
         <property name="description" type="text"/>
 
         <property name="disabled" type="boolean"/>

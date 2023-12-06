@@ -63,8 +63,6 @@ class TrackedEntityAttributeServiceTest {
 
   @Mock private ProgramService programService;
 
-  //  @Mock private CurrentUserService currentUserService;
-
   @Mock private AclService aclService;
 
   @Mock private TrackedEntityAttributeStore attributeStore;

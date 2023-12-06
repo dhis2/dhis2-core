@@ -68,8 +68,6 @@ class PasswordValidationRuleTest {
 
   @Mock private SystemSettingManager systemSettingManager;
 
-  //  @Mock private CurrentUserService currentUserService;
-
   @Mock private UserService userService;
 
   @Mock private PasswordEncoder passwordEncoder;

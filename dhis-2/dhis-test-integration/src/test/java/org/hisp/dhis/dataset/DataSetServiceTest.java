@@ -106,8 +106,6 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private DataApprovalService approvalService;
 
-  //  @Autowired private CurrentUserService currentUserService;
-
   @Autowired private DataApprovalService dataApprovalService;
 
   @Autowired private DataApprovalLevelService levelService;

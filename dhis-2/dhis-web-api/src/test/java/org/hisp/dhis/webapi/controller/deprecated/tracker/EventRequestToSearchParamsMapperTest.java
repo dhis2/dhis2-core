@@ -95,7 +95,6 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class EventRequestToSearchParamsMapperTest {
 
-  //  @Mock private CurrentUserService currentUserService;
   @Mock private UserService userService;
   @Mock private ProgramService programService;
 
@@ -477,7 +476,6 @@ class EventRequestToSearchParamsMapperTest {
     user.setUsername("anyUser");
     when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
-    //    when(currentUserService.getCurrentUser()).thenReturn(user);
     when(aclService.canDataRead(user, program)).thenReturn(false);
 
     Exception illegalQueryException =

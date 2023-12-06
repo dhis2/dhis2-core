@@ -84,7 +84,6 @@
 
   <bean id="org.hisp.dhis.webportal.interceptor.XWorkPortalUserInterceptor"
     class="org.hisp.dhis.webportal.interceptor.XWorkPortalUserInterceptor">
-<!--    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />-->
     <property name="userService" ref="org.hisp.dhis.user.UserService" />
 
   </bean>
@@ -339,8 +338,6 @@
     scope="prototype">
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-<!--    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />-->
-<!--    <property name="userService" ref="org.hisp.dhis.user.UserService" />-->
   </bean>
 
   <bean id="org.hisp.dhis.commons.action.GetIndicatorAction" class="org.hisp.dhis.commons.action.GetIndicatorAction"
@@ -416,7 +413,6 @@
 
   <bean id="org.hisp.dhis.commons.action.GetOrganisationUnitTreeAction" class="org.hisp.dhis.commons.action.GetOrganisationUnitTreeAction"
     scope="prototype">
-<!--    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />-->
     <property name="userService" ref="org.hisp.dhis.user.UserService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="versionService" ref="org.hisp.dhis.version.VersionService" />

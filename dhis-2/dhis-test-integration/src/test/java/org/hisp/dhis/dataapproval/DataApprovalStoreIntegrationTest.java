@@ -103,8 +103,6 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
   @Autowired private SystemSettingManager systemSettingManager;
   @Autowired private UserService _userService;
 
-  //  @Mock private CurrentUserService currentUserService;
-
   // -------------------------------------------------------------------------
   // Supporting data
   // -------------------------------------------------------------------------

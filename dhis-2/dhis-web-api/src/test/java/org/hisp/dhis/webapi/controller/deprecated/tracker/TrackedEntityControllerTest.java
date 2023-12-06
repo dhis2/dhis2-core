@@ -64,7 +64,6 @@ class TrackedEntityControllerTest {
 
   private MockMvc mockMvc;
 
-  //  @Mock private CurrentUserService currentUserService;
   @Mock private UserService userService;
 
   @Mock private TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;

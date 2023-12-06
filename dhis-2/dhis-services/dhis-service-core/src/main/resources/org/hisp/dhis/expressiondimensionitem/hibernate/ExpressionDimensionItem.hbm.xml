@@ -42,6 +42,5 @@
         <property name="sharing" type="jsbObjectSharing"/>
 
         <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_categorycombo_userid" />
-
     </class>
 </hibernate-mapping>

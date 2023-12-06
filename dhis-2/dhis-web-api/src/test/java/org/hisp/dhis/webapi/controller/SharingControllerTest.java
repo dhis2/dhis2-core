@@ -55,8 +55,6 @@ import org.springframework.security.access.AccessDeniedException;
 @ExtendWith(MockitoExtension.class)
 class SharingControllerTest {
 
-  //  @Mock private CurrentUserService currentUserService;
-
   @Mock private IdentifiableObjectManager manager;
 
   @Mock private AclService aclService;

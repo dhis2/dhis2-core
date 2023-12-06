@@ -68,8 +68,6 @@ class DefaultFieldFilterServiceTest {
 
   @Mock private AclService aclService;
 
-  //  @Mock CurrentUserService currentUserService;
-
   @Mock private AttributeService attributeService;
 
   @Mock private UserGroupService userGroupService;

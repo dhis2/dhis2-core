@@ -68,7 +68,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class EnrollmentCriteriaMapperTest {
 
-  //  @Mock private CurrentUserService currentUserService;
   @Mock private UserService userService;
 
   @Mock private OrganisationUnitService organisationUnitService;

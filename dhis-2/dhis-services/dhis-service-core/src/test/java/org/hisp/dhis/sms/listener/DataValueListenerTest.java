@@ -123,8 +123,6 @@ class DataValueListenerTest extends DhisConvenienceTest {
 
   @Mock private UserService userService;
 
-  //  @Mock private CurrentUserService currentUserService;
-
   @Mock private IncomingSmsService incomingSmsService;
 
   @Mock private MessageSender smsSender;

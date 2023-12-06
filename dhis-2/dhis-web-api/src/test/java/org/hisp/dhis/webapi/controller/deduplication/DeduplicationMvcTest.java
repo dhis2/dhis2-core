@@ -87,7 +87,6 @@ class DeduplicationMvcTest {
 
   @Mock private TrackerAccessManager trackerAccessManager;
 
-  //  @Mock private CurrentUserService currentUserService;
   @Mock private UserService userService;
 
   @Mock private FieldFilterService fieldFilterService;

@@ -58,7 +58,6 @@ class IconMapperTest {
 
   @Mock private FileResourceService fileResourceService;
 
-  //  @Mock private CurrentUserService currentUserService;
   @Mock private UserService userService;
 
   @Mock private ContextService contextService;

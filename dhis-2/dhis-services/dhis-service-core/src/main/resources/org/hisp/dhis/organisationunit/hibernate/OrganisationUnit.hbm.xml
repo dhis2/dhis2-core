@@ -94,7 +94,6 @@
     
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_organisationunit_userid" />
 
-
     <!-- Dynamic attribute values -->
 
     <property name="attributeValues" type="jsbAttributeValues"/>

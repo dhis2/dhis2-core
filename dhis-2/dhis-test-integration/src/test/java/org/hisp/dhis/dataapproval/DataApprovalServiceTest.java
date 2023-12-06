@@ -90,8 +90,6 @@ class DataApprovalServiceTest extends IntegrationTestBase {
 
   @Autowired protected UserService _userService;
 
-  //  @Autowired protected CurrentUserService currentUserService;
-
   @Autowired protected DataSetService dataSetService;
 
   @Autowired private SystemSettingManager systemSettingManager;

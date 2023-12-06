@@ -125,8 +125,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Autowired private TrackerOwnershipManager trackerOwnershipManager;
 
-  //  @Autowired private CurrentUserService currentUserService;
-
   private User user;
 
   private User userWithSearchInAllAuthority;

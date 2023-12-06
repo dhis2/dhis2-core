@@ -84,8 +84,6 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest {
 
   @Autowired private UserService _userService;
 
-  //  @Autowired protected CurrentUserService currentUserService;
-
   @Autowired private EventService programStageInstanceService;
 
   @Autowired private EntityManager entityManager;

@@ -17,7 +17,6 @@
     <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
     <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
     <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
-    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
   </bean>
 
   <bean id="org.hisp.dhis.de.action.GetDataSetAssociationsAction" class="org.hisp.dhis.de.action.GetDataSetAssociationsAction" scope="prototype"/>
