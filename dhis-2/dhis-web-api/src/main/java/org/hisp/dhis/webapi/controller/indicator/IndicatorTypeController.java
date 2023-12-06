@@ -69,7 +69,7 @@ public class IndicatorTypeController extends AbstractCrudController<IndicatorTyp
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody WebMessage mergeIndicatorTypes(@RequestBody MergeParams params)
       throws ConflictException {
-    log.info("Indicator type merge received with params: {}", params);
+    log.info("Indicator type merge received");
 
     MergeReport report =
         (new MergeParamsProcessor() {}.processMergeParams(
