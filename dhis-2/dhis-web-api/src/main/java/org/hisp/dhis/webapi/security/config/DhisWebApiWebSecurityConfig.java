@@ -40,14 +40,13 @@ import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.jwt.Dhis2JwtAuthenticationManagerResolver;
 import org.hisp.dhis.security.jwt.DhisBearerJwtTokenAuthenticationEntryPoint;
-// import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
+import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oidc.DhisAuthorizationCodeTokenResponseClient;
 import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
-// import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
@@ -165,17 +164,13 @@ public class DhisWebApiWebSecurityConfig {
   //    }
   //  }
 
-  /** This configuration class is responsible for setting up the /api endpoints */
-  //  @Configuration
-  //  @Order(1100)
-  //  public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
   @Autowired private DhisConfigurationProvider dhisConfig;
 
   @Autowired private TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
-  //  @Autowired
-  //  @Qualifier("customLdapAuthenticationProvider")
-  //  private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
+  @Autowired
+  @Qualifier("customLdapAuthenticationProvider")
+  private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
 
   @Autowired private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
@@ -217,34 +212,12 @@ public class DhisWebApiWebSecurityConfig {
   @Bean
   @Primary
   protected AuthenticationManager authenticationManagers() {
-    //    customLdapAuthenticationProvider,
     ProviderManager providerManager =
-        new ProviderManager(Arrays.asList(twoFactorAuthenticationProvider));
+        new ProviderManager(
+            Arrays.asList(twoFactorAuthenticationProvider, customLdapAuthenticationProvider));
     providerManager.setAuthenticationEventPublisher(authenticationEventPublisher);
     return providerManager;
   }
-
-  //  public WebExpressionVoter apiWebExpressionVoter() {
-  //    WebExpressionVoter voter = new WebExpressionVoter();
-  //
-  //    DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
-  //    handler.setDefaultRolePrefix("");
-  //
-  //    voter.setExpressionHandler(handler);
-  //
-  //    return voter;
-  //  }
-  //
-  //  public LogicalOrAccessDecisionManager apiAccessDecisionManager() {
-  //    List<AccessDecisionManager> decisionVoters =
-  //        Arrays.asList(
-  //            new UnanimousBased(List.of(new SimpleAccessVoter("ALL"))),
-  //            new UnanimousBased(List.of(apiWebExpressionVoter())),
-  //            new UnanimousBased(List.of(externalAccessVoter)),
-  //            new UnanimousBased(List.of(new AuthenticatedVoter())));
-  //
-  //    return new LogicalOrAccessDecisionManager(decisionVoters);
-  //  }
 
   @Bean
   protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -273,16 +246,14 @@ public class DhisWebApiWebSecurityConfig {
 
     http.securityMatcher(new AntPathRequestMatcher("/oauth2/**"))
         .authorizeHttpRequests(
-            authorize -> {
-              providerIds.forEach(
-                  providerId ->
-                      authorize
-                          .antMatchers("/oauth2/authorization/" + providerId)
-                          .permitAll()
-                          .antMatchers("/oauth2/code/" + providerId)
-                          .permitAll());
-              //              authorize.anyRequest().authenticated();
-            })
+            authorize ->
+                providerIds.forEach(
+                    providerId ->
+                        authorize
+                            .antMatchers("/oauth2/authorization/" + providerId)
+                            .permitAll()
+                            .antMatchers("/oauth2/code/" + providerId)
+                            .permitAll()))
         .oauth2Login(
             oauth2 ->
                 oauth2
@@ -295,18 +266,14 @@ public class DhisWebApiWebSecurityConfig {
                     .authorizationEndpoint()
                     .authorizationRequestResolver(dhisCustomAuthorizationRequestResolver));
 
-    //    http.securityMatcher(apiContextPath + "/**")
-    //        .authorizeHttpRequests(configureRequestMatchers())
-
     http.securityMatcher(new AntPathRequestMatcher(apiContextPath + "/**"))
         .authorizeHttpRequests(
             authorize ->
                 authorize
                     .requestMatchers(new AntPathRequestMatcher("/impersonate"))
                     .hasAnyAuthority("ALL", "F_IMPERSONATE_USER")
-                    // Temporary solution for Struts less login page, will be removed when apps are
-                    // fully
-                    // migrated
+
+                    // Temporary solution for Struts less login page
                     .requestMatchers(new AntPathRequestMatcher("/index.html"))
                     .permitAll()
                     .requestMatchers(new AntPathRequestMatcher("/external-static/**"))
@@ -341,9 +308,6 @@ public class DhisWebApiWebSecurityConfig {
                     .permitAll()
                     .anyRequest()
                     .authenticated())
-
-        //        .accessDecisionManager(apiAccessDecisionManager())
-
         .httpBasic()
         .authenticationDetailsSource(httpBasicWebAuthenticationDetailsSource)
         .authenticationEntryPoint(formLoginBasicAuthenticationEntryPoint())

@@ -33,9 +33,11 @@ import java.util.Map;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.AuthenticationLoggerListener;
+import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.ldap.authentication.DhisBindAuthenticator;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
+import org.hisp.dhis.user.UserStore;
 import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
 import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
@@ -44,7 +46,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
@@ -79,6 +80,8 @@ public class AuthenticationProviderConfig {
 
   @Autowired private ExternalAccessVoter externalAccessVoter;
 
+  @Autowired private UserStore userStore;
+
   public WebExpressionVoter apiWebExpressionVoter() {
     WebExpressionVoter voter = new WebExpressionVoter();
 
@@ -90,6 +93,7 @@ public class AuthenticationProviderConfig {
     return voter;
   }
 
+  // TODO: MAS: does this suit our needs?
   public LogicalOrAccessDecisionManager apiAccessDecisionManager() {
     List<AccessDecisionManager> decisionVoters =
         Arrays.asList(
@@ -104,6 +108,7 @@ public class AuthenticationProviderConfig {
   @Bean
   public RoleHierarchyImpl roleHierarchy() {
     final RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
+    // TODO: MAS: setup for DHIS2
     roleHierarchy.setHierarchy("ALL > ROLE_STAFF > ROLE_USER > ROLE_GUEST");
     return roleHierarchy;
   }
@@ -121,13 +126,13 @@ public class AuthenticationProviderConfig {
     return new TwoFactorWebAuthenticationDetailsSource();
   }
 
-  //  @Bean(name = "customLdapAuthenticationProvider")
-  //  CustomLdapAuthenticationProvider customLdapAuthenticationProvider() {
-  //    return new CustomLdapAuthenticationProvider(
-  //        dhisBindAuthenticator(),
-  //        userDetailsServiceLdapAuthoritiesPopulator(ldapUserDetailsService),
-  //        configurationProvider);
-  //  }
+  @Bean(name = "customLdapAuthenticationProvider")
+  CustomLdapAuthenticationProvider customLdapAuthenticationProvider() {
+    return new CustomLdapAuthenticationProvider(
+        dhisBindAuthenticator(),
+        userDetailsServiceLdapAuthoritiesPopulator(ldapUserDetailsService),
+        configurationProvider);
+  }
 
   @Bean
   public DefaultSpringSecurityContextSource defaultSpringSecurityContextSource() {
@@ -151,10 +156,10 @@ public class AuthenticationProviderConfig {
   }
 
   @Bean
-  @DependsOn("org.hisp.dhis.user.UserService")
   public DhisBindAuthenticator dhisBindAuthenticator() {
     DhisBindAuthenticator dhisBindAuthenticator =
-        new DhisBindAuthenticator(defaultSpringSecurityContextSource());
+        new DhisBindAuthenticator(defaultSpringSecurityContextSource(), userStore);
+
     dhisBindAuthenticator.setUserSearch(filterBasedLdapUserSearch());
     return dhisBindAuthenticator;
   }
