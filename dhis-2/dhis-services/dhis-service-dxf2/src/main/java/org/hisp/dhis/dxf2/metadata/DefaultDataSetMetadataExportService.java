@@ -31,7 +31,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.sortById;
 import static org.hisp.dhis.commons.collection.CollectionUtils.addIfNotNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
-import static org.hisp.dhis.commons.collection.ListUtils.union;
+import static org.hisp.dhis.commons.collection.ListUtils.distinctUnion;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -138,7 +138,8 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
 
   @Override
   public ObjectNode getDataSetMetadata() {
-    CategoryCombo defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     SetValuedMap<String, String> dataSetOrgUnits =
         dataSetService.getDataSetOrganisationUnitsAssociations();
 
@@ -153,14 +154,13 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
         sortById(flatMapToSet(dataElementCategoryCombos, CategoryCombo::getCategories));
     List<Category> dataSetCategories =
         sortById(flatMapToSet(dataSetCategoryCombos, CategoryCombo::getCategories));
-    List<Category> categories = union(dataElementCategories, dataSetCategories);
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    List<Category> categories = distinctUnion(dataElementCategories, dataSetCategories);
     List<CategoryOption> categoryOptions =
         sortById(getCategoryOptions(dataElementCategories, dataSetCategories, currentUser));
     List<OptionSet> optionSets = sortById(getOptionSets(dataElements));
 
-    dataSetCategoryCombos.remove(defaultCategoryCombo);
+    dataSetCategoryCombos.removeAll(dataElementCategoryCombos);
+
     expressionService.substituteIndicatorExpressions(indicators);
 
     ObjectNode rootNode = fieldFilterService.createObjectNode();
