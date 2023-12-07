@@ -250,9 +250,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     if (program.isOpen() || program.isAudited()) {
       return organisationUnitService.isInUserSearchHierarchyCached(user, ou);
-    } else {
+    } else if (program.isProtected()) {
       return organisationUnitService.isInUserHierarchyCached(user, ou)
           || hasTemporaryAccess(entityInstance, program, user);
+    } else {
+      return organisationUnitService.isInUserHierarchyCached(user, ou);
     }
   }
 
@@ -266,9 +268,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     if (program.isOpen() || program.isAudited()) {
       return organisationUnitService.isInUserSearchHierarchyCached(user, owningOrgUnit);
-    } else {
+    } else if (program.isProtected()) {
       return organisationUnitService.isInUserHierarchyCached(user, owningOrgUnit)
           || hasTemporaryAccessWithUid(entityInstance, program, user);
+    } else {
+      return organisationUnitService.isInUserHierarchyCached(user, owningOrgUnit);
     }
   }
 
