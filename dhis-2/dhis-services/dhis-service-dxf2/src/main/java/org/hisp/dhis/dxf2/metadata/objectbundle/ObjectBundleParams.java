@@ -36,7 +36,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MetadataMergeMode;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
@@ -71,7 +71,7 @@ public class ObjectBundleParams {
   private PreheatMode preheatMode = PreheatMode.REFERENCE;
   private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
   private AtomicMode atomicMode = AtomicMode.ALL;
-  private MetadataMergeMode metadataMergeMode = MetadataMergeMode.REPLACE;
+  private MergeMode mergeMode = MergeMode.REPLACE;
   private FlushMode flushMode = FlushMode.AUTO;
   private ImportReportMode importReportMode = ImportReportMode.ERRORS;
 

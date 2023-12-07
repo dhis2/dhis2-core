@@ -48,7 +48,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.MetadataMergeMode;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -332,7 +332,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest {
     defaultSetup();
     ObjectBundleParams params = new ObjectBundleParams();
     params.setObjectBundleMode(ObjectBundleMode.VALIDATE);
-    params.setMetadataMergeMode(MetadataMergeMode.REPLACE);
+    params.setMergeMode(MergeMode.REPLACE);
     params.setObjects(metadata);
     ObjectBundle bundle = objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);

@@ -60,7 +60,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MetadataMergeMode;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UserOrgUnitType;
@@ -479,7 +479,7 @@ public class UserController extends AbstractCrudController<User> {
 
     User userReplica = new User();
     metadataMergeService.merge(
-        new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MetadataMergeMode.MERGE));
+        new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.MERGE));
     copyAttributeValues(userReplica);
     userReplica.setId(0);
     userReplica.setUuid(UUID.randomUUID());

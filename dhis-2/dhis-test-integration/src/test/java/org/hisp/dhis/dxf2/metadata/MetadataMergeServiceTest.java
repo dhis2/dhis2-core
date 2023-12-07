@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Date;
-import org.hisp.dhis.common.MetadataMergeMode;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.merge.Simple;
 import org.hisp.dhis.dxf2.metadata.merge.SimpleCollection;
 import org.hisp.dhis.indicator.Indicator;
@@ -63,7 +63,7 @@ class MetadataMergeServiceTest extends SingleSetupIntegrationTestBase {
     Simple source = new Simple("string", 10, date, false, 123, 2.5f);
     Simple target = new Simple();
     metadataMergeService.merge(
-        new MetadataMergeParams<>(source, target).setMergeMode(MetadataMergeMode.REPLACE));
+        new MetadataMergeParams<>(source, target).setMergeMode(MergeMode.REPLACE));
     Assertions.assertEquals("string", target.getString());
     assertEquals(10, (int) target.getInteger());
     Assertions.assertEquals(date, target.getDate());
@@ -77,7 +77,7 @@ class MetadataMergeServiceTest extends SingleSetupIntegrationTestBase {
     Simple source = new Simple(null, 10, date, null, 123, 2.5f);
     Simple target = new Simple("hello", 20, date, true, 123, 2.5f);
     metadataMergeService.merge(
-        new MetadataMergeParams<>(source, target).setMergeMode(MetadataMergeMode.MERGE));
+        new MetadataMergeParams<>(source, target).setMergeMode(MergeMode.MERGE));
     Assertions.assertEquals("hello", target.getString());
     assertEquals(10, (int) target.getInteger());
     Assertions.assertEquals(date, target.getDate());
@@ -93,7 +93,7 @@ class MetadataMergeServiceTest extends SingleSetupIntegrationTestBase {
     source.getSimples().add(new Simple("simple", 30, date, false, 123, 2.5f));
     SimpleCollection target = new SimpleCollection("target");
     metadataMergeService.merge(
-        new MetadataMergeParams<>(source, target).setMergeMode(MetadataMergeMode.MERGE));
+        new MetadataMergeParams<>(source, target).setMergeMode(MergeMode.MERGE));
     Assertions.assertEquals("name", target.getName());
     Assertions.assertEquals(3, target.getSimples().size());
     Assertions.assertTrue(target.getSimples().contains(source.getSimples().get(0)));
@@ -117,7 +117,7 @@ class MetadataMergeServiceTest extends SingleSetupIntegrationTestBase {
     organisationUnitGroupSetA.addOrganisationUnitGroup(organisationUnitGroupA);
     metadataMergeService.merge(
         new MetadataMergeParams<>(organisationUnitGroupA, organisationUnitGroupB)
-            .setMergeMode(MetadataMergeMode.REPLACE));
+            .setMergeMode(MergeMode.REPLACE));
     assertFalse(organisationUnitGroupB.getMembers().isEmpty());
     assertEquals(4, organisationUnitGroupB.getMembers().size());
     assertNotNull(organisationUnitGroupB.getGroupSets());
@@ -140,7 +140,7 @@ class MetadataMergeServiceTest extends SingleSetupIntegrationTestBase {
     organisationUnitGroupSetA.addOrganisationUnitGroup(organisationUnitGroupA);
     metadataMergeService.merge(
         new MetadataMergeParams<>(organisationUnitGroupSetA, organisationUnitGroupSetB)
-            .setMergeMode(MetadataMergeMode.REPLACE));
+            .setMergeMode(MergeMode.REPLACE));
     assertFalse(organisationUnitGroupSetB.getOrganisationUnitGroups().isEmpty());
     assertEquals(organisationUnitGroupSetA.getName(), organisationUnitGroupSetB.getName());
     assertEquals(

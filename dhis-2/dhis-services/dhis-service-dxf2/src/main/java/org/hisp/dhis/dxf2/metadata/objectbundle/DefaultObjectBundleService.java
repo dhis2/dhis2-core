@@ -47,7 +47,7 @@ import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.MetadataMergeMode;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
@@ -298,7 +298,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
           preheatService.connectReferences(
               object, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
-          if (bundle.getMergeMode() != MetadataMergeMode.NONE) {
+          if (bundle.getMergeMode() != MergeMode.NONE) {
             metadataMergeService.merge(
                 new MetadataMergeParams<>(object, persistedObject)
                     .setMergeMode(bundle.getMergeMode())

@@ -30,7 +30,7 @@ package org.hisp.dhis.common;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum MetadataMergeMode {
+public enum MergeMode {
   MERGE_ALWAYS,
   MERGE_IF_NOT_NULL,
   MERGE,

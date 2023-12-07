@@ -28,7 +28,7 @@
 package org.hisp.dhis.schema;
 
 import java.util.Objects;
-import org.hisp.dhis.common.MetadataMergeMode;
+import org.hisp.dhis.common.MergeMode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -38,7 +38,7 @@ public final class MetadataMergeParams<T> {
 
   private final T target;
 
-  private MetadataMergeMode metadataMergeMode = MetadataMergeMode.REPLACE;
+  private MergeMode mergeMode = MergeMode.REPLACE;
 
   private boolean skipSharing;
 
@@ -57,12 +57,12 @@ public final class MetadataMergeParams<T> {
     return target;
   }
 
-  public MetadataMergeMode getMergeMode() {
-    return metadataMergeMode;
+  public MergeMode getMergeMode() {
+    return mergeMode;
   }
 
-  public MetadataMergeParams<T> setMergeMode(MetadataMergeMode metadataMergeMode) {
-    this.metadataMergeMode = metadataMergeMode;
+  public MetadataMergeParams<T> setMergeMode(MergeMode mergeMode) {
+    this.mergeMode = mergeMode;
     return this;
   }
 

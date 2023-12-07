@@ -49,7 +49,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.MetadataMergeMode;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
@@ -286,7 +286,7 @@ public class DefaultGmlImportService implements GmlImportService {
     Geometry geometry = target.getGeometry();
 
     metadataMergeService.merge(
-        new MetadataMergeParams<>(source, target).setMergeMode(MetadataMergeMode.MERGE));
+        new MetadataMergeParams<>(source, target).setMergeMode(MergeMode.MERGE));
 
     target.setGeometry(geometry);
 

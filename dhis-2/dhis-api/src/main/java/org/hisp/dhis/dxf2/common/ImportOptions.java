@@ -40,7 +40,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.MetadataMergeMode;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -68,7 +68,7 @@ public class ImportOptions implements JobParameters {
 
   public static final ImportStrategy DEFAULT_IMPORT_STRATEGY = ImportStrategy.CREATE_AND_UPDATE;
 
-  public static final MetadataMergeMode DEFAULT_MERGE_MODE = MetadataMergeMode.REPLACE;
+  public static final MergeMode DEFAULT_MERGE_MODE = MergeMode.REPLACE;
 
   public static final ImportReportMode DEFAULT_REPORT_MODE = ImportReportMode.FULL;
 
@@ -90,7 +90,7 @@ public class ImportOptions implements JobParameters {
   private ImportStrategy importStrategy = DEFAULT_IMPORT_STRATEGY;
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
-  private MetadataMergeMode mergeMode = DEFAULT_MERGE_MODE;
+  private MergeMode mergeMode = DEFAULT_MERGE_MODE;
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
   private ImportReportMode reportMode = DEFAULT_REPORT_MODE;

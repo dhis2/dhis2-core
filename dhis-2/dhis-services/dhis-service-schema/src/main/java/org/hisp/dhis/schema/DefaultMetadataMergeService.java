@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.MetadataMergeMode;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
@@ -124,7 +124,7 @@ public class DefaultMetadataMergeService implements MetadataMergeService {
                       HibernateProxyUtils.getRealClass(source)
                           .getDeclaredConstructor()
                           .newInstance())
-              .setMergeMode(MetadataMergeMode.REPLACE));
+              .setMergeMode(MergeMode.REPLACE));
     } catch (InstantiationException
         | IllegalAccessException
         | NoSuchMethodException
