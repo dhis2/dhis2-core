@@ -48,8 +48,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
   private static final String keywords = "[\"k1\",\"k2\"]";
 
-  private static final boolean custom = true;
-
   @Autowired private CurrentUserService currentUserService;
 
   @Autowired private ContextService contextService;
@@ -67,8 +65,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
                     + createFileResource()
                     + "', 'keywords':"
                     + keywords
-                    + ", 'custom' :"
-                    + custom
                     + "}")
             .content(HttpStatus.CREATED)
             .as(JsonWebMessage.class);
@@ -109,8 +105,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
                     + updatedDescription
                     + "', 'keywords':"
                     + updatedKeywords
-                    + ", 'custom' :"
-                    + custom
                     + "}")
             .content();
 
@@ -138,8 +132,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
                     + fileResourceId
                     + "', 'keywords':"
                     + keywords
-                    + ", 'custom' :"
-                    + custom
                     + "}")
             .content(HttpStatus.CREATED)
             .as(JsonWebMessage.class);
