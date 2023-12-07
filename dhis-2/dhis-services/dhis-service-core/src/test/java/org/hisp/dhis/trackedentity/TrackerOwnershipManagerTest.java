@@ -70,6 +70,8 @@ class TrackerOwnershipManagerTest extends DhisSpringTest {
 
   private Program programA;
 
+  private Program programB;
+
   private User userA;
 
   private User userB;
@@ -97,6 +99,9 @@ class TrackerOwnershipManagerTest extends DhisSpringTest {
     programA = createProgram('A');
     programA.setAccessLevel(AccessLevel.PROTECTED);
     programService.addProgram(programA);
+    programB = createProgram('B');
+    programB.setAccessLevel(AccessLevel.CLOSED);
+    programService.addProgram(programB);
     userA = mockCurrentUserService.getCurrentUser();
     userB = createUser("userB");
     userB.addOrganisationUnit(organisationUnitB);
@@ -136,5 +141,34 @@ class TrackerOwnershipManagerTest extends DhisSpringTest {
         entityInstanceA1, programA, organisationUnitB, false, true);
     assertFalse(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
     assertTrue(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
+  }
+
+  @Test
+  void shouldHaveAccessWhenProgramProtectedAndUserInCaptureScope() {
+    assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
+  }
+
+  @Test
+  void shouldHaveAccessWhenProgramProtectedAndHasTemporaryAccess() {
+    trackerOwnershipAccessManager.grantTemporaryOwnership(
+        entityInstanceA1, programA, userB, "test protected program");
+    assertTrue(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
+  }
+
+  @Test
+  void shouldNotHaveAccessWhenProgramProtectedAndUserNotInCaptureScopeNorHasTemporaryAccess() {
+    assertFalse(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
+  }
+
+  @Test
+  void shouldHaveAccessWhenProgramClosedAndUserInCaptureScope() {
+    assertTrue(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceB1, programB));
+  }
+
+  @Test
+  void shouldNotHaveAccessWhenProgramClosedAndUserHasTemporaryAccess() {
+    trackerOwnershipAccessManager.grantTemporaryOwnership(
+        entityInstanceA1, programB, userB, "test closed program");
+    assertFalse(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programB));
   }
 }
