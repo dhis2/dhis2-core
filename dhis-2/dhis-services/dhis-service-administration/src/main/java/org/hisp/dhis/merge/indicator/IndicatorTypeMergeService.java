@@ -33,7 +33,6 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -54,7 +53,6 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author david mackessy
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class IndicatorTypeMergeService implements MergeService {
@@ -85,14 +83,6 @@ public class IndicatorTypeMergeService implements MergeService {
             });
   }
 
-  private void checkIsTargetInSources(
-      Set<UID> sources, Optional<UID> target, MergeReport mergeReport) {
-    target.ifPresent(
-        t -> {
-          if (sources.contains(t)) mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1532));
-        });
-  }
-
   @Override
   @Transactional
   public MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport) {
@@ -104,6 +94,14 @@ public class IndicatorTypeMergeService implements MergeService {
     if (request.isDeleteSources()) handleDeleteSources(sources, mergeReport);
 
     return mergeReport;
+  }
+
+  private void checkIsTargetInSources(
+      Set<UID> sources, Optional<UID> target, MergeReport mergeReport) {
+    target.ifPresent(
+        t -> {
+          if (sources.contains(t)) mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1532));
+        });
   }
 
   private void handleDeleteSources(List<IndicatorType> sources, MergeReport mergeReport) {
@@ -149,12 +147,12 @@ public class IndicatorTypeMergeService implements MergeService {
   }
 
   private MergeRequest getTargetAndVerify(
-      UID target, MergeReport report, Set<UID> indicatorTypes, MergeParams params) {
+      UID target, MergeReport report, Set<UID> sources, MergeParams params) {
     return getAndVerifyIndicatorType(target, report, "Target")
         .map(
             t ->
                 MergeRequest.builder()
-                    .sources(indicatorTypes)
+                    .sources(sources)
                     .target(t)
                     .deleteSources(params.isDeleteSources())
                     .build())

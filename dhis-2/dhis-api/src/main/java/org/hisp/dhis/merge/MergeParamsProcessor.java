@@ -33,13 +33,12 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
 
 /**
- * This interface is used to process merging of {@link IdentifiableObject}s uniformly, in a
- * standardised fashion. It requires an implementation of {@link MergeService}, which will process
- * the merging for its required use case. <br>
+ * Interface with default method used to process merging of {@link IdentifiableObject}s uniformly,
+ * in a standardised fashion. It requires an implementation of {@link MergeService}, which will
+ * process the merging for its required use case. <br>
  * It essentially calls each method of the {@link MergeService} in the following order:<br>
  *
  * <ol>
- *   <li>transform
  *   <li>validate
  *   <li>merge
  * </ol>
@@ -60,13 +59,15 @@ public interface MergeParamsProcessor {
       @Nonnull MergeType mergeType)
       throws ConflictException {
     MergeReport mergeReport = new MergeReport(mergeType);
+
     MergeRequest mergeRequest = mergeService.validate(mergeParams, mergeReport);
-    if (mergeReport.hasErrorMessages()) return mergeReport;
+    if (mergeReport.hasErrorMessages())
+      throw new ConflictException("Merge validation error").setMergeReport(mergeReport);
 
     MergeReport report = mergeService.merge(mergeRequest, mergeReport);
-    if (report.hasErrorMessages()) {
-      throw new ConflictException("merge error here");
-    }
+    if (report.hasErrorMessages())
+      throw new ConflictException("Merge error").setMergeReport(mergeReport);
+
     return report;
   }
 }

@@ -37,8 +37,9 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 
 /**
- * Encapsulation of a merge request. Contains source types that extend {@link IdentifiableObject} to
- * be merged into a target of the same type. Also indicates whether sources should be deleted.
+ * Encapsulation of a merge request. Contains source {@link UID}s that extend {@link
+ * IdentifiableObject} to be merged into a target of the same type. Also indicates whether sources
+ * should be deleted.
  *
  * @author david mackessy
  */
@@ -62,8 +63,8 @@ public class MergeRequest {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("sources", sources.toString())
-        .add("target", target.toString())
+        .add("sources", sources)
+        .add("target", target)
         .add("deleteSources", deleteSources)
         .toString();
   }
