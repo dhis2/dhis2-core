@@ -87,10 +87,11 @@ class IconTest extends TrackerTest {
 
     assertEquals(
         defaultIconMap.size() + 1,
-        iconService.getIcons().size(),
+        iconService.getIcons(IconCriteria.builder().build()).size(),
         String.format(
             "Expected to find %d icons, but found %d instead",
-            defaultIconMap.size() + 1, iconService.getIcons().size()));
+            defaultIconMap.size() + 1,
+            iconService.getIcons(IconCriteria.builder().build()).size()));
   }
 
   @Test
@@ -115,7 +116,8 @@ class IconTest extends TrackerTest {
         iconService.getKeywords().size(),
         String.format(
             "Expected to find %d icons, but found %d instead",
-            keywordList.size() + keywords.length, iconService.getIcons().size()));
+            keywordList.size() + keywords.length,
+            iconService.getIcons(IconCriteria.builder().build()).size()));
   }
 
   @Test
