@@ -43,28 +43,29 @@ import org.hisp.dhis.feedback.MergeReport;
  *   <li>merge
  * </ol>
  */
-public interface MergeParamsProcessor {
+public interface MergeProcessor {
 
   /**
-   * Processes a merge query in full, using the implemented {@link MergeService} provided.
+   * @return implemented {@link MergeService} to process merge
+   */
+  MergeService getMergeService();
+
+  /**
+   * Processes a merge in full, using the implemented {@link MergeService} retrieved.
    *
-   * @param mergeService implemented {@link MergeService} to process merge steps
    * @param mergeParams {@link MergeParams} to process
    * @param mergeType {@link MergeType}
    * @return updated {@link MergeReport} with any errors
    */
-  default MergeReport processMergeParams(
-      @Nonnull MergeService mergeService,
-      @Nonnull MergeParams mergeParams,
-      @Nonnull MergeType mergeType)
+  default MergeReport processMerge(@Nonnull MergeParams mergeParams, @Nonnull MergeType mergeType)
       throws ConflictException {
     MergeReport mergeReport = new MergeReport(mergeType);
 
-    MergeRequest mergeRequest = mergeService.validate(mergeParams, mergeReport);
+    MergeRequest mergeRequest = getMergeService().validate(mergeParams, mergeReport);
     if (mergeReport.hasErrorMessages())
       throw new ConflictException("Merge validation error").setMergeReport(mergeReport);
 
-    MergeReport report = mergeService.merge(mergeRequest, mergeReport);
+    MergeReport report = getMergeService().merge(mergeRequest, mergeReport);
     if (report.hasErrorMessages())
       throw new ConflictException("Merge error").setMergeReport(mergeReport);
 

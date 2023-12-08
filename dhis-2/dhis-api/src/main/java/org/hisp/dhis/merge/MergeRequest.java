@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.merge;
 
-import com.google.common.base.MoreObjects;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 
@@ -44,6 +44,7 @@ import org.hisp.dhis.common.UID;
  * @author david mackessy
  */
 @Builder
+@ToString
 @AllArgsConstructor
 public class MergeRequest {
   @Builder.Default private final Set<UID> sources = new HashSet<>();
@@ -58,14 +59,5 @@ public class MergeRequest {
 
   public static MergeRequest empty() {
     return MergeRequest.builder().build();
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("sources", sources)
-        .add("target", target)
-        .add("deleteSources", deleteSources)
-        .toString();
   }
 }

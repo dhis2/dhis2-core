@@ -27,13 +27,23 @@
  */
 package org.hisp.dhis.merge.indicator;
 
-import org.hisp.dhis.merge.MergeParamsProcessor;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.merge.MergeProcessor;
+import org.hisp.dhis.merge.MergeService;
 import org.springframework.stereotype.Component;
 
 /**
- * Implementation of {@link MergeParamsProcessor} that currently only uses its default method.
+ * Implementation of {@link MergeProcessor} that currently only uses its default method.
  *
  * @author david mackessy
  */
 @Component
-public class IndicatorTypeMergeParamsProcessor implements MergeParamsProcessor {}
+@RequiredArgsConstructor
+public class IndicatorTypeMergeProcessor implements MergeProcessor {
+  private final MergeService indicatorTypeMergeService;
+
+  @Override
+  public MergeService getMergeService() {
+    return indicatorTypeMergeService;
+  }
+}

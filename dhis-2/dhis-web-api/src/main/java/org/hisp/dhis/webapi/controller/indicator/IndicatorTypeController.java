@@ -38,9 +38,8 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeParams;
-import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.merge.MergeProcessor;
 import org.hisp.dhis.merge.MergeType;
-import org.hisp.dhis.merge.indicator.IndicatorTypeMergeParamsProcessor;
 import org.hisp.dhis.schema.descriptors.IndicatorTypeSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -62,8 +61,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Slf4j
 public class IndicatorTypeController extends AbstractCrudController<IndicatorType> {
 
-  private final MergeService indicatorTypeMergeService;
-  private final IndicatorTypeMergeParamsProcessor mergeParamsProcessor;
+  private final MergeProcessor indicatorTypeMergeProcessor;
 
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize("hasRole('ALL') or hasRole('F_INDICATOR_TYPE_MERGE')")
@@ -72,9 +70,7 @@ public class IndicatorTypeController extends AbstractCrudController<IndicatorTyp
       throws ConflictException {
     log.info("Indicator type merge received");
 
-    MergeReport report =
-        mergeParamsProcessor.processMergeParams(
-            indicatorTypeMergeService, params, MergeType.INDICATOR_TYPE);
+    MergeReport report = indicatorTypeMergeProcessor.processMerge(params, MergeType.INDICATOR_TYPE);
 
     log.info("Indicator type merge processed with report: {}", report);
     return WebMessageUtils.mergeReport(report);

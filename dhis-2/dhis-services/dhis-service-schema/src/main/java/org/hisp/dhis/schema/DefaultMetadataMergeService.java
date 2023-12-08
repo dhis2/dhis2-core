@@ -41,7 +41,7 @@ import org.springframework.stereotype.Service;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.schema.MergeService")
+@Service
 @Slf4j
 public class DefaultMetadataMergeService implements MetadataMergeService {
   private final SchemaService schemaService;
