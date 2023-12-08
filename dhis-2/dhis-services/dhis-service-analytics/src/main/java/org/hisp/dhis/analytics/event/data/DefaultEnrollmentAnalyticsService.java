@@ -41,7 +41,7 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_CODE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME_HIERARCHY;
-import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STAGE;
+import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_INSTANCE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.common.ColumnHeader.STORED_BY;
 import static org.hisp.dhis.analytics.common.ColumnHeader.TEI;
@@ -114,7 +114,7 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
 
     return new ListGrid()
         .addHeader(
-            new GridHeader(PROGRAM_STAGE.getItem(), PROGRAM_STAGE.getName(), TEXT, false, true))
+            new GridHeader(PROGRAM_INSTANCE.getItem(), PROGRAM_INSTANCE.getName(), TEXT, false, true))
         .addHeader(new GridHeader(TEI.getItem(), TEI.getName(), TEXT, false, true))
         .addHeader(
             new GridHeader(
@@ -145,7 +145,7 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
                 TEXT,
                 false,
                 true))
-        .addHeader(new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.name(), DATE, false, true))
+        .addHeader(new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATE, false, true))
         .addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))
         .addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))
         .addHeader(new GridHeader(LATITUDE.getItem(), LATITUDE.getName(), NUMBER, false, true))
