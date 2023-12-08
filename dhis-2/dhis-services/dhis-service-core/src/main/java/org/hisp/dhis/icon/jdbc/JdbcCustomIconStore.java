@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.CustomIconStore;
+import org.hisp.dhis.icon.IconCriteria;
 import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -87,7 +88,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
   }
 
   @Override
-  public List<CustomIcon> getAllIcons() {
+  public List<CustomIcon> getAllIcons(IconCriteria iconCriteria) {
     final String sql =
         """
             select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid

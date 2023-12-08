@@ -72,8 +72,9 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Icon> getIcons() {
-    return Stream.concat(defaultIcons.values().stream(), customIconStore.getAllIcons().stream())
+  public List<Icon> getIcons(IconCriteria iconCriteria) {
+    return Stream.concat(
+            defaultIcons.values().stream(), customIconStore.getAllIcons(iconCriteria).stream())
         .toList();
   }
 

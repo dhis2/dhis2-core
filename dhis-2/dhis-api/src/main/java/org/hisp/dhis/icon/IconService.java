@@ -42,7 +42,7 @@ public interface IconService {
    *
    * @return a collection of data about all the icons in the system
    */
-  List<Icon> getIcons();
+  List<Icon> getIcons(IconCriteria iconCriteria);
 
   /**
    * Gets icons tagged with all given keywords.

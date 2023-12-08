@@ -53,6 +53,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.icon.IconCriteria;
 import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
@@ -125,11 +126,16 @@ public class IconController {
 
   @GetMapping
   public @ResponseBody List<IconResponse> getAllIcons(
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size,
       @RequestParam(required = false) String[] keywords) {
+
+    IconCriteria criteria = IconCriteria.builder().page(page).size(size).build();
+
     List<Icon> icons;
 
     if (keywords == null) {
-      icons = iconService.getIcons();
+      icons = iconService.getIcons(criteria);
     } else {
       icons = iconService.getIcons(keywords);
     }
