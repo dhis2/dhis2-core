@@ -31,7 +31,7 @@
     <awaitility.version>4.2.0</awaitility.version>
     <lombok.version>1.18.30</lombok.version>
     <allure.version>2.25.0</allure.version>
-    <selenium-java.version>4.16.0</selenium-java.version>
+    <selenium-java.version>4.16.1</selenium-java.version>
     <slf4j-simple.version>2.0.9</slf4j-simple.version>
     <fluent-hc.version>4.5.14</fluent-hc.version>
     <httpclient5.version>5.3</httpclient5.version>
