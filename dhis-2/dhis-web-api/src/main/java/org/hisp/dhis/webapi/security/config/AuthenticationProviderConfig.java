@@ -80,8 +80,6 @@ public class AuthenticationProviderConfig {
 
   @Autowired private ExternalAccessVoter externalAccessVoter;
 
-  @Autowired private UserStore userStore;
-
   public WebExpressionVoter apiWebExpressionVoter() {
     WebExpressionVoter voter = new WebExpressionVoter();
 
@@ -127,9 +125,9 @@ public class AuthenticationProviderConfig {
   }
 
   @Bean(name = "customLdapAuthenticationProvider")
-  CustomLdapAuthenticationProvider customLdapAuthenticationProvider() {
+  CustomLdapAuthenticationProvider customLdapAuthenticationProvider(UserStore userStore) {
     return new CustomLdapAuthenticationProvider(
-        dhisBindAuthenticator(),
+        dhisBindAuthenticator(userStore),
         userDetailsServiceLdapAuthoritiesPopulator(ldapUserDetailsService),
         configurationProvider);
   }
@@ -156,7 +154,7 @@ public class AuthenticationProviderConfig {
   }
 
   @Bean
-  public DhisBindAuthenticator dhisBindAuthenticator() {
+  public DhisBindAuthenticator dhisBindAuthenticator(UserStore userStore) {
     DhisBindAuthenticator dhisBindAuthenticator =
         new DhisBindAuthenticator(defaultSpringSecurityContextSource(), userStore);
 

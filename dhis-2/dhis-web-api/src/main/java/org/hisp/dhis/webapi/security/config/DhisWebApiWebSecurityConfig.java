@@ -166,12 +166,6 @@ public class DhisWebApiWebSecurityConfig {
 
   @Autowired private DhisConfigurationProvider dhisConfig;
 
-  @Autowired private TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
-
-  @Autowired
-  @Qualifier("customLdapAuthenticationProvider")
-  private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
-
   @Autowired private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
   @Autowired private Dhis2JwtAuthenticationManagerResolver dhis2JwtAuthenticationManagerResolver;
@@ -202,20 +196,18 @@ public class DhisWebApiWebSecurityConfig {
 
   @Autowired private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
 
-  //  //  @Override
-  //  public void configure(AuthenticationManagerBuilder auth) {
-  //    auth.authenticationProvider(customLdapAuthenticationProvider);
-  //    auth.authenticationProvider(twoFactorAuthenticationProvider);
-  //    auth.authenticationEventPublisher(authenticationEventPublisher);
-  //  }
-
   @Bean
   @Primary
-  protected AuthenticationManager authenticationManagers() {
+  protected AuthenticationManager authenticationManagers(
+      TwoFactorAuthenticationProvider twoFactorProvider,
+      @Qualifier("customLdapAuthenticationProvider")
+          CustomLdapAuthenticationProvider ldapProvider) {
+
     ProviderManager providerManager =
-        new ProviderManager(
-            Arrays.asList(twoFactorAuthenticationProvider, customLdapAuthenticationProvider));
+        new ProviderManager(Arrays.asList(twoFactorProvider, ldapProvider));
+
     providerManager.setAuthenticationEventPublisher(authenticationEventPublisher);
+
     return providerManager;
   }
 
@@ -250,9 +242,11 @@ public class DhisWebApiWebSecurityConfig {
                 providerIds.forEach(
                     providerId ->
                         authorize
-                            .antMatchers("/oauth2/authorization/" + providerId)
+                            .requestMatchers(
+                                new AntPathRequestMatcher("/oauth2/authorization/" + providerId))
                             .permitAll()
-                            .antMatchers("/oauth2/code/" + providerId)
+                            .requestMatchers(
+                                new AntPathRequestMatcher("/oauth2/code/" + providerId))
                             .permitAll()))
         .oauth2Login(
             oauth2 ->
