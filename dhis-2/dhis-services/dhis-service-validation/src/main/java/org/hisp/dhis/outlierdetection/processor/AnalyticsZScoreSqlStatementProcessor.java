@@ -78,57 +78,58 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
 
     boolean modifiedZ = request.getAlgorithm() == MOD_Z_SCORE;
 
-    String middleValue = modifiedZ ? " ax.percentilemiddlevalue" : " ax.avgmiddlevalue";
+    String middleValue = modifiedZ ? " ax.percentile_middle_value" : " ax.avg_middle_value";
 
     String order =
-        request.getOrderBy() == MEAN_ABS_DEV ? "middlevalueabsdev" : request.getOrderBy().getKey();
+        request.getOrderBy() == MEAN_ABS_DEV
+            ? "middle_value_abs_dev"
+            : request.getOrderBy().getKey();
     String thresholdParam = THRESHOLD.getKey();
 
     String sql =
         "select * from (select "
-            + "ax.dataelementid, "
-            + "ax.dx, "
-            + "ax.ou, "
-            + "ax.co, "
-            + "ax.ao, "
+            + "ax.dx as de_uid, "
+            + "ax.ou as ou_uid, "
+            + "ax.co as coc_uid, "
+            + "ax.ao as aoc_uid, "
             + "ax.de_name, "
             + "ax.ou_name, "
             + "ax.coc_name, "
             + "ax.aoc_name, "
             + "ax.value, "
-            + "ax.pestartdate, "
-            + "ax.petype, "
+            + "ax.pestartdate as pe_start_date, "
+            + "ax.petype as pt_name, "
             + middleValue
-            + " as middlevalue, "
-            + "ax.stddev, "
+            + " as middle_value, "
+            + "ax.std_dev, "
             + "ax.mad, "
             + "abs(ax.value::double precision - "
             + middleValue
-            + ") as middlevalueabsdev, ";
+            + ") as middle_value_abs_dev, ";
     if (modifiedZ) {
       sql +=
           "(case when ax.mad = 0 then 0 "
               + "      else 0.6745 * abs(ax.value::double precision - "
               + middleValue
               + " ) / ax.mad "
-              + "       end) as zscore, ";
+              + "       end) as z_score, ";
     } else {
       sql +=
-          "(case when ax.stddev = 0 then 0 "
+          "(case when ax.std_dev = 0 then 0 "
               + "      else abs(ax.value::double precision - "
               + middleValue
-              + " ) / ax.stddev "
-              + "       end) as zscore, ";
+              + " ) / ax.std_dev "
+              + "       end) as z_score, ";
     }
     sql +=
         middleValue
-            + " - (ax.stddev * :"
+            + " - (ax.std_dev * :"
             + thresholdParam
-            + ") as lowerbound, "
+            + ") as lower_bound, "
             + middleValue
-            + " + (ax.stddev * :"
+            + " + (ax.std_dev * :"
             + thresholdParam
-            + ") as upperbound "
+            + ") as upper_bound "
             + "from analytics ax "
             + "where dataelementid in  (:"
             + DATA_ELEMENT_IDS.getKey()
@@ -140,7 +141,7 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
             + " and ax.peenddate <= :"
             + END_DATE.getKey()
             + ") t1 "
-            + "where t1.zscore > :"
+            + "where t1.z_score > :"
             + thresholdParam
             + " order by "
             + order

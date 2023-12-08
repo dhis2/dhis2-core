@@ -30,6 +30,21 @@ package org.hisp.dhis.analytics.event.data;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.analytics.common.ColumnHeader.CREATED_BY_DISPLAY_NAME;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ENROLLMENT_DATE;
+import static org.hisp.dhis.analytics.common.ColumnHeader.GEOMETRY;
+import static org.hisp.dhis.analytics.common.ColumnHeader.INCIDENT_DATE;
+import static org.hisp.dhis.analytics.common.ColumnHeader.LAST_UPDATED;
+import static org.hisp.dhis.analytics.common.ColumnHeader.LAST_UPDATED_BY_DISPLAY_NAME;
+import static org.hisp.dhis.analytics.common.ColumnHeader.LATITUDE;
+import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_CODE;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME_HIERARCHY;
+import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STAGE;
+import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
+import static org.hisp.dhis.analytics.common.ColumnHeader.STORED_BY;
+import static org.hisp.dhis.analytics.common.ColumnHeader.TEI;
 import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
@@ -59,35 +74,6 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.analytics.event.EnrollmentAnalyticsService")
 public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
     implements EnrollmentAnalyticsService {
-  private static final String NAME_TEI = "Tracked entity instance";
-
-  private static final String NAME_PI = "Enrollment";
-
-  private static final String NAME_GEOMETRY = "Geometry";
-
-  private static final String NAME_ENROLLMENT_DATE = "Enrollment date";
-
-  private static final String NAME_INCIDENT_DATE = "Incident date";
-
-  private static final String NAME_STORED_BY = "Stored by";
-
-  private static final String NAME_CREATED_BY_DISPLAY_NAME = "Created by";
-
-  private static final String NAME_LAST_UPDATED_BY_DISPLAY_NAME = "Last updated by";
-
-  private static final String NAME_LAST_UPDATED = "Last updated on";
-
-  private static final String NAME_LONGITUDE = "Longitude";
-
-  private static final String NAME_LATITUDE = "Latitude";
-
-  private static final String NAME_ORG_UNIT_NAME = "Organisation unit name";
-
-  private static final String NAME_ORG_UNIT_NAME_HIERARCHY = "Organisation unit name hierarchy";
-
-  private static final String NAME_ORG_UNIT_CODE = "Organisation unit code";
-
-  private static final String NAME_PROGRAM_STATUS = "Program status";
 
   private final EnrollmentAnalyticsManager enrollmentAnalyticsManager;
 
@@ -127,43 +113,55 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
     }
 
     return new ListGrid()
-        .addHeader(new GridHeader(ITEM_PI, NAME_PI, TEXT, false, true))
-        .addHeader(new GridHeader(ITEM_TEI, NAME_TEI, TEXT, false, true))
+        .addHeader(
+            new GridHeader(PROGRAM_STAGE.getItem(), PROGRAM_STAGE.getName(), TEXT, false, true))
+        .addHeader(new GridHeader(TEI.getItem(), TEI.getName(), TEXT, false, true))
         .addHeader(
             new GridHeader(
-                ITEM_ENROLLMENT_DATE,
-                LabelMapper.getEnrollmentDateLabel(params.getProgram(), NAME_ENROLLMENT_DATE),
+                ENROLLMENT_DATE.getItem(),
+                LabelMapper.getEnrollmentDateLabel(params.getProgram(), ENROLLMENT_DATE.getName()),
                 DATE,
                 false,
                 true))
         .addHeader(
             new GridHeader(
-                ITEM_INCIDENT_DATE,
-                LabelMapper.getIncidentDateLabel(params.getProgram(), NAME_INCIDENT_DATE),
+                INCIDENT_DATE.getItem(),
+                LabelMapper.getIncidentDateLabel(params.getProgram(), INCIDENT_DATE.getName()),
                 DATE,
                 false,
                 true))
-        .addHeader(new GridHeader(ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true))
+        .addHeader(new GridHeader(STORED_BY.getItem(), STORED_BY.getName(), TEXT, false, true))
         .addHeader(
             new GridHeader(
-                ITEM_CREATED_BY_DISPLAY_NAME, NAME_CREATED_BY_DISPLAY_NAME, TEXT, false, true))
-        .addHeader(
-            new GridHeader(
-                ITEM_LAST_UPDATED_BY_DISPLAY_NAME,
-                NAME_LAST_UPDATED_BY_DISPLAY_NAME,
+                CREATED_BY_DISPLAY_NAME.getItem(),
+                CREATED_BY_DISPLAY_NAME.getName(),
                 TEXT,
                 false,
                 true))
-        .addHeader(new GridHeader(ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true))
-        .addHeader(new GridHeader(ITEM_GEOMETRY, NAME_GEOMETRY, TEXT, false, true))
-        .addHeader(new GridHeader(ITEM_LONGITUDE, NAME_LONGITUDE, NUMBER, false, true))
-        .addHeader(new GridHeader(ITEM_LATITUDE, NAME_LATITUDE, NUMBER, false, true))
-        .addHeader(new GridHeader(ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true))
         .addHeader(
             new GridHeader(
-                ITEM_ORG_UNIT_NAME_HIERARCHY, NAME_ORG_UNIT_NAME_HIERARCHY, TEXT, false, true))
-        .addHeader(new GridHeader(ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true))
-        .addHeader(new GridHeader(ITEM_PROGRAM_STATUS, NAME_PROGRAM_STATUS, TEXT, false, true));
+                LAST_UPDATED_BY_DISPLAY_NAME.getItem(),
+                LAST_UPDATED_BY_DISPLAY_NAME.getName(),
+                TEXT,
+                false,
+                true))
+        .addHeader(new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.name(), DATE, false, true))
+        .addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))
+        .addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))
+        .addHeader(new GridHeader(LATITUDE.getItem(), LATITUDE.getName(), NUMBER, false, true))
+        .addHeader(
+            new GridHeader(ORG_UNIT_NAME.getItem(), ORG_UNIT_NAME.getName(), TEXT, false, true))
+        .addHeader(
+            new GridHeader(
+                ORG_UNIT_NAME_HIERARCHY.getItem(),
+                ORG_UNIT_NAME_HIERARCHY.getName(),
+                TEXT,
+                false,
+                true))
+        .addHeader(
+            new GridHeader(ORG_UNIT_CODE.getItem(), ORG_UNIT_CODE.getName(), TEXT, false, true))
+        .addHeader(
+            new GridHeader(PROGRAM_STATUS.getItem(), PROGRAM_STATUS.getName(), TEXT, false, true));
   }
 
   @Override

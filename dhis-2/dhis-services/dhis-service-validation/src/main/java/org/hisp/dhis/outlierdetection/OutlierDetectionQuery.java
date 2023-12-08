@@ -31,6 +31,7 @@ import static org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm.Z_SCORE;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import lombok.Data;
 
@@ -50,7 +51,6 @@ public class OutlierDetectionQuery {
   private Date endDate;
 
   private Set<String> ou = new HashSet<>();
-  ;
 
   private OutlierDetectionAlgorithm algorithm = Z_SCORE;
 
@@ -65,10 +65,10 @@ public class OutlierDetectionQuery {
   private Integer maxResults;
 
   /**
-   * This parameter selects the headers to be returned as part of the response. The implementation
-   * for this Set will be LinkedHashSet as the ordering is important.
+   * This parameter selects the headers to be returned in the response. We use a LinkedHashSet
+   * because the other matters.
    */
-  private Set<String> headers = new HashSet<>();
+  private Set<String> headers = new LinkedHashSet<>();
 
   public boolean hasHeaders() {
     return headers != null && !headers.isEmpty();

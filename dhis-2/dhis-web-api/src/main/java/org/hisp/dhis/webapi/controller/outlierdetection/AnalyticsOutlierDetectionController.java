@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.outlierdetection;
 
+import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
@@ -39,7 +40,6 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
@@ -85,8 +85,7 @@ public class AnalyticsOutlierDetectionController {
   public void getOutliersCsv(OutlierDetectionQuery query, HttpServletResponse response)
       throws IOException {
     OutlierDetectionRequest request = getFromQuery(query);
-    contextUtils.configureResponse(
-        response, CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE, "outlierdata.csv", true);
+    contextUtils.configureResponse(response, CONTENT_TYPE_CSV, NO_CACHE, "outlierdata.csv", true);
 
     outlierService.getOutlierValuesAsCsv(request, response.getWriter());
   }
@@ -95,7 +94,7 @@ public class AnalyticsOutlierDetectionController {
   public void getOutliersXml(OutlierDetectionQuery query, HttpServletResponse response)
       throws IOException {
     OutlierDetectionRequest request = getFromQuery(query);
-    contextUtils.configureResponse(response, CONTENT_TYPE_XML, CacheStrategy.NO_CACHE);
+    contextUtils.configureResponse(response, CONTENT_TYPE_XML, NO_CACHE);
 
     outlierService.getOutlierValuesAsXml(request, response.getOutputStream());
   }
@@ -104,8 +103,7 @@ public class AnalyticsOutlierDetectionController {
   public void getOutliersXls(OutlierDetectionQuery query, HttpServletResponse response)
       throws IOException {
     OutlierDetectionRequest request = getFromQuery(query);
-    contextUtils.configureResponse(
-        response, CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE, "outlierdata.xls", true);
+    contextUtils.configureResponse(response, CONTENT_TYPE_EXCEL, NO_CACHE, "outlierdata.xls", true);
 
     outlierService.getOutlierValuesAsXls(request, response.getOutputStream());
   }
@@ -115,7 +113,7 @@ public class AnalyticsOutlierDetectionController {
       throws IOException {
     OutlierDetectionRequest request = getFromQuery(query);
 
-    contextUtils.configureResponse(response, CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE);
+    contextUtils.configureResponse(response, CONTENT_TYPE_HTML, NO_CACHE);
 
     outlierService.getOutlierValuesAsHtml(request, response.getWriter());
   }
@@ -124,7 +122,7 @@ public class AnalyticsOutlierDetectionController {
   public void getOutliersHtmlCss(OutlierDetectionQuery query, HttpServletResponse response)
       throws IOException {
     OutlierDetectionRequest request = getFromQuery(query);
-    contextUtils.configureResponse(response, CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE);
+    contextUtils.configureResponse(response, CONTENT_TYPE_HTML, NO_CACHE);
 
     outlierService.getOutlierValuesAsHtmlCss(request, response.getWriter());
   }

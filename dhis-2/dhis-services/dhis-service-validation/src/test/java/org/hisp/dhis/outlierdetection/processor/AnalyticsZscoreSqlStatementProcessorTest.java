@@ -83,7 +83,7 @@ class AnalyticsZscoreSqlStatementProcessorTest {
             .build();
     String sql = subject.getSqlStatement(request);
     String expected =
-        "select * from (select ax.dataelementid, ax.dx, ax.ou, ax.co, ax.ao, ax.de_name, ax.ou_name, ax.coc_name, ax.aoc_name, ax.value, ax.pestartdate, ax.petype,  ax.avgmiddlevalue as middlevalue, ax.stddev, ax.mad, abs(ax.value::double precision -  ax.avgmiddlevalue) as middlevalueabsdev, (case when ax.stddev = 0 then 0       else abs(ax.value::double precision -  ax.avgmiddlevalue ) / ax.stddev        end) as zscore,  ax.avgmiddlevalue - (ax.stddev * :threshold) as lowerbound,  ax.avgmiddlevalue + (ax.stddev * :threshold) as upperbound from analytics ax where dataelementid in  (:data_element_ids) and (ax.\"path\" like '/ouabcdefghA%' or ax.\"path\" like '/ouabcdefghB%') and ax.pestartdate >= :start_date and ax.peenddate <= :end_date) t1 where t1.zscore > :threshold order by middlevalueabsdev desc limit :max_results ";
+        "select * from (select ax.dx as de_uid, ax.ou as ou_uid, ax.co as coc_uid, ax.ao as aoc_uid, ax.de_name, ax.ou_name, ax.coc_name, ax.aoc_name, ax.value, ax.pestartdate as pe_start_date, ax.petype as pt_name,  ax.avg_middle_value as middle_value, ax.std_dev, ax.mad, abs(ax.value::double precision -  ax.avg_middle_value) as middle_value_abs_dev, (case when ax.std_dev = 0 then 0       else abs(ax.value::double precision -  ax.avg_middle_value ) / ax.std_dev        end) as z_score,  ax.avg_middle_value - (ax.std_dev * :threshold) as lower_bound,  ax.avg_middle_value + (ax.std_dev * :threshold) as upper_bound from analytics ax where dataelementid in  (:data_element_ids) and (ax.\"path\" like '/ouabcdefghA%' or ax.\"path\" like '/ouabcdefghB%') and ax.pestartdate >= :start_date and ax.peenddate <= :end_date) t1 where t1.z_score > :threshold order by middle_value_abs_dev desc limit :max_results ";
     assertEquals(expected, sql);
   }
 
@@ -97,7 +97,7 @@ class AnalyticsZscoreSqlStatementProcessorTest {
             .withAlgorithm(OutlierDetectionAlgorithm.Z_SCORE)
             .build();
     String sql = subject.getSqlStatement(request);
-    assertTrue(sql.contains("avgmiddlevalue"));
+    assertTrue(sql.contains("avg_middle_value"));
   }
 
   @Test
@@ -110,7 +110,7 @@ class AnalyticsZscoreSqlStatementProcessorTest {
             .withAlgorithm(OutlierDetectionAlgorithm.MOD_Z_SCORE)
             .build();
     String sql = subject.getSqlStatement(request);
-    assertTrue(sql.contains("percentilemiddlevalue"));
+    assertTrue(sql.contains("percentile_middle_value"));
   }
 
   @Test

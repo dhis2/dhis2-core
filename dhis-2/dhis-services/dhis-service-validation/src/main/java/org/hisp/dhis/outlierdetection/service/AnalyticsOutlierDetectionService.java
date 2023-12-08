@@ -27,6 +27,22 @@
  */
 package org.hisp.dhis.outlierdetection.service;
 
+import static org.hisp.dhis.analytics.common.ColumnHeader.ABSOLUTE_DEVIATION;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ATTRIBUTE_OPTION_COMBO;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ATTRIBUTE_OPTION_COMBO_NAME;
+import static org.hisp.dhis.analytics.common.ColumnHeader.CATEGORY_OPTION_COMBO;
+import static org.hisp.dhis.analytics.common.ColumnHeader.CATEGORY_OPTION_COMBO_NAME;
+import static org.hisp.dhis.analytics.common.ColumnHeader.DIMENSION;
+import static org.hisp.dhis.analytics.common.ColumnHeader.DIMENSION_NAME;
+import static org.hisp.dhis.analytics.common.ColumnHeader.LOWER_BOUNDARY;
+import static org.hisp.dhis.analytics.common.ColumnHeader.MEDIAN;
+import static org.hisp.dhis.analytics.common.ColumnHeader.MEDIAN_ABS_DEVIATION;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.common.ColumnHeader.PERIOD;
+import static org.hisp.dhis.analytics.common.ColumnHeader.STANDARD_DEVIATION;
+import static org.hisp.dhis.analytics.common.ColumnHeader.UPPER_BOUNDARY;
+import static org.hisp.dhis.analytics.common.ColumnHeader.VALUE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm.MOD_Z_SCORE;
@@ -37,6 +53,7 @@ import java.io.Writer;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -129,22 +146,56 @@ public class AnalyticsOutlierDetectionService {
   private void setHeaders(Grid grid, OutlierDetectionRequest request) {
     boolean isModifiedZScore = request.getAlgorithm() == MOD_Z_SCORE;
 
-    grid.addHeader(new GridHeader("dx", TEXT));
-    grid.addHeader(new GridHeader("dxname", TEXT));
-    grid.addHeader(new GridHeader("pe", TEXT));
-    grid.addHeader(new GridHeader("ou", TEXT));
-    grid.addHeader(new GridHeader("ouname", TEXT));
-    grid.addHeader(new GridHeader("co", TEXT));
-    grid.addHeader(new GridHeader("coname", TEXT));
-    grid.addHeader(new GridHeader("ao", TEXT));
-    grid.addHeader(new GridHeader("aoname", TEXT));
-    grid.addHeader(new GridHeader("value", NUMBER));
-    grid.addHeader(new GridHeader(isModifiedZScore ? "median" : "mean", NUMBER));
-    grid.addHeader(new GridHeader(isModifiedZScore ? "medianabsdeviation" : "stddev", NUMBER));
-    grid.addHeader(new GridHeader("absdev", NUMBER));
+    String meanOrMedianItem = isModifiedZScore ? MEDIAN.getItem() : ColumnHeader.MEAN.getItem();
+    String meanOrMedianName = isModifiedZScore ? MEDIAN.getName() : ColumnHeader.MEAN.getName();
+
+    String deviationItem =
+        isModifiedZScore ? MEDIAN_ABS_DEVIATION.getItem() : STANDARD_DEVIATION.getItem();
+    String deviationName =
+        isModifiedZScore ? MEDIAN_ABS_DEVIATION.getName() : STANDARD_DEVIATION.getName();
+
+    grid.addHeader(new GridHeader(DIMENSION.getItem(), DIMENSION.getName(), TEXT, false, false));
+    grid.addHeader(
+        new GridHeader(DIMENSION_NAME.getItem(), DIMENSION_NAME.getName(), TEXT, false, false));
+    grid.addHeader(new GridHeader(PERIOD.getItem(), PERIOD.getName(), TEXT, false, false));
+    grid.addHeader(new GridHeader(ORG_UNIT.getItem(), ORG_UNIT.getName(), TEXT, false, false));
+    grid.addHeader(
+        new GridHeader(ORG_UNIT_NAME.getItem(), ORG_UNIT_NAME.getName(), TEXT, false, false));
+    grid.addHeader(
+        new GridHeader(
+            CATEGORY_OPTION_COMBO.getItem(), CATEGORY_OPTION_COMBO.getName(), TEXT, false, false));
+    grid.addHeader(
+        new GridHeader(
+            CATEGORY_OPTION_COMBO_NAME.getItem(),
+            CATEGORY_OPTION_COMBO_NAME.getName(),
+            TEXT,
+            false,
+            false));
+    grid.addHeader(
+        new GridHeader(
+            ATTRIBUTE_OPTION_COMBO.getItem(),
+            ATTRIBUTE_OPTION_COMBO.getName(),
+            TEXT,
+            false,
+            false));
+    grid.addHeader(
+        new GridHeader(
+            ATTRIBUTE_OPTION_COMBO_NAME.getItem(),
+            ATTRIBUTE_OPTION_COMBO_NAME.getName(),
+            TEXT,
+            false,
+            false));
+    grid.addHeader(new GridHeader(VALUE.getItem(), VALUE.getName(), NUMBER, false, false));
+    grid.addHeader(new GridHeader(meanOrMedianItem, meanOrMedianName, NUMBER, false, false));
+    grid.addHeader(new GridHeader(deviationItem, deviationName, NUMBER, false, false));
+    grid.addHeader(
+        new GridHeader(
+            ABSOLUTE_DEVIATION.getItem(), ABSOLUTE_DEVIATION.getName(), NUMBER, false, false));
     grid.addHeader(new GridHeader(isModifiedZScore ? "modifiedzscore" : "zscore", NUMBER));
-    grid.addHeader(new GridHeader("lowerbound", NUMBER));
-    grid.addHeader(new GridHeader("upperbound", NUMBER));
+    grid.addHeader(
+        new GridHeader(LOWER_BOUNDARY.getItem(), LOWER_BOUNDARY.getName(), NUMBER, false, false));
+    grid.addHeader(
+        new GridHeader(UPPER_BOUNDARY.getItem(), UPPER_BOUNDARY.getName(), NUMBER, false, false));
   }
 
   private void setMetaData(

@@ -95,17 +95,17 @@ public abstract class AbstractOutlierDetectionManager {
    * @throws SQLException
    */
   protected OutlierValue getOutlierValue(Calendar calendar, ResultSet rs) throws SQLException {
-    String isoPeriod = getIsoPeriod(calendar, rs.getString("petype"), rs.getDate("pestartdate"));
+    String isoPeriod = getIsoPeriod(calendar, rs.getString("pt_name"), rs.getDate("pe_start_date"));
 
     OutlierValue outlier = new OutlierValue();
-    outlier.setDe(rs.getString("dx"));
+    outlier.setDe(rs.getString("de_uid"));
     outlier.setDeName(rs.getString("de_name"));
     outlier.setPe(isoPeriod);
-    outlier.setOu(rs.getString("ou"));
+    outlier.setOu(rs.getString("ou_uid"));
     outlier.setOuName(rs.getString("ou_name"));
-    outlier.setCoc(rs.getString("co"));
+    outlier.setCoc(rs.getString("coc_uid"));
     outlier.setCocName(rs.getString("coc_name"));
-    outlier.setAoc(rs.getString("ao"));
+    outlier.setAoc(rs.getString("aoc_uid"));
     outlier.setAocName(rs.getString("aoc_name"));
     outlier.setValue(rs.getDouble("value"));
 
@@ -123,14 +123,14 @@ public abstract class AbstractOutlierDetectionManager {
   protected void addZScoreBasedParamsToOutlierValue(
       OutlierValue outlierValue, ResultSet rs, boolean modifiedZ) throws SQLException {
     if (modifiedZ) {
-      outlierValue.setMedian(rs.getDouble("middlevalue"));
+      outlierValue.setMedian(rs.getDouble("middle_value"));
     } else {
-      outlierValue.setMean(rs.getDouble("middlevalue"));
+      outlierValue.setMean(rs.getDouble("middle_value"));
     }
 
-    outlierValue.setAbsDev(rs.getDouble("middlevalueabsdev"));
-    outlierValue.setZScore(outlierValue.getStdDev() == 0 ? NaN : rs.getDouble("zscore"));
-    outlierValue.setLowerBound(rs.getDouble("lowerbound"));
-    outlierValue.setUpperBound(rs.getDouble("upperbound"));
+    outlierValue.setAbsDev(rs.getDouble("middle_value_abs_dev"));
+    outlierValue.setZScore(outlierValue.getStdDev() == 0 ? NaN : rs.getDouble("z_score"));
+    outlierValue.setLowerBound(rs.getDouble("lower_bound"));
+    outlierValue.setUpperBound(rs.getDouble("upper_bound"));
   }
 }
