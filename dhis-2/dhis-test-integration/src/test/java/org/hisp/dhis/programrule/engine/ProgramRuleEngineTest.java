@@ -855,6 +855,8 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     ProgramRuleAction programRuleActionAssignValueAge = createProgramRuleAction('P', programRuleA2);
     programRuleActionAssignValueAge.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
     programRuleActionAssignValueAge.setData(" d2:yearsBetween(#{AGE}, V{event_date})");
+    programRuleActionAssignValueAge.setTemplateUid(pnt.getUid());
+    programRuleActionAssignValueAge.setContent("STATIC-TEXT");
     programRuleActionService.addProgramRuleAction(programRuleActionAssignValueAge);
     programRuleA2.setProgramRuleActions(Sets.newHashSet(programRuleActionAssignValueAge));
     programRuleService.updateProgramRule(programRuleA2);

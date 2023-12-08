@@ -89,18 +89,16 @@ class RuleActionEnrollmentMapper {
                 buildEnrollmentRuleActionExecutor(
                     effect.getRuleId(), effect.data(), effect.ruleAction(), attributes))
         .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private RuleActionExecutor<Enrollment> buildEnrollmentRuleActionExecutor(
       String ruleId, String data, RuleAction ruleAction, List<Attribute> attributes) {
-    if (ruleAction instanceof RuleActionAssign) {
-      RuleActionAssign action = (RuleActionAssign) ruleAction;
+    if (ruleAction instanceof RuleActionAssign action) {
       return new AssignAttributeExecutor(
           systemSettingManager, ruleId, data, action.getField(), attributes);
     }
-    if (ruleAction instanceof RuleActionSetMandatoryField) {
-      RuleActionSetMandatoryField action = (RuleActionSetMandatoryField) ruleAction;
+    if (ruleAction instanceof RuleActionSetMandatoryField action) {
       return new SetMandatoryFieldExecutor(ruleId, action.getField());
     }
     if (ruleAction instanceof RuleActionMessage action

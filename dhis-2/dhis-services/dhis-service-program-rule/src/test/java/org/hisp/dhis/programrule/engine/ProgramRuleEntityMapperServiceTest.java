@@ -217,14 +217,14 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     assertEquals(ruleEvent.organisationUnit(), eventA.getOrganisationUnit().getUid());
     assertEquals(ruleEvent.organisationUnitCode(), eventA.getOrganisationUnit().getCode());
     assertEquals(ruleEvent.programStageName(), eventA.getProgramStage().getName());
-    assertEquals(ruleEvent.dataValues().size(), 1);
+    assertEquals(1, ruleEvent.dataValues().size());
 
     RuleDataValue ruleDataValue = ruleEvent.dataValues().get(0);
 
     assertEquals(ruleDataValue.getDataElement(), dataElement.getUid());
     assertEquals(ruleDataValue.getEventDate(), ruleEvent.eventDate());
     assertEquals(ruleDataValue.getProgramStage(), eventA.getProgramStage().getUid());
-    assertEquals(ruleDataValue.getValue(), SAMPLE_VALUE_A);
+    assertEquals(SAMPLE_VALUE_A, ruleDataValue.getValue());
   }
 
   @Test
@@ -232,7 +232,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     List<RuleEvent> ruleEvents =
         subject.toMappedRuleEvents(Sets.newHashSet(eventA, eventB), eventA);
 
-    assertEquals(ruleEvents.size(), 1);
+    assertEquals(1, ruleEvents.size());
     RuleEvent ruleEvent = ruleEvents.get(0);
 
     assertEquals(ruleEvent.event(), eventB.getUid());
@@ -240,21 +240,21 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     assertEquals(ruleEvent.organisationUnit(), eventB.getOrganisationUnit().getUid());
     assertEquals(ruleEvent.organisationUnitCode(), eventB.getOrganisationUnit().getCode());
     assertEquals(ruleEvent.programStageName(), eventB.getProgramStage().getName());
-    assertEquals(ruleEvent.dataValues().size(), 1);
+    assertEquals(1, ruleEvent.dataValues().size());
 
     RuleDataValue ruleDataValue = ruleEvent.dataValues().get(0);
 
     assertEquals(ruleDataValue.getDataElement(), dataElement.getUid());
     assertEquals(ruleDataValue.getEventDate(), ruleEvent.eventDate());
     assertEquals(ruleDataValue.getProgramStage(), eventB.getProgramStage().getUid());
-    assertEquals(ruleDataValue.getValue(), SAMPLE_VALUE_B);
+    assertEquals(SAMPLE_VALUE_B, ruleDataValue.getValue());
   }
 
   @Test
   void testMappedRuleEvents() {
     List<RuleEvent> ruleEvents = subject.toMappedRuleEvents(Sets.newHashSet(eventA, eventB), null);
 
-    assertEquals(ruleEvents.size(), 2);
+    assertEquals(2, ruleEvents.size());
   }
 
   @Test
@@ -272,8 +272,8 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
 
     assertEquals(ruleEnrollment.getEnrollment(), enrollment.getUid());
     assertEquals(ruleEnrollment.getOrganisationUnit(), enrollment.getOrganisationUnit().getUid());
-    assertEquals(ruleEnrollment.getAttributeValues().size(), 1);
-    assertEquals(ruleEnrollment.getAttributeValues().get(0).getValue(), SAMPLE_VALUE_A);
+    assertEquals(1, ruleEnrollment.getAttributeValues().size());
+    assertEquals(SAMPLE_VALUE_A, ruleEnrollment.getAttributeValues().get(0).getValue());
   }
 
   @Test
@@ -317,7 +317,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
             programRuleVariableC.getDataElement().getName()));
 
     assertTrue(itemStore.containsKey(constant.getUid()));
-    assertEquals(itemStore.get(constant.getUid()).getDisplayName(), "Gravity");
+    assertEquals("Gravity", itemStore.get(constant.getUid()).getDisplayName());
   }
 
   private void setUpProgramRules() {

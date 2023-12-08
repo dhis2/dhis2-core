@@ -627,29 +627,41 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     if (ProgramRuleActionType.DISPLAYTEXT.equals(programRuleAction.getProgramRuleActionType())) {
       if (LOCATION_FEEDBACK.equals(programRuleAction.getLocation())) {
         return RuleActionText.Companion.createForFeedback(
-            programRuleAction.getContent(), programRuleAction.getData());
+            RuleActionText.Type.DISPLAYTEXT,
+            programRuleAction.getContent(),
+            programRuleAction.getData());
       }
 
       if (LOCATION_INDICATOR.equals(programRuleAction.getLocation())) {
         return RuleActionText.Companion.createForIndicators(
-            programRuleAction.getContent(), programRuleAction.getData());
+            RuleActionText.Type.DISPLAYTEXT,
+            programRuleAction.getContent(),
+            programRuleAction.getData());
       }
 
       return RuleActionText.Companion.createForFeedback(
-          programRuleAction.getContent(), programRuleAction.getData());
+          RuleActionText.Type.DISPLAYTEXT,
+          programRuleAction.getContent(),
+          programRuleAction.getData());
     } else {
       if (LOCATION_FEEDBACK.equals(programRuleAction.getLocation())) {
         return RuleActionText.Companion.createForFeedback(
-            programRuleAction.getContent(), programRuleAction.getData());
+            RuleActionText.Type.DISPLAYKEYVALUEPAIR,
+            programRuleAction.getContent(),
+            programRuleAction.getData());
       }
 
       if (LOCATION_INDICATOR.equals(programRuleAction.getLocation())) {
         return RuleActionText.Companion.createForIndicators(
-            programRuleAction.getContent(), programRuleAction.getData());
+            RuleActionText.Type.DISPLAYKEYVALUEPAIR,
+            programRuleAction.getContent(),
+            programRuleAction.getData());
       }
 
       return RuleActionText.Companion.createForFeedback(
-          programRuleAction.getContent(), programRuleAction.getData());
+          RuleActionText.Type.DISPLAYKEYVALUEPAIR,
+          programRuleAction.getContent(),
+          programRuleAction.getData());
     }
   }
 

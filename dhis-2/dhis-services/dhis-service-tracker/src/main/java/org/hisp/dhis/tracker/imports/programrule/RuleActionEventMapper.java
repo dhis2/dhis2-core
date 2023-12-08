@@ -90,18 +90,16 @@ class RuleActionEventMapper {
         .filter(
             executor -> isDataElementPartOfProgramStage(executor.getDataElementUid(), programStage))
         .filter(executor -> needsToValidateDataValues(event, programStage))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private RuleActionExecutor<Event> buildEventRuleActionExecutor(
       String ruleId, String data, RuleAction ruleAction, Set<DataValue> dataValues) {
-    if (ruleAction instanceof RuleActionAssign) {
-      RuleActionAssign action = (RuleActionAssign) ruleAction;
+    if (ruleAction instanceof RuleActionAssign action) {
       return new AssignDataValueExecutor(
           systemSettingManager, ruleId, data, action.getField(), dataValues);
     }
-    if (ruleAction instanceof RuleActionSetMandatoryField) {
-      RuleActionSetMandatoryField action = (RuleActionSetMandatoryField) ruleAction;
+    if (ruleAction instanceof RuleActionSetMandatoryField action) {
       return new SetMandatoryFieldExecutor(ruleId, action.getField());
     }
     if (ruleAction instanceof RuleActionMessage action
