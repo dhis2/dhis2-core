@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.export.enrollment;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -101,7 +102,7 @@ class DefaultEnrollmentService
       throws ForbiddenException {
     User user = currentUserService.getCurrentUser();
     List<String> errors = trackerAccessManager.canRead(user, enrollment, false);
-    if (!errors.isEmpty()) {
+    if (!errors.isEmpty() && !user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
       throw new ForbiddenException(errors.toString());
     }
 
@@ -277,45 +278,36 @@ class DefaultEnrollmentService
   }
 
   public void validate(EnrollmentQueryParams params) throws IllegalQueryException {
-    String violation = null;
-
-    if (params == null) {
-      throw new IllegalQueryException("Params cannot be null");
-    }
-
     if (params.hasProgram() && params.hasTrackedEntityType()) {
-      violation = "Program and tracked entity cannot be specified simultaneously";
+      throw new IllegalQueryException(
+          "Program and tracked entity cannot be specified simultaneously");
     }
 
     if (params.hasProgramStatus() && !params.hasProgram()) {
-      violation = "Program must be defined when program status is defined";
+      throw new IllegalQueryException("Program must be defined when program status is defined");
     }
 
     if (params.hasFollowUp() && !params.hasProgram()) {
-      violation = "Program must be defined when follow up status is defined";
+      throw new IllegalQueryException("Program must be defined when follow up status is defined");
     }
 
     if (params.hasProgramStartDate() && !params.hasProgram()) {
-      violation = "Program must be defined when program start date is specified";
+      throw new IllegalQueryException(
+          "Program must be defined when program start date is specified");
     }
 
     if (params.hasProgramEndDate() && !params.hasProgram()) {
-      violation = "Program must be defined when program end date is specified";
+      throw new IllegalQueryException("Program must be defined when program end date is specified");
     }
 
     if (params.hasLastUpdated() && params.hasLastUpdatedDuration()) {
-      violation = "Last updated and last updated duration cannot be specified simultaneously";
+      throw new IllegalQueryException(
+          "Last updated and last updated duration cannot be specified simultaneously");
     }
 
     if (params.hasLastUpdatedDuration()
         && DateUtils.getDuration(params.getLastUpdatedDuration()) == null) {
-      violation = "Duration is not valid: " + params.getLastUpdatedDuration();
-    }
-
-    if (violation != null) {
-      log.warn("Validation failed: " + violation);
-
-      throw new IllegalQueryException(violation);
+      throw new IllegalQueryException("Duration is not valid: " + params.getLastUpdatedDuration());
     }
   }
 
@@ -327,8 +319,9 @@ class DefaultEnrollmentService
 
     for (Enrollment enrollment : enrollments) {
       if (enrollment != null
-          && trackerOwnershipAccessManager.hasAccess(
-              user, enrollment.getTrackedEntity(), enrollment.getProgram())) {
+          && (trackerOwnershipAccessManager.hasAccess(
+                  user, enrollment.getTrackedEntity(), enrollment.getProgram())
+              || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS))) {
         enrollmentList.add(getEnrollment(enrollment, params, includeDeleted));
       }
     }

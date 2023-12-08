@@ -146,7 +146,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
         createAndAddUser(
             false,
             "test user",
-            Set.of(orgUnitA, orgUnitB, orgUnitC),
+            emptySet(),
             emptySet(),
             "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
 
@@ -650,8 +650,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void shouldReturnAllEnrollmentsWhenModeAllAndUserAuthorizedAndInSearchScope()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+  void shouldReturnAllEnrollmentsInTheSystemWhenModeAllAndUserAuthorized()
+      throws ForbiddenException, BadRequestException {
 
     injectSecurityContext(authorizedUser);
 
