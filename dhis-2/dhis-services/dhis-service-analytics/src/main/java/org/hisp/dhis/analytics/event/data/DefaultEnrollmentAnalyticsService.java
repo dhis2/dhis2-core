@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.common.ColumnHeader.CREATED_BY_DISPLAY_NAME;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ENROLLMENT;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ENROLLMENT_DATE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.GEOMETRY;
 import static org.hisp.dhis.analytics.common.ColumnHeader.INCIDENT_DATE;
@@ -41,7 +42,6 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_CODE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME_HIERARCHY;
-import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_INSTANCE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.common.ColumnHeader.STORED_BY;
 import static org.hisp.dhis.analytics.common.ColumnHeader.TEI;
@@ -115,7 +115,7 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
     return new ListGrid()
         .addHeader(
             new GridHeader(
-                PROGRAM_INSTANCE.getItem(), PROGRAM_INSTANCE.getName(), TEXT, false, true))
+                ENROLLMENT.getItem(), ENROLLMENT.getName(), TEXT, false, true))
         .addHeader(new GridHeader(TEI.getItem(), TEI.getName(), TEXT, false, true))
         .addHeader(
             new GridHeader(
