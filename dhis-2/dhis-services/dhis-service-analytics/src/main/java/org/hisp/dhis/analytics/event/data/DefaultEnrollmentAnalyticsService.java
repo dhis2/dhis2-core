@@ -113,9 +113,7 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
     }
 
     return new ListGrid()
-        .addHeader(
-            new GridHeader(
-                ENROLLMENT.getItem(), ENROLLMENT.getName(), TEXT, false, true))
+        .addHeader(new GridHeader(ENROLLMENT.getItem(), ENROLLMENT.getName(), TEXT, false, true))
         .addHeader(new GridHeader(TEI.getItem(), TEI.getName(), TEXT, false, true))
         .addHeader(
             new GridHeader(
