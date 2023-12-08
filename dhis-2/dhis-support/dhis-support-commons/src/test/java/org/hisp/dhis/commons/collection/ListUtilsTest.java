@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.sideeffect;
+package org.hisp.dhis.commons.collection;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Interface represents DHIS2 objects equivalent to rule engine objects.
- *
- * @author Zubair Asghar
- */
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes({
-  @JsonSubTypes.Type(
-      value = TrackerSendMessageSideEffect.class,
-      name = "TrackerSendMessageSideEffect"),
-  @JsonSubTypes.Type(
-      value = TrackerScheduleMessageSideEffect.class,
-      name = "TrackerScheduleMessageSideEffect"),
-  @JsonSubTypes.Type(
-      value = TrackerAssignValueSideEffect.class,
-      name = "TrackerAssignValueSideEffect")
-})
-public interface TrackerRuleEngineSideEffect {
-  String getData();
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+class ListUtilsTest {
+  @Test
+  void testDistinctUnion() {
+    List<String> listA = List.of("One", "Two", "Three");
+    List<String> listB = List.of("One", "Three", "Four");
+    List<String> listC = List.of("Three", "Five");
+
+    List<String> union = List.of("One", "Two", "Three", "Four", "Five");
+
+    assertEquals(union, ListUtils.distinctUnion(listA, listB, listC));
+  }
 }
