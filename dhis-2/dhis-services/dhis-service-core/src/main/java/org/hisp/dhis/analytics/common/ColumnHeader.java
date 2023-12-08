@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.common;
 
+/** Keeps the association between an "item" abbreviation and its respective name. */
 public enum ColumnHeader {
   TEI("tei", "Tracked entity instance"),
   GEOMETRY("geometry", "Geometry"),
@@ -41,7 +42,6 @@ public enum ColumnHeader {
   ORG_UNIT_NAME("ouname", "Organisation unit name"),
   ORG_UNIT_NAME_HIERARCHY("ounamehierarchy", "Organisation unit name hierarchy"),
   ORG_UNIT_CODE("oucode", "Organisation unit code"),
-
   ORG_UNIT("ou", "Organisation unit"),
   PROGRAM_STATUS("programstatus", "Program status"),
   EVENT("psi", "Event"),
@@ -54,7 +54,6 @@ public enum ColumnHeader {
   EXTENT("extent", "Extent"),
   POINTS("points", "Points"),
   EVENT_STATUS("eventstatus", "Event status"),
-
   DIMENSION("dx", "Data"),
   DIMENSION_NAME("dxname", "Event status"),
   PERIOD("pe", "Event status"),
