@@ -86,10 +86,9 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleActionMessage;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
-import org.hisp.dhis.rules.models.RuleActionShowError;
-import org.hisp.dhis.rules.models.RuleActionShowWarning;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -289,7 +288,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     RuleAction ruleAction = ruleEffects.get(0).ruleAction();
     assertInstanceOf(RuleActionSendMessage.class, ruleAction);
     RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-    assertEquals("PNT-1", ruleActionSendMessage.notification());
+    assertEquals("PNT-1", ruleActionSendMessage.getNotification());
   }
 
   @Test
@@ -306,7 +305,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     RuleAction ruleAction = enrollmentRuleEffects.getRuleEffects().get(0).ruleAction();
     assertInstanceOf(RuleActionSendMessage.class, ruleAction);
     RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-    assertEquals("PNT-1", ruleActionSendMessage.notification());
+    assertEquals("PNT-1", ruleActionSendMessage.getNotification());
   }
 
   @Test
@@ -319,7 +318,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     RuleAction ruleAction = ruleEffects.get(0).ruleAction();
     assertInstanceOf(RuleActionSendMessage.class, ruleAction);
     RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-    assertEquals("PNT-2", ruleActionSendMessage.notification());
+    assertEquals("PNT-2", ruleActionSendMessage.getNotification());
     ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid("PNT-2");
     assertNotNull(template);
     assertEquals(NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger());
@@ -342,7 +341,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     RuleAction ruleAction = enrollmentRuleEffects.getRuleEffects().get(0).ruleAction();
     assertInstanceOf(RuleActionSendMessage.class, ruleAction);
     RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-    assertEquals("PNT-2", ruleActionSendMessage.notification());
+    assertEquals("PNT-2", ruleActionSendMessage.getNotification());
     ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid("PNT-2");
     assertNotNull(template);
     assertEquals(NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger());
@@ -362,7 +361,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     RuleAction ruleAction = ruleEffects.get(0).ruleAction();
     assertInstanceOf(RuleActionSendMessage.class, ruleAction);
     RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-    assertEquals("PNT-1", ruleActionSendMessage.notification());
+    assertEquals("PNT-1", ruleActionSendMessage.getNotification());
     ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid("PNT-1");
     assertNotNull(template);
     assertEquals(NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger());
@@ -388,7 +387,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     assertInstanceOf(RuleActionSendMessage.class, eventRuleAction);
     assertInstanceOf(RuleActionSendMessage.class, enrollmentRuleAction);
     RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) eventRuleAction;
-    assertEquals("PNT-1", ruleActionSendMessage.notification());
+    assertEquals("PNT-1", ruleActionSendMessage.getNotification());
     ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid("PNT-1");
     assertNotNull(template);
     assertEquals(NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger());
@@ -406,7 +405,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     RuleAction ruleAction = ruleEffects.get(0).ruleAction();
     assertInstanceOf(RuleActionScheduleMessage.class, ruleAction);
     RuleActionScheduleMessage ruleActionScheduleMessage = (RuleActionScheduleMessage) ruleAction;
-    assertEquals("PNT-1-SCH", ruleActionScheduleMessage.notification());
+    assertEquals("PNT-1-SCH", ruleActionScheduleMessage.getNotification());
     assertEquals(scheduledDate, ruleEffects.get(0).data());
     // For duplication detection
     List<RuleEffect> ruleEffects2 =
@@ -416,7 +415,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     RuleActionScheduleMessage ruleActionScheduleMessage2 =
         (RuleActionScheduleMessage) ruleEffects2.get(0).ruleAction();
     assertNotNull(
-        programNotificationTemplateStore.getByUid(ruleActionScheduleMessage2.notification()));
+        programNotificationTemplateStore.getByUid(ruleActionScheduleMessage2.getNotification()));
     assertEquals(
         1,
         programNotificationInstanceService
@@ -436,7 +435,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     RuleAction ruleAction = ruleEffects.get(0).ruleAction();
     assertInstanceOf(RuleActionScheduleMessage.class, ruleAction);
     RuleActionScheduleMessage ruleActionScheduleMessage = (RuleActionScheduleMessage) ruleAction;
-    assertEquals("PNT-1-SCH", ruleActionScheduleMessage.notification());
+    assertEquals("PNT-1-SCH", ruleActionScheduleMessage.getNotification());
     assertEquals(scheduledDate, ruleEffects.get(0).data());
     List<RuleEffect> ruleEffects2 =
         programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollment.getId());
@@ -445,7 +444,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     RuleActionScheduleMessage ruleActionScheduleMessage2 =
         (RuleActionScheduleMessage) ruleEffects2.get(0).ruleAction();
     assertNotNull(
-        programNotificationTemplateStore.getByUid(ruleActionScheduleMessage2.notification()));
+        programNotificationTemplateStore.getByUid(ruleActionScheduleMessage2.getNotification()));
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(
             ProgramNotificationInstanceParam.builder().enrollment(enrollment).build());
@@ -517,7 +516,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
             event.getEnrollment(), event, Sets.newHashSet(), List.of(programRuleToTestOptionSet));
 
     assertNotNull(ruleEffects);
-    assertInstanceOf(RuleActionShowWarning.class, ruleEffects.get(0).ruleAction());
+    assertInstanceOf(RuleActionMessage.class, ruleEffects.get(0).ruleAction());
     assertThat(ruleEffects.get(0).data(), Matchers.is(option1.getName()));
   }
 
@@ -531,7 +530,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
             event.getEnrollment(), event, Sets.newHashSet(), List.of(programRuleToTestOptionSet));
 
     assertNotNull(ruleEffects);
-    assertInstanceOf(RuleActionShowError.class, ruleEffects.get(0).ruleAction());
+    assertInstanceOf(RuleActionMessage.class, ruleEffects.get(0).ruleAction());
     assertThat(ruleEffects.get(0).data(), Matchers.is(option1.getCode()));
   }
 
@@ -840,6 +839,8 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
         createProgramRuleAction('P', programRuleA2);
     programRuleActionAssignValueDate.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
     programRuleActionAssignValueDate.setData(" d2:yearsBetween(#{DOB}, V{event_date})");
+    programRuleActionAssignValueDate.setTemplateUid(pnt.getUid());
+    programRuleActionAssignValueDate.setContent("STATIC-TEXT");
     programRuleActionService.addProgramRuleAction(programRuleActionAssignValueDate);
     programRuleA2.setProgramRuleActions(Sets.newHashSet(programRuleActionAssignValueDate));
     programRuleA2.setCondition(" d2:hasValue(#{DOB})");

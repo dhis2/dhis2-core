@@ -157,7 +157,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
         .implement(any(), any(Enrollment.class));
 
     List<RuleEffect> effects = new ArrayList<>();
-    effects.add(RuleEffect.create("", RuleActionSendMessage.create(NOTIFICATION_UID, DATA)));
+    effects.add(new RuleEffect("", new RuleActionSendMessage(NOTIFICATION_UID, DATA), ""));
 
     when(enrollmentService.getEnrollment(anyLong())).thenReturn(enrollment);
     when(programRuleEngine.evaluate(any(), any(), any())).thenReturn(effects);
@@ -175,7 +175,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     if (action instanceof RuleActionSendMessage) {
       RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) action;
 
-      assertEquals(NOTIFICATION_UID, ruleActionSendMessage.notification());
+      assertEquals(NOTIFICATION_UID, ruleActionSendMessage.getNotification());
     }
 
     verify(programRuleEngine, times(1)).evaluate(argumentCaptor.capture(), any(), any());
@@ -199,7 +199,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
         .implement(any(), any(Event.class));
 
     List<RuleEffect> effects = new ArrayList<>();
-    effects.add(RuleEffect.create("", RuleActionSendMessage.create(NOTIFICATION_UID, DATA)));
+    effects.add(new RuleEffect("", new RuleActionSendMessage(NOTIFICATION_UID, DATA), ""));
 
     when(eventService.getEvent(anyString())).thenReturn(event);
     when(enrollmentService.getEnrollment(anyLong())).thenReturn(enrollment);
@@ -234,7 +234,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
         .implement(any(), any(Event.class));
 
     List<RuleEffect> effects = new ArrayList<>();
-    effects.add(RuleEffect.create("", RuleActionSendMessage.create(NOTIFICATION_UID, DATA)));
+    effects.add(new RuleEffect("", new RuleActionSendMessage(NOTIFICATION_UID, DATA), ""));
     Program program = createProgram('A');
     program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     ProgramStage programStage = createProgramStage('A', program);
@@ -283,12 +283,12 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
 
   @Test
   void testGetDescription() {
-    RuleValidationResult result = RuleValidationResult.builder().isValid(true).build();
+    RuleValidationResult result = new RuleValidationResult(true, null, null, null);
     when(programRuleService.getProgramRule(anyString())).thenReturn(programRuleA);
     when(programRuleEngine.getDescription(programRuleA.getCondition(), program)).thenReturn(result);
 
     assertNotNull(result);
-    assertTrue(result.isValid());
+    assertTrue(result.getValid());
   }
 
   // -------------------------------------------------------------------------

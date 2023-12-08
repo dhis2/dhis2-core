@@ -153,7 +153,7 @@ public class ProgramRuleEngine {
     try {
       RuleEngine ruleEngine =
           getRuleEngine(program, enrollment, trackedEntityAttributeValues, ruleEvents, rules);
-      return ruleEngine.evaluate().call();
+      return ruleEngine.evaluate();
     } catch (Exception e) {
       log.error(DebugUtils.getStackTrace(e));
       return Collections.emptyList();
@@ -168,17 +168,11 @@ public class ProgramRuleEngine {
       List<ProgramRule> programRules) {
     RuleEnrollment ruleEnrollment = getRuleEnrollment(enrollment, trackedEntityAttributeValues);
 
-    RuleEngine.Builder builder =
-        getRuleEngineContext(program, programRules)
-            .toEngineBuilder()
-            .triggerEnvironment(TriggerEnvironment.SERVER)
-            .events(ruleEvents);
-
-    if (ruleEnrollment != null) {
-      builder.enrollment(ruleEnrollment);
-    }
-
-    return builder.build();
+    return new RuleEngine(
+        getRuleEngineContext(program, programRules),
+        ruleEvents,
+        ruleEnrollment,
+        TriggerEnvironment.SERVER);
   }
 
   public List<ProgramRule> getProgramRules(Program program, List<ProgramStage> programStage) {
@@ -208,7 +202,7 @@ public class ProgramRuleEngine {
   public RuleValidationResult getDescription(String condition, Program program) {
     if (program == null) {
       log.error(ERROR);
-      return RuleValidationResult.builder().isValid(false).errorMessage(ERROR).build();
+      return new RuleValidationResult(false, ERROR, null, null);
     }
 
     return loadRuleEngineForDescription(program).evaluate(condition);
@@ -224,7 +218,7 @@ public class ProgramRuleEngine {
   public RuleValidationResult getDataExpressionDescription(String dataExpression, Program program) {
     if (program == null) {
       log.error(ERROR);
-      return RuleValidationResult.builder().isValid(false).errorMessage(ERROR).build();
+      return new RuleValidationResult(false, ERROR, null, null);
     }
 
     return loadRuleEngineForDescription(program).evaluateDataFieldExpression(dataExpression);
@@ -234,9 +228,11 @@ public class ProgramRuleEngine {
     List<ProgramRuleVariable> programRuleVariables =
         programRuleVariableService.getProgramRuleVariable(program);
 
-    return ruleEngineBuilder(
-            ListUtils.newList(), programRuleVariables, RuleEngineIntent.DESCRIPTION)
-        .build();
+    return new RuleEngine(
+        ruleEngineBuilder(ListUtils.newList(), programRuleVariables, RuleEngineIntent.DESCRIPTION),
+        List.of(),
+        null,
+        TriggerEnvironment.SERVER);
   }
 
   private RuleEngineContext getRuleEngineContext(Program program, List<ProgramRule> programRules) {
@@ -251,16 +247,16 @@ public class ProgramRuleEngine {
     Map<String, List<String>> supplementaryData =
         supplementaryDataProvider.getSupplementaryData(programRules);
 
-    return RuleEngineContext.builder()
-        .supplementaryData(supplementaryData)
-        .rules(programRuleEntityMapperService.toMappedProgramRules(programRules))
-        .ruleVariables(
-            programRuleEntityMapperService.toMappedProgramRuleVariables(programRuleVariables))
-        .constantsValue(constantMap)
-        .build();
+    return new RuleEngineContext(
+        programRuleEntityMapperService.toMappedProgramRules(programRules),
+        programRuleEntityMapperService.toMappedProgramRuleVariables(programRuleVariables),
+        supplementaryData,
+        constantMap,
+        RuleEngineIntent.EVALUATION,
+        Map.of());
   }
 
-  private RuleEngine.Builder ruleEngineBuilder(
+  private RuleEngineContext ruleEngineBuilder(
       List<ProgramRule> programRules,
       List<ProgramRuleVariable> programRuleVariables,
       RuleEngineIntent intent) {
@@ -270,34 +266,16 @@ public class ProgramRuleEngine {
 
     Map<String, List<String>> supplementaryData =
         supplementaryDataProvider.getSupplementaryData(programRules);
+    Map<String, DataItem> itemStore =
+        programRuleEntityMapperService.getItemStore(programRuleVariables);
 
-    if (RuleEngineIntent.DESCRIPTION == intent) {
-      Map<String, DataItem> itemStore =
-          programRuleEntityMapperService.getItemStore(programRuleVariables);
-
-      return RuleEngineContext.builder()
-          .supplementaryData(supplementaryData)
-          .rules(programRuleEntityMapperService.toMappedProgramRules(programRules))
-          .ruleVariables(
-              programRuleEntityMapperService.toMappedProgramRuleVariables(programRuleVariables))
-          .constantsValue(constantMap)
-          .ruleEngineItent(intent)
-          .itemStore(itemStore)
-          .build()
-          .toEngineBuilder()
-          .triggerEnvironment(TriggerEnvironment.SERVER);
-    } else {
-      return RuleEngineContext.builder()
-          .supplementaryData(supplementaryData)
-          .rules(programRuleEntityMapperService.toMappedProgramRules(programRules))
-          .ruleVariables(
-              programRuleEntityMapperService.toMappedProgramRuleVariables(programRuleVariables))
-          .constantsValue(constantMap)
-          .ruleEngineItent(intent)
-          .build()
-          .toEngineBuilder()
-          .triggerEnvironment(TriggerEnvironment.SERVER);
-    }
+    return new RuleEngineContext(
+        programRuleEntityMapperService.toMappedProgramRules(programRules),
+        programRuleEntityMapperService.toMappedProgramRuleVariables(programRuleVariables),
+        supplementaryData,
+        constantMap,
+        intent,
+        itemStore);
   }
 
   private RuleEvent getRuleEvent(Event event) {

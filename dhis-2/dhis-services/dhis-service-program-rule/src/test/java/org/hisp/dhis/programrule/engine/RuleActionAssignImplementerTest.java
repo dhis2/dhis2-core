@@ -60,8 +60,10 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
   @Test
   void testRuleActionAssignRegex1() {
     assignValueImplementer.implement(
-        RuleEffect.create(
-            "ruleId1", RuleActionAssign.create("content", "action-data", "field"), "field-data"),
+        new RuleEffect(
+            "ruleId1",
+            RuleActionAssign.Companion.create("content", "action-data", "field"),
+            "field-data"),
         enrollment);
 
     assertTrue(inMemoryMap.get(ENROLLMENT_UID).containsKey("field"));
@@ -70,8 +72,10 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
   @Test
   void testRuleActionAssignRegex2() {
     assignValueImplementer.implement(
-        RuleEffect.create(
-            "ruleId1", RuleActionAssign.create("content", "action-data", "field123"), "field-data"),
+        new RuleEffect(
+            "ruleId1",
+            RuleActionAssign.Companion.create("content", "action-data", "field123"),
+            "field-data"),
         enrollment);
 
     assertTrue(inMemoryMap.get(ENROLLMENT_UID).containsKey("field123"));
@@ -80,9 +84,9 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
   @Test
   void testRuleActionAssignRegex3() {
     assignValueImplementer.implement(
-        RuleEffect.create(
+        new RuleEffect(
             "ruleId1",
-            RuleActionAssign.create("content", "action-data", "name-field"),
+            RuleActionAssign.Companion.create("content", "action-data", "name-field"),
             "field-data"),
         enrollment);
 
@@ -92,9 +96,9 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
   @Test
   void testRuleActionAssignRegex4() {
     assignValueImplementer.implement(
-        RuleEffect.create(
+        new RuleEffect(
             "ruleId1",
-            RuleActionAssign.create("content", "action-data", "name field"),
+            RuleActionAssign.Companion.create("content", "action-data", "name field"),
             "field-data"),
         enrollment);
 
@@ -104,9 +108,9 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
   @Test
   void testRuleActionAssignRegex5() {
     assignValueImplementer.implement(
-        RuleEffect.create(
+        new RuleEffect(
             "ruleId1",
-            RuleActionAssign.create("content", "action-data", "name.field"),
+            RuleActionAssign.Companion.create("content", "action-data", "name.field"),
             "field-data"),
         enrollment);
 
@@ -116,9 +120,9 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
   @Test
   void testRuleActionAssignRegex6() {
     assignValueImplementer.implement(
-        RuleEffect.create(
+        new RuleEffect(
             "ruleId1",
-            RuleActionAssign.create("content", "action-data", "first name field"),
+            RuleActionAssign.Companion.create("content", "action-data", "first name field"),
             "field-data"),
         enrollment);
 

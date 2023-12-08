@@ -40,7 +40,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
@@ -55,6 +54,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
@@ -295,24 +295,12 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest {
     template = new ProgramNotificationTemplate();
     template.setUid(NOTIFICATION_UID);
 
-    ruleActionSendMessage =
-        new RuleActionSendMessage() {
-          @Nonnull
-          @Override
-          public String notification() {
-            return NOTIFICATION_UID;
-          }
+    ruleActionSendMessage = new RuleActionSendMessage("", NOTIFICATION_UID);
 
-          @Nonnull
-          @Override
-          public String data() {
-            return null;
-          }
-        };
+    ruleEffectWithActionSendMessage = new RuleEffect("", ruleActionSendMessage, "");
 
-    ruleEffectWithActionSendMessage = RuleEffect.create("", ruleActionSendMessage);
-
-    setMandatoryFieldFalse = RuleActionSetMandatoryField.create(MANDATORY_FIELD);
+    setMandatoryFieldFalse =
+        new RuleActionSetMandatoryField(MANDATORY_FIELD, AttributeType.UNKNOWN, "");
 
     OrganisationUnit organisationUnitA = createOrganisationUnit('A');
 

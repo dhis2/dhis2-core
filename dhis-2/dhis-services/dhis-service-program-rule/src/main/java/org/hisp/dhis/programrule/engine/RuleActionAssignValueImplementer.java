@@ -88,7 +88,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer {
 
     RuleActionAssign assign = (RuleActionAssign) ruleEffect.ruleAction();
 
-    String variable = assign.field();
+    String variable = assign.getField();
 
     Matcher matcher = PATTERN.matcher(variable);
 

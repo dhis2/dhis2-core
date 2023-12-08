@@ -178,32 +178,6 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testWhenProgramRuleConditionIsNull() {
-    when(programRuleService.getAllProgramRule()).thenReturn(programRules);
-
-    programRules.get(0).setCondition(null);
-
-    List<Rule> rules = subject.toMappedProgramRules();
-
-    programRules.get(0).setCondition("");
-
-    assertEquals(2, rules.size());
-  }
-
-  @Test
-  void testWhenProgramRuleActionIsNull() {
-    when(programRuleService.getAllProgramRule()).thenReturn(programRules);
-
-    programRules.get(0).setProgramRuleActions(null);
-
-    List<Rule> rules = subject.toMappedProgramRules();
-
-    programRules.get(0).setProgramRuleActions(Sets.newHashSet(assignAction));
-
-    assertEquals(2, rules.size());
-  }
-
-  @Test
   void testMappedRuleVariableValues() {
     when(programRuleVariableService.getAllProgramRuleVariable()).thenReturn(programRuleVariables);
     RuleVariableAttribute ruleVariableAttribute;
@@ -217,21 +191,21 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
       if (variable instanceof RuleVariableAttribute) {
         ruleVariableAttribute = (RuleVariableAttribute) variable;
         assertEquals(
-            ruleVariableAttribute.trackedEntityAttribute(),
+            ruleVariableAttribute.getTrackedEntityAttribute(),
             programRuleVariableB.getAttribute().getUid());
-        assertEquals(ruleVariableAttribute.name(), programRuleVariableB.getName());
+        assertEquals(ruleVariableAttribute.getName(), programRuleVariableB.getName());
       }
 
       if (variable instanceof RuleVariableCalculatedValue) {
         ruleVariableCalculatedValue = (RuleVariableCalculatedValue) variable;
-        assertEquals(ruleVariableCalculatedValue.name(), programRuleVariableA.getName());
+        assertEquals(ruleVariableCalculatedValue.getName(), programRuleVariableA.getName());
       }
     }
   }
 
   @Test
   void testExceptionWhenMandatoryFieldIsMissingInRuleEvent() {
-    assertThrows(IllegalStateException.class, () -> subject.toMappedRuleEvent(eventC));
+    assertThrows(NullPointerException.class, () -> subject.toMappedRuleEvent(eventC));
   }
 
   @Test
@@ -247,10 +221,10 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
 
     RuleDataValue ruleDataValue = ruleEvent.dataValues().get(0);
 
-    assertEquals(ruleDataValue.dataElement(), dataElement.getUid());
-    assertEquals(ruleDataValue.eventDate(), ruleEvent.eventDate());
-    assertEquals(ruleDataValue.programStage(), eventA.getProgramStage().getUid());
-    assertEquals(ruleDataValue.value(), SAMPLE_VALUE_A);
+    assertEquals(ruleDataValue.getDataElement(), dataElement.getUid());
+    assertEquals(ruleDataValue.getEventDate(), ruleEvent.eventDate());
+    assertEquals(ruleDataValue.getProgramStage(), eventA.getProgramStage().getUid());
+    assertEquals(ruleDataValue.getValue(), SAMPLE_VALUE_A);
   }
 
   @Test
@@ -270,10 +244,10 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
 
     RuleDataValue ruleDataValue = ruleEvent.dataValues().get(0);
 
-    assertEquals(ruleDataValue.dataElement(), dataElement.getUid());
-    assertEquals(ruleDataValue.eventDate(), ruleEvent.eventDate());
-    assertEquals(ruleDataValue.programStage(), eventB.getProgramStage().getUid());
-    assertEquals(ruleDataValue.value(), SAMPLE_VALUE_B);
+    assertEquals(ruleDataValue.getDataElement(), dataElement.getUid());
+    assertEquals(ruleDataValue.getEventDate(), ruleEvent.eventDate());
+    assertEquals(ruleDataValue.getProgramStage(), eventB.getProgramStage().getUid());
+    assertEquals(ruleDataValue.getValue(), SAMPLE_VALUE_B);
   }
 
   @Test
@@ -287,7 +261,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
   void testExceptionWhenMandatoryValueMissingMappedEnrollment() {
     List<TrackedEntityAttributeValue> trackedEntityAttributeValues = Collections.emptyList();
     assertThrows(
-        IllegalStateException.class,
+        NullPointerException.class,
         () -> subject.toMappedRuleEnrollment(enrollmentB, trackedEntityAttributeValues));
   }
 
@@ -296,10 +270,10 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     RuleEnrollment ruleEnrollment =
         subject.toMappedRuleEnrollment(enrollment, Collections.emptyList());
 
-    assertEquals(ruleEnrollment.enrollment(), enrollment.getUid());
-    assertEquals(ruleEnrollment.organisationUnit(), enrollment.getOrganisationUnit().getUid());
-    assertEquals(ruleEnrollment.attributeValues().size(), 1);
-    assertEquals(ruleEnrollment.attributeValues().get(0).value(), SAMPLE_VALUE_A);
+    assertEquals(ruleEnrollment.getEnrollment(), enrollment.getUid());
+    assertEquals(ruleEnrollment.getOrganisationUnit(), enrollment.getOrganisationUnit().getUid());
+    assertEquals(ruleEnrollment.getAttributeValues().size(), 1);
+    assertEquals(ruleEnrollment.getAttributeValues().get(0).getValue(), SAMPLE_VALUE_A);
   }
 
   @Test
@@ -427,7 +401,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
         setProgramRuleAction(
             displayText, ProgramRuleActionType.DISPLAYTEXT, "test_variable", "2+2");
     sendMessageAction =
-        setProgramRuleAction(sendMessageAction, ProgramRuleActionType.SENDMESSAGE, null, null);
+        setProgramRuleAction(sendMessageAction, ProgramRuleActionType.SENDMESSAGE, null, "");
 
     programRuleA = setProgramRule(programRuleA, "", Sets.newHashSet(assignAction, displayText), 1);
     programRuleB = setProgramRule(programRuleB, "", Sets.newHashSet(sendMessageAction), 4);
@@ -519,6 +493,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
       ProgramNotificationTemplate notificationTemplate = new ProgramNotificationTemplate();
       notificationTemplate.setUid("uid0");
       programRuleActionA.setTemplateUid(notificationTemplate.getUid());
+      programRuleActionA.setData(data);
     }
 
     return programRuleActionA;

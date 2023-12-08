@@ -1702,6 +1702,7 @@
     {
       "id": "h4w96yEMlzO",
       "name": "test-orgunit",
+      "code": "test-orgunit-code",
       "level": 1,
       "created": "2020-05-31T08:56:15.922",
       "lastUpdated": "2020-05-31T11:41:22.384",
@@ -1722,6 +1723,7 @@
     {
       "id": "uoNW0E3xXUy",
       "name": "test-orgunit-2",
+      "code": "test-orgunit-code-2",
       "level": 2,
       "created": "2020-05-31T09:05:34.570",
       "lastUpdated": "2020-05-31T11:41:22.385",
@@ -1744,6 +1746,7 @@
     {
       "id": "lbDXJBlvtZe",
       "name": "test-orgunit-2",
+      "code": "test-orgunit-code-l2",
       "level": 2,
       "created": "2020-05-31T09:05:34.570",
       "lastUpdated": "2020-05-31T11:41:22.385",
@@ -1766,6 +1769,7 @@
     {
       "id": "RojfDTBhoGC",
       "name": "test-orgunit-3",
+      "code": "test-orgunit-code-3",
       "level": 3,
       "created": "2020-05-31T09:05:34.570",
       "lastUpdated": "2020-05-31T11:41:22.385",
@@ -1788,6 +1792,7 @@
     {
       "id": "tSsGrtfRzjY",
       "name": "test-orgunit-4",
+      "code": "test-orgunit-code-4",
       "level": 4,
       "created": "2020-05-31T09:05:34.570",
       "lastUpdated": "2020-05-31T11:41:22.385",
