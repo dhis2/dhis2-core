@@ -139,9 +139,9 @@ public class JdbcCustomIconStore implements CustomIconStore {
     StringBuilder sqlBuilder = new StringBuilder().append(sql);
     sqlBuilder.append(" LIMIT ? OFFSET ? ");
 
-    int offset = iconCriteria.getPage() * iconCriteria.getSize();
+    int offset = (iconCriteria.getPage() - 1) * iconCriteria.getPageSize();
 
     return jdbcTemplate.query(
-        sqlBuilder.toString(), customIconRowMapper, iconCriteria.getSize(), offset);
+        sqlBuilder.toString(), customIconRowMapper, iconCriteria.getPageSize(), offset);
   }
 }

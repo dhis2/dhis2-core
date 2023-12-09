@@ -85,13 +85,17 @@ class IconTest extends TrackerTest {
   void shouldGetAllIconsWhenRequested() {
     Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
 
+    IconCriteria iconCriteria = new IconCriteria();
+    iconCriteria.setPageSize(5);
+    iconCriteria.setPage(1);
+    iconCriteria.setSkipPaging(false);
+
     assertEquals(
         defaultIconMap.size() + 1,
-        iconService.getIcons(IconCriteria.builder().build()).size(),
+        iconService.getIcons(iconCriteria).size(),
         String.format(
             "Expected to find %d icons, but found %d instead",
-            defaultIconMap.size() + 1,
-            iconService.getIcons(IconCriteria.builder().build()).size()));
+            defaultIconMap.size() + 1, iconService.getIcons(iconCriteria).size()));
   }
 
   @Test
@@ -111,13 +115,14 @@ class IconTest extends TrackerTest {
             .flatMap(Arrays::stream)
             .collect(Collectors.toSet());
 
+    IconCriteria iconCriteria = new IconCriteria();
+
     assertEquals(
         keywordList.size() + keywords.length,
         iconService.getKeywords().size(),
         String.format(
             "Expected to find %d icons, but found %d instead",
-            keywordList.size() + keywords.length,
-            iconService.getIcons(IconCriteria.builder().build()).size()));
+            keywordList.size() + keywords.length, iconService.getIcons(iconCriteria).size()));
   }
 
   @Test

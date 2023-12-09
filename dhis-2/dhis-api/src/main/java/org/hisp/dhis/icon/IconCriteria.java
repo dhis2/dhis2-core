@@ -27,19 +27,19 @@
  */
 package org.hisp.dhis.icon;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
  * @author rajazubair
  */
 @Data
-@Builder
-public class IconCriteria {
+@NoArgsConstructor
+public class IconCriteria extends PagingAndSortingCriteriaAdapter {
 
-  int page;
-
-  int size;
-
-  boolean skipPaging;
+  @Override
+  public Boolean isSkipPaging() {
+    return true;
+  }
 }

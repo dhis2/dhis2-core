@@ -126,18 +126,12 @@ public class IconController {
 
   @GetMapping
   public @ResponseBody List<IconResponse> getAllIcons(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int size,
-      @RequestParam(required = false) boolean skipPaging,
-      @RequestParam(required = false) String[] keywords) {
-
-    IconCriteria criteria =
-        IconCriteria.builder().page(page).size(size).skipPaging(skipPaging).build();
+      IconCriteria iconCriteria, @RequestParam(required = false) String[] keywords) {
 
     List<Icon> icons;
 
     if (keywords == null) {
-      icons = iconService.getIcons(criteria);
+      icons = iconService.getIcons(iconCriteria);
     } else {
       icons = iconService.getIcons(keywords);
     }
