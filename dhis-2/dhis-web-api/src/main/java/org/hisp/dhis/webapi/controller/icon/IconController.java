@@ -128,9 +128,11 @@ public class IconController {
   public @ResponseBody List<IconResponse> getAllIcons(
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size,
+      @RequestParam(required = false) boolean skipPaging,
       @RequestParam(required = false) String[] keywords) {
 
-    IconCriteria criteria = IconCriteria.builder().page(page).size(size).build();
+    IconCriteria criteria =
+        IconCriteria.builder().page(page).size(size).skipPaging(skipPaging).build();
 
     List<Icon> icons;
 

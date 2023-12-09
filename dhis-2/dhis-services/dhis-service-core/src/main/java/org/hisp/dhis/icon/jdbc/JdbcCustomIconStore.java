@@ -96,7 +96,11 @@ public class JdbcCustomIconStore implements CustomIconStore {
             join userinfo u on u.userinfoid = c.createdby
             """;
 
-    return jdbcTemplate.query(sql, customIconRowMapper);
+    if (iconCriteria.isSkipPaging()) {
+      return jdbcTemplate.query(sql, customIconRowMapper);
+    }
+
+    return getPaginatedIcons(sql, iconCriteria);
   }
 
   @Override
@@ -129,5 +133,15 @@ public class JdbcCustomIconStore implements CustomIconStore {
         customIcon.getDescription(),
         customIcon.getKeywords(),
         customIcon.getKey());
+  }
+
+  private List<CustomIcon> getPaginatedIcons(String sql, IconCriteria iconCriteria) {
+    StringBuilder sqlBuilder = new StringBuilder().append(sql);
+    sqlBuilder.append(" LIMIT ? OFFSET ? ");
+
+    int offset = iconCriteria.getPage() * iconCriteria.getSize();
+
+    return jdbcTemplate.query(
+        sqlBuilder.toString(), customIconRowMapper, iconCriteria.getSize(), offset);
   }
 }
