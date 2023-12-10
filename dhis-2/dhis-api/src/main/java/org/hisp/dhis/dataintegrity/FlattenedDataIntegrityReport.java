@@ -187,12 +187,8 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
         mapOfCommentByDisplayNameOrUid(
             detailsByName.get(
                 DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_FILTERS.getName()));
-
-    // refs by name/UID
     this.dataElementsAssignedToDataSetsWithDifferentPeriodTypes =
-        mapOfCommentByDisplayNameOrUid(
-            detailsByName.get(
-                detailsByName.get("data_elements_aggregate_with_different_period_types")));
+        mapOfCommentByDisplayNameOrUid(detailsByName.get("data_elements_aggregate_with_different_period_types"));
     this.dataElementsViolatingExclusiveGroupSets =
         mapOfRefsByDisplayNameOrUid(
             detailsByName.get(
