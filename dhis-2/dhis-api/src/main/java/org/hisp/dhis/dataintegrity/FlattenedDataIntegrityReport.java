@@ -53,7 +53,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
   @JsonProperty private final List<String> dataElementsWithoutGroups;
 
   @JsonProperty
-  private final Map<String, List<String>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes;
+  private final Map<String, String> dataElementsAssignedToDataSetsWithDifferentPeriodTypes;
 
   @JsonProperty private final Map<String, List<String>> dataElementsViolatingExclusiveGroupSets;
 
@@ -190,11 +190,9 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
 
     // refs by name/UID
     this.dataElementsAssignedToDataSetsWithDifferentPeriodTypes =
-        mapOfRefsByDisplayNameOrUid(
+        mapOfCommentByDisplayNameOrUid(
             detailsByName.get(
-                DataIntegrityCheckType
-                    .DATA_ELEMENTS_ASSIGNED_TO_DATA_SETS_WITH_DIFFERENT_PERIOD_TYPES
-                    .getName()));
+                detailsByName.get("data_elements_aggregate_with_different_period_types")));
     this.dataElementsViolatingExclusiveGroupSets =
         mapOfRefsByDisplayNameOrUid(
             detailsByName.get(
