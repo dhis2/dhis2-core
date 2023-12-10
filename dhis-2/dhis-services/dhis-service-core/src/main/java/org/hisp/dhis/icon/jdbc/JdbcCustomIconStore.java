@@ -96,7 +96,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
             join userinfo u on u.userinfoid = c.createdby
             """;
 
-    if (iconCriteria.isSkipPaging()) {
+    if (Boolean.TRUE.equals(iconCriteria.isSkipPaging())) {
       return jdbcTemplate.query(sql, customIconRowMapper);
     }
 
