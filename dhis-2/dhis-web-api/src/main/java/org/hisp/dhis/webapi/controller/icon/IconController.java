@@ -126,7 +126,14 @@ public class IconController {
 
   @GetMapping
   public @ResponseBody List<IconResponse> getAllIcons(
-      IconCriteria iconCriteria, @RequestParam(required = false) String[] keywords) {
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(defaultValue = "5") int size,
+      @RequestParam(required = false) String[] keywords) {
+
+    IconCriteria iconCriteria = new IconCriteria();
+    iconCriteria.setPage(page);
+    iconCriteria.setPageSize(size);
+    iconCriteria.setSkipPaging(false);
 
     List<Icon> icons;
 

@@ -36,10 +36,4 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
  */
 @Data
 @NoArgsConstructor
-public class IconCriteria extends PagingAndSortingCriteriaAdapter {
-
-  @Override
-  public Boolean isSkipPaging() {
-    return true;
-  }
-}
+public class IconCriteria extends PagingAndSortingCriteriaAdapter {}
