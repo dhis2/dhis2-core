@@ -36,4 +36,22 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
  */
 @Data
 @NoArgsConstructor
-public class IconCriteria extends PagingAndSortingCriteriaAdapter {}
+public class IconCriteria extends PagingAndSortingCriteriaAdapter {
+
+  public static IconCriteria of(int page, int size) {
+    IconCriteria iconCriteria = new IconCriteria();
+    iconCriteria.setPageSize(size);
+    iconCriteria.setPage(page);
+
+    return iconCriteria;
+  }
+
+  public static IconCriteria of(int page, int size, boolean skipPaging) {
+    IconCriteria iconCriteria = new IconCriteria();
+    iconCriteria.setPageSize(size);
+    iconCriteria.setPage(page);
+    iconCriteria.setSkipPaging(skipPaging);
+
+    return iconCriteria;
+  }
+}

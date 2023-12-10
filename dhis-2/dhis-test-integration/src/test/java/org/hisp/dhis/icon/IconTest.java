@@ -85,10 +85,7 @@ class IconTest extends TrackerTest {
   void shouldGetAllIconsWhenRequested() {
     Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
 
-    IconCriteria iconCriteria = new IconCriteria();
-    iconCriteria.setPageSize(5);
-    iconCriteria.setPage(1);
-    iconCriteria.setSkipPaging(false);
+    IconCriteria iconCriteria = IconCriteria.of(1, 5);
 
     assertEquals(
         defaultIconMap.size() + 1,
@@ -115,7 +112,7 @@ class IconTest extends TrackerTest {
             .flatMap(Arrays::stream)
             .collect(Collectors.toSet());
 
-    IconCriteria iconCriteria = new IconCriteria();
+    IconCriteria iconCriteria = IconCriteria.of(1, 5);
 
     assertEquals(
         keywordList.size() + keywords.length,

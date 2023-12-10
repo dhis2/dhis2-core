@@ -128,12 +128,10 @@ public class IconController {
   public @ResponseBody List<IconResponse> getAllIcons(
       @RequestParam(defaultValue = "1") int page,
       @RequestParam(defaultValue = "5") int size,
+      @RequestParam(defaultValue = "false") boolean skipPaging,
       @RequestParam(required = false) String[] keywords) {
 
-    IconCriteria iconCriteria = new IconCriteria();
-    iconCriteria.setPage(page);
-    iconCriteria.setPageSize(size);
-    iconCriteria.setSkipPaging(false);
+    IconCriteria iconCriteria = IconCriteria.of(page, size, skipPaging);
 
     List<Icon> icons;
 
