@@ -136,12 +136,10 @@ public class JdbcCustomIconStore implements CustomIconStore {
   }
 
   private List<CustomIcon> getPaginatedIcons(String sql, IconCriteria iconCriteria) {
-    StringBuilder sqlBuilder = new StringBuilder().append(sql);
-    sqlBuilder.append(" LIMIT ? OFFSET ? ");
+    String sqlBuilder = sql + " LIMIT ? OFFSET ? ";
 
     int offset = (iconCriteria.getPage() - 1) * iconCriteria.getPageSize();
 
-    return jdbcTemplate.query(
-        sqlBuilder.toString(), customIconRowMapper, iconCriteria.getPageSize(), offset);
+    return jdbcTemplate.query(sqlBuilder, customIconRowMapper, iconCriteria.getPageSize(), offset);
   }
 }
