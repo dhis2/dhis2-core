@@ -25,55 +25,62 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.feedback;
+package org.hisp.dhis.schema;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status.CONFLICT;
+import java.util.Objects;
+import org.hisp.dhis.common.MergeMode;
 
-import java.text.MessageFormat;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webmessage.WebMessageResponse;
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+public final class MetadataMergeParams<T> {
+  private final T source;
 
-@Getter
-@Accessors(chain = true)
-@OpenApi.Response(status = CONFLICT, value = WebMessageResponse.class)
-@SuppressWarnings({"java:S1165", "java:S1948"})
-public final class ConflictException extends Exception implements Error {
-  public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
-      throws ConflictException {
-    return Error.rethrow(type, ConflictException::new, operation);
+  private final T target;
+
+  private MergeMode mergeMode = MergeMode.REPLACE;
+
+  private boolean skipSharing;
+
+  private boolean skipTranslation;
+
+  public MetadataMergeParams(T source, T target) {
+    this.source = Objects.requireNonNull(source);
+    this.target = Objects.requireNonNull(target);
   }
 
-  public static <E extends RuntimeException, V> V on(
-      Class<E> type, Function<E, ConflictException> map, Supplier<V> operation)
-      throws ConflictException {
-    return Error.rethrowMapped(type, map, operation);
+  public T getSource() {
+    return source;
   }
 
-  private final ErrorCode code;
-
-  @Setter private String devMessage;
-
-  @Setter private ObjectReport objectReport;
-
-  @Setter private MergeReport mergeReport;
-
-  public ConflictException(String message) {
-    super(message);
-    this.code = ErrorCode.E1004;
+  public T getTarget() {
+    return target;
   }
 
-  public ConflictException(ErrorCode code, Object... args) {
-    super(MessageFormat.format(code.getMessage(), args));
-    this.code = code;
+  public MergeMode getMergeMode() {
+    return mergeMode;
   }
 
-  public ConflictException(ErrorMessage message) {
-    super(message.getMessage());
-    this.code = message.getErrorCode();
+  public MetadataMergeParams<T> setMergeMode(MergeMode mergeMode) {
+    this.mergeMode = mergeMode;
+    return this;
+  }
+
+  public boolean isSkipSharing() {
+    return skipSharing;
+  }
+
+  public MetadataMergeParams<T> setSkipSharing(boolean skipSharing) {
+    this.skipSharing = skipSharing;
+    return this;
+  }
+
+  public boolean isSkipTranslation() {
+    return skipTranslation;
+  }
+
+  public MetadataMergeParams<T> setSkipTranslation(boolean skipTranslation) {
+    this.skipTranslation = skipTranslation;
+    return this;
   }
 }

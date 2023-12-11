@@ -37,7 +37,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHook;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.preheat.PreheatService;
-import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -53,7 +53,7 @@ public class AbstractObjectBundleHook<T> implements ObjectBundleHook<T> {
 
   @Autowired protected SchemaService schemaService;
 
-  @Autowired protected MergeService mergeService;
+  @Autowired protected MetadataMergeService metadataMergeService;
 
   @Override
   public void validate(T object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
