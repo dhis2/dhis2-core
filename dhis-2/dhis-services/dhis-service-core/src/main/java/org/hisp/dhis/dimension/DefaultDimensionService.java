@@ -113,7 +113,7 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
@@ -145,7 +145,7 @@ public class DefaultDimensionService implements DimensionService {
 
   private final UserService userService;
 
-  private final MergeService mergeService;
+  private final MetadataMergeService metadataMergeService;
 
   private final DataDimensionExtractor dataDimensionExtractor;
 
@@ -338,7 +338,7 @@ public class DefaultDimensionService implements DimensionService {
     if (dimension == null) {
       throw new NotFoundException("Dimension does not exist: " + uid);
     }
-    BaseDimensionalObject copy = mergeService.clone(dimension);
+    BaseDimensionalObject copy = metadataMergeService.clone(dimension);
 
     if (filterCanRead) {
       List<DimensionalItemObject> items =

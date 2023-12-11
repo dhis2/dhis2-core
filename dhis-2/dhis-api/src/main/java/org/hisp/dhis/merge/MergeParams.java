@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit;
+package org.hisp.dhis.merge;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Set;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 
 /**
- * Enum for merge strategies.
+ * Encapsulation of web API merge params. Contains source {@link UID}s to be merged and a target
+ * {@link UID} to be merged in to. Also indicates whether sources should be deleted or not. <br>
+ * All {@link UID}s should be verified.
  *
- * @author Lars Helge Overland
+ * @author david mackessy
  */
-public enum DataMergeStrategy {
-  /** Use last updated source data records. */
-  LAST_UPDATED,
+@Data
+@NoArgsConstructor
+public class MergeParams {
+  @JsonProperty private Set<UID> sources;
 
-  /** Discard source data records. */
-  DISCARD
+  @JsonProperty private UID target;
+
+  @JsonProperty private boolean deleteSources;
 }

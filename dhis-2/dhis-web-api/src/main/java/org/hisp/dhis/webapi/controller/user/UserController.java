@@ -95,7 +95,7 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
@@ -478,7 +478,8 @@ public class UserController extends AbstractCrudController<User> {
     }
 
     User userReplica = new User();
-    mergeService.merge(new MergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.MERGE));
+    metadataMergeService.merge(
+        new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.MERGE));
     copyAttributeValues(userReplica);
     userReplica.setId(0);
     userReplica.setUuid(UUID.randomUUID());

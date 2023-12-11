@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -70,6 +71,7 @@ public final class UID implements Serializable {
     return value;
   }
 
+  @JsonCreator
   public static UID of(@Nonnull String value) {
     return new UID(value);
   }

@@ -59,8 +59,8 @@ import org.hisp.dhis.preheat.PreheatParams;
 import org.hisp.dhis.preheat.PreheatService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.schema.MergeParams;
-import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.schema.MetadataMergeParams;
+import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -83,7 +83,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
   private final IdentifiableObjectManager manager;
   private final DbmsManager dbmsManager;
   private final HibernateCacheManager cacheManager;
-  private final MergeService mergeService;
+  private final MetadataMergeService metadataMergeService;
   private final ObjectBundleHooks objectBundleHooks;
   private final EventHookPublisher eventHookPublisher;
 
@@ -301,8 +301,8 @@ public class DefaultObjectBundleService implements ObjectBundleService {
               object, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
           if (bundle.getMergeMode() != MergeMode.NONE) {
-            mergeService.merge(
-                new MergeParams<>(object, persistedObject)
+            metadataMergeService.merge(
+                new MetadataMergeParams<>(object, persistedObject)
                     .setMergeMode(bundle.getMergeMode())
                     .setSkipSharing(bundle.isSkipSharing())
                     .setSkipTranslation(bundle.isSkipTranslation()));

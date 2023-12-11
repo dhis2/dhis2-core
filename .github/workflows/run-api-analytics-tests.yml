@@ -31,7 +31,7 @@ jobs:
           # Remove Android and .NET libs (approx. 14GB)
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /usr/share/dotnet
-        
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -41,8 +41,8 @@ jobs:
 
       - name: Build core image
         run: |
-          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-dhis-test-integration,-dhis-test-coverage
-          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/pom.xml
+          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true --update-snapshots -f dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-dhis-test-integration,-dhis-test-coverage
+          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true --update-snapshots -f dhis-2/dhis-web/pom.xml
           mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f ./dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild -Djib.to.image=$CORE_IMAGE_NAME
 
       - name: Get Sierra Leone DB from cache

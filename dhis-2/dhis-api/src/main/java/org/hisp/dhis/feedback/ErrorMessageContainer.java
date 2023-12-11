@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
-
-import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+package org.hisp.dhis.feedback;
 
 /**
- * @author Lars Helge Overland
+ * An ADT interface for a collection of {@link ErrorMessage}s.
+ *
+ * @author david mackessy
  */
-public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
-  String ID = IndicatorStore.class.getName();
+public interface ErrorMessageContainer {
 
-  List<Indicator> getIndicatorsWithGroupSets();
+  boolean hasErrorMessages();
 
-  List<Indicator> getIndicatorsWithoutGroups();
-
-  List<Indicator> getIndicatorsWithDataSets();
-
-  List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes);
+  void addErrorMessage(ErrorMessage errorMessage);
 }

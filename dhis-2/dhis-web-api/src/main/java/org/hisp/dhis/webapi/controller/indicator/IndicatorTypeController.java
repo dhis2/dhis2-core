@@ -27,12 +27,29 @@
  */
 package org.hisp.dhis.webapi.controller.indicator;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.merge.MergeParams;
+import org.hisp.dhis.merge.MergeProcessor;
+import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.schema.descriptors.IndicatorTypeSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -40,4 +57,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @OpenApi.Tags("metadata")
 @Controller
 @RequestMapping(value = IndicatorTypeSchemaDescriptor.API_ENDPOINT)
-public class IndicatorTypeController extends AbstractCrudController<IndicatorType> {}
+@RequiredArgsConstructor
+@Slf4j
+public class IndicatorTypeController extends AbstractCrudController<IndicatorType> {
+
+  private final MergeProcessor indicatorTypeMergeProcessor;
+
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasRole('ALL') or hasRole('F_INDICATOR_TYPE_MERGE')")
+  @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody WebMessage mergeIndicatorTypes(@RequestBody MergeParams params)
+      throws ConflictException {
+    log.info("Indicator type merge received");
+
+    MergeReport report = indicatorTypeMergeProcessor.processMerge(params, MergeType.INDICATOR_TYPE);
+
+    log.info("Indicator type merge processed with report: {}", report);
+    return WebMessageUtils.mergeReport(report);
+  }
+}

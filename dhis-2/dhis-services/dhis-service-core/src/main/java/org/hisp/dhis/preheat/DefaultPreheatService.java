@@ -66,8 +66,8 @@ import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
-import org.hisp.dhis.schema.MergeParams;
-import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.schema.MetadataMergeParams;
+import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
@@ -107,7 +107,7 @@ public class DefaultPreheatService implements PreheatService {
 
   private final AttributeService attributeService;
 
-  private final MergeService mergeService;
+  private final MetadataMergeService metadataMergeService;
 
   private final SchemaToDataFetcher schemaToDataFetcher;
 
@@ -714,7 +714,8 @@ public class DefaultPreheatService implements PreheatService {
                   try {
                     IdentifiableObject identifiableObject =
                         (IdentifiableObject) p.getKlass().newInstance();
-                    mergeService.merge(new MergeParams<>(reference, identifiableObject));
+                    metadataMergeService.merge(
+                        new MetadataMergeParams<>(reference, identifiableObject));
                     refMap.get(object.getUid()).put(p.getName(), identifiableObject);
                   } catch (InstantiationException | IllegalAccessException ignored) {
                   }
@@ -734,7 +735,8 @@ public class DefaultPreheatService implements PreheatService {
                     try {
                       IdentifiableObject identifiableObject =
                           (IdentifiableObject) p.getItemKlass().newInstance();
-                      mergeService.merge(new MergeParams<>(reference, identifiableObject));
+                      metadataMergeService.merge(
+                          new MetadataMergeParams<>(reference, identifiableObject));
                       refObjects.add(identifiableObject);
                     } catch (InstantiationException | IllegalAccessException ignored) {
                     }

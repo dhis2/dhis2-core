@@ -86,7 +86,7 @@ import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.sharing.SharingService;
 import org.hisp.dhis.translation.Translation;
@@ -132,7 +132,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
   @Autowired protected CollectionService collectionService;
 
-  @Autowired protected MergeService mergeService;
+  @Autowired protected MetadataMergeService metadataMergeService;
 
   @Autowired protected JsonPatchManager jsonPatchManager;
 

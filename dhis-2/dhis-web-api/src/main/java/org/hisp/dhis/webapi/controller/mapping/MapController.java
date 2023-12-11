@@ -62,7 +62,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.MapSchemaDescriptor;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUser;
@@ -143,8 +143,8 @@ public class MapController extends AbstractCrudController<Map> {
     Map newMap = deserializeJsonEntity(request);
     newMap.setUid(uid);
 
-    mergeService.merge(
-        new MergeParams<>(newMap, map)
+    metadataMergeService.merge(
+        new MetadataMergeParams<>(newMap, map)
             .setMergeMode(params.getMergeMode())
             .setSkipSharing(params.isSkipSharing())
             .setSkipTranslation(params.isSkipTranslation()));
