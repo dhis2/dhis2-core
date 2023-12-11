@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.outlierdetection.processor;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.outlierdetection.Order.MEAN_ABS_DEV;
+import static org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm.MOD_Z_SCORE;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.DATA_ELEMENT_IDS;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.END_DATE;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.MAX_RESULTS;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.START_DATE;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.THRESHOLD;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.outlierdetection.Order;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.outlierdetection.OutliersSqlParamName;
 import org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -71,39 +71,38 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
     if (request == null) {
-      return StringUtils.EMPTY;
+      return EMPTY;
     }
 
     String ouPathClause = OutlierDetectionUtils.getOrgUnitPathClause(request.getOrgUnits(), "ax");
 
-    boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
+    boolean modifiedZ = request.getAlgorithm() == MOD_Z_SCORE;
 
     String middleValue = modifiedZ ? " ax.percentile_middle_value" : " ax.avg_middle_value";
 
     String order =
-        request.getOrderBy() == Order.MEAN_ABS_DEV
+        request.getOrderBy() == MEAN_ABS_DEV
             ? "middle_value_abs_dev"
             : request.getOrderBy().getKey();
-    String thresholdParam = OutliersSqlParamName.THRESHOLD.getKey();
+    String thresholdParam = THRESHOLD.getKey();
 
     String sql =
         "select * from (select "
-            + "ax.dataelementid, "
-            + "ax.de_uid, "
-            + "ax.ou_uid, "
-            + "ax.coc_uid, "
-            + "ax.aoc_uid, "
+            + "ax.dx as de_uid, "
+            + "ax.ou as ou_uid, "
+            + "ax.co as coc_uid, "
+            + "ax.ao as aoc_uid, "
             + "ax.de_name, "
             + "ax.ou_name, "
             + "ax.coc_name, "
             + "ax.aoc_name, "
             + "ax.value, "
             + "ax.pestartdate as pe_start_date, "
-            + "ax.pt_name, "
+            + "ax.petype as pt_name, "
             + middleValue
             + " as middle_value, "
-            + "ax.std_dev as std_dev, "
-            + "ax.mad as mad, "
+            + "ax.std_dev, "
+            + "ax.mad, "
             + "abs(ax.value::double precision - "
             + middleValue
             + ") as middle_value_abs_dev, ";
@@ -137,17 +136,14 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
             + ") "
             + "and "
             + ouPathClause
-            + " "
-            + "and ax.pestartdate >= :"
+            + " and ax.pestartdate >= :"
             + START_DATE.getKey()
-            + " "
-            + "and ax.peenddate <= :"
+            + " and ax.peenddate <= :"
             + END_DATE.getKey()
             + ") t1 "
             + "where t1.z_score > :"
             + thresholdParam
-            + " "
-            + "order by "
+            + " order by "
             + order
             + " desc "
             + "limit :"

@@ -561,23 +561,23 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private List<AnalyticsTableColumn> getOutlierStatsColumns() {
     return List.of(
-        new AnalyticsTableColumn(quote("de_uid"), CHARACTER_11, NOT_NULL, "de.uid"),
-        new AnalyticsTableColumn(quote("coc_uid"), CHARACTER_11, NOT_NULL, "co.uid"),
-        new AnalyticsTableColumn(quote("aoc_uid"), CHARACTER_11, NOT_NULL, "ao.uid"),
-        new AnalyticsTableColumn(quote("ou_uid"), CHARACTER_11, NOT_NULL, "ou.uid"),
-        new AnalyticsTableColumn(quote("dataelementid"), INTEGER, NOT_NULL, "dv.dataelementid")
-            .withIndexColumns(List.of(quote("dataelementid"))),
+
+        // TODO: Do not export IDs into analytics. We work only with UIDs.
         new AnalyticsTableColumn(quote("sourceid"), INTEGER, NOT_NULL, "dv.sourceid"),
         new AnalyticsTableColumn(quote("periodid"), INTEGER, NOT_NULL, "dv.periodid"),
         new AnalyticsTableColumn(
             quote("categoryoptioncomboid"), INTEGER, NOT_NULL, "dv.categoryoptioncomboid"),
         new AnalyticsTableColumn(
             quote("attributeoptioncomboid"), INTEGER, NOT_NULL, "dv.attributeoptioncomboid"),
+        new AnalyticsTableColumn(quote("dataelementid"), INTEGER, NOT_NULL, "dv.dataelementid")
+            .withIndexColumns(List.of(quote("dataelementid"))),
+
+        // TODO: Remove all these name columns from here. Analytics tables should not have them.
         new AnalyticsTableColumn(quote("de_name"), VARCHAR_255, "de.name"),
         new AnalyticsTableColumn(quote("ou_name"), VARCHAR_255, "ou.name"),
         new AnalyticsTableColumn(quote("coc_name"), VARCHAR_255, "co.name"),
         new AnalyticsTableColumn(quote("aoc_name"), VARCHAR_255, "ao.name"),
-        new AnalyticsTableColumn(quote("pt_name"), VARCHAR_255, "pt.name"),
+        new AnalyticsTableColumn(quote("petype"), VARCHAR_255, "pt.name"),
         new AnalyticsTableColumn(quote("path"), VARCHAR_255, "ou.path"),
         // mean
         new AnalyticsTableColumn(quote("avg_middle_value"), DOUBLE, "stats.avg_middle_value"),

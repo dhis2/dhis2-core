@@ -57,14 +57,16 @@ class DataIntegrityGroupSizeCategoryOptionGroupSetControllerTest
             HttpStatus.CREATED,
             POST(
                 "/categoryOptionGroupSets",
-                "{'name': 'One', 'shortName' : 'One', 'categoryOptionGroups' : [{'id' : '"
+                "{'name': 'One', 'shortName' : 'One', 'dataDimensionType':'DISAGGREGATION', 'categoryOptionGroups' : [{'id' : '"
                     + categoryOptionGroupTaste
                     + "'}]}"));
 
     String categoryOptionGroupSetNil =
         assertStatus(
             HttpStatus.CREATED,
-            POST("/categoryOptionGroupSets", "{ 'name': 'Nil', 'shortName': 'Nil' }"));
+            POST(
+                "/categoryOptionGroupSets",
+                "{ 'name': 'Nil', 'shortName': 'Nil', 'dataDimensionType':'DISAGGREGATION'}"));
 
     assertHasDataIntegrityIssues(
         detailsIdType,
@@ -105,7 +107,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupSetControllerTest
             HttpStatus.CREATED,
             POST(
                 "/categoryOptionGroups",
-                "{ 'name': 'Color', 'shortName': 'Color', 'categoryOptions' : [{'id' : '"
+                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType':'DISAGGREGATION', 'categoryOptions' : [{'id' : '"
                     + categoryOptionRed
                     + "'}, {'id': '"
                     + categoryOptionBlue
@@ -121,7 +123,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupSetControllerTest
             HttpStatus.CREATED,
             POST(
                 "/categoryOptionGroups",
-                "{ 'name': 'Taste', 'shortName': 'Taste', 'categoryOptions' : [{'id' : '"
+                "{ 'name': 'Taste', 'shortName': 'Taste', 'dataDimensionType':'DISAGGREGATION', 'categoryOptions' : [{'id' : '"
                     + categoryOptionSweet
                     + "'}]}"));
 
@@ -129,7 +131,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupSetControllerTest
         HttpStatus.CREATED,
         POST(
             "/categoryOptionGroupSets",
-            "{'name': 'Two', 'shortName' : 'Two', 'categoryOptionGroups' : [{'id' : '"
+            "{'name': 'Two', 'shortName' : 'Two', 'dataDimensionType':'DISAGGREGATION', 'categoryOptionGroups' : [{'id' : '"
                 + categoryOptionGroupTaste
                 + "'},{'id' : '"
                 + categoryOptionGroupColors

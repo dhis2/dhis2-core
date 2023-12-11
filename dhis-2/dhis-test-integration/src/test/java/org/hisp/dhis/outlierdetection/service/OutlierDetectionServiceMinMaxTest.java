@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.google.common.collect.Lists;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -117,10 +118,10 @@ class OutlierDetectionServiceMinMaxTest extends IntegrationTestBase {
   @Test
   void testGetFromQuery() {
     OutlierDetectionQuery query = new OutlierDetectionQuery();
-    query.setDe(Lists.newArrayList("deabcdefghA", "deabcdefghB"));
+    query.setDx(Set.of("deabcdefghA", "deabcdefghB"));
     query.setStartDate(getDate(2020, 1, 1));
     query.setEndDate(getDate(2020, 6, 1));
-    query.setOu(Lists.newArrayList("ouabcdefghA", "ouabcdefghB"));
+    query.setOu(Set.of("ouabcdefghA", "ouabcdefghB"));
     query.setAlgorithm(OutlierDetectionAlgorithm.MIN_MAX);
     query.setMaxResults(200);
     OutlierDetectionRequest request = parser.getFromQuery(query);
