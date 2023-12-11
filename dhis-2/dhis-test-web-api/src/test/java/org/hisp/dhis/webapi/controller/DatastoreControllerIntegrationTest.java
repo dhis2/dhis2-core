@@ -45,8 +45,6 @@ import org.hisp.dhis.webapi.json.domain.JsonDatastoreValue;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Update related tests that were moved over from in-memory DB controller tests as they now use SQL
@@ -63,8 +61,6 @@ class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
    * REST API.
    */
   @Autowired private DatastoreService service;
-
-  @Autowired private TransactionTemplate txTemplate;
 
   @Test
   void testUpdateKeyJsonValue_AndroidApp() {
@@ -162,23 +158,5 @@ class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
       DatastoreNamespaceProtection.ProtectionType readWrite,
       String... authorities) {
     service.addProtection(new DatastoreNamespaceProtection(namespace, readWrite, authorities));
-  }
-
-  /**
-   * The reason this is needed in this test is that we need the creation and update run in
-   * transactions that are closed as they use different technology stacks. Without this the update
-   * does not become visible when reading back the value, and it appears as if the value is still
-   * the value from creation.
-   */
-  private void doInTransaction(Runnable operation) {
-    final int defaultPropagationBehaviour = txTemplate.getPropagationBehavior();
-    txTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(
-        status -> {
-          operation.run();
-          return null;
-        });
-    // restore original propagation behaviour
-    txTemplate.setPropagationBehavior(defaultPropagationBehaviour);
   }
 }

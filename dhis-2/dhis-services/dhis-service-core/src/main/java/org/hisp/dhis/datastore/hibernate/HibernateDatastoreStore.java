@@ -267,13 +267,18 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
         """
           update keyjsonvalue
           set jbvalue = case jsonb_typeof(jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[])))
-            when 'null' then jsonb_set(jbvalue, cast(:path as text[]), to_jsonb(ARRAY[cast(:value as jsonb)]))
             when 'array' then case
               when :size < 0 or jsonb_array_length(jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[]))) >= :size
                 then jsonb_set(jbvalue, cast(:path as text[]), (jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[])) - 0) || to_jsonb(ARRAY[cast(:value as jsonb)]), false)
               else jsonb_set(jbvalue, cast(:path as text[]), jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[])) || to_jsonb(ARRAY[cast(:value as jsonb)]), false)
               end
-            else jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb))
+            when 'string'  then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb))
+            when 'number'  then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb))
+            when 'object'  then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb))
+            when 'boolean' then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb))
+            when 'null'    then jsonb_set(jbvalue, cast(:path as text[]), to_jsonb(ARRAY[cast(:value as jsonb)]))
+            -- undefined => same as null, start an array
+            else jsonb_set(jbvalue, cast(:path as text[]), to_jsonb(ARRAY[cast(:value as jsonb)]))
             end
           where namespace = :ns and namespacekey = :key""";
     return getSession()
