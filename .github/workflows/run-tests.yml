@@ -69,7 +69,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration tests
-        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -Pintegration -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -Pintegration --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
         timeout-minutes: 30
       - uses: actions/upload-artifact@v3
         name: Upload test logs on failure
@@ -120,7 +120,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration h2 tests
-        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -PintegrationH2 -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -PintegrationH2 --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
         timeout-minutes: 30
       - uses: actions/upload-artifact@v3
         name: Upload test logs on failure
@@ -175,4 +175,3 @@ jobs:
           SLACK_CHANNEL: 'team-backend'
           SLACK_MESSAGE: "Latest test run on master failed and needs investigation :detective-duck:. \n Commit message: ${{ github.event.head_commit.message }}"
           SLACK_COLOR: '#ff0000'
-

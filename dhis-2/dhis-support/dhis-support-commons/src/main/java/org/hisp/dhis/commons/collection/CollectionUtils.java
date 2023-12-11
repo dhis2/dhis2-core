@@ -256,6 +256,16 @@ public class CollectionUtils {
   }
 
   /**
+   * Indicates whether the given collection is not empty.
+   *
+   * @param collection the collection, may be null.
+   * @return true if the given collection is not empty, false otherwise.
+   */
+  public static boolean isNotEmpty(Collection<?> collection) {
+    return !isEmpty(collection);
+  }
+
+  /**
    * Adds the given object to the given collection if the object is not null.
    *
    * @param <T>
