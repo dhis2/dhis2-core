@@ -39,7 +39,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -48,7 +47,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -69,8 +67,6 @@ import org.springframework.transaction.annotation.Transactional;
 class DefaultEnrollmentService
     implements org.hisp.dhis.tracker.export.enrollment.EnrollmentService {
   private final EnrollmentStore enrollmentStore;
-
-  private final AclService aclService;
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
@@ -195,8 +191,6 @@ class DefaultEnrollmentService
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
-    decideAccess(queryParams);
-
     User user = currentUserService.getCurrentUser();
 
     if (user != null
@@ -218,8 +212,6 @@ class DefaultEnrollmentService
   public Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
-
-    decideAccess(queryParams);
 
     User user = currentUserService.getCurrentUser();
 
@@ -246,31 +238,6 @@ class DefaultEnrollmentService
             enrollmentsPage.getItems(), params.getEnrollmentParams(), params.isIncludeDeleted());
 
     return Page.of(enrollments, enrollmentsPage.getPager());
-  }
-
-  public void decideAccess(EnrollmentQueryParams params) {
-    if (params.hasProgram()) {
-      if (!aclService.canDataRead(params.getUser(), params.getProgram())) {
-        throw new IllegalQueryException(
-            "Current user is not authorized to read data from selected program:  "
-                + params.getProgram().getUid());
-      }
-
-      if (params.getProgram().getTrackedEntityType() != null
-          && !aclService.canDataRead(
-              params.getUser(), params.getProgram().getTrackedEntityType())) {
-        throw new IllegalQueryException(
-            "Current user is not authorized to read data from selected program's tracked entity type:  "
-                + params.getProgram().getTrackedEntityType().getUid());
-      }
-    }
-
-    if (params.hasTrackedEntityType()
-        && !aclService.canDataRead(params.getUser(), params.getTrackedEntityType())) {
-      throw new IllegalQueryException(
-          "Current user is not authorized to read data from selected tracked entity type:  "
-              + params.getTrackedEntityType().getUid());
-    }
   }
 
   private List<Enrollment> getEnrollments(

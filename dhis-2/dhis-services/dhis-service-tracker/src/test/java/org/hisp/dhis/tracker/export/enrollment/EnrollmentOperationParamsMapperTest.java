@@ -41,12 +41,14 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -92,6 +94,8 @@ class EnrollmentOperationParamsMapperTest {
 
   @Mock private TrackerAccessManager trackerAccessManager;
 
+  @Mock private AclService aclService;
+
   @InjectMocks private EnrollmentOperationParamsMapper mapper;
 
   private OrganisationUnit orgUnit1;
@@ -126,14 +130,15 @@ class EnrollmentOperationParamsMapperTest {
 
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
 
-    program = new Program();
-    program.setUid(PROGRAM_UID);
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-
     trackedEntityType = new TrackedEntityType();
     trackedEntityType.setUid(TRACKED_ENTITY_TYPE_UID);
     when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
         .thenReturn(trackedEntityType);
+
+    program = new Program();
+    program.setUid(PROGRAM_UID);
+    program.setTrackedEntityType(trackedEntityType);
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
 
     trackedEntity = new TrackedEntity();
     trackedEntity.setUid(TRACKED_ENTITY_UID);
@@ -171,6 +176,8 @@ class EnrollmentOperationParamsMapperTest {
     when(organisationUnitService.isInUserHierarchy(
             orgUnit2.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
     EnrollmentQueryParams params = mapper.map(operationParams);
 
@@ -187,6 +194,8 @@ class EnrollmentOperationParamsMapperTest {
             .build();
 
     when(trackerAccessManager.canAccess(user, program, orgUnit2)).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
     Exception exception =
         assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
@@ -262,6 +271,9 @@ class EnrollmentOperationParamsMapperTest {
 
   @Test
   void shouldMapProgramWhenProgramUidIsSpecified() throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+
     EnrollmentOperationParams requestParams =
         EnrollmentOperationParams.builder().programUid(PROGRAM_UID).orgUnitMode(ACCESSIBLE).build();
 
@@ -281,8 +293,43 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
+  void shouldFailWhenUserCantReadProgramData() {
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(aclService.canDataRead(user, program)).thenReturn(false);
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().programUid(PROGRAM_UID).build();
+
+    Exception exception =
+        assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
+    assertEquals(
+        String.format(
+            "Current user is not authorized to read data from selected program:  %s", PROGRAM_UID),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenUserCantReadProgramTrackedEntityTypeData() {
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(false);
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().programUid(PROGRAM_UID).build();
+
+    Exception exception =
+        assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
+    assertEquals(
+        String.format(
+            "Current user is not authorized to read data from selected program's tracked entity type:  %s",
+            TRACKED_ENTITY_TYPE_UID),
+        exception.getMessage());
+  }
+
+  @Test
   void shouldMapTrackedEntityTypeWhenTrackedEntityTypeUidIsSpecified()
       throws BadRequestException, ForbiddenException {
+    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .trackedEntityTypeUid(TRACKED_ENTITY_TYPE_UID)
@@ -302,6 +349,22 @@ class EnrollmentOperationParamsMapperTest {
     Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
     assertEquals(
         "Tracked entity type is specified but does not exist: JW6BrFd0HLu", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenUserCantReadTrackedEntityTypeData() {
+    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
+        .thenReturn(trackedEntityType);
+    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(false);
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().programUid(TRACKED_ENTITY_TYPE_UID).build();
+
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
+    assertEquals(
+        String.format("Program is specified but does not exist: %s", TRACKED_ENTITY_TYPE_UID),
+        exception.getMessage());
   }
 
   @Test
