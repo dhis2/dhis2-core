@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,62 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
+package org.hisp.dhis.merge.indicator;
 
-import java.util.Objects;
-import org.hisp.dhis.common.MergeMode;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.merge.MergeProcessor;
+import org.hisp.dhis.merge.MergeService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Implementation of {@link MergeProcessor} that currently only uses its default method.
+ *
+ * @author david mackessy
  */
-public final class MergeParams<T> {
-  private final T source;
+@Component
+@RequiredArgsConstructor
+public class IndicatorTypeMergeProcessor implements MergeProcessor {
+  private final MergeService indicatorTypeMergeService;
 
-  private final T target;
-
-  private MergeMode mergeMode = MergeMode.REPLACE;
-
-  private boolean skipSharing;
-
-  private boolean skipTranslation;
-
-  public MergeParams(T source, T target) {
-    this.source = Objects.requireNonNull(source);
-    this.target = Objects.requireNonNull(target);
-  }
-
-  public T getSource() {
-    return source;
-  }
-
-  public T getTarget() {
-    return target;
-  }
-
-  public MergeMode getMergeMode() {
-    return mergeMode;
-  }
-
-  public MergeParams<T> setMergeMode(MergeMode mergeMode) {
-    this.mergeMode = mergeMode;
-    return this;
-  }
-
-  public boolean isSkipSharing() {
-    return skipSharing;
-  }
-
-  public MergeParams<T> setSkipSharing(boolean skipSharing) {
-    this.skipSharing = skipSharing;
-    return this;
-  }
-
-  public boolean isSkipTranslation() {
-    return skipTranslation;
-  }
-
-  public MergeParams<T> setSkipTranslation(boolean skipTranslation) {
-    this.skipTranslation = skipTranslation;
-    return this;
+  @Override
+  public MergeService getMergeService() {
+    return indicatorTypeMergeService;
   }
 }

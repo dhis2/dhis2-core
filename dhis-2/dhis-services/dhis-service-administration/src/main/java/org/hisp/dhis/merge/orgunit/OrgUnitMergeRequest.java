@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
