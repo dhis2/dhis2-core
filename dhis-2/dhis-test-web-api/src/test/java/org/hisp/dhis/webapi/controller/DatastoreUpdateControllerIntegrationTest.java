@@ -46,7 +46,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-public class DatastoreUpdateControllerIntegrationTest extends DhisControllerIntegrationTest {
+class DatastoreUpdateControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Test
   void testUpdateEntry_RootWithNullValue() {
