@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.sideeffect;
+package org.hisp.dhis.feedback;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import lombok.Builder;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.Data;
+import org.hisp.dhis.merge.MergeType;
 
 /**
- * DHIS2 equivalent to rule engine {@link org.hisp.dhis.rules.models.RuleActionScheduleMessage}
+ * Class representing the state of a merge<br>
  *
- * @author Zubair Asghar
+ * <ul>
+ *   <li>It can contain {@link ErrorMessage}s
+ *   <li>It describes the type of merge
+ *   <li>what sources have been deleted, if any
+ * </ul>
+ *
+ * @author david mackessy
  */
 @Data
-@Builder(builderClassName = "TrackerSendMessageSideEffectBuilder")
-@JsonDeserialize(builder = TrackerSendMessageSideEffect.TrackerSendMessageSideEffectBuilder.class)
-public class TrackerSendMessageSideEffect implements TrackerRuleEngineSideEffect {
-  @JsonProperty private String notification;
+public class MergeReport implements ErrorMessageContainer {
 
-  @JsonProperty private String data;
+  @JsonProperty private final List<ErrorMessage> mergeErrors = new ArrayList<>();
+  @JsonProperty private MergeType mergeType;
+  @JsonProperty private Set<String> sourcesDeleted = new HashSet<>();
+  @JsonProperty private String message;
 
-  @Override
-  public String getData() {
-    return data;
+  public MergeReport(MergeType mergeType) {
+    this.mergeType = mergeType;
   }
 
-  @JsonPOJOBuilder(withPrefix = "")
-  public static final class TrackerSendMessageSideEffectBuilder {}
+  @Override
+  public boolean hasErrorMessages() {
+    return !mergeErrors.isEmpty();
+  }
+
+  @Override
+  public void addErrorMessage(ErrorMessage errorMessage) {
+    mergeErrors.add(errorMessage);
+  }
+
+  public void addDeletedSource(String uid) {
+    sourcesDeleted.add(uid);
+  }
 }

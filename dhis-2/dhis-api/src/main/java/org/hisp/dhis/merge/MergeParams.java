@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.sideeffect;
+package org.hisp.dhis.merge;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Set;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 
 /**
- * Interface represents DHIS2 objects equivalent to rule engine objects.
+ * Encapsulation of web API merge params. Contains source {@link UID}s to be merged and a target
+ * {@link UID} to be merged in to. Also indicates whether sources should be deleted or not. <br>
+ * All {@link UID}s should be verified.
  *
- * @author Zubair Asghar
+ * @author david mackessy
  */
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes({
-  @JsonSubTypes.Type(
-      value = TrackerSendMessageSideEffect.class,
-      name = "TrackerSendMessageSideEffect"),
-  @JsonSubTypes.Type(
-      value = TrackerScheduleMessageSideEffect.class,
-      name = "TrackerScheduleMessageSideEffect"),
-  @JsonSubTypes.Type(
-      value = TrackerAssignValueSideEffect.class,
-      name = "TrackerAssignValueSideEffect")
-})
-public interface TrackerRuleEngineSideEffect {
-  String getData();
+@Data
+@NoArgsConstructor
+public class MergeParams {
+  @JsonProperty private Set<UID> sources;
+
+  @JsonProperty private UID target;
+
+  @JsonProperty private boolean deleteSources;
 }

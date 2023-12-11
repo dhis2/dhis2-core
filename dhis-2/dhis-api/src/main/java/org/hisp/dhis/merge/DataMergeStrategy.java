@@ -25,22 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
-
-import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+package org.hisp.dhis.merge;
 
 /**
+ * Enum for merge strategies.
+ *
  * @author Lars Helge Overland
  */
-public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
-  String ID = IndicatorStore.class.getName();
+public enum DataMergeStrategy {
+  /** Use last updated source data records. */
+  LAST_UPDATED,
 
-  List<Indicator> getIndicatorsWithGroupSets();
-
-  List<Indicator> getIndicatorsWithoutGroups();
-
-  List<Indicator> getIndicatorsWithDataSets();
-
-  List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes);
+  /** Discard source data records. */
+  DISCARD
 }

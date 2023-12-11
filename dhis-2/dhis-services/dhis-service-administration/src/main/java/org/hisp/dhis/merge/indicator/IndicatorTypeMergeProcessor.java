@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
+package org.hisp.dhis.merge.indicator;
+
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.merge.MergeProcessor;
+import org.hisp.dhis.merge.MergeService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Implementation of {@link MergeProcessor} that currently only uses its default method.
+ *
+ * @author david mackessy
  */
-public interface MergeService {
-  /**
-   * Merges source object into target object, requires a "schema friendly" class.
-   *
-   * @param mergeParams MergeParams instance containing source and target object
-   */
-  <T> T merge(MergeParams<T> mergeParams);
+@Component
+@RequiredArgsConstructor
+public class IndicatorTypeMergeProcessor implements MergeProcessor {
+  private final MergeService indicatorTypeMergeService;
 
-  /**
-   * Creates a clone of given object and returns it.
-   *
-   * @param source Object to clone
-   */
-  <T> T clone(T source);
+  @Override
+  public MergeService getMergeService() {
+    return indicatorTypeMergeService;
+  }
 }

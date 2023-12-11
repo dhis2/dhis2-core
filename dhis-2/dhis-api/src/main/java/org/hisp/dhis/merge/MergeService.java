@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,62 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
+package org.hisp.dhis.merge;
 
-import java.util.Objects;
-import org.hisp.dhis.common.MergeMode;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.MergeReport;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Interface for merging {@link IdentifiableObject}s
+ *
+ * @author david mackessy
  */
-public final class MergeParams<T> {
-  private final T source;
+public interface MergeService {
 
-  private final T target;
+  /**
+   * This method transforms a {@link MergeParams} to a {@link MergeRequest}. If there are any
+   * errors/issues with the params then the {@link MergeReport} should be updated.
+   *
+   * @param params params to transform to {@link MergeRequest}
+   * @param mergeReport report to be updated if any issues/errors with the {@link MergeParams}
+   * @return {@link MergeRequest}
+   */
+  MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport);
 
-  private MergeMode mergeMode = MergeMode.REPLACE;
-
-  private boolean skipSharing;
-
-  private boolean skipTranslation;
-
-  public MergeParams(T source, T target) {
-    this.source = Objects.requireNonNull(source);
-    this.target = Objects.requireNonNull(target);
-  }
-
-  public T getSource() {
-    return source;
-  }
-
-  public T getTarget() {
-    return target;
-  }
-
-  public MergeMode getMergeMode() {
-    return mergeMode;
-  }
-
-  public MergeParams<T> setMergeMode(MergeMode mergeMode) {
-    this.mergeMode = mergeMode;
-    return this;
-  }
-
-  public boolean isSkipSharing() {
-    return skipSharing;
-  }
-
-  public MergeParams<T> setSkipSharing(boolean skipSharing) {
-    this.skipSharing = skipSharing;
-    return this;
-  }
-
-  public boolean isSkipTranslation() {
-    return skipTranslation;
-  }
-
-  public MergeParams<T> setSkipTranslation(boolean skipTranslation) {
-    this.skipTranslation = skipTranslation;
-    return this;
-  }
+  /**
+   * This method merges a {@link MergeRequest}. If there are any errors/issues with the {@link
+   * MergeRequest} then the {@link MergeReport} should be updated.
+   *
+   * @param request request to be merged
+   * @param mergeReport report to be updated if any issues/errors with the {@link MergeRequest}
+   * @return {@link MergeReport}
+   */
+  @Transactional
+  MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport);
 }
