@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
@@ -56,7 +55,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +86,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -327,65 +324,6 @@ class DataIntegrityServiceTest {
     subject.getDataElementsWithoutGroups();
     verify(dataElementService).getDataElementsWithoutGroups();
     verifyNoMoreInteractions(dataElementService);
-  }
-
-  @Test
-  void testGetDataElementsAssignedToDataSetsWithDifferentPeriodType() {
-    String seed = "abcde";
-    Map<String, DataElement> dataElements = createRandomDataElements(6, seed);
-
-    DataSet dataSet1 = rnd.nextObject(DataSet.class);
-    dataSet1.setPeriodType(PeriodType.getPeriodTypeFromIsoString("2011"));
-    dataSet1.addDataSetElement(dataElements.get(seed + 1));
-    dataSet1.addDataSetElement(dataElements.get(seed + 2));
-    dataSet1.addDataSetElement(dataElements.get(seed + 3));
-    dataSet1.addDataSetElement(dataElements.get(seed + 4));
-
-    DataSet dataSet2 = rnd.nextObject(DataSet.class);
-    dataSet2.setPeriodType(PeriodType.getByIndex(5));
-    dataSet2.addDataSetElement(dataElements.get(seed + 4));
-    dataSet2.addDataSetElement(dataElements.get(seed + 5));
-    dataSet2.addDataSetElement(dataElements.get(seed + 6));
-    dataSet2.addDataSetElement(dataElements.get(seed + 1));
-
-    when(dataElementService.getAllDataElements()).thenReturn(List.copyOf(dataElements.values()));
-    when(dataSetService.getAllDataSets()).thenReturn(List.of(dataSet1, dataSet2));
-
-    List<DataIntegrityIssue> result =
-        subject.getDataElementsAssignedToDataSetsWithDifferentPeriodTypes();
-
-    assertEquals(2, result.size());
-    DataIntegrityIssue issue0 = result.get(0);
-    assertEquals(seed + 1, issue0.getId());
-    assertContainsOnly(List.of(issueName(dataSet1), issueName(dataSet2)), issue0.getRefs());
-    DataIntegrityIssue issue1 = result.get(1);
-    assertEquals(seed + 4, issue1.getId());
-    assertContainsOnly(List.of(issueName(dataSet1), issueName(dataSet2)), issue1.getRefs());
-  }
-
-  @Test
-  void testGetDataElementsAssignedToDataSetsWithDifferentPeriodTypeNoResult() {
-
-    String seed = "abcde";
-    Map<String, DataElement> dataElements = createRandomDataElements(6, seed);
-
-    DataSet dataSet1 = rnd.nextObject(DataSet.class);
-    dataSet1.setPeriodType(PeriodType.getPeriodTypeFromIsoString("2011"));
-    dataSet1.addDataSetElement(dataElements.get(seed + 1));
-    dataSet1.addDataSetElement(dataElements.get(seed + 2));
-    dataSet1.addDataSetElement(dataElements.get(seed + 3));
-
-    DataSet dataSet2 = rnd.nextObject(DataSet.class);
-    dataSet2.setPeriodType(PeriodType.getByIndex(5));
-    dataSet2.addDataSetElement(dataElements.get(seed + 4));
-    dataSet2.addDataSetElement(dataElements.get(seed + 5));
-    dataSet2.addDataSetElement(dataElements.get(seed + 6));
-
-    when(dataElementService.getAllDataElements())
-        .thenReturn(new ArrayList<>(dataElements.values()));
-    when(dataSetService.getAllDataSets()).thenReturn(newArrayList(dataSet1, dataSet2));
-
-    assertTrue(subject.getDataElementsAssignedToDataSetsWithDifferentPeriodTypes().isEmpty());
   }
 
   @Test
