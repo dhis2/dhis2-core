@@ -767,7 +767,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     ImportSummary summary = eventService.addEvent(event, null, false);
     assertEquals(ImportStatus.SUCCESS, summary.getStatus());
 
-    event.setEventDate(EVENT_DATE);
+    event.setEventDate(DUE_DATE);
 
     eventService.updateEventForEventDate(event);
 
