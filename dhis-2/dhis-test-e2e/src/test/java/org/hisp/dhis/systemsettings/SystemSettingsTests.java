@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.JsonObject;
 import io.restassured.http.ContentType;
+import io.restassured.response.ValidatableResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
@@ -41,12 +42,13 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-public class SystemSettingsTests extends ApiTest {
+class SystemSettingsTests extends ApiTest {
   private static final String APPLICATION_INTRO_KEY = "keyApplicationIntro";
 
   private static final String APPLICATION_FOOTER_KEY = "keyApplicationFooter";
@@ -69,8 +71,6 @@ public class SystemSettingsTests extends ApiTest {
 
   private static final String FRENCH_INTRO = "French - Welcome to the DHIS2";
 
-  private LoginActions loginActions;
-
   private SystemSettingActions systemSettingActions;
 
   @BeforeEach
@@ -79,7 +79,7 @@ public class SystemSettingsTests extends ApiTest {
 
     systemSettingActions = new SystemSettingActions();
 
-    loginActions = new LoginActions();
+    LoginActions loginActions = new LoginActions();
     loginActions.loginAsDefaultUser();
   }
 
@@ -115,7 +115,7 @@ public class SystemSettingsTests extends ApiTest {
   }
 
   @Test
-  public void addSystemSetting() {
+  void addSystemSetting() {
     String specificFooter = "Learn more at ";
 
     QueryParamsBuilder params = new QueryParamsBuilder();
@@ -129,7 +129,7 @@ public class SystemSettingsTests extends ApiTest {
   }
 
   @Test
-  public void returnDefaultValueWhenTranslationIsNotAvailable() {
+  void returnDefaultValueWhenTranslationIsNotAvailable() {
     prepareData();
 
     ApiResponse response =
@@ -143,7 +143,7 @@ public class SystemSettingsTests extends ApiTest {
   }
 
   @Test
-  public void returnTranslationForUsersLocale() {
+  void returnTranslationForUsersLocale() {
     prepareData();
 
     ApiResponse response =
@@ -157,7 +157,7 @@ public class SystemSettingsTests extends ApiTest {
   }
 
   @Test
-  public void returnTranslationForGivenLocale() {
+  void returnTranslationForGivenLocale() {
     prepareData();
 
     ApiResponse response =
@@ -171,7 +171,7 @@ public class SystemSettingsTests extends ApiTest {
   }
 
   @Test
-  public void returnAllSystemSettings() {
+  void returnAllSystemSettings() {
     prepareData();
 
     ApiResponse response = systemSettingActions.get();
@@ -184,7 +184,7 @@ public class SystemSettingsTests extends ApiTest {
   }
 
   @Test
-  public void deleteTranslationForGivenLocaleAndSettingKey() {
+  void deleteTranslationForGivenLocaleAndSettingKey() {
     prepareData();
 
     ApiResponse response =
@@ -204,7 +204,7 @@ public class SystemSettingsTests extends ApiTest {
   }
 
   @Test
-  public void deleteSystemSetting() {
+  void deleteSystemSetting() {
     prepareData();
 
     ApiResponse response = systemSettingActions.delete(APPLICATION_INTRO_KEY);
@@ -224,7 +224,7 @@ public class SystemSettingsTests extends ApiTest {
   }
 
   @Test
-  public void getDefaultSystemSettingAsText() {
+  void getDefaultSystemSettingAsText() {
     ApiResponse response =
         systemSettingActions.get(
             MAX_SYNC_ATTEMPTS_KEY,
@@ -260,7 +260,7 @@ public class SystemSettingsTests extends ApiTest {
   }
 
   @Test
-  public void getDefaultSystemSettingAsJson() {
+  void getDefaultSystemSettingAsJson() {
     ApiResponse response =
         systemSettingActions.get(
             MAX_SYNC_ATTEMPTS_KEY,
@@ -296,7 +296,7 @@ public class SystemSettingsTests extends ApiTest {
   }
 
   @Test
-  public void getDefaultSystemSettingWithNonSpecifiedContentTypeAndAccept() {
+  void getDefaultSystemSettingWithNonSpecifiedContentTypeAndAccept() {
     ApiResponse response =
         systemSettingActions.get(MAX_SYNC_ATTEMPTS_KEY, "", "", new QueryParamsBuilder());
 
@@ -315,5 +315,14 @@ public class SystemSettingsTests extends ApiTest {
 
     // -----------------------------------------
     response = systemSettingActions.get(EMAIL_SENDER_KEY, "", "", new QueryParamsBuilder());
+  }
+
+  @Test
+  @DisplayName(
+      "A call to the system settings endpoint returns expected cache control header values")
+  void getSystemSettingsCheckCacheControl() {
+    ValidatableResponse validate = systemSettingActions.get().validate();
+    validate.statusCode(200);
+    validate.header("Cache-Control", "no-cache, no-store, must-revalidate");
   }
 }

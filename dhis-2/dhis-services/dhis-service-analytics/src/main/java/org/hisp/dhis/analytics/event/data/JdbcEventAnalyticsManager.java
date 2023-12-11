@@ -32,8 +32,8 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
+import static org.hisp.dhis.analytics.common.ColumnHeader.LATITUDE;
+import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
@@ -169,7 +169,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       int index = 1;
 
       for (GridHeader header : grid.getHeaders()) {
-        if (ITEM_LONGITUDE.equals(header.getName()) || ITEM_LATITUDE.equals(header.getName())) {
+        if (LONGITUDE.getItem().equals(header.getName())
+            || LATITUDE.getItem().equals(header.getName())) {
           double val = rowSet.getDouble(index);
           grid.addValue(Precision.round(val, COORD_DEC));
         } else {

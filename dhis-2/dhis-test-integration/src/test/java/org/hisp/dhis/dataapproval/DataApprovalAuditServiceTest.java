@@ -47,6 +47,7 @@ import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -246,7 +247,8 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest {
     optionGroupB = createCategoryOptionGroup('B', optionB);
     categoryService.saveCategoryOptionGroup(optionGroupA);
     categoryService.saveCategoryOptionGroup(optionGroupB);
-    optionGroupSetB = new CategoryOptionGroupSet("OptionGroupSetB");
+    optionGroupSetB =
+        new CategoryOptionGroupSet("OptionGroupSetB", DataDimensionType.DISAGGREGATION);
     categoryService.saveCategoryOptionGroupSet(optionGroupSetB);
     optionGroupSetB.addCategoryOptionGroup(optionGroupA);
     optionGroupSetB.addCategoryOptionGroup(optionGroupB);

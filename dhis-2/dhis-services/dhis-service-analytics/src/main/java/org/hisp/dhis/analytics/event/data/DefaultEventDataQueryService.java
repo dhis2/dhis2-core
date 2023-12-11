@@ -28,18 +28,6 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_CREATED_BY_DISPLAY_NAME;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ENROLLMENT_DATE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EVENT_DATE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EVENT_STATUS;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_INCIDENT_DATE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LAST_UPDATED;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LAST_UPDATED_BY_DISPLAY_NAME;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_CODE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME_HIERARCHY;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_PROGRAM_STATUS;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_SCHEDULED_DATE;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_GEOMETRY_LIST;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_PI_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_PSI_GEOMETRY;
@@ -72,6 +60,7 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.OrgUnitField;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
@@ -584,19 +573,21 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   @Getter
   @RequiredArgsConstructor
   enum SortableItems {
-    ENROLLMENT_DATE(ITEM_ENROLLMENT_DATE, COL_NAME_ENROLLMENTDATE),
-    INCIDENT_DATE(ITEM_INCIDENT_DATE, COL_NAME_INCIDENTDATE),
-    EVENT_DATE(ITEM_EVENT_DATE, COL_NAME_EVENTDATE),
-    SCHEDULED_DATE(ITEM_SCHEDULED_DATE, COL_NAME_DUEDATE),
-    ORG_UNIT_NAME(ITEM_ORG_UNIT_NAME),
-    ORG_UNIT_NAME_HIERARCHY(ITEM_ORG_UNIT_NAME_HIERARCHY),
-    ORG_UNIT_CODE(ITEM_ORG_UNIT_CODE),
+    ENROLLMENT_DATE(ColumnHeader.ENROLLMENT_DATE.getItem(), COL_NAME_ENROLLMENTDATE),
+    INCIDENT_DATE(ColumnHeader.INCIDENT_DATE.getItem(), COL_NAME_INCIDENTDATE),
+    EVENT_DATE(ColumnHeader.EVENT_DATE.getItem(), COL_NAME_EVENTDATE),
+    SCHEDULED_DATE(ColumnHeader.SCHEDULED_DATE.getItem(), COL_NAME_DUEDATE),
+    ORG_UNIT_NAME(ColumnHeader.ORG_UNIT_NAME.getItem()),
+    ORG_UNIT_NAME_HIERARCHY(ColumnHeader.ORG_UNIT_NAME_HIERARCHY.getItem()),
+    ORG_UNIT_CODE(ColumnHeader.ORG_UNIT_CODE.getItem()),
     PROGRAM_STATUS(
-        ITEM_PROGRAM_STATUS, COL_NAME_PROGRAM_STATUS_EVENTS, COL_NAME_PROGRAM_STATUS_ENROLLMENTS),
-    EVENT_STATUS(ITEM_EVENT_STATUS, COL_NAME_EVENT_STATUS),
-    CREATED_BY_DISPLAY_NAME(ITEM_CREATED_BY_DISPLAY_NAME),
-    LAST_UPDATED_BY_DISPLAY_NAME(ITEM_LAST_UPDATED_BY_DISPLAY_NAME),
-    LAST_UPDATED(ITEM_LAST_UPDATED);
+        ColumnHeader.PROGRAM_STATUS.getItem(),
+        COL_NAME_PROGRAM_STATUS_EVENTS,
+        COL_NAME_PROGRAM_STATUS_ENROLLMENTS),
+    EVENT_STATUS(ColumnHeader.EVENT_STATUS.getItem(), COL_NAME_EVENT_STATUS),
+    CREATED_BY_DISPLAY_NAME(ColumnHeader.CREATED_BY_DISPLAY_NAME.getItem()),
+    LAST_UPDATED_BY_DISPLAY_NAME(ColumnHeader.LAST_UPDATED_BY_DISPLAY_NAME.getItem()),
+    LAST_UPDATED(ColumnHeader.LAST_UPDATED.getItem());
 
     private final String itemName;
 
