@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.sideeffect;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import lombok.Builder;
-import lombok.Data;
+package org.hisp.dhis.merge;
 
 /**
- * DHIS2 equivalent to rule engine {@link org.hisp.dhis.rules.models.RuleActionScheduleMessage}
+ * Enum for merge type.
  *
- * @author Zubair Asghar
+ * @author david mackessy
  */
-@Data
-@Builder(builderClassName = "TrackerScheduleMessageSideEffectBuilder")
-@JsonDeserialize(
-    builder = TrackerScheduleMessageSideEffect.TrackerScheduleMessageSideEffectBuilder.class)
-public class TrackerScheduleMessageSideEffect implements TrackerRuleEngineSideEffect {
-  @JsonProperty private String notification;
+public enum MergeType {
+  ORG_UNIT,
 
-  @JsonProperty private String data;
-
-  @Override
-  public String getData() {
-    return data;
-  }
-
-  @JsonPOJOBuilder(withPrefix = "")
-  public static final class TrackerScheduleMessageSideEffectBuilder {}
+  INDICATOR_TYPE
 }

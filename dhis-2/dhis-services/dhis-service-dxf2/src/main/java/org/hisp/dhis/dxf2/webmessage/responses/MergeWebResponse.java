@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.converter;
+package org.hisp.dhis.dxf2.webmessage.responses;
 
-import java.util.List;
-import java.util.Map;
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.tracker.imports.sideeffect.TrackerRuleEngineSideEffect;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.merge.MergeType;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * Converts rule-engine domain objects to tracker domain objects and vice versa.
- *
- * @author Zubair Asghars
+ * @author david mackessy
  */
-public interface TrackerSideEffectConverterService {
-  Map<String, List<TrackerRuleEngineSideEffect>> toTrackerSideEffects(
-      Map<String, List<RuleEffect>> ruleEffects);
+public class MergeWebResponse implements WebMessageResponse {
+  @JsonProperty private MergeReport mergeReport;
 
-  Map<String, List<RuleEffect>> toRuleEffects(
-      Map<String, List<TrackerRuleEngineSideEffect>> trackerSideEffects);
+  public MergeWebResponse(@Nonnull MergeReport mergeReport) {
+    this.mergeReport = mergeReport;
+    MergeType mergeType = mergeReport.getMergeType();
+    this.mergeReport.setMessage(
+        mergeReport.hasErrorMessages()
+            ? "%s merge has errors".formatted(mergeType)
+            : "%s merge complete".formatted(mergeType));
+  }
 }

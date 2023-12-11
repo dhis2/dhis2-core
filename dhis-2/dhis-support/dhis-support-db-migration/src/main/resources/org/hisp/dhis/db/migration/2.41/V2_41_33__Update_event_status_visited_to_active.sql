@@ -1,0 +1,1 @@
+update event set status='ACTIVE' where status='VISITED';

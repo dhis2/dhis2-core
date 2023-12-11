@@ -58,9 +58,9 @@ jobs:
           config-file: ./.github/codeql/codeql-config.yml
 
       - name: Build core
-        run: mvn clean install -f ./dhis-2/pom.xml --batch-mode --no-transfer-progress -Pdev -DskipTests=true -Dmaven.javadoc.skip=true -V
+        run: mvn clean install -f ./dhis-2/pom.xml --batch-mode --no-transfer-progress --update-snapshots -Pdev -DskipTests=true -Dmaven.javadoc.skip=true -V
       - name: Build web
-        run: mvn clean install -f ./dhis-2/dhis-web/pom.xml --batch-mode --no-transfer-progress -Pdev -DskipTests=true -Dmaven.javadoc.skip=true -V
+        run: mvn clean install -f ./dhis-2/dhis-web/pom.xml --batch-mode --no-transfer-progress --update-snapshots -Pdev -DskipTests=true -Dmaven.javadoc.skip=true -V
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2

@@ -111,6 +111,12 @@ public class DefaultIndicatorService implements IndicatorService {
     return indicatorStore.getIndicatorsWithDataSets();
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes) {
+    return indicatorStore.getAssociatedIndicators(indicatorTypes);
+  }
+
   // -------------------------------------------------------------------------
   // IndicatorType
   // -------------------------------------------------------------------------
@@ -151,6 +157,12 @@ public class DefaultIndicatorService implements IndicatorService {
   @Transactional(readOnly = true)
   public List<IndicatorType> getAllIndicatorTypes() {
     return indicatorTypeStore.getAll();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<IndicatorType> getIndicatorTypesByUid(List<String> uids) {
+    return indicatorTypeStore.getByUid(uids);
   }
 
   // -------------------------------------------------------------------------

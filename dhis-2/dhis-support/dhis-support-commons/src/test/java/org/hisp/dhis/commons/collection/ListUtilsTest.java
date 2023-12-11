@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
+package org.hisp.dhis.commons.collection;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author Lars Helge Overland
- */
-public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
-  String ID = IndicatorStore.class.getName();
+class ListUtilsTest {
+  @Test
+  void testDistinctUnion() {
+    List<String> listA = List.of("One", "Two", "Three");
+    List<String> listB = List.of("One", "Three", "Four");
+    List<String> listC = List.of("Three", "Five");
 
-  List<Indicator> getIndicatorsWithGroupSets();
+    List<String> union = List.of("One", "Two", "Three", "Four", "Five");
 
-  List<Indicator> getIndicatorsWithoutGroups();
-
-  List<Indicator> getIndicatorsWithDataSets();
-
-  List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes);
+    assertEquals(union, ListUtils.distinctUnion(listA, listB, listC));
+  }
 }

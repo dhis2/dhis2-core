@@ -25,34 +25,62 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.sideeffect;
+package org.hisp.dhis.schema;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import lombok.Builder;
-import lombok.Data;
+import java.util.Objects;
+import org.hisp.dhis.common.MergeMode;
 
 /**
- * DHIS2 equivalent to rule engine {@link org.hisp.dhis.rules.models.RuleActionAssign}
- *
- * @author Zubair Asghar
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-@Builder(builderClassName = "TrackerAssignValueSideEffectBuilder")
-@JsonDeserialize(builder = TrackerAssignValueSideEffect.TrackerAssignValueSideEffectBuilder.class)
-public class TrackerAssignValueSideEffect implements TrackerRuleEngineSideEffect {
-  @JsonProperty private String data;
+public final class MetadataMergeParams<T> {
+  private final T source;
 
-  @JsonProperty private String content;
+  private final T target;
 
-  @JsonProperty private String field;
+  private MergeMode mergeMode = MergeMode.REPLACE;
 
-  @Override
-  public String getData() {
-    return data;
+  private boolean skipSharing;
+
+  private boolean skipTranslation;
+
+  public MetadataMergeParams(T source, T target) {
+    this.source = Objects.requireNonNull(source);
+    this.target = Objects.requireNonNull(target);
   }
 
-  @JsonPOJOBuilder(withPrefix = "")
-  public static final class TrackerAssignValueSideEffectBuilder {}
+  public T getSource() {
+    return source;
+  }
+
+  public T getTarget() {
+    return target;
+  }
+
+  public MergeMode getMergeMode() {
+    return mergeMode;
+  }
+
+  public MetadataMergeParams<T> setMergeMode(MergeMode mergeMode) {
+    this.mergeMode = mergeMode;
+    return this;
+  }
+
+  public boolean isSkipSharing() {
+    return skipSharing;
+  }
+
+  public MetadataMergeParams<T> setSkipSharing(boolean skipSharing) {
+    this.skipSharing = skipSharing;
+    return this;
+  }
+
+  public boolean isSkipTranslation() {
+    return skipTranslation;
+  }
+
+  public MetadataMergeParams<T> setSkipTranslation(boolean skipTranslation) {
+    this.skipTranslation = skipTranslation;
+    return this;
+  }
 }
