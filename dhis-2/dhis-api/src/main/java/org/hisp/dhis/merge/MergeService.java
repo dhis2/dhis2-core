@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
+package org.hisp.dhis.merge;
 
-import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.MergeReport;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Lars Helge Overland
+ * Interface for merging {@link IdentifiableObject}s
+ *
+ * @author david mackessy
  */
-public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
-  String ID = IndicatorStore.class.getName();
+public interface MergeService {
 
-  List<Indicator> getIndicatorsWithGroupSets();
+  /**
+   * This method transforms a {@link MergeParams} to a {@link MergeRequest}. If there are any
+   * errors/issues with the params then the {@link MergeReport} should be updated.
+   *
+   * @param params params to transform to {@link MergeRequest}
+   * @param mergeReport report to be updated if any issues/errors with the {@link MergeParams}
+   * @return {@link MergeRequest}
+   */
+  MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport);
 
-  List<Indicator> getIndicatorsWithoutGroups();
-
-  List<Indicator> getIndicatorsWithDataSets();
-
-  List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes);
+  /**
+   * This method merges a {@link MergeRequest}. If there are any errors/issues with the {@link
+   * MergeRequest} then the {@link MergeReport} should be updated.
+   *
+   * @param request request to be merged
+   * @param mergeReport report to be updated if any issues/errors with the {@link MergeRequest}
+   * @return {@link MergeReport}
+   */
+  @Transactional
+  MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport);
 }

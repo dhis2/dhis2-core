@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
+package org.hisp.dhis.merge;
 
-import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.ToString;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 
 /**
- * @author Lars Helge Overland
+ * Encapsulation of a merge request. Contains source {@link UID}s that extend {@link
+ * IdentifiableObject} to be merged into a target of the same type. Also indicates whether sources
+ * should be deleted.
+ *
+ * @author david mackessy
  */
-public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
-  String ID = IndicatorStore.class.getName();
+@Builder
+@ToString
+@AllArgsConstructor
+public class MergeRequest {
+  @Builder.Default private final Set<UID> sources = new HashSet<>();
 
-  List<Indicator> getIndicatorsWithGroupSets();
+  @Getter private final UID target;
 
-  List<Indicator> getIndicatorsWithoutGroups();
+  @Getter private final boolean deleteSources;
 
-  List<Indicator> getIndicatorsWithDataSets();
+  public Set<UID> getSources() {
+    return Set.copyOf(sources);
+  }
 
-  List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes);
+  public static MergeRequest empty() {
+    return MergeRequest.builder().build();
+  }
 }
