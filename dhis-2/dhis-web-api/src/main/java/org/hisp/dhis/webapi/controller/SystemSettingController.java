@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.springframework.http.CacheControl.noCache;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.Serializable;
@@ -59,7 +60,6 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -203,7 +203,7 @@ public class SystemSettingController {
       return ResponseEntity.status(404).body(SETTING_DOESNT_EXIST_OR_CONFIDENTIAL);
     }
     response.setHeader(
-        ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
+        ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
 
     return ResponseEntity.ok()
         .body(String.valueOf(getSystemSettingOrTranslation(key, locale, currentUser)));
@@ -223,7 +223,7 @@ public class SystemSettingController {
     }
 
     return ResponseEntity.ok()
-        .cacheControl(CacheControl.noCache().cachePrivate())
+        .cacheControl(noCache().cachePrivate())
         .contentType(MediaType.APPLICATION_JSON)
         .body(Map.of(key, getSystemSettingOrTranslation(key, locale, currentUser)));
   }
@@ -286,7 +286,7 @@ public class SystemSettingController {
     }
 
     return ResponseEntity.ok()
-        .cacheControl(CacheControl.noCache().cachePrivate())
+        .headers(ContextUtils.getSecureNoCacheHeader())
         .body(systemSettingManager.getSystemSettings(settingKeysToFetch));
   }
 
