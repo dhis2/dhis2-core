@@ -213,11 +213,9 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     Map<String, List<String>> actual =
         getDataIntegrityReport()
             .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes()
-            .toMap(JsonString::string);
+            .toMap(JsonString::string, String::compareTo);
 
-    assertEquals(expected.size(), actual.size());
-    assertTrue(actual.values().containsAll(expected.values()));
-    assertTrue(expected.values().containsAll(actual.values()));
+    assertEquals(expected, actual);
   }
 
   private String addOrganisationUnit(String name) {
