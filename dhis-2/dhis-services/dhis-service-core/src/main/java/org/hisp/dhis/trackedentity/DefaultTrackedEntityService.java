@@ -75,8 +75,8 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -583,7 +583,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       throw new IllegalQueryException("Params cannot be null");
     }
 
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     if (currentUserDetails == null) {
       throw new IllegalQueryException("User cannot be null");
@@ -768,7 +768,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   @Transactional
   public void updateTrackedEntity(TrackedEntity trackedEntity, User user) {
-    trackedEntityStore.update(trackedEntity, CurrentUserDetailsImpl.fromUser(user));
+    trackedEntityStore.update(trackedEntity, UserDetailsImpl.fromUser(user));
   }
 
   @Override

@@ -34,8 +34,8 @@ import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.apikey.ApiTokenDeletedEvent;
 import org.hisp.dhis.security.apikey.ApiTokenService;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserStore;
 import org.hisp.dhis.util.ObjectUtils;
@@ -90,7 +90,7 @@ public class ApiTokenAuthManager implements AuthenticationManager {
 
       validateTokenExpiry(apiToken.getExpire());
 
-      CurrentUserDetails currentUserDetails = validateAndCreateUserDetails(apiToken.getCreatedBy());
+      UserDetails currentUserDetails = validateAndCreateUserDetails(apiToken.getCreatedBy());
 
       ApiTokenAuthenticationToken authenticationToken =
           new ApiTokenAuthenticationToken(apiToken, currentUserDetails);
@@ -101,7 +101,7 @@ public class ApiTokenAuthManager implements AuthenticationManager {
     }
   }
 
-  private CurrentUserDetails validateAndCreateUserDetails(User createdBy) {
+  private UserDetails validateAndCreateUserDetails(User createdBy) {
     if (createdBy == null) {
       throw new ApiTokenAuthenticationException(
           ApiTokenErrors.invalidToken("The API token does not have any owner."));
@@ -130,7 +130,7 @@ public class ApiTokenAuthManager implements AuthenticationManager {
           ApiTokenErrors.invalidToken("The API token is disabled, locked or 2FA is enabled."));
     }
 
-    return CurrentUserDetailsImpl.createUserDetails(user, accountNonLocked, credentialsNonExpired);
+    return UserDetailsImpl.createUserDetails(user, accountNonLocked, credentialsNonExpired);
   }
 
   private static void validateTokenExpiry(Long expiry) {

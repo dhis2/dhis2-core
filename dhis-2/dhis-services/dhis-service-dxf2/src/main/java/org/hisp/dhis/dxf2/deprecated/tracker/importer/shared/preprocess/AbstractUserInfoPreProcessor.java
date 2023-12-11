@@ -40,7 +40,7 @@ import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 
 public abstract class AbstractUserInfoPreProcessor implements Processor {
@@ -53,7 +53,7 @@ public abstract class AbstractUserInfoPreProcessor implements Processor {
             .orElseGet(() -> getUser(workContext));
 
     if (user != null) {
-      UserInfoSnapshot userInfo = UserInfoSnapshot.from(CurrentUserDetailsImpl.fromUser(user));
+      UserInfoSnapshot userInfo = UserInfoSnapshot.from(UserDetailsImpl.fromUser(user));
       updateEventUserInfo(event, userInfo);
 
       Set<String> updatableDataValues =

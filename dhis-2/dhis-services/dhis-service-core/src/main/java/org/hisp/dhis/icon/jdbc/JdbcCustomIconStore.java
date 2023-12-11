@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.CustomIconStore;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -107,7 +107,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
 
   @Override
   public void save(
-      CustomIcon customIcon, FileResource fileResource, CurrentUserDetails createdByUser) {
+      CustomIcon customIcon, FileResource fileResource, UserDetails createdByUser) {
     jdbcTemplate.update(
         "INSERT INTO customicon (key, description, keywords, fileresourceid, createdby) VALUES (?, ?, ?, ?, ?)",
         customIcon.getKey(),

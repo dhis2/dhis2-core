@@ -44,7 +44,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 
@@ -179,7 +179,7 @@ public class Map extends BaseNameableObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isSubscribed() {
-    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
     return user != null && subscribers != null && subscribers.contains(user.getUid());
   }
 

@@ -71,8 +71,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
@@ -147,7 +147,7 @@ public class DataValueController {
       @RequestParam(required = false) String comment,
       @RequestParam(required = false) Boolean followUp,
       @RequestParam(required = false) boolean force,
-      @CurrentUser CurrentUserDetailsImpl currentUserDetails)
+      @CurrentUser UserDetailsImpl currentUserDetails)
       throws WebMessageException {
     DataValueCategoryDto attribute = dataValidator.getDataValueCategoryDto(cc, cp);
 
@@ -171,7 +171,7 @@ public class DataValueController {
   @PostMapping(consumes = "application/json")
   @ResponseStatus(HttpStatus.CREATED)
   public void saveDataValueWithBody(
-      @RequestBody DataValueDto dataValue, @CurrentUser CurrentUserDetailsImpl currentUserDetails)
+      @RequestBody DataValueDto dataValue, @CurrentUser UserDetailsImpl currentUserDetails)
       throws WebMessageException {
     saveDataValueInternal(dataValue, currentUserDetails);
   }
@@ -191,7 +191,7 @@ public class DataValueController {
       @RequestParam(required = false) Boolean followUp,
       @RequestParam(required = false) boolean force,
       @RequestParam(required = false) MultipartFile file,
-      @CurrentUser CurrentUserDetailsImpl currentUserDetails)
+      @CurrentUser UserDetailsImpl currentUserDetails)
       throws WebMessageException, IOException {
     DataValueCategoryDto attribute = dataValidator.getDataValueCategoryDto(cc, cp);
 
@@ -222,7 +222,7 @@ public class DataValueController {
     return webMessage;
   }
 
-  private void saveDataValueInternal(DataValueDto dataValue, CurrentUserDetails currentUserDetails)
+  private void saveDataValueInternal(DataValueDto dataValue, UserDetails currentUserDetails)
       throws WebMessageException {
     String value = dataValue.getValue();
 
@@ -470,7 +470,7 @@ public class DataValueController {
       DataValueQueryParams params,
       @OpenApi.Param({UID.class, DataSet.class}) @RequestParam(required = false) String ds,
       @RequestParam(required = false) boolean force,
-      @CurrentUser CurrentUserDetailsImpl currentUser,
+      @CurrentUser UserDetailsImpl currentUser,
       HttpServletResponse response)
       throws WebMessageException {
     FileResourceRetentionStrategy retentionStrategy =
@@ -539,7 +539,7 @@ public class DataValueController {
   @GetMapping
   public List<String> getDataValue(
       DataValueQueryParams params,
-      @CurrentUser CurrentUserDetailsImpl currentUserDetails,
+      @CurrentUser UserDetailsImpl currentUserDetails,
       HttpServletResponse response)
       throws WebMessageException {
     // ---------------------------------------------------------------------

@@ -201,7 +201,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void testDeleteLastUpdatedByUser() {
     User userA = createUserWithAuth("A", "ALL");
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(userA));
+    injectSecurityContext(UserDetailsImpl.fromUser(userA));
 
     DataElement dataElement = createDataElement('A');
     idObjectManager.save(dataElement);

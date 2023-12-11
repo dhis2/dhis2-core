@@ -55,7 +55,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -220,7 +220,7 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
 
   @Override
   public ImportReport executeMetadataPull(String url) {
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     String userUid = currentUserDetails != null ? currentUserDetails.getUid() : null;
 
     log.info(String.format("Metadata pull, url: %s, user: %s", url, userUid));

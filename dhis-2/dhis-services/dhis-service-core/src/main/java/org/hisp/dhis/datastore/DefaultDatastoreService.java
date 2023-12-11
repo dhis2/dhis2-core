@@ -44,7 +44,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.security.access.AccessDeniedException;
@@ -245,7 +245,7 @@ public class DefaultDatastoreService implements DatastoreService {
     if (CurrentUserUtil.getCurrentUsername() == null) {
       return false;
     }
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     return currentUserDetails.isSuper()
         || !authorities.isEmpty() && currentUserDetails.hasAnyAuthority(authorities);
   }

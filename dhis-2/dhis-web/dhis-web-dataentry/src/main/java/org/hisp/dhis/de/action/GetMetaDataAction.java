@@ -56,7 +56,7 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -229,7 +229,7 @@ public class GetMetaDataAction implements Action {
 
     expressionService.substituteIndicatorExpressions(indicators);
 
-    CurrentUserDetails userDetails = userService.createUserDetails(currentUser);
+    UserDetails userDetails = userService.createUserDetails(currentUser);
     dataSets = dataSetService.getUserDataWrite(userDetails);
 
     Set<CategoryCombo> categoryComboSet = new HashSet<>();

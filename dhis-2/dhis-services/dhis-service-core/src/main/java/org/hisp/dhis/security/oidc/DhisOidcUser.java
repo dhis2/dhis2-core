@@ -31,9 +31,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -42,13 +41,13 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class DhisOidcUser extends DefaultOAuth2User implements CurrentUserDetails, OidcUser {
+public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, OidcUser {
   private final OidcIdToken oidcIdToken;
 
-  private final CurrentUserDetails user;
+  private final UserDetails user;
 
   public DhisOidcUser(
-      CurrentUserDetails user,
+      UserDetails user,
       Map<String, Object> attributes,
       String nameAttributeKey,
       OidcIdToken idToken) {
@@ -72,7 +71,7 @@ public class DhisOidcUser extends DefaultOAuth2User implements CurrentUserDetail
     return oidcIdToken;
   }
 
-  public UserDetails getUser() {
+  public org.springframework.security.core.userdetails.UserDetails getUser() {
     return user;
   }
 

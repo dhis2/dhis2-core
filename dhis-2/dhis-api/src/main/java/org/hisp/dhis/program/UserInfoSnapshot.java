@@ -34,8 +34,8 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.notification.template.snapshot.IdentifiableObjectSnapshot;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 
 /**
@@ -90,17 +90,17 @@ public class UserInfoSnapshot extends IdentifiableObjectSnapshot {
   }
 
   public static UserInfoSnapshot from(User user) {
-    CurrentUserDetailsImpl currentUserDetails = CurrentUserDetailsImpl.fromUser(user);
+    UserDetailsImpl currentUserDetails = UserDetailsImpl.fromUser(user);
     return Optional.ofNullable(currentUserDetails)
         .map(UserInfoSnapshot::toUserInfoSnapshot)
         .orElse(null);
   }
 
-  public static UserInfoSnapshot from(CurrentUserDetails user) {
+  public static UserInfoSnapshot from(UserDetails user) {
     return Optional.ofNullable(user).map(UserInfoSnapshot::toUserInfoSnapshot).orElse(null);
   }
 
-  private static UserInfoSnapshot toUserInfoSnapshot(CurrentUserDetails user) {
+  private static UserInfoSnapshot toUserInfoSnapshot(UserDetails user) {
     UserInfoSnapshot eventUserInfo =
         new UserInfoSnapshot(user.getUsername(), user.getFirstName(), user.getSurname());
     eventUserInfo.setId(user.getId());

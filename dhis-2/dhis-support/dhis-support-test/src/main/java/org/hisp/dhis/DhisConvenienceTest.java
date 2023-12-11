@@ -189,8 +189,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -2617,10 +2617,10 @@ public abstract class DhisConvenienceTest {
     }
     hibernateService.flushSession();
     user = userService.getUser(user.getUid());
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetailsImpl.fromUser(user));
   }
 
-  public static void injectSecurityContext(CurrentUserDetails currentUserDetails) {
+  public static void injectSecurityContext(UserDetails currentUserDetails) {
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
             currentUserDetails, "", currentUserDetails.getAuthorities());
@@ -2875,7 +2875,7 @@ public abstract class DhisConvenienceTest {
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
     user.getUserRoles().add(role);
 
-    CurrentUserDetails currentUserDetails = userService.createUserDetails(user);
+    UserDetails currentUserDetails = userService.createUserDetails(user);
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
             currentUserDetails, DEFAULT_ADMIN_PASSWORD, List.of(new SimpleGrantedAuthority("ALL")));

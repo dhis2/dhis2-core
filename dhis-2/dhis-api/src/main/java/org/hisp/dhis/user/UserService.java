@@ -475,10 +475,10 @@ public interface UserService {
    * available or if the one available is not fully loaded or connected to a session.
    *
    * @see #createUserDetails(User)
-   * @param userUid UID of the {@link CurrentUserDetails} to create
+   * @param userUid UID of the {@link UserDetails} to create
    * @return the implementation object
    */
-  CurrentUserDetails createUserDetails(String userUid) throws NotFoundException;
+  UserDetails createUserDetails(String userUid) throws NotFoundException;
 
   /**
    * It creates a CurrentUserDetailsImpl object from a User object. It also fetches the users locked
@@ -487,7 +487,7 @@ public interface UserService {
    * @param user The user object that is being authenticated.
    * @return A CurrentUserDetailsImpl object.
    */
-  CurrentUserDetails createUserDetails(User user);
+  UserDetails createUserDetails(User user);
 
   //  /**
   //   * It creates a CurrentUserDetailsImpl object from a User object

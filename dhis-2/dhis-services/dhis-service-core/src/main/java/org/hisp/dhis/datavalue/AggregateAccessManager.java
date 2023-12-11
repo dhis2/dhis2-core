@@ -31,7 +31,7 @@ import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -44,7 +44,7 @@ public interface AggregateAccessManager {
    * @param dataValue a {@link DataValue} object
    * @return List of errors
    */
-  List<String> canRead(CurrentUserDetails userDetails, DataValue dataValue);
+  List<String> canRead(UserDetails userDetails, DataValue dataValue);
 
   /**
    * Check if given user has DATA_WRITE
@@ -53,7 +53,7 @@ public interface AggregateAccessManager {
    * @param dataSet a {@link DataSet} object
    * @return List of errors
    */
-  List<String> canWrite(CurrentUserDetails userDetails, DataSet dataSet);
+  List<String> canWrite(UserDetails userDetails, DataSet dataSet);
 
   /**
    * Check if given User has DATA_READ access for given DataSet
@@ -62,7 +62,7 @@ public interface AggregateAccessManager {
    * @param dataSet a {@link DataValue} object
    * @return List of errors
    */
-  List<String> canRead(CurrentUserDetails userDetails, DataSet dataSet);
+  List<String> canRead(UserDetails userDetails, DataSet dataSet);
 
   /**
    * Check if given User has DATA_WRITE access for given CategoryOptionCombo
@@ -71,7 +71,7 @@ public interface AggregateAccessManager {
    * @param categoryOption a {@link CategoryOptionCombo} object
    * @return List of errors
    */
-  List<String> canWrite(CurrentUserDetails userDetails, CategoryOptionCombo categoryOption);
+  List<String> canWrite(UserDetails userDetails, CategoryOptionCombo categoryOption);
 
   /**
    * Check if given User has DATA_WRITE access for given CategoryOptionCombo, result is cached.
@@ -81,7 +81,7 @@ public interface AggregateAccessManager {
    * @return List of errors
    */
   List<String> canWriteCached(
-      CurrentUserDetails userDetails, CategoryOptionCombo categoryOptionCombo);
+      UserDetails userDetails, CategoryOptionCombo categoryOptionCombo);
 
   /**
    * Check if given User has DATA_READ access for given CategoryOptionCombo
@@ -90,7 +90,7 @@ public interface AggregateAccessManager {
    * @param categoryOption a {@link CategoryOptionCombo} object
    * @return List of errors
    */
-  List<String> canRead(CurrentUserDetails userDetails, CategoryOptionCombo categoryOption);
+  List<String> canRead(UserDetails userDetails, CategoryOptionCombo categoryOption);
 
   /**
    * Check if given User has DATA_WRITE access for give DataElementOperand
@@ -99,5 +99,5 @@ public interface AggregateAccessManager {
    * @param dataElementOperand a {@link DataElementOperand} object
    * @return List of errors
    */
-  List<String> canWrite(CurrentUserDetails userDetails, DataElementOperand dataElementOperand);
+  List<String> canWrite(UserDetails userDetails, DataElementOperand dataElementOperand);
 }

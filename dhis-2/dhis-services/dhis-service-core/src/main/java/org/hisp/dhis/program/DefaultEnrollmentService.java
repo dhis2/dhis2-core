@@ -51,7 +51,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -162,7 +162,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
   @Override
   @Transactional
   public void updateEnrollment(Enrollment enrollment, User user) {
-    enrollmentStore.update(enrollment, CurrentUserDetailsImpl.fromUser(user));
+    enrollmentStore.update(enrollment, UserDetailsImpl.fromUser(user));
   }
 
   // TODO consider security

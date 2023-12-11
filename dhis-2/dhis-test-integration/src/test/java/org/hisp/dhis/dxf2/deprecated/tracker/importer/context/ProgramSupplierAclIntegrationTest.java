@@ -48,7 +48,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
@@ -87,7 +87,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
     // Given
     final User demo = createUserWithAuth("demo", "ALL");
 
-    CurrentUserDetailsImpl currentUserDetails = CurrentUserDetailsImpl.fromUser(demo);
+    UserDetailsImpl currentUserDetails = UserDetailsImpl.fromUser(demo);
     injectSecurityContext(currentUserDetails);
 
     final Program program = createProgram('A');
@@ -105,7 +105,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
     final User noAuthUser = createUserWithAuth("noauth");
     assertFalse(
         aclService.canDataWrite(
-            CurrentUserDetailsImpl.fromUser(noAuthUser), programs.get(program.getUid())));
+            UserDetailsImpl.fromUser(noAuthUser), programs.get(program.getUid())));
   }
 
   @Test
@@ -233,7 +233,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
     assertThat(programs.keySet(), hasSize(1));
 
     ProgramStage programStage1 = getProgramStage(programs.get(program.getUid()));
-    assertTrue(aclService.canDataWrite(CurrentUserDetailsImpl.fromUser(user), programStage1));
+    assertTrue(aclService.canDataWrite(UserDetailsImpl.fromUser(user), programStage1));
   }
 
   @Test
@@ -327,7 +327,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
     assertThat(programs.keySet(), hasSize(1));
     assertTrue(
         aclService.canDataWrite(
-            CurrentUserDetailsImpl.fromUser(user),
+            UserDetailsImpl.fromUser(user),
             getTrackedEntityType(programs.get(program.getUid()))));
   }
 

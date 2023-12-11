@@ -35,7 +35,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.ContextUtils;
 
@@ -107,7 +107,7 @@ public class GetDataSetsAction extends ActionPagingSupport<DataSet> {
           ServletActionContext.getRequest(), ServletActionContext.getResponse(), dataSets);
     }
 
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     if (!currentUserDetails.isSuper()) {
       dataSets.retainAll(dataSetService.getUserDataWrite(currentUserDetails));
     }

@@ -73,8 +73,8 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -172,7 +172,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
 
   @Override
   @Transactional
-  public void update(@Nonnull IdentifiableObject object, CurrentUserDetails currentUserDetails) {
+  public void update(@Nonnull IdentifiableObject object, UserDetails currentUserDetails) {
     IdentifiableObjectStore<? super IdentifiableObject> store = getIdentifiableObjectStore(object);
     if (store != null) {
       store.update(object, currentUserDetails);
@@ -1242,7 +1242,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     boolean hasLastUpdatedBy =
         schema.getPersistedProperty(BaseIdentifiableObject_.LAST_UPDATED_BY) != null;
 
-    CurrentUserDetails currentUserDetails = CurrentUserDetailsImpl.fromUser(user);
+    UserDetails currentUserDetails = UserDetailsImpl.fromUser(user);
     if (hasCreatedBy && hasLastUpdatedBy) {
       return store.findByUser(currentUserDetails);
     } else if (hasLastUpdatedBy) {

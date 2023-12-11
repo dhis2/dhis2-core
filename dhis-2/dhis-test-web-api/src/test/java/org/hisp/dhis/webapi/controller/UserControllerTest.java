@@ -63,7 +63,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -123,7 +123,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void updateRolesShouldInvalidateUserSessions() {
-    CurrentUserDetails sessionPrincipal = userService.createUserDetails(superUser);
+    UserDetails sessionPrincipal = userService.createUserDetails(superUser);
     sessionRegistry.registerNewSession("session1", sessionPrincipal);
     assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
 
@@ -142,7 +142,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void updateRolesAuthoritiesShouldInvalidateUserSessions() {
-    CurrentUserDetails sessionPrincipal = userService.createUserDetails(superUser);
+    UserDetails sessionPrincipal = userService.createUserDetails(superUser);
 
     UserRole roleB = createUserRole("ROLE_B", "ALL");
     userService.addUserRole(roleB);

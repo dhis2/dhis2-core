@@ -49,7 +49,7 @@ import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -87,7 +87,7 @@ public class TwoFactorController {
   @GetMapping(value = "/qr", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   @ResponseBody
-  public Map<String, Object> getQrCode(@CurrentUser CurrentUserDetailsImpl currentUser)
+  public Map<String, Object> getQrCode(@CurrentUser UserDetailsImpl currentUser)
       throws WebMessageException {
     if (currentUser == null) {
       throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));

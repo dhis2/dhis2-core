@@ -50,7 +50,7 @@ import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
@@ -246,7 +246,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, CurrentUserDetails userDetails) {
+      CriteriaBuilder builder, UserDetails userDetails) {
 
     if (userDetails == null) {
       return List.of();
@@ -260,7 +260,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, CurrentUserDetails userDetails) {
+      CriteriaBuilder builder, UserDetails userDetails) {
     if (userDetails == null) {
       return List.of();
     }
@@ -274,7 +274,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, CurrentUserDetails user, String access) {
+      CriteriaBuilder builder, UserDetails user, String access) {
 
     if (user == null || !sharingEnabled(user.isSuper())) {
       return List.of();
@@ -288,7 +288,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
       CriteriaBuilder builder,
-      CurrentUserDetails user,
+      UserDetails user,
       CurrentUserGroupInfo groupInfo,
       String access) {
     List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
@@ -303,7 +303,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, CurrentUserDetails userDetails, String access) {
+      CriteriaBuilder builder, UserDetails userDetails, String access) {
     List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
     if (userDetails == null || !dataSharingEnabled(userDetails.isSuper())) {
@@ -343,7 +343,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   private List<Function<Root<T>, Predicate>> getSharingPredicates(
       CriteriaBuilder builder,
-      CurrentUserDetails userDetails,
+      UserDetails userDetails,
       CurrentUserGroupInfo groupInfo,
       String access) {
 

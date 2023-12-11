@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Note;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.util.DateUtils;
 
 @UtilityClass
@@ -56,7 +56,7 @@ public class NoteHelper {
 
     note.setLastUpdatedBy(
         UserInfoSnapshot.from(
-            CurrentUserDetailsImpl.fromUser(trackedEntityComment.getLastUpdatedBy())));
+            UserDetailsImpl.fromUser(trackedEntityComment.getLastUpdatedBy())));
     note.setLastUpdated(trackedEntityComment.getLastUpdated());
 
     return note;

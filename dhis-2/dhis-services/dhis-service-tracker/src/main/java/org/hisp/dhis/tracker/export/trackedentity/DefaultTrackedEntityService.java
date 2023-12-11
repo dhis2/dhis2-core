@@ -68,7 +68,7 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -250,7 +250,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       TrackedEntity trackedEntity, User user) {
     Set<TrackedEntityAttribute> readableAttributes =
         trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-            CurrentUserDetailsImpl.fromUser(user));
+            UserDetailsImpl.fromUser(user));
     return trackedEntity.getTrackedEntityAttributeValues().stream()
         .filter(av -> readableAttributes.contains(av.getAttribute()))
         .collect(Collectors.toCollection(LinkedHashSet::new));

@@ -57,8 +57,8 @@ import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -109,7 +109,7 @@ class DataItemServiceFacadeTest {
 
     // When
     when(userService.getUserByUsername(currentUser.getUsername())).thenReturn(currentUser);
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(currentUser));
+    injectSecurityContext(UserDetailsImpl.fromUser(currentUser));
 
     when(queryExecutor.find(anySet(), any(MapSqlParameterSource.class)))
         .thenReturn(expectedItemsFound);
@@ -123,7 +123,7 @@ class DataItemServiceFacadeTest {
     assertThat(actualDimensionalItems.get(1).getDimensionItemType(), is(INDICATOR));
   }
 
-  public static void injectSecurityContext(CurrentUserDetails currentUserDetails) {
+  public static void injectSecurityContext(UserDetails currentUserDetails) {
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
             currentUserDetails, "", currentUserDetails.getAuthorities());

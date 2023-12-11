@@ -39,7 +39,7 @@ import lombok.experimental.Accessors;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -48,7 +48,7 @@ import org.hisp.dhis.user.CurrentUserDetails;
 @Setter
 @Accessors(chain = true)
 public class Query extends Criteria {
-  private CurrentUserDetails currentUserDetails;
+  private UserDetails currentUserDetails;
 
   private String locale;
 

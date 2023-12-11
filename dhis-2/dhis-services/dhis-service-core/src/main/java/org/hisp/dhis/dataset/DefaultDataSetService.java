@@ -48,8 +48,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -135,7 +135,7 @@ public class DefaultDataSetService implements DataSetService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataSet> getUserDataRead(CurrentUserDetails user) {
+  public List<DataSet> getUserDataRead(UserDetails user) {
     if (user == null) {
       return Lists.newArrayList();
     }
@@ -145,7 +145,7 @@ public class DefaultDataSetService implements DataSetService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataSet> getUserDataWrite(CurrentUserDetails user) {
+  public List<DataSet> getUserDataWrite(UserDetails user) {
     if (user == null) {
       return Lists.newArrayList();
     }
@@ -235,7 +235,7 @@ public class DefaultDataSetService implements DataSetService {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo,
-      CurrentUserDetails user,
+      UserDetails user,
       Date now) {
     if (dataApprovalService.isApproved(
         dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo)) {
@@ -256,7 +256,7 @@ public class DefaultDataSetService implements DataSetService {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo,
-      CurrentUserDetails user,
+      UserDetails user,
       Date now,
       boolean useOrgUnitChildren) {
     if (!useOrgUnitChildren) {
@@ -292,7 +292,7 @@ public class DefaultDataSetService implements DataSetService {
         period,
         organisationUnit,
         attributeOptionCombo,
-        CurrentUserDetailsImpl.fromUser(user),
+        UserDetailsImpl.fromUser(user),
         now);
   }
 
@@ -303,7 +303,7 @@ public class DefaultDataSetService implements DataSetService {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo,
-      CurrentUserDetails userDetails,
+      UserDetails userDetails,
       Date now) {
     if (userDetails == null || !userDetails.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       now = now != null ? now : new Date();
@@ -357,7 +357,7 @@ public class DefaultDataSetService implements DataSetService {
   @Override
   @Transactional(readOnly = true)
   public boolean isLocked(
-      CurrentUserDetails user,
+      UserDetails user,
       DataSet dataSet,
       Period period,
       OrganisationUnit organisationUnit,
@@ -398,7 +398,7 @@ public class DefaultDataSetService implements DataSetService {
   @Override
   @Transactional(readOnly = true)
   public SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations() {
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     Set<String> uids =
         getUserDataWrite(currentUserDetails).stream()

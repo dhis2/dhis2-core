@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.configuration;
 
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Lars Helge Overland
@@ -58,5 +58,5 @@ public interface ConfigurationService {
   boolean isCorsWhitelisted(String origin);
 
   /** Indicates whether the current user is part of the feedback Recipients group */
-  boolean isUserInFeedbackRecipientUserGroup(CurrentUserDetails userDetails);
+  boolean isUserInFeedbackRecipientUserGroup(UserDetails userDetails);
 }

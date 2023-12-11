@@ -52,7 +52,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
@@ -108,7 +108,7 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
     user = new User();
     user.setUsername("admin");
 
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetailsImpl.fromUser(user));
     when(userService.getUserByUsername(anyString())).thenReturn(user);
   }
 

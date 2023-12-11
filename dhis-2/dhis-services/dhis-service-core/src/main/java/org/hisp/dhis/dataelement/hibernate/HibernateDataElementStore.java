@@ -41,8 +41,8 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -141,7 +141,7 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
   public DataElement getDataElement(String uid, User user) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
-    CurrentUserDetails currentUserDetails = CurrentUserDetailsImpl.fromUser(user);
+    UserDetails currentUserDetails = UserDetailsImpl.fromUser(user);
 
     List<Function<Root<DataElement>, Predicate>> sharingPredicates =
         getSharingPredicates(builder, currentUserDetails, AclService.LIKE_READ_METADATA);

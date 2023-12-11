@@ -102,7 +102,7 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 
@@ -558,7 +558,7 @@ public class DimensionalObjectProducer {
    * @return a list of {@link DimensionalItemObject}.
    */
   private List<DimensionalItemObject> getReadableItems(
-      CurrentUserDetails userDetails, DimensionalObject object) {
+      UserDetails userDetails, DimensionalObject object) {
     return object.getItems().stream()
         .filter(o -> aclService.canDataOrMetadataRead(userDetails, o))
         .collect(toList());

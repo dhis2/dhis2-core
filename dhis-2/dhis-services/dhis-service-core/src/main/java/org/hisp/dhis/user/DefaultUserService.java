@@ -866,7 +866,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public CurrentUserDetails createUserDetails(String userUid) throws NotFoundException {
+  public UserDetails createUserDetails(String userUid) throws NotFoundException {
     User user = userStore.getByUid(userUid);
     if (user == null) {
       throw new NotFoundException(User.class, userUid);
@@ -876,7 +876,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public CurrentUserDetails createUserDetails(User user) {
+  public UserDetails createUserDetails(User user) {
     if (user == null) {
       return null;
     }
@@ -896,7 +896,7 @@ public class DefaultUserService implements UserService {
               username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked));
     }
 
-    return CurrentUserDetailsImpl.createUserDetails(user, accountNonLocked, credentialsNonExpired);
+    return UserDetailsImpl.createUserDetails(user, accountNonLocked, credentialsNonExpired);
   }
 
   //  @Override
@@ -989,7 +989,7 @@ public class DefaultUserService implements UserService {
           "You can not enable 2FA with this API endpoint, only disable.");
     }
 
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     if (currentUserDetails == null) {
       throw new UpdateAccessDeniedException("No current user in session, can not update user.");
@@ -1026,16 +1026,16 @@ public class DefaultUserService implements UserService {
   }
 
   public void invalidateUserSessions(String uid) {
-    CurrentUserDetailsImpl principal = getCurrentUserPrincipal(uid);
+    UserDetailsImpl principal = getCurrentUserPrincipal(uid);
     if (principal != null) {
       List<SessionInformation> allSessions = sessionRegistry.getAllSessions(principal, false);
       allSessions.forEach(SessionInformation::expireNow);
     }
   }
 
-  private CurrentUserDetailsImpl getCurrentUserPrincipal(String uid) {
+  private UserDetailsImpl getCurrentUserPrincipal(String uid) {
     return sessionRegistry.getAllPrincipals().stream()
-        .map(CurrentUserDetailsImpl.class::cast)
+        .map(UserDetailsImpl.class::cast)
         .filter(principal -> principal.getUid().equals(uid))
         .findFirst()
         .orElse(null);
@@ -1435,7 +1435,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   public boolean hasAnyAuthority(String... authorities) {
-    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
 
     if (user != null) {
       for (String authority : authorities) {

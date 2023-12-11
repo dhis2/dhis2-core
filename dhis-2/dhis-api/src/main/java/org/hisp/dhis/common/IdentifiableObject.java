@@ -34,7 +34,7 @@ import java.util.Set;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 
@@ -65,9 +65,9 @@ public interface IdentifiableObject
 
   boolean isFavorite();
 
-  boolean setAsFavorite(CurrentUserDetailsImpl user);
+  boolean setAsFavorite(UserDetailsImpl user);
 
-  boolean removeAsFavorite(CurrentUserDetailsImpl user);
+  boolean removeAsFavorite(UserDetailsImpl user);
 
   // -----------------------------------------------------------------------------
   // Sharing

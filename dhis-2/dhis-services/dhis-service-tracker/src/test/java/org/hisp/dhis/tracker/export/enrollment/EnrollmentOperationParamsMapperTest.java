@@ -55,7 +55,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -114,7 +114,7 @@ class EnrollmentOperationParamsMapperTest {
     user = new User();
     user.setUsername("admin");
 
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetailsImpl.fromUser(user));
     when(userService.getUserByUsername(anyString())).thenReturn(user);
 
     orgUnit1 = new OrganisationUnit("orgUnit1");
@@ -218,7 +218,7 @@ class EnrollmentOperationParamsMapperTest {
       throws ForbiddenException, BadRequestException {
     User superuser = createUser("ALL");
     //    when(getCurrentUser()).thenReturn(superuser);
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(superuser));
+    injectSecurityContext(UserDetailsImpl.fromUser(superuser));
     when(userService.getUserByUsername(anyString())).thenReturn(superuser);
 
     EnrollmentOperationParams operationParams =

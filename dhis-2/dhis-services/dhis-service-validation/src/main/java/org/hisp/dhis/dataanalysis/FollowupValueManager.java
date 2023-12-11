@@ -39,7 +39,7 @@ import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -141,7 +141,7 @@ public class FollowupValueManager {
                 "<<sharing>>",
                 generateHqlQueryForSharingCheck(
                     "de",
-                    CurrentUserDetailsImpl.fromUser(currentUser),
+                    UserDetailsImpl.fromUser(currentUser),
                     AclService.LIKE_READ_METADATA)),
             FollowupValue.class);
 

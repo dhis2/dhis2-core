@@ -46,7 +46,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -250,7 +250,7 @@ public class DeduplicationHelper {
   public String getUserAccessErrors(
       TrackedEntity original, TrackedEntity duplicate, MergeObject mergeObject) {
 
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     if (currentUserDetails == null
         || !(currentUserDetails.getAllAuthorities().contains("ALL")

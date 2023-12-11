@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
@@ -370,7 +370,7 @@ public class RecordingJobProgress implements JobProgress {
     if (configuration != null) {
       process.setJobId(configuration.getUid());
     }
-    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
     if (user != null) {
       process.setUserId(user.getUid());
     }

@@ -47,7 +47,7 @@ import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 
@@ -110,7 +110,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
 
     if (query.isEmpty()) {
 
-      CurrentUserDetails userDetails =
+      UserDetails userDetails =
           query.getCurrentUserDetails() != null
               ? query.getCurrentUserDetails()
               : CurrentUserUtil.getCurrentUserDetails();
@@ -146,7 +146,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
             : "system-process";
     if (!username.equals("system-process") && shareable && !query.isSkipSharing()) {
 
-      CurrentUserDetails userDetails =
+      UserDetails userDetails =
           query.getCurrentUserDetails() != null
               ? query.getCurrentUserDetails()
               : CurrentUserUtil.getCurrentUserDetails();
@@ -218,7 +218,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
 
     boolean shareable = schema.isShareable();
     if (shareable && !query.isSkipSharing()) {
-      CurrentUserDetails currentUserDetails = query.getCurrentUserDetails();
+      UserDetails currentUserDetails = query.getCurrentUserDetails();
       predicate
           .getExpressions()
           .addAll(

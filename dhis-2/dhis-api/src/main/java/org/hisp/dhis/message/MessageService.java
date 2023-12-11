@@ -33,7 +33,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.User;
 
 /**
@@ -104,7 +104,7 @@ public interface MessageService {
    * @param userDetails user to check
    * @return true if user is part of the feedback recipients group.
    */
-  boolean hasAccessToManageFeedbackMessages(CurrentUserDetails userDetails);
+  boolean hasAccessToManageFeedbackMessages(UserDetails userDetails);
 
   Set<User> getFeedbackRecipients();
 

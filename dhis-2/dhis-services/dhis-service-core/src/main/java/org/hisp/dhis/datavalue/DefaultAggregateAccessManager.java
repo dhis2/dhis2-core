@@ -41,7 +41,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 
@@ -67,7 +67,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   // ---------------------------------------------------------------------
 
   @Override
-  public List<String> canRead(CurrentUserDetails currentUser, DataValue dataValue) {
+  public List<String> canRead(UserDetails currentUser, DataValue dataValue) {
     List<String> errors = new ArrayList<>();
 
     if (currentUser == null || currentUser.isSuper()) {
@@ -99,7 +99,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canWrite(CurrentUserDetails userDetails, DataSet dataSet) {
+  public List<String> canWrite(UserDetails userDetails, DataSet dataSet) {
     List<String> errors = new ArrayList<>();
 
     if (userDetails == null || userDetails.isSuper()) {
@@ -114,7 +114,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canRead(CurrentUserDetails currentUser, DataSet dataSet) {
+  public List<String> canRead(UserDetails currentUser, DataSet dataSet) {
     List<String> errors = new ArrayList<>();
 
     if (currentUser == null || currentUser.isSuper()) {
@@ -129,7 +129,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canWrite(CurrentUserDetails userDetails, CategoryOptionCombo optionCombo) {
+  public List<String> canWrite(UserDetails userDetails, CategoryOptionCombo optionCombo) {
     if (userDetails == null || userDetails.isSuper()) {
       return emptyList();
     }
@@ -148,14 +148,14 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
 
   @Override
   public List<String> canWriteCached(
-      CurrentUserDetails currentUser, CategoryOptionCombo optionCombo) {
+      UserDetails currentUser, CategoryOptionCombo optionCombo) {
     String cacheKey = CurrentUserUtil.getCurrentUserDetails().getUid() + "-" + optionCombo.getUid();
 
     return canDataWriteCocCache.get(cacheKey, key -> canWrite(currentUser, optionCombo));
   }
 
   @Override
-  public List<String> canRead(CurrentUserDetails currentUser, CategoryOptionCombo optionCombo) {
+  public List<String> canRead(UserDetails currentUser, CategoryOptionCombo optionCombo) {
     List<String> errors = new ArrayList<>();
 
     if (currentUser == null || currentUser.isSuper()) {
@@ -176,7 +176,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
 
   @Override
   public List<String> canWrite(
-      CurrentUserDetails currentUser, DataElementOperand dataElementOperand) {
+      UserDetails currentUser, DataElementOperand dataElementOperand) {
     List<String> errors = new ArrayList<>();
 
     if (currentUser == null || currentUser.isSuper()) {

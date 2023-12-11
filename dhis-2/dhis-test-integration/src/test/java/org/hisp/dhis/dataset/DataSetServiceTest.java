@@ -55,7 +55,7 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -413,7 +413,7 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
     // ---------------------------------------------------------------------
     // Expiry days
     // ---------------------------------------------------------------------
-    CurrentUserDetailsImpl superUserDetails = CurrentUserDetailsImpl.fromUser(superUser);
+    UserDetailsImpl superUserDetails = UserDetailsImpl.fromUser(superUser);
     assertEquals(
         LockStatus.OPEN,
         dataSetService.getLockStatus(

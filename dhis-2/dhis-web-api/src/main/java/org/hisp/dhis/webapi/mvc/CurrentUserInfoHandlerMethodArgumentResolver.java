@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.mvc;
 
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -57,7 +57,7 @@ public class CurrentUserInfoHandlerMethodArgumentResolver implements HandlerMeth
 
     boolean isAssignable =
         type == String.class
-            || type == CurrentUserDetailsImpl.class
+            || type == UserDetailsImpl.class
             || User.class.isAssignableFrom(type);
 
     CurrentUser parameterAnnotation = parameter.getParameterAnnotation(CurrentUser.class);
@@ -77,7 +77,7 @@ public class CurrentUserInfoHandlerMethodArgumentResolver implements HandlerMeth
     if (type == String.class) {
       return CurrentUserUtil.getCurrentUsername();
     }
-    if (type == CurrentUserDetailsImpl.class) {
+    if (type == UserDetailsImpl.class) {
       return CurrentUserUtil.getCurrentUserDetails();
     }
 

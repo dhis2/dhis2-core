@@ -32,7 +32,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -90,7 +90,7 @@ public class DefaultConfigurationService implements ConfigurationService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean isUserInFeedbackRecipientUserGroup(CurrentUserDetails user) {
+  public boolean isUserInFeedbackRecipientUserGroup(UserDetails user) {
     UserGroup feedbackRecipients = getConfiguration().getFeedbackRecipients();
     return feedbackRecipients != null
         && user.getUserGroupIds().contains(feedbackRecipients.getUid());

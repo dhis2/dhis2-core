@@ -100,8 +100,8 @@ import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
@@ -258,7 +258,7 @@ public class UserController extends AbstractCrudController<User> {
       @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
       TranslateParams translateParams,
-      @CurrentUser CurrentUserDetailsImpl currentUser,
+      @CurrentUser UserDetailsImpl currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
     if (!"dataApprovalWorkflows".equals(pvProperty)) {
@@ -572,7 +572,7 @@ public class UserController extends AbstractCrudController<User> {
   @ResponseBody
   public WebMessage putXmlObject(
       @PathVariable("uid") String pvUid,
-      @CurrentUser CurrentUserDetailsImpl currentUser,
+      @CurrentUser UserDetailsImpl currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws IOException, ForbiddenException, ConflictException, NotFoundException {
@@ -589,7 +589,7 @@ public class UserController extends AbstractCrudController<User> {
   @ResponseBody
   public WebMessage putJsonObject(
       @PathVariable("uid") String pvUid,
-      @CurrentUser CurrentUserDetailsImpl currentUser,
+      @CurrentUser UserDetailsImpl currentUser,
       HttpServletRequest request)
       throws IOException, ConflictException, ForbiddenException, NotFoundException {
     User inputUser = renderService.fromJson(request.getInputStream(), getEntityClass());
@@ -871,7 +871,7 @@ public class UserController extends AbstractCrudController<User> {
   }
 
   private void checkCurrentUserCanModify(User userToModify) throws WebMessageException {
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     if (!aclService.canUpdate(currentUserDetails, userToModify)) {
       throw new UpdateAccessDeniedException(

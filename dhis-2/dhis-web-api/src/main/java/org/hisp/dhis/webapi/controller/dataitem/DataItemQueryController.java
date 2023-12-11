@@ -55,7 +55,7 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -174,7 +174,7 @@ public class DataItemQueryController {
       User currentUser, Set<Class<? extends BaseIdentifiableObject>> entities) {
     if (isNotEmpty(entities)) {
       for (Class<? extends BaseIdentifiableObject> entity : entities) {
-        if (!aclService.canRead(CurrentUserDetailsImpl.fromUser(currentUser), entity)) {
+        if (!aclService.canRead(UserDetailsImpl.fromUser(currentUser), entity)) {
           throw new IllegalQueryException(
               new ErrorMessage(E3012, currentUser.getUsername(), entity.getSimpleName()));
         }

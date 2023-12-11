@@ -63,7 +63,7 @@ import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitQuery;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitService;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.version.VersionService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -126,7 +126,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser CurrentUserDetailsImpl currentUser)
+      @CurrentUser UserDetailsImpl currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     return getChildren(uid, rpParameters, orderParams, response, currentUser);
   }
@@ -141,7 +141,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser CurrentUserDetailsImpl currentUser)
+      @CurrentUser UserDetailsImpl currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit parent = getEntity(uid);
     return getObjectList(
@@ -164,7 +164,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser CurrentUserDetailsImpl currentUser)
+      @CurrentUser UserDetailsImpl currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     return getChildrenWithLevel(uid, level, rpParameters, orderParams, response, currentUser);
   }
@@ -180,7 +180,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser CurrentUserDetailsImpl currentUser)
+      @CurrentUser UserDetailsImpl currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit parent = getEntity(uid);
     return getObjectList(
@@ -204,7 +204,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser CurrentUserDetailsImpl currentUser)
+      @CurrentUser UserDetailsImpl currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     return getDescendants(uid, rpParameters, orderParams, response, currentUser);
   }
@@ -219,7 +219,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser CurrentUserDetailsImpl currentUser)
+      @CurrentUser UserDetailsImpl currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit parent = getEntity(uid);
     return getObjectList(
@@ -241,7 +241,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser CurrentUserDetailsImpl currentUser)
+      @CurrentUser UserDetailsImpl currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     return getAncestors(uid, rpParameters, orderParams, response, currentUser);
   }
@@ -256,7 +256,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser CurrentUserDetailsImpl currentUser)
+      @CurrentUser UserDetailsImpl currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit parent = getEntity(uid);
     return getObjectList(
@@ -284,7 +284,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser CurrentUserDetailsImpl currentUser)
+      @CurrentUser UserDetailsImpl currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit root = getEntity(uid);
     return getObjectList(
@@ -316,7 +316,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
           @RequestParam Map<String, String> rpParameters,
           OrderParams orderParams,
           HttpServletResponse response,
-          @CurrentUser CurrentUserDetailsImpl currentUser)
+          @CurrentUser UserDetailsImpl currentUser)
           throws ForbiddenException, BadRequestException {
     return getObjectList(
         rpParameters,
@@ -361,7 +361,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         rpParameters,
         orderParams,
         response,
-        CurrentUserDetailsImpl.fromUser(currentUser),
+        UserDetailsImpl.fromUser(currentUser),
         false,
         params -> new ArrayList<>(currentUser.getOrganisationUnits()));
   }
@@ -383,7 +383,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         rpParameters,
         orderParams,
         response,
-        CurrentUserDetailsImpl.fromUser(currentUser),
+        UserDetailsImpl.fromUser(currentUser),
         false,
         params -> new ArrayList<>(currentUser.getDataViewOrganisationUnits()));
   }
@@ -405,7 +405,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         rpParameters,
         orderParams,
         response,
-        CurrentUserDetailsImpl.fromUser(currentUser),
+        UserDetailsImpl.fromUser(currentUser),
         false,
         params ->
             currentUser.hasDataViewOrganisationUnit()
@@ -424,7 +424,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
           @RequestParam Map<String, String> rpParameters,
           OrderParams orderParams,
           HttpServletResponse response,
-          @CurrentUser CurrentUserDetailsImpl currentUser)
+          @CurrentUser UserDetailsImpl currentUser)
           throws ForbiddenException, BadRequestException {
     return getObjectList(
         rpParameters,
@@ -447,7 +447,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      CurrentUserDetailsImpl currentUser) {
+      UserDetailsImpl currentUser) {
     return null;
   }
 
@@ -473,13 +473,13 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         && withinUserHierarchy == null
         && withinUserSearchHierarchy == null) {
       return super.getObjectList(
-          rpParameters, orderParams, response, CurrentUserDetailsImpl.fromUser(currentUser));
+          rpParameters, orderParams, response, UserDetailsImpl.fromUser(currentUser));
     }
     return getObjectList(
         rpParameters,
         orderParams,
         response,
-        CurrentUserDetailsImpl.fromUser(currentUser),
+        UserDetailsImpl.fromUser(currentUser),
         false,
         parameters -> {
           OrganisationUnitQueryParams p = new OrganisationUnitQueryParams();

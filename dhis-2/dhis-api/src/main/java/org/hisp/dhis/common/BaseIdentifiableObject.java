@@ -68,8 +68,8 @@ import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
@@ -418,7 +418,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isFavorite() {
-    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
     return user != null && favorites != null && favorites.contains(user.getUid());
   }
 
@@ -439,7 +439,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
-  public boolean setAsFavorite(CurrentUserDetailsImpl user) {
+  public boolean setAsFavorite(UserDetailsImpl user) {
     if (this.favorites == null) {
       this.favorites = new HashSet<>();
     }
@@ -448,7 +448,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
-  public boolean removeAsFavorite(CurrentUserDetailsImpl user) {
+  public boolean removeAsFavorite(UserDetailsImpl user) {
     if (this.favorites == null) {
       this.favorites = new HashSet<>();
     }

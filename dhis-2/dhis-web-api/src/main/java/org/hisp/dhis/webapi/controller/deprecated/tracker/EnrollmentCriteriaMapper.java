@@ -50,7 +50,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -195,7 +195,7 @@ public class EnrollmentCriteriaMapper {
     params.setTotalPages(totalPages);
     params.setSkipPaging(skipPaging);
     params.setIncludeDeleted(includeDeleted);
-    params.setCurrentUserDetails(CurrentUserDetailsImpl.fromUser(user));
+    params.setCurrentUserDetails(UserDetailsImpl.fromUser(user));
     params.setOrder(toOrderParams(orderCriteria));
 
     return params;

@@ -49,7 +49,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
@@ -1109,7 +1109,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     String sql =
         "select uid as uid from dataelement where "
             + JpaQueryUtils.generateSQlQueryForSharingCheck(
-                "sharing", CurrentUserDetailsImpl.fromUser(userA), AccessStringHelper.READ);
+                "sharing", UserDetailsImpl.fromUser(userA), AccessStringHelper.READ);
     SqlRowSet row = jdbcTemplate.queryForRowSet(sql);
     assertEquals(true, row.next());
     assertEquals(de.getUid(), row.getString("uid"));

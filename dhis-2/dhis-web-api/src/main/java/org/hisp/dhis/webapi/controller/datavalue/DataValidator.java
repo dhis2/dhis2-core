@@ -67,7 +67,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
@@ -399,7 +399,7 @@ public class DataValidator {
       DataSet dataSet,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo,
-      CurrentUserDetails user) {
+      UserDetails user) {
     if (dataSet == null
         ? !dataSetService
             .getLockStatus(dataElement, period, organisationUnit, attributeOptionCombo, user, null)
@@ -558,7 +558,7 @@ public class DataValidator {
    * @throws IllegalQueryException if the validation fails.
    */
   public void checkCategoryOptionComboAccess(
-      CurrentUserDetails userDetails, CategoryOptionCombo categoryOptionCombo) {
+      UserDetails userDetails, CategoryOptionCombo categoryOptionCombo) {
     final List<String> categoryOptionComboErrors =
         accessManager.canWriteCached(userDetails, categoryOptionCombo);
 
@@ -576,7 +576,7 @@ public class DataValidator {
    * @param dataValue the {@link DataValue}.
    * @throws WebMessageException if the validation fails.
    */
-  public void checkDataValueSharing(CurrentUserDetails userDetails, DataValue dataValue)
+  public void checkDataValueSharing(UserDetails userDetails, DataValue dataValue)
       throws WebMessageException {
     final List<String> errors = accessManager.canRead(userDetails, dataValue);
 

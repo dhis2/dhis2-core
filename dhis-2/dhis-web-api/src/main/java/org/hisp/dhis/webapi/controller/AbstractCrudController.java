@@ -91,8 +91,8 @@ import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.sharing.SharingService;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -173,7 +173,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   public WebMessage patchObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @RequestParam Map<String, String> rpParameters,
-      @CurrentUser CurrentUserDetailsImpl currentUser,
+      @CurrentUser UserDetailsImpl currentUser,
       HttpServletRequest request)
       throws ForbiddenException,
           NotFoundException,
@@ -337,7 +337,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
   private WebMessage postObject(T parsed) throws ForbiddenException, ConflictException {
 
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     if (!aclService.canCreate(currentUserDetails, getEntityClass())) {
       throw new ForbiddenException("You don't have the proper permissions to create this object.");
     }
@@ -381,7 +381,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @ResponseBody
   public WebMessage setAsFavorite(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @CurrentUser CurrentUserDetailsImpl currentUser)
+      @CurrentUser UserDetailsImpl currentUser)
       throws ConflictException, NotFoundException {
 
     if (!getSchema().isFavoritable()) {
@@ -427,7 +427,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @SuppressWarnings("java:S1130")
   public WebMessage putJsonObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @CurrentUser CurrentUserDetailsImpl currentUser,
+      @CurrentUser UserDetailsImpl currentUser,
       HttpServletRequest request)
       throws NotFoundException,
           ForbiddenException,
@@ -477,7 +477,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @ResponseBody
   public WebMessage putXmlObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @CurrentUser CurrentUserDetailsImpl currentUser,
+      @CurrentUser UserDetailsImpl currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws IOException, ConflictException, NotFoundException, ForbiddenException {
@@ -519,7 +519,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   public WebMessage replaceTranslations(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @RequestParam Map<String, String> rpParameters,
-      @CurrentUser CurrentUserDetailsImpl currentUser,
+      @CurrentUser UserDetailsImpl currentUser,
       HttpServletRequest request)
       throws NotFoundException, ForbiddenException, IOException {
     WebOptions options = new WebOptions(rpParameters);
@@ -555,7 +555,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @SuppressWarnings("java:S1130")
   public WebMessage deleteObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @CurrentUser CurrentUserDetailsImpl currentUser,
+      @CurrentUser UserDetailsImpl currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws NotFoundException,
@@ -587,7 +587,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @ResponseBody
   public WebMessage removeAsFavorite(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @CurrentUser CurrentUserDetailsImpl currentUser)
+      @CurrentUser UserDetailsImpl currentUser)
       throws NotFoundException, ConflictException {
 
     if (!getSchema().isFavoritable()) {
@@ -812,7 +812,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public WebMessage setSharing(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
-      @CurrentUser CurrentUserDetailsImpl currentUser,
+      @CurrentUser UserDetailsImpl currentUser,
       HttpServletRequest request)
       throws IOException, ForbiddenException, NotFoundException {
     T entity = manager.get(getEntityClass(), uid);

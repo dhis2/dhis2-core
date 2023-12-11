@@ -104,7 +104,7 @@ import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -376,7 +376,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
       params.setCurrentUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
 
-    CurrentUserDetails user = params.getCurrentUserDetails();
+    UserDetails user = params.getCurrentUserDetails();
 
     if (params.getClasses().isEmpty()
         && !(user == null

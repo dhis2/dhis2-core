@@ -45,8 +45,8 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -106,18 +106,18 @@ public class DefaultAclService implements AclService {
 
   @Override
   @SuppressWarnings("unchecked")
-  public boolean canRead(CurrentUserDetails userDetails, IdentifiableObject object) {
+  public boolean canRead(UserDetails userDetails, IdentifiableObject object) {
     return object == null || canRead(userDetails, object, HibernateProxyUtils.getRealClass(object));
   }
 
   @Override
   public boolean canRead(User user, IdentifiableObject object) {
-    return canRead(CurrentUserDetailsImpl.fromUser(user), object);
+    return canRead(UserDetailsImpl.fromUser(user), object);
   }
 
   @Override
   public <T extends IdentifiableObject> boolean canRead(
-      CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+      UserDetails userDetails, T object, Class<? extends T> objType) {
     if (readWriteCommonCheck(userDetails, objType)) {
       return true;
     }
@@ -139,13 +139,13 @@ public class DefaultAclService implements AclService {
 
   @Override
   @SuppressWarnings("unchecked")
-  public boolean canDataRead(CurrentUserDetails userDetails, IdentifiableObject object) {
+  public boolean canDataRead(UserDetails userDetails, IdentifiableObject object) {
     return object == null
         || canDataRead(userDetails, object, HibernateProxyUtils.getRealClass(object));
   }
 
   private <T extends IdentifiableObject> boolean canDataRead(
-      CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+      UserDetails userDetails, T object, Class<? extends T> objType) {
     if (readWriteCommonCheck(userDetails, objType)) {
       return true;
     }
@@ -170,11 +170,11 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canDataOrMetadataRead(User user, IdentifiableObject object) {
-    return canDataOrMetadataRead(CurrentUserDetailsImpl.fromUser(user), object);
+    return canDataOrMetadataRead(UserDetailsImpl.fromUser(user), object);
   }
 
   @Override
-  public boolean canDataOrMetadataRead(CurrentUserDetails userDetails, IdentifiableObject object) {
+  public boolean canDataOrMetadataRead(UserDetails userDetails, IdentifiableObject object) {
     Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     return schema.isDataShareable()
@@ -184,18 +184,18 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canWrite(User user, IdentifiableObject object) {
-    return canWrite(CurrentUserDetailsImpl.fromUser(user), object);
+    return canWrite(UserDetailsImpl.fromUser(user), object);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public boolean canWrite(CurrentUserDetails userDetails, IdentifiableObject object) {
+  public boolean canWrite(UserDetails userDetails, IdentifiableObject object) {
     return object == null
         || canWrite(userDetails, object, HibernateProxyUtils.getRealClass(object));
   }
 
   private <T extends IdentifiableObject> boolean canWrite(
-      CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+      UserDetails userDetails, T object, Class<? extends T> objType) {
     if (readWriteCommonCheck(userDetails, objType)) {
       return true;
     }
@@ -221,18 +221,18 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canDataWrite(User user, IdentifiableObject object) {
-    return canDataWrite(CurrentUserDetailsImpl.fromUser(user), object);
+    return canDataWrite(UserDetailsImpl.fromUser(user), object);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public boolean canDataWrite(CurrentUserDetails userDetails, IdentifiableObject object) {
+  public boolean canDataWrite(UserDetails userDetails, IdentifiableObject object) {
     return object == null
         || canDataWrite(userDetails, object, HibernateProxyUtils.getRealClass(object));
   }
 
   private <T extends IdentifiableObject> boolean canDataWrite(
-      CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+      UserDetails userDetails, T object, Class<? extends T> objType) {
 
     if (readWriteCommonCheck(userDetails, objType)) {
       return true;
@@ -259,18 +259,18 @@ public class DefaultAclService implements AclService {
   @Override
   @SuppressWarnings("unchecked")
   public boolean canUpdate(User user, IdentifiableObject object) {
-    return canUpdate(CurrentUserDetailsImpl.fromUser(user), object);
+    return canUpdate(UserDetailsImpl.fromUser(user), object);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public boolean canUpdate(CurrentUserDetails userDetails, IdentifiableObject object) {
+  public boolean canUpdate(UserDetails userDetails, IdentifiableObject object) {
     return object == null
         || canUpdate(userDetails, object, HibernateProxyUtils.getRealClass(object));
   }
 
   private <T extends IdentifiableObject> boolean canUpdate(
-      CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+      UserDetails userDetails, T object, Class<? extends T> objType) {
     if (readWriteCommonCheck(userDetails, objType)) {
       return true;
     }
@@ -295,18 +295,18 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canDelete(User user, IdentifiableObject object) {
-    return canDelete(CurrentUserDetailsImpl.fromUser(user), object);
+    return canDelete(UserDetailsImpl.fromUser(user), object);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public boolean canDelete(CurrentUserDetails userDetails, IdentifiableObject object) {
+  public boolean canDelete(UserDetails userDetails, IdentifiableObject object) {
     return object == null
         || canDelete(userDetails, object, HibernateProxyUtils.getRealClass(object));
   }
 
   private <T extends IdentifiableObject> boolean canDelete(
-      CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+      UserDetails userDetails, T object, Class<? extends T> objType) {
     if (readWriteCommonCheck(userDetails, objType)) {
       return true;
     }
@@ -340,22 +340,22 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canManage(User user, IdentifiableObject object) {
-    return canManage(CurrentUserDetailsImpl.fromUser(user), object);
+    return canManage(UserDetailsImpl.fromUser(user), object);
   }
 
   @Override
-  public boolean canManage(CurrentUserDetails userDetails, IdentifiableObject object) {
+  public boolean canManage(UserDetails userDetails, IdentifiableObject object) {
     return canUpdate(userDetails, object);
   }
 
   private <T extends IdentifiableObject> boolean canManage(
-      CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+      UserDetails userDetails, T object, Class<? extends T> objType) {
     return canUpdate(userDetails, object, objType);
   }
 
   @Override
   public <T extends IdentifiableObject> boolean canRead(
-      CurrentUserDetails userDetails, Class<T> klass) {
+      UserDetails userDetails, Class<T> klass) {
     Schema schema = schemaService.getSchema(klass);
     return schema == null
         || schema.getAuthorityByType(AuthorityType.READ) == null
@@ -364,16 +364,16 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canDataRead(User user, IdentifiableObject object) {
-    return canDataRead(CurrentUserDetailsImpl.fromUser(user), object);
+    return canDataRead(UserDetailsImpl.fromUser(user), object);
   }
 
   public <T extends IdentifiableObject> boolean canCreate(User user, Class<T> klass) {
-    return canCreate(CurrentUserDetailsImpl.fromUser(user), klass);
+    return canCreate(UserDetailsImpl.fromUser(user), klass);
   }
 
   @Override
   public <T extends IdentifiableObject> boolean canCreate(
-      CurrentUserDetails userDetails, Class<T> klass) {
+      UserDetails userDetails, Class<T> klass) {
     Schema schema = schemaService.getSchema(klass);
 
     if (schema == null) {
@@ -388,24 +388,24 @@ public class DefaultAclService implements AclService {
   }
 
   public <T extends IdentifiableObject> boolean canMakePublic(User user, T object) {
-    return canMakePublic(CurrentUserDetailsImpl.fromUser(user), object);
+    return canMakePublic(UserDetailsImpl.fromUser(user), object);
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public <T extends IdentifiableObject> boolean canMakePublic(
-      CurrentUserDetails userDetails, T object) {
+      UserDetails userDetails, T object) {
     return canMakeClassPublic(userDetails, HibernateProxyUtils.getRealClass(object));
   }
 
   @Override
   public <T extends IdentifiableObject> boolean canMakeClassPublic(User user, Class<T> klass) {
-    return canMakeClassPublic(CurrentUserDetailsImpl.fromUser(user), klass);
+    return canMakeClassPublic(UserDetailsImpl.fromUser(user), klass);
   }
 
   @Override
   public <T extends IdentifiableObject> boolean canMakeClassPublic(
-      CurrentUserDetails userDetails, Class<T> klass) {
+      UserDetails userDetails, Class<T> klass) {
     Schema schema = schemaService.getSchema(klass);
 
     if (schema == null || !schema.isShareable()) return false;
@@ -414,24 +414,24 @@ public class DefaultAclService implements AclService {
   }
 
   public <T extends IdentifiableObject> boolean canMakePrivate(User user, T object) {
-    return canMakePrivate(CurrentUserDetailsImpl.fromUser(user), object);
+    return canMakePrivate(UserDetailsImpl.fromUser(user), object);
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public <T extends IdentifiableObject> boolean canMakePrivate(
-      CurrentUserDetails userDetails, T object) {
+      UserDetails userDetails, T object) {
     return canMakeClassPrivate(userDetails, HibernateProxyUtils.getRealClass(object));
   }
 
   @Override
   public <T extends IdentifiableObject> boolean canMakeClassPrivate(User user, Class<T> klass) {
-    return canMakeClassPrivate(CurrentUserDetailsImpl.fromUser(user), klass);
+    return canMakeClassPrivate(UserDetailsImpl.fromUser(user), klass);
   }
 
   @Override
   public <T extends IdentifiableObject> boolean canMakeClassPrivate(
-      CurrentUserDetails userDetails, Class<T> klass) {
+      UserDetails userDetails, Class<T> klass) {
     Schema schema = schemaService.getSchema(klass);
 
     return !(schema == null || !schema.isShareable())
@@ -441,13 +441,13 @@ public class DefaultAclService implements AclService {
   @Override
   @SuppressWarnings("unchecked")
   public <T extends IdentifiableObject> boolean canMakeExternal(
-      CurrentUserDetails userDetails, T object) {
+      UserDetails userDetails, T object) {
     return canMakeClassExternal(userDetails, HibernateProxyUtils.getRealClass(object));
   }
 
   @Override
   public <T extends IdentifiableObject> boolean canMakeClassExternal(
-      CurrentUserDetails userDetails, Class<T> klass) {
+      UserDetails userDetails, Class<T> klass) {
     Schema schema = schemaService.getSchema(klass);
 
     return !(schema == null || !schema.isShareable())
@@ -484,12 +484,12 @@ public class DefaultAclService implements AclService {
 
   @Override
   public <T extends IdentifiableObject> Access getAccess(T object, User user) {
-    return getAccess(object, CurrentUserDetailsImpl.fromUser(user));
+    return getAccess(object, UserDetailsImpl.fromUser(user));
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends IdentifiableObject> Access getAccess(T object, CurrentUserDetails userDetails) {
+  public <T extends IdentifiableObject> Access getAccess(T object, UserDetails userDetails) {
     return object == null
         ? new Access(true)
         : getAccess(object, userDetails, HibernateProxyUtils.getRealClass(object));
@@ -497,7 +497,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public <T extends IdentifiableObject> Access getAccess(
-      T object, CurrentUserDetails userDetails, Class<? extends T> objType) {
+      T object, UserDetails userDetails, Class<? extends T> objType) {
 
     if (userDetails == null || isSuper(userDetails)) {
       Access access = new Access(true);
@@ -531,12 +531,12 @@ public class DefaultAclService implements AclService {
 
   @Override
   public <T extends IdentifiableObject> void resetSharing(T object, User user) {
-    resetSharing(object, CurrentUserDetailsImpl.fromUser(user));
+    resetSharing(object, UserDetailsImpl.fromUser(user));
   }
 
   @Override
   public <T extends IdentifiableObject> void resetSharing(
-      T object, CurrentUserDetails userDetails) {
+      T object, UserDetails userDetails) {
     if (object == null || !isShareable(object) || userDetails == null) {
       return;
     }
@@ -558,7 +558,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public <T extends IdentifiableObject> void clearSharing(
-      T object, CurrentUserDetails userDetails) {
+      T object, UserDetails userDetails) {
     if (object == null || !isShareable(object) || userDetails == null) {
       return;
     }
@@ -572,12 +572,12 @@ public class DefaultAclService implements AclService {
 
   @Override
   public <T extends IdentifiableObject> List<ErrorReport> verifySharing(T object, User user) {
-    return verifySharing(object, CurrentUserDetailsImpl.fromUser(user));
+    return verifySharing(object, UserDetailsImpl.fromUser(user));
   }
 
   @Override
   public <T extends IdentifiableObject> List<ErrorReport> verifySharing(
-      T object, CurrentUserDetails userDetails) {
+      T object, UserDetails userDetails) {
     List<ErrorReport> errorReports = new ArrayList<>();
 
     if (object == null || haveOverrideAuthority(userDetails) || !isShareable(object)) {
@@ -651,7 +651,7 @@ public class DefaultAclService implements AclService {
   }
 
   private <T extends IdentifiableObject> Collection<? extends ErrorReport> verifyImplicitSharing(
-      CurrentUserDetails userDetails, T object) {
+      UserDetails userDetails, T object) {
     List<ErrorReport> errorReports = new ArrayList<>();
     Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
@@ -668,15 +668,15 @@ public class DefaultAclService implements AclService {
     return errorReports;
   }
 
-  private boolean haveOverrideAuthority(CurrentUserDetails user) {
+  private boolean haveOverrideAuthority(UserDetails user) {
     return user == null || user.isSuper();
   }
 
-  private boolean isSuper(CurrentUserDetails user) {
+  private boolean isSuper(UserDetails user) {
     return user == null || user.isSuper();
   }
 
-  private boolean canAccess(CurrentUserDetails user, Collection<String> anyAuthorities) {
+  private boolean canAccess(UserDetails user, Collection<String> anyAuthorities) {
     return haveOverrideAuthority(user)
         || anyAuthorities.isEmpty()
         || haveAuthority(user.getAllAuthorities(), anyAuthorities);
@@ -693,7 +693,7 @@ public class DefaultAclService implements AclService {
    * @param object Object to check against
    * @return true/false depending on if access should be allowed
    */
-  private boolean checkOwner(CurrentUserDetails userDetails, IdentifiableObject object) {
+  private boolean checkOwner(UserDetails userDetails, IdentifiableObject object) {
     return userDetails == null
         || object.getSharing().getOwner() == null
         || userDetails.getUid().equals(object.getSharing().getOwner());
@@ -707,7 +707,7 @@ public class DefaultAclService implements AclService {
    * @return true/false depending on if sharing settings are allowed for given user
    */
   private <T extends IdentifiableObject> boolean checkSharingAccess(
-      CurrentUserDetails userDetails, IdentifiableObject object, Class<T> objType) {
+      UserDetails userDetails, IdentifiableObject object, Class<T> objType) {
     boolean canMakePublic = canMakeClassPublic(userDetails, objType);
     boolean canMakePrivate = canMakeClassPrivate(userDetails, objType);
     boolean canMakeExternal = canMakeClassExternal(userDetails, objType);
@@ -739,7 +739,7 @@ public class DefaultAclService implements AclService {
    * @return
    */
   private boolean checkMetadataSharingPermission(
-      CurrentUserDetails userDetails, IdentifiableObject object, Permission permission) {
+      UserDetails userDetails, IdentifiableObject object, Permission permission) {
     return checkOwner(userDetails, object)
         || checkSharingPermission(userDetails, object, permission);
   }
@@ -753,7 +753,7 @@ public class DefaultAclService implements AclService {
    * @return true if user can access object, false otherwise
    */
   private boolean checkSharingPermission(
-      CurrentUserDetails userDetails, IdentifiableObject object, Permission permission) {
+      UserDetails userDetails, IdentifiableObject object, Permission permission) {
     // throw null pointer if userDetails is null
     if (userDetails == null) {
       throw new IllegalArgumentException("userDetails is null");
@@ -792,7 +792,7 @@ public class DefaultAclService implements AclService {
   }
 
   private boolean checkOptionComboSharingPermission(
-      CurrentUserDetails userDetails, IdentifiableObject object, Permission permission) {
+      UserDetails userDetails, IdentifiableObject object, Permission permission) {
     CategoryOptionCombo optionCombo = (CategoryOptionCombo) object;
 
     if (optionCombo.isDefault() || optionCombo.getCategoryOptions().isEmpty()) {
@@ -810,7 +810,7 @@ public class DefaultAclService implements AclService {
     return accessibleOptions.size() == optionCombo.getCategoryOptions().size();
   }
 
-  private boolean readWriteCommonCheck(CurrentUserDetails userDetails, Class<?> objType) {
+  private boolean readWriteCommonCheck(UserDetails userDetails, Class<?> objType) {
     if (haveOverrideAuthority(userDetails)) {
       return true;
     }
@@ -819,7 +819,7 @@ public class DefaultAclService implements AclService {
   }
 
   private <T extends IdentifiableObject> boolean writeCommonCheck(
-      Schema schema, CurrentUserDetails userDetails, T object, Class<? extends T> objType) {
+      Schema schema, UserDetails userDetails, T object, Class<? extends T> objType) {
     if (!schema.isShareable()) {
       return true;
     }

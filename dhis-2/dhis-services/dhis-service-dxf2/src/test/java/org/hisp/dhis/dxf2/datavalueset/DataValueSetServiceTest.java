@@ -69,7 +69,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -162,7 +162,7 @@ class DataValueSetServiceTest extends DhisConvenienceTest {
 
     User user = new User();
     user.setUsername("test");
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetailsImpl.fromUser(user));
     when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
     ImportSummary summary =

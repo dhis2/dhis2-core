@@ -41,7 +41,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -90,7 +90,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     // when
     // a basic user without explicit access tries to get namespace keys
 
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("basicUser", currentUserDetails.getUsername());
     List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
@@ -121,7 +121,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     // when
     // a superuser without explicit access tries to get namespace keys
     injectSecurityContextUser(superuser);
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertTrue(currentUserDetails.isSuper());
     assertEquals("superUser1", currentUserDetails.getUsername());
     List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
@@ -157,7 +157,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     // when
     // a user with full access tries to get namespace keys
     injectSecurityContextUser(userWithFullAccess);
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("userWithFullAccess", currentUserDetails.getUsername());
     List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
@@ -193,7 +193,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     // when
     // a user with no explicit access tries to get namespace keys
     injectSecurityContextUser(userWithNoAccess);
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("userWithNoAccess", currentUserDetails.getUsername());
     List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
@@ -227,7 +227,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     // when
     // a user with access to one entry tries to get namespace keys
     injectSecurityContextUser(userWithSomeAccess);
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("userWithSomeAccess", currentUserDetails.getUsername());
     List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
@@ -267,7 +267,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     // when
     // a user with user group access tries to get namespace keys
     injectSecurityContextUser(userWithUserGroupAccess);
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("userWithUserGroupAccess", currentUserDetails.getUsername());
     List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
@@ -307,7 +307,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     // when
     // a user with no access tries to get namespace keys
     injectSecurityContextUser(userWithNoAccess);
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("userWithNoAccess", currentUserDetails.getUsername());
     List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);
@@ -346,7 +346,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     // when
     // a user with group access for one entry tries to get namespace keys
     injectSecurityContextUser(userWithSomeAccess);
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     assertFalse(currentUserDetails.isSuper());
     assertEquals("userWithSomeAccess", currentUserDetails.getUsername());
     List<String> keysInNamespace = datastoreService.getKeysInNamespace(NAMESPACE, null);

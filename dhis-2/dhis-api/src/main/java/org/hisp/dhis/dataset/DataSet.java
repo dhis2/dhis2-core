@@ -70,7 +70,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 
 /**
@@ -443,7 +443,7 @@ public class DataSet extends BaseDimensionalItemObject
    * @param period the period to compare with.
    * @param now the date indicating now, uses current date if null.
    */
-  public boolean isLocked(CurrentUserDetails user, Period period, Date now) {
+  public boolean isLocked(UserDetails user, Period period, Date now) {
     if (expiryDays == DataSet.NO_EXPIRY
         || user != null && user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return false;

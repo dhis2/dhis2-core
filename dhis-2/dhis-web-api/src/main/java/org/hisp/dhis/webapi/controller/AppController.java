@@ -56,7 +56,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -129,7 +129,7 @@ public class AppController {
       SecurityContextImpl context = (SecurityContextImpl) springSecurityContext;
       Authentication authentication = context.getAuthentication();
 
-      CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+      UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
       if (authentication != null && currentUserDetails == null) {
         SecurityContext newContext = SecurityContextHolder.createEmptyContext();

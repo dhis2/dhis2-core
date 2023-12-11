@@ -53,7 +53,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -275,7 +275,7 @@ public class DefaultSqlViewService implements SqlViewService {
   private String substituteQueryVariables(SqlView sqlView, Map<String, String> variables) {
     String sql = SqlViewUtils.substituteSqlVariables(sqlView.getSqlQuery(), variables);
 
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     if (currentUserDetails != null) {
       sql =
           SqlViewUtils.substituteSqlVariable(

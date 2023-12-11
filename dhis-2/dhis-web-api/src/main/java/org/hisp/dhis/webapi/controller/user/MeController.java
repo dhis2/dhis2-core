@@ -80,7 +80,7 @@ import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
@@ -175,7 +175,7 @@ public class MeController {
     List<String> programs =
         programService.getCurrentUserPrograms().stream().map(IdentifiableObject::getUid).toList();
 
-    CurrentUserDetails userDetails = userService.createUserDetails(user);
+    UserDetails userDetails = userService.createUserDetails(user);
     List<String> dataSets =
         dataSetService.getUserDataRead(userDetails).stream()
             .map(IdentifiableObject::getUid)

@@ -60,7 +60,7 @@ import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.util.SectionUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -477,7 +477,7 @@ public class LoadFormAction implements Action {
   }
 
   private void addOptionAccess(
-      CurrentUserDetails user,
+      UserDetails user,
       Map<String, Boolean> optionAccessMap,
       List<CategoryOptionCombo> optionCombos) {
     optionCombos.forEach(

@@ -63,8 +63,8 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroupService;
@@ -470,13 +470,13 @@ public class FieldFilterService {
         });
   }
 
-  private CurrentUserDetails getCurrentUserDetails(String username) {
+  private UserDetails getCurrentUserDetails(String username) {
     if (CurrentUserUtil.getCurrentUsername() != null
         && CurrentUserUtil.getCurrentUsername().equals(username)) {
       return CurrentUserUtil.getCurrentUserDetails();
     } else if (username != null) {
       User user = userService.getUserByUsername(username);
-      return CurrentUserDetailsImpl.fromUser(user);
+      return UserDetailsImpl.fromUser(user);
     } else {
       return null;
     }
@@ -484,7 +484,7 @@ public class FieldFilterService {
 
   private void applyAccess(
       Object object, List<FieldPath> fieldPaths, boolean isSkipSharing, String username) {
-    CurrentUserDetails currentUserDetails = getCurrentUserDetails(username);
+    UserDetails currentUserDetails = getCurrentUserDetails(username);
     applyFieldPathVisitor(
         object,
         fieldPaths,

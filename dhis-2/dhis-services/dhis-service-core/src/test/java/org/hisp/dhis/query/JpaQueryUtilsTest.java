@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.Assertions;
@@ -226,7 +226,7 @@ class JpaQueryUtilsTest {
             + "and jsonb_check_user_groups_access( x.sharing, '__r_____', '{aUserGroupA,aUserGroupB}') = true )";
     String actual =
         JpaQueryUtils.generateSQlQueryForSharingCheck(
-            "x.sharing", CurrentUserDetailsImpl.fromUser(userA), "__r_____");
+            "x.sharing", UserDetailsImpl.fromUser(userA), "__r_____");
     Assertions.assertEquals(expected, actual);
   }
 }

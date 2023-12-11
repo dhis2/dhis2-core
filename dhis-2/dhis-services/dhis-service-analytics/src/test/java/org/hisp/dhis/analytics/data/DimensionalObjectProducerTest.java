@@ -92,7 +92,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -435,7 +435,7 @@ class DimensionalObjectProducerTest {
     List<String> items = List.of("ALL_ITEMS");
     category.setCategoryOptions(List.of(new CategoryOption()));
 
-    CurrentUserDetailsImpl currentUserDetails = new CurrentUserDetailsImpl();
+    UserDetailsImpl currentUserDetails = new UserDetailsImpl();
     currentUserDetails.setAllAuthorities(Set.of("ALL"));
     currentUserDetails.setUsername("admin");
     currentUserDetails.setSuper(true);
@@ -444,7 +444,7 @@ class DimensionalObjectProducerTest {
     // when
     when(idObjectManager.get(DYNAMIC_DIM_CLASSES, UID, categoryUid)).thenReturn(category);
     when(aclService.canDataOrMetadataRead(
-            any(CurrentUserDetailsImpl.class), any(CategoryOption.class)))
+            any(UserDetailsImpl.class), any(CategoryOption.class)))
         .thenReturn(true);
 
     Optional<BaseDimensionalObject> dimensionalObject =

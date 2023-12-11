@@ -53,8 +53,8 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.velocity.VelocityManager;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -264,7 +264,7 @@ public class DefaultMessageService implements MessageService {
       users =
           users.stream()
               .filter(
-                  user -> hasAccessToManageFeedbackMessages(CurrentUserDetailsImpl.fromUser(user)))
+                  user -> hasAccessToManageFeedbackMessages(UserDetailsImpl.fromUser(user)))
               .collect(Collectors.toSet());
     }
 
@@ -431,7 +431,7 @@ public class DefaultMessageService implements MessageService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean hasAccessToManageFeedbackMessages(CurrentUserDetails userDetails) {
+  public boolean hasAccessToManageFeedbackMessages(UserDetails userDetails) {
     userDetails = (userDetails != null ? userDetails : CurrentUserUtil.getCurrentUserDetails());
     return configurationService.isUserInFeedbackRecipientUserGroup(userDetails)
         || userDetails.isAuthorized("ALL");

@@ -27,19 +27,18 @@
  */
 package org.hisp.dhis.security;
 
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class ImpersonatingUserDetailsChecker extends AccountStatusUserDetailsChecker {
   @Override
-  public void check(UserDetails userToImpersonate) {
-    CurrentUserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+  public void check(org.springframework.security.core.userdetails.UserDetails userToImpersonate) {
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     if (currentUser == null) {
       throw new InsufficientAuthenticationException("User is not authenticated.");
     }

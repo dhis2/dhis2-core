@@ -30,7 +30,7 @@ package org.hisp.dhis.icon;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 
 public interface CustomIconStore {
   /**
@@ -70,7 +70,7 @@ public interface CustomIconStore {
    * @param fileResource file resource linked to the custom icon
    * @param createdByUser user that created the custom icon
    */
-  void save(CustomIcon customIcon, FileResource fileResource, CurrentUserDetails createdByUser);
+  void save(CustomIcon customIcon, FileResource fileResource, UserDetails createdByUser);
 
   /**
    * Deletes a custom icon from the database

@@ -43,7 +43,7 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 
@@ -140,7 +140,7 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
   }
 
   private String getSharingConditions(String access) {
-    CurrentUserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     Set<String> userGroupIds = currentUser.getUserGroupIds();
     return String.join(
         " or ",

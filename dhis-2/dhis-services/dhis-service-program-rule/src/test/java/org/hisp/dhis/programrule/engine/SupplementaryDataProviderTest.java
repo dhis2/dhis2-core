@@ -43,7 +43,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -77,7 +77,7 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest {
     user.setUsername("A");
     user.setUserRoles(getUserRoles());
 
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetailsImpl.fromUser(user));
 
     orgUnitA = createOrganisationUnit('A');
     orgUnitB = createOrganisationUnit('B');

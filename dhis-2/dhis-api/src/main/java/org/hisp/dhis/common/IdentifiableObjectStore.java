@@ -34,7 +34,7 @@ import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.User;
 
 /**
@@ -63,7 +63,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @param object the object instance.
    * @param userDetails User
    */
-  void update(@Nonnull T object, @CheckForNull CurrentUserDetails userDetails);
+  void update(@Nonnull T object, @CheckForNull UserDetails userDetails);
 
   /**
    * Update object. Bypasses the ACL system.
@@ -167,7 +167,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
   T getByUniqueAttributeValue(
       @Nonnull Attribute attribute,
       @Nonnull String value,
-      @CheckForNull CurrentUserDetails userDetails);
+      @CheckForNull UserDetails userDetails);
 
   /**
    * Retrieves a List of all objects (sorted on name).
@@ -375,13 +375,13 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
   List<T> getDataReadAll();
 
   @Nonnull
-  List<T> getDataReadAll(@CheckForNull CurrentUserDetails userDetails);
+  List<T> getDataReadAll(@CheckForNull UserDetails userDetails);
 
   @Nonnull
   List<T> getDataWriteAll();
 
   @Nonnull
-  List<T> getDataWriteAll(@CheckForNull CurrentUserDetails userDetails);
+  List<T> getDataWriteAll(@CheckForNull UserDetails userDetails);
 
   /** Remove given UserGroup UID from all sharing records in database */
   void removeUserGroupFromSharing(@Nonnull String userGroupUID, @Nonnull String tableName);
@@ -393,7 +393,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @param userDetails the {@link User} for filtering
    * @return List of objects found.
    */
-  List<T> findByUser(@Nonnull CurrentUserDetails userDetails);
+  List<T> findByUser(@Nonnull UserDetails userDetails);
 
   /**
    * Look up list objects which have property lastUpdatedBy linked to given {@link User}
@@ -401,7 +401,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @param userDetails the {@link User} for filtering
    * @return List of objects found.
    */
-  List<T> findByLastUpdatedBy(@Nonnull CurrentUserDetails userDetails);
+  List<T> findByLastUpdatedBy(@Nonnull UserDetails userDetails);
 
   /**
    * Look up list objects which have property createdBy linked to given {@link User}
@@ -409,7 +409,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @param userDetails the {@link User} for filtering
    * @return List of objects found.
    */
-  List<T> findByCreatedBy(@Nonnull CurrentUserDetails userDetails);
+  List<T> findByCreatedBy(@Nonnull UserDetails userDetails);
 
   /**
    * Look up list objects which have property createdBy or lastUpdatedBy linked to given {@link

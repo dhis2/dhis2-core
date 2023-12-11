@@ -75,7 +75,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
@@ -287,7 +287,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
       FieldMap fieldMap,
       Class<?> klass,
       Object object,
-      CurrentUserDetails userDetails,
+      UserDetails userDetails,
       Defaults defaults) {
     Schema schema = schemaService.getDynamicSchema(klass);
     return buildNode(fieldMap, klass, object, userDetails, schema.getName(), defaults);
@@ -343,7 +343,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
       FieldMap fieldMap,
       Class<?> klass,
       Object object,
-      CurrentUserDetails userDetails,
+      UserDetails userDetails,
       String nodeName,
       Defaults defaults) {
     Schema schema = schemaService.getDynamicSchema(klass);

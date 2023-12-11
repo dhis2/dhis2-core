@@ -44,7 +44,7 @@ import org.springframework.security.core.GrantedAuthority;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Slf4j
-public class CurrentUserDetailsImpl implements CurrentUserDetails {
+public class UserDetailsImpl implements UserDetails {
 
   private String uid;
   private Long id;
@@ -90,18 +90,18 @@ public class CurrentUserDetailsImpl implements CurrentUserDetails {
     return auths.contains(UserRole.AUTHORITY_ALL) || auths.contains(auth);
   }
 
-  public static CurrentUserDetailsImpl fromUser(User user) {
+  public static UserDetailsImpl fromUser(User user) {
     return createUserDetails(user, true, true);
   }
 
-  public static CurrentUserDetailsImpl createUserDetails(
+  public static UserDetailsImpl createUserDetails(
       User user, boolean accountNonLocked, boolean credentialsNonExpired) {
 
     if (user == null) {
       return null;
     }
 
-    CurrentUserDetailsImpl userDetails = new CurrentUserDetailsImpl();
+    UserDetailsImpl userDetails = new UserDetailsImpl();
     userDetails.setId(user.getId());
     userDetails.setUid(user.getUid());
     userDetails.setUsername(user.getUsername());

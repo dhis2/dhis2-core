@@ -66,7 +66,7 @@ import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.MapSchemaDescriptor;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -128,7 +128,7 @@ public class MapController extends AbstractCrudController<Map> {
   @ResponseBody
   public WebMessage putJsonObject(
       @PathVariable String uid,
-      @CurrentUser CurrentUserDetailsImpl currentUserDetails,
+      @CurrentUser UserDetailsImpl currentUserDetails,
       HttpServletRequest request)
       throws IOException {
     Map map = mappingService.getMap(uid);

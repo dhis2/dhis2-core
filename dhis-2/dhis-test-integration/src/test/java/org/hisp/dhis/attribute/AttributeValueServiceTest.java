@@ -48,7 +48,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -240,7 +240,7 @@ class AttributeValueServiceTest extends TransactionalIntegrationTest {
     attributeService.addAttributeValue(dataElementB, attributeValueB);
     attributeService.addAttributeValue(dataElementC, attributeValueC);
 
-    CurrentUserDetails userDetails = userService.createUserDetails(currentUser);
+    UserDetails userDetails = userService.createUserDetails(currentUser);
     DataElement deA = dataElementStore.getByUniqueAttributeValue(attribute, "CID1", userDetails);
     DataElement deB = dataElementStore.getByUniqueAttributeValue(attribute, "CID2", userDetails);
     DataElement deC = dataElementStore.getByUniqueAttributeValue(attribute, "CID3", userDetails);
@@ -278,7 +278,7 @@ class AttributeValueServiceTest extends TransactionalIntegrationTest {
     assertEquals(1, dataElementB.getAttributeValues().size());
     assertEquals(1, dataElementC.getAttributeValues().size());
 
-    CurrentUserDetails userDetails = userService.createUserDetails(currentUser);
+    UserDetails userDetails = userService.createUserDetails(currentUser);
     DataElement de1 = dataElementStore.getByUniqueAttributeValue(attributeA, "VALUE", userDetails);
     DataElement de2 = dataElementStore.getByUniqueAttributeValue(attributeB, "VALUE", userDetails);
     DataElement de3 = dataElementStore.getByUniqueAttributeValue(attributeC, "VALUE", userDetails);

@@ -48,7 +48,7 @@ import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
@@ -156,7 +156,7 @@ public class RouteService {
 
   public ResponseEntity<String> exec(
       Route route,
-      CurrentUserDetails currentUserDetails,
+      UserDetails currentUserDetails,
       Optional<String> subPath,
       HttpServletRequest request)
       throws IOException, BadRequestException {

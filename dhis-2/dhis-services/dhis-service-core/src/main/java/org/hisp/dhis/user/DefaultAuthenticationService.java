@@ -46,7 +46,7 @@ public class DefaultAuthenticationService implements AuthenticationService {
 
   @Override
   public void obtainAuthentication(@Nonnull String userId) throws NotFoundException {
-    CurrentUserDetails user = userService.createUserDetails(userId);
+    UserDetails user = userService.createUserDetails(userId);
     setupInContext(user, user.getAuthorities());
   }
 

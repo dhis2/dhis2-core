@@ -43,7 +43,7 @@ import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -112,7 +112,7 @@ class ApiTokenServiceImplTest extends TransactionalIntegrationTest {
   void testGetAllByUser() {
     final ApiToken token = createAndSaveToken();
     createAndSaveToken();
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     User user = userService.getUserByUsername(currentUserDetails.getUsername());
     List<ApiToken> allOwning = apiTokenService.getAllOwning(user);
 
@@ -123,7 +123,7 @@ class ApiTokenServiceImplTest extends TransactionalIntegrationTest {
   @Test
   void testSaveGetCurrentUser() {
     final ApiToken tokenA = createAndSaveToken();
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     User user = userService.getUserByUsername(currentUserDetails.getUsername());
     final ApiToken tokenB = apiTokenService.getByKey(tokenA.getKey(), user);
     assertEquals(tokenB.getKey(), tokenA.getKey());

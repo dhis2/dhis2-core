@@ -37,7 +37,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -78,7 +78,7 @@ public class IdentifiableObjectController extends AbstractCrudController<Identif
   @Override
   public WebMessage putJsonObject(
       @PathVariable("uid") String pvUid,
-      @CurrentUser CurrentUserDetailsImpl currentUserDetails,
+      @CurrentUser UserDetailsImpl currentUserDetails,
       HttpServletRequest request)
       throws HttpRequestMethodNotSupportedException {
     throw new HttpRequestMethodNotSupportedException("PUT");
@@ -87,7 +87,7 @@ public class IdentifiableObjectController extends AbstractCrudController<Identif
   @Override
   public WebMessage deleteObject(
       @PathVariable("uid") String pvUid,
-      @CurrentUser CurrentUserDetailsImpl currentUserDetails,
+      @CurrentUser UserDetailsImpl currentUserDetails,
       HttpServletRequest request,
       HttpServletResponse response)
       throws HttpRequestMethodNotSupportedException {

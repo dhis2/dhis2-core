@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 
 public class CurrentUserUtil {
   private CurrentUserUtil() {
@@ -66,8 +65,8 @@ public class CurrentUserUtil {
       return (String) principal;
     }
 
-    if (principal instanceof UserDetails) {
-      UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+    if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+      org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
       return userDetails.getUsername();
 
     } else {
@@ -82,7 +81,7 @@ public class CurrentUserUtil {
    * @return CurrentUserDetails representing the authenticated user, or null if the user is
    *     unauthenticated
    */
-  public static CurrentUserDetails getCurrentUserDetails() {
+  public static UserDetails getCurrentUserDetails() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null
         || !authentication.isAuthenticated()
@@ -98,8 +97,8 @@ public class CurrentUserUtil {
       return null;
     }
 
-    if (principal instanceof CurrentUserDetails) {
-      return (CurrentUserDetails) authentication.getPrincipal();
+    if (principal instanceof UserDetails) {
+      return (UserDetails) authentication.getPrincipal();
     } else {
       throw new RuntimeException(
           "Authentication principal is not supported; principal:" + principal);
@@ -113,7 +112,7 @@ public class CurrentUserUtil {
    * @return list of authority names
    */
   public static List<String> getCurrentUserAuthorities() {
-    CurrentUserDetails currentUserDetails = getCurrentUserDetails();
+    UserDetails currentUserDetails = getCurrentUserDetails();
 
     if (currentUserDetails == null) {
       // Anonymous user has no authorities
@@ -154,7 +153,7 @@ public class CurrentUserUtil {
    */
   @SuppressWarnings("unchecked")
   public static <T> T getUserSetting(UserSettingKey key) {
-    CurrentUserDetails currentUser = getCurrentUserDetails();
+    UserDetails currentUser = getCurrentUserDetails();
     if (currentUser == null) {
       return null;
     }
@@ -178,7 +177,7 @@ public class CurrentUserUtil {
   }
 
   private static void setUserSettingInternal(String key, Serializable value) {
-    CurrentUserDetails currentUser = getCurrentUserDetails();
+    UserDetails currentUser = getCurrentUserDetails();
     if (currentUser != null) {
       Map<String, Serializable> userSettings = currentUser.getUserSettings();
       if (userSettings != null) {

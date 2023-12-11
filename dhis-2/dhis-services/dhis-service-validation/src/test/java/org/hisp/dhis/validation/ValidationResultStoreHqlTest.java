@@ -55,7 +55,7 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
@@ -129,7 +129,7 @@ class ValidationResultStoreHqlTest {
   }
 
   public static void injectSecurityContext(User user) {
-    CurrentUserDetailsImpl currentUserDetails = CurrentUserDetailsImpl.fromUser(user);
+    UserDetailsImpl currentUserDetails = UserDetailsImpl.fromUser(user);
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
             currentUserDetails, "", currentUserDetails.getAuthorities());

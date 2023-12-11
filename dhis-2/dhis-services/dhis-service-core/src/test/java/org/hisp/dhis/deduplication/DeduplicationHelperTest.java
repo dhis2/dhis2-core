@@ -53,7 +53,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,7 +98,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
 
   private User user;
 
-  private CurrentUserDetailsImpl currentUserDetails;
+  private UserDetailsImpl currentUserDetails;
 
   @BeforeEach
   public void setUp() {
@@ -122,7 +122,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
             .build();
     user = makeUser("A", Lists.newArrayList("F_TRACKED_ENTITY_MERGE"));
 
-    CurrentUserDetailsImpl currentUserDetails = CurrentUserDetailsImpl.fromUser(user);
+    UserDetailsImpl currentUserDetails = UserDetailsImpl.fromUser(user);
     injectSecurityContext(currentUserDetails);
 
     this.currentUserDetails = currentUserDetails;
@@ -164,7 +164,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
 
   @Test
   void shouldNotHasUserAccessWhenUserHasNoMergeRoles() {
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(getNoMergeAuthsUser()));
+    injectSecurityContext(UserDetailsImpl.fromUser(getNoMergeAuthsUser()));
 
     String hasUserAccess =
         deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);

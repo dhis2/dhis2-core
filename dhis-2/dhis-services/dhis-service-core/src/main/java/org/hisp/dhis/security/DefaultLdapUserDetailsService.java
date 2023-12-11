@@ -29,7 +29,7 @@ package org.hisp.dhis.security;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.dao.DataAccessException;
@@ -63,6 +63,6 @@ public class DefaultLdapUserDetailsService implements UserDetailsService {
     String password = "EXTERNAL_LDAP_" + CodeGenerator.generateCode(10);
     user.setPassword(password);
 
-    return CurrentUserDetailsImpl.fromUser(user);
+    return UserDetailsImpl.fromUser(user);
   }
 }

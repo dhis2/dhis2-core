@@ -56,7 +56,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
@@ -95,7 +95,7 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
   public ResponseEntity<?> getObject(
       @PathVariable String uid,
       Map<String, String> rpParameters,
-      @CurrentUser CurrentUserDetailsImpl currentUserDetails,
+      @CurrentUser UserDetailsImpl currentUserDetails,
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {

@@ -39,7 +39,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconResponse;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -87,7 +87,7 @@ class IconMapperTest {
     User user = new User();
     user.setUid("user uid");
     when(userService.getUserByUsername(user.getUsername())).thenReturn(user);
-    CurrentUserDetailsImpl currentUserDetails = CurrentUserDetailsImpl.fromUser(user);
+    UserDetailsImpl currentUserDetails = UserDetailsImpl.fromUser(user);
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
             currentUserDetails, "", currentUserDetails.getAuthorities());

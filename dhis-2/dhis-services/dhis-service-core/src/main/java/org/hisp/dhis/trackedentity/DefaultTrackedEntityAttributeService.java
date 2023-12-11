@@ -52,7 +52,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
@@ -294,7 +294,7 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   @Override
   @Transactional(readOnly = true)
   public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
-      CurrentUserDetails userDetails) {
+      UserDetails userDetails) {
     List<Program> programs = programService.getAllPrograms();
     List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
 
@@ -304,7 +304,7 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   @Override
   @Transactional(readOnly = true)
   public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
-      CurrentUserDetails userDetails,
+      UserDetails userDetails,
       List<Program> programs,
       List<TrackedEntityType> trackedEntityTypes) {
     Set<TrackedEntityAttribute> attributes = new HashSet<>();

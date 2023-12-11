@@ -41,7 +41,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -128,7 +128,7 @@ public class DefaultProgramService implements ProgramService {
   @Override
   @Transactional(readOnly = true)
   public List<Program> getCurrentUserPrograms() {
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     if (currentUserDetails == null || currentUserDetails.isSuper()) {
       return getAllPrograms();

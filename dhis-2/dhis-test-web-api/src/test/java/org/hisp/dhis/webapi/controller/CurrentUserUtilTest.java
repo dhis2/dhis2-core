@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ class CurrentUserUtilTest extends DhisControllerConvenienceTest {
   @Test
   void testCurrentUserDetailsIsSuper() {
     switchToNewUser("newSuperuser", "ALL");
-    CurrentUserDetails newSuperuser = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails newSuperuser = CurrentUserUtil.getCurrentUserDetails();
     assertNotNull(newSuperuser);
     assertEquals("newSuperuser", newSuperuser.getUsername());
     assertTrue(newSuperuser.isSuper());
@@ -54,7 +54,7 @@ class CurrentUserUtilTest extends DhisControllerConvenienceTest {
   @Test
   void testCurrentUserDetailsIsNotSuper() {
     switchToNewUser("basicUser", "NONE");
-    CurrentUserDetails basicUser = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails basicUser = CurrentUserUtil.getCurrentUserDetails();
     assertNotNull(basicUser);
     assertEquals("basicUser", basicUser.getUsername());
     assertFalse(basicUser.isSuper());

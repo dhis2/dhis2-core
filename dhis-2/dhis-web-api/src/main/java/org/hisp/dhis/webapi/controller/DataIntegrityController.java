@@ -56,7 +56,7 @@ import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters.DataIntegrityReportType;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -88,7 +88,7 @@ public class DataIntegrityController {
   public WebMessage runDataIntegrity(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @CheckForNull @RequestBody(required = false) Set<String> checksBody,
-      @CurrentUser CurrentUserDetailsImpl currentUser)
+      @CurrentUser UserDetailsImpl currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
     return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.REPORT)
@@ -96,7 +96,7 @@ public class DataIntegrityController {
   }
 
   private WebMessage runDataIntegrityAsync(
-      @Nonnull Set<String> checks, CurrentUserDetailsImpl currentUser, DataIntegrityReportType type)
+      @Nonnull Set<String> checks, UserDetailsImpl currentUser, DataIntegrityReportType type)
       throws ConflictException, NotFoundException {
     JobType jobType =
         type == DataIntegrityReportType.DETAILS
@@ -158,7 +158,7 @@ public class DataIntegrityController {
   public WebMessage runSummariesCheck(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @CheckForNull @RequestBody(required = false) Set<String> checksBody,
-      @CurrentUser CurrentUserDetailsImpl currentUser)
+      @CurrentUser UserDetailsImpl currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
     return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.SUMMARY)
@@ -192,7 +192,7 @@ public class DataIntegrityController {
   public WebMessage runDetailsCheck(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @RequestBody(required = false) Set<String> checksBody,
-      @CurrentUser CurrentUserDetailsImpl currentUser)
+      @CurrentUser UserDetailsImpl currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
     return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.DETAILS)

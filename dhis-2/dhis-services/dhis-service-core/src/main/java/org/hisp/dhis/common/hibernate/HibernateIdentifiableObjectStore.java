@@ -60,8 +60,8 @@ import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,7 +111,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   public void save(@Nonnull T object, @CheckForNull User user) {
-    save(object, CurrentUserDetailsImpl.fromUser(user), true);
+    save(object, UserDetailsImpl.fromUser(user), true);
   }
 
   @Override
@@ -119,7 +119,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     save(object, CurrentUserUtil.getCurrentUserDetails(), clearSharing);
   }
 
-  private void save(T object, CurrentUserDetails userDetails, boolean clearSharing) {
+  private void save(T object, UserDetails userDetails, boolean clearSharing) {
     String username = userDetails != null ? userDetails.getUsername() : "system-process";
     object.setAutoFields();
 
@@ -168,12 +168,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   public void update(@Nonnull T object) {
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     update(object, currentUserDetails);
   }
 
   @Override
-  public void update(@Nonnull T object, @CheckForNull CurrentUserDetails userDetails) {
+  public void update(@Nonnull T object, @CheckForNull UserDetails userDetails) {
     String username = userDetails != null ? userDetails.getUsername() : "system-process";
 
     object.setAutoFields();
@@ -203,7 +203,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   public void delete(@Nonnull T object) {
-    CurrentUserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
     String username = userDetails != null ? userDetails.getUsername() : "system-process";
 
     if (!isDeleteAllowed(object, userDetails)) {
@@ -220,7 +220,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Override
   public final T get(long id) {
     T object = getNoPostProcess(id);
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     if (object != null && isReadNotAllowed(object, currentUserDetails)) {
       AuditLogUtil.infoWrapper(
           log, CurrentUserUtil.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
@@ -328,7 +328,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     T object = list != null && !list.isEmpty() ? list.get(0) : null;
 
-    CurrentUserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     if (isReadNotAllowed(object, currentUser)) {
       AuditLogUtil.infoWrapper(
           log, CurrentUserUtil.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
@@ -396,7 +396,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Override
   @CheckForNull
   public T getByUniqueAttributeValue(
-      @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull CurrentUserDetails user) {
+      @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull UserDetails user) {
     if (StringUtils.isEmpty(value) || !attribute.isUnique()) {
       return null;
     }
@@ -687,7 +687,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Nonnull
   @Override
   public List<T> getById(@Nonnull Collection<Long> ids) {
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     if (ids.isEmpty()) {
       return List.of();
     }
@@ -725,7 +725,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Nonnull
   @Override
   public List<T> getByCode(@Nonnull Collection<String> codes) {
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     if (codes.isEmpty()) {
       return List.of();
     }
@@ -736,7 +736,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Nonnull
   @Override
   public List<T> getByName(@Nonnull Collection<String> names) {
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     if (names.isEmpty()) {
       return new ArrayList<>();
     }
@@ -780,7 +780,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Nonnull
   @Override
-  public final List<T> getDataReadAll(CurrentUserDetails user) {
+  public final List<T> getDataReadAll(UserDetails user) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     JpaQueryParameters<T> parameters =
@@ -797,7 +797,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Nonnull
   @Override
-  public final List<T> getDataWriteAll(CurrentUserDetails user) {
+  public final List<T> getDataWriteAll(UserDetails user) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     JpaQueryParameters<T> parameters =
@@ -831,7 +831,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
    * @return List of objects found.
    */
   @Override
-  public List<T> findByUser(@Nonnull CurrentUserDetails user) {
+  public List<T> findByUser(@Nonnull UserDetails user) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     return getListFromPartitions(
@@ -854,7 +854,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
    * @return List of objects found.
    */
   @Override
-  public List<T> findByLastUpdatedBy(@Nonnull CurrentUserDetails user) {
+  public List<T> findByLastUpdatedBy(@Nonnull UserDetails user) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     return getListFromPartitions(
@@ -873,7 +873,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
    * @return List of objects found.
    */
   @Override
-  public List<T> findByCreatedBy(@Nonnull CurrentUserDetails user) {
+  public List<T> findByCreatedBy(@Nonnull UserDetails user) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     return getListFromPartitions(
@@ -916,7 +916,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
    * @return true or false.
    */
   private boolean checkPublicAccess(
-      CurrentUserDetails userDetails, IdentifiableObject identifiableObject) {
+      UserDetails userDetails, IdentifiableObject identifiableObject) {
     boolean canMakePublic = aclService.canMakePublic(userDetails, identifiableObject);
     boolean canMakePrivate = aclService.canMakePrivate(userDetails, identifiableObject);
     boolean canReadOrWrite =
@@ -925,21 +925,21 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     return canMakePublic || (canMakePrivate && !canReadOrWrite);
   }
 
-  private boolean isReadNotAllowed(T object, CurrentUserDetails user) {
+  private boolean isReadNotAllowed(T object, UserDetails user) {
     if (sharingEnabled(user == null || user.isSuper())) {
       return !aclService.canRead(user, object);
     }
     return false;
   }
 
-  private boolean isUpdateAllowed(T object, CurrentUserDetails userDetails) {
+  private boolean isUpdateAllowed(T object, UserDetails userDetails) {
     if (aclService.isClassShareable(clazz)) {
       return aclService.canUpdate(userDetails, object);
     }
     return true;
   }
 
-  private boolean isDeleteAllowed(T object, CurrentUserDetails userDetails) {
+  private boolean isDeleteAllowed(T object, UserDetails userDetails) {
     if (aclService.isClassShareable(clazz)) {
       return aclService.canDelete(userDetails, object);
     }
@@ -951,7 +951,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   }
 
   private <V> JpaQueryParameters<T> createInQuery(
-      CriteriaBuilder builder, CurrentUserDetails user, String property, Collection<V> values) {
+      CriteriaBuilder builder, UserDetails user, String property, Collection<V> values) {
     return createInQuery(getSharingPredicates(builder, user), property, values);
   }
 

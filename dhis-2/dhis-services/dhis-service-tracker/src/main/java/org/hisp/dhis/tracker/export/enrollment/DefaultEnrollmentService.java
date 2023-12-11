@@ -57,8 +57,8 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -146,7 +146,7 @@ class DefaultEnrollmentService
           .getTrackedEntity()
           .setTrackedEntityAttributeValues(
               getTrackedEntityAttributeValues(
-                  CurrentUserDetailsImpl.fromUser(currentUser), enrollment));
+                  UserDetailsImpl.fromUser(currentUser), enrollment));
     }
 
     return result;
@@ -180,7 +180,7 @@ class DefaultEnrollmentService
   }
 
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      CurrentUserDetails userDetails, Enrollment enrollment) {
+      UserDetails userDetails, Enrollment enrollment) {
     Set<TrackedEntityAttribute> readableAttributes =
         trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
             userDetails, List.of(enrollment.getProgram()), null);

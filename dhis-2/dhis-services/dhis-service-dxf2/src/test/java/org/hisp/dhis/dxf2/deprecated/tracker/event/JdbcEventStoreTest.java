@@ -54,7 +54,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -117,7 +117,7 @@ class JdbcEventStoreTest {
     user.setUsername("test");
     user.setTeiSearchOrganisationUnits(Set.of(new OrganisationUnit()));
 
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetailsImpl.fromUser(user));
     when(userService.getUserByUsername(anyString())).thenReturn(user);
   }
 

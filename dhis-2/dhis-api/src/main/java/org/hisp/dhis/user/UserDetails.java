@@ -32,9 +32,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
-public interface CurrentUserDetails extends UserDetails {
+public interface UserDetails extends org.springframework.security.core.userdetails.UserDetails {
 
   @Override
   Collection<? extends GrantedAuthority> getAuthorities();

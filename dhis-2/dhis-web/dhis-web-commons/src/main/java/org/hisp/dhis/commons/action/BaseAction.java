@@ -30,7 +30,7 @@ package org.hisp.dhis.commons.action;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,7 +48,7 @@ public abstract class BaseAction {
     }
   }
 
-  public final void canReadInstance(IdentifiableObject instance, CurrentUserDetails userDetails) {
+  public final void canReadInstance(IdentifiableObject instance, UserDetails userDetails) {
     if (!aclService.canRead(userDetails, instance)) {
       throw new ReadAccessDeniedException(
           "You don't have the proper permissions to read this object instance.");

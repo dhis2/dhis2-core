@@ -45,8 +45,8 @@ import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -70,7 +70,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
   private static final Set<String> PUBLIC_PROPERTY_PATHS =
       unmodifiableSet(new HashSet<>(asList("sharing", "access", "translations")));
 
-  private final CurrentUserDetails currentUser;
+  private final UserDetails currentUser;
 
   private final AclService aclService;
 
@@ -144,10 +144,10 @@ public class DefaultGistAccessControl implements GistAccessControl {
 
   @Override
   public boolean canFilterByAccessOfUser(String userUid) {
-    CurrentUserDetails user =
+    UserDetails user =
         getCurrentUserUid().equals(userUid)
             ? currentUser
-            : CurrentUserDetailsImpl.fromUser(userService.getUser(userUid));
+            : UserDetailsImpl.fromUser(userService.getUser(userUid));
     return user != null && aclService.canRead(currentUser, userService.getUser(user.getUid()));
   }
 

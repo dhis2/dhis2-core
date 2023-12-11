@@ -40,7 +40,7 @@ import org.hisp.dhis.route.Route;
 import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.schema.descriptors.RouteSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -64,7 +64,7 @@ public class RouteController extends AbstractCrudController<Route> {
       method = {RequestMethod.GET, RequestMethod.POST})
   public ResponseEntity<String> run(
       @PathVariable("id") String id,
-      @CurrentUser CurrentUserDetailsImpl currentUserDetails,
+      @CurrentUser UserDetailsImpl currentUserDetails,
       HttpServletRequest request)
       throws IOException, ForbiddenException, NotFoundException, BadRequestException {
     return runWithSubpath(id, currentUserDetails, request);
@@ -75,7 +75,7 @@ public class RouteController extends AbstractCrudController<Route> {
       method = {RequestMethod.GET, RequestMethod.POST})
   public ResponseEntity<String> runWithSubpath(
       @PathVariable("id") String id,
-      @CurrentUser CurrentUserDetailsImpl currentUserDetails,
+      @CurrentUser UserDetailsImpl currentUserDetails,
       HttpServletRequest request)
       throws IOException, ForbiddenException, NotFoundException, BadRequestException {
     Route route = routeService.getDecryptedRoute(id);

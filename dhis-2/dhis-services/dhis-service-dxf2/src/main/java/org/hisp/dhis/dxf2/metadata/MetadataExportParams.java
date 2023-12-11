@@ -42,14 +42,14 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.config.InclusionStrategy;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class MetadataExportParams {
   /** User to use for sharing filtering. */
-  private CurrentUserDetails currentUserDetails;
+  private UserDetails currentUserDetails;
 
   /** If doing full export, this contains the list of classes you want exported. */
   private Set<Class<? extends IdentifiableObject>> classes = new HashSet<>();
@@ -138,11 +138,11 @@ public class MetadataExportParams {
     return strings != null ? strings : defaultFields;
   }
 
-  public CurrentUserDetails getCurrentUserDetails() {
+  public UserDetails getCurrentUserDetails() {
     return currentUserDetails;
   }
 
-  public void setCurrentUserDetails(CurrentUserDetails currentUserDetails) {
+  public void setCurrentUserDetails(UserDetails currentUserDetails) {
     this.currentUserDetails = currentUserDetails;
   }
 

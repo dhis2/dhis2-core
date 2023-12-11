@@ -30,7 +30,7 @@ package org.hisp.dhis.security.acl;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.User;
 
 /**
@@ -114,12 +114,12 @@ public interface AclService {
    * @param object Object to check
    * @return Result of test
    */
-  boolean canRead(CurrentUserDetails userDetails, IdentifiableObject object);
+  boolean canRead(UserDetails userDetails, IdentifiableObject object);
 
   boolean canRead(User user, IdentifiableObject object);
 
   /**
-   * Same as {@link #canRead(CurrentUserDetails, IdentifiableObject)} except that it allows to pass
+   * Same as {@link #canRead(UserDetails, IdentifiableObject)} except that it allows to pass
    * superclasses as object that can be validated as if they are of a certain object type.
    *
    * @param userDetails to check against
@@ -129,7 +129,7 @@ public interface AclService {
    * @return Result of test
    */
   <T extends IdentifiableObject> boolean canRead(
-      CurrentUserDetails userDetails, T object, Class<? extends T> objType);
+      UserDetails userDetails, T object, Class<? extends T> objType);
 
   /**
    * Can user read data this object.
@@ -138,7 +138,7 @@ public interface AclService {
    * @param object Object to check
    * @return Result of test
    */
-  boolean canDataRead(CurrentUserDetails userDetails, IdentifiableObject object);
+  boolean canDataRead(UserDetails userDetails, IdentifiableObject object);
 
   boolean canDataRead(User user, IdentifiableObject object);
 
@@ -152,7 +152,7 @@ public interface AclService {
    * @param object Object to check permission
    * @return true, if use can access object
    */
-  boolean canDataOrMetadataRead(CurrentUserDetails userDetails, IdentifiableObject object);
+  boolean canDataOrMetadataRead(UserDetails userDetails, IdentifiableObject object);
 
   boolean canDataOrMetadataRead(User user, IdentifiableObject object);
 
@@ -167,7 +167,7 @@ public interface AclService {
    * @param object Object to check
    * @return Result of test
    */
-  boolean canWrite(CurrentUserDetails userDetails, IdentifiableObject object);
+  boolean canWrite(UserDetails userDetails, IdentifiableObject object);
 
   boolean canWrite(User user, IdentifiableObject object);
 
@@ -178,7 +178,7 @@ public interface AclService {
    * @param object Object to check
    * @return Result of test
    */
-  boolean canDataWrite(CurrentUserDetails userDetails, IdentifiableObject object);
+  boolean canDataWrite(UserDetails userDetails, IdentifiableObject object);
 
   boolean canDataWrite(User user, IdentifiableObject object);
 
@@ -191,7 +191,7 @@ public interface AclService {
    * @param object Object to check
    * @return Result of test
    */
-  boolean canUpdate(CurrentUserDetails userDetails, IdentifiableObject object);
+  boolean canUpdate(UserDetails userDetails, IdentifiableObject object);
 
   boolean canUpdate(User user, IdentifiableObject object);
 
@@ -204,7 +204,7 @@ public interface AclService {
    * @param object Object to check
    * @return Result of test
    */
-  boolean canDelete(CurrentUserDetails userDetails, IdentifiableObject object);
+  boolean canDelete(UserDetails userDetails, IdentifiableObject object);
 
   boolean canDelete(User user, IdentifiableObject object);
 
@@ -217,7 +217,7 @@ public interface AclService {
    * @param object Object to check
    * @return Result of test
    */
-  boolean canManage(CurrentUserDetails userDetails, IdentifiableObject object);
+  boolean canManage(UserDetails userDetails, IdentifiableObject object);
 
   boolean canManage(User user, IdentifiableObject object);
 
@@ -228,7 +228,7 @@ public interface AclService {
    * @param klass Type to check against
    * @return Result of test
    */
-  <T extends IdentifiableObject> boolean canRead(CurrentUserDetails userDetails, Class<T> klass);
+  <T extends IdentifiableObject> boolean canRead(UserDetails userDetails, Class<T> klass);
 
   /**
    * Can create an object of this type.
@@ -237,7 +237,7 @@ public interface AclService {
    * @param klass Type to check against
    * @return Result of test
    */
-  <T extends IdentifiableObject> boolean canCreate(CurrentUserDetails userDetails, Class<T> klass);
+  <T extends IdentifiableObject> boolean canCreate(UserDetails userDetails, Class<T> klass);
 
   <T extends IdentifiableObject> boolean canCreate(User user, Class<T> klass);
 
@@ -251,7 +251,7 @@ public interface AclService {
    * @param object Object to check
    * @return Result of test
    */
-  <T extends IdentifiableObject> boolean canMakePublic(CurrentUserDetails userDetails, T object);
+  <T extends IdentifiableObject> boolean canMakePublic(UserDetails userDetails, T object);
 
   <T extends IdentifiableObject> boolean canMakePublic(User user, T object);
 
@@ -264,7 +264,7 @@ public interface AclService {
    * @return Result of test
    */
   <T extends IdentifiableObject> boolean canMakeClassPublic(
-      CurrentUserDetails userDetails, Class<T> klass);
+      UserDetails userDetails, Class<T> klass);
 
   <T extends IdentifiableObject> boolean canMakeClassPublic(User user, Class<T> klass);
 
@@ -278,7 +278,7 @@ public interface AclService {
    * @param object Object to check
    * @return Result of test
    */
-  <T extends IdentifiableObject> boolean canMakePrivate(CurrentUserDetails userDetails, T object);
+  <T extends IdentifiableObject> boolean canMakePrivate(UserDetails userDetails, T object);
 
   <T extends IdentifiableObject> boolean canMakePrivate(User user, T object);
 
@@ -291,7 +291,7 @@ public interface AclService {
    * @return Result of test
    */
   <T extends IdentifiableObject> boolean canMakeClassPrivate(
-      CurrentUserDetails userDetails, Class<T> klass);
+      UserDetails userDetails, Class<T> klass);
 
   <T extends IdentifiableObject> boolean canMakeClassPrivate(User user, Class<T> klass);
 
@@ -302,7 +302,7 @@ public interface AclService {
    * @param object Object to check
    * @return Result of test
    */
-  <T extends IdentifiableObject> boolean canMakeExternal(CurrentUserDetails userDetails, T object);
+  <T extends IdentifiableObject> boolean canMakeExternal(UserDetails userDetails, T object);
 
   /**
    * Checks if a user can create an external instance of a certain class.
@@ -313,7 +313,7 @@ public interface AclService {
    * @return Result of test
    */
   <T extends IdentifiableObject> boolean canMakeClassExternal(
-      CurrentUserDetails userDetails, Class<T> klass);
+      UserDetails userDetails, Class<T> klass);
 
   /**
    * Is the default for this type to be private?
@@ -346,7 +346,7 @@ public interface AclService {
    * @param userDetails to check against
    * @return Populated access instance
    */
-  <T extends IdentifiableObject> Access getAccess(T object, CurrentUserDetails userDetails);
+  <T extends IdentifiableObject> Access getAccess(T object, UserDetails userDetails);
 
   <T extends IdentifiableObject> Access getAccess(T object, User user);
 
@@ -361,7 +361,7 @@ public interface AclService {
    * @return Populated access instance
    */
   <T extends IdentifiableObject> Access getAccess(
-      T object, CurrentUserDetails userDetails, Class<? extends T> objType);
+      T object, UserDetails userDetails, Class<? extends T> objType);
 
   /**
    * Sets default sharing props on object, disregarding what is already there.
@@ -369,7 +369,7 @@ public interface AclService {
    * @param object Object to update
    * @param userDetails to base ACL on
    */
-  <T extends IdentifiableObject> void resetSharing(T object, CurrentUserDetails userDetails);
+  <T extends IdentifiableObject> void resetSharing(T object, UserDetails userDetails);
 
   <T extends IdentifiableObject> void resetSharing(T object, User user);
 
@@ -379,7 +379,7 @@ public interface AclService {
    * @param object the object.
    * @param userDetails the user.
    */
-  <T extends IdentifiableObject> void clearSharing(T object, CurrentUserDetails userDetails);
+  <T extends IdentifiableObject> void clearSharing(T object, UserDetails userDetails);
 
   /**
    * Verify that sharing props are correctly set according to user.
@@ -389,7 +389,7 @@ public interface AclService {
    * @return List of error reports (if any)
    */
   <T extends IdentifiableObject> List<ErrorReport> verifySharing(
-      T object, CurrentUserDetails userDetails);
+      T object, UserDetails userDetails);
 
   <T extends IdentifiableObject> List<ErrorReport> verifySharing(T object, User user);
 }

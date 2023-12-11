@@ -51,7 +51,7 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -290,7 +290,7 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
    * @return String to add restrictions to the HQL query.
    */
   private String getUserRestrictions(SqlHelper sqlHelper) {
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     if (currentUserDetails == null || currentUserDetails.isSuper()) {
       return "";
     }

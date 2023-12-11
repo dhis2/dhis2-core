@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.hibernate.SharingHibernateGenericStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.context.ApplicationEventPublisher;
@@ -70,7 +70,7 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, CurrentUserDetails user, String access) {
+      CriteriaBuilder builder, UserDetails user, String access) {
 
     Set<String> userGroupIds = user.getUserGroupIds();
     CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(user.getUid());
@@ -85,7 +85,7 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, CurrentUserDetails user, String access) {
+      CriteriaBuilder builder, UserDetails user, String access) {
     if (!sharingEnabled(user == null || user.isSuper()) || user == null) {
       return new ArrayList<>();
     }
@@ -103,7 +103,7 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(CriteriaBuilder builder) {
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     if (currentUserDetails == null) {
       //      return List.of();
       //      log.error("currentUserDetails is null");
@@ -114,7 +114,7 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, CurrentUserDetails user) {
+      CriteriaBuilder builder, UserDetails user) {
     if (user == null) {
       return List.of();
     }
@@ -129,7 +129,7 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, CurrentUserDetails user) {
+      CriteriaBuilder builder, UserDetails user) {
 
     if (!sharingEnabled(user.isSuper())) {
       return List.of();

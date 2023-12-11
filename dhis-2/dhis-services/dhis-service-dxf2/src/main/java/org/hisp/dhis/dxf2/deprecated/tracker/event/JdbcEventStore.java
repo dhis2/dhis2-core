@@ -124,7 +124,7 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -1747,7 +1747,7 @@ public class JdbcEventStore implements EventStore {
           joinCondition
               + " having bool_and(case when "
               + JpaQueryUtils.generateSQlQueryForSharingCheck(
-                  "co.sharing", CurrentUserDetailsImpl.fromUser(user), AclService.LIKE_READ_DATA)
+                  "co.sharing", UserDetailsImpl.fromUser(user), AclService.LIKE_READ_DATA)
               + " then true else false end) = True ";
     }
 

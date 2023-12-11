@@ -56,8 +56,8 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -188,7 +188,7 @@ class UserControllerTest {
     return report.getStatus() == Status.OK && report.getStats().getUpdated() == 1;
   }
 
-  public static void injectSecurityContext(CurrentUserDetails currentUserDetails) {
+  public static void injectSecurityContext(UserDetails currentUserDetails) {
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
             currentUserDetails, "", currentUserDetails.getAuthorities());
@@ -203,10 +203,10 @@ class UserControllerTest {
     // make current user have ALL authority
     setUpUserAuthority(currentUser, UserRole.AUTHORITY_ALL);
 
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(currentUser));
+    injectSecurityContext(UserDetailsImpl.fromUser(currentUser));
 
     // allow any change
-    when(aclService.canUpdate(any(CurrentUserDetailsImpl.class), any())).thenReturn(true);
+    when(aclService.canUpdate(any(UserDetailsImpl.class), any())).thenReturn(true);
 
     lenient().when(userService.canAddOrUpdateUser(any(), any())).thenReturn(true);
     // link user and current user to service methods
@@ -282,8 +282,8 @@ class UserControllerTest {
     addUserTo(user);
     addUserTo(currentUser);
     setUpUserAuthority(currentUser, UserRole.AUTHORITY_ALL);
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(currentUser));
-    when(aclService.canUpdate(any(CurrentUserDetailsImpl.class), any())).thenReturn(false);
+    injectSecurityContext(UserDetailsImpl.fromUser(currentUser));
+    when(aclService.canUpdate(any(UserDetailsImpl.class), any())).thenReturn(false);
     lenient().when(userService.canAddOrUpdateUser(any(), any())).thenReturn(true);
     when(userService.getUser(user.getUid())).thenReturn(user);
 

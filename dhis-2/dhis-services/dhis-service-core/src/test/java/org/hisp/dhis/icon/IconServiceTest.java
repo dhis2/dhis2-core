@@ -43,8 +43,8 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -75,14 +75,14 @@ class IconServiceTest {
     User user = new User();
     user.setId(1234);
     user.setUsername("user");
-    injectSecurityContext(CurrentUserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetailsImpl.fromUser(user));
 
     iconService.addCustomIcon(
         new CustomIcon(
             uniqueKey, "description", new String[] {"keyword1"}, fileResourceUid, "userUid"));
 
     verify(customIconStore, times(1))
-        .save(any(CustomIcon.class), any(FileResource.class), any(CurrentUserDetails.class));
+        .save(any(CustomIcon.class), any(FileResource.class), any(UserDetails.class));
   }
 
   @Test
