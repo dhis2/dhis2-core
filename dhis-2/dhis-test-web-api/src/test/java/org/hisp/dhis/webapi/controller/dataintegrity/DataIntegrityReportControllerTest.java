@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.web.WebClientUtils.objectReference;
@@ -38,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
@@ -156,6 +158,66 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
         getDataIntegrityReport()
             .getOrganisationUnitsViolatingExclusiveGroupSets()
             .toMap(JsonString::string, String::compareTo));
+  }
+
+  @Test
+  void testDataElementsInDatasetsWithDifferentFrequencies() {
+    String defaultCatCombo = getDefaultCatCombo();
+
+    String dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+
+    String dataset1_uid = generateUid();
+
+    String dataset1 =
+        "{ 'id':'"
+            + dataset1_uid
+            + "', 'name': 'Test Monthly', 'shortName': 'Test Monthly', 'periodType' : 'Monthly',"
+            + "'categoryCombo' : {'id': '"
+            + defaultCatCombo
+            + "'}, "
+            + "'dataSetElements' : [{'dataSet' : {'id':'"
+            + dataset1_uid
+            + "'}, 'id':'"
+            + generateUid()
+            + "', 'dataElement': {'id' : '"
+            + dataElementA
+            + "'}}]}";
+
+    assertStatus(HttpStatus.CREATED, POST("/dataSets", dataset1));
+
+    String dataset2_uid = generateUid();
+    String dataset2 =
+        "{ 'id':'"
+            + dataset2_uid
+            + "', 'name': 'Test Quarterly', 'shortName': 'Test Quarterly', 'periodType' : 'Quarterly',"
+            + "'categoryCombo' : {'id': '"
+            + defaultCatCombo
+            + "'}, "
+            + "'dataSetElements' : [{'dataSet' : {'id':'"
+            + dataset2_uid
+            + "'}, 'id':'"
+            + generateUid()
+            + "', 'dataElement': {'id' : '"
+            + dataElementA
+            + "'}}]}";
+
+    assertStatus(HttpStatus.CREATED, POST("/dataSets", dataset2));
+
+    Map<String, List<String>> want = singletonMap("ANC1", asList(dataset1_uid, dataset2_uid));
+    Map<String, List<String>> have =
+        getDataIntegrityReport()
+            .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes()
+            .toMap(JsonString::string, String::compareTo);
+
+    assertEquals(want.size(), have.size());
+    assertTrue(want.values().containsAll(have.values()));
+    assertTrue(have.values().containsAll(want.values()));
   }
 
   private String addOrganisationUnit(String name) {

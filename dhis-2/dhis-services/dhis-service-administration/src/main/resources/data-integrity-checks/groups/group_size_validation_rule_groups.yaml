@@ -26,7 +26,7 @@
 #
 ---
 name: validation_rule_groups_scarce
-description: Validation rule should have at least two members.
+description: Validation rule groups should have at least two members.
 section: Group size
 section_order: 2
 summary_sql: >-
