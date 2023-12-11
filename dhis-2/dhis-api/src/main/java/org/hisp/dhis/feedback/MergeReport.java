@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,53 +27,48 @@
  */
 package org.hisp.dhis.feedback;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status.CONFLICT;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import lombok.Data;
+import org.hisp.dhis.merge.MergeType;
 
-import java.text.MessageFormat;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webmessage.WebMessageResponse;
+/**
+ * Class representing the state of a merge<br>
+ *
+ * <ul>
+ *   <li>It can contain {@link ErrorMessage}s
+ *   <li>It describes the type of merge
+ *   <li>what sources have been deleted, if any
+ * </ul>
+ *
+ * @author david mackessy
+ */
+@Data
+public class MergeReport implements ErrorMessageContainer {
 
-@Getter
-@Accessors(chain = true)
-@OpenApi.Response(status = CONFLICT, value = WebMessageResponse.class)
-@SuppressWarnings({"java:S1165", "java:S1948"})
-public final class ConflictException extends Exception implements Error {
-  public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
-      throws ConflictException {
-    return Error.rethrow(type, ConflictException::new, operation);
+  @JsonProperty private final List<ErrorMessage> mergeErrors = new ArrayList<>();
+  @JsonProperty private MergeType mergeType;
+  @JsonProperty private Set<String> sourcesDeleted = new HashSet<>();
+  @JsonProperty private String message;
+
+  public MergeReport(MergeType mergeType) {
+    this.mergeType = mergeType;
   }
 
-  public static <E extends RuntimeException, V> V on(
-      Class<E> type, Function<E, ConflictException> map, Supplier<V> operation)
-      throws ConflictException {
-    return Error.rethrowMapped(type, map, operation);
+  @Override
+  public boolean hasErrorMessages() {
+    return !mergeErrors.isEmpty();
   }
 
-  private final ErrorCode code;
-
-  @Setter private String devMessage;
-
-  @Setter private ObjectReport objectReport;
-
-  @Setter private MergeReport mergeReport;
-
-  public ConflictException(String message) {
-    super(message);
-    this.code = ErrorCode.E1004;
+  @Override
+  public void addErrorMessage(ErrorMessage errorMessage) {
+    mergeErrors.add(errorMessage);
   }
 
-  public ConflictException(ErrorCode code, Object... args) {
-    super(MessageFormat.format(code.getMessage(), args));
-    this.code = code;
-  }
-
-  public ConflictException(ErrorMessage message) {
-    super(message.getMessage());
-    this.code = message.getErrorCode();
+  public void addDeletedSource(String uid) {
+    sourcesDeleted.add(uid);
   }
 }

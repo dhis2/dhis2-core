@@ -30,13 +30,13 @@ package org.hisp.dhis.schema;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface MergeService {
+public interface MetadataMergeService {
   /**
    * Merges source object into target object, requires a "schema friendly" class.
    *
-   * @param mergeParams MergeParams instance containing source and target object
+   * @param metadataMergeParams MergeParams instance containing source and target object
    */
-  <T> T merge(MergeParams<T> mergeParams);
+  <T> T merge(MetadataMergeParams<T> metadataMergeParams);
 
   /**
    * Creates a clone of given object and returns it.

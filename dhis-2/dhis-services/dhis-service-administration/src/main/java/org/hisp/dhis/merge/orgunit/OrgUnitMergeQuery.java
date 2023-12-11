@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
+import org.hisp.dhis.merge.DataMergeStrategy;
 
 /**
  * Encapsulation of a web API request for org unit merge.
