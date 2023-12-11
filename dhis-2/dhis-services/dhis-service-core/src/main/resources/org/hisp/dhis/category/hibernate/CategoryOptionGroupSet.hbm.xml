@@ -35,7 +35,7 @@
         foreign-key="fk_categoryoptiongroupsetmembers_categoryoptiongroupid" />
     </list>
 
-    <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType" />
+    <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType" not-null="true" />
 
     <property name="translations" type="jblTranslations"/>
 
