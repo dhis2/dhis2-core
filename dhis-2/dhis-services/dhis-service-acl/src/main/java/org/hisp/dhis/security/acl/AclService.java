@@ -30,8 +30,8 @@ package org.hisp.dhis.security.acl;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -388,8 +388,7 @@ public interface AclService {
    * @param userDetails to base ACL on
    * @return List of error reports (if any)
    */
-  <T extends IdentifiableObject> List<ErrorReport> verifySharing(
-      T object, UserDetails userDetails);
+  <T extends IdentifiableObject> List<ErrorReport> verifySharing(T object, UserDetails userDetails);
 
   <T extends IdentifiableObject> List<ErrorReport> verifySharing(T object, User user);
 }

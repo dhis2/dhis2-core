@@ -78,10 +78,10 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
@@ -139,8 +139,7 @@ public class MessageConversationController
       Map<String, String> parameters) {
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    if (!messageService.hasAccessToManageFeedbackMessages(
-        UserDetailsImpl.fromUser(currentUser))) {
+    if (!messageService.hasAccessToManageFeedbackMessages(UserDetailsImpl.fromUser(currentUser))) {
       entity.setMessages(
           entity.getMessages().stream().filter(message -> !message.isInternal()).toList());
     }
@@ -982,8 +981,7 @@ public class MessageConversationController
    * @return true if the current user is allowed to remove the user from a conversation, false
    *     otherwise.
    */
-  private boolean canModifyUserConversation(
-      UserDetailsImpl currentUser, UserDetailsImpl user) {
+  private boolean canModifyUserConversation(UserDetailsImpl currentUser, UserDetailsImpl user) {
     return currentUser.equals(user) || currentUser.isSuper();
   }
 
@@ -995,8 +993,7 @@ public class MessageConversationController
    * @return true if the user can read the MessageConversation, false otherwise.
    */
   private boolean canReadMessageConversation(
-      UserDetails userDetails,
-      org.hisp.dhis.message.MessageConversation messageConversation) {
+      UserDetails userDetails, org.hisp.dhis.message.MessageConversation messageConversation) {
     Set<User> users = messageConversation.getUsers();
     List<String> list = users.stream().map(User::getUsername).toList();
     return list.contains(userDetails.getUsername()) || userDetails.isSuper();

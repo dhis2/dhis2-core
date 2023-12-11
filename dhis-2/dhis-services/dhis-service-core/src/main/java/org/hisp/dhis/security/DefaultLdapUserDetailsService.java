@@ -29,8 +29,8 @@ package org.hisp.dhis.security;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.userdetails.UserDetails;

@@ -43,9 +43,9 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 @RequiredArgsConstructor
 public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.security;
 
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 

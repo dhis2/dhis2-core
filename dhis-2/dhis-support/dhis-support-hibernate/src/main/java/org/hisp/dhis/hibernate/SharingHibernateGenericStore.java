@@ -32,8 +32,8 @@ import java.util.function.Function;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * Interface which contains methods for generating predicates which are used validating sharing
@@ -62,8 +62,8 @@ public interface SharingHibernateGenericStore<T> extends InternalHibernateGeneri
       CriteriaBuilder builder, UserDetails user);
 
   /**
-   * Get List of JPA Query Predicates for checking sharing access of current {@link
-   * UserDetails} based on given access String.
+   * Get List of JPA Query Predicates for checking sharing access of current {@link UserDetails}
+   * based on given access String.
    *
    * @param builder {@link CriteriaBuilder} used for generating {@link Predicate}.
    * @param user {@link User} for checking.
@@ -74,8 +74,8 @@ public interface SharingHibernateGenericStore<T> extends InternalHibernateGeneri
       CriteriaBuilder builder, UserDetails user, String access);
 
   /**
-   * Get List of JPA Query Predicates for checking sharing access of current {@link
-   * UserDetails} based on given access String.
+   * Get List of JPA Query Predicates for checking sharing access of current {@link UserDetails}
+   * based on given access String.
    *
    * @param builder {@link CriteriaBuilder} used for generating {@link Predicate}
    * @param access access string for checking.

@@ -41,8 +41,8 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 
 /**
@@ -147,8 +147,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canWriteCached(
-      UserDetails currentUser, CategoryOptionCombo optionCombo) {
+  public List<String> canWriteCached(UserDetails currentUser, CategoryOptionCombo optionCombo) {
     String cacheKey = CurrentUserUtil.getCurrentUserDetails().getUid() + "-" + optionCombo.getUid();
 
     return canDataWriteCocCache.get(cacheKey, key -> canWrite(currentUser, optionCombo));
@@ -175,8 +174,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canWrite(
-      UserDetails currentUser, DataElementOperand dataElementOperand) {
+  public List<String> canWrite(UserDetails currentUser, DataElementOperand dataElementOperand) {
     List<String> errors = new ArrayList<>();
 
     if (currentUser == null || currentUser.isSuper()) {

@@ -29,8 +29,8 @@ package org.hisp.dhis.security.oidc;
 
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;

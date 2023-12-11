@@ -34,9 +34,9 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.notification.template.snapshot.IdentifiableObjectSnapshot;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserDetailsImpl;
-import org.hisp.dhis.user.User;
 
 /**
  * Data structure to hold user information during save/update of events, enrollments and comments

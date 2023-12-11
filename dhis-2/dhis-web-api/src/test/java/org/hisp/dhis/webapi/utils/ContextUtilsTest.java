@@ -31,8 +31,8 @@ import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.junit.jupiter.api.Test;
 
 class ContextUtilsTest {

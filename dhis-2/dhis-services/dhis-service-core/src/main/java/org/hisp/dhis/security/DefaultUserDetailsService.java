@@ -28,9 +28,9 @@
 package org.hisp.dhis.security;
 
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserDetailsImpl;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -50,8 +50,8 @@ public class DefaultUserDetailsService implements UserDetailsService {
 
   @Override
   @Transactional(readOnly = true)
-  public org.springframework.security.core.userdetails.UserDetails loadUserByUsername(String username)
-      throws UsernameNotFoundException, DataAccessException {
+  public org.springframework.security.core.userdetails.UserDetails loadUserByUsername(
+      String username) throws UsernameNotFoundException, DataAccessException {
     User user = userStore.getUserByUsername(username, false);
     if (user == null) {
       throw new UsernameNotFoundException(String.format("Username '%s' not found.", username));

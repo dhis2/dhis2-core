@@ -48,8 +48,8 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.imports.preheat.mappers.CopyMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.PreheatMapper;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.mapstruct.factory.Mappers;
 
 /**

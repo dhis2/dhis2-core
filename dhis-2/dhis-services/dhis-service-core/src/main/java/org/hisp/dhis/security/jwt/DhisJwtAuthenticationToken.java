@@ -42,10 +42,7 @@ public class DhisJwtAuthenticationToken extends JwtAuthenticationToken {
   private final DhisOidcUser dhisOidcUser;
 
   public DhisJwtAuthenticationToken(
-      Jwt jwt,
-      Collection<? extends GrantedAuthority> authorities,
-      String name,
-      UserDetails user) {
+      Jwt jwt, Collection<? extends GrantedAuthority> authorities, String name, UserDetails user) {
     super(jwt, authorities, name);
 
     this.dhisOidcUser = new DhisOidcUser(user, jwt.getClaims(), IdTokenClaimNames.SUB, null);

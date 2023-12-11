@@ -29,9 +29,9 @@ package org.hisp.dhis.webapi.mvc;
 
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.springframework.core.MethodParameter;
@@ -59,9 +59,7 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
     Class<?> type = parameter.getParameterType();
 
     boolean isAssignable =
-        type == String.class
-            || type == UserDetailsImpl.class
-            || User.class.isAssignableFrom(type);
+        type == String.class || type == UserDetailsImpl.class || User.class.isAssignableFrom(type);
 
     CurrentUser parameterAnnotation = parameter.getParameterAnnotation(CurrentUser.class);
     return parameterAnnotation != null && isAssignable;

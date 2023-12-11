@@ -40,8 +40,8 @@ import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetailsImpl;
 
 public abstract class AbstractUserInfoPreProcessor implements Processor {
 

@@ -80,8 +80,7 @@ public interface AggregateAccessManager {
    * @param categoryOptionCombo a {@link CategoryOptionCombo} object
    * @return List of errors
    */
-  List<String> canWriteCached(
-      UserDetails userDetails, CategoryOptionCombo categoryOptionCombo);
+  List<String> canWriteCached(UserDetails userDetails, CategoryOptionCombo categoryOptionCombo);
 
   /**
    * Check if given User has DATA_READ access for given CategoryOptionCombo

@@ -33,9 +33,9 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * Interface which contains methods for generating predicates which are used validating sharing

@@ -443,8 +443,7 @@ class DimensionalObjectProducerTest {
 
     // when
     when(idObjectManager.get(DYNAMIC_DIM_CLASSES, UID, categoryUid)).thenReturn(category);
-    when(aclService.canDataOrMetadataRead(
-            any(UserDetailsImpl.class), any(CategoryOption.class)))
+    when(aclService.canDataOrMetadataRead(any(UserDetailsImpl.class), any(CategoryOption.class)))
         .thenReturn(true);
 
     Optional<BaseDimensionalObject> dimensionalObject =

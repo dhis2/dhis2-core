@@ -57,10 +57,10 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -145,8 +145,7 @@ class DefaultEnrollmentService
       result
           .getTrackedEntity()
           .setTrackedEntityAttributeValues(
-              getTrackedEntityAttributeValues(
-                  UserDetailsImpl.fromUser(currentUser), enrollment));
+              getTrackedEntityAttributeValues(UserDetailsImpl.fromUser(currentUser), enrollment));
     }
 
     return result;

@@ -45,9 +45,9 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserDetailsImpl;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -354,8 +354,7 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  public <T extends IdentifiableObject> boolean canRead(
-      UserDetails userDetails, Class<T> klass) {
+  public <T extends IdentifiableObject> boolean canRead(UserDetails userDetails, Class<T> klass) {
     Schema schema = schemaService.getSchema(klass);
     return schema == null
         || schema.getAuthorityByType(AuthorityType.READ) == null
@@ -372,8 +371,7 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  public <T extends IdentifiableObject> boolean canCreate(
-      UserDetails userDetails, Class<T> klass) {
+  public <T extends IdentifiableObject> boolean canCreate(UserDetails userDetails, Class<T> klass) {
     Schema schema = schemaService.getSchema(klass);
 
     if (schema == null) {
@@ -393,8 +391,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends IdentifiableObject> boolean canMakePublic(
-      UserDetails userDetails, T object) {
+  public <T extends IdentifiableObject> boolean canMakePublic(UserDetails userDetails, T object) {
     return canMakeClassPublic(userDetails, HibernateProxyUtils.getRealClass(object));
   }
 
@@ -419,8 +416,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends IdentifiableObject> boolean canMakePrivate(
-      UserDetails userDetails, T object) {
+  public <T extends IdentifiableObject> boolean canMakePrivate(UserDetails userDetails, T object) {
     return canMakeClassPrivate(userDetails, HibernateProxyUtils.getRealClass(object));
   }
 
@@ -440,8 +436,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends IdentifiableObject> boolean canMakeExternal(
-      UserDetails userDetails, T object) {
+  public <T extends IdentifiableObject> boolean canMakeExternal(UserDetails userDetails, T object) {
     return canMakeClassExternal(userDetails, HibernateProxyUtils.getRealClass(object));
   }
 
@@ -535,8 +530,7 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  public <T extends IdentifiableObject> void resetSharing(
-      T object, UserDetails userDetails) {
+  public <T extends IdentifiableObject> void resetSharing(T object, UserDetails userDetails) {
     if (object == null || !isShareable(object) || userDetails == null) {
       return;
     }
@@ -557,8 +551,7 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  public <T extends IdentifiableObject> void clearSharing(
-      T object, UserDetails userDetails) {
+  public <T extends IdentifiableObject> void clearSharing(T object, UserDetails userDetails) {
     if (object == null || !isShareable(object) || userDetails == null) {
       return;
     }

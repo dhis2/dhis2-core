@@ -66,7 +66,8 @@ public class CurrentUserUtil {
     }
 
     if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
-      org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
+      org.springframework.security.core.userdetails.UserDetails userDetails =
+          (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
       return userDetails.getUsername();
 
     } else {

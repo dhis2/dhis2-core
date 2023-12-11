@@ -48,8 +48,8 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -327,8 +327,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
     assertThat(programs.keySet(), hasSize(1));
     assertTrue(
         aclService.canDataWrite(
-            UserDetailsImpl.fromUser(user),
-            getTrackedEntityType(programs.get(program.getUid()))));
+            UserDetailsImpl.fromUser(user), getTrackedEntityType(programs.get(program.getUid()))));
   }
 
   @Test

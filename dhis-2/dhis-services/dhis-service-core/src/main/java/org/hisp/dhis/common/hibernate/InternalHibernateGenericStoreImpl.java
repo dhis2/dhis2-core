@@ -50,9 +50,9 @@ import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -287,10 +287,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder,
-      UserDetails user,
-      CurrentUserGroupInfo groupInfo,
-      String access) {
+      CriteriaBuilder builder, UserDetails user, CurrentUserGroupInfo groupInfo, String access) {
     List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
     if (user == null || !dataSharingEnabled(user.isSuper()) || groupInfo == null) {

@@ -122,13 +122,10 @@ public interface TrackedEntityAttributeService {
    */
   List<TrackedEntityAttribute> getAllTrackedEntityAttributes();
 
-  Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
-      UserDetails userDetails);
+  Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(UserDetails userDetails);
 
   Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
-      UserDetails userDetails,
-      List<Program> programs,
-      List<TrackedEntityType> trackedEntityTypes);
+      UserDetails userDetails, List<Program> programs, List<TrackedEntityType> trackedEntityTypes);
 
   ProgramTrackedEntityAttribute getProgramTrackedEntityAttribute(
       Program program, TrackedEntityAttribute trackedEntityAttribute);

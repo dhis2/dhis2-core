@@ -34,8 +34,8 @@ import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Lars Helge Overland
@@ -165,9 +165,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    */
   @CheckForNull
   T getByUniqueAttributeValue(
-      @Nonnull Attribute attribute,
-      @Nonnull String value,
-      @CheckForNull UserDetails userDetails);
+      @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull UserDetails userDetails);
 
   /**
    * Retrieves a List of all objects (sorted on name).
