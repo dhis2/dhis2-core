@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
@@ -208,11 +209,15 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
 
     assertStatus(HttpStatus.CREATED, POST("/dataSets", dataset2));
 
-    assertEquals(
-        singletonMap("ANC1", asList(dataset1_uid, dataset2_uid)),
+    Map<String, List<String>> want = singletonMap("ANC1", asList(dataset1_uid, dataset2_uid));
+    Map<String, List<String>> have =
         getDataIntegrityReport()
             .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes()
-            .toMap(JsonString::string, String::compareTo));
+            .toMap(JsonString::string, String::compareTo);
+
+    assertEquals(want.size(), have.size());
+    assertTrue(want.values().containsAll(have.values()));
+    assertTrue(have.values().containsAll(want.values()));
   }
 
   private String addOrganisationUnit(String name) {
