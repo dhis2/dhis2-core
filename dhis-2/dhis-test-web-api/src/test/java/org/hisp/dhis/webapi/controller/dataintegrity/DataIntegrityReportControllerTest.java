@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
@@ -154,7 +153,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     addOrganisationUnitGroupSet("K", groupA0Id);
     addOrganisationUnitGroupSet("X", groupB1Id, groupB2Id);
     assertEquals(
-        singletonMap("B:" + ouIdB, asList("B1:" + groupB1Id, "B2:" + groupB2Id)),
+        Map.of("B:" + ouIdB, asList("B1:" + groupB1Id, "B2:" + groupB2Id)),
         getDataIntegrityReport()
             .getOrganisationUnitsViolatingExclusiveGroupSets()
             .toMap(JsonString::string, String::compareTo));
@@ -209,15 +208,14 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
 
     assertStatus(HttpStatus.CREATED, POST("/dataSets", dataset2));
 
-    Map<String, List<String>> want = singletonMap("ANC1", asList(dataset1_uid, dataset2_uid));
-    Map<String, List<String>> have =
+    Map<String, List<String>> expected =
+        Map.of("ANC1", List.of(dataset1_uid, dataset2_uid).stream().sorted().toList());
+    Map<String, List<String>> actual =
         getDataIntegrityReport()
             .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes()
             .toMap(JsonString::string, String::compareTo);
 
-    assertEquals(want.size(), have.size());
-    assertTrue(want.values().containsAll(have.values()));
-    assertTrue(have.values().containsAll(want.values()));
+    assertEquals(expected, actual);
   }
 
   private String addOrganisationUnit(String name) {
