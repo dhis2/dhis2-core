@@ -27,11 +27,16 @@
  */
 package org.hisp.dhis.program;
 
+import lombok.Getter;
+
 /**
  * @author Chau Thu Tran
  */
+@Getter
 public enum ProgramType {
+  /** Aka tracker program */
   WITH_REGISTRATION("with_registration"),
+  /** Aka event program */
   WITHOUT_REGISTRATION("without_registration");
 
   private final String value;
@@ -50,7 +55,11 @@ public enum ProgramType {
     return null;
   }
 
-  public String getValue() {
-    return value;
+  public boolean isTrackerProgram() {
+    return this == WITH_REGISTRATION;
+  }
+
+  public boolean isEventProgram() {
+    return this == WITHOUT_REGISTRATION;
   }
 }
