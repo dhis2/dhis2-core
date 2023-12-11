@@ -66,33 +66,57 @@ class IconTest extends TrackerTest {
 
   @Autowired private IconService iconService;
 
-  private final String[] keywords = {"k1", "k2", "k3"};
+  private final String[] keywordK = {"k1", "k2", "k3"};
+  private final String[] keywordM = {"m1", "m2", "m3"};
+  private final String[] keywordN = {"n1", "n2", "n3"};
+  private final String[] keywordO = {"o1", "o2", "o3"};
+  private final String[] keywordP = {"p1", "p2", "p3"};
+
+  private final String ICON_KEY_1 = "iconKey1";
+  private final String ICON_KEY_2 = "iconKey2";
+  private final String ICON_KEY_3 = "iconKey3";
+  private final String ICON_KEY_4 = "iconKey4";
+  private final String ICON_KEY_5 = "iconKey5";
+
+  private final int keywordLength =
+      keywordK.length + keywordM.length + keywordN.length + keywordP.length + keywordO.length;
 
   @SneakyThrows
   @Override
   protected void initTest() throws IOException {
-    FileResource fileResource = createAndPersistFileResource('A');
-    iconService.addCustomIcon(
-        new CustomIcon(
-            "iconKey",
-            "description",
-            keywords,
-            fileResource.getUid(),
-            currentUserService.getCurrentUser().getUid()));
+    addCustomIcon(createAndPersistFileResource('A'), ICON_KEY_1, keywordK);
+    addCustomIcon(createAndPersistFileResource('B'), ICON_KEY_2, keywordM);
+    addCustomIcon(createAndPersistFileResource('C'), ICON_KEY_3, keywordN);
+    addCustomIcon(createAndPersistFileResource('D'), ICON_KEY_4, keywordO);
+    addCustomIcon(createAndPersistFileResource('E'), ICON_KEY_5, keywordP);
+  }
+
+  @Test
+  void shouldGetAllPaginatedIconsWhenRequested() {
+    Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
+
+    IconCriteria iconCriteria = IconCriteria.of(1, 2, false);
+
+    assertEquals(
+        defaultIconMap.size() + 2,
+        iconService.getIcons(iconCriteria).size(),
+        String.format(
+            "Expected to find %d icons, but found %d instead",
+            defaultIconMap.size() + 2, iconService.getIcons(iconCriteria).size()));
   }
 
   @Test
   void shouldGetAllIconsWhenRequested() {
     Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
 
-    IconCriteria iconCriteria = IconCriteria.of(1, 5);
+    IconCriteria iconCriteria = IconCriteria.of(0, 0, true);
 
     assertEquals(
-        defaultIconMap.size() + 1,
+        defaultIconMap.size() + 5,
         iconService.getIcons(iconCriteria).size(),
         String.format(
             "Expected to find %d icons, but found %d instead",
-            defaultIconMap.size() + 1, iconService.getIcons(iconCriteria).size()));
+            defaultIconMap.size() + 5, iconService.getIcons(iconCriteria).size()));
   }
 
   @Test
@@ -112,14 +136,14 @@ class IconTest extends TrackerTest {
             .flatMap(Arrays::stream)
             .collect(Collectors.toSet());
 
-    IconCriteria iconCriteria = IconCriteria.of(1, 5);
+    IconCriteria iconCriteria = IconCriteria.of(0, 0, true);
 
     assertEquals(
-        keywordList.size() + keywords.length,
+        keywordList.size() + keywordLength,
         iconService.getKeywords().size(),
         String.format(
             "Expected to find %d icons, but found %d instead",
-            keywordList.size() + keywords.length, iconService.getIcons(iconCriteria).size()));
+            keywordList.size() + keywordLength, iconService.getIcons(iconCriteria).size()));
   }
 
   @Test
@@ -239,5 +263,16 @@ class IconTest extends TrackerTest {
         .map(DefaultIcon.Icons::getVariants)
         .flatMap(Collection::stream)
         .collect(Collectors.toMap(DefaultIcon::getKey, Function.identity()));
+  }
+
+  private void addCustomIcon(FileResource fileResource, String key, String[] keywords)
+      throws BadRequestException, NotFoundException {
+    iconService.addCustomIcon(
+        new CustomIcon(
+            key,
+            "description",
+            keywords,
+            fileResource.getUid(),
+            currentUserService.getCurrentUser().getUid()));
   }
 }
