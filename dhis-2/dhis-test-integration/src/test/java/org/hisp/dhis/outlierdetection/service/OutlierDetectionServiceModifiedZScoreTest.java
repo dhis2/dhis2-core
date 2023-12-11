@@ -39,6 +39,7 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -120,10 +121,10 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
   @Test
   void testGetFromQuery() {
     OutlierDetectionQuery query = new OutlierDetectionQuery();
-    query.setDe(List.of("deabcdefghA", "deabcdefghB"));
+    query.setDx(Set.of("deabcdefghA", "deabcdefghB"));
     query.setStartDate(getDate(2020, 1, 1));
     query.setEndDate(getDate(2020, 6, 1));
-    query.setOu(List.of("ouabcdefghA", "ouabcdefghB"));
+    query.setOu(Set.of("ouabcdefghA", "ouabcdefghB"));
     query.setAlgorithm(OutlierDetectionAlgorithm.MOD_Z_SCORE);
     query.setThreshold(2.5);
     query.setMaxResults(100);
