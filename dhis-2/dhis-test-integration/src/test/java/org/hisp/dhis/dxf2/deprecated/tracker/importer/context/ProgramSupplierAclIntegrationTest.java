@@ -207,12 +207,6 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
 
   @Test
   void verifyUserHasWriteAccessToProgramStageForGroupAccess() {
-
-    // TODO: MAS cross check master, what authorities the acting user in, has none here
-    // acl.checkSharingPermission() has line:
-    // if (sharing.getUserGroups() != null
-    //        && !CollectionUtils.isEmpty(userDetails.getAllAuthorities())) {
-
     // Given
     final User user = createUserWithAuth("user1");
 

@@ -172,7 +172,6 @@ class UserControllerTest {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    // TODO: MAS: Not sure what is wrong here
     verify(userGroupService).updateUserGroups(user, Set.of("abc1", "abc2"), currentUser2);
   }
 

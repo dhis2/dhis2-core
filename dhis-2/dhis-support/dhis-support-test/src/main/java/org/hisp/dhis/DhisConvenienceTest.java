@@ -300,22 +300,6 @@ public abstract class DhisConvenienceTest {
     return userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
   }
 
-  //  public long addOrganisationUnit(OrganisationUnitService service, OrganisationUnit
-  // organisationUnit) {
-  //    service.save(organisationUnit);
-  //
-  //    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-  //
-  //    if (organisationUnit.getParent() == null && currentUser != null) {
-  //      // Adding a new root node, add this node to the current user
-  //      currentUser.getOrganisationUnits().add(organisationUnit);
-  //      // TODO: MAS: Should we not update the user here?
-  //      userService.updateUser(currentUser);
-  //    }
-  //
-  //    return organisationUnit.getId();
-  //  }
-
   /**
    * Creates a date.
    *

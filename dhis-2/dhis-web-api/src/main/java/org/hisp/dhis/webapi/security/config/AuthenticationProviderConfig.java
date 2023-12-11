@@ -27,30 +27,20 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.AuthenticationLoggerListener;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.ldap.authentication.DhisBindAuthenticator;
-import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.user.UserStore;
-import org.hisp.dhis.webapi.security.ExternalAccessVoter;
-import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
-import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.access.AccessDecisionManager;
-import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
-import org.springframework.security.access.vote.AuthenticatedVoter;
-import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -59,8 +49,6 @@ import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.UserDetailsServiceLdapAuthoritiesPopulator;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
-import org.springframework.security.web.access.expression.WebExpressionVoter;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -72,52 +60,52 @@ import org.springframework.security.web.access.expression.WebExpressionVoter;
 public class AuthenticationProviderConfig {
   @Autowired private DhisConfigurationProvider configurationProvider;
 
-  @Autowired TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+  //  @Autowired TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
   @Autowired
   @Qualifier("ldapUserDetailsService")
   UserDetailsService ldapUserDetailsService;
 
-  @Autowired private ExternalAccessVoter externalAccessVoter;
+  //  @Autowired private ExternalAccessVoter externalAccessVoter;
 
-  public WebExpressionVoter apiWebExpressionVoter() {
-    WebExpressionVoter voter = new WebExpressionVoter();
-
-    DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
-    handler.setDefaultRolePrefix("");
-
-    voter.setExpressionHandler(handler);
-
-    return voter;
-  }
-
-  // TODO: MAS: does this suit our needs?
-  public LogicalOrAccessDecisionManager apiAccessDecisionManager() {
-    List<AccessDecisionManager> decisionVoters =
-        Arrays.asList(
-            new UnanimousBased(List.of(new SimpleAccessVoter("ALL"))),
-            new UnanimousBased(List.of(apiWebExpressionVoter())),
-            new UnanimousBased(List.of(externalAccessVoter)),
-            new UnanimousBased(List.of(new AuthenticatedVoter())));
-
-    return new LogicalOrAccessDecisionManager(decisionVoters);
-  }
-
-  @Bean
-  public RoleHierarchyImpl roleHierarchy() {
-    final RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
-    // TODO: MAS: setup for DHIS2
-    roleHierarchy.setHierarchy("ALL > ROLE_STAFF > ROLE_USER > ROLE_GUEST");
-    return roleHierarchy;
-  }
-
-  @Bean
-  public DefaultWebSecurityExpressionHandler expressionHandler() {
-    DefaultWebSecurityExpressionHandler expressionHandler =
-        new DefaultWebSecurityExpressionHandler();
-    expressionHandler.setRoleHierarchy(roleHierarchy());
-    return expressionHandler;
-  }
+  //  public WebExpressionVoter apiWebExpressionVoter() {
+  //    WebExpressionVoter voter = new WebExpressionVoter();
+  //
+  //    DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
+  //    handler.setDefaultRolePrefix("");
+  //
+  //    voter.setExpressionHandler(handler);
+  //
+  //    return voter;
+  //  }
+  //
+  //  // TODO: MAS: does this suit our needs?
+  //  public LogicalOrAccessDecisionManager apiAccessDecisionManager() {
+  //    List<AccessDecisionManager> decisionVoters =
+  //        Arrays.asList(
+  //            new UnanimousBased(List.of(new SimpleAccessVoter("ALL"))),
+  //            new UnanimousBased(List.of(apiWebExpressionVoter())),
+  //            new UnanimousBased(List.of(externalAccessVoter)),
+  //            new UnanimousBased(List.of(new AuthenticatedVoter())));
+  //
+  //    return new LogicalOrAccessDecisionManager(decisionVoters);
+  //  }
+  //
+  //  @Bean
+  //  public RoleHierarchyImpl roleHierarchy() {
+  //    final RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
+  //    // TODO: MAS: setup for DHIS2
+  //    roleHierarchy.setHierarchy("ALL > ROLE_STAFF > ROLE_USER > ROLE_GUEST");
+  //    return roleHierarchy;
+  //  }
+  //
+  //  @Bean
+  //  public DefaultWebSecurityExpressionHandler expressionHandler() {
+  //    DefaultWebSecurityExpressionHandler expressionHandler =
+  //        new DefaultWebSecurityExpressionHandler();
+  //    expressionHandler.setRoleHierarchy(roleHierarchy());
+  //    return expressionHandler;
+  //  }
 
   @Bean
   public TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource() {
