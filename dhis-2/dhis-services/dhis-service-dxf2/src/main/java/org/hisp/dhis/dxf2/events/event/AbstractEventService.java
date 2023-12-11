@@ -785,7 +785,7 @@ public abstract class AbstractEventService implements EventService {
     if (event.getStatus() == EventStatus.COMPLETED) {
       programStageInstance.setStatus(EventStatus.COMPLETED);
     } else {
-      programStageInstance.setStatus(EventStatus.VISITED);
+      programStageInstance.setStatus(EventStatus.ACTIVE);
     }
 
     ImportOptions importOptions = new ImportOptions();
