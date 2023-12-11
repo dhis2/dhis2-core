@@ -142,6 +142,7 @@ class CsvEventServiceTest {
     assertEquals("programId", events.get(0).getProgram());
     assertEquals("programStageId", events.get(0).getProgramStage());
     assertEquals("orgUnitId", events.get(0).getOrgUnit());
+    assertEquals("attributeOptionComboId", events.get(0).getAttributeOptionCombo());
     assertEquals("2018-11-01T00:00:00Z", events.get(0).getOccurredAt().toString());
     assertEquals(EventStatus.ACTIVE, events.get(0).getStatus());
     assertNull(events.get(0).getEnrollment());
@@ -153,7 +154,6 @@ class CsvEventServiceTest {
     assertNull(events.get(0).getCompletedAt());
     assertNull(events.get(0).getCompletedBy());
     assertNull(events.get(0).getStoredBy());
-    assertNull(events.get(0).getAttributeOptionCombo());
     assertNull(events.get(0).getAttributeCategoryOptions());
     assertEquals(new User(), events.get(0).getAssignedUser());
     assertTrue(events.get(0).getDataValues().isEmpty());
