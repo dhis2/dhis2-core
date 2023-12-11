@@ -286,7 +286,7 @@ public class SystemSettingController {
     }
 
     return ResponseEntity.ok()
-        .headers(ContextUtils.getSecureNoCacheHeader())
+        .headers(ContextUtils.noCacheNoStoreMustRevalidate())
         .body(systemSettingManager.getSystemSettings(settingKeysToFetch));
   }
 
