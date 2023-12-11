@@ -50,6 +50,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -559,8 +560,8 @@ class DataApprovalServiceTest extends IntegrationTestBase {
     categoryService.saveCategoryOptionGroup(groupCD);
     categoryService.saveCategoryOptionGroup(groupEF);
     categoryService.saveCategoryOptionGroup(groupGH);
-    groupSetABCD = new CategoryOptionGroupSet("GroupSetABCD");
-    groupSetEFGH = new CategoryOptionGroupSet("GroupSetEFGH");
+    groupSetABCD = new CategoryOptionGroupSet("GroupSetABCD", DataDimensionType.DISAGGREGATION);
+    groupSetEFGH = new CategoryOptionGroupSet("GroupSetEFGH", DataDimensionType.DISAGGREGATION);
     categoryService.saveCategoryOptionGroupSet(groupSetABCD);
     categoryService.saveCategoryOptionGroupSet(groupSetEFGH);
     groupSetABCD.addCategoryOptionGroup(groupAB);
