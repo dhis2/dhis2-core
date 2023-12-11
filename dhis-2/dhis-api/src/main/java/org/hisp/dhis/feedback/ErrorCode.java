@@ -88,6 +88,12 @@ public enum ErrorCode {
   E1522("User `{0}` is not allowed to move organisation `{1}` unit from parent `{2}`"),
   E1523("User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`"),
 
+  /* Indicator Type merge */
+  E1530("At least one source indicator type must be specified"),
+  E1531("Target indicator type must be specified"),
+  E1532("Target indicator type cannot be a source indicator type"),
+  E1533("{0} indicator type does not exist: `{1}`"),
+
   /* Data */
   E2000("Query parameters cannot be null"),
   E2001("At least one data element, data set or data element group must be specified"),
