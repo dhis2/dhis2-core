@@ -36,7 +36,7 @@
       <many-to-many class="org.hisp.dhis.category.CategoryOptionGroupSet" column="categoryoptiongroupsetid" />
     </set>
     
-    <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType" />
+    <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType"  not-null="true"/>
 
     <!-- Dynamic attribute values -->
 
