@@ -59,7 +59,6 @@ import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -197,7 +196,6 @@ class DefaultEnrollmentService
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
     decideAccess(queryParams);
-    validate(queryParams);
 
     User user = currentUserService.getCurrentUser();
 
@@ -222,7 +220,6 @@ class DefaultEnrollmentService
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
     decideAccess(queryParams);
-    validate(queryParams);
 
     User user = currentUserService.getCurrentUser();
 
@@ -273,49 +270,6 @@ class DefaultEnrollmentService
       throw new IllegalQueryException(
           "Current user is not authorized to read data from selected tracked entity type:  "
               + params.getTrackedEntityType().getUid());
-    }
-  }
-
-  public void validate(EnrollmentQueryParams params) throws IllegalQueryException {
-    String violation = null;
-
-    if (params == null) {
-      throw new IllegalQueryException("Params cannot be null");
-    }
-
-    if (params.hasProgram() && params.hasTrackedEntityType()) {
-      violation = "Program and tracked entity cannot be specified simultaneously";
-    }
-
-    if (params.hasProgramStatus() && !params.hasProgram()) {
-      violation = "Program must be defined when program status is defined";
-    }
-
-    if (params.hasFollowUp() && !params.hasProgram()) {
-      violation = "Program must be defined when follow up status is defined";
-    }
-
-    if (params.hasProgramStartDate() && !params.hasProgram()) {
-      violation = "Program must be defined when program start date is specified";
-    }
-
-    if (params.hasProgramEndDate() && !params.hasProgram()) {
-      violation = "Program must be defined when program end date is specified";
-    }
-
-    if (params.hasLastUpdated() && params.hasLastUpdatedDuration()) {
-      violation = "Last updated and last updated duration cannot be specified simultaneously";
-    }
-
-    if (params.hasLastUpdatedDuration()
-        && DateUtils.getDuration(params.getLastUpdatedDuration()) == null) {
-      violation = "Duration is not valid: " + params.getLastUpdatedDuration();
-    }
-
-    if (violation != null) {
-      log.warn("Validation failed: " + violation);
-
-      throw new IllegalQueryException(violation);
     }
   }
 
