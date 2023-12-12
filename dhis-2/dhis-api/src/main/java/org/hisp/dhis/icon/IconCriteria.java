@@ -32,7 +32,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
- * @author rajazubair
+ * @author Zubair Asghar
  */
 @Data
 @NoArgsConstructor

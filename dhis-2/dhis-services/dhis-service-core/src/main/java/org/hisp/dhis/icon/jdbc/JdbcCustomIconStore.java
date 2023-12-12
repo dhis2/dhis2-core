@@ -28,6 +28,7 @@
 package org.hisp.dhis.icon.jdbc;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +76,17 @@ public class JdbcCustomIconStore implements CustomIconStore {
     List<CustomIcon> customIcons = jdbcTemplate.query(sql, customIconRowMapper, key);
 
     return customIcons.isEmpty() ? null : customIcons.get(0);
+  }
+
+  @Override
+  public long getCustomIconCount() {
+    final String sql = """
+                select count(*) from customicon;
+                """;
+
+    Long count = jdbcTemplate.queryForObject(sql, Long.class);
+
+    return Optional.ofNullable(count).orElse(0L);
   }
 
   @Override

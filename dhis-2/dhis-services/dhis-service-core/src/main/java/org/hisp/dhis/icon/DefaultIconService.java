@@ -72,6 +72,12 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<CustomIcon> getCustomIcons(IconCriteria iconCriteria) {
+    return customIconStore.getAllIcons(iconCriteria);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<Icon> getIcons(IconCriteria iconCriteria) {
     return Stream.concat(
             defaultIcons.values().stream(), customIconStore.getAllIcons(iconCriteria).stream())
@@ -88,6 +94,18 @@ public class DefaultIconService implements IconService {
                 .stream(),
             customIconStore.getIconsByKeywords(keywords).stream())
         .toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<CustomIcon> getCustomIcons(String[] keywords) {
+    return customIconStore.getIconsByKeywords(keywords);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public long getIconCount() {
+    return customIconStore.getCustomIconCount();
   }
 
   @Override

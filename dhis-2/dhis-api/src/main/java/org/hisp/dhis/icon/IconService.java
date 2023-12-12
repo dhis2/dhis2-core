@@ -44,6 +44,8 @@ public interface IconService {
    */
   List<Icon> getIcons(IconCriteria iconCriteria);
 
+  List<CustomIcon> getCustomIcons(IconCriteria iconCriteria);
+
   /**
    * Gets icons tagged with all given keywords.
    *
@@ -51,6 +53,10 @@ public interface IconService {
    * @return a collection of matching icons
    */
   List<Icon> getIcons(String[] keywords);
+
+  List<CustomIcon> getCustomIcons(String[] keywords);
+
+  long getIconCount();
 
   /**
    * Gets the icon associated to a key, if it exists

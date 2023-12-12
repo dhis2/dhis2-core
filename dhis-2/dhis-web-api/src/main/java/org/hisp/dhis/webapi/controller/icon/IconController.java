@@ -57,6 +57,7 @@ import org.hisp.dhis.icon.IconCriteria;
 import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
@@ -126,12 +127,9 @@ public class IconController {
 
   @GetMapping
   public @ResponseBody List<IconResponse> getAllIcons(
-      @RequestParam(defaultValue = "1") int page,
-      @RequestParam(defaultValue = "5") int size,
-      @RequestParam(defaultValue = "false") boolean skipPaging,
       @RequestParam(required = false) String[] keywords) {
 
-    IconCriteria iconCriteria = IconCriteria.of(page, size, skipPaging);
+    IconCriteria iconCriteria = IconCriteria.of(0, 0, true);
 
     List<Icon> icons;
 
@@ -142,6 +140,44 @@ public class IconController {
     }
 
     return icons.stream().map(iconMapper::from).toList();
+  }
+
+  @GetMapping(value = "/custom")
+  public @ResponseBody PagingWrapper<IconResponse> getAllCustomIcons(
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(defaultValue = "5") int size,
+      @RequestParam(defaultValue = "false") boolean skipPaging,
+      @RequestParam(required = false) String[] keywords) {
+
+    IconCriteria iconCriteria = IconCriteria.of(page, size, skipPaging);
+
+    List<CustomIcon> icons;
+
+    if (keywords == null) {
+      icons = iconService.getCustomIcons(iconCriteria);
+    } else {
+      icons = iconService.getCustomIcons(keywords);
+    }
+
+    long count = iconService.getIconCount();
+
+    List<IconResponse> iconResponses = icons.stream().map(iconMapper::from).toList();
+
+    PagingWrapper<IconResponse> listPagingWrapper = new PagingWrapper<>();
+
+    if (skipPaging) {
+      return listPagingWrapper.withInstances(iconResponses);
+    }
+
+    listPagingWrapper =
+        listPagingWrapper.withPager(
+            PagingWrapper.Pager.builder()
+                .pageSize(iconCriteria.getPageSize())
+                .page(iconCriteria.getPage())
+                .total(count)
+                .build());
+
+    return listPagingWrapper.withInstances(iconResponses);
   }
 
   @GetMapping("/keywords")
