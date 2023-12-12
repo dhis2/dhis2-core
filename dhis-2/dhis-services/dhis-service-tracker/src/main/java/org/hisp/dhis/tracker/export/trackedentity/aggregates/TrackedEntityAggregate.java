@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
@@ -51,6 +52,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
@@ -113,7 +115,10 @@ public class TrackedEntityAggregate implements Aggregate {
    * @return a List of {@see TrackedEntity} objects
    */
   public List<TrackedEntity> find(
-      List<Long> ids, TrackedEntityParams params, TrackedEntityQueryParams queryParams) {
+      List<Long> ids,
+      TrackedEntityParams params,
+      TrackedEntityQueryParams queryParams,
+      OrganisationUnitSelectionMode orgUnitMode) {
     if (ids.isEmpty()) {
       return Collections.emptyList();
     }
@@ -210,7 +215,8 @@ public class TrackedEntityAggregate implements Aggregate {
      */
     boolean skipScopeValidation =
         user.isPresent()
-            && user.get().isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS);
+            && user.get().isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)
+            && orgUnitMode == ALL;
     final CompletableFuture<Multimap<String, String>> ownedTeiAsync =
         conditionalAsyncFetch(
             user.isPresent(),

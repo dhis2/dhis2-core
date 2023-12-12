@@ -682,7 +682,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void shouldFailWhenUserAuthorizedWithSearchInAllModeDescendantsAndOrgUnitNotInSearchScope() {
+  void shouldFailWhenUserCanSearchEverywhereModeDescendantsAndOrgUnitNotInSearchScope() {
     injectSecurityContext(authorizedUser);
 
     EnrollmentOperationParams operationParams =

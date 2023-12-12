@@ -170,8 +170,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private TrackedEntity trackedEntityGrandchildA;
 
-  private TrackedEntity trackedEntityC;
-
   private Note note;
 
   private CategoryOptionCombo defaultCategoryOptionCombo;
@@ -377,7 +375,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     trackedEntityB.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityB, false);
 
-    trackedEntityC = createTrackedEntity(orgUnitC);
+    TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC);
     trackedEntityC.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityC, false);
 
