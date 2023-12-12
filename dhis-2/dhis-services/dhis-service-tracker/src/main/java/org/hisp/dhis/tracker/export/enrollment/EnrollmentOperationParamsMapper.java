@@ -101,7 +101,7 @@ class EnrollmentOperationParamsMapper {
     params.setOrder(operationParams.getOrder());
     params.setEnrollmentUids(operationParams.getEnrollmentUids());
 
-    mergeOrgUnitModes(operationParams, user, orgUnits, params);
+    mergeOrgUnitModes(operationParams, user, params);
 
     return params;
   }
@@ -111,10 +111,7 @@ class EnrollmentOperationParamsMapper {
    * org unit modes.
    */
   private void mergeOrgUnitModes(
-      EnrollmentOperationParams operationParams,
-      User user,
-      Set<OrganisationUnit> requestedOrgUnits,
-      EnrollmentQueryParams queryParams) {
+      EnrollmentOperationParams operationParams, User user, EnrollmentQueryParams queryParams) {
     if (user != null && operationParams.getOrgUnitMode() == ACCESSIBLE) {
       queryParams.addOrganisationUnits(
           new HashSet<>(user.getTeiSearchOrganisationUnitsWithFallback()));
