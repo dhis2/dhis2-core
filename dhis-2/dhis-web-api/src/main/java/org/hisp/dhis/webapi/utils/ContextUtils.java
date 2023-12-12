@@ -43,6 +43,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.webapi.service.WebCache;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -182,6 +183,12 @@ public class ContextUtils {
 
       response.setHeader(HEADER_CONTENT_DISPOSITION, type + "; filename=\"" + filename + "\"");
     }
+  }
+
+  public static HttpHeaders noCacheNoStoreMustRevalidate() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setCacheControl("no-cache, no-store, must-revalidate");
+    return headers;
   }
 
   public static HttpServletResponse setCacheControl(
