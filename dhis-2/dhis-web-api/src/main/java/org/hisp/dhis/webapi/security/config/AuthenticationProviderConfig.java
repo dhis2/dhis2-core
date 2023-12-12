@@ -60,52 +60,9 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 public class AuthenticationProviderConfig {
   @Autowired private DhisConfigurationProvider configurationProvider;
 
-  //  @Autowired TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
-
   @Autowired
   @Qualifier("ldapUserDetailsService")
   UserDetailsService ldapUserDetailsService;
-
-  //  @Autowired private ExternalAccessVoter externalAccessVoter;
-
-  //  public WebExpressionVoter apiWebExpressionVoter() {
-  //    WebExpressionVoter voter = new WebExpressionVoter();
-  //
-  //    DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
-  //    handler.setDefaultRolePrefix("");
-  //
-  //    voter.setExpressionHandler(handler);
-  //
-  //    return voter;
-  //  }
-  //
-  //  // TODO: MAS: does this suit our needs?
-  //  public LogicalOrAccessDecisionManager apiAccessDecisionManager() {
-  //    List<AccessDecisionManager> decisionVoters =
-  //        Arrays.asList(
-  //            new UnanimousBased(List.of(new SimpleAccessVoter("ALL"))),
-  //            new UnanimousBased(List.of(apiWebExpressionVoter())),
-  //            new UnanimousBased(List.of(externalAccessVoter)),
-  //            new UnanimousBased(List.of(new AuthenticatedVoter())));
-  //
-  //    return new LogicalOrAccessDecisionManager(decisionVoters);
-  //  }
-  //
-  //  @Bean
-  //  public RoleHierarchyImpl roleHierarchy() {
-  //    final RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
-  //    // TODO: MAS: setup for DHIS2
-  //    roleHierarchy.setHierarchy("ALL > ROLE_STAFF > ROLE_USER > ROLE_GUEST");
-  //    return roleHierarchy;
-  //  }
-  //
-  //  @Bean
-  //  public DefaultWebSecurityExpressionHandler expressionHandler() {
-  //    DefaultWebSecurityExpressionHandler expressionHandler =
-  //        new DefaultWebSecurityExpressionHandler();
-  //    expressionHandler.setRoleHierarchy(roleHierarchy());
-  //    return expressionHandler;
-  //  }
 
   @Bean
   public TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource() {

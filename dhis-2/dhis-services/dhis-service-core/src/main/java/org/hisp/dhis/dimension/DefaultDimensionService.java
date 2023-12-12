@@ -122,7 +122,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -162,7 +161,8 @@ public class DefaultDimensionService implements DimensionService {
     List<DimensionalItemObject> items = new ArrayList<>();
 
     if (dimension != null && dimension.hasItems()) {
-      items.addAll(getCanReadObjects(CurrentUserUtil.getCurrentUsername(), dimension.getItems()));
+      items.addAll(
+          filterReadableObjects(CurrentUserUtil.getCurrentUserDetails(), dimension.getItems()));
     }
 
     return items;
@@ -170,29 +170,11 @@ public class DefaultDimensionService implements DimensionService {
 
   @Override
   @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getCanReadObjects(List<T> objects) {
-    return getCanReadObjects(CurrentUserUtil.getCurrentUsername(), objects);
-  }
+  public <T extends IdentifiableObject> List<T> filterReadableObjects(
+      UserDetails userDetails, List<T> objects) {
 
-  private UserDetails getCurrentUserDetails(String username) {
-    UserDetails currentUserDetails;
-    if (CurrentUserUtil.getCurrentUsername().equals(username)) {
-      currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    } else {
-      User user = userService.getUserByUsername(username);
-      currentUserDetails = UserDetailsImpl.fromUser(user);
-    }
-    return currentUserDetails;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getCanReadObjects(
-      String username, List<T> objects) {
     List<T> list = new ArrayList<>(objects);
-
-    list.removeIf(object -> !aclService.canRead(getCurrentUserDetails(username), object));
-
+    list.removeIf(object -> !aclService.canRead(userDetails, object));
     return list;
   }
 
@@ -268,7 +250,7 @@ public class DefaultDimensionService implements DimensionService {
     dimensions.addAll(degs);
     dimensions.addAll(ougs);
 
-    return getCanReadObjects(CurrentUserUtil.getCurrentUsername(), dimensions);
+    return filterReadableObjects(CurrentUserUtil.getCurrentUserDetails(), dimensions);
   }
 
   @Override
@@ -342,7 +324,7 @@ public class DefaultDimensionService implements DimensionService {
 
     if (filterCanRead) {
       List<DimensionalItemObject> items =
-          getCanReadObjects(CurrentUserUtil.getCurrentUsername(), dimension.getItems());
+          filterReadableObjects(CurrentUserUtil.getCurrentUserDetails(), dimension.getItems());
       copy.setItems(items);
     }
 

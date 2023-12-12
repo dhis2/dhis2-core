@@ -1194,6 +1194,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject, User
   }
 
   public static String username(User user) {
+    // TODO: MAS get rid of this default value use of "system-process"
     return username(user, "system-process");
   }
 
@@ -1201,7 +1202,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject, User
     return user != null ? user.getUsername() : defaultValue;
   }
 
-  // TODO: To remove when we remove old UserCredentials compatibility layer
+  // TODO: MAS To remove when we remove old UserCredentials compatibility layer
   // This is a temporary fix to maintain backwards compatibility with the old
   // UserCredentials class. This method should not be used in new code!
   @JsonProperty

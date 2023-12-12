@@ -31,8 +31,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class CurrentUserUtil {
@@ -121,8 +121,8 @@ public class CurrentUserUtil {
     }
 
     return currentUserDetails.getAuthorities().stream()
-        .map(auth -> auth.getAuthority())
-        .collect(Collectors.toList());
+        .map(GrantedAuthority::getAuthority)
+        .toList();
   }
 
   /**

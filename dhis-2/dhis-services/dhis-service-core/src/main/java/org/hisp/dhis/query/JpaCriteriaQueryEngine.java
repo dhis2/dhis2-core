@@ -138,12 +138,11 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
     Predicate predicate = buildPredicates(builder, root, query);
     boolean shareable = schema.isShareable();
 
-    //    !username.equals("system-process") &&
-    // TODO: MAS: verify system-process behavior with a test
     String username =
         CurrentUserUtil.getCurrentUsername() != null
             ? CurrentUserUtil.getCurrentUsername()
             : "system-process";
+
     if (!username.equals("system-process") && shareable && !query.isSkipSharing()) {
 
       UserDetails userDetails =
@@ -158,6 +157,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
                   .map(t -> t.apply(root))
                   .toList());
     }
+
     criteriaQuery.where(predicate);
 
     if (!query.getOrders().isEmpty()) {

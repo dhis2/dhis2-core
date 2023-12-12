@@ -125,7 +125,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     if (userDetails != null && userDetails.getId() != 0L) {
       User user = entityManager.getReference(User.class, userDetails.getId());
-      // See: https://www.baeldung.com/jpa-entity-manager-get-reference for explanation of
       object.setLastUpdatedBy(user);
 
       if (object.getCreatedBy() == null) {

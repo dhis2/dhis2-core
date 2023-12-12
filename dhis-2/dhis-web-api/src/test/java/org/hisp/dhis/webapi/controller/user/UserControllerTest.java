@@ -126,7 +126,6 @@ class UserControllerTest {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    //    verifyNoInteractions(currentUserService);
     verify(userGroupService)
         .updateUserGroups(
             same(user),
@@ -140,7 +139,6 @@ class UserControllerTest {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    //    verifyNoInteractions(currentUserService);
     verifyNoInteractions(userService);
     verifyNoInteractions(userGroupService);
   }
@@ -151,7 +149,6 @@ class UserControllerTest {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    //    verifyNoInteractions(currentUserService);
     verifyNoInteractions(userService);
     verifyNoInteractions(userGroupService);
   }
@@ -211,7 +208,6 @@ class UserControllerTest {
     lenient().when(userService.canAddOrUpdateUser(any(), any())).thenReturn(true);
     // link user and current user to service methods
     when(userService.getUser(user.getUid())).thenReturn(user);
-    //    when(getCurrentUser()).thenReturn(currentUser);
   }
 
   @Test

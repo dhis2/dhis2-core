@@ -76,6 +76,7 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(user.getUid());
 
     if (userGroupIds.size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+      // TODO: MAS test with and without current user group info
       log.error("userGroupIds.size()!=currentUserGroupInfo.getUserGroupUIDs().size()");
     }
 
@@ -86,6 +87,7 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
       CriteriaBuilder builder, UserDetails user, String access) {
+
     if (!sharingEnabled(user == null || user.isSuper()) || user == null) {
       return new ArrayList<>();
     }
@@ -94,6 +96,7 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(user.getUid());
 
     if (userGroupIds.size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+      // TODO: MAS test with and without current user group info
       log.error("userGroupIds.size()!=currentUserGroupInfo.getUserGroupUIDs().size()");
     }
 
@@ -104,11 +107,6 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(CriteriaBuilder builder) {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUserDetails == null) {
-      //      return List.of();
-      //      log.error("currentUserDetails is null");
-      // TODO: MAS: should we throw exception here?
-    }
     return getSharingPredicates(builder, currentUserDetails, AclService.LIKE_READ_METADATA);
   }
 

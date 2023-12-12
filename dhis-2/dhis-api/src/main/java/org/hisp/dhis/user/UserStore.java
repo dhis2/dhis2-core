@@ -184,7 +184,6 @@ public interface UserStore extends IdentifiableObjectStore<User> {
 
   List<User> getLinkedUserAccounts(User currentUser);
 
-  // TODO: MAS: refactor, only used in tests
   /** Return CurrentUserGroupInfo used for ACL check in {@link IdentifiableObjectStore} */
   CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
 

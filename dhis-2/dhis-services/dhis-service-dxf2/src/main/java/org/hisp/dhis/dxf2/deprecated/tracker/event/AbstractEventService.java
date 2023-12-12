@@ -720,14 +720,13 @@ public abstract class AbstractEventService
     for (List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> _events : partitions) {
       reloadUser(importOptions);
       // prepareCaches( importOptions.getUser(), _events );
-      // TODO: MAS: Why is this?
+
       for (org.hisp.dhis.dxf2.deprecated.tracker.event.Event event : _events) {
         importSummaries.addImportSummary(updateEvent(event, singleValue, importOptions, true));
       }
 
       if (clearSession && events.size() >= FLUSH_FREQUENCY) {
         // clearSession( importOptions.getUser() );
-        // TODO: MAS: Why is this?
       }
     }
 
@@ -767,6 +766,7 @@ public abstract class AbstractEventService
     }
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     saveTrackedEntityComment(
         programStageInstance,
         event,

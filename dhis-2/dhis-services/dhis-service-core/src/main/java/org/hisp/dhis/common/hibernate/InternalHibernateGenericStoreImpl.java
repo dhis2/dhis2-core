@@ -213,37 +213,6 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     return predicates;
   }
 
-  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
-    // TODO: MAS: Analyze usage of this method and refactor it
-    CriteriaBuilder builder = getCriteriaBuilder();
-    CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);
-    Root<User> root = query.from(User.class);
-    query.where(builder.equal(root.get("uid"), userUID));
-    query.select(builder.array(root.get("uid"), root.join("groups", JoinType.LEFT).get("uid")));
-
-    Session session = getSession();
-    List<Object[]> results = session.createQuery(query).getResultList();
-
-    CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
-
-    if (CollectionUtils.isEmpty(results)) {
-      currentUserGroupInfo.setUserUID(userUID);
-      return currentUserGroupInfo;
-    }
-
-    for (Object[] result : results) {
-      if (currentUserGroupInfo.getUserUID() == null) {
-        currentUserGroupInfo.setUserUID(result[0].toString());
-      }
-
-      if (result[1] != null) {
-        currentUserGroupInfo.getUserGroupUIDs().add(result[1].toString());
-      }
-    }
-
-    return currentUserGroupInfo;
-  }
-
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
       CriteriaBuilder builder, UserDetails userDetails) {
@@ -317,6 +286,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   }
 
   protected boolean sharingEnabled(boolean isNullOrSuper) {
+    // TODO: MAS this should be like the old
     boolean b = forceAcl();
 
     if (b) {
@@ -330,14 +300,6 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     return aclService.isDataClassShareable(clazz) && !userIsSuper;
   }
 
-  //  /**
-  //   * @deprecated use {@link #dataSharingEnabled( CurrentUserDetails )} instead.
-  //   */
-  //  @Deprecated
-  //  private boolean dataSharingEnabled(CurrentUserDetailsImpl user) {
-  //    return aclService.isDataClassShareable(clazz) && !user.isSuper();
-  //  }
-
   private List<Function<Root<T>, Predicate>> getSharingPredicates(
       CriteriaBuilder builder,
       UserDetails userDetails,
@@ -350,5 +312,36 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
     return getSharingPredicates(
         builder, groupInfo.getUserUID(), groupInfo.getUserGroupUIDs(), access);
+  }
+
+  @Override
+  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+    CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);
+    Root<User> root = query.from(User.class);
+    query.where(builder.equal(root.get("uid"), userUID));
+    query.select(builder.array(root.get("uid"), root.join("groups", JoinType.LEFT).get("uid")));
+
+    Session session = getSession();
+    List<Object[]> results = session.createQuery(query).getResultList();
+
+    CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
+
+    if (CollectionUtils.isEmpty(results)) {
+      currentUserGroupInfo.setUserUID(userUID);
+      return currentUserGroupInfo;
+    }
+
+    for (Object[] result : results) {
+      if (currentUserGroupInfo.getUserUID() == null) {
+        currentUserGroupInfo.setUserUID(result[0].toString());
+      }
+
+      if (result[1] != null) {
+        currentUserGroupInfo.getUserGroupUIDs().add(result[1].toString());
+      }
+    }
+
+    return currentUserGroupInfo;
   }
 }

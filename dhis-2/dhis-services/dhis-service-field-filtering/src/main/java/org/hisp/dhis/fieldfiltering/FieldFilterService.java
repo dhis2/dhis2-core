@@ -217,9 +217,11 @@ public class FieldFilterService {
       boolean isSkipSharing,
       Consumer<ObjectNode> consumer) {
 
-    String username = null;
+    UserDetails currentUserDetails = null;
     if (user == null) {
-      username = CurrentUserUtil.getCurrentUsername();
+      currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    } else {
+      currentUserDetails = UserDetailsImpl.fromUser(user);
     }
 
     // In case we get a proxied object in we can't just use o.getClass(), we
@@ -237,7 +239,7 @@ public class FieldFilterService {
     Map<String, List<FieldTransformer>> fieldTransformers = getTransformers(paths);
 
     for (Object object : objects) {
-      applyAccess(object, paths, isSkipSharing, username);
+      applyAccess(object, paths, isSkipSharing, currentUserDetails);
       applySharingDisplayNames(object, paths, isSkipSharing);
       applyAttributeValuesAttribute(object, paths, isSkipSharing);
 
@@ -470,21 +472,8 @@ public class FieldFilterService {
         });
   }
 
-  private UserDetails getCurrentUserDetails(String username) {
-    if (CurrentUserUtil.getCurrentUsername() != null
-        && CurrentUserUtil.getCurrentUsername().equals(username)) {
-      return CurrentUserUtil.getCurrentUserDetails();
-    } else if (username != null) {
-      User user = userService.getUserByUsername(username);
-      return UserDetailsImpl.fromUser(user);
-    } else {
-      return null;
-    }
-  }
-
   private void applyAccess(
-      Object object, List<FieldPath> fieldPaths, boolean isSkipSharing, String username) {
-    UserDetails currentUserDetails = getCurrentUserDetails(username);
+      Object object, List<FieldPath> fieldPaths, boolean isSkipSharing, UserDetails userDetails) {
     applyFieldPathVisitor(
         object,
         fieldPaths,
@@ -493,7 +482,7 @@ public class FieldFilterService {
         o -> {
           if (o instanceof BaseIdentifiableObject identifiableObject) {
             identifiableObject.setAccess(
-                aclService.getAccess(((IdentifiableObject) o), currentUserDetails));
+                aclService.getAccess(((IdentifiableObject) o), userDetails));
           }
         });
   }

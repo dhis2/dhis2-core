@@ -658,7 +658,6 @@ public class UserController extends AbstractCrudController<User> {
   protected void updateUserGroups(String userUid, User parsed, User currentUser) {
     User user = userService.getUser(userUid);
 
-    // TODO: MAS This is weird, why do we need to reload the current user?
     if (currentUser != null && currentUser.getId() == user.getId()) {
       currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     }

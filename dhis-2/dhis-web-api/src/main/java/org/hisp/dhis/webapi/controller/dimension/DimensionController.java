@@ -67,6 +67,7 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.PaginationUtils;
@@ -276,7 +277,8 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
         dataSet.getCategoryCombo().getCategories().stream().filter(ca -> !ca.isDefault()).toList());
     dimensions.addAll(dataSet.getCategoryOptionGroupSets());
 
-    dimensions = dimensionService.getCanReadObjects(dimensions);
+    dimensions =
+        dimensionService.filterReadableObjects(CurrentUserUtil.getCurrentUserDetails(), dimensions);
 
     ArrayList<DimensionalObject> copies = new ArrayList<>();
     for (DimensionalObject dim : dimensions) {
