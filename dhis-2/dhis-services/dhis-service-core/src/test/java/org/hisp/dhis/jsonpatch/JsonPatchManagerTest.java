@@ -29,6 +29,7 @@ package org.hisp.dhis.jsonpatch;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +43,7 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -197,5 +199,71 @@ class JsonPatchManagerTest extends IntegrationTestBase {
             JsonPatch.class);
     DataElement removedPatchedDE = jsonPatchManager.apply(removePatch, patchedDE);
     assertEquals(0, removedPatchedDE.getSharing().getUsers().size());
+  }
+
+  @Test
+  void testReplaceNullProperty() throws JsonProcessingException, JsonPatchException {
+    UserRole userRole = createUserRole("test", "ALL");
+    userRole.setCode(null);
+    manager.save(userRole);
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "[" + "{\"op\": \"replace\", \"path\": \"/code\", \"value\": \"updated\"}" + "]",
+            JsonPatch.class);
+    assertNotNull(patch);
+    UserRole patchedUserRole = jsonPatchManager.apply(patch, userRole);
+    assertEquals("updated", patchedUserRole.getCode());
+  }
+
+  @Test
+  void testReplaceNotExistProperty() throws JsonProcessingException {
+    UserRole userRole = createUserRole("test", "ALL");
+    userRole.setCode(null);
+    manager.save(userRole);
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "[" + "{\"op\": \"replace\", \"path\": \"/notexist\", \"value\": \"updated\"}" + "]",
+            JsonPatch.class);
+    assertNotNull(patch);
+    assertThrows(JsonPatchException.class, () -> jsonPatchManager.apply(patch, userRole));
+  }
+
+  @Test
+  void testAddNotExistProperty() throws JsonProcessingException {
+    UserRole userRole = createUserRole("test", "ALL");
+    userRole.setCode(null);
+    manager.save(userRole);
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "[" + "{\"op\": \"add\", \"path\": \"/notexist\", \"value\": \"updated\"}" + "]",
+            JsonPatch.class);
+    assertNotNull(patch);
+    assertThrows(JsonPatchException.class, () -> jsonPatchManager.apply(patch, userRole));
+  }
+
+  @Test
+  void testRemoveNotExistProperty() throws JsonProcessingException {
+    UserRole userRole = createUserRole("test", "ALL");
+    userRole.setCode(null);
+    manager.save(userRole);
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "[" + "{\"op\": \"remove\", \"path\": \"/notexist\", \"value\": \"updated\"}" + "]",
+            JsonPatch.class);
+    assertNotNull(patch);
+    assertThrows(JsonPatchException.class, () -> jsonPatchManager.apply(patch, userRole));
+  }
+
+  @Test
+  void testRemoveByIdNotExistProperty() throws JsonProcessingException {
+    UserRole userRole = createUserRole("test", "ALL");
+    userRole.setCode(null);
+    manager.save(userRole);
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "[" + "{\"op\": \"remove\", \"path\": \"/notexist\", \"id\": \"uid\"}" + "]",
+            JsonPatch.class);
+    assertNotNull(patch);
+    assertThrows(JsonPatchException.class, () -> jsonPatchManager.apply(patch, userRole));
   }
 }

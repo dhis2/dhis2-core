@@ -30,11 +30,9 @@ package org.hisp.dhis.commons.jackson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -55,17 +53,6 @@ class RemoveOperationTest {
   private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
   @Disabled("for now we will allow 'removal' of invalid path keys")
-  @Test
-  void testRemoveInvalidKeyShouldThrowException() throws JsonProcessingException {
-    JsonPatch patch =
-        jsonMapper.readValue(
-            "[" + "{\"op\": \"remove\", \"path\": \"/aaa\"}" + "]", JsonPatch.class);
-    assertNotNull(patch);
-    JsonNode root = jsonMapper.createObjectNode();
-    assertFalse(root.has("aaa"));
-    assertThrows(JsonPatchException.class, () -> patch.apply(root));
-  }
-
   @Test
   void testRemoveProperty() throws JsonProcessingException, JsonPatchException {
     JsonPatch patch =
