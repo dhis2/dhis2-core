@@ -41,7 +41,7 @@ import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class MetadataExportWithDependenciesTest extends SingleSetupIntegrationTestBase {
+class MetadataExportWithDependenciesTest extends SingleSetupIntegrationTestBase {
 
   @PersistenceContext private EntityManager entityManager;
   @Autowired private MetadataExportService metadataExportService;
