@@ -50,12 +50,15 @@ public class UserDetailsImpl implements UserDetails {
   private String firstName;
   private String surname;
   private String password;
+  private boolean externalAuth;
+  private boolean isTwoFactorEnabled;
   private boolean enabled;
   private boolean accountNonExpired;
   private boolean accountNonLocked;
   private boolean credentialsNonExpired;
   private Collection<GrantedAuthority> authorities;
   private Set<String> allAuthorities;
+  private Set<String> allRestrictions;
   private Map<String, Serializable> userSettings;
   private Set<String> userGroupIds;
   private Set<String> userOrgUnitIds;
@@ -73,6 +76,11 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     return auths.containsAll(other.getAllAuthorities());
+  }
+
+  @Override
+  public boolean hasAnyRestrictions(Collection<String> restrictions) {
+    return getAllRestrictions().stream().anyMatch(restrictions::contains);
   }
 
   public boolean hasAnyAuthority(Collection<String> auths) {

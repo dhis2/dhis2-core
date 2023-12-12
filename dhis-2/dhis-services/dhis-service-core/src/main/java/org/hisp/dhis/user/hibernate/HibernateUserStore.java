@@ -411,6 +411,11 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
+  public User getUserByUsername(String username) {
+    return getUserByUsername(username, false);
+  }
+
+  @Override
   public User getUserByUsername(String username, boolean ignoreCase) {
     if (username == null) {
       return null;
@@ -556,7 +561,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   public void setActiveLinkedAccounts(
       @Nonnull String actingUsername, @Nonnull String activeUsername) {
 
-    User actionUser = getUserByUsername(actingUsername, false);
+    User actionUser = getUserByUsername(actingUsername);
     Instant oneHourAgo = Instant.now().minus(1, ChronoUnit.HOURS);
     Instant oneHourInTheFuture = Instant.now().plus(1, ChronoUnit.HOURS);
 

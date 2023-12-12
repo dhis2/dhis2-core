@@ -85,14 +85,15 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     }
 
     Authentication result = super.authenticate(auth);
+    UserDetails principal = (UserDetails) result.getPrincipal();
 
-    User user = userService.getUserWithEagerFetchAuthorities(username);
-    if (user == null) {
-      log.info("Invalid username; username={}", username);
-      throw new BadCredentialsException("Invalid username or password");
-    }
+    //    User user = userService.getUserWithEagerFetchAuthorities(username);
+    //    if (user == null) {
+    //      log.info("Invalid username; username={}", username);
+    //      throw new BadCredentialsException("Invalid username or password");
+    //    }
 
-    if (user.isExternalAuth()) {
+    if (principal.isExternalAuth()) {
       log.info(
           String.format(
               "User '%s' is using external authentication, password login attempt aborted",
@@ -101,29 +102,29 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
           "Invalid login method, user is using external authentication.");
     }
 
-    validateTwoFactor(user, auth.getDetails());
+    validateTwoFactor(principal, auth.getDetails());
 
-    UserDetails userDetails = userService.createUserDetails(user);
     return new UsernamePasswordAuthenticationToken(
-        userDetails, result.getCredentials(), result.getAuthorities());
+        principal, result.getCredentials(), result.getAuthorities());
   }
 
-  private void validateTwoFactor(User user, Object details) {
+  private void validateTwoFactor(UserDetails userDetails, Object details) {
     // If user has 2FA enabled and tries to authenticate with HTTP Basic or OAuth
-    if (user.isTwoFactorEnabled() && !(details instanceof TwoFactorWebAuthenticationDetails)) {
+    if (userDetails.isTwoFactorEnabled()
+        && !(details instanceof TwoFactorWebAuthenticationDetails)) {
       throw new PreAuthenticatedCredentialsNotFoundException(
           "User has 2FA enabled, but tried to authenticate with a non-form based login method; username="
-              + user.getUsername());
+              + userDetails.getUsername());
     }
 
     // If user require 2FA, and it's not enabled/provisioned, redirect to
     // the enrolment page, (via the CustomAuthFailureHandler)
-    if (userService.hasTwoFactorRoleRestriction(user) && !user.isTwoFactorEnabled()) {
+    if (userService.hasTwoFactorRoleRestriction(userDetails) && !userDetails.isTwoFactorEnabled()) {
       throw new TwoFactorAuthenticationEnrolmentException(
           "User must setup two factor authentication");
     }
 
-    if (user.isTwoFactorEnabled()) {
+    if (userDetails.isTwoFactorEnabled()) {
       TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
       if (authDetails == null) {
         log.info("Missing authentication details in authentication request.");
@@ -131,11 +132,14 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
             "Missing authentication details in authentication request.");
       }
 
-      validateTwoFactorCode(StringUtils.deleteWhitespace(authDetails.getCode()), user);
+      validateTwoFactorCode(
+          StringUtils.deleteWhitespace(authDetails.getCode()), userDetails.getUsername());
     }
   }
 
-  private void validateTwoFactorCode(String code, User user) {
+  private void validateTwoFactorCode(String code, String username) {
+    User user = userService.getUserByUsername(username);
+
     code = StringUtils.deleteWhitespace(code);
 
     if (!TwoFactoryAuthenticationUtils.verify(code, user.getSecret())) {

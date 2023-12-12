@@ -256,8 +256,6 @@ public interface UserService {
    */
   User getUserByIdToken(String token);
 
-  User getUserWithEagerFetchAuthorities(String username);
-
   /**
    * Retrieves the User associated with the User with the given OpenID.
    *
@@ -542,10 +540,10 @@ public interface UserService {
   /**
    * If the user has a role with the 2FA authentication required restriction, return true.
    *
-   * @param user The user object that is being checked for the role.
+   * @param userDetails The user object that is being checked for the role.
    * @return A boolean value.
    */
-  boolean hasTwoFactorRoleRestriction(User user);
+  boolean hasTwoFactorRoleRestriction(UserDetails userDetails);
 
   /**
    * If the user is not the same as the user to modify, and the user has the proper acl permissions

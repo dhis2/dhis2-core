@@ -53,7 +53,7 @@ public class DhisBindAuthenticator extends BindAuthenticator {
 
   @Override
   public DirContextOperations authenticate(Authentication authentication) {
-    User user = userStore.getUserByUsername(authentication.getName(), false);
+    User user = userStore.getUserByUsername(authentication.getName());
 
     if (user == null) {
       throw new BadCredentialsException("Incorrect user credentials");

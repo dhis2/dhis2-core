@@ -78,6 +78,7 @@ class UserDetailsServiceTest extends TransactionalIntegrationTest {
     user.setDisabled(true);
     userService.updateUser(user);
     assertCanNotLogin(getUserDetails());
+
     user.setDisabled(false);
     userService.updateUser(user);
     assertCanLogin(getUserDetails());

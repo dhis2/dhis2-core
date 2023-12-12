@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DimensionalObject;
@@ -79,24 +80,9 @@ public class DefaultUserSettingService implements UserSettingService {
     this.userSettingCache = cacheProvider.createUserSettingCache();
   }
 
-  // -------------------------------------------------------------------------
-  // UserSettingService implementation
-  // -------------------------------------------------------------------------
-
-  //  @Override
-  //  @Transactional
-  //  public void saveUserSetting(UserSettingKey key, Serializable value, String username) {
-  //    User user = userService.getUserByUsername(username);
-  //
-  //    if (user != null) {
-  //      saveUserSetting(key, value, user);
-  //    }
-  //  }
-
   @Override
   @Transactional
   public void saveUserSetting(UserSettingKey key, Serializable value) {
-    //    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     Long userId = CurrentUserUtil.getCurrentUserDetails().getId();
     User user = new User();
     user.setId(userId);
@@ -187,13 +173,6 @@ public class DefaultUserSettingService implements UserSettingService {
     return getUserSetting(key, Optional.ofNullable(username)).get();
   }
 
-  //  @Override
-  //  @Transactional(readOnly = true)
-  //  public List<UserSetting> getAllUserSettings() {
-  //    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-  //    return getUserSettings(currentUser);
-  //  }
-
   @Override
   @Transactional(readOnly = true)
   public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap(
@@ -247,16 +226,14 @@ public class DefaultUserSettingService implements UserSettingService {
     userSettingCache.invalidateAll();
   }
 
-  //  @Override
-  //  @Transactional(readOnly = true)
-  //  public Map<String, Serializable> getUserSettingsAsMap() {
-  //    Set<UserSettingKey> userSettingKeys =
-  //        Stream.of(UserSettingKey.values()).collect(Collectors.toSet());
-  //
-  //    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-  //    CurrentUserUtil.assertCurrentUser(currentUser);
-  //    return getUserSettingsWithFallbackByUserAsMap(username, userSettingKeys, false);
-  //  }
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, Serializable> getUserSettingsAsMap(User user) {
+    Set<UserSettingKey> userSettingKeys =
+        Stream.of(UserSettingKey.values()).collect(Collectors.toSet());
+
+    return getUserSettingsWithFallbackByUserAsMap(user, userSettingKeys, false);
+  }
 
   // -------------------------------------------------------------------------
   // Private methods

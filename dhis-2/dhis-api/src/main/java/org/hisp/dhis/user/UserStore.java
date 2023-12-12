@@ -94,6 +94,8 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param ignoreCase
    * @return User for given username or null
    */
+  User getUserByUsername(String username);
+
   User getUserByUsername(String username, boolean ignoreCase);
 
   /**

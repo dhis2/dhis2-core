@@ -157,6 +157,21 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
   }
 
   @Override
+  public boolean isExternalAuth() {
+    return user.isExternalAuth();
+  }
+
+  @Override
+  public boolean isTwoFactorEnabled() {
+    return user.isTwoFactorEnabled();
+  }
+
+  @Override
+  public boolean hasAnyRestrictions(Collection<String> restrictions) {
+    return user.hasAnyRestrictions(restrictions);
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;

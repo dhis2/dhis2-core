@@ -37,6 +37,7 @@ import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -77,7 +78,7 @@ public class EnrolTwoFaAction implements Action {
 
     User user = userService.getUserByUsername(username);
 
-    if (userService.hasTwoFactorRoleRestriction(user)
+    if (userService.hasTwoFactorRoleRestriction(UserDetails.fromUser(user))
         && (!user.isTwoFactorEnabled() || UserService.hasTwoFactorSecretForApproval(user))) {
       userService.generateTwoFactorOtpSecretForApproval(user);
 

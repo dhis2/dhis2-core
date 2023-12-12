@@ -142,10 +142,6 @@ public enum UserSettingKey {
   // Getters
   // -------------------------------------------------------------------------
 
-  //  public static Map<String, Serializable> getDefaultUserSettingsMap() {
-  //    return new HashMap<>(DEFAULT_USER_SETTINGS_MAP);
-  //  }
-
   public static Set<UserSetting> getDefaultUserSettings(User user) {
     Set<UserSetting> defaultUserSettings = new HashSet<>();
     DEFAULT_USER_SETTINGS_MAP.forEach(

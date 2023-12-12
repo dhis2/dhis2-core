@@ -43,11 +43,15 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       return null;
     }
 
-    return createUserDetails(user, user.isAccountNonLocked(), user.isCredentialsNonExpired());
+    return createUserDetails(
+        user, user.isAccountNonLocked(), user.isCredentialsNonExpired(), new HashMap<>());
   }
 
   static UserDetails createUserDetails(
-      User user, boolean accountNonLocked, boolean credentialsNonExpired) {
+      User user,
+      boolean accountNonLocked,
+      boolean credentialsNonExpired,
+      Map<String, Serializable> settings) {
     if (user == null) {
       return null;
     }
@@ -57,6 +61,9 @@ public interface UserDetails extends org.springframework.security.core.userdetai
     userDetails.setUid(user.getUid());
     userDetails.setUsername(user.getUsername());
     userDetails.setPassword(user.getPassword());
+
+    userDetails.setExternalAuth(user.isExternalAuth());
+    userDetails.setTwoFactorEnabled(user.isTwoFactorEnabled());
 
     userDetails.setCode(user.getCode());
     userDetails.setFirstName(user.getFirstName());
@@ -74,6 +81,8 @@ public interface UserDetails extends org.springframework.security.core.userdetai
             .collect(Collectors.toUnmodifiableSet()));
     userDetails.setSuper(user.isSuper());
 
+    userDetails.setAllRestrictions(user.getAllRestrictions());
+
     userDetails.setUserRoleIds(
         user.getUserRoles().stream()
             .map(BaseIdentifiableObject::getUid)
@@ -88,7 +97,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
             .map(BaseIdentifiableObject::getUid)
             .collect(Collectors.toSet()));
 
-    userDetails.setUserSettings(new HashMap<>());
+    userDetails.setUserSettings(settings);
 
     return userDetails;
   }
@@ -141,4 +150,10 @@ public interface UserDetails extends org.springframework.security.core.userdetai
   Set<String> getUserRoleIds();
 
   boolean canModifyUser(User userToModify);
+
+  boolean isExternalAuth();
+
+  boolean isTwoFactorEnabled();
+
+  boolean hasAnyRestrictions(Collection<String> restrictions);
 }
