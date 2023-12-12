@@ -224,7 +224,6 @@ class UserControllerTest {
   @Test
   void expireUserNowDoesExpireSession() throws Exception {
     setUpUserExpireScenarios();
-    when(user.isAccountNonExpired()).thenReturn(false);
     when(userService.canAddOrUpdateUser(any())).thenReturn(true);
     Date now = new Date();
     userController.expireUser(user.getUid(), now);

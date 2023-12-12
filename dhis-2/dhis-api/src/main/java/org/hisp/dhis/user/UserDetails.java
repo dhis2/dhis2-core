@@ -39,12 +39,15 @@ import org.springframework.security.core.GrantedAuthority;
 public interface UserDetails extends org.springframework.security.core.userdetails.UserDetails {
 
   static UserDetails fromUser(User user) {
+    if (user == null) {
+      return null;
+    }
+
     return createUserDetails(user, user.isAccountNonLocked(), user.isCredentialsNonExpired());
   }
 
   static UserDetails createUserDetails(
       User user, boolean accountNonLocked, boolean credentialsNonExpired) {
-
     if (user == null) {
       return null;
     }
