@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -107,6 +108,8 @@ public class SharingController {
   @Autowired private RenderService renderService;
 
   @Autowired private SchemaService schemaService;
+
+  @Autowired private EntityManager entityManager;
 
   // -------------------------------------------------------------------------
   // Resources
@@ -275,9 +278,10 @@ public class SharingController {
       }
     }
 
-    if (object.getCreatedBy() == null) {
-      // TODO: CREATEDBYUSERREF
-      //      object.setCreatedBy(user);
+    if (object.getCreatedBy() == null && CurrentUserUtil.getCurrentUserDetails() != null) {
+      User user =
+          entityManager.getReference(User.class, CurrentUserUtil.getCurrentUserDetails().getId());
+      object.setCreatedBy(user);
     }
 
     object.getSharing().getUserGroups().clear();

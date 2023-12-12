@@ -30,6 +30,7 @@ package org.hisp.dhis.security.oidc;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -153,5 +154,23 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
 
   public boolean canModifyUser(User userToModify) {
     return user.canModifyUser(userToModify);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+
+    DhisOidcUser that = (DhisOidcUser) o;
+
+    return Objects.equals(user, that.user);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (user != null ? user.hashCode() : 0);
+    return result;
   }
 }

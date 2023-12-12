@@ -61,6 +61,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -241,14 +242,15 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<CategoryOption> getDataWriteCategoryOptions(Category category, User user) {
-    if (user == null) {
+  public List<CategoryOption> getDataWriteCategoryOptions(
+      Category category, UserDetails userDetails) {
+    if (userDetails == null) {
       return Lists.newArrayList();
     }
 
-    return user.isSuper()
+    return userDetails.isSuper()
         ? getCategoryOptions(category)
-        : categoryOptionStore.getDataWriteCategoryOptions(category, user);
+        : categoryOptionStore.getDataWriteCategoryOptions(category, userDetails);
   }
 
   @Override

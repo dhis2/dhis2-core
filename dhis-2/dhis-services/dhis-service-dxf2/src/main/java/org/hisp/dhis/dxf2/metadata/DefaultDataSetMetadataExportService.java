@@ -70,7 +70,7 @@ import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -138,8 +138,7 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
 
   @Override
   public ObjectNode getDataSetMetadata() {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     SetValuedMap<String, String> dataSetOrgUnits =
         dataSetService.getDataSetOrganisationUnitsAssociations();
 
@@ -156,7 +155,7 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
         sortById(flatMapToSet(dataSetCategoryCombos, CategoryCombo::getCategories));
     List<Category> categories = distinctUnion(dataElementCategories, dataSetCategories);
     List<CategoryOption> categoryOptions =
-        sortById(getCategoryOptions(dataElementCategories, dataSetCategories, currentUser));
+        sortById(getCategoryOptions(dataElementCategories, dataSetCategories, currentUserDetails));
     List<OptionSet> optionSets = sortById(getOptionSets(dataElements));
 
     dataSetCategoryCombos.removeAll(dataElementCategoryCombos);
@@ -216,10 +215,10 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
   private Set<CategoryOption> getCategoryOptions(
       Collection<Category> dataElementCategories,
       Collection<Category> dataSetCategories,
-      User user) {
+      UserDetails userDetails) {
     Set<CategoryOption> options = flatMapToSet(dataElementCategories, Category::getCategoryOptions);
     dataSetCategories.forEach(
-        c -> options.addAll(categoryService.getDataWriteCategoryOptions(c, user)));
+        c -> options.addAll(categoryService.getDataWriteCategoryOptions(c, userDetails)));
     return options;
   }
 

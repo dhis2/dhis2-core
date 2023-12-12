@@ -144,12 +144,12 @@ public class DefaultDataSetService implements DataSetService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataSet> getUserDataWrite(UserDetails user) {
-    if (user == null) {
+  public List<DataSet> getUserDataWrite(UserDetails userDetails) {
+    if (userDetails == null) {
       return Lists.newArrayList();
     }
 
-    return user.isSuper() ? getAllDataSets() : dataSetStore.getDataWriteAll(user);
+    return userDetails.isSuper() ? getAllDataSets() : dataSetStore.getDataWriteAll(userDetails);
   }
 
   @Override

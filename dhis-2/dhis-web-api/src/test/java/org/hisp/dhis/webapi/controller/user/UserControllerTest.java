@@ -218,19 +218,19 @@ class UserControllerTest {
     userController.expireUser(user.getUid(), inTheFuture);
 
     assertUserUpdatedWithAccountExpiry(inTheFuture);
-    verify(userService, never()).expireActiveSessions(any());
+    verify(userService, never()).invalidateUserSessions(any());
   }
 
   @Test
   void expireUserNowDoesExpireSession() throws Exception {
     setUpUserExpireScenarios();
-    when(userService.isAccountExpired(same(user))).thenReturn(true);
+    when(user.isAccountNonExpired()).thenReturn(false);
     when(userService.canAddOrUpdateUser(any())).thenReturn(true);
     Date now = new Date();
     userController.expireUser(user.getUid(), now);
 
     assertUserUpdatedWithAccountExpiry(now);
-    verify(userService, atLeastOnce()).expireActiveSessions(same(user));
+    verify(userService, atLeastOnce()).invalidateUserSessions(same(user.getUid()));
   }
 
   @Test
@@ -301,7 +301,7 @@ class UserControllerTest {
     User actual = credentials.getValue();
     assertSame(actual, user, "no user credentials update occurred");
     assertEquals(accountExpiry, actual.getAccountExpiry(), "date was not updated");
-    verify(userService).isAccountExpired(same(actual));
+    assertEquals(user.isAccountNonExpired(), actual.isAccountNonExpired());
   }
 
   private static void addUserTo(User user) {

@@ -39,7 +39,7 @@ import org.springframework.security.core.GrantedAuthority;
 public interface UserDetails extends org.springframework.security.core.userdetails.UserDetails {
 
   static UserDetails fromUser(User user) {
-    return createUserDetails(user, true, true);
+    return createUserDetails(user, user.isAccountNonLocked(), user.isCredentialsNonExpired());
   }
 
   static UserDetails createUserDetails(

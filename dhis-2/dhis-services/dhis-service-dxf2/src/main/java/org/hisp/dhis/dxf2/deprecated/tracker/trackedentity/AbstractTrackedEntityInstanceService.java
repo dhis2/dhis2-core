@@ -375,9 +375,9 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     daoEntityInstance.setStoredBy(storedBy);
     daoEntityInstance.setPotentialDuplicate(dtoEntityInstance.isPotentialDuplicate());
     daoEntityInstance.setCreatedByUserInfo(
-        UserInfoSnapshot.from(userService.createUserDetails(importOptions.getUser())));
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
     daoEntityInstance.setLastUpdatedByUserInfo(
-        UserInfoSnapshot.from(userService.createUserDetails(importOptions.getUser())));
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
     updateDateFields(dtoEntityInstance, daoEntityInstance);
 
     return daoEntityInstance;
@@ -795,7 +795,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     daoEntityInstance.setInactive(dtoEntityInstance.isInactive());
     daoEntityInstance.setPotentialDuplicate(dtoEntityInstance.isPotentialDuplicate());
     daoEntityInstance.setLastUpdatedByUserInfo(
-        UserInfoSnapshot.from(userService.createUserDetails(importOptions.getUser())));
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
 
     if (dtoEntityInstance.getGeometry() != null) {
       FeatureType featureType = daoEntityInstance.getTrackedEntityType().getFeatureType();

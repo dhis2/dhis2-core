@@ -29,7 +29,7 @@ package org.hisp.dhis.category;
 
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Lars Helge Overland
@@ -37,5 +37,5 @@ import org.hisp.dhis.user.User;
 public interface CategoryOptionStore extends IdentifiableObjectStore<CategoryOption> {
   List<CategoryOption> getCategoryOptions(Category category);
 
-  List<CategoryOption> getDataWriteCategoryOptions(Category category, User user);
+  List<CategoryOption> getDataWriteCategoryOptions(Category category, UserDetails userDetails);
 }

@@ -142,7 +142,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
             enrollment, pagingAndSortingCriteriaAdapter, skipAccessValidation)
         .stream()
         .filter(
-            (r) -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())
+            r -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())
         .map(r -> getRelationship(r, currentUser))
         .filter(Optional::isPresent)
         .map(Optional::get)
@@ -160,7 +160,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
         .getRelationshipsByEvent(psi, pagingAndSortingCriteriaAdapter, skipAccessValidation)
         .stream()
         .filter(
-            (r) -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())
+            r -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())
         .map(r -> getRelationship(r, currentUser))
         .filter(Optional::isPresent)
         .map(Optional::get)

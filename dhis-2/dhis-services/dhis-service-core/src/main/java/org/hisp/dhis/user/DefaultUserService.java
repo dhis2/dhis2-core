@@ -576,6 +576,8 @@ public class DefaultUserService implements UserService {
       user.getAllAuthorities();
     }
 
+    // TODO: MAS should we fetch user groups here? instead of using getCurrentUserGroupInfo?
+
     return user;
   }
 
@@ -643,11 +645,6 @@ public class DefaultUserService implements UserService {
     int months = DateUtils.monthsBetween(user.getPasswordLastUpdated(), new Date());
 
     return months < credentialsExpires;
-  }
-
-  @Override
-  public boolean isAccountExpired(User user) {
-    return !user.isAccountNonExpired();
   }
 
   @Override
@@ -824,12 +821,6 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  public void expireActiveSessions(User user) {
-    //    currentUserService.invalidateUserSessions(user.getUid());
-
-  }
-
-  @Override
   @Transactional
   public int disableUsersInactiveSince(Date inactiveSince) {
     if (ZonedDateTime.ofInstant(inactiveSince.toInstant(), systemDefault())
@@ -884,9 +875,10 @@ public class DefaultUserService implements UserService {
 
     String username = user.getUsername();
     boolean enabled = !user.isDisabled();
+    boolean accountNonExpired = user.isAccountNonExpired();
+
     boolean credentialsNonExpired = userNonExpired(user);
     boolean accountNonLocked = !isLocked(user.getUsername());
-    boolean accountNonExpired = !isAccountExpired(user);
 
     if (ObjectUtils.anyIsFalse(
         enabled, credentialsNonExpired, accountNonLocked, accountNonExpired)) {
@@ -896,44 +888,14 @@ public class DefaultUserService implements UserService {
               username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked));
     }
 
+    //    .userGroupIds(
+    //            user.getUid() == null
+    //                ? Set.of()
+    //                : userStore.getCurrentUserGroupInfo(user.getUid()).getUserGroupUIDs())
+    ////                : userStore.getCurrentUserGroupInfo(user.getUid()).getUserGroupUIDs())
+
     return UserDetails.createUserDetails(user, accountNonLocked, credentialsNonExpired);
   }
-
-  //  @Override
-  //  @Transactional
-  //  public CurrentUserDetailsImpl createUserDetails(
-  //      User user, boolean accountNonLocked, boolean credentialsNonExpired) {
-  //
-  //    return CurrentUserDetailsImpl.builder()
-  //        .id(user.getId())
-  //        .uid(user.getUid())
-  //        .code(user.getCode())
-  //        .firstName(user.getFirstName())
-  //        .surname(user.getSurname())
-  //        .username(user.getUsername())
-  //        .password(user.getPassword())
-  //        .enabled(user.isEnabled())
-  //        .accountNonExpired(user.isAccountNonExpired())
-  //        .accountNonLocked(accountNonLocked)
-  //        .credentialsNonExpired(credentialsNonExpired)
-  //        .authorities(user.getAuthorities())
-  //        .userSettings(new HashMap<>())
-  //        .userGroupIds(
-  //            user.getUid() == null
-  //                ? Set.of()
-  //                : userStore.getCurrentUserGroupInfo(user.getUid()).getUserGroupUIDs())
-  ////                : userStore.getCurrentUserGroupInfo(user.getUid()).getUserGroupUIDs())
-  //        .isSuper(user.isSuper())
-  //        .userOrgUnitIds(
-  //            user.getOrganisationUnits().stream()
-  //                .map(BaseIdentifiableObject::getUid)
-  //                .collect(Collectors.toSet()))
-  //        .userRoleIds(
-  //            user.getUserRoles().stream()
-  //                .map(BaseIdentifiableObject::getUid)
-  //                .collect(Collectors.toSet()))
-  //        .build();
-  //  }
 
   @Override
   @Transactional(readOnly = true)
@@ -1186,7 +1148,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   public void registerRecoveryAttempt(String username) {
-    if (!isBlockFailedLogins() || username == null) {
+    if (isNotBlockOnFailedLogins() || username == null) {
       return;
     }
 
@@ -1197,7 +1159,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   public boolean isRecoveryLocked(String username) {
-    if (!isBlockFailedLogins() || username == null) {
+    if (isNotBlockOnFailedLogins() || username == null) {
       return false;
     }
 
@@ -1206,7 +1168,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   public void registerFailedLogin(String username) {
-    if (!isBlockFailedLogins() || username == null) {
+    if (isNotBlockOnFailedLogins() || username == null) {
       return;
     }
 
@@ -1219,7 +1181,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   public void registerSuccessfulLogin(String username) {
-    if (!isBlockFailedLogins() || username == null) {
+    if (isNotBlockOnFailedLogins() || username == null) {
       return;
     }
 
@@ -1228,14 +1190,14 @@ public class DefaultUserService implements UserService {
 
   @Override
   public boolean isLocked(String username) {
-    if (!isBlockFailedLogins() || username == null) {
+    if (isNotBlockOnFailedLogins() || username == null) {
       return false;
     }
     return userFailedLoginAttemptCache.get(username).orElse(0) >= LOGIN_MAX_FAILED_ATTEMPTS;
   }
 
-  private boolean isBlockFailedLogins() {
-    return systemSettingManager.getBoolSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS);
+  private boolean isNotBlockOnFailedLogins() {
+    return !systemSettingManager.getBoolSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS);
   }
 
   @Override
@@ -1432,21 +1394,6 @@ public class DefaultUserService implements UserService {
   public boolean canManage(IdentifiableObject identifiableObject) {
     return !aclService.isShareable(identifiableObject)
         || aclService.canManage(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
-  }
-
-  @Override
-  public boolean hasAnyAuthority(String... authorities) {
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
-
-    if (user != null) {
-      for (String authority : authorities) {
-        if (user.isAuthorized(authority)) {
-          return true;
-        }
-      }
-    }
-
-    return false;
   }
 
   @Override

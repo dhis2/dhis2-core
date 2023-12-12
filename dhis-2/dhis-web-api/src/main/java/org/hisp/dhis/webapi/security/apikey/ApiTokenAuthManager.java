@@ -36,6 +36,7 @@ import org.hisp.dhis.security.apikey.ApiTokenDeletedEvent;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserStore;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.event.EventListener;
@@ -53,16 +54,20 @@ import org.springframework.stereotype.Service;
 public class ApiTokenAuthManager implements AuthenticationManager {
   private final ApiTokenService apiTokenService;
 
-  //  private final UserService userService;
+  private final UserService userService;
   private final UserStore userStore;
 
   private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
 
   public ApiTokenAuthManager(
-      UserStore userStore, ApiTokenService apiTokenService, CacheProvider cacheProvider) {
-    //    this.userService = userService;
+      UserStore userStore,
+      ApiTokenService apiTokenService,
+      CacheProvider cacheProvider,
+      UserService userService) {
+    this.userService = userService;
     this.userStore = userStore;
     this.apiTokenService = apiTokenService;
+
     this.apiTokenCache = cacheProvider.createApiKeyCache();
   }
 
@@ -116,15 +121,17 @@ public class ApiTokenAuthManager implements AuthenticationManager {
     boolean isTwoFactorDisabled = !user.isTwoFactorEnabled();
     boolean enabled = !user.isDisabled();
 
-    //    boolean credentialsNonExpired = userService.userNonExpired(user);
-    //    boolean accountNonLocked = !userService.isLocked(user.getUsername());
-    //    boolean accountNonExpired = !userService.isAccountExpired(user);
-    boolean credentialsNonExpired = true;
-    boolean accountNonLocked = true;
-    boolean accountNonExpired = true;
+    boolean credentialsNonExpired = userService.userNonExpired(user);
+    boolean accountNonLocked = !userService.isLocked(user.getUsername());
+    boolean accountNonExpired = user.isAccountNonExpired();
+
+    //    boolean credentialsNonExpired = true;
+    //    boolean accountNonLocked = true;
+    //    boolean accountNonExpired = true;
 
     if (ObjectUtils.anyIsFalse(
         enabled, isTwoFactorDisabled, credentialsNonExpired, accountNonLocked, accountNonExpired)) {
+
       throw new ApiTokenAuthenticationException(
           ApiTokenErrors.invalidToken("The API token is disabled, locked or 2FA is enabled."));
     }

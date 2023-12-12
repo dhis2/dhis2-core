@@ -87,6 +87,7 @@ public class DhisOidcUserService extends OidcUserService {
         }
 
         UserDetails userDetails = userService.createUserDetails(user);
+
         return new DhisOidcUser(
             userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken());
       }

@@ -416,22 +416,6 @@ public interface UserService {
   List<UserAccountExpiryInfo> getExpiringUserAccounts(int inDays);
 
   /**
-   * Expire a user's active sessions retrieved from the Spring security's
-   * org.springframework.security.core.session.SessionRegistry
-   *
-   * @param user the user
-   */
-  void expireActiveSessions(User user);
-
-  /**
-   * Whether the provided account is expired right now.
-   *
-   * @param user the user
-   * @return true, if the provided account is already expired, otherwise false
-   */
-  boolean isAccountExpired(User user);
-
-  /**
    * Sets {@link User#setDisabled(boolean)} to {@code true} for all users where the {@link
    * User#getLastLogin()} is before or equal to the provided pivot {@link Date}.
    *
@@ -488,20 +472,6 @@ public interface UserService {
    * @return A CurrentUserDetailsImpl object.
    */
   UserDetails createUserDetails(User user);
-
-  //  /**
-  //   * It creates a CurrentUserDetailsImpl object from a User object
-  //   *
-  //   * @param user The user object that is being authenticated.
-  //   * @param accountNonLocked This is a boolean value that indicates whether the user's account
-  // is
-  //   *     locked or not.
-  //   * @param credentialsNonExpired This is a boolean value that indicates whether the user's
-  //   *     credentials are expired or not.
-  //   * @return A CurrentUserDetailsImpl object.
-  //   */
-  //  CurrentUserDetails createUserDetails(
-  //      User user, boolean accountNonLocked, boolean credentialsNonExpired);
 
   /**
    * "If the current user is not the user being modified, and the current user has the authority to
@@ -820,14 +790,6 @@ public interface UserService {
    * @return true of false depending on outcome of manage check
    */
   boolean canManage(IdentifiableObject identifiableObject);
-
-  /**
-   * Indicates whether the current user has been granted any of the given authorities.
-   *
-   * @param authorities the authorities.
-   * @return true if the current user has any of the given authorities.
-   */
-  boolean hasAnyAuthority(String... authorities);
 
   /**
    * Verify reCaptcha V2 key against Google API.

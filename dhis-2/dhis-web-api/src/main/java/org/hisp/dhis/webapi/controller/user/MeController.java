@@ -175,9 +175,8 @@ public class MeController {
     List<String> programs =
         programService.getCurrentUserPrograms().stream().map(IdentifiableObject::getUid).toList();
 
-    UserDetails userDetails = userService.createUserDetails(user);
     List<String> dataSets =
-        dataSetService.getUserDataRead(userDetails).stream()
+        dataSetService.getUserDataRead(UserDetails.fromUser(user)).stream()
             .map(IdentifiableObject::getUid)
             .toList();
 
@@ -351,7 +350,7 @@ public class MeController {
     updatePassword(currentUser, newPassword);
     manager.update(currentUser);
 
-    userService.expireActiveSessions(currentUser);
+    userService.invalidateUserSessions(currentUser.getUid());
   }
 
   @PostMapping(value = "/verifyPassword", consumes = "text/*")

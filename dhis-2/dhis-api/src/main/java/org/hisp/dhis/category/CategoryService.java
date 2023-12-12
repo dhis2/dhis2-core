@@ -36,6 +36,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Abyot Asalefew
@@ -203,7 +204,7 @@ public interface CategoryService {
    * @param user to check data write access for
    * @return a list of all CategoryOptions, or an empty collection if there are no CategoryOptions.
    */
-  List<CategoryOption> getDataWriteCategoryOptions(Category category, User user);
+  List<CategoryOption> getDataWriteCategoryOptions(Category category, UserDetails user);
 
   /**
    * Returns a set of CategoryOptions that may be seen by the current user, if the current user has

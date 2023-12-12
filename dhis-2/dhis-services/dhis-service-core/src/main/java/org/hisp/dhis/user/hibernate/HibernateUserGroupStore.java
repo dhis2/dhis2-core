@@ -51,12 +51,15 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   @Override
   public void save(@Nonnull UserGroup object, boolean clearSharing) {
     super.save(object, clearSharing);
-    //    object
-    //        .getMembers()
-    //        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
+
+    // TODO: MAS: send event to invalidate sessions for users in this group
+    //        object
+    //            .getMembers()
+    //            .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
   }
 
   //  @Override
+  // TODO: MAS: send event to invalidate sessions for users in this group
   //  public void update(@Nonnull UserGroup object, User user) {
   //    super.update(object, user);
   //    //    object

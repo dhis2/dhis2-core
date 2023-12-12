@@ -648,7 +648,7 @@ public class UserController extends AbstractCrudController<User> {
       // We chose to expire the special case if password is set to the
       // same. i.e. no before & after equals pw check
       if (isPasswordChangeAttempt) {
-        userService.expireActiveSessions(inputUser);
+        userService.invalidateUserSessions(inputUser.getUid());
       }
     }
 
@@ -682,7 +682,7 @@ public class UserController extends AbstractCrudController<User> {
     // Make sure we always expire all the user's active sessions if we
     // have disabled the user.
     if (entityAfter != null && entityAfter.isDisabled()) {
-      userService.expireActiveSessions(entityAfter);
+      userService.invalidateUserSessions(entityAfter.getUid());
     }
 
     updateUserGroups(patch, entityAfter);
@@ -865,7 +865,7 @@ public class UserController extends AbstractCrudController<User> {
     }
 
     if (disable) {
-      userService.expireActiveSessions(userToModify);
+      userService.invalidateUserSessions(userToModify.getUid());
     }
   }
 
@@ -893,8 +893,8 @@ public class UserController extends AbstractCrudController<User> {
     user.setAccountExpiry(accountExpiry);
     userService.updateUser(user);
 
-    if (userService.isAccountExpired(user)) {
-      userService.expireActiveSessions(user);
+    if (!user.isAccountNonExpired()) {
+      userService.invalidateUserSessions(user.getUid());
     }
   }
 

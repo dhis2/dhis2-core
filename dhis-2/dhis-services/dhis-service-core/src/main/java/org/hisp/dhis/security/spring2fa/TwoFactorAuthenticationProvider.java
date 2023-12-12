@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -70,9 +71,8 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
   public Authentication authenticate(Authentication auth) throws AuthenticationException {
     String username = auth.getName();
     String ip = "";
-    if (auth.getDetails() instanceof ForwardedIpAwareWebAuthenticationDetails) {
-      ForwardedIpAwareWebAuthenticationDetails details =
-          (ForwardedIpAwareWebAuthenticationDetails) auth.getDetails();
+
+    if (auth.getDetails() instanceof ForwardedIpAwareWebAuthenticationDetails details) {
       ip = details.getIp();
     }
 
@@ -103,8 +103,9 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
 
     validateTwoFactor(user, auth.getDetails());
 
+    UserDetails userDetails = userService.createUserDetails(user);
     return new UsernamePasswordAuthenticationToken(
-        userService.createUserDetails(user), result.getCredentials(), result.getAuthorities());
+        userDetails, result.getCredentials(), result.getAuthorities());
   }
 
   private void validateTwoFactor(User user, Object details) {

@@ -57,7 +57,6 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -186,8 +185,6 @@ public class GetMetaDataAction implements Action {
 
   @Override
   public String execute() {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
     Locale dbLocale = getLocaleWithDefault(new TranslateParams(true));
     CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, dbLocale);
 
@@ -209,9 +206,9 @@ public class GetMetaDataAction implements Action {
       return SUCCESS;
     }
 
-    if (currentUser != null && currentUser.getOrganisationUnits().isEmpty()) {
+    UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
+    if (userDetails != null && userDetails.getUserOrgUnitIds().isEmpty()) {
       emptyOrganisationUnits = true;
-
       return SUCCESS;
     }
 
@@ -229,7 +226,6 @@ public class GetMetaDataAction implements Action {
 
     expressionService.substituteIndicatorExpressions(indicators);
 
-    UserDetails userDetails = userService.createUserDetails(currentUser);
     dataSets = dataSetService.getUserDataWrite(userDetails);
 
     Set<CategoryCombo> categoryComboSet = new HashSet<>();
@@ -252,7 +248,7 @@ public class GetMetaDataAction implements Action {
 
     for (Category category : categories) {
       List<CategoryOption> categoryOptions =
-          new ArrayList<>(categoryService.getDataWriteCategoryOptions(category, currentUser));
+          new ArrayList<>(categoryService.getDataWriteCategoryOptions(category, userDetails));
       Collections.sort(categoryOptions);
       categoryOptionMap.put(category.getUid(), categoryOptions);
     }

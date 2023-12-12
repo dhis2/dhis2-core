@@ -600,9 +600,9 @@ public abstract class AbstractEnrollmentService
     }
 
     programInstance.setCreatedByUserInfo(
-        UserInfoSnapshot.from(userService.createUserDetails(importOptions.getUser())));
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
     programInstance.setLastUpdatedByUserInfo(
-        UserInfoSnapshot.from(userService.createUserDetails(importOptions.getUser())));
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
 
     enrollmentService.addEnrollment(programInstance, importOptions.getUser());
 
@@ -996,7 +996,7 @@ public abstract class AbstractEnrollmentService
     updateDateFields(enrollment, programInstance);
 
     programInstance.setLastUpdatedByUserInfo(
-        UserInfoSnapshot.from(userService.createUserDetails(importOptions.getUser())));
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
 
     enrollmentService.updateEnrollment(programInstance, importOptions.getUser());
     teiService.updateTrackedEntity(programInstance.getTrackedEntity(), importOptions.getUser());

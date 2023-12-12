@@ -70,10 +70,10 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, UserDetails user, String access) {
+      CriteriaBuilder builder, UserDetails userDetails, String access) {
 
-    Set<String> userGroupIds = user.getUserGroupIds();
-    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(user.getUid());
+    Set<String> userGroupIds = userDetails.getUserGroupIds();
+    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
 
     if (userGroupIds.size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
       // TODO: MAS test with and without current user group info
@@ -81,7 +81,7 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     }
 
     return getDataSharingPredicates(
-        builder, user.getUid(), currentUserGroupInfo.getUserGroupUIDs(), access);
+        builder, userDetails.getUid(), currentUserGroupInfo.getUserGroupUIDs(), access);
   }
 
   @Override
