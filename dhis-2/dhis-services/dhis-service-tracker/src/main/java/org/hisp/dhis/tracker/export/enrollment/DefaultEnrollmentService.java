@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -38,7 +35,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -188,17 +184,6 @@ class DefaultEnrollmentService
   public List<Enrollment> getEnrollments(EnrollmentOperationParams params)
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
-
-    User user = currentUserService.getCurrentUser();
-
-    if (user != null
-        && queryParams.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      queryParams.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
-      queryParams.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (user != null && queryParams.isOrganisationUnitMode(CAPTURE)) {
-      queryParams.setOrganisationUnits(user.getOrganisationUnits());
-      queryParams.setOrganisationUnitMode(DESCENDANTS);
-    }
 
     return getEnrollments(
         new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),

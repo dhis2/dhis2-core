@@ -464,6 +464,6 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentQueryParams params = mapper.map(operationParams);
 
     assertEquals(CHILDREN, params.getOrganisationUnitMode());
-    assertEquals(Set.of(orgUnit1, orgUnit2), params.getOrganisationUnits());
+    assertEquals(Set.of(orgUnit1), params.getOrganisationUnits());
   }
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
@@ -123,13 +122,6 @@ class EnrollmentOperationParamsMapper {
     } else if (user != null && operationParams.getOrgUnitMode() == CAPTURE) {
       queryParams.addOrganisationUnits(new HashSet<>(user.getOrganisationUnits()));
       queryParams.setOrganisationUnitMode(DESCENDANTS);
-    } else if (operationParams.getOrgUnitMode() == CHILDREN) {
-      Set<OrganisationUnit> orgUnits = new HashSet<>(requestedOrgUnits);
-
-      for (OrganisationUnit organisationUnit : requestedOrgUnits) {
-        orgUnits.addAll(organisationUnit.getChildren());
-      }
-      queryParams.setOrganisationUnits(new HashSet<>(orgUnits));
     }
   }
 
