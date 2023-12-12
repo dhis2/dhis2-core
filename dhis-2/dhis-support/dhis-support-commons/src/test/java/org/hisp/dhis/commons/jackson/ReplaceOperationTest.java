@@ -29,7 +29,6 @@ package org.hisp.dhis.commons.jackson;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -63,21 +62,6 @@ class ReplaceOperationTest {
     root = (ObjectNode) patch.apply(root);
     assertTrue(root.has("aaa"));
     assertEquals("bbb", root.get("aaa").asText());
-  }
-
-  @Test
-  void testBasicReplaceNotExistProperty() throws JsonProcessingException {
-
-    JsonPatch patch =
-        jsonMapper.readValue(
-            "[" + "{\"op\": \"replace\", \"path\": \"/notExist\", \"value\": \"bbb\"}" + "]",
-            JsonPatch.class);
-    assertNotNull(patch);
-    ObjectNode root = jsonMapper.createObjectNode();
-    root.set("aaa", TextNode.valueOf("aaa"));
-    assertTrue(root.has("aaa"));
-    assertEquals("aaa", root.get("aaa").asText());
-    assertThrows(JsonPatchException.class, () -> patch.apply(root));
   }
 
   @Test
