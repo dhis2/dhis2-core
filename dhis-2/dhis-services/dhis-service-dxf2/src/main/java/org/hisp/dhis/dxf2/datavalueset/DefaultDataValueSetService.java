@@ -940,11 +940,10 @@ public class DefaultDataValueSetService implements DataValueSetService {
     } else {
       importCount.incrementUpdated();
     }
-    if (!internalValue.isDeleted()
-        && Objects.equals(existingValue.getValue(), internalValue.getValue())
-        && Objects.equals(existingValue.getComment(), internalValue.getComment())
-        && existingValue.isFollowup() == internalValue.isFollowup()) {
-      return; // avoid performing unnecessary updates
+    if (dataValueUpdateShouldBeIgnored(internalValue, existingValue)) {
+      importCount.incrementIgnored();
+      importCount.incrementUpdated(-1);
+      return;
     }
     if (!context.isDryRun()) {
       context.getDataValueBatchHandler().updateObject(internalValue);
@@ -971,6 +970,14 @@ public class DefaultDataValueSetService implements DataValueSetService {
         }
       }
     }
+  }
+
+  private static boolean dataValueUpdateShouldBeIgnored(
+      DataValue internalValue, DataValue existingValue) {
+    return !internalValue.isDeleted()
+        && Objects.equals(existingValue.getValue(), internalValue.getValue())
+        && Objects.equals(existingValue.getComment(), internalValue.getComment())
+        && existingValue.isFollowup() == internalValue.isFollowup();
   }
 
   private void preheatCaches(ImportContext context) {
