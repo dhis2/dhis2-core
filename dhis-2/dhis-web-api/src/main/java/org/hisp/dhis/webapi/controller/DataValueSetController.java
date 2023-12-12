@@ -212,8 +212,9 @@ public class DataValueSetController {
     response.setContentType(contentType);
     setNoStore(response);
 
-    try (OutputStream out =
-        compress(params, response, attachment, Compression.fromValue(compression), format)) {
+    try {
+      OutputStream out =
+          compress(params, response, attachment, Compression.fromValue(compression), format);
       writeOutput.accept(params, out);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);

@@ -341,6 +341,7 @@ public enum ErrorCode {
   E6019("AttributeValue `{0}` is an invalid `{1}` ID"),
   E6020("AttributeValue `{0}` is an invalid username"),
   E6021("AttributeValue `{0}` is an invalid phone number"),
+  E6022("Object cannot reference itself by property `{0}`"),
 
   /* File resource */
   E6100("Filename not present"),

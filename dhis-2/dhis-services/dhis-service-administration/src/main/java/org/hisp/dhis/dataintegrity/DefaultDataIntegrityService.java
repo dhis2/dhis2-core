@@ -99,7 +99,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -235,33 +234,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   /** Gets all data elements which are not members of any groups. */
   List<DataIntegrityIssue> getDataElementsWithoutGroups() {
     return toSimpleIssueList(dataElementService.getDataElementsWithoutGroups().stream());
-  }
-
-  /** Returns all data elements which are members of data sets with different period types. */
-  List<DataIntegrityIssue> getDataElementsAssignedToDataSetsWithDifferentPeriodTypes() {
-    Collection<DataElement> dataElements = dataElementService.getAllDataElements();
-
-    Collection<DataSet> dataSets = dataSetService.getAllDataSets();
-
-    List<DataIntegrityIssue> issues = new ArrayList<>();
-
-    for (DataElement element : dataElements) {
-      final Set<PeriodType> targetPeriodTypes = new HashSet<>();
-      final List<DataSet> targetDataSets = new ArrayList<>();
-
-      for (DataSet dataSet : dataSets) {
-        if (dataSet.getDataElements().contains(element)) {
-          targetPeriodTypes.add(dataSet.getPeriodType());
-          targetDataSets.add(dataSet);
-        }
-      }
-
-      if (targetPeriodTypes.size() > 1) {
-        issues.add(DataIntegrityIssue.toIssue(element, targetDataSets));
-      }
-    }
-
-    return issues;
   }
 
   /**
@@ -547,10 +519,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataElement.class,
         this::getDataElementsWithoutDataSet);
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.DATA_ELEMENTS_ASSIGNED_TO_DATA_SETS_WITH_DIFFERENT_PERIOD_TYPES,
-        DataElement.class,
-        this::getDataElementsAssignedToDataSetsWithDifferentPeriodTypes);
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS,
         DataElement.class,
         this::getDataElementsViolatingExclusiveGroupSets);
@@ -688,6 +656,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       // Add additional SQL based checks here
       checks.add("organisation_units_without_groups");
       checks.add("data_elements_aggregate_no_groups");
+      checks.add("data_elements_aggregate_with_different_period_types");
     }
     runDetailsChecks(checks, progress);
     return new FlattenedDataIntegrityReport(getDetails(checks, -1L));
