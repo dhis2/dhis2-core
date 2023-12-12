@@ -48,7 +48,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest {
   final JsonDataIntegrityDetails getDetails(String check) {
-
     JsonObject content = GET("/dataIntegrity/details?checks={check}&timeout=1000", check).content();
     JsonDataIntegrityDetails details =
         content.get(check.replace('-', '_'), JsonDataIntegrityDetails.class);

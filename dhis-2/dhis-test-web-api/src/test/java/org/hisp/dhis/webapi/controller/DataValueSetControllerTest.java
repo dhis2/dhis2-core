@@ -38,6 +38,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
+import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
@@ -215,7 +219,8 @@ class DataValueSetControllerTest extends DhisControllerIntegrationTest {
             HttpStatus.CREATED,
             POST(
                 "/organisationUnits/",
-                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', 'code':'OU1'}"));
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01',"
+                    + " 'code':'OU1'}"));
     String dsId =
         assertStatus(
             HttpStatus.CREATED,
@@ -241,7 +246,8 @@ class DataValueSetControllerTest extends DhisControllerIntegrationTest {
             HttpStatus.CREATED,
             POST(
                 "/organisationUnits/",
-                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', 'code':'OU1'}"));
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01',"
+                    + " 'code':'OU1'}"));
     String dsId =
         assertStatus(
             HttpStatus.CREATED,

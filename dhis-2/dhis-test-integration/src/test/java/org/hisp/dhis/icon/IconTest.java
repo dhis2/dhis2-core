@@ -219,7 +219,7 @@ class IconTest extends TrackerTest {
             "description",
             new String[] {"k4", "k5"},
             fileResourceC.getUid(),
-            currentUserService.getCurrentUser().getUid());
+            CurrentUserUtil.getCurrentUserDetails().getUid());
     iconService.addCustomIcon(original);
 
     CustomIcon fetched = iconService.getCustomIcon("iconKeyB");
