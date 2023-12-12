@@ -262,7 +262,7 @@ public class SystemSettingController {
   public ResponseEntity<Map<String, Serializable>> getSystemSettingsJson(
       @RequestParam(value = "key", required = false) Set<String> keys) {
     return ResponseEntity.ok()
-        .cacheControl(CacheControl.noCache().cachePrivate())
+        .headers(ContextUtils.noCacheNoStoreMustRevalidate())
         .body(systemSettingManager.getSystemSettings(getSettingKeysToFetch(keys)));
   }
 
