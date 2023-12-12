@@ -938,12 +938,10 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
       importCount.incrementDeleted();
     } else {
-      importCount.incrementUpdated();
-    }
-    if (dataValueUpdateShouldBeIgnored(internalValue, existingValue)) {
-      importCount.incrementIgnored();
-      importCount.incrementUpdated(-1);
-      return;
+      if (dataValueUpdateShouldBeIgnored(internalValue, existingValue)) {
+        importCount.incrementIgnored();
+        return;
+      } else importCount.incrementUpdated();
     }
     if (!context.isDryRun()) {
       context.getDataValueBatchHandler().updateObject(internalValue);
