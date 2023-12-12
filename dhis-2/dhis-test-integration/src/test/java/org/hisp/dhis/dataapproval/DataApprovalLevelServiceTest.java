@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -141,10 +142,10 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------
-    setA = new CategoryOptionGroupSet("Set A");
-    setB = new CategoryOptionGroupSet("Set B");
-    setC = new CategoryOptionGroupSet("Set C");
-    setD = new CategoryOptionGroupSet("Set D");
+    setA = new CategoryOptionGroupSet("Set A", DataDimensionType.DISAGGREGATION);
+    setB = new CategoryOptionGroupSet("Set B", DataDimensionType.DISAGGREGATION);
+    setC = new CategoryOptionGroupSet("Set C", DataDimensionType.DISAGGREGATION);
+    setD = new CategoryOptionGroupSet("Set D", DataDimensionType.DISAGGREGATION);
     categoryService.saveCategoryOptionGroupSet(setA);
     categoryService.saveCategoryOptionGroupSet(setB);
     categoryService.saveCategoryOptionGroupSet(setC);

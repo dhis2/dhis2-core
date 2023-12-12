@@ -732,6 +732,7 @@ public abstract class DhisConvenienceTest {
         new CategoryOptionGroup("CategoryOptionGroup" + uniqueIdentifier);
     categoryOptionGroup.setShortName("ShortName" + uniqueIdentifier);
     categoryOptionGroup.setAutoFields();
+    categoryOptionGroup.setDataDimensionType(DISAGGREGATION);
 
     categoryOptionGroup.setMembers(new HashSet<>());
 
@@ -753,6 +754,7 @@ public abstract class DhisConvenienceTest {
     CategoryOptionGroupSet categoryOptionGroupSet =
         new CategoryOptionGroupSet("CategoryOptionGroupSet" + categoryGroupSetUniqueIdentifier);
     categoryOptionGroupSet.setAutoFields();
+    categoryOptionGroupSet.setDataDimensionType(DISAGGREGATION);
 
     for (CategoryOptionGroup categoryOptionGroup : categoryOptionGroups) {
       categoryOptionGroupSet.addCategoryOptionGroup(categoryOptionGroup);

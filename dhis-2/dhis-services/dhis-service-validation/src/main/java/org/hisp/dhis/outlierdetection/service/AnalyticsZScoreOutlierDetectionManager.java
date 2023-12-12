@@ -76,7 +76,7 @@ public class AnalyticsZScoreOutlierDetectionManager extends AbstractOutlierDetec
     if (modifiedZ) {
       outlierValue.setStdDev(rs.getDouble("mad"));
     } else {
-      outlierValue.setStdDev(rs.getDouble("std_dev"));
+      outlierValue.setStdDev(rs.getDouble("stddev"));
     }
 
     super.addZScoreBasedParamsToOutlierValue(outlierValue, rs, modifiedZ);

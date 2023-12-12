@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.outlierdetection.service;
 
+import static java.lang.Double.NaN;
+import static org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm.MOD_Z_SCORE;
 import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.withExceptionHandling;
 import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
 
@@ -35,7 +37,6 @@ import java.sql.SQLException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.outlierdetection.processor.OutlierSqlStatementProcessor;
@@ -69,11 +70,11 @@ public abstract class AbstractOutlierDetectionManager {
     String sql = sqlStatementProcessor.getSqlStatement(request);
     SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);
     Calendar calendar = PeriodType.getCalendar();
-    boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
+    boolean modifiedZ = request.getAlgorithm() == MOD_Z_SCORE;
 
     return withExceptionHandling(
             () -> jdbcTemplate.query(sql, params, getRowMapper(calendar, modifiedZ)))
-        .orElse(null);
+        .orElse(List.of());
   }
 
   /**
@@ -94,10 +95,9 @@ public abstract class AbstractOutlierDetectionManager {
    * @throws SQLException
    */
   protected OutlierValue getOutlierValue(Calendar calendar, ResultSet rs) throws SQLException {
-    OutlierValue outlier = new OutlierValue();
-
     String isoPeriod = getIsoPeriod(calendar, rs.getString("pt_name"), rs.getDate("pe_start_date"));
 
+    OutlierValue outlier = new OutlierValue();
     outlier.setDe(rs.getString("de_uid"));
     outlier.setDeName(rs.getString("de_name"));
     outlier.setPe(isoPeriod);
@@ -129,7 +129,7 @@ public abstract class AbstractOutlierDetectionManager {
     }
 
     outlierValue.setAbsDev(rs.getDouble("middle_value_abs_dev"));
-    outlierValue.setZScore(outlierValue.getStdDev() == 0 ? Double.NaN : rs.getDouble("z_score"));
+    outlierValue.setZScore(outlierValue.getStdDev() == 0 ? NaN : rs.getDouble("z_score"));
     outlierValue.setLowerBound(rs.getDouble("lower_bound"));
     outlierValue.setUpperBound(rs.getDouble("upper_bound"));
   }

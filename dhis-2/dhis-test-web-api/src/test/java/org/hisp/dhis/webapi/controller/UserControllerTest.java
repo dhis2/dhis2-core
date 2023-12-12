@@ -50,6 +50,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonBoolean;
@@ -967,6 +968,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
     CategoryOptionGroupSet categoryOptionGroupSet = new CategoryOptionGroupSet();
     categoryOptionGroupSet.setAutoFields();
+    categoryOptionGroupSet.setDataDimensionType(DataDimensionType.DISAGGREGATION);
     categoryOptionGroupSet.setName("cogA");
     categoryOptionGroupSet.setShortName("cogA");
     manager.save(categoryOptionGroupSet);
