@@ -38,6 +38,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -233,7 +234,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public User getUserByUsername(String username) {
-    return userStore.getUserByUsername(username, false);
+    return userStore.getUserByUsername(username);
   }
 
   @Override
@@ -290,7 +291,7 @@ public class DefaultUserService implements UserService {
   public List<User> getUsers(UserQueryParams params, @Nullable List<String> orders) {
     handleUserQueryParams(params);
 
-    if (!validateUserQueryParams(params)) {
+    if (isNotValidUserQueryParams(params)) {
       return Lists.newArrayList();
     }
 
@@ -302,7 +303,7 @@ public class DefaultUserService implements UserService {
   public int getUserCount(UserQueryParams params) {
     handleUserQueryParams(params);
 
-    if (!validateUserQueryParams(params)) {
+    if (isNotValidUserQueryParams(params)) {
       return 0;
     }
 
@@ -353,25 +354,25 @@ public class DefaultUserService implements UserService {
     }
   }
 
-  private boolean validateUserQueryParams(UserQueryParams params) {
+  private boolean isNotValidUserQueryParams(UserQueryParams params) {
     if (params.isCanManage()
         && (params.getUser() == null || !params.getUser().hasManagedGroups())) {
       log.warn("Cannot get managed users as user does not have any managed groups");
-      return false;
+      return true;
     }
 
     if (params.isAuthSubset() && (params.getUser() == null || !params.getUser().hasAuthorities())) {
       log.warn("Cannot get users with authority subset as user does not have any authorities");
-      return false;
+      return true;
     }
 
     if (params.isDisjointRoles()
         && (params.getUser() == null || !params.getUser().hasUserRoles())) {
       log.warn("Cannot get users with disjoint roles as user does not have any user roles");
-      return false;
+      return true;
     }
 
-    return true;
+    return false;
   }
 
   @Override
@@ -565,20 +566,6 @@ public class DefaultUserService implements UserService {
   @Transactional(readOnly = true)
   public User getUserByIdToken(String token) {
     return userStore.getUserByIdToken(token);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public User getUserWithEagerFetchAuthorities(String username) {
-    User user = userStore.getUserByUsername(username, false);
-
-    if (user != null) {
-      user.getAllAuthorities();
-    }
-
-    // TODO: MAS should we fetch user groups here? instead of using getCurrentUserGroupInfo?
-
-    return user;
   }
 
   @Override
@@ -874,9 +861,9 @@ public class DefaultUserService implements UserService {
     Objects.requireNonNull(user);
 
     String username = user.getUsername();
+
     boolean enabled = !user.isDisabled();
     boolean accountNonExpired = user.isAccountNonExpired();
-
     boolean credentialsNonExpired = userNonExpired(user);
     boolean accountNonLocked = !isLocked(user.getUsername());
 
@@ -888,13 +875,22 @@ public class DefaultUserService implements UserService {
               username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked));
     }
 
-    //    .userGroupIds(
-    //            user.getUid() == null
-    //                ? Set.of()
-    //                : userStore.getCurrentUserGroupInfo(user.getUid()).getUserGroupUIDs())
-    ////                : userStore.getCurrentUserGroupInfo(user.getUid()).getUserGroupUIDs())
+    CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo(user.getUid());
+    if (user.getGroups().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+      String msg =
+          String.format(
+              "User '%s' has %d groups, but only %d groups are in the cache",
+              username, user.getGroups().size(), currentUserGroupInfo.getUserGroupUIDs().size());
 
-    return UserDetails.createUserDetails(user, accountNonLocked, credentialsNonExpired);
+      log.error(msg);
+
+      throw new RuntimeException(msg);
+    }
+
+    Map<String, Serializable> userSettings = userSettingService.getUserSettingsAsMap(user);
+
+    return UserDetails.createUserDetails(
+        user, accountNonLocked, credentialsNonExpired, userSettings);
   }
 
   @Override
@@ -935,8 +931,8 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  public boolean hasTwoFactorRoleRestriction(User user) {
-    return user.hasAnyRestrictions(Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME));
+  public boolean hasTwoFactorRoleRestriction(UserDetails userDetails) {
+    return userDetails.hasAnyRestrictions(Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME));
   }
 
   @Override
@@ -971,7 +967,7 @@ public class DefaultUserService implements UserService {
               currentUserDetails.getUsername(), userToModify));
     }
 
-    User currentUser = userStore.getUserByUsername(currentUserDetails.getUsername(), false);
+    User currentUser = userStore.getUserByUsername(currentUserDetails.getUsername());
 
     if (!canAddOrUpdateUser(getUids(userToModify.getGroups()), currentUser)
         || !currentUserDetails.canModifyUser(userToModify)) {
