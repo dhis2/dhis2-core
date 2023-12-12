@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
 import com.google.common.collect.Lists;
@@ -213,14 +212,10 @@ public class TrackedEntityAggregate implements Aggregate {
      * Async fetch Owned Tei mapped to the provided program attributes by
      * TrackedEntity id
      */
-    boolean skipScopeValidation =
-        user.isPresent()
-            && user.get().isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)
-            && orgUnitMode == ALL;
     final CompletableFuture<Multimap<String, String>> ownedTeiAsync =
         conditionalAsyncFetch(
             user.isPresent(),
-            () -> trackedEntityStore.getOwnedTeis(ids, ctx, skipScopeValidation),
+            () -> trackedEntityStore.getOwnedTeis(ids, ctx, orgUnitMode == ALL),
             getPool());
     /*
      * Execute all queries and merge the results

@@ -31,7 +31,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -105,10 +104,9 @@ class DefaultEnrollmentService
       OrganisationUnitSelectionMode orgUnitMode)
       throws ForbiddenException {
     User user = currentUserService.getCurrentUser();
-    List<String> errors = trackerAccessManager.canRead(user, enrollment, false);
-    boolean skipValidation =
-        user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS) && orgUnitMode == ALL;
-    if (!errors.isEmpty() && !skipValidation) {
+    List<String> errors = trackerAccessManager.canRead(user, enrollment, orgUnitMode == ALL);
+
+    if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
     }
 
@@ -330,14 +328,11 @@ class DefaultEnrollmentService
     List<Enrollment> enrollmentList = new ArrayList<>();
     User user = currentUserService.getCurrentUser();
 
-    boolean skipValidation =
-        user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS) && orgUnitMode == ALL;
-
     for (Enrollment enrollment : enrollments) {
       if (enrollment != null
           && (trackerOwnershipAccessManager.hasAccess(
                   user, enrollment.getTrackedEntity(), enrollment.getProgram())
-              || skipValidation)) {
+              || orgUnitMode == ALL)) {
         enrollmentList.add(getEnrollment(enrollment, params, includeDeleted, orgUnitMode));
       }
     }
