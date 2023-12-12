@@ -29,6 +29,9 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
@@ -118,17 +121,14 @@ class EnrollmentOperationParamsMapperTest {
     orgUnit1 = new OrganisationUnit("orgUnit1");
     orgUnit1.setUid(ORG_UNIT_1_UID);
     when(organisationUnitService.getOrganisationUnit(orgUnit1.getUid())).thenReturn(orgUnit1);
-    when(organisationUnitService.isInUserHierarchy(
-            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
-        .thenReturn(true);
     orgUnit2 = new OrganisationUnit("orgUnit2");
     orgUnit2.setUid(ORG_UNIT_2_UID);
+    orgUnit2.setParent(orgUnit1);
+    orgUnit1.setChildren(Set.of(orgUnit2));
     when(organisationUnitService.getOrganisationUnit(orgUnit2.getUid())).thenReturn(orgUnit2);
-    when(organisationUnitService.isInUserHierarchy(
-            orgUnit2.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
-        .thenReturn(true);
 
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
+    user.setOrganisationUnits(Set.of(orgUnit2));
 
     trackedEntityType = new TrackedEntityType();
     trackedEntityType.setUid(TRACKED_ENTITY_TYPE_UID);
@@ -419,5 +419,51 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentQueryParams params = mapper.map(operationParams);
 
     assertIsEmpty(params.getOrder());
+  }
+
+  @Test
+  void shouldMapDescendantsOrgUnitModeWhenAccessibleProvided()
+      throws ForbiddenException, BadRequestException {
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
+
+    EnrollmentQueryParams params = mapper.map(operationParams);
+
+    assertEquals(DESCENDANTS, params.getOrganisationUnitMode());
+    assertEquals(user.getTeiSearchOrganisationUnitsWithFallback(), params.getOrganisationUnits());
+  }
+
+  @Test
+  void shouldMapDescendantsOrgUnitModeWhenCaptureProvided()
+      throws ForbiddenException, BadRequestException {
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().orgUnitMode(CAPTURE).build();
+
+    EnrollmentQueryParams params = mapper.map(operationParams);
+
+    assertEquals(DESCENDANTS, params.getOrganisationUnitMode());
+    assertEquals(user.getOrganisationUnits(), params.getOrganisationUnits());
+  }
+
+  @Test
+  void shouldMapChildrenOrgUnitModeWhenChildrenProvided()
+      throws ForbiddenException, BadRequestException {
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(true);
+    when(organisationUnitService.isInUserHierarchy(
+            orgUnit2.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+        .thenReturn(true);
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of(orgUnit1.getUid()))
+            .orgUnitMode(CHILDREN)
+            .build();
+
+    EnrollmentQueryParams params = mapper.map(operationParams);
+
+    assertEquals(CHILDREN, params.getOrganisationUnitMode());
+    assertEquals(Set.of(orgUnit1, orgUnit2), params.getOrganisationUnits());
   }
 }

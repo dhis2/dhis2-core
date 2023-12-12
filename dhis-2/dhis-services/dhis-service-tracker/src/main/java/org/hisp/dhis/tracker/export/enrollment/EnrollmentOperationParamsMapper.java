@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
 import java.util.HashSet;
@@ -98,7 +102,35 @@ class EnrollmentOperationParamsMapper {
     params.setOrder(operationParams.getOrder());
     params.setEnrollmentUids(operationParams.getEnrollmentUids());
 
+    mergeOrgUnitModes(operationParams, user, orgUnits, params);
+
     return params;
+  }
+
+  /**
+   * Prepares the org unit modes to simplify the SQL query creation by merging similar behaviored
+   * org unit modes.
+   */
+  private void mergeOrgUnitModes(
+      EnrollmentOperationParams operationParams,
+      User user,
+      Set<OrganisationUnit> requestedOrgUnits,
+      EnrollmentQueryParams queryParams) {
+    if (user != null && operationParams.getOrgUnitMode() == ACCESSIBLE) {
+      queryParams.addOrganisationUnits(
+          new HashSet<>(user.getTeiSearchOrganisationUnitsWithFallback()));
+      queryParams.setOrganisationUnitMode(DESCENDANTS);
+    } else if (user != null && operationParams.getOrgUnitMode() == CAPTURE) {
+      queryParams.addOrganisationUnits(new HashSet<>(user.getOrganisationUnits()));
+      queryParams.setOrganisationUnitMode(DESCENDANTS);
+    } else if (operationParams.getOrgUnitMode() == CHILDREN) {
+      Set<OrganisationUnit> orgUnits = new HashSet<>(requestedOrgUnits);
+
+      for (OrganisationUnit organisationUnit : requestedOrgUnits) {
+        orgUnits.addAll(organisationUnit.getChildren());
+      }
+      queryParams.setOrganisationUnits(new HashSet<>(orgUnits));
+    }
   }
 
   private Program validateProgram(String uid, User user) throws BadRequestException {

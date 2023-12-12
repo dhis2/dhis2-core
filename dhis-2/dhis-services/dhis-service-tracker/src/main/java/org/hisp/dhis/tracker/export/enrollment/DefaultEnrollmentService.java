@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 
 import java.util.ArrayList;
@@ -43,7 +42,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -212,25 +210,6 @@ class DefaultEnrollmentService
   public Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
-
-    User user = currentUserService.getCurrentUser();
-
-    if (user != null
-        && queryParams.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      queryParams.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
-      queryParams.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (user != null && queryParams.isOrganisationUnitMode(CAPTURE)) {
-      queryParams.setOrganisationUnits(user.getOrganisationUnits());
-      queryParams.setOrganisationUnitMode(DESCENDANTS);
-    } else if (queryParams.isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> organisationUnits = new HashSet<>(queryParams.getOrganisationUnits());
-
-      for (OrganisationUnit organisationUnit : queryParams.getOrganisationUnits()) {
-        organisationUnits.addAll(organisationUnit.getChildren());
-      }
-
-      queryParams.setOrganisationUnits(organisationUnits);
-    }
 
     Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
     List<Enrollment> enrollments =
