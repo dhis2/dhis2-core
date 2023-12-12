@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.outlier;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.feedback.ErrorCode.E2208;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
@@ -36,6 +37,7 @@ import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -52,6 +54,7 @@ import org.springframework.jdbc.BadSqlGrammarException;
  * @author Lars Helge Overland
  */
 @Slf4j
+@NoArgsConstructor(access = PRIVATE)
 public class OutlierHelper {
 
   /**

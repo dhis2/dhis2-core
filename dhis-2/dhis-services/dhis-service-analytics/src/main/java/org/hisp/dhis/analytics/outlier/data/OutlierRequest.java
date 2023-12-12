@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.outlier.data;
 
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.Z_SCORE;
 import static org.hisp.dhis.analytics.outlier.Order.MEAN_ABS_DEV;
 import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
@@ -73,7 +72,7 @@ public class OutlierRequest {
   private int maxResults;
 
   public List<Long> getDataElementIds() {
-    return dataElements.stream().map(DataElement::getId).collect(toList());
+    return dataElements.stream().map(DataElement::getId).toList();
   }
 
   private OutlierRequest() {}
