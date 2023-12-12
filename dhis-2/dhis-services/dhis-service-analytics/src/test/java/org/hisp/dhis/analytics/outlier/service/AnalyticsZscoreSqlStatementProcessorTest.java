@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.outlierdetection.processor;
+package org.hisp.dhis.analytics.outlier.service;
 
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
@@ -36,11 +36,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
+import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
+import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
-import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -75,8 +76,8 @@ class AnalyticsZscoreSqlStatementProcessorTest {
 
   @Test
   void testGetSqlStatement() {
-    OutlierDetectionRequest request =
-        new OutlierDetectionRequest.Builder()
+    OutlierRequest request =
+        new OutlierRequest.Builder()
             .withDataElements(Lists.newArrayList(deA, deB, deC))
             .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 3, 1))
             .withOrgUnits(Lists.newArrayList(ouA, ouB))
@@ -89,8 +90,8 @@ class AnalyticsZscoreSqlStatementProcessorTest {
 
   @Test
   void testGetSqlStatementWithZScore() {
-    OutlierDetectionRequest request =
-        new OutlierDetectionRequest.Builder()
+    OutlierRequest request =
+        new OutlierRequest.Builder()
             .withDataElements(Lists.newArrayList(deA, deB, deC))
             .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 3, 1))
             .withOrgUnits(Lists.newArrayList(ouA, ouB))
@@ -102,8 +103,8 @@ class AnalyticsZscoreSqlStatementProcessorTest {
 
   @Test
   void testGetSqlStatementWithModifiedZScore() {
-    OutlierDetectionRequest request =
-        new OutlierDetectionRequest.Builder()
+    OutlierRequest request =
+        new OutlierRequest.Builder()
             .withDataElements(Lists.newArrayList(deA, deB, deC))
             .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 3, 1))
             .withOrgUnits(Lists.newArrayList(ouA, ouB))

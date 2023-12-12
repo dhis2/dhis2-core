@@ -25,20 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.outlierdetection.processor;
+package org.hisp.dhis.analytics.outlier.service;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.outlierdetection.Order.MEAN_ABS_DEV;
-import static org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm.MOD_Z_SCORE;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.DATA_ELEMENT_IDS;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.END_DATE;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.MAX_RESULTS;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.START_DATE;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.THRESHOLD;
+import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MOD_Z_SCORE;
+import static org.hisp.dhis.analytics.outlier.Order.MEAN_ABS_DEV;
+import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.DATA_ELEMENT_IDS;
+import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.END_DATE;
+import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.MAX_RESULTS;
+import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.START_DATE;
+import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.THRESHOLD;
 
-import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
-import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils;
+import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
+import org.hisp.dhis.analytics.outlier.OutlierHelper;
+import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
+import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
@@ -65,16 +66,16 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
    * of the dataset MAD: The median absolute deviation of the dataset 0.6745: conversion factor
    * (0.75 percentiles) *
    *
-   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @param request the instance of {@link OutlierRequest}.
    * @return sql statement for the outlier detection and related data
    */
   @Override
-  public String getSqlStatement(OutlierDetectionRequest request) {
+  public String getSqlStatement(OutlierRequest request) {
     if (request == null) {
       return EMPTY;
     }
 
-    String ouPathClause = OutlierDetectionUtils.getOrgUnitPathClause(request.getOrgUnits(), "ax");
+    String ouPathClause = OutlierHelper.getOrgUnitPathClause(request.getOrgUnits(), "ax");
 
     boolean modifiedZ = request.getAlgorithm() == MOD_Z_SCORE;
 
@@ -157,11 +158,11 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
    * To avoid the sql injection and decrease the load of the database engine (query plan caching)
    * the named params are in use.
    *
-   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @param request the instance of {@link OutlierRequest}.
    * @return named params for parametrized sql query
    */
   @Override
-  public SqlParameterSource getSqlParameterSource(OutlierDetectionRequest request) {
+  public SqlParameterSource getSqlParameterSource(OutlierRequest request) {
     return new MapSqlParameterSource()
         .addValue(THRESHOLD.getKey(), request.getThreshold())
         .addValue(DATA_ELEMENT_IDS.getKey(), request.getDataElementIds())
