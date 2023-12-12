@@ -165,7 +165,15 @@ public class DefaultIconService implements IconService {
       icon.setKeywords(keywords);
     }
 
+    icon.setAutoFields();
     customIconStore.update(icon);
+  }
+
+  @Override
+  @Transactional
+  public void updateCustomIcon(CustomIcon customIcon)
+      throws BadRequestException, NotFoundException {
+    updateCustomIcon(customIcon.getKey(), customIcon.getDescription(), customIcon.getKeywords());
   }
 
   @Override

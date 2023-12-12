@@ -82,11 +82,13 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
 
   @Override
   public void bulkInsertReservedValues(List<ReservedValue> toAdd) {
-    BatchHandler<ReservedValue> batchHandler =
-        batchHandlerFactory.createBatchHandler(ReservedValueBatchHandler.class).init();
-
-    toAdd.forEach(batchHandler::addObject);
-    batchHandler.flush();
+    try (BatchHandler<ReservedValue> batchHandler =
+        batchHandlerFactory.createBatchHandler(ReservedValueBatchHandler.class).init()) {
+      toAdd.forEach(batchHandler::addObject);
+      batchHandler.flush();
+    } catch (Exception e) {
+      log.error("Failed to bulk insert reserved values", e);
+    }
   }
 
   private List<String> getIfAvailable(ReservedValue reservedValue, List<String> values) {
@@ -106,11 +108,13 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
 
   @Override
   public void reserveValues(List<ReservedValue> reservedValues) {
-    BatchHandler<ReservedValue> batchHandler =
-        batchHandlerFactory.createBatchHandler(ReservedValueBatchHandler.class).init();
-
-    reservedValues.forEach(batchHandler::addObject);
-    batchHandler.flush();
+    try (BatchHandler<ReservedValue> batchHandler =
+        batchHandlerFactory.createBatchHandler(ReservedValueBatchHandler.class).init()) {
+      reservedValues.forEach(batchHandler::addObject);
+      batchHandler.flush();
+    } catch (Exception e) {
+      log.error("Failed to reserve values", e);
+    }
   }
 
   @Override

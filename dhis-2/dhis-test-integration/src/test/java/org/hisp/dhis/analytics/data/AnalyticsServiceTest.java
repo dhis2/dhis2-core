@@ -451,7 +451,8 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     categoryService.saveCategoryOptionGroup(optionGroupA);
     categoryService.saveCategoryOptionGroup(optionGroupB);
 
-    CategoryOptionGroupSet optionGroupSetB = new CategoryOptionGroupSet("OptionGroupSetB");
+    CategoryOptionGroupSet optionGroupSetB =
+        new CategoryOptionGroupSet("OptionGroupSetB", DataDimensionType.DISAGGREGATION);
     categoryService.saveCategoryOptionGroupSet(optionGroupSetB);
     optionGroupSetB.addCategoryOptionGroup(optionGroupA);
     optionGroupSetB.addCategoryOptionGroup(optionGroupB);

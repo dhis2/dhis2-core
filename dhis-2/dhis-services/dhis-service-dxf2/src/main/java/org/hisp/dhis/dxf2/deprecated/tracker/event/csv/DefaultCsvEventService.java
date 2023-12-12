@@ -76,6 +76,7 @@ public class DefaultCsvEventService implements CsvEventService<Event> {
       templateDataValue.setProgramStage(event.getProgramStage());
       templateDataValue.setEnrollment(event.getEnrollment());
       templateDataValue.setOrgUnit(event.getOrgUnit());
+      templateDataValue.setAttributeOptionCombo(event.getAttributeOptionCombo());
       templateDataValue.setEventDate(event.getEventDate());
       templateDataValue.setDueDate(event.getDueDate());
       templateDataValue.setStoredBy(event.getStoredBy());

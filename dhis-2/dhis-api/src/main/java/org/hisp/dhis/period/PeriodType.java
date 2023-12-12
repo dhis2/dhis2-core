@@ -258,7 +258,7 @@ public abstract class PeriodType implements Serializable {
 
   /**
    * Returns the ISO period name for the given {@link ResultSet} row. Requires that a column <code>
-   * pe_start_date</code> of type date and a column <code>pt_name</code> are present.
+   * startDate</code> of type date and a column <code>periodType</code> are present.
    *
    * @param calendar the {@link Calendar}.
    * @param rs the {@link ResultSet}.
