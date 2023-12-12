@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
@@ -93,16 +94,21 @@ class DefaultEnrollmentService
       throw new NotFoundException(Enrollment.class, uid);
     }
 
-    return getEnrollment(enrollment, params, includeDeleted);
+    return getEnrollment(enrollment, params, includeDeleted, null);
   }
 
   @Override
   public Enrollment getEnrollment(
-      @Nonnull Enrollment enrollment, EnrollmentParams params, boolean includeDeleted)
+      @Nonnull Enrollment enrollment,
+      EnrollmentParams params,
+      boolean includeDeleted,
+      OrganisationUnitSelectionMode orgUnitMode)
       throws ForbiddenException {
     User user = currentUserService.getCurrentUser();
     List<String> errors = trackerAccessManager.canRead(user, enrollment, false);
-    if (!errors.isEmpty() && !user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
+    boolean skipValidation =
+        user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS) && orgUnitMode == ALL;
+    if (!errors.isEmpty() && !skipValidation) {
       throw new ForbiddenException(errors.toString());
     }
 
@@ -214,7 +220,8 @@ class DefaultEnrollmentService
     return getEnrollments(
         new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
         params.getEnrollmentParams(),
-        params.isIncludeDeleted());
+        params.isIncludeDeleted(),
+        queryParams.getOrganisationUnitMode());
   }
 
   @Override
@@ -247,7 +254,10 @@ class DefaultEnrollmentService
     Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
     List<Enrollment> enrollments =
         getEnrollments(
-            enrollmentsPage.getItems(), params.getEnrollmentParams(), params.isIncludeDeleted());
+            enrollmentsPage.getItems(),
+            params.getEnrollmentParams(),
+            params.isIncludeDeleted(),
+            queryParams.getOrganisationUnitMode());
 
     return Page.of(enrollments, enrollmentsPage.getPager());
   }
@@ -312,7 +322,10 @@ class DefaultEnrollmentService
   }
 
   private List<Enrollment> getEnrollments(
-      Iterable<Enrollment> enrollments, EnrollmentParams params, boolean includeDeleted)
+      Iterable<Enrollment> enrollments,
+      EnrollmentParams params,
+      boolean includeDeleted,
+      OrganisationUnitSelectionMode orgUnitMode)
       throws ForbiddenException {
     List<Enrollment> enrollmentList = new ArrayList<>();
     User user = currentUserService.getCurrentUser();
@@ -322,7 +335,7 @@ class DefaultEnrollmentService
           && (trackerOwnershipAccessManager.hasAccess(
                   user, enrollment.getTrackedEntity(), enrollment.getProgram())
               || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS))) {
-        enrollmentList.add(getEnrollment(enrollment, params, includeDeleted));
+        enrollmentList.add(getEnrollment(enrollment, params, includeDeleted, orgUnitMode));
       }
     }
 

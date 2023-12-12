@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -40,7 +41,11 @@ public interface EnrollmentService {
   Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
-  Enrollment getEnrollment(Enrollment enrollment, EnrollmentParams params, boolean includeDeleted)
+  Enrollment getEnrollment(
+      Enrollment enrollment,
+      EnrollmentParams params,
+      boolean includeDeleted,
+      OrganisationUnitSelectionMode orgUnitMode)
       throws ForbiddenException;
 
   /** Get all enrollments matching given params. */
