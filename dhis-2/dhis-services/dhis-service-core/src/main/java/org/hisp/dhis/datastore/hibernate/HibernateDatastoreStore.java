@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,16 @@ package org.hisp.dhis.datastore.hibernate;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.copyOfRange;
 import static java.util.Collections.emptyList;
+import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.datastore.DatastoreEntry;
@@ -45,6 +48,7 @@ import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.DatastoreStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -56,13 +60,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<DatastoreEntry>
     implements DatastoreStore {
   public HibernateDatastoreStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         DatastoreEntry.class,
@@ -86,7 +90,12 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public List<String> getKeysInNamespace(String namespace, Date lastUpdated) {
-    String hql = "select key from DatastoreEntry where namespace = :namespace";
+    User currentUser = currentUserService.getCurrentUser();
+    String accessFilter =
+        generateHqlQueryForSharingCheck("ds", currentUser, AclService.LIKE_READ_METADATA);
+
+    String hql =
+        "select key from DatastoreEntry ds where namespace = :namespace and " + accessFilter;
 
     if (lastUpdated != null) {
       hql += " and lastupdated >= :lastUpdated ";
@@ -113,8 +122,13 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform) {
+    User currentUser = currentUserService.getCurrentUser();
+    String accessFilter =
+        generateHqlQueryForSharingCheck("ds", currentUser, AclService.LIKE_READ_METADATA);
     DatastoreQueryBuilder builder =
-        new DatastoreQueryBuilder("from DatastoreEntry where namespace = :namespace", query);
+        new DatastoreQueryBuilder(
+            "from DatastoreEntry ds where namespace = :namespace and " + accessFilter, query);
+
     String hql = builder.createFetchHQL();
 
     Query<?> hQuery =
@@ -160,15 +174,160 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
   }
 
   @Override
-  public void deleteNamespace(String namespace) {
-    String hql = "delete from DatastoreEntry v where v.namespace = :namespace";
-    getSession().createQuery(hql).setParameter("namespace", namespace).executeUpdate();
+  public void deleteNamespace(String ns) {
+    // language=SQL
+    String sql = "delete from keyjsonvalue ds where ds.namespace = :ns";
+    getSession().createNativeQuery(sql).setParameter("ns", ns).executeUpdate();
   }
 
   @Override
-  public int countKeysInNamespace(String namespace) {
-    String hql = "select count(*) from DatastoreEntry v where v.namespace = :namespace";
-    Query<Long> count = getTypedQuery(hql);
-    return count.setParameter("namespace", namespace).getSingleResult().intValue();
+  public int countKeysInNamespace(String ns) {
+    // language=SQL
+    String sql = "select count(*) from keyjsonvalue v where v.namespace = :ns";
+    Object count = getSession().createNativeQuery(sql).setParameter("ns", ns).uniqueResult();
+    if (count == null) return 0;
+    if (count instanceof Number n) return n.intValue();
+    throw new IllegalStateException("Count did not return a number but: " + count);
+  }
+
+  @Override
+  public boolean updateEntry(
+      @Nonnull String ns,
+      @Nonnull String key,
+      @CheckForNull String value,
+      @CheckForNull String path,
+      @CheckForNull Integer roll) {
+    boolean rootIsTarget = path == null || path.isEmpty();
+    if (value == null && rootIsTarget) return updateEntryRootDelete(ns, key);
+    if (value == null) return updateEntryPathSetToNull(ns, key, path);
+    if (roll == null && rootIsTarget) return updateEntryRootSetToValue(ns, key, value);
+    if (roll == null) return updateEntryPathSetToValue(ns, key, value, path);
+    if (rootIsTarget) return updateEntryRootRollValue(ns, key, value, roll);
+    return updateEntryPathRollValue(ns, key, value, path, roll);
+  }
+
+  private boolean updateEntryPathRollValue(
+      @Nonnull String ns,
+      @Nonnull String key,
+      @Nonnull String value,
+      @Nonnull String path,
+      @Nonnull Integer roll) {
+    String sql =
+        """
+          update keyjsonvalue
+          set jbvalue = case jsonb_typeof(jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[])))
+            when 'array' then case
+              when :size < 0 or jsonb_array_length(jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[]))) >= :size
+                then jsonb_set(jbvalue, cast(:path as text[]), (jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[])) - 0) || to_jsonb(ARRAY[cast(:value as jsonb)]), false)
+              else jsonb_set(jbvalue, cast(:path as text[]), jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[])) || to_jsonb(ARRAY[cast(:value as jsonb)]), false)
+              end
+            when 'string'  then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb))
+            when 'number'  then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb))
+            when 'object'  then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb))
+            when 'boolean' then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb))
+            when 'null'    then jsonb_set(jbvalue, cast(:path as text[]), to_jsonb(ARRAY[cast(:value as jsonb)]))
+            -- undefined => same as null, start an array
+            else jsonb_set(jbvalue, cast(:path as text[]), to_jsonb(ARRAY[cast(:value as jsonb)]))
+            end
+          where namespace = :ns and namespacekey = :key""";
+    return getSession()
+            .createNativeQuery(sql)
+            .setParameter("ns", ns)
+            .setParameter("key", key)
+            .setParameter("value", value)
+            .setParameter("size", roll)
+            .setParameter("path", toJsonbPath(path))
+            .executeUpdate()
+        > 0;
+  }
+
+  private boolean updateEntryRootRollValue(
+      @Nonnull String ns, @Nonnull String key, @Nonnull String value, @Nonnull Integer roll) {
+    String sql =
+        """
+      update keyjsonvalue
+      set jbvalue = case jsonb_typeof(jbvalue)
+        when 'null' then to_jsonb(ARRAY[cast(:value as jsonb)])
+        when 'array' then case
+          when :size < 0 or jsonb_array_length(jbvalue) >= :size
+            then (jbvalue - 0) || to_jsonb(ARRAY[cast(:value as jsonb)])
+          else jbvalue || to_jsonb(ARRAY[cast(:value as jsonb)])
+          end
+        else cast(:value as jsonb)
+        end
+      where namespace = :ns and namespacekey = :key""";
+    return getSession()
+            .createNativeQuery(sql)
+            .setParameter("ns", ns)
+            .setParameter("key", key)
+            .setParameter("value", value)
+            .setParameter("size", roll)
+            .executeUpdate()
+        > 0;
+  }
+
+  private boolean updateEntryPathSetToValue(
+      @Nonnull String ns, @Nonnull String key, @Nonnull String value, @Nonnull String path) {
+    return getSession()
+            .createNativeQuery(
+                "update keyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb), false) where namespace = :ns and namespacekey = :key")
+            .setParameter("ns", ns)
+            .setParameter("key", key)
+            .setParameter("value", value)
+            .setParameter("path", toJsonbPath(path))
+            .executeUpdate()
+        > 0;
+  }
+
+  private boolean updateEntryRootSetToValue(
+      @Nonnull String ns, @Nonnull String key, @Nonnull String value) {
+    return getSession()
+            .createNativeQuery(
+                "update keyjsonvalue set jbvalue = cast(:value as jsonb) where namespace = :ns and namespacekey = :key")
+            .setParameter("ns", ns)
+            .setParameter("key", key)
+            .setParameter("value", value)
+            .executeUpdate()
+        > 0;
+  }
+
+  private boolean updateEntryPathSetToNull(
+      @Nonnull String ns, @Nonnull String key, @Nonnull String path) {
+    return getSession()
+            .createNativeQuery(
+                "update keyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), 'null', false) where namespace = :ns and namespacekey = :key")
+            .setParameter("ns", ns)
+            .setParameter("key", key)
+            .setParameter("path", toJsonbPath(path))
+            .executeUpdate()
+        > 0;
+  }
+
+  private boolean updateEntryRootDelete(@Nonnull String ns, @Nonnull String key) {
+    // delete
+    return getSession()
+            .createNativeQuery(
+                "delete from keyjsonvalue where namespace = :ns and namespacekey = :key")
+            .setParameter("ns", ns)
+            .setParameter("key", key)
+            .executeUpdate()
+        > 0;
+  }
+
+  /**
+   * Transforms Java/JSON property paths with paths as expected by jsonb functions, for example
+   *
+   * <p>{@code foo.bar.[0]} becomes {@code foo,bar,0}
+   *
+   * @param path a property path
+   * @return a jsonb path
+   */
+  private static String toJsonbPath(String path) {
+    if (path == null || path.isEmpty()) return "{}";
+    String jsonbPath =
+        path.replaceAll("\\[(\\d+)]", ",$1") // replace [#] with ,#
+            .replace('.', ',') // replace . with ,
+            .replace(",,", ","); // undo ,, that might originate from 1. replace with just ,
+    return String.format("{%s}", jsonbPath);
   }
 }

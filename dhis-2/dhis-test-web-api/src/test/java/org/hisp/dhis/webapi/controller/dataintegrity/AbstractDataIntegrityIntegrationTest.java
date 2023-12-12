@@ -234,15 +234,6 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
 
   @Autowired private TransactionTemplate txTemplate;
 
-  protected void doInTransaction(Runnable operation) {
-
-    txTemplate.execute(
-        status -> {
-          operation.run();
-          return null;
-        });
-  }
-
   protected final HttpResponse postNewDataValue(
       String period,
       String value,
