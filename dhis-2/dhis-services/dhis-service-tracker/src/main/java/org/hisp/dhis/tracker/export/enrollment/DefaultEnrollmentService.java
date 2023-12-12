@@ -330,11 +330,14 @@ class DefaultEnrollmentService
     List<Enrollment> enrollmentList = new ArrayList<>();
     User user = currentUserService.getCurrentUser();
 
+    boolean skipValidation =
+        user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS) && orgUnitMode == ALL;
+
     for (Enrollment enrollment : enrollments) {
       if (enrollment != null
           && (trackerOwnershipAccessManager.hasAccess(
                   user, enrollment.getTrackedEntity(), enrollment.getProgram())
-              || user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS))) {
+              || skipValidation)) {
         enrollmentList.add(getEnrollment(enrollment, params, includeDeleted, orgUnitMode));
       }
     }
