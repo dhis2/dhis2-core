@@ -187,6 +187,12 @@ public class ContextUtils {
     }
   }
 
+  public static HttpHeaders noCacheNoStoreMustRevalidate() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setCacheControl("no-cache, no-store, must-revalidate");
+    return headers;
+  }
+
   public static HttpServletResponse setCacheControl(
       HttpServletResponse response, CacheControl value) {
     response.setHeader(HEADER_CACHE_CONTROL, value.getHeaderValue());
