@@ -99,7 +99,7 @@ public class HibernateJobConfigurationStore
         case jsonb_typeof(progress)
         when 'object' then progress #>> '{}'
         when 'array' then jsonb_build_object('sequence', progress) #>> '{}'
-       end
+        end
       from jobconfiguration
       where uid = :id
       """;
@@ -114,7 +114,7 @@ public class HibernateJobConfigurationStore
           select
             case jsonb_typeof(progress)
             when 'object' then progress #>> '{errors}'
-           end
+            end
           from jobconfiguration
           where uid = :id
           """;

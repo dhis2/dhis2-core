@@ -38,6 +38,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -58,6 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service
 public class DefaultDatastoreService implements DatastoreService {
+
   private final Map<String, DatastoreNamespaceProtection> protectionByNamespace =
       new ConcurrentHashMap<>();
 
@@ -128,10 +131,16 @@ public class DefaultDatastoreService implements DatastoreService {
 
   @Override
   @Transactional
-  public void updateEntry(DatastoreEntry entry) throws BadRequestException {
-    validateEntry(entry);
-    Runnable update = () -> store.updateNoAcl(entry);
-    writeProtectedIn(entry.getNamespace(), () -> singletonList(entry), update);
+  public void updateEntry(
+      @Nonnull String ns,
+      @Nonnull String key,
+      @CheckForNull String value,
+      @CheckForNull String path,
+      @CheckForNull Integer roll)
+      throws BadRequestException {
+    validateEntry(key, value);
+    Runnable update = () -> store.updateEntry(ns, key, value, path, roll);
+    writeProtectedIn(ns, () -> List.of(store.getEntry(ns, key)), update);
   }
 
   @Override
@@ -251,11 +260,15 @@ public class DefaultDatastoreService implements DatastoreService {
   }
 
   private void validateEntry(DatastoreEntry entry) throws BadRequestException {
+    validateEntry(entry.getKey(), entry.getValue());
+  }
+
+  private static void validateEntry(String key, String value) throws BadRequestException {
+    if (value == null) return;
     try {
-      JsonNode.of(entry.getValue()).visit(JsonNode::value);
+      JsonNode.of(value).visit(JsonNode::value);
     } catch (RuntimeException e) {
-      throw new BadRequestException(
-          String.format("Invalid JSON value for key '%s'", entry.getKey()));
+      throw new BadRequestException(String.format("Invalid JSON value for key '%s'", key));
     }
   }
 }

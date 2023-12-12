@@ -231,14 +231,17 @@ public class DatastoreController extends AbstractDatastoreController {
   public WebMessage putEntry(
       @PathVariable String namespace,
       @PathVariable String key,
-      @RequestBody String value,
+      @RequestBody(required = false) String value,
+      @RequestParam(required = false) String path,
+      @RequestParam(required = false) Integer roll,
       @RequestParam(defaultValue = "false") boolean encrypt)
       throws BadRequestException, ConflictException {
     DatastoreEntry dataEntry = service.getEntry(namespace, key);
 
-    return dataEntry != null
-        ? updateEntry(dataEntry, key, value)
-        : addEntry(namespace, key, value, encrypt);
+    if (dataEntry == null) return addEntry(namespace, key, value, encrypt);
+
+    service.updateEntry(namespace, key, value, path, roll);
+    return ok(String.format("Key updated: '%s'", key));
   }
 
   /** Delete a key from the given namespace. */
@@ -261,13 +264,5 @@ public class DatastoreController extends AbstractDatastoreController {
     }
 
     return entry;
-  }
-
-  private WebMessage updateEntry(DatastoreEntry entry, String key, String value)
-      throws BadRequestException {
-    entry.setValue(value);
-    service.updateEntry(entry);
-
-    return ok(String.format("Key updated: '%s'", key));
   }
 }

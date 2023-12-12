@@ -54,6 +54,8 @@ public class JdbcCustomIconStore implements CustomIconStore {
         customIcon.setKeywords((String[]) rs.getArray("keywords").getArray());
         customIcon.setFileResourceUid(rs.getString("fileresourceuid"));
         customIcon.setCreatedByUserUid(rs.getString("useruid"));
+        customIcon.setCreated(rs.getTimestamp("created"));
+        customIcon.setLastUpdated(rs.getTimestamp("lastupdated"));
 
         return customIcon;
       };
@@ -62,7 +64,8 @@ public class JdbcCustomIconStore implements CustomIconStore {
   public CustomIcon getIconByKey(String key) {
     final String sql =
         """
-            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
+            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
+            f.uid as fileresourceuid, u.uid as useruid
             from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
             join userinfo u on u.userinfoid = c.createdby
             where key = ?
@@ -77,7 +80,8 @@ public class JdbcCustomIconStore implements CustomIconStore {
   public List<CustomIcon> getIconsByKeywords(String[] keywords) {
     final String sql =
         """
-            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
+            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
+            f.uid as fileresourceuid, u.uid as useruid
             from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
             join userinfo u on u.userinfoid = c.createdby
             where keywords @> string_to_array(?,',')
@@ -90,7 +94,8 @@ public class JdbcCustomIconStore implements CustomIconStore {
   public List<CustomIcon> getAllIcons() {
     final String sql =
         """
-            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
+            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
+            f.uid as fileresourceuid, u.uid as useruid
             from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
             join userinfo u on u.userinfoid = c.createdby
             """;
@@ -108,12 +113,14 @@ public class JdbcCustomIconStore implements CustomIconStore {
   @Override
   public void save(CustomIcon customIcon, FileResource fileResource, UserDetails createdByUser) {
     jdbcTemplate.update(
-        "INSERT INTO customicon (key, description, keywords, fileresourceid, createdby) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO customicon (key, description, keywords, fileresourceid, createdby, created, lastupdated) VALUES (?, ?, ?, ?,?,?,?)",
         customIcon.getKey(),
         customIcon.getDescription(),
         customIcon.getKeywords(),
         fileResource.getId(),
-        createdByUser.getId());
+        createdByUser.getId(),
+        customIcon.getCreated(),
+        customIcon.getLastUpdated());
   }
 
   @Override
@@ -124,9 +131,10 @@ public class JdbcCustomIconStore implements CustomIconStore {
   @Override
   public void update(CustomIcon customIcon) {
     jdbcTemplate.update(
-        "update customicon set description = ?, keywords = ? where key = ?",
+        "update customicon set description = ?, keywords = ?, lastupdated = ? where key = ?",
         customIcon.getDescription(),
         customIcon.getKeywords(),
+        customIcon.getLastUpdated(),
         customIcon.getKey());
   }
 }
