@@ -40,7 +40,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -140,7 +140,7 @@ public class FollowupValueManager {
             FOLLOWUP_VALUE_HQL.replace(
                 "<<sharing>>",
                 generateHqlQueryForSharingCheck(
-                    "de", UserDetailsImpl.fromUser(currentUser), AclService.LIKE_READ_METADATA)),
+                    "de", UserDetails.fromUser(currentUser), AclService.LIKE_READ_METADATA)),
             FollowupValue.class);
 
     query.setParameter("ou_ids", request.getOu());

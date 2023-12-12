@@ -63,7 +63,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -111,7 +110,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   public void save(@Nonnull T object, @CheckForNull User user) {
-    save(object, UserDetailsImpl.fromUser(user), true);
+    save(object, UserDetails.fromUser(user), true);
   }
 
   @Override

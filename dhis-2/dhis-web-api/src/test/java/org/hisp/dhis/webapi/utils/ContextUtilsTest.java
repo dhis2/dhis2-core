@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
 
 class ContextUtilsTest {
@@ -43,8 +43,7 @@ class ContextUtilsTest {
     user.setUid("kYt56BgfED2");
 
     assertEquals(
-        "7c9d6fd16b668638ca0e722aa2451054",
-        ContextUtils.getEtag(date, UserDetailsImpl.fromUser(user)));
+        "7c9d6fd16b668638ca0e722aa2451054", ContextUtils.getEtag(date, UserDetails.fromUser(user)));
   }
 
   @Test

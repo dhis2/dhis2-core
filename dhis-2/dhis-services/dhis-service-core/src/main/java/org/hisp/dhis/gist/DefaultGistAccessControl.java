@@ -47,7 +47,6 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 
@@ -147,7 +146,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
     UserDetails user =
         getCurrentUserUid().equals(userUid)
             ? currentUser
-            : UserDetailsImpl.fromUser(userService.getUser(userUid));
+            : UserDetails.fromUser(userService.getUser(userUid));
     return user != null && aclService.canRead(currentUser, userService.getUser(user.getUid()));
   }
 

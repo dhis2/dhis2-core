@@ -36,7 +36,6 @@ import org.hisp.dhis.security.apikey.ApiTokenDeletedEvent;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserStore;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.event.EventListener;
@@ -130,7 +129,7 @@ public class ApiTokenAuthManager implements AuthenticationManager {
           ApiTokenErrors.invalidToken("The API token is disabled, locked or 2FA is enabled."));
     }
 
-    return UserDetailsImpl.createUserDetails(user, accountNonLocked, credentialsNonExpired);
+    return UserDetails.createUserDetails(user, accountNonLocked, credentialsNonExpired);
   }
 
   private static void validateTokenExpiry(Long expiry) {

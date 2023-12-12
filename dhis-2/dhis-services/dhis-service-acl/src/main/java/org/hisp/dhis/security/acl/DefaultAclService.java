@@ -47,7 +47,6 @@ import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -112,7 +111,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canRead(User user, IdentifiableObject object) {
-    return canRead(UserDetailsImpl.fromUser(user), object);
+    return canRead(UserDetails.fromUser(user), object);
   }
 
   @Override
@@ -170,7 +169,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canDataOrMetadataRead(User user, IdentifiableObject object) {
-    return canDataOrMetadataRead(UserDetailsImpl.fromUser(user), object);
+    return canDataOrMetadataRead(UserDetails.fromUser(user), object);
   }
 
   @Override
@@ -184,7 +183,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canWrite(User user, IdentifiableObject object) {
-    return canWrite(UserDetailsImpl.fromUser(user), object);
+    return canWrite(UserDetails.fromUser(user), object);
   }
 
   @Override
@@ -221,7 +220,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canDataWrite(User user, IdentifiableObject object) {
-    return canDataWrite(UserDetailsImpl.fromUser(user), object);
+    return canDataWrite(UserDetails.fromUser(user), object);
   }
 
   @Override
@@ -259,7 +258,7 @@ public class DefaultAclService implements AclService {
   @Override
   @SuppressWarnings("unchecked")
   public boolean canUpdate(User user, IdentifiableObject object) {
-    return canUpdate(UserDetailsImpl.fromUser(user), object);
+    return canUpdate(UserDetails.fromUser(user), object);
   }
 
   @Override
@@ -295,7 +294,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canDelete(User user, IdentifiableObject object) {
-    return canDelete(UserDetailsImpl.fromUser(user), object);
+    return canDelete(UserDetails.fromUser(user), object);
   }
 
   @Override
@@ -340,7 +339,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canManage(User user, IdentifiableObject object) {
-    return canManage(UserDetailsImpl.fromUser(user), object);
+    return canManage(UserDetails.fromUser(user), object);
   }
 
   @Override
@@ -363,11 +362,11 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canDataRead(User user, IdentifiableObject object) {
-    return canDataRead(UserDetailsImpl.fromUser(user), object);
+    return canDataRead(UserDetails.fromUser(user), object);
   }
 
   public <T extends IdentifiableObject> boolean canCreate(User user, Class<T> klass) {
-    return canCreate(UserDetailsImpl.fromUser(user), klass);
+    return canCreate(UserDetails.fromUser(user), klass);
   }
 
   @Override
@@ -386,7 +385,7 @@ public class DefaultAclService implements AclService {
   }
 
   public <T extends IdentifiableObject> boolean canMakePublic(User user, T object) {
-    return canMakePublic(UserDetailsImpl.fromUser(user), object);
+    return canMakePublic(UserDetails.fromUser(user), object);
   }
 
   @Override
@@ -397,7 +396,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public <T extends IdentifiableObject> boolean canMakeClassPublic(User user, Class<T> klass) {
-    return canMakeClassPublic(UserDetailsImpl.fromUser(user), klass);
+    return canMakeClassPublic(UserDetails.fromUser(user), klass);
   }
 
   @Override
@@ -411,7 +410,7 @@ public class DefaultAclService implements AclService {
   }
 
   public <T extends IdentifiableObject> boolean canMakePrivate(User user, T object) {
-    return canMakePrivate(UserDetailsImpl.fromUser(user), object);
+    return canMakePrivate(UserDetails.fromUser(user), object);
   }
 
   @Override
@@ -422,7 +421,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public <T extends IdentifiableObject> boolean canMakeClassPrivate(User user, Class<T> klass) {
-    return canMakeClassPrivate(UserDetailsImpl.fromUser(user), klass);
+    return canMakeClassPrivate(UserDetails.fromUser(user), klass);
   }
 
   @Override
@@ -479,7 +478,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public <T extends IdentifiableObject> Access getAccess(T object, User user) {
-    return getAccess(object, UserDetailsImpl.fromUser(user));
+    return getAccess(object, UserDetails.fromUser(user));
   }
 
   @Override
@@ -526,7 +525,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public <T extends IdentifiableObject> void resetSharing(T object, User user) {
-    resetSharing(object, UserDetailsImpl.fromUser(user));
+    resetSharing(object, UserDetails.fromUser(user));
   }
 
   @Override
@@ -565,7 +564,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public <T extends IdentifiableObject> List<ErrorReport> verifySharing(T object, User user) {
-    return verifySharing(object, UserDetailsImpl.fromUser(user));
+    return verifySharing(object, UserDetails.fromUser(user));
   }
 
   @Override

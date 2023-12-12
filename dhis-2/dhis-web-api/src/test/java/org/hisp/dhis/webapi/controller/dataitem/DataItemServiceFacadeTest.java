@@ -59,7 +59,6 @@ import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,7 +108,7 @@ class DataItemServiceFacadeTest {
 
     // When
     when(userService.getUserByUsername(currentUser.getUsername())).thenReturn(currentUser);
-    injectSecurityContext(UserDetailsImpl.fromUser(currentUser));
+    injectSecurityContext(UserDetails.fromUser(currentUser));
 
     when(queryExecutor.find(anySet(), any(MapSqlParameterSource.class)))
         .thenReturn(expectedItemsFound);

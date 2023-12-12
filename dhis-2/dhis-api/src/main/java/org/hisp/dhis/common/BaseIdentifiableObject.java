@@ -71,7 +71,6 @@ import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -439,7 +438,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
-  public boolean setAsFavorite(UserDetailsImpl user) {
+  public boolean setAsFavorite(UserDetails user) {
     if (this.favorites == null) {
       this.favorites = new HashSet<>();
     }
@@ -448,7 +447,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
-  public boolean removeAsFavorite(UserDetailsImpl user) {
+  public boolean removeAsFavorite(UserDetails user) {
     if (this.favorites == null) {
       this.favorites = new HashSet<>();
     }

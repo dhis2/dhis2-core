@@ -66,7 +66,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -221,7 +220,7 @@ public class FieldFilterService {
     if (user == null) {
       currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     } else {
-      currentUserDetails = UserDetailsImpl.fromUser(user);
+      currentUserDetails = UserDetails.fromUser(user);
     }
 
     // In case we get a proxied object in we can't just use o.getClass(), we

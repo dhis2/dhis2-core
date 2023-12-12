@@ -46,7 +46,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -202,7 +202,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
   private void handleSkipSharing(IdentifiableObject identifiableObject, ObjectBundle bundle) {
     if (!bundle.isSkipSharing()) return;
 
-    aclService.clearSharing(identifiableObject, UserDetailsImpl.fromUser(bundle.getUser()));
+    aclService.clearSharing(identifiableObject, UserDetails.fromUser(bundle.getUser()));
   }
 
   private void handleSkipTranslation(IdentifiableObject identifiableObject, ObjectBundle bundle) {

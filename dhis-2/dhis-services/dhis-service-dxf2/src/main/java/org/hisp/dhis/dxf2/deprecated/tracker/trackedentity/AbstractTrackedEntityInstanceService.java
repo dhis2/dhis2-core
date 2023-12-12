@@ -103,7 +103,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
@@ -286,7 +286,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     Set<TrackedEntityAttribute> readableAttributes =
         trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-            user == null ? null : UserDetailsImpl.fromUser(user));
+            user == null ? null : UserDetails.fromUser(user));
 
     return getTei(daoTrackedEntity, readableAttributes, params, user);
   }
@@ -1160,7 +1160,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     if (!orgUnits.isEmpty()) {
       Query query = Query.from(schemaService.getDynamicSchema(OrganisationUnit.class));
-      query.setCurrentUserDetails(UserDetailsImpl.fromUser(user));
+      query.setCurrentUserDetails(UserDetails.fromUser(user));
       query.add(Restrictions.in("id", orgUnits));
       queryService
           .query(query)
@@ -1173,7 +1173,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     if (!trackedEntityAttributes.isEmpty()) {
       Query query = Query.from(schemaService.getDynamicSchema(TrackedEntityAttribute.class));
-      query.setCurrentUserDetails(UserDetailsImpl.fromUser(user));
+      query.setCurrentUserDetails(UserDetails.fromUser(user));
       query.add(Restrictions.in("id", trackedEntityAttributes));
       queryService
           .query(query)

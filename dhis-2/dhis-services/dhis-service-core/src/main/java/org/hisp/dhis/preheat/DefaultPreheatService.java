@@ -78,7 +78,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -152,7 +152,7 @@ public class DefaultPreheatService implements PreheatService {
         if (!identifiers.isEmpty()) {
           for (List<String> ids : identifiers) {
             Query query = Query.from(schemaService.getDynamicSchema(klass));
-            query.setCurrentUserDetails(UserDetailsImpl.fromUser(preheat.getUser()));
+            query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
             query.setSkipSharing(true);
             query.add(Restrictions.in("id", ids));
             List<? extends IdentifiableObject> objects = queryService.query(query);
@@ -170,7 +170,7 @@ public class DefaultPreheatService implements PreheatService {
         if (!identifiers.isEmpty()) {
           for (List<String> ids : identifiers) {
             Query query = Query.from(schemaService.getDynamicSchema(klass));
-            query.setCurrentUserDetails(UserDetailsImpl.fromUser(preheat.getUser()));
+            query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
             query.add(Restrictions.in("code", ids));
             List<? extends IdentifiableObject> objects = queryService.query(query);
             preheat.put(PreheatIdentifier.CODE, objects);
@@ -184,7 +184,7 @@ public class DefaultPreheatService implements PreheatService {
 
         for (List<String> ids : identifiers) {
           Query query = Query.from(schemaService.getDynamicSchema(User.class));
-          query.setCurrentUserDetails(UserDetailsImpl.fromUser(preheat.getUser()));
+          query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
           query.add(Restrictions.in("id", ids));
           List<? extends IdentifiableObject> objects = queryService.query(query);
           preheat.put(PreheatIdentifier.UID, objects);
@@ -197,7 +197,7 @@ public class DefaultPreheatService implements PreheatService {
 
         for (List<String> ids : identifiers) {
           Query query = Query.from(schemaService.getDynamicSchema(UserRole.class));
-          query.setCurrentUserDetails(UserDetailsImpl.fromUser(preheat.getUser()));
+          query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
           query.add(Restrictions.in("id", ids));
           List<? extends IdentifiableObject> objects = queryService.query(query);
           preheat.put(PreheatIdentifier.UID, objects);

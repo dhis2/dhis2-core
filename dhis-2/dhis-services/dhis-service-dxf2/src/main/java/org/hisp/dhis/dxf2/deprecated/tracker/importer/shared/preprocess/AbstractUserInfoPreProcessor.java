@@ -41,7 +41,7 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 
 public abstract class AbstractUserInfoPreProcessor implements Processor {
 
@@ -53,7 +53,7 @@ public abstract class AbstractUserInfoPreProcessor implements Processor {
             .orElseGet(() -> getUser(workContext));
 
     if (user != null) {
-      UserInfoSnapshot userInfo = UserInfoSnapshot.from(UserDetailsImpl.fromUser(user));
+      UserInfoSnapshot userInfo = UserInfoSnapshot.from(UserDetails.fromUser(user));
       updateEventUserInfo(event, userInfo);
 
       Set<String> updatableDataValues =

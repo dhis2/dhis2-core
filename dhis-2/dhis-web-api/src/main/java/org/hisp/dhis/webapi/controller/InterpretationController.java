@@ -66,6 +66,7 @@ import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
@@ -364,7 +365,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
       return notFound("Interpretation does not exist: " + uid);
     }
 
-    if (!currentUserDetails.equals(UserDetailsImpl.fromUser(interpretation.getCreatedBy()))
+    if (!currentUserDetails.equals(UserDetails.fromUser(interpretation.getCreatedBy()))
         && !currentUserDetails.isSuper()) {
       throw new AccessDeniedException("You are not allowed to delete this interpretation.");
     }

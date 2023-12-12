@@ -56,7 +56,6 @@ import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -263,7 +262,7 @@ public class DefaultMessageService implements MessageService {
     if (conversation.getMessageType().equals(MessageType.TICKET) && internal) {
       users =
           users.stream()
-              .filter(user -> hasAccessToManageFeedbackMessages(UserDetailsImpl.fromUser(user)))
+              .filter(user -> hasAccessToManageFeedbackMessages(UserDetails.fromUser(user)))
               .collect(Collectors.toSet());
     }
 

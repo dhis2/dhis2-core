@@ -41,7 +41,6 @@ import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
@@ -173,7 +172,7 @@ public class Dhis2JwtAuthenticationManagerResolver
       }
 
       //      CurrentUserDetails currentUserDetails = userService.createUserDetails(user);
-      UserDetails currentUserDetails = UserDetailsImpl.fromUser(user);
+      UserDetails currentUserDetails = UserDetails.fromUser(user);
 
       Collection<GrantedAuthority> grantedAuthorities = user.getAuthorities();
 

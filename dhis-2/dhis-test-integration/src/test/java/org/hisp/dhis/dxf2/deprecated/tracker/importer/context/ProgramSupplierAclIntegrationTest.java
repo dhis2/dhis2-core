@@ -49,7 +49,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -87,7 +87,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
     // Given
     final User demo = createUserWithAuth("demo", "ALL");
 
-    UserDetailsImpl currentUserDetails = UserDetailsImpl.fromUser(demo);
+    UserDetails currentUserDetails = UserDetails.fromUser(demo);
     injectSecurityContext(currentUserDetails);
 
     final Program program = createProgram('A');
@@ -104,8 +104,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
 
     final User noAuthUser = createUserWithAuth("noauth");
     assertFalse(
-        aclService.canDataWrite(
-            UserDetailsImpl.fromUser(noAuthUser), programs.get(program.getUid())));
+        aclService.canDataWrite(UserDetails.fromUser(noAuthUser), programs.get(program.getUid())));
   }
 
   @Test
@@ -233,7 +232,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
     assertThat(programs.keySet(), hasSize(1));
 
     ProgramStage programStage1 = getProgramStage(programs.get(program.getUid()));
-    assertTrue(aclService.canDataWrite(UserDetailsImpl.fromUser(user), programStage1));
+    assertTrue(aclService.canDataWrite(UserDetails.fromUser(user), programStage1));
   }
 
   @Test
@@ -327,7 +326,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
     assertThat(programs.keySet(), hasSize(1));
     assertTrue(
         aclService.canDataWrite(
-            UserDetailsImpl.fromUser(user), getTrackedEntityType(programs.get(program.getUid()))));
+            UserDetails.fromUser(user), getTrackedEntityType(programs.get(program.getUid()))));
   }
 
   @Test

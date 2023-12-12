@@ -896,7 +896,7 @@ public class DefaultUserService implements UserService {
               username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked));
     }
 
-    return UserDetailsImpl.createUserDetails(user, accountNonLocked, credentialsNonExpired);
+    return UserDetails.createUserDetails(user, accountNonLocked, credentialsNonExpired);
   }
 
   //  @Override
@@ -1025,18 +1025,19 @@ public class DefaultUserService implements UserService {
     return userStore.getLinkedUserAccounts(actingUser);
   }
 
-  public void invalidateUserSessions(String uid) {
-    UserDetailsImpl principal = getCurrentUserPrincipal(uid);
+  @Override
+  public void invalidateUserSessions(String userUid) {
+    UserDetails principal = getPrincipalFromSessionRegistry(userUid);
     if (principal != null) {
       List<SessionInformation> allSessions = sessionRegistry.getAllSessions(principal, false);
       allSessions.forEach(SessionInformation::expireNow);
     }
   }
 
-  private UserDetailsImpl getCurrentUserPrincipal(String uid) {
+  private UserDetails getPrincipalFromSessionRegistry(String userUid) {
     return sessionRegistry.getAllPrincipals().stream()
-        .map(UserDetailsImpl.class::cast)
-        .filter(principal -> principal.getUid().equals(uid))
+        .map(UserDetails.class::cast)
+        .filter(principal -> userUid.equals(principal.getUid()))
         .findFirst()
         .orElse(null);
   }

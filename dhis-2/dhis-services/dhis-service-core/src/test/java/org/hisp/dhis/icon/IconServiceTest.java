@@ -45,7 +45,6 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,7 +74,7 @@ class IconServiceTest {
     User user = new User();
     user.setId(1234);
     user.setUsername("user");
-    injectSecurityContext(UserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetails.fromUser(user));
 
     iconService.addCustomIcon(
         new CustomIcon(

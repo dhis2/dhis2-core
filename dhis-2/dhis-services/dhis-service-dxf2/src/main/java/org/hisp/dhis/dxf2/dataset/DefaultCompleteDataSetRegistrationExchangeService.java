@@ -83,7 +83,7 @@ import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.quick.BatchHandler;
@@ -657,9 +657,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
    */
   private List<String> validateDataAccess(User user, MetadataProperties metaDataProperties) {
     List<String> errors =
-        accessManager.canWrite(UserDetailsImpl.fromUser(user), metaDataProperties.dataSet);
+        accessManager.canWrite(UserDetails.fromUser(user), metaDataProperties.dataSet);
     errors.addAll(
-        accessManager.canWrite(UserDetailsImpl.fromUser(user), metaDataProperties.attrOptCombo));
+        accessManager.canWrite(UserDetails.fromUser(user), metaDataProperties.attrOptCombo));
     return errors;
   }
 

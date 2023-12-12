@@ -54,7 +54,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.staxwax.factory.XMLFactory;
@@ -377,7 +377,7 @@ public class SpringDataValueSetStore implements DataValueSetStore {
         + "from categoryoption co  "
         + " where "
         + JpaQueryUtils.generateSQlQueryForSharingCheck(
-            "co.sharing", UserDetailsImpl.fromUser(user), AclService.LIKE_READ_DATA)
+            "co.sharing", UserDetails.fromUser(user), AclService.LIKE_READ_DATA)
         + ") )";
   }
 

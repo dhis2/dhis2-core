@@ -139,7 +139,7 @@ public class MessageConversationController
       Map<String, String> parameters) {
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    if (!messageService.hasAccessToManageFeedbackMessages(UserDetailsImpl.fromUser(currentUser))) {
+    if (!messageService.hasAccessToManageFeedbackMessages(UserDetails.fromUser(currentUser))) {
       entity.setMessages(
           entity.getMessages().stream().filter(message -> !message.isInternal()).toList());
     }
@@ -581,7 +581,7 @@ public class MessageConversationController
 
     if (messageConversation.getMessageType() == MessageType.TICKET
         && !configurationService.isUserInFeedbackRecipientUserGroup(
-            UserDetailsImpl.fromUser(userToAssign))) {
+            UserDetails.fromUser(userToAssign))) {
       response.setStatus(HttpServletResponse.SC_CONFLICT);
       responseNode.addChild(
           new SimpleNode(
@@ -713,7 +713,7 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, UserDetailsImpl.fromUser(user))) {
+    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
       throw new UpdateAccessDeniedException("Not authorized to modify this object.");
     }
 
@@ -768,7 +768,7 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, UserDetailsImpl.fromUser(user))) {
+    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
       throw new UpdateAccessDeniedException("Not authorized to modify this object.");
     }
 
@@ -846,7 +846,7 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, UserDetailsImpl.fromUser(user))) {
+    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
 
       throw new DeleteAccessDeniedException("Not authorized to modify user: " + user.getUid());
     }
@@ -896,7 +896,7 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, UserDetailsImpl.fromUser(user))) {
+    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
       throw new DeleteAccessDeniedException("Not authorized to modify user: " + user.getUid());
     }
 
@@ -981,7 +981,7 @@ public class MessageConversationController
    * @return true if the current user is allowed to remove the user from a conversation, false
    *     otherwise.
    */
-  private boolean canModifyUserConversation(UserDetailsImpl currentUser, UserDetailsImpl user) {
+  private boolean canModifyUserConversation(UserDetails currentUser, UserDetails user) {
     return currentUser.equals(user) || currentUser.isSuper();
   }
 
@@ -1023,7 +1023,7 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, UserDetailsImpl.fromUser(user))) {
+    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
       throw new UpdateAccessDeniedException("Not authorized to modify this object.");
     }
 

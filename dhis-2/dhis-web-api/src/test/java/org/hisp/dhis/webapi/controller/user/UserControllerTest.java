@@ -58,7 +58,6 @@ import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserRole;
@@ -200,10 +199,10 @@ class UserControllerTest {
     // make current user have ALL authority
     setUpUserAuthority(currentUser, UserRole.AUTHORITY_ALL);
 
-    injectSecurityContext(UserDetailsImpl.fromUser(currentUser));
+    injectSecurityContext(UserDetails.fromUser(currentUser));
 
     // allow any change
-    when(aclService.canUpdate(any(UserDetailsImpl.class), any())).thenReturn(true);
+    when(aclService.canUpdate(any(UserDetails.class), any())).thenReturn(true);
 
     lenient().when(userService.canAddOrUpdateUser(any(), any())).thenReturn(true);
     // link user and current user to service methods
@@ -278,8 +277,8 @@ class UserControllerTest {
     addUserTo(user);
     addUserTo(currentUser);
     setUpUserAuthority(currentUser, UserRole.AUTHORITY_ALL);
-    injectSecurityContext(UserDetailsImpl.fromUser(currentUser));
-    when(aclService.canUpdate(any(UserDetailsImpl.class), any())).thenReturn(false);
+    injectSecurityContext(UserDetails.fromUser(currentUser));
+    when(aclService.canUpdate(any(UserDetails.class), any())).thenReturn(false);
     lenient().when(userService.canAddOrUpdateUser(any(), any())).thenReturn(true);
     when(userService.getUser(user.getUid())).thenReturn(user);
 

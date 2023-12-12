@@ -78,7 +78,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -768,7 +767,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   @Transactional
   public void updateTrackedEntity(TrackedEntity trackedEntity, User user) {
-    trackedEntityStore.update(trackedEntity, UserDetailsImpl.fromUser(user));
+    trackedEntityStore.update(trackedEntity, UserDetails.fromUser(user));
   }
 
   @Override

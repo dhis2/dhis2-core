@@ -60,7 +60,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.springframework.stereotype.Component;
 
 /**
@@ -695,7 +694,7 @@ public class DataValueSetImportValidator {
                   key,
                   () ->
                       isLocked(
-                          UserDetailsImpl.fromUser(context.getCurrentUser()),
+                          UserDetails.fromUser(context.getCurrentUser()),
                           dataSet,
                           valueContext.getPeriod(),
                           valueContext.getOrgUnit(),

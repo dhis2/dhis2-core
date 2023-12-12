@@ -70,7 +70,7 @@ import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -250,7 +250,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       TrackedEntity trackedEntity, User user) {
     Set<TrackedEntityAttribute> readableAttributes =
         trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-            UserDetailsImpl.fromUser(user));
+            UserDetails.fromUser(user));
     return trackedEntity.getTrackedEntityAttributeValues().stream()
         .filter(av -> readableAttributes.contains(av.getAttribute()))
         .collect(Collectors.toCollection(LinkedHashSet::new));

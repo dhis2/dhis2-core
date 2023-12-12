@@ -92,6 +92,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserDetailsImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -443,7 +444,7 @@ class DimensionalObjectProducerTest {
 
     // when
     when(idObjectManager.get(DYNAMIC_DIM_CLASSES, UID, categoryUid)).thenReturn(category);
-    when(aclService.canDataOrMetadataRead(any(UserDetailsImpl.class), any(CategoryOption.class)))
+    when(aclService.canDataOrMetadataRead(any(UserDetails.class), any(CategoryOption.class)))
         .thenReturn(true);
 
     Optional<BaseDimensionalObject> dimensionalObject =

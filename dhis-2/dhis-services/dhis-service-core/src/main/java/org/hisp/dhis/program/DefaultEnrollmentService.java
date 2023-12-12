@@ -53,7 +53,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -162,7 +162,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
   @Override
   @Transactional
   public void updateEnrollment(Enrollment enrollment, User user) {
-    enrollmentStore.update(enrollment, UserDetailsImpl.fromUser(user));
+    enrollmentStore.update(enrollment, UserDetails.fromUser(user));
   }
 
   // TODO consider security

@@ -29,15 +29,12 @@ package org.hisp.dhis.user;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.springframework.security.core.GrantedAuthority;
 
 @Getter
@@ -88,57 +85,5 @@ public class UserDetailsImpl implements UserDetails {
     }
     final Set<String> auths = getAllAuthorities();
     return auths.contains(UserRole.AUTHORITY_ALL) || auths.contains(auth);
-  }
-
-  public static UserDetailsImpl fromUser(User user) {
-    return createUserDetails(user, true, true);
-  }
-
-  public static UserDetailsImpl createUserDetails(
-      User user, boolean accountNonLocked, boolean credentialsNonExpired) {
-
-    if (user == null) {
-      return null;
-    }
-
-    UserDetailsImpl userDetails = new UserDetailsImpl();
-    userDetails.setId(user.getId());
-    userDetails.setUid(user.getUid());
-    userDetails.setUsername(user.getUsername());
-    userDetails.setPassword(user.getPassword());
-
-    userDetails.setCode(user.getCode());
-    userDetails.setFirstName(user.getFirstName());
-    userDetails.setSurname(user.getSurname());
-
-    userDetails.setEnabled(user.isEnabled());
-    userDetails.setAccountNonExpired(user.isAccountNonExpired());
-    userDetails.setAccountNonLocked(accountNonLocked);
-    userDetails.setCredentialsNonExpired(credentialsNonExpired);
-
-    userDetails.setAuthorities(user.getAuthorities());
-    userDetails.setAllAuthorities(
-        user.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .collect(Collectors.toUnmodifiableSet()));
-    userDetails.setSuper(user.isSuper());
-
-    userDetails.setUserRoleIds(
-        user.getUserRoles().stream()
-            .map(BaseIdentifiableObject::getUid)
-            .collect(Collectors.toSet()));
-
-    Set<String> groupIds =
-        user.getGroups().stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet());
-    userDetails.setUserGroupIds(user.getUid() == null ? Set.of() : groupIds);
-
-    userDetails.setUserOrgUnitIds(
-        user.getOrganisationUnits().stream()
-            .map(BaseIdentifiableObject::getUid)
-            .collect(Collectors.toSet()));
-
-    userDetails.setUserSettings(new HashMap<>());
-
-    return userDetails;
   }
 }

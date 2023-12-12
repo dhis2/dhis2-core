@@ -44,7 +44,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudi
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -101,7 +101,7 @@ class DefaultTrackedEntityServiceTest {
     user.setOrganisationUnits(Set.of(new OrganisationUnit("A")));
     user.setTeiSearchOrganisationUnits(Set.of(new OrganisationUnit("B")));
     this.user = user;
-    injectSecurityContext(UserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetails.fromUser(user));
 
     params = new TrackedEntityQueryParams();
     params.setOrgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);

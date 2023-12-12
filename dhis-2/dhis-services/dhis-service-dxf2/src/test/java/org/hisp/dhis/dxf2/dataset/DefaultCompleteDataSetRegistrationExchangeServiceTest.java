@@ -88,7 +88,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
@@ -205,7 +205,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
 
   @Test
   void verifyUserHasNoWritePermissionOnCategoryOption() {
-    injectSecurityContext(UserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetails.fromUser(user));
     when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
     OrganisationUnit organisationUnit = createOrganisationUnit('A');

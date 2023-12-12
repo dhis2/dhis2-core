@@ -81,7 +81,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
@@ -154,7 +154,7 @@ class EventOperationParamsMapperTest {
     user.setUsername("test");
     user.setOrganisationUnits(Set.of(orgUnit));
 
-    injectSecurityContext(UserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetails.fromUser(user));
     when(userService.getUserByUsername(anyString())).thenReturn(user);
 
     // By default, set to ACCESSIBLE for tests that don't set an orgUnit. The orgUnitMode needs to
@@ -499,7 +499,7 @@ class EventOperationParamsMapperTest {
     user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit", "uid")));
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
 
-    injectSecurityContext(UserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetails.fromUser(user));
     when(userService.getUserByUsername(anyString())).thenReturn(user);
 
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
@@ -538,7 +538,7 @@ class EventOperationParamsMapperTest {
     userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
     user.setUserRoles(Set.of(userRole));
 
-    injectSecurityContext(UserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetails.fromUser(user));
     when(userService.getUserByUsername(anyString())).thenReturn(user);
 
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
@@ -578,7 +578,7 @@ class EventOperationParamsMapperTest {
     userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
     user.setUserRoles(Set.of(userRole));
 
-    injectSecurityContext(UserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetails.fromUser(user));
     when(userService.getUserByUsername(anyString())).thenReturn(user);
 
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
@@ -626,7 +626,7 @@ class EventOperationParamsMapperTest {
     User mappedUser = userMap.get(userName);
     mappedUser.setUsername(userName);
 
-    injectSecurityContext(UserDetailsImpl.fromUser(mappedUser));
+    injectSecurityContext(UserDetails.fromUser(mappedUser));
     when(userService.getUserByUsername(anyString())).thenReturn(mappedUser);
 
     EventOperationParams operationParams = eventBuilder.orgUnitMode(ALL).build();
@@ -642,7 +642,7 @@ class EventOperationParamsMapperTest {
     User mappedUser = userMap.get("admin");
     mappedUser.setUsername("admin");
 
-    injectSecurityContext(UserDetailsImpl.fromUser(mappedUser));
+    injectSecurityContext(UserDetails.fromUser(mappedUser));
     when(userService.getUserByUsername(anyString())).thenReturn(mappedUser);
 
     EventOperationParams operationParams =
@@ -657,7 +657,7 @@ class EventOperationParamsMapperTest {
     User mappedUser = userMap.get("admin");
     mappedUser.setUsername("admin");
 
-    injectSecurityContext(UserDetailsImpl.fromUser(mappedUser));
+    injectSecurityContext(UserDetails.fromUser(mappedUser));
     when(userService.getUserByUsername(anyString())).thenReturn(mappedUser);
 
     EventOperationParams operationParams =

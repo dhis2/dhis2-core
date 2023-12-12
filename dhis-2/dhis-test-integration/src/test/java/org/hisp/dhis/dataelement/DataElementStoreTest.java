@@ -50,7 +50,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -392,7 +392,7 @@ class DataElementStoreTest extends SingleSetupIntegrationTestBase {
     assertFalse(dataElementStore.existsByUser(userB, Set.of("createdBy")));
 
     dataElementA.setDescription("update");
-    dataElementStore.update(dataElementA, UserDetailsImpl.fromUser(userB));
+    dataElementStore.update(dataElementA, UserDetails.fromUser(userB));
     assertFalse(dataElementStore.existsByUser(userA, Set.of("lastUpdatedBy")));
     assertTrue(dataElementStore.existsByUser(userB, Set.of("lastUpdatedBy")));
 

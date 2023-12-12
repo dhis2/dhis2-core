@@ -56,7 +56,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.jupiter.api.BeforeEach;
@@ -103,7 +103,7 @@ class DataItemQueryControllerTest {
 
     // When
     when(dataItemServiceFacade.extractTargetEntities(anySet())).thenReturn(targetEntities);
-    when(aclService.canRead(UserDetailsImpl.fromUser(anyUser), Indicator.class)).thenReturn(true);
+    when(aclService.canRead(UserDetails.fromUser(anyUser), Indicator.class)).thenReturn(true);
     when(dataItemServiceFacade.retrieveDataItemEntities(
             anySet(), anySet(), any(WebOptions.class), any(OrderParams.class)))
         .thenReturn(itemsFound);
@@ -131,7 +131,7 @@ class DataItemQueryControllerTest {
 
     // When
     when(dataItemServiceFacade.extractTargetEntities(anySet())).thenReturn(targetEntities);
-    when(aclService.canRead(UserDetailsImpl.fromUser(anyUser), Indicator.class)).thenReturn(true);
+    when(aclService.canRead(UserDetails.fromUser(anyUser), Indicator.class)).thenReturn(true);
     when(dataItemServiceFacade.retrieveDataItemEntities(
             anySet(), anySet(), any(WebOptions.class), any(OrderParams.class)))
         .thenReturn(itemsFound);
@@ -158,8 +158,7 @@ class DataItemQueryControllerTest {
 
     // When
     when(dataItemServiceFacade.extractTargetEntities(anySet())).thenReturn(targetEntities);
-    when(aclService.canRead(UserDetailsImpl.fromUser(anyUser), Indicator.class))
-        .thenReturn(invalidAcl);
+    when(aclService.canRead(UserDetails.fromUser(anyUser), Indicator.class)).thenReturn(invalidAcl);
 
     final IllegalQueryException ex =
         assertThrows(

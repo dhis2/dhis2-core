@@ -76,7 +76,6 @@ import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.util.SharingUtils;
 import org.springframework.stereotype.Component;
@@ -1242,7 +1241,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     boolean hasLastUpdatedBy =
         schema.getPersistedProperty(BaseIdentifiableObject_.LAST_UPDATED_BY) != null;
 
-    UserDetails currentUserDetails = UserDetailsImpl.fromUser(user);
+    UserDetails currentUserDetails = UserDetails.fromUser(user);
     if (hasCreatedBy && hasLastUpdatedBy) {
       return store.findByUser(currentUserDetails);
     } else if (hasLastUpdatedBy) {

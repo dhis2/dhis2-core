@@ -73,7 +73,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
@@ -759,7 +759,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
     // Find all the RelationshipTypes first, so we know what the uids refer
     // to
     Query query = Query.from(schemaService.getDynamicSchema(RelationshipType.class));
-    query.setCurrentUserDetails(UserDetailsImpl.fromUser(user));
+    query.setCurrentUserDetails(UserDetails.fromUser(user));
     query.add(Restrictions.in("id", relationshipTypeMap.keySet()));
     queryService
         .query(query)
@@ -802,7 +802,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
 
     if (relationshipEntities.get(PROGRAM_INSTANCE) != null) {
       Query piQuery = Query.from(schemaService.getDynamicSchema(Enrollment.class));
-      piQuery.setCurrentUserDetails(UserDetailsImpl.fromUser(user));
+      piQuery.setCurrentUserDetails(UserDetails.fromUser(user));
       piQuery.add(Restrictions.in("id", relationshipEntities.get(PROGRAM_INSTANCE)));
       queryService
           .query(piQuery)
@@ -811,7 +811,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
 
     if (relationshipEntities.get(PROGRAM_STAGE_INSTANCE) != null) {
       Query psiQuery = Query.from(schemaService.getDynamicSchema(Event.class));
-      psiQuery.setCurrentUserDetails(UserDetailsImpl.fromUser(user));
+      psiQuery.setCurrentUserDetails(UserDetails.fromUser(user));
       psiQuery.add(Restrictions.in("id", relationshipEntities.get(PROGRAM_STAGE_INSTANCE)));
       queryService
           .query(psiQuery)

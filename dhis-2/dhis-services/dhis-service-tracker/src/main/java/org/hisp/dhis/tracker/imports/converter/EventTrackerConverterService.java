@@ -56,7 +56,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -198,7 +197,7 @@ public class EventTrackerConverterService
 
     Date now = new Date();
 
-    UserDetails preheatUser = UserDetailsImpl.fromUser(preheat.getUser());
+    UserDetails preheatUser = UserDetails.fromUser(preheat.getUser());
     if (isNewEntity(result)) {
       result = new Event();
       result.setUid(!StringUtils.isEmpty(event.getEvent()) ? event.getEvent() : event.getUid());

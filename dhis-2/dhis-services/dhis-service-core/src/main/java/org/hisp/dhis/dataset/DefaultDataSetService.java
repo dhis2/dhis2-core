@@ -51,7 +51,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -292,7 +291,7 @@ public class DefaultDataSetService implements DataSetService {
         period,
         organisationUnit,
         attributeOptionCombo,
-        UserDetailsImpl.fromUser(user),
+        UserDetails.fromUser(user),
         now);
   }
 

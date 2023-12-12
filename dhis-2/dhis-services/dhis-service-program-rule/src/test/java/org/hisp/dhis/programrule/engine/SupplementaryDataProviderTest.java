@@ -44,7 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,7 +77,7 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest {
     user.setUsername("A");
     user.setUserRoles(getUserRoles());
 
-    injectSecurityContext(UserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetails.fromUser(user));
 
     orgUnitA = createOrganisationUnit('A');
     orgUnitB = createOrganisationUnit('B');

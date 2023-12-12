@@ -114,7 +114,6 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
@@ -1118,7 +1117,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
             options.isRequireAttributeOptionCombo()
                 || settings.getBoolSetting(SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO))
         .forceDataInput(
-            inputUtils.canForceDataInput(UserDetailsImpl.fromUser(currentUser), options.isForce()))
+            inputUtils.canForceDataInput(UserDetails.fromUser(currentUser), options.isForce()))
 
         // data fetching state
         .dataElementCallable(

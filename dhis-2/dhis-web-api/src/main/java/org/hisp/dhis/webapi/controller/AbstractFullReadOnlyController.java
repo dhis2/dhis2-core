@@ -213,7 +213,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      UserDetailsImpl currentUser,
+      UserDetails userDetails,
       boolean countTotal,
       CheckedFunction<ListParams, List<T>> fetchList)
       throws ForbiddenException, BadRequestException {
@@ -228,7 +228,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     WebOptions options = new WebOptions(rpParameters);
     WebMetadata metadata = new WebMetadata();
 
-    if (!aclService.canRead(currentUser, getEntityClass())) {
+    if (!aclService.canRead(userDetails, getEntityClass())) {
       throw new ForbiddenException(
           "You don't have the proper permissions to read objects of this type.");
     }

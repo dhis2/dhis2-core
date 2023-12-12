@@ -99,7 +99,7 @@ import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
@@ -1482,7 +1482,7 @@ class JdbcEventStore implements EventStore {
           joinCondition
               + " having bool_and(case when "
               + JpaQueryUtils.generateSQlQueryForSharingCheck(
-                  "co.sharing", UserDetailsImpl.fromUser(user), AclService.LIKE_READ_DATA)
+                  "co.sharing", UserDetails.fromUser(user), AclService.LIKE_READ_DATA)
               + " then true else false end) = True ";
     }
 

@@ -47,7 +47,6 @@ import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -123,7 +122,7 @@ public class EnrollmentTrackerConverterService
 
     Date now = new Date();
 
-    UserDetails preheatUser = UserDetailsImpl.fromUser(preheat.getUser());
+    UserDetails preheatUser = UserDetails.fromUser(preheat.getUser());
     if (isNewEntity(dbEnrollment)) {
       dbEnrollment = new Enrollment();
       dbEnrollment.setUid(

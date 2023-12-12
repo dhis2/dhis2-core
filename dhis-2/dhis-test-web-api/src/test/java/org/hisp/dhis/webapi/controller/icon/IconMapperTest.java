@@ -40,7 +40,7 @@ import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,7 +87,7 @@ class IconMapperTest {
     User user = new User();
     user.setUid("user uid");
     when(userService.getUserByUsername(user.getUsername())).thenReturn(user);
-    UserDetailsImpl currentUserDetails = UserDetailsImpl.fromUser(user);
+    UserDetails currentUserDetails = UserDetails.fromUser(user);
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
             currentUserDetails, "", currentUserDetails.getAuthorities());

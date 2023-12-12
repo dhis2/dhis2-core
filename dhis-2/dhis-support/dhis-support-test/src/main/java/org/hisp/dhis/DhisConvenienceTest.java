@@ -192,7 +192,6 @@ import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -2619,7 +2618,7 @@ public abstract class DhisConvenienceTest {
     }
     hibernateService.flushSession();
     user = userService.getUser(user.getUid());
-    injectSecurityContext(UserDetailsImpl.fromUser(user));
+    injectSecurityContext(UserDetails.fromUser(user));
   }
 
   public static void injectSecurityContext(UserDetails currentUserDetails) {

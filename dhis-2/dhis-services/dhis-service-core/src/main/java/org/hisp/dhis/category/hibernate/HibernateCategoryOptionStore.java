@@ -37,7 +37,6 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -72,7 +71,7 @@ public class HibernateCategoryOptionStore extends HibernateIdentifiableObjectSto
   public List<CategoryOption> getDataWriteCategoryOptions(Category category, User user) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
-    UserDetails currentUserDetails = UserDetailsImpl.fromUser(user);
+    UserDetails currentUserDetails = UserDetails.fromUser(user);
     return getList(
         builder,
         newJpaParameters()

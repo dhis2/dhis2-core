@@ -132,7 +132,7 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -1009,8 +1009,7 @@ public abstract class AbstractEventService
   }
 
   private void updateEntities(User user) {
-    trackedEntityInstancesToUpdate.forEach(
-        tei -> manager.update(tei, UserDetailsImpl.fromUser(user)));
+    trackedEntityInstancesToUpdate.forEach(tei -> manager.update(tei, UserDetails.fromUser(user)));
     trackedEntityInstancesToUpdate.clear();
   }
 
@@ -1023,8 +1022,7 @@ public abstract class AbstractEventService
       if (event.getEnrollment() != null) {
         if (!bulkUpdate) {
           if (event.getEnrollment().getTrackedEntity() != null) {
-            manager.update(
-                event.getEnrollment().getTrackedEntity(), UserDetailsImpl.fromUser(user));
+            manager.update(event.getEnrollment().getTrackedEntity(), UserDetails.fromUser(user));
           }
         } else {
           if (event.getEnrollment().getTrackedEntity() != null) {

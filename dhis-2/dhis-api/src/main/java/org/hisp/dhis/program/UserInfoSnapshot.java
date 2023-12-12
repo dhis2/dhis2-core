@@ -36,7 +36,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.notification.template.snapshot.IdentifiableObjectSnapshot;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 
 /**
  * Data structure to hold user information during save/update of events, enrollments and comments
@@ -90,7 +89,7 @@ public class UserInfoSnapshot extends IdentifiableObjectSnapshot {
   }
 
   public static UserInfoSnapshot from(User user) {
-    UserDetailsImpl currentUserDetails = UserDetailsImpl.fromUser(user);
+    UserDetails currentUserDetails = UserDetails.fromUser(user);
     return Optional.ofNullable(currentUserDetails)
         .map(UserInfoSnapshot::toUserInfoSnapshot)
         .orElse(null);

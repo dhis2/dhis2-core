@@ -64,6 +64,7 @@ import org.hisp.dhis.split.orgunit.OrgUnitSplitQuery;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.version.VersionService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -361,7 +362,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         rpParameters,
         orderParams,
         response,
-        UserDetailsImpl.fromUser(currentUser),
+        UserDetails.fromUser(currentUser),
         false,
         params -> new ArrayList<>(currentUser.getOrganisationUnits()));
   }
@@ -383,7 +384,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         rpParameters,
         orderParams,
         response,
-        UserDetailsImpl.fromUser(currentUser),
+        UserDetails.fromUser(currentUser),
         false,
         params -> new ArrayList<>(currentUser.getDataViewOrganisationUnits()));
   }
@@ -405,7 +406,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         rpParameters,
         orderParams,
         response,
-        UserDetailsImpl.fromUser(currentUser),
+        UserDetails.fromUser(currentUser),
         false,
         params ->
             currentUser.hasDataViewOrganisationUnit()
@@ -472,14 +473,15 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         && maxLevel == null
         && withinUserHierarchy == null
         && withinUserSearchHierarchy == null) {
+
       return super.getObjectList(
-          rpParameters, orderParams, response, UserDetailsImpl.fromUser(currentUser));
+          rpParameters, orderParams, response, (UserDetailsImpl) UserDetails.fromUser(currentUser));
     }
     return getObjectList(
         rpParameters,
         orderParams,
         response,
-        UserDetailsImpl.fromUser(currentUser),
+        UserDetails.fromUser(currentUser),
         false,
         parameters -> {
           OrganisationUnitQueryParams p = new OrganisationUnitQueryParams();
