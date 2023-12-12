@@ -53,7 +53,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -207,7 +207,7 @@ public class DataImportTest extends ApiTest {
     }
   }
 
-  @AfterAll
+  @AfterEach
   public void cleanUp() {
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     queryParamsBuilder.addAll("importReportMode=FULL", "importStrategy=DELETE");
