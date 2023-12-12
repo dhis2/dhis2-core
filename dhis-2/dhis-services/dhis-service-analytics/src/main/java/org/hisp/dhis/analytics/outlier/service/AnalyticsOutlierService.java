@@ -145,10 +145,8 @@ public class AnalyticsOutlierService {
   private void setHeaders(Grid grid, OutlierRequest request) {
     boolean isModifiedZScore = request.getAlgorithm() == MOD_Z_SCORE;
 
-    String zScoreOrModZscoreItem =
-        isModifiedZScore ? MODIFIED_ZSCORE.getItem() : ZSCORE.getItem();
-    String zScoreOrModZscoreName =
-        isModifiedZScore ? MODIFIED_ZSCORE.getName() : ZSCORE.getName();
+    String zScoreOrModZscoreItem = isModifiedZScore ? MODIFIED_ZSCORE.getItem() : ZSCORE.getItem();
+    String zScoreOrModZscoreName = isModifiedZScore ? MODIFIED_ZSCORE.getName() : ZSCORE.getName();
 
     String meanOrMedianItem = isModifiedZScore ? MEDIAN.getItem() : MEAN.getItem();
     String meanOrMedianName = isModifiedZScore ? MEDIAN.getName() : MEAN.getName();
