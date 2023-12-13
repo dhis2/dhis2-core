@@ -301,7 +301,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     assertEquals(singletonList("ANC2" + ":" + dataElementB), results);
   }
 
-  /*  @Test
+  @Test
   void testDataElementsNoDatasets() {
 
     String defaultCatCombo = getDefaultCatCombo();
@@ -341,7 +341,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     List<String> results =
         getDataIntegrityReport().getDataElementsWithoutDataSet().toList(JsonString::string);
     assertEquals(List.of("ANC2" + ":" + dataElementB), results);
-  }*/
+  }
 
   private JsonDataIntegrityReport getDataIntegrityReport() {
     return getDataIntegrityReport("/dataIntegrity");
