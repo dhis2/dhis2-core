@@ -27,11 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -40,16 +35,12 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -60,7 +51,6 @@ import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,8 +61,6 @@ import org.springframework.transaction.annotation.Transactional;
 class DefaultEnrollmentService
     implements org.hisp.dhis.tracker.export.enrollment.EnrollmentService {
   private final EnrollmentStore enrollmentStore;
-
-  private final AclService aclService;
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
@@ -201,20 +189,6 @@ class DefaultEnrollmentService
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
-    decideAccess(queryParams);
-    validate(queryParams);
-
-    User user = currentUserService.getCurrentUser();
-
-    if (user != null
-        && queryParams.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      queryParams.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
-      queryParams.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (user != null && queryParams.isOrganisationUnitMode(CAPTURE)) {
-      queryParams.setOrganisationUnits(user.getOrganisationUnits());
-      queryParams.setOrganisationUnitMode(DESCENDANTS);
-    }
-
     return getEnrollments(
         new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
         params.getEnrollmentParams(),
@@ -227,28 +201,6 @@ class DefaultEnrollmentService
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
-    decideAccess(queryParams);
-    validate(queryParams);
-
-    User user = currentUserService.getCurrentUser();
-
-    if (user != null
-        && queryParams.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      queryParams.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
-      queryParams.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (user != null && queryParams.isOrganisationUnitMode(CAPTURE)) {
-      queryParams.setOrganisationUnits(user.getOrganisationUnits());
-      queryParams.setOrganisationUnitMode(DESCENDANTS);
-    } else if (queryParams.isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> organisationUnits = new HashSet<>(queryParams.getOrganisationUnits());
-
-      for (OrganisationUnit organisationUnit : queryParams.getOrganisationUnits()) {
-        organisationUnits.addAll(organisationUnit.getChildren());
-      }
-
-      queryParams.setOrganisationUnits(organisationUnits);
-    }
-
     Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
     List<Enrollment> enrollments =
         getEnrollments(
@@ -258,65 +210,6 @@ class DefaultEnrollmentService
             queryParams.getOrganisationUnitMode());
 
     return Page.of(enrollments, enrollmentsPage.getPager());
-  }
-
-  public void decideAccess(EnrollmentQueryParams params) {
-    if (params.hasProgram()) {
-      if (!aclService.canDataRead(params.getUser(), params.getProgram())) {
-        throw new IllegalQueryException(
-            "Current user is not authorized to read data from selected program:  "
-                + params.getProgram().getUid());
-      }
-
-      if (params.getProgram().getTrackedEntityType() != null
-          && !aclService.canDataRead(
-              params.getUser(), params.getProgram().getTrackedEntityType())) {
-        throw new IllegalQueryException(
-            "Current user is not authorized to read data from selected program's tracked entity type:  "
-                + params.getProgram().getTrackedEntityType().getUid());
-      }
-    }
-
-    if (params.hasTrackedEntityType()
-        && !aclService.canDataRead(params.getUser(), params.getTrackedEntityType())) {
-      throw new IllegalQueryException(
-          "Current user is not authorized to read data from selected tracked entity type:  "
-              + params.getTrackedEntityType().getUid());
-    }
-  }
-
-  public void validate(EnrollmentQueryParams params) throws IllegalQueryException {
-    if (params.hasProgram() && params.hasTrackedEntityType()) {
-      throw new IllegalQueryException(
-          "Program and tracked entity cannot be specified simultaneously");
-    }
-
-    if (params.hasProgramStatus() && !params.hasProgram()) {
-      throw new IllegalQueryException("Program must be defined when program status is defined");
-    }
-
-    if (params.hasFollowUp() && !params.hasProgram()) {
-      throw new IllegalQueryException("Program must be defined when follow up status is defined");
-    }
-
-    if (params.hasProgramStartDate() && !params.hasProgram()) {
-      throw new IllegalQueryException(
-          "Program must be defined when program start date is specified");
-    }
-
-    if (params.hasProgramEndDate() && !params.hasProgram()) {
-      throw new IllegalQueryException("Program must be defined when program end date is specified");
-    }
-
-    if (params.hasLastUpdated() && params.hasLastUpdatedDuration()) {
-      throw new IllegalQueryException(
-          "Last updated and last updated duration cannot be specified simultaneously");
-    }
-
-    if (params.hasLastUpdatedDuration()
-        && DateUtils.getDuration(params.getLastUpdatedDuration()) == null) {
-      throw new IllegalQueryException("Duration is not valid: " + params.getLastUpdatedDuration());
-    }
   }
 
   private List<Enrollment> getEnrollments(
