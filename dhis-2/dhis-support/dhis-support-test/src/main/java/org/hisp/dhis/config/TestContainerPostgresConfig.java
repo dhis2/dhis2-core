@@ -39,22 +39,18 @@ import org.testcontainers.utility.DockerImageName;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @Configuration
-public class IntegrationTestConfig {
-  private static final String POSTGRES_DATABASE_NAME = "dhis";
-
-  private static final String POSTGRES_USERNAME = "dhis";
-
-  private static final String POSTGRES_PASSWORD = "dhis";
-
-  private static final DockerImageName POSTGIS_IMAGE_NAME =
-      DockerImageName.parse("postgis/postgis").asCompatibleSubstituteFor("postgres");
-
+public class TestContainerPostgresConfig {
   /**
    * Refers to the {@code postgis/postgis:10-2.5-alpine} image which contains PostgreSQL 10 and
    * PostGIS 2.5.
    */
   private static final String POSTGRES_POSTGIS_VERSION = "10-2.5-alpine";
 
+  private static final DockerImageName POSTGIS_IMAGE_NAME =
+      DockerImageName.parse("postgis/postgis").asCompatibleSubstituteFor("postgres");
+  private static final String POSTGRES_DATABASE_NAME = "dhis";
+  private static final String POSTGRES_USERNAME = "dhis";
+  private static final String POSTGRES_PASSWORD = "dhis";
   private static final PostgreSQLContainer<?> POSTGRES_CONTAINER;
 
   static {
@@ -69,26 +65,6 @@ public class IntegrationTestConfig {
 
     POSTGRES_CONTAINER.start();
   }
-
-  //  @Bean
-  //  public static SessionRegistry sessionRegistry() {
-  //    return new SessionRegistryImpl();
-  //  }
-  //
-  //  @Bean
-  //  public LdapAuthenticator ldapAuthenticator() {
-  //    return authentication -> null;
-  //  }
-  //
-  //  @Bean
-  //  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
-  //    return (dirContextOperations, s) -> null;
-  //  }
-  //
-  //  @Bean
-  //  public PasswordEncoder encoder() {
-  //    return new BCryptPasswordEncoder();
-  //  }
 
   @Bean(name = "dhisConfigurationProvider")
   public DhisConfigurationProvider dhisConfigurationProvider() {

@@ -33,7 +33,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.config.IntegrationTestConfig;
+import org.hisp.dhis.config.TestContainerPostgresConfig;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -61,7 +61,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(
-    classes = {IntegrationTestConfig.class, MvcTestConfig.class, WebTestConfiguration.class})
+    classes = {TestContainerPostgresConfig.class, MvcTestConfig.class, WebTestConfiguration.class})
 @ActiveProfiles(profiles = {"test-postgres"})
 @IntegrationTest
 @Transactional
