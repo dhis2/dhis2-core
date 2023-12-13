@@ -61,7 +61,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(
-    classes = {MvcTestConfig.class, WebTestConfiguration.class, IntegrationTestConfig.class})
+    classes = {IntegrationTestConfig.class, MvcTestConfig.class, WebTestConfiguration.class})
 @ActiveProfiles(profiles = {"test-postgres"})
 @IntegrationTest
 @Transactional
@@ -98,12 +98,12 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
     dbmsManager.flushSession();
     dbmsManager.clearSession();
-
-    this.currentUser = userService.getUserByUsername(this.currentUser.getUsername());
-    injectSecurityContextUser(this.currentUser);
-
-    dbmsManager.flushSession();
-    dbmsManager.clearSession();
+    //
+    //    this.currentUser = userService.getUserByUsername(this.currentUser.getUsername());
+    //    injectSecurityContextUser(this.currentUser);
+    //
+    //    dbmsManager.flushSession();
+    //    dbmsManager.clearSession();
   }
 
   protected void integrationTestBefore() throws Exception {

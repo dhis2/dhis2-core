@@ -118,11 +118,25 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     save(object, CurrentUserUtil.getCurrentUserDetails(), clearSharing);
   }
 
+  public List<User> findAllUsers() {
+    CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+    CriteriaQuery<User> cq = cb.createQuery(User.class);
+    Root<User> rootEntry = cq.from(User.class);
+    CriteriaQuery<User> all = cq.select(rootEntry);
+    TypedQuery<User> allQuery = entityManager.createQuery(all);
+    return allQuery.getResultList();
+  }
+
   private void save(T object, UserDetails userDetails, boolean clearSharing) {
     String username = userDetails != null ? userDetails.getUsername() : "system-process";
     object.setAutoFields();
 
     if (userDetails != null && userDetails.getId() != 0L) {
+
+      List<User> allUsers = findAllUsers();
+      //      log.error("allUsers: " + allUsers.size());
+      //      User user2 = getSession().find(User.class, userDetails.getId());
+      //      User user1 = getSession().get(User.class, userDetails.getId());
       User user = entityManager.getReference(User.class, userDetails.getId());
       object.setLastUpdatedBy(user);
 

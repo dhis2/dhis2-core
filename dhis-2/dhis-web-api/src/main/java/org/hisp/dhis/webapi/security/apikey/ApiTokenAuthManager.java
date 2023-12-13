@@ -42,6 +42,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.UserStore;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -68,7 +69,7 @@ public class ApiTokenAuthManager implements AuthenticationManager {
       UserStore userStore,
       ApiTokenService apiTokenService,
       CacheProvider cacheProvider,
-      UserService userService,
+      @Lazy UserService userService,
       UserSettingService userSettingService) {
     this.userService = userService;
     this.userStore = userStore;

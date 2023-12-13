@@ -315,6 +315,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   }
 
   @Override
+  // TODO: MAS can this be removed and we rely on first fetch on login?
   public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);
