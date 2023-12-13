@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityDataElementsNoDatasetControllerTest
     extends AbstractDataIntegrityIntegrationTest {
-  private static final String check = "aggregate_des_no_datasets";
+  private static final String check = "data_elements_without_datasets";
 
   private static final String detailsIdType = "dataElements";
 

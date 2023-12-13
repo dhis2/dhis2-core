@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: aggregate_des_no_datasets
+name: data_elements_without_datasets
 description: Aggregate data elements which are not a member of any dataset.
 section: Data elements (aggregate)
 section_order: 7
