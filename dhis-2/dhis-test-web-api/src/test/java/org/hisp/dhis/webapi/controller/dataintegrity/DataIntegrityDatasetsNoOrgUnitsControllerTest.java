@@ -80,14 +80,14 @@ class DataIntegrityDatasetsNoOrgUnitsControllerTest extends AbstractDataIntegrit
 
     String defaultCatCombo = getDefaultCatCombo();
 
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
-                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataElements",
+            "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-        String orgunitA =
+    String orgunitA =
         assertStatus(
             HttpStatus.CREATED,
             POST(
