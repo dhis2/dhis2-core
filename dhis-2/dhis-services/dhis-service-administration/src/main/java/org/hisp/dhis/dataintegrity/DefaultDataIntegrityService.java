@@ -654,7 +654,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       checks.add("organisation_units_without_groups");
       checks.add("data_elements_aggregate_no_groups");
       checks.add("data_elements_aggregate_with_different_period_types");
-      checks.add("aggregate_des_no_datasets");
+      checks.add("data_elements_without_datasets");
     }
     runDetailsChecks(checks, progress);
     return new FlattenedDataIntegrityReport(getDetails(checks, -1L));
