@@ -30,6 +30,7 @@ package org.hisp.dhis.test.integration;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.config.IntegrationBaseConfig;
 import org.hisp.dhis.config.TestContainerPostgresConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 /*
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@ContextConfiguration(classes = {TestContainerPostgresConfig.class})
+@ContextConfiguration(classes = {IntegrationBaseConfig.class, TestContainerPostgresConfig.class})
 @IntegrationTest
 @ActiveProfiles(profiles = {"test-postgres"})
 @Transactional
