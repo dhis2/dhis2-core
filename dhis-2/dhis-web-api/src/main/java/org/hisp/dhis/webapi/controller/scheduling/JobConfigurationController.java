@@ -192,6 +192,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
       throws ConflictException {
     checkModifiable(before, "Job %s is a system job that cannot be modified.");
     checkModifiable(after, "Job %s can not be changed into a system job.");
+    after.setEnabled(before.isEnabled());
   }
 
   @Override
