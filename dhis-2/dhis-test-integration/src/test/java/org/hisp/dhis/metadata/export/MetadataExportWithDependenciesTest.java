@@ -25,55 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.metadata.export;
 
-import java.util.Date;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** Custom icons are uploaded by users and can be modified and deleted. */
-@Getter
-@Setter
-@NoArgsConstructor
-@EqualsAndHashCode(of = {"key", "description", "keywords", "fileResourceUid", "createdByUserUid"})
-public class CustomIcon implements Icon {
-  private String key;
+import java.util.Map;
+import java.util.Set;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.MetadataExportService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramSection;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-  private String description;
+class MetadataExportWithDependenciesTest extends SingleSetupIntegrationTestBase {
 
-  private String[] keywords;
+  @PersistenceContext private EntityManager entityManager;
+  @Autowired private MetadataExportService metadataExportService;
 
-  private String fileResourceUid;
+  @Test
+  void testExportProgramWithProgramSection() {
+    Program program = createProgram('A');
+    entityManager.persist(program);
+    ProgramSection programSection = createProgramSection('A', program);
+    program.getProgramSections().add(programSection);
+    entityManager.persist(programSection);
+    Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> export =
+        metadataExportService.getMetadataWithDependencies(program);
 
-  private String createdByUserUid;
-
-  private Date created;
-
-  private Date lastUpdated;
-
-  public CustomIcon(
-      String key,
-      String description,
-      String[] keywords,
-      String fileResourceUid,
-      String createdByUserUid) {
-    this.key = key;
-    this.description = description;
-    this.keywords = keywords;
-    this.fileResourceUid = fileResourceUid;
-    this.createdByUserUid = createdByUserUid;
-    this.setAutoFields();
-  }
-
-  public void setAutoFields() {
-    Date date = new Date();
-
-    if (created == null) {
-      created = date;
-    }
-
-    lastUpdated = date;
+    assertEquals(1, export.get(Program.class).size());
+    assertEquals(1, export.get(ProgramSection.class).size());
   }
 }
