@@ -56,7 +56,7 @@ public enum ColumnHeader {
   POINTS("points", "Points"),
   EVENT_STATUS("eventstatus", "Event status"),
   DIMENSION("dx", "Data"),
-  DIMENSION_NAME("dxname", "Event status"),
+  DIMENSION_NAME("dxname", "Data name"),
   PERIOD("pe", "Event status"),
   CATEGORY_OPTION_COMBO("coc", "Category option combo"),
   CATEGORY_OPTION_COMBO_NAME("cocname", "Category option combo name"),

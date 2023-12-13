@@ -25,8 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.outlierdetection.service;
+package org.hisp.dhis.analytics.outlier.service;
 
+import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MOD_Z_SCORE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ABSOLUTE_DEVIATION;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ATTRIBUTE_OPTION_COMBO;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ATTRIBUTE_OPTION_COMBO_NAME;
@@ -35,17 +36,19 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.CATEGORY_OPTION_COMBO_
 import static org.hisp.dhis.analytics.common.ColumnHeader.DIMENSION;
 import static org.hisp.dhis.analytics.common.ColumnHeader.DIMENSION_NAME;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LOWER_BOUNDARY;
+import static org.hisp.dhis.analytics.common.ColumnHeader.MEAN;
 import static org.hisp.dhis.analytics.common.ColumnHeader.MEDIAN;
 import static org.hisp.dhis.analytics.common.ColumnHeader.MEDIAN_ABS_DEVIATION;
+import static org.hisp.dhis.analytics.common.ColumnHeader.MODIFIED_ZSCORE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PERIOD;
 import static org.hisp.dhis.analytics.common.ColumnHeader.STANDARD_DEVIATION;
 import static org.hisp.dhis.analytics.common.ColumnHeader.UPPER_BOUNDARY;
 import static org.hisp.dhis.analytics.common.ColumnHeader.VALUE;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ZSCORE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
-import static org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm.MOD_Z_SCORE;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -53,13 +56,11 @@ import java.io.Writer;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.common.ColumnHeader;
+import org.hisp.dhis.analytics.outlier.data.Outlier;
+import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
-import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.stereotype.Service;
@@ -67,23 +68,23 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @AllArgsConstructor
 @Service
-public class AnalyticsOutlierDetectionService {
+public class AnalyticsOutlierService {
 
-  private final AnalyticsZScoreOutlierDetectionManager zScoreOutlierDetection;
+  private final AnalyticsZScoreOutlierManager zScoreOutlierDetection;
 
   /**
    * Transform the incoming request into api response (json).
    *
-   * @param request the {@link OutlierDetectionRequest}.
-   * @return the {@link OutlierDetectionResponse}.
+   * @param request the {@link OutlierRequest}.
+   * @return the {@link Grid}.
    */
-  public Grid getOutlierValues(OutlierDetectionRequest request) throws IllegalQueryException {
-    List<OutlierValue> outlierValues = zScoreOutlierDetection.getOutlierValues(request);
+  public Grid getOutlierValues(OutlierRequest request) throws IllegalQueryException {
+    List<Outlier> outliers = zScoreOutlierDetection.getOutlierValues(request);
 
     Grid grid = new ListGrid();
     setHeaders(grid, request);
-    setMetaData(grid, request, outlierValues);
-    setRows(grid, outlierValues, request);
+    setMetaData(grid, request, outliers);
+    setRows(grid, outliers, request);
 
     return grid;
   }
@@ -91,10 +92,9 @@ public class AnalyticsOutlierDetectionService {
   /**
    * Transform the incoming request into api response (csv download).
    *
-   * @param request the {@link OutlierDetectionRequest}.
-   * @return the {@link OutlierDetectionResponse}.
+   * @param request the {@link OutlierRequest}.
    */
-  public void getOutlierValuesAsCsv(OutlierDetectionRequest request, Writer writer)
+  public void getOutlierValuesAsCsv(OutlierRequest request, Writer writer)
       throws IllegalQueryException, IOException {
     GridUtils.toCsv(getOutlierValues(request), writer);
   }
@@ -102,10 +102,9 @@ public class AnalyticsOutlierDetectionService {
   /**
    * Transform the incoming request into api response (xml).
    *
-   * @param request the {@link OutlierDetectionRequest}.
-   * @return the {@link OutlierDetectionResponse}.
+   * @param request the {@link OutlierRequest}.
    */
-  public void getOutlierValuesAsXml(OutlierDetectionRequest request, OutputStream outputStream)
+  public void getOutlierValuesAsXml(OutlierRequest request, OutputStream outputStream)
       throws IllegalQueryException {
     GridUtils.toXml(getOutlierValues(request), outputStream);
   }
@@ -113,10 +112,9 @@ public class AnalyticsOutlierDetectionService {
   /**
    * Transform the incoming request into api response (xls download).
    *
-   * @param request the {@link OutlierDetectionRequest}.
-   * @return the {@link OutlierDetectionResponse}.
+   * @param request the {@link OutlierRequest}.
    */
-  public void getOutlierValuesAsXls(OutlierDetectionRequest request, OutputStream outputStream)
+  public void getOutlierValuesAsXls(OutlierRequest request, OutputStream outputStream)
       throws IllegalQueryException, IOException {
     GridUtils.toXls(getOutlierValues(request), outputStream);
   }
@@ -124,10 +122,9 @@ public class AnalyticsOutlierDetectionService {
   /**
    * Transform the incoming request into api response (html).
    *
-   * @param request the {@link OutlierDetectionRequest}.
-   * @return the {@link OutlierDetectionResponse}.
+   * @param request the {@link OutlierRequest}.
    */
-  public void getOutlierValuesAsHtml(OutlierDetectionRequest request, Writer writer)
+  public void getOutlierValuesAsHtml(OutlierRequest request, Writer writer)
       throws IllegalQueryException {
     GridUtils.toHtml(getOutlierValues(request), writer);
   }
@@ -135,19 +132,21 @@ public class AnalyticsOutlierDetectionService {
   /**
    * Transform the incoming request into api response (html with css).
    *
-   * @param request the {@link OutlierDetectionRequest}.
-   * @return the {@link OutlierDetectionResponse}.
+   * @param request the {@link OutlierRequest}.
    */
-  public void getOutlierValuesAsHtmlCss(OutlierDetectionRequest request, Writer writer)
+  public void getOutlierValuesAsHtmlCss(OutlierRequest request, Writer writer)
       throws IllegalQueryException {
     GridUtils.toHtmlCss(getOutlierValues(request), writer);
   }
 
-  private void setHeaders(Grid grid, OutlierDetectionRequest request) {
+  private void setHeaders(Grid grid, OutlierRequest request) {
     boolean isModifiedZScore = request.getAlgorithm() == MOD_Z_SCORE;
 
-    String meanOrMedianItem = isModifiedZScore ? MEDIAN.getItem() : ColumnHeader.MEAN.getItem();
-    String meanOrMedianName = isModifiedZScore ? MEDIAN.getName() : ColumnHeader.MEAN.getName();
+    String zScoreOrModZScoreItem = isModifiedZScore ? MODIFIED_ZSCORE.getItem() : ZSCORE.getItem();
+    String zScoreOrModZScoreName = isModifiedZScore ? MODIFIED_ZSCORE.getName() : ZSCORE.getName();
+
+    String meanOrMedianItem = isModifiedZScore ? MEDIAN.getItem() : MEAN.getItem();
+    String meanOrMedianName = isModifiedZScore ? MEDIAN.getName() : MEAN.getName();
 
     String deviationItem =
         isModifiedZScore ? MEDIAN_ABS_DEVIATION.getItem() : STANDARD_DEVIATION.getItem();
@@ -191,30 +190,29 @@ public class AnalyticsOutlierDetectionService {
     grid.addHeader(
         new GridHeader(
             ABSOLUTE_DEVIATION.getItem(), ABSOLUTE_DEVIATION.getName(), NUMBER, false, false));
-    grid.addHeader(new GridHeader(isModifiedZScore ? "modifiedzscore" : "zscore", NUMBER));
+    grid.addHeader(
+        new GridHeader(zScoreOrModZScoreItem, zScoreOrModZScoreName, NUMBER, false, false));
     grid.addHeader(
         new GridHeader(LOWER_BOUNDARY.getItem(), LOWER_BOUNDARY.getName(), NUMBER, false, false));
     grid.addHeader(
         new GridHeader(UPPER_BOUNDARY.getItem(), UPPER_BOUNDARY.getName(), NUMBER, false, false));
   }
 
-  private void setMetaData(
-      Grid grid, OutlierDetectionRequest request, List<OutlierValue> outlierValues) {
+  private void setMetaData(Grid grid, OutlierRequest request, List<Outlier> outliers) {
     grid.addMetaData("algorithm", request.getAlgorithm());
     grid.addMetaData("threshold", request.getThreshold());
     grid.addMetaData("orderBy", request.getOrderBy().getKey());
     grid.addMetaData("maxResults", request.getMaxResults());
-    grid.addMetaData("count", outlierValues.size());
+    grid.addMetaData("count", outliers.size());
   }
 
-  private void setRows(
-      Grid grid, List<OutlierValue> outlierValues, OutlierDetectionRequest request) {
-    outlierValues.forEach(
+  private void setRows(Grid grid, List<Outlier> outliers, OutlierRequest request) {
+    outliers.forEach(
         v -> {
           boolean isModifiedZScore = request.getAlgorithm() == MOD_Z_SCORE;
           grid.addRow();
-          grid.addValue(v.getDe());
-          grid.addValue(v.getDeName());
+          grid.addValue(v.getDx());
+          grid.addValue(v.getDxName());
           grid.addValue(v.getPe());
           grid.addValue(v.getOu());
           grid.addValue(v.getOuName());
