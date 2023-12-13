@@ -929,7 +929,10 @@ public class DefaultDataValueSetService
 
       importCount.incrementDeleted();
     } else {
-      importCount.incrementUpdated();
+      if (dataValueUpdateShouldBeIgnored(internalValue, existingValue)) {
+        importCount.incrementIgnored();
+        return;
+      } else importCount.incrementUpdated();
     }
     if (!internalValue.isDeleted()
         && Objects.equals(existingValue.getValue(), internalValue.getValue())
@@ -962,6 +965,14 @@ public class DefaultDataValueSetService
         }
       }
     }
+  }
+
+  private static boolean dataValueUpdateShouldBeIgnored(
+      DataValue internalValue, DataValue existingValue) {
+    return !internalValue.isDeleted()
+        && Objects.equals(existingValue.getValue(), internalValue.getValue())
+        && Objects.equals(existingValue.getComment(), internalValue.getComment())
+        && existingValue.isFollowup() == internalValue.isFollowup();
   }
 
   private void preheatCaches(ImportContext context) {
