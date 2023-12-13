@@ -198,71 +198,20 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
       @CheckForNull String path,
       @CheckForNull Integer roll) {
     boolean rootIsTarget = path == null || path.isEmpty();
-    if (value == null && rootIsTarget)
-      // delete
-      return getSession()
-              .createNativeQuery(
-                  "delete from keyjsonvalue where namespace = :ns and namespacekey = :key")
-              .setParameter("ns", ns)
-              .setParameter("key", key)
-              .executeUpdate()
-          > 0;
-    if (value == null)
-      // delete value at path (set to null)
-      return getSession()
-              .createNativeQuery(
-                  "update keyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), 'null', false) where namespace = :ns and namespacekey = :key")
-              .setParameter("ns", ns)
-              .setParameter("key", key)
-              .setParameter("path", toJsonbPath(path))
-              .executeUpdate()
-          > 0;
-    if (roll == null && rootIsTarget)
-      // root value update (classic update)
-      return getSession()
-              .createNativeQuery(
-                  "update keyjsonvalue set jbvalue = cast(:value as jsonb) where namespace = :ns and namespacekey = :key")
-              .setParameter("ns", ns)
-              .setParameter("key", key)
-              .setParameter("value", value)
-              .executeUpdate()
-          > 0;
-    if (roll == null)
-      // partial value update (change existing value at path)
-      return getSession()
-              .createNativeQuery(
-                  "update keyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb), false) where namespace = :ns and namespacekey = :key")
-              .setParameter("ns", ns)
-              .setParameter("key", key)
-              .setParameter("value", value)
-              .setParameter("path", toJsonbPath(path))
-              .executeUpdate()
-          > 0;
-    if (rootIsTarget) {
-      // root value fixed size array insert (fixed collection root value)
-      String sql =
-          """
-        update keyjsonvalue
-        set jbvalue = case jsonb_typeof(jbvalue)
-          when 'null' then to_jsonb(ARRAY[cast(:value as jsonb)])
-          when 'array' then case
-            when :size < 0 or jsonb_array_length(jbvalue) >= :size
-              then (jbvalue - 0) || to_jsonb(ARRAY[cast(:value as jsonb)])
-            else jbvalue || to_jsonb(ARRAY[cast(:value as jsonb)])
-            end
-          else cast(:value as jsonb)
-          end
-        where namespace = :ns and namespacekey = :key""";
-      return getSession()
-              .createNativeQuery(sql)
-              .setParameter("ns", ns)
-              .setParameter("key", key)
-              .setParameter("value", value)
-              .setParameter("size", roll)
-              .executeUpdate()
-          > 0;
-    }
-    // partial path value fixed size array insert (fixed collection partial value)
+    if (value == null && rootIsTarget) return updateEntryRootDelete(ns, key);
+    if (value == null) return updateEntryPathSetToNull(ns, key, path);
+    if (roll == null && rootIsTarget) return updateEntryRootSetToValue(ns, key, value);
+    if (roll == null) return updateEntryPathSetToValue(ns, key, value, path);
+    if (rootIsTarget) return updateEntryRootRollValue(ns, key, value, roll);
+    return updateEntryPathRollValue(ns, key, value, path, roll);
+  }
+
+  private boolean updateEntryPathRollValue(
+      @Nonnull String ns,
+      @Nonnull String key,
+      @Nonnull String value,
+      @Nonnull String path,
+      @Nonnull Integer roll) {
     String sql =
         """
           update keyjsonvalue
@@ -288,6 +237,79 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
             .setParameter("value", value)
             .setParameter("size", roll)
             .setParameter("path", toJsonbPath(path))
+            .executeUpdate()
+        > 0;
+  }
+
+  private boolean updateEntryRootRollValue(
+      @Nonnull String ns, @Nonnull String key, @Nonnull String value, @Nonnull Integer roll) {
+    String sql =
+        """
+      update keyjsonvalue
+      set jbvalue = case jsonb_typeof(jbvalue)
+        when 'null' then to_jsonb(ARRAY[cast(:value as jsonb)])
+        when 'array' then case
+          when :size < 0 or jsonb_array_length(jbvalue) >= :size
+            then (jbvalue - 0) || to_jsonb(ARRAY[cast(:value as jsonb)])
+          else jbvalue || to_jsonb(ARRAY[cast(:value as jsonb)])
+          end
+        else cast(:value as jsonb)
+        end
+      where namespace = :ns and namespacekey = :key""";
+    return getSession()
+            .createNativeQuery(sql)
+            .setParameter("ns", ns)
+            .setParameter("key", key)
+            .setParameter("value", value)
+            .setParameter("size", roll)
+            .executeUpdate()
+        > 0;
+  }
+
+  private boolean updateEntryPathSetToValue(
+      @Nonnull String ns, @Nonnull String key, @Nonnull String value, @Nonnull String path) {
+    return getSession()
+            .createNativeQuery(
+                "update keyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb), false) where namespace = :ns and namespacekey = :key")
+            .setParameter("ns", ns)
+            .setParameter("key", key)
+            .setParameter("value", value)
+            .setParameter("path", toJsonbPath(path))
+            .executeUpdate()
+        > 0;
+  }
+
+  private boolean updateEntryRootSetToValue(
+      @Nonnull String ns, @Nonnull String key, @Nonnull String value) {
+    return getSession()
+            .createNativeQuery(
+                "update keyjsonvalue set jbvalue = cast(:value as jsonb) where namespace = :ns and namespacekey = :key")
+            .setParameter("ns", ns)
+            .setParameter("key", key)
+            .setParameter("value", value)
+            .executeUpdate()
+        > 0;
+  }
+
+  private boolean updateEntryPathSetToNull(
+      @Nonnull String ns, @Nonnull String key, @Nonnull String path) {
+    return getSession()
+            .createNativeQuery(
+                "update keyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), 'null', false) where namespace = :ns and namespacekey = :key")
+            .setParameter("ns", ns)
+            .setParameter("key", key)
+            .setParameter("path", toJsonbPath(path))
+            .executeUpdate()
+        > 0;
+  }
+
+  private boolean updateEntryRootDelete(@Nonnull String ns, @Nonnull String key) {
+    // delete
+    return getSession()
+            .createNativeQuery(
+                "delete from keyjsonvalue where namespace = :ns and namespacekey = :key")
+            .setParameter("ns", ns)
+            .setParameter("key", key)
             .executeUpdate()
         > 0;
   }
