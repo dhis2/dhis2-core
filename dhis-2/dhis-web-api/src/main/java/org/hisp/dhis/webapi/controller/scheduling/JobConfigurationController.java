@@ -53,6 +53,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -110,6 +111,32 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
     return objectReport;
   }
 
+  @PostMapping("{uid}/enable")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void enable(@PathVariable("uid") String uid)
+      throws NotFoundException, WebMessageException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
+    if (obj == null) throw NotFoundException.notFoundUid(uid);
+    checkConfigurable(obj, HttpStatus.CONFLICT, "Job %s is a system job that cannot be modified.");
+    if (!obj.isEnabled()) {
+      obj.setEnabled(true);
+      jobConfigurationService.updateJobConfiguration(obj);
+    }
+  }
+
+  @PostMapping("{uid}/disable")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void disable(@PathVariable("uid") String uid)
+      throws NotFoundException, WebMessageException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
+    if (obj == null) throw NotFoundException.notFoundUid(uid);
+    checkConfigurable(obj, HttpStatus.CONFLICT, "Job %s is a system job that cannot be modified.");
+    if (obj.isEnabled()) {
+      obj.setEnabled(false);
+      jobConfigurationService.updateJobConfiguration(obj);
+    }
+  }
+
   @Override
   protected void preCreateEntity(JobConfiguration jobConfiguration) throws WebMessageException {
     checkConfigurable(
@@ -122,6 +149,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
     checkConfigurable(
         before, HttpStatus.UNPROCESSABLE_ENTITY, "Job %s is a system job that cannot be modified.");
     checkConfigurable(after, HttpStatus.CONFLICT, "Job %s can not be changed into a system job.");
+    after.setEnabled(before.isEnabled());
   }
 
   @Override
