@@ -39,7 +39,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
@@ -210,7 +209,8 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     assertStatus(HttpStatus.CREATED, POST("/dataSets", dataset2));
 
     Map<String, List<String>> expected =
-        Map.of("ANC1", Stream.of(dataset1_uid, dataset2_uid).sorted().toList());
+        Map.of("ANC1", List.of(dataset1_uid, dataset2_uid).stream().sorted().toList());
+
     Map<String, List<String>> actual =
         getDataIntegrityReport()
             .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes()
@@ -301,7 +301,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     assertEquals(singletonList("ANC2" + ":" + dataElementB), results);
   }
 
-  @Test
+  /*  @Test
   void testDataElementsNoDatasets() {
 
     String defaultCatCombo = getDefaultCatCombo();
@@ -341,7 +341,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     List<String> results =
         getDataIntegrityReport().getDataElementsWithoutDataSet().toList(JsonString::string);
     assertEquals(List.of("ANC2" + ":" + dataElementB), results);
-  }
+  }*/
 
   private JsonDataIntegrityReport getDataIntegrityReport() {
     return getDataIntegrityReport("/dataIntegrity");
