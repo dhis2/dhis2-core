@@ -154,6 +154,7 @@ class EventImportTest extends TransactionalIntegrationTest {
 
   private Event event;
 
+  private User superUser;
   private static final SimpleDateFormat simpleDateFormat =
       new SimpleDateFormat(DateUtils.ISO8601_NO_TZ_PATTERN);
 
@@ -165,6 +166,7 @@ class EventImportTest extends TransactionalIntegrationTest {
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
+
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
     manager.save(organisationUnitA);
@@ -253,9 +255,8 @@ class EventImportTest extends TransactionalIntegrationTest {
     pi.setUid(CodeGenerator.generateUid());
     manager.save(pi);
     event = createEvent("eventUid001");
-    createUserAndInjectSecurityContext(true);
-    // Flush all data to disk
-    manager.flush();
+
+    superUser = createUserAndInjectSecurityContext(true);
   }
 
   @Test
@@ -370,6 +371,8 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertNotNull(eventDataValueA);
     assertEquals(eventDataValueA.getValue(), dataValueA.getValue());
     assertEquals(eventDataValueA.getStoredBy(), superUser.getName());
+    assertNotNull(eventDataValueA.getCreatedByUserInfo());
+    assertNotNull(eventDataValueA.getLastUpdatedByUserInfo());
     assertNotNull(eventDataValueA.getCreated());
     assertNotNull(eventDataValueA.getLastUpdated());
 
@@ -382,6 +385,8 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertNotNull(eventDataValueB);
     assertEquals(eventDataValueB.getValue(), dataValueB.getValue());
     assertEquals(eventDataValueB.getStoredBy(), superUser.getName());
+    assertNotNull(eventDataValueB.getCreatedByUserInfo());
+    assertNotNull(eventDataValueB.getLastUpdatedByUserInfo());
     assertNotNull(eventDataValueB.getCreated());
     assertNotNull(eventDataValueB.getLastUpdated());
   }
