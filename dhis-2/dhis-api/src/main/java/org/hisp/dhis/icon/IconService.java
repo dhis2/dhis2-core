@@ -52,6 +52,8 @@ public interface IconService {
    */
   List<Icon> getIcons(String[] keywords);
 
+  List<? extends Icon> getIcons(IconCriteria iconCriteria);
+
   /**
    * Gets the icon associated to a key, if it exists
    *

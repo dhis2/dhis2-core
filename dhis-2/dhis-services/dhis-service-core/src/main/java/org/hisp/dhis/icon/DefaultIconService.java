@@ -90,6 +90,23 @@ public class DefaultIconService implements IconService {
   }
 
   @Override
+  public List<? extends Icon> getIcons(IconCriteria iconCriteria) {
+
+    if (IconType.CUSTOM.equals(iconCriteria.getType())) {
+      return iconCriteria.getKeywords() == null
+          ? customIconStore.getAllIcons()
+          : customIconStore.getIconsByKeywords(iconCriteria.getKeywords());
+    }
+
+    return iconCriteria.getKeywords() == null
+        ? defaultIcons.values().stream().toList()
+        : defaultIcons.values().stream()
+            .filter(
+                icon -> Set.of(icon.getKeywords()).containsAll(List.of(iconCriteria.getKeywords())))
+            .toList();
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public Icon getIcon(String key) throws NotFoundException {
     if (defaultIcons.containsKey(key)) {

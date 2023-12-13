@@ -53,8 +53,10 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.icon.IconCriteria;
 import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.icon.IconService;
+import org.hisp.dhis.icon.IconType;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -126,6 +128,7 @@ public class IconController {
   @GetMapping
   public @ResponseBody List<IconResponse> getAllIcons(
       @RequestParam(required = false) String[] keywords) {
+
     List<Icon> icons;
 
     if (keywords == null) {
@@ -133,6 +136,25 @@ public class IconController {
     } else {
       icons = iconService.getIcons(keywords);
     }
+
+    return icons.stream().map(iconMapper::from).toList();
+  }
+
+  @GetMapping(value = "/type/{type}")
+  public @ResponseBody List<IconResponse> getIconByType(
+      @PathVariable String type, @RequestParam(required = false) String[] keywords)
+      throws NotFoundException {
+
+    if (IconType.from(type).isEmpty()) {
+      throw new NotFoundException(String.format("Icon type:%s is not supported", type));
+    }
+
+    IconCriteria iconCriteria =
+        IconCriteria.builder().type(IconType.from(type).get()).keywords(keywords).build();
+
+    List<? extends Icon> icons;
+
+    icons = iconService.getIcons(iconCriteria);
 
     return icons.stream().map(iconMapper::from).toList();
   }
