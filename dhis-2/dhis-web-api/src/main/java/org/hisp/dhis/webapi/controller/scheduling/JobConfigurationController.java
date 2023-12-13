@@ -47,11 +47,13 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.JobTypes;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -110,6 +112,30 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
     return objectReport;
   }
 
+  @PostMapping("{uid}/enable")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void enable(@PathVariable("uid") String uid) throws NotFoundException, ConflictException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
+    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid);
+    checkConfigurable(obj, "Job %s is a system job that cannot be modified.");
+    if (!obj.isEnabled()) {
+      obj.setEnabled(true);
+      jobConfigurationService.updateJobConfiguration(obj);
+    }
+  }
+
+  @PostMapping("{uid}/disable")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void disable(@PathVariable("uid") String uid) throws NotFoundException, ConflictException {
+    JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid);
+    if (obj == null) throw new NotFoundException(JobConfiguration.class, uid);
+    checkConfigurable(obj, "Job %s is a system job that cannot be modified.");
+    if (obj.isEnabled()) {
+      obj.setEnabled(false);
+      jobConfigurationService.updateJobConfiguration(obj);
+    }
+  }
+
   @Override
   protected void preCreateEntity(JobConfiguration jobConfiguration) throws ConflictException {
     checkConfigurable(jobConfiguration, "Job %s must be configurable but was not.");
@@ -120,6 +146,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
       throws ConflictException {
     checkConfigurable(before, "Job %s is a system job that cannot be modified.");
     checkConfigurable(after, "Job %s can not be changed into a system job.");
+    after.setEnabled(before.isEnabled());
   }
 
   @Override
