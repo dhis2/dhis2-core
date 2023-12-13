@@ -879,7 +879,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void testImportDataValuesUpdatedSkipNoChange() throws Exception {
+  void testImportDataValuesIgnoredSkipNoChange() throws Exception {
     mockDataValueBatchHandler.withFindSelf(true);
     in = new ClassPathResource("datavalueset/dataValueSetA.xml").getInputStream();
     ImportSummary summary = dataValueSetService.importDataValueSetXml(in);
@@ -890,7 +890,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest {
     Collection<DataValue> dataValues = mockDataValueBatchHandler.getUpdates();
     Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
     assertNotNull(dataValues);
-    assertEquals(3, summary.getImportCount().getUpdated());
+    assertEquals(3, summary.getImportCount().getIgnored());
     assertEquals(0, dataValues.size(), "Updates to unchanged data values were not skipped");
     assertEquals(0, auditValues.size(), "Updates to unchanged data value did not skip audit");
   }
