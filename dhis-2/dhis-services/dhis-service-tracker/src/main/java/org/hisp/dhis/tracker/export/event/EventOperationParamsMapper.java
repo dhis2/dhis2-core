@@ -194,7 +194,7 @@ class EventOperationParamsMapper {
       User user, Program program, ProgramStage programStage, OrganisationUnit requestedOrgUnit)
       throws ForbiddenException {
 
-    if (user == null || user.isSuper()) {
+    if (user.isSuper()) {
       return;
     }
     if (program != null && !aclService.canDataRead(user, program)) {

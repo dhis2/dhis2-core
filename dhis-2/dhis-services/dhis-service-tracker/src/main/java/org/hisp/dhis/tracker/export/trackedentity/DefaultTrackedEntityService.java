@@ -297,7 +297,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     List<TrackedEntity> trackedEntities =
         this.trackedEntityAggregate.find(
-            ids, operationParams.getTrackedEntityParams(), queryParams);
+            ids,
+            operationParams.getTrackedEntityParams(),
+            queryParams,
+            operationParams.getOrgUnitMode());
 
     mapRelationshipItems(
         trackedEntities,
@@ -318,7 +321,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     List<TrackedEntity> trackedEntities =
         this.trackedEntityAggregate.find(
-            ids.getItems(), operationParams.getTrackedEntityParams(), queryParams);
+            ids.getItems(),
+            operationParams.getTrackedEntityParams(),
+            queryParams,
+            operationParams.getOrgUnitMode());
 
     mapRelationshipItems(
         trackedEntities,
