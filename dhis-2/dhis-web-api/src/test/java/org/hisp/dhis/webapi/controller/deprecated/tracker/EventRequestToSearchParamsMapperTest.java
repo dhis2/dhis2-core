@@ -80,7 +80,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -474,7 +473,6 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @ParameterizedTest
-  @NullSource
   @ValueSource(strings = {"admin", "superuser"})
   void shouldMapOrgUnitAndModeWhenModeAllAndUserIsAuthorized(String userName) {
     when(currentUserService.getCurrentUser()).thenReturn(userMap.get(userName));
