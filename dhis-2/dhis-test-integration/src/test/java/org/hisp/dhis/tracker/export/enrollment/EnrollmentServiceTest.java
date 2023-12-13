@@ -712,7 +712,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnChildrenOfRootOrgUnitWhenOrgUnitModeChildren()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
