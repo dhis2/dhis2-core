@@ -102,13 +102,18 @@ public class EventManager {
 
   private static final String IMPORT_ERROR_STRING = "Invalid or conflicting data";
 
-  public ImportSummary updateEventDataValues(Event event, Set<EventDataValue> eventDataValues)
+  public ImportSummary updateEventDataValues(
+      Event event, Set<EventDataValue> eventDataValues, WorkContext context)
       throws JsonProcessingException {
     final ImportSummaries importSummaries = new ImportSummaries();
 
+    executorsByPhase.get(EventProcessorPhase.UPDATE_PRE).execute(context, List.of(event));
+
     for (EventDataValue de : eventDataValues) {
-      eventPersistenceService.updateEventDataValues(de, event);
+      eventPersistenceService.updateEventDataValues(
+          de, event, context.getImportOptions().getUser());
     }
+
     incrementSummaryTotals(List.of(event), importSummaries, UPDATE);
 
     return importSummaries.getImportSummaries().get(0);

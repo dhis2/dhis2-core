@@ -736,15 +736,14 @@ public abstract class AbstractEventService implements EventService {
   @Override
   public ImportSummary updateEventDataValues(Event event) throws JsonProcessingException {
 
+    WorkContext context =
+        workContextLoader.load(
+            ImportOptions.getDefaultImportOptions(),
+            Collections.singletonList(
+                event)); // load the event data values merging existing and new values
+
     Set<EventDataValue> eventDataValues =
-        workContextLoader
-            .load(
-                ImportOptions.getDefaultImportOptions(),
-                Collections.singletonList(
-                    event)) // load the event data values merging existing and new values
-            .getEventDataValueMap()
-            .get(event.getEvent())
-            .stream()
+        context.getEventDataValueMap().get(event.getEvent()).stream()
             .filter(
                 edv ->
                     event.getDataValues().stream()
@@ -756,7 +755,7 @@ public abstract class AbstractEventService implements EventService {
             // data elements
             .collect(Collectors.toSet());
 
-    return eventManager.updateEventDataValues(event, eventDataValues);
+    return eventManager.updateEventDataValues(event, eventDataValues, context);
   }
 
   @Transactional
