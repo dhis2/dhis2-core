@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -35,6 +37,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
