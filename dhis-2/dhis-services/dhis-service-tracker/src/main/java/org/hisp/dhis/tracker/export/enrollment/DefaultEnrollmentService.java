@@ -330,9 +330,9 @@ class DefaultEnrollmentService
 
     for (Enrollment enrollment : enrollments) {
       if (enrollment != null
-          && (trackerOwnershipAccessManager.hasAccess(
-                  user, enrollment.getTrackedEntity(), enrollment.getProgram())
-              || orgUnitMode == ALL)) {
+          && (orgUnitMode == ALL
+              || trackerOwnershipAccessManager.hasAccess(
+                  user, enrollment.getTrackedEntity(), enrollment.getProgram()))) {
         enrollmentList.add(getEnrollment(enrollment, params, includeDeleted, orgUnitMode));
       }
     }
