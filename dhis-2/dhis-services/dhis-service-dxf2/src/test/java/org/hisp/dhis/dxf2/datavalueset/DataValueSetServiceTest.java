@@ -169,7 +169,7 @@ class DataValueSetServiceTest extends DhisConvenienceTest {
         dataValueSetService.importDataValueSetXml(
             readFile("datavalueset/dataValueSetA.xml"), new ImportOptions());
 
-    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 0, 0, 3, summary);
     verify(batchHandler, never()).updateObject(any());
   }
 
@@ -182,7 +182,7 @@ class DataValueSetServiceTest extends DhisConvenienceTest {
   }
 
   private static void assertSuccessWithImportedUpdatedDeleted(
-      int imported, int updated, int deleted, ImportSummary summary) {
+      int imported, int updated, int deleted, int ignored, ImportSummary summary) {
     assertAll(
         () -> assertHasNoConflicts(summary),
         () ->
@@ -193,6 +193,9 @@ class DataValueSetServiceTest extends DhisConvenienceTest {
         () ->
             assertEquals(
                 deleted, summary.getImportCount().getDeleted(), "unexpected deleted count"),
+        () ->
+            assertEquals(
+                ignored, summary.getImportCount().getIgnored(), "unexpected ignored count"),
         () -> assertEquals(ImportStatus.SUCCESS, summary.getStatus(), summary.getDescription()));
   }
 
