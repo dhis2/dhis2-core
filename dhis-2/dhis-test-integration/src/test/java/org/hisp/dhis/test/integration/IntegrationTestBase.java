@@ -42,7 +42,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = {IntegrationBaseConfig.class, TestContainerPostgresConfig.class})
 @IntegrationTest
 @ActiveProfiles(profiles = {"test-postgres"})
-//@ComponentScan(
+// @ComponentScan(
 //    basePackages = {"org.hisp.dhis"},
 //    useDefaultFilters = false,
 //    includeFilters = {
@@ -63,9 +63,4 @@ public abstract class IntegrationTestBase extends BaseSpringTest {
   public final void after() throws Exception {
     nonTransactionalAfter();
   }
-
-
-
-
-
 }
