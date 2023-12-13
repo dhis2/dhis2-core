@@ -32,6 +32,7 @@ import java.util.List;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.user.User;
 
 /**
  * Wrapper service for Event-related operations. This service acts as a transactional wrapper for
@@ -67,5 +68,6 @@ public interface EventPersistenceService {
    */
   void delete(WorkContext context, List<Event> events);
 
-  void updateEventDataValues(EventDataValue de, Event event) throws JsonProcessingException;
+  void updateEventDataValues(EventDataValue de, Event event, User user)
+      throws JsonProcessingException;
 }

@@ -43,6 +43,8 @@ import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -123,7 +125,7 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
   @Override
   @Transactional
   public void updateEventDataValues(
-      EventDataValue de, org.hisp.dhis.dxf2.deprecated.tracker.event.Event event)
+      EventDataValue de, org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, User user)
       throws JsonProcessingException {
 
     String uid = de.getDataElement();
@@ -138,15 +140,18 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
                         WHEN eventdatavalues->:de IS NULL
                           THEN jsonb_insert(eventdatavalues, '{%1$s}', '%2$s')
                  END) ,
-                lastupdated = current_timestamp
-                WHERE  uid = :event
-             """
+                lastupdated = current_timestamp,
+                lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb)
+                 WHERE  uid = :event
+                 """
             .formatted(uid, mapper.writeValueAsString(de));
 
     entityManager
         .createNativeQuery(query)
         .setParameter("event", event.getEvent())
         .setParameter("de", uid)
+        .setParameter(
+            "lastupdatedbyuserinfo", mapper.writeValueAsString(UserInfoSnapshot.from(user)))
         .executeUpdate();
   }
 
