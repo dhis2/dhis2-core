@@ -197,8 +197,7 @@ class TrackedEntityOperationParamsMapper {
         throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
       }
 
-      if (user != null
-          && !user.isSuper()
+      if (!user.isSuper()
           && !organisationUnitService.isInUserHierarchy(
               orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
         throw new ForbiddenException(
