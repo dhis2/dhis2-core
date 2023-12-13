@@ -77,13 +77,14 @@ class EnrollmentOperationParamsMapper {
       throws BadRequestException, ForbiddenException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    Program program = validateProgram(operationParams.getProgramUid(), user);
+    Program program = validateProgram(operationParams.getProgramUid(), currentUser);
     TrackedEntityType trackedEntityType =
-        validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
+        validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), currentUser);
     TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
 
-    Set<OrganisationUnit> orgUnits = validateOrgUnits(operationParams.getOrgUnitUids(), user);
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
+    Set<OrganisationUnit> orgUnits =
+        validateOrgUnits(operationParams.getOrgUnitUids(), currentUser);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), currentUser, program);
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
     params.setProgram(program);
@@ -102,7 +103,7 @@ class EnrollmentOperationParamsMapper {
     params.setOrder(operationParams.getOrder());
     params.setEnrollmentUids(operationParams.getEnrollmentUids());
 
-    mergeOrgUnitModes(operationParams, user, params);
+    mergeOrgUnitModes(operationParams, currentUser, params);
 
     return params;
   }

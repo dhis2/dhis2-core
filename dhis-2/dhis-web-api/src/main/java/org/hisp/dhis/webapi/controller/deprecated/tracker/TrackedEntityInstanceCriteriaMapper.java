@@ -139,7 +139,7 @@ public class TrackedEntityInstanceCriteriaMapper {
       }
     }
 
-    params.getOrgUnits().addAll(validateOrgUnits(criteria, possibleSearchOrgUnits, user));
+    params.getOrgUnits().addAll(validateOrgUnits(criteria, possibleSearchOrgUnits, currentUser));
 
     if (criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && currentUser != null) {
       params.getOrgUnits().addAll(currentUser.getOrganisationUnits());

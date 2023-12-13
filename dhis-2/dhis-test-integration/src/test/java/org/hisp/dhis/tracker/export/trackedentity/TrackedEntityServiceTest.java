@@ -1474,7 +1474,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnAllEntitiesEnrolledInProgramMatchingFilterWhenAuthorizedUserNotInSearchScope()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    injectSecurityContext(authorizedUser);
+    injectSecurityContextUser(authorizedUser);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
