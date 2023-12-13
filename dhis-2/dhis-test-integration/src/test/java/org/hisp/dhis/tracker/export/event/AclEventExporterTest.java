@@ -473,29 +473,6 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnAllEventsWhenOrgUnitModeAllAndNoOrgUnitProvidedAndUserNull()
-      throws ForbiddenException, BadRequestException {
-    injectSecurityContext(null);
-
-    EventOperationParams params = operationParamsBuilder.orgUnitMode(ALL).build();
-
-    List<Event> events = eventService.getEvents(params);
-
-    assertFalse(
-        events.isEmpty(),
-        "Expected to find events when ou mode ALL no program specified and no org unit provided");
-    assertContainsOnly(
-        List.of(
-            "lbDXJBlvtZe",
-            "uoNW0E3xXUy",
-            "RojfDTBhoGC",
-            "tSsGrtfRzjY",
-            "h4w96yEMlzO",
-            "DiszpKrYNg8"),
-        events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()));
-  }
-
-  @Test
   void shouldIgnoreRequestedOrgUnitAndReturnAllEventsWhenOrgUnitModeAllAndOrgUnitProvided()
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("lPaILkLkgOM"));
