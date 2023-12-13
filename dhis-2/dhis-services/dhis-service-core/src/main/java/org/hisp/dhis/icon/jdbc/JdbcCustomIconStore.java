@@ -79,14 +79,14 @@ public class JdbcCustomIconStore implements CustomIconStore {
   }
 
   @Override
-  public long getCustomIconCount() {
+  public int getCustomIconCount() {
     final String sql = """
                 select count(*) from customicon;
                 """;
 
-    Long count = jdbcTemplate.queryForObject(sql, Long.class);
+    Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
 
-    return Optional.ofNullable(count).orElse(0L);
+    return Optional.ofNullable(count).orElse(0);
   }
 
   @Override

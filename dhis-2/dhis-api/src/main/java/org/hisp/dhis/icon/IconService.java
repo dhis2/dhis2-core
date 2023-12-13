@@ -56,7 +56,7 @@ public interface IconService {
 
   List<CustomIcon> getCustomIcons(String[] keywords);
 
-  long getIconCount();
+  int getIconCount();
 
   /**
    * Gets the icon associated to a key, if it exists

@@ -41,7 +41,7 @@ public interface CustomIconStore {
    */
   CustomIcon getIconByKey(String key);
 
-  long getCustomIconCount();
+  int getCustomIconCount();
 
   /**
    * Returns a list of custom icons that contain all the specified keywords

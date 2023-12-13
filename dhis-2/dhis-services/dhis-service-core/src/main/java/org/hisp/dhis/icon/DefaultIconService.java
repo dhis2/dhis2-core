@@ -104,7 +104,7 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional(readOnly = true)
-  public long getIconCount() {
+  public int getIconCount() {
     return customIconStore.getCustomIconCount();
   }
 

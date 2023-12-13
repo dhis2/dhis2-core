@@ -159,7 +159,7 @@ public class IconController {
       icons = iconService.getCustomIcons(keywords);
     }
 
-    long count = iconService.getIconCount();
+    int count = iconService.getIconCount();
 
     List<IconResponse> iconResponses = icons.stream().map(iconMapper::from).toList();
 
@@ -174,7 +174,7 @@ public class IconController {
             PagingWrapper.Pager.builder()
                 .pageSize(iconCriteria.getPageSize())
                 .page(iconCriteria.getPage())
-                .total(count)
+                .total((long) count)
                 .build());
 
     return listPagingWrapper.withInstances(iconResponses);
