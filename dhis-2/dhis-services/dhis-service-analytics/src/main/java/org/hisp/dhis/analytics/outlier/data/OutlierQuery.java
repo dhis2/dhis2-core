@@ -68,7 +68,7 @@ public class OutlierQuery {
 
   /**
    * This parameter selects the headers to be returned in the response. We use a LinkedHashSet
-   * because the other matters.
+   * because the order matters.
    */
   private Set<String> headers = new LinkedHashSet<>();
 

@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.analytics.outlier.data;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /** Enum for named params of parametrized sql query */
+@RequiredArgsConstructor
 public enum OutlierSqlParams {
   // ZScore (modified ZScore) factor.
   // For example the threshold=3 means all data lying outside 3 sigma (3 * standard deviation)
@@ -43,13 +47,6 @@ public enum OutlierSqlParams {
   // this date)
   DATA_END_DATE("data_end_date"),
   MAX_RESULTS("max_results");
-  private final String key;
 
-  OutlierSqlParams(String key) {
-    this.key = key;
-  }
-
-  public String getKey() {
-    return key;
-  }
+  @Getter private final String key;
 }

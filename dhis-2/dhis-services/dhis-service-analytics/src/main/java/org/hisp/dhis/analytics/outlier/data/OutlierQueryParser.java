@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.analytics.outlier.data;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -50,18 +51,17 @@ public class OutlierQueryParser {
    * @return a {@link OutlierRequest}.
    */
   public OutlierRequest getFromQuery(OutlierQuery query) {
-    OutlierRequest.Builder request = new OutlierRequest.Builder();
-
     List<DataSet> dataSets = idObjectManager.getByUid(DataSet.class, query.getDs());
 
-    // Re-fetch data elements to maintain access control
+    // Re-fetch data elements to maintain access control.
+    // Only data elements are supported for now.
     List<String> de =
         dataSets.stream()
             .map(DataSet::getDataElements)
             .flatMap(Collection::stream)
             .filter(d -> d.getValueType().isNumeric())
             .map(DataElement::getUid)
-            .collect(Collectors.toList());
+            .collect(toList());
 
     de.addAll(query.getDx());
 
@@ -69,29 +69,31 @@ public class OutlierQueryParser {
     List<OrganisationUnit> orgUnits =
         idObjectManager.getByUid(OrganisationUnit.class, query.getOu());
 
-    request
-        .withDataElements(dataElements)
-        .withStartEndDate(query.getStartDate(), query.getEndDate())
-        .withOrgUnits(orgUnits)
-        .withDataStartDate(query.getDataStartDate())
-        .withDataEndDate(query.getDataEndDate());
+    OutlierRequest.OutlierRequestBuilder builder =
+        OutlierRequest.builder()
+            .dataElements(dataElements)
+            .startDate(query.getStartDate())
+            .endDate(query.getEndDate())
+            .orgUnits(orgUnits)
+            .dataStartDate(query.getDataStartDate())
+            .dataEndDate(query.getDataEndDate());
 
     if (query.getAlgorithm() != null) {
-      request.withAlgorithm(query.getAlgorithm());
+      builder.algorithm(query.getAlgorithm());
     }
 
     if (query.getThreshold() != null) {
-      request.withThreshold(query.getThreshold());
+      builder.threshold(query.getThreshold());
     }
 
     if (query.getOrderBy() != null) {
-      request.withOrderBy(query.getOrderBy());
+      builder.orderBy(query.getOrderBy());
     }
 
     if (query.getMaxResults() != null) {
-      request.withMaxResults(query.getMaxResults());
+      builder.maxResults(query.getMaxResults());
     }
 
-    return request.build();
+    return builder.build();
   }
 }

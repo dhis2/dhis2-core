@@ -30,13 +30,14 @@ package org.hisp.dhis.analytics.outlier.service;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MOD_Z_SCORE;
+import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.Z_SCORE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.common.ValueType;
@@ -76,13 +77,14 @@ class AnalyticsZscoreSqlStatementProcessorTest {
 
   @Test
   void testGetSqlStatement() {
-    OutlierRequest request =
-        new OutlierRequest.Builder()
-            .withDataElements(Lists.newArrayList(deA, deB, deC))
-            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 3, 1))
-            .withOrgUnits(Lists.newArrayList(ouA, ouB))
-            .build();
-    String sql = subject.getSqlStatement(request);
+    OutlierRequest.OutlierRequestBuilder builder = OutlierRequest.builder();
+    builder
+        .dataElements(Lists.newArrayList(deA, deB, deC))
+        .startDate(getDate(2020, 1, 1))
+        .endDate(getDate(2020, 3, 1))
+        .orgUnits(Lists.newArrayList(ouA, ouB))
+        .build();
+    String sql = subject.getSqlStatement(builder.build());
     String expected =
         "select * from (select ax.dx as de_uid, ax.ou as ou_uid, ax.co as coc_uid, ax.ao as aoc_uid, ax.de_name, ax.ou_name, ax.coc_name, ax.aoc_name, ax.value, ax.pestartdate as pe_start_date, ax.petype as pt_name,  ax.avg_middle_value as middle_value, ax.std_dev, ax.mad, abs(ax.value::double precision -  ax.avg_middle_value) as middle_value_abs_dev, (case when ax.std_dev = 0 then 0       else abs(ax.value::double precision -  ax.avg_middle_value ) / ax.std_dev        end) as z_score,  ax.avg_middle_value - (ax.std_dev * :threshold) as lower_bound,  ax.avg_middle_value + (ax.std_dev * :threshold) as upper_bound from analytics ax where dataelementid in  (:data_element_ids) and (ax.\"path\" like '/ouabcdefghA%' or ax.\"path\" like '/ouabcdefghB%') and ax.pestartdate >= :start_date and ax.peenddate <= :end_date) t1 where t1.z_score > :threshold order by middle_value_abs_dev desc limit :max_results ";
     assertEquals(expected, sql);
@@ -90,27 +92,29 @@ class AnalyticsZscoreSqlStatementProcessorTest {
 
   @Test
   void testGetSqlStatementWithZScore() {
-    OutlierRequest request =
-        new OutlierRequest.Builder()
-            .withDataElements(Lists.newArrayList(deA, deB, deC))
-            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 3, 1))
-            .withOrgUnits(Lists.newArrayList(ouA, ouB))
-            .withAlgorithm(OutlierDetectionAlgorithm.Z_SCORE)
-            .build();
-    String sql = subject.getSqlStatement(request);
+    OutlierRequest.OutlierRequestBuilder builder = OutlierRequest.builder();
+    builder
+        .dataElements(Lists.newArrayList(deA, deB, deC))
+        .startDate(getDate(2020, 1, 1))
+        .endDate(getDate(2020, 3, 1))
+        .orgUnits(Lists.newArrayList(ouA, ouB))
+        .algorithm(Z_SCORE)
+        .build();
+    String sql = subject.getSqlStatement(builder.build());
     assertTrue(sql.contains("avg_middle_value"));
   }
 
   @Test
   void testGetSqlStatementWithModifiedZScore() {
-    OutlierRequest request =
-        new OutlierRequest.Builder()
-            .withDataElements(Lists.newArrayList(deA, deB, deC))
-            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 3, 1))
-            .withOrgUnits(Lists.newArrayList(ouA, ouB))
-            .withAlgorithm(OutlierDetectionAlgorithm.MOD_Z_SCORE)
-            .build();
-    String sql = subject.getSqlStatement(request);
+    OutlierRequest.OutlierRequestBuilder builder = OutlierRequest.builder();
+    builder
+        .dataElements(Lists.newArrayList(deA, deB, deC))
+        .startDate(getDate(2020, 1, 1))
+        .endDate(getDate(2020, 3, 1))
+        .orgUnits(Lists.newArrayList(ouA, ouB))
+        .algorithm(MOD_Z_SCORE)
+        .build();
+    String sql = subject.getSqlStatement(builder.build());
     assertTrue(sql.contains("percentile_middle_value"));
   }
 

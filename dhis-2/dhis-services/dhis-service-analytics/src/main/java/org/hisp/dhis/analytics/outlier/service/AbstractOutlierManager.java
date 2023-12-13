@@ -97,8 +97,8 @@ public abstract class AbstractOutlierManager {
     String isoPeriod = getIsoPeriod(calendar, rs.getString("pt_name"), rs.getDate("pe_start_date"));
 
     Outlier outlier = new Outlier();
-    outlier.setDe(rs.getString("de_uid"));
-    outlier.setDeName(rs.getString("de_name"));
+    outlier.setDx(rs.getString("de_uid"));
+    outlier.setDxName(rs.getString("de_name"));
     outlier.setPe(isoPeriod);
     outlier.setOu(rs.getString("ou_uid"));
     outlier.setOuName(rs.getString("ou_name"));

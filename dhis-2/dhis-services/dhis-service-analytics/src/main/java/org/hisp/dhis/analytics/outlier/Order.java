@@ -27,22 +27,18 @@
  */
 package org.hisp.dhis.analytics.outlier;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * Candidate on which to order an outlier detection result set.
  *
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 public enum Order {
   MEAN_ABS_DEV("mean_abs_dev"),
   Z_SCORE("z_score");
 
-  private String key;
-
-  Order(String key) {
-    this.key = key;
-  }
-
-  public String getKey() {
-    return key;
-  }
+  @Getter private final String key;
 }

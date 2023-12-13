@@ -27,13 +27,24 @@
  */
 package org.hisp.dhis.analytics.outlier.data;
 
+import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MIN_MAX;
+import static org.hisp.dhis.feedback.ErrorCode.E2200;
+import static org.hisp.dhis.feedback.ErrorCode.E2201;
+import static org.hisp.dhis.feedback.ErrorCode.E2202;
+import static org.hisp.dhis.feedback.ErrorCode.E2203;
+import static org.hisp.dhis.feedback.ErrorCode.E2204;
+import static org.hisp.dhis.feedback.ErrorCode.E2205;
+import static org.hisp.dhis.feedback.ErrorCode.E2206;
+import static org.hisp.dhis.feedback.ErrorCode.E2207;
+import static org.hisp.dhis.feedback.ErrorCode.E2209;
+import static org.hisp.dhis.feedback.ErrorCode.E2210;
+import static org.hisp.dhis.feedback.ErrorCode.E2211;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
@@ -42,6 +53,9 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Slf4j
 public class OutlierRequestValidator {
+
+  public static final int DEFAULT_LIMIT = 500;
+
   private final SystemSettingManager systemSettingManager;
 
   /**
@@ -66,8 +80,8 @@ public class OutlierRequestValidator {
   private ErrorMessage validateForErrorMessage(OutlierRequest request, boolean isAnalytics) {
     int maxLimit =
         isAnalytics
-            ? systemSettingManager.getSystemSetting(SettingKey.ANALYTICS_MAX_LIMIT, Integer.class)
-            : 500;
+            ? systemSettingManager.getSystemSetting(ANALYTICS_MAX_LIMIT, Integer.class)
+            : DEFAULT_LIMIT;
     ErrorMessage errorMessage = getErrorMessage(request, maxLimit);
 
     if (errorMessage != null) {
@@ -76,19 +90,19 @@ public class OutlierRequestValidator {
 
     if (isAnalytics) {
       if (request.getDataStartDate() != null) {
-        return new ErrorMessage(ErrorCode.E2209);
+        return new ErrorMessage(E2209);
       }
       if (request.getDataEndDate() != null) {
-        return new ErrorMessage(ErrorCode.E2210);
+        return new ErrorMessage(E2210);
       }
-      if (request.getAlgorithm() == OutlierDetectionAlgorithm.MIN_MAX) {
-        return new ErrorMessage(ErrorCode.E2211);
+      if (request.getAlgorithm() == MIN_MAX) {
+        return new ErrorMessage(E2211);
       }
     }
 
     if (request.hasDataStartEndDate()
         && request.getDataStartDate().after(request.getDataEndDate())) {
-      return new ErrorMessage(ErrorCode.E2207);
+      return new ErrorMessage(E2207);
     }
 
     return null;
@@ -98,19 +112,19 @@ public class OutlierRequestValidator {
     ErrorMessage error = null;
 
     if (request.getDataElements().isEmpty()) {
-      error = new ErrorMessage(ErrorCode.E2200);
+      error = new ErrorMessage(E2200);
     } else if (request.getStartDate() == null || request.getEndDate() == null) {
-      error = new ErrorMessage(ErrorCode.E2201);
+      error = new ErrorMessage(E2201);
     } else if (request.getStartDate().after(request.getEndDate())) {
-      error = new ErrorMessage(ErrorCode.E2202);
+      error = new ErrorMessage(E2202);
     } else if (request.getOrgUnits().isEmpty()) {
-      error = new ErrorMessage(ErrorCode.E2203);
+      error = new ErrorMessage(E2203);
     } else if (request.getThreshold() <= 0) {
-      error = new ErrorMessage(ErrorCode.E2204);
+      error = new ErrorMessage(E2204);
     } else if (request.getMaxResults() <= 0) {
-      error = new ErrorMessage(ErrorCode.E2205);
+      error = new ErrorMessage(E2205);
     } else if (request.getMaxResults() > maxLimit) {
-      error = new ErrorMessage(ErrorCode.E2206, maxLimit);
+      error = new ErrorMessage(E2206, maxLimit);
     }
 
     return error;

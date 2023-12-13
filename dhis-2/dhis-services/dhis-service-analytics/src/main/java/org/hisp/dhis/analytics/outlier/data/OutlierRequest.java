@@ -29,13 +29,16 @@ package org.hisp.dhis.analytics.outlier.data;
 
 import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.Z_SCORE;
 import static org.hisp.dhis.analytics.outlier.Order.MEAN_ABS_DEV;
+import static org.hisp.dhis.analytics.outlier.data.OutlierRequestValidator.DEFAULT_LIMIT;
 import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
-import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Getter;
+import lombok.With;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.outlier.Order;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
@@ -48,104 +51,37 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  * @author Lars Helge Overland
  */
 @Getter
+@Builder
+@With
 public class OutlierRequest {
-  private List<DataElement> dataElements = new ArrayList<>();
 
   private Date startDate;
 
   private Date endDate;
 
-  private List<OrganisationUnit> orgUnits = new ArrayList<>();
-
-  private OrganisationUnitDescendants orgUnitSelection;
-
-  private OutlierDetectionAlgorithm algorithm;
-
-  private double threshold;
-
   private Date dataStartDate;
 
   private Date dataEndDate;
 
-  private Order orderBy;
+  @Default private List<DataElement> dataElements = new ArrayList<>();
 
-  private int maxResults;
+  @Default private List<OrganisationUnit> orgUnits = new ArrayList<>();
+
+  @Default private Order orderBy = MEAN_ABS_DEV;
+
+  @Default private int maxResults = DEFAULT_LIMIT;
+
+  @Default private OrganisationUnitDescendants orgUnitSelection = DESCENDANTS;
+
+  @Default private OutlierDetectionAlgorithm algorithm = Z_SCORE;
+
+  @Default private double threshold = 3.0d;
 
   public List<Long> getDataElementIds() {
     return dataElements.stream().map(DataElement::getId).toList();
   }
 
-  private OutlierRequest() {}
-
   public boolean hasDataStartEndDate() {
     return dataStartDate != null && dataEndDate != null;
-  }
-
-  public static class Builder {
-    private OutlierRequest request;
-
-    /** Initializes the {@link OutlierRequest} with default values. */
-    public Builder() {
-      this.request = new OutlierRequest();
-
-      this.request.orgUnitSelection = DESCENDANTS;
-      this.request.algorithm = Z_SCORE;
-      this.request.threshold = 3.0d;
-      this.request.orderBy = MEAN_ABS_DEV;
-      this.request.maxResults = 500;
-    }
-
-    public Builder withDataElements(List<DataElement> dataElements) {
-      this.request.dataElements = dataElements;
-      return this;
-    }
-
-    public Builder withStartEndDate(Date startDate, Date endDate) {
-      this.request.startDate = startDate;
-      this.request.endDate = endDate;
-      return this;
-    }
-
-    public Builder withOrgUnits(List<OrganisationUnit> orgUnits) {
-      this.request.orgUnits = orgUnits;
-      return this;
-    }
-
-    public Builder withAlgorithm(OutlierDetectionAlgorithm algorithm) {
-      this.request.algorithm = algorithm;
-      return this;
-    }
-
-    public Builder withThreshold(double threshold) {
-      this.request.threshold = threshold;
-      return this;
-    }
-
-    public Builder withDataStartDate(Date dataStartDate) {
-      this.request.dataStartDate = dataStartDate;
-      return this;
-    }
-
-    public Builder withDataEndDate(Date dataEndDate) {
-      this.request.dataEndDate = dataEndDate;
-      return this;
-    }
-
-    public Builder withOrderBy(Order orderBy) {
-      this.request.orderBy = orderBy;
-      return this;
-    }
-
-    public Builder withMaxResults(int maxResults) {
-      this.request.maxResults = maxResults;
-      return this;
-    }
-
-    public OutlierRequest build() {
-      notNull(this.request.orgUnitSelection, "Attribute orgUnitSelection cannot be null");
-      notNull(this.request.algorithm, "Attribute algorithm cannot be null");
-      notNull(this.request.orderBy, "Attribute orderBy cannot be null");
-      return this.request;
-    }
   }
 }

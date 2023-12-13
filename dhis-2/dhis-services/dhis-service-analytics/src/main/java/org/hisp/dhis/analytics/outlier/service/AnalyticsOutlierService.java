@@ -56,7 +56,6 @@ import java.io.Writer;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.common.Grid;
@@ -72,8 +71,6 @@ import org.springframework.stereotype.Service;
 public class AnalyticsOutlierService {
 
   private final AnalyticsZScoreOutlierManager zScoreOutlierDetection;
-
-  private final MetadataParamsHandler metadataParamsHandler;
 
   /**
    * Transform the incoming request into api response (json).
@@ -145,8 +142,8 @@ public class AnalyticsOutlierService {
   private void setHeaders(Grid grid, OutlierRequest request) {
     boolean isModifiedZScore = request.getAlgorithm() == MOD_Z_SCORE;
 
-    String zScoreOrModZscoreItem = isModifiedZScore ? MODIFIED_ZSCORE.getItem() : ZSCORE.getItem();
-    String zScoreOrModZscoreName = isModifiedZScore ? MODIFIED_ZSCORE.getName() : ZSCORE.getName();
+    String zScoreOrModZScoreItem = isModifiedZScore ? MODIFIED_ZSCORE.getItem() : ZSCORE.getItem();
+    String zScoreOrModZScoreName = isModifiedZScore ? MODIFIED_ZSCORE.getName() : ZSCORE.getName();
 
     String meanOrMedianItem = isModifiedZScore ? MEDIAN.getItem() : MEAN.getItem();
     String meanOrMedianName = isModifiedZScore ? MEDIAN.getName() : MEAN.getName();
@@ -194,7 +191,7 @@ public class AnalyticsOutlierService {
         new GridHeader(
             ABSOLUTE_DEVIATION.getItem(), ABSOLUTE_DEVIATION.getName(), NUMBER, false, false));
     grid.addHeader(
-        new GridHeader(zScoreOrModZscoreItem, zScoreOrModZscoreName, NUMBER, false, false));
+        new GridHeader(zScoreOrModZScoreItem, zScoreOrModZScoreName, NUMBER, false, false));
     grid.addHeader(
         new GridHeader(LOWER_BOUNDARY.getItem(), LOWER_BOUNDARY.getName(), NUMBER, false, false));
     grid.addHeader(
@@ -214,8 +211,8 @@ public class AnalyticsOutlierService {
         v -> {
           boolean isModifiedZScore = request.getAlgorithm() == MOD_Z_SCORE;
           grid.addRow();
-          grid.addValue(v.getDe());
-          grid.addValue(v.getDeName());
+          grid.addValue(v.getDx());
+          grid.addValue(v.getDxName());
           grid.addValue(v.getPe());
           grid.addValue(v.getOu());
           grid.addValue(v.getOuName());

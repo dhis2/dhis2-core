@@ -33,9 +33,9 @@ import lombok.Data;
 /** Represent the outlier object. */
 @Data
 public class Outlier {
-  private String de;
+  private String dx;
 
-  private String deName;
+  private String dxName;
 
   private String pe;
 
