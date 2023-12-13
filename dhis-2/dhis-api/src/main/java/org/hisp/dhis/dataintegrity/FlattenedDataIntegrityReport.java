@@ -126,9 +126,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.CATEGORY_COMBOS_BEING_INVALID.getName()));
     this.dataSetsNotAssignedToOrganisationUnits =
-        listOfDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType.DATA_SETS_NOT_ASSIGNED_TO_ORG_UNITS.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("datasets_not_assigned_to_org_units"));
     this.indicatorsWithoutGroups =
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.INDICATORS_WITHOUT_GROUPS.getName()));
