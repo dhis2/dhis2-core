@@ -403,21 +403,49 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
         updateExpectSuccess(obj -> obj.addMember("queuePosition", toJson(42))).getQueuePosition());
   }
 
+  @Test
+  void testEnableIsReadOnly_Update() {
+    JsonJobConfiguration config = createExpectSuccess(Map.of());
+    assertTrue(config.isEnabled(), "newly created config should be enabled");
+    String jobId = config.getId();
+    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/disable"));
+    config = getJsonJobConfiguration(jobId);
+    assertFalse(config.isEnabled());
+    config = updateExpectSuccess(jobId, Map.of("name", "new_name"));
+    assertEquals("new_name", config.getName());
+    assertFalse(config.isEnabled(), "updating should not affect enabled");
+    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/enable"));
+    config = getJsonJobConfiguration(jobId);
+    assertTrue(config.isEnabled());
+    config = updateExpectSuccess(jobId, Map.of("name", "new_name2"));
+    assertEquals("new_name2", config.getName());
+    assertTrue(config.isEnabled(), "updating should not affect enabled");
+  }
+
   private JsonJobConfiguration createExpectSuccess(Map<String, Object> extra) {
     return createExpectSuccess(MINIMAL_CRON_CONFIG, extra);
   }
 
   private JsonJobConfiguration createExpectSuccess(
       Map<String, Object> minimal, Map<String, Object> extra) {
-    JsonNode json =
-        JsonBuilder.createObject(
-            obj -> {
-              minimal.forEach((name, value) -> obj.addMember(name, toJson(value)));
-              extra.forEach((name, value) -> obj.addMember(name, toJson(value)));
-            });
-
+    JsonNode json = newJsonJobConfiguration(minimal, extra);
     String jobId =
         assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json.getDeclaration()));
+    return getJsonJobConfiguration(jobId);
+  }
+
+  private static JsonNode newJsonJobConfiguration(
+      Map<String, Object> minimal, Map<String, Object> extra) {
+    return JsonBuilder.createObject(
+        obj -> {
+          minimal.forEach((name, value) -> obj.addMember(name, toJson(value)));
+          extra.forEach((name, value) -> obj.addMember(name, toJson(value)));
+        });
+  }
+
+  private JsonJobConfiguration updateExpectSuccess(String jobId, Map<String, Object> extra) {
+    JsonNode config = newJsonJobConfiguration(MINIMAL_CRON_CONFIG, extra);
+    assertStatus(HttpStatus.OK, PUT("/jobConfigurations/" + jobId, config.getDeclaration()));
     return getJsonJobConfiguration(jobId);
   }
 
