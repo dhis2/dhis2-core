@@ -514,10 +514,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
    * DataIntegrityCheck} to perform the method as {@link DataIntegrityDetails}.
    */
   public void initIntegrityChecks() {
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_DATA_SETS,
-        DataElement.class,
-        this::getDataElementsWithoutDataSet);
+
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS,
         DataElement.class,
@@ -657,6 +654,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       checks.add("organisation_units_without_groups");
       checks.add("data_elements_aggregate_no_groups");
       checks.add("data_elements_aggregate_with_different_period_types");
+      checks.add("aggregate_des_no_datasets");
     }
     runDetailsChecks(checks, progress);
     return new FlattenedDataIntegrityReport(getDetails(checks, -1L));

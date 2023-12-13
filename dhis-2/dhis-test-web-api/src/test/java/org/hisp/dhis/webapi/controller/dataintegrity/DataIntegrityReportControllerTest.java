@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
@@ -209,7 +210,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     assertStatus(HttpStatus.CREATED, POST("/dataSets", dataset2));
 
     Map<String, List<String>> expected =
-        Map.of("ANC1", List.of(dataset1_uid, dataset2_uid).stream().sorted().toList());
+        Map.of("ANC1", Stream.of(dataset1_uid, dataset2_uid).sorted().toList());
     Map<String, List<String>> actual =
         getDataIntegrityReport()
             .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes()
@@ -298,6 +299,48 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     List<String> results =
         getDataIntegrityReport().getDataElementsWithoutGroups().toList(JsonString::string);
     assertEquals(singletonList("ANC2" + ":" + dataElementB), results);
+  }
+
+  @Test
+  void testDataElementsNoDatasets() {
+
+    String defaultCatCombo = getDefaultCatCombo();
+    String dataSetA = generateUid();
+
+    String dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+    String dataElementB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+    String datasetMetadata =
+        "{ 'id':'"
+            + dataSetA
+            + "', 'name': 'Test Monthly', 'shortName': 'Test Monthly', 'periodType' : 'Monthly',"
+            + "'categoryCombo' : {'id': '"
+            + defaultCatCombo
+            + "'}, "
+            + "'dataSetElements' : [{'dataSet' : {'id':'"
+            + dataSetA
+            + "'}, 'id':'"
+            + generateUid()
+            + "', 'dataElement': {'id' : '"
+            + dataElementA
+            + "'}}]}";
+
+    assertStatus(HttpStatus.CREATED, POST("/dataSets", datasetMetadata));
+
+    List<String> results =
+        getDataIntegrityReport().getDataElementsWithoutDataSet().toList(JsonString::string);
+    assertEquals(List.of("ANC2" + ":" + dataElementB), results);
   }
 
   private JsonDataIntegrityReport getDataIntegrityReport() {
