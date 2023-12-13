@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -163,8 +164,6 @@ class EventImportTest extends TransactionalIntegrationTest {
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
-    superUser = preCreateInjectAdminUser();
-    injectSecurityContext(superUser);
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
@@ -254,7 +253,8 @@ class EventImportTest extends TransactionalIntegrationTest {
     pi.setUid(CodeGenerator.generateUid());
     manager.save(pi);
     event = createEvent("eventUid001");
-    createUserAndInjectSecurityContext(true);
+    superUser = createAndAddAdminUser(AUTHORITY_ALL);
+    injectSecurityContext(superUser);
   }
 
   @Test
@@ -309,6 +309,8 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertNotNull(eventDataValueA);
     assertEquals(eventDataValueA.getValue(), dataValueA.getValue());
     assertEquals(eventDataValueA.getStoredBy(), superUser.getName());
+    assertNotNull(eventDataValueA.getCreatedByUserInfo());
+    assertNotNull(eventDataValueA.getLastUpdatedByUserInfo());
     assertNotNull(eventDataValueA.getCreated());
     assertNotNull(eventDataValueA.getLastUpdated());
 
@@ -321,6 +323,8 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertNotNull(eventDataValueB);
     assertEquals(eventDataValueB.getValue(), dataValueB.getValue());
     assertEquals(eventDataValueB.getStoredBy(), superUser.getName());
+    assertNotNull(eventDataValueB.getCreatedByUserInfo());
+    assertNotNull(eventDataValueB.getLastUpdatedByUserInfo());
     assertNotNull(eventDataValueB.getCreated());
     assertNotNull(eventDataValueB.getLastUpdated());
   }
