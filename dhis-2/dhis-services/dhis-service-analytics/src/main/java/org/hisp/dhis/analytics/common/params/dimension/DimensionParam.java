@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.common.params.dimension;
 import static java.util.Objects.nonNull;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.lowerCase;
+import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.byForeignType;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DATE_FILTERS;
@@ -51,7 +51,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.tei.query.context.TeiHeaderProvider;
 import org.hisp.dhis.analytics.tei.query.context.TeiStaticField;
 import org.hisp.dhis.common.DimensionalObject;
@@ -132,10 +131,6 @@ public class DimensionParam implements UidObject {
             + " instead");
   }
 
-  public static boolean isStaticDimensionIdentifier(String dimensionIdentifier) {
-    return StaticDimension.of(dimensionIdentifier).isPresent();
-  }
-
   /**
    * @return true if this DimensionParams has some items on it.
    */
@@ -212,7 +207,7 @@ public class DimensionParam implements UidObject {
       return queryItem.getItem().getUid();
     }
 
-    return staticDimension.getColumnName();
+    return staticDimension.getHeaderName();
   }
 
   public boolean isPeriodDimension() {
@@ -248,7 +243,13 @@ public class DimensionParam implements UidObject {
     CREATEDBYDISPLAYNAME(TEXT, DimensionParamObjectType.STATIC),
     STOREDBY(TEXT, DimensionParamObjectType.STATIC),
     ENROLLMENT_STATUS(TEXT, DimensionParamObjectType.STATIC, null, "enrollmentstatus"),
-    EVENT_STATUS(TEXT, DimensionParamObjectType.STATIC, null, "status");
+    PROGRAM_STATUS(
+        TEXT,
+        DimensionParamObjectType.STATIC,
+        null,
+        "enrollmentstatus",
+        "programstatus"), /* this enum is an alias for ENROLLMENT_STATUS */
+    EVENT_STATUS(TEXT, DimensionParamObjectType.STATIC, null, "status", "eventstatus");
 
     private final ValueType valueType;
 
@@ -257,6 +258,8 @@ public class DimensionParam implements UidObject {
     @Getter private final DimensionParamObjectType dimensionParamObjectType;
 
     private final TeiStaticField teiStaticField;
+
+    @Getter private final String headerName;
 
     StaticDimension(ValueType valueType, DimensionParamObjectType dimensionParamObjectType) {
       this(valueType, dimensionParamObjectType, null);
@@ -269,11 +272,13 @@ public class DimensionParam implements UidObject {
       this.valueType = valueType;
 
       // By default, columnName is its own "name" in lowercase.
-      this.columnName = lowerCase(name());
+      this.columnName = normalizeName(name());
 
       this.dimensionParamObjectType = dimensionParamObjectType;
 
       this.teiStaticField = teiStaticField;
+
+      this.headerName = this.columnName;
     }
 
     StaticDimension(
@@ -281,15 +286,37 @@ public class DimensionParam implements UidObject {
         DimensionParamObjectType dimensionParamObjectType,
         TeiStaticField teiStaticField,
         String columnName) {
-      this.valueType = valueType;
-      this.columnName = columnName;
-      this.dimensionParamObjectType = dimensionParamObjectType;
-      this.teiStaticField = teiStaticField;
+      this(valueType, dimensionParamObjectType, teiStaticField, columnName, columnName);
     }
 
-    static Optional<StaticDimension> of(String value) {
+    StaticDimension(
+        ValueType valueType,
+        DimensionParamObjectType dimensionParamObjectType,
+        TeiStaticField teiStaticField,
+        String columnName,
+        String headerName) {
+      this.valueType = valueType;
+      this.dimensionParamObjectType = dimensionParamObjectType;
+      this.teiStaticField = teiStaticField;
+      this.columnName = columnName;
+      this.headerName = headerName;
+    }
+
+    public String normalizedName() {
+      return normalizeName(name());
+    }
+
+    public static String normalizeName(String name) {
+      return name.toLowerCase().replace("_", "");
+    }
+
+    public static Optional<StaticDimension> of(String value) {
       return Arrays.stream(StaticDimension.values())
-          .filter(sd -> StringUtils.equalsIgnoreCase(sd.name(), value))
+          .filter(
+              sd ->
+                  equalsIgnoreCase(sd.columnName, value)
+                      || equalsIgnoreCase(sd.name(), value)
+                      || equalsIgnoreCase(sd.normalizedName(), value))
           .findFirst();
     }
 

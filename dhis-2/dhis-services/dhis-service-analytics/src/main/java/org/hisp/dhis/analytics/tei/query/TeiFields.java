@@ -162,7 +162,10 @@ public class TeiFields {
         .map(
             field ->
                 findDimensionParamForField(
-                    field, teiQueryParams.getCommonParams().getDimensionIdentifiers()))
+                    field,
+                    Stream.concat(
+                        teiQueryParams.getCommonParams().getDimensionIdentifiers().stream(),
+                        teiQueryParams.getCommonParams().getParsedHeaders().stream())))
         .filter(Objects::nonNull)
         .map(
             dimIdentifier ->
@@ -331,8 +334,8 @@ public class TeiFields {
    * @throws IllegalStateException if nothing is found.
    */
   private static DimensionIdentifier<DimensionParam> findDimensionParamForField(
-      Field field, List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers) {
-    return dimensionIdentifiers.stream()
+      Field field, Stream<DimensionIdentifier<DimensionParam>> dimensionIdentifiers) {
+    return dimensionIdentifiers
         .filter(di -> di.toString().equals(field.getDimensionIdentifier()))
         .findFirst()
         .orElse(null);
