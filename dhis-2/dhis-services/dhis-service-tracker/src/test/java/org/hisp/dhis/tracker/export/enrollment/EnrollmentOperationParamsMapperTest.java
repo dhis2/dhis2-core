@@ -60,6 +60,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
@@ -226,15 +227,16 @@ class EnrollmentOperationParamsMapperTest {
   void shouldMapParamsWhenOrgUnitNotInScopeButUserIsSuperuser()
       throws ForbiddenException, BadRequestException {
     User superuser = createUser("ALL");
-    //    when(getCurrentUser()).thenReturn(superuser);
+
     injectSecurityContext(UserDetails.fromUser(superuser));
-    when(userService.getUserByUsername(anyString())).thenReturn(superuser);
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(superuser);
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(ORG_UNIT_1_UID))
             .orgUnitMode(ALL)
             .build();
+
     when(organisationUnitService.isInUserHierarchy(
             orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(false);
