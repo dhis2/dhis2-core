@@ -35,13 +35,14 @@ import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
-import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -703,7 +704,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
       return context.getSummary();
     }
 
-    Date completeDate = parseDate(dataValueSet.getCompleteDate());
+    Date completeDate = getCompletionDate(dataValueSet);
     if (dataSetContext.getDataSet() != null && completeDate != null) {
       notifier.notify(id, notificationLevel, "Completing data set");
       handleComplete(
@@ -760,6 +761,19 @@ public class DefaultDataValueSetService implements DataValueSetService {
             + importCount.getDeleted());
 
     return context.getSummary();
+  }
+
+  private static Date getCompletionDate(DataValueSet dataValueSet) {
+    String completeDateStr = dataValueSet.getCompleteDate();
+    if (completeDateStr == null || completeDateStr.isEmpty()) return null;
+    Function<LocalDate, Date> toDate =
+        date -> Date.from(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+    LocalDate today = LocalDate.now();
+    if ("true".equalsIgnoreCase(completeDateStr)) return toDate.apply(today);
+    if ("false".equalsIgnoreCase(completeDateStr)) return null;
+    LocalDate completeDate = LocalDate.parse(completeDateStr);
+    if (completeDate.isAfter(today)) return toDate.apply(today);
+    return toDate.apply(completeDate);
   }
 
   private void importDataValue(
