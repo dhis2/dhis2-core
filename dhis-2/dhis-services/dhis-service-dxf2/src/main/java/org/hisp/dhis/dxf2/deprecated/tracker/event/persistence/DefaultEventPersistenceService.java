@@ -44,7 +44,6 @@ import org.hisp.dhis.dxf2.deprecated.tracker.importer.mapper.ProgramStageInstanc
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -125,7 +124,9 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
   @Override
   @Transactional
   public void updateEventDataValues(
-      EventDataValue de, org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, User user)
+      EventDataValue de,
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
+      WorkContext workContext)
       throws JsonProcessingException {
 
     String uid = de.getDataElement();
@@ -151,8 +152,16 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
         .setParameter("event", event.getEvent())
         .setParameter("de", uid)
         .setParameter(
-            "lastupdatedbyuserinfo", mapper.writeValueAsString(UserInfoSnapshot.from(user)))
+            "lastupdatedbyuserinfo",
+            mapper.writeValueAsString(
+                UserInfoSnapshot.from(workContext.getImportOptions().getUser())))
         .executeUpdate();
+  }
+
+  @Override
+  public void updateTrackedEntityInstances(
+      WorkContext context, List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events) {
+    updateTeis(context, events);
   }
 
   /**
