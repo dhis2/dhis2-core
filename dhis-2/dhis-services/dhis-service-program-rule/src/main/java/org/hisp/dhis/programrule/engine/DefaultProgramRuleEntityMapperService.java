@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import kotlinx.datetime.LocalDate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -90,7 +90,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import kotlinx.datetime.LocalDate;
 
 /**
  * @author Zubair Asghar
@@ -473,11 +472,11 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         eventToEvaluate.getProgramStage().getUid(),
         eventToEvaluate.getProgramStage().getName(),
         RuleEvent.Status.valueOf(eventToEvaluate.getStatus().toString()),
-            eventToEvaluate.getOccurredDate() == null ?
-            LocalDate.Companion.parse(eventToEvaluate.getOccurredDate().toString()) :
-                    LocalDate.Companion.parse(eventToEvaluate.getScheduledDate().toString()),
-            LocalDate.Companion.parse(eventToEvaluate.getScheduledDate().toString()),
-                    LocalDate.Companion.parse(eventToEvaluate.getCompletedDate().toString()),
+        eventToEvaluate.getOccurredDate() == null
+            ? LocalDate.Companion.parse(eventToEvaluate.getOccurredDate().toString())
+            : LocalDate.Companion.parse(eventToEvaluate.getScheduledDate().toString()),
+        LocalDate.Companion.parse(eventToEvaluate.getScheduledDate().toString()),
+        LocalDate.Companion.parse(eventToEvaluate.getCompletedDate().toString()),
         orgUnit,
         orgUnitCode,
         eventToEvaluate.getEventDataValues().stream()
@@ -486,9 +485,11 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             .map(
                 dv ->
                     new RuleDataValue(
-                        eventToEvaluate.getOccurredDate() == null ?
-                        LocalDate.Companion.parse(eventToEvaluate.getOccurredDate().toString()) :
-                        LocalDate.Companion.parse(eventToEvaluate.getScheduledDate().toString()),
+                        eventToEvaluate.getOccurredDate() == null
+                            ? LocalDate.Companion.parse(
+                                eventToEvaluate.getOccurredDate().toString())
+                            : LocalDate.Companion.parse(
+                                eventToEvaluate.getScheduledDate().toString()),
                         eventToEvaluate.getProgramStage().getUid(),
                         dv.getDataElement(),
                         dv.getValue()))

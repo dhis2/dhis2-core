@@ -298,8 +298,7 @@ public class ProgramRuleEngine {
       Event event,
       List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
     if (event == null) {
-      return ruleEngine
-          .evaluate(getRuleEnrollment(enrollment, trackedEntityAttributeValues));
+      return ruleEngine.evaluate(getRuleEnrollment(enrollment, trackedEntityAttributeValues));
     } else {
       return ruleEngine.evaluate(getRuleEvent(event));
     }
