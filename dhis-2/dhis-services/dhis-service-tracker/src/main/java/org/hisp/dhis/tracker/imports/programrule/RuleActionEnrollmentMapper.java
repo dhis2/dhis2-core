@@ -87,7 +87,7 @@ class RuleActionEnrollmentMapper {
         .map(
             effect ->
                 buildEnrollmentRuleActionExecutor(
-                    effect.getRuleId(), effect.data(), effect.ruleAction(), attributes))
+                    effect.getRuleId(), effect.getData(), effect.getRuleAction(), attributes))
         .filter(Objects::nonNull)
         .toList();
   }

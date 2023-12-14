@@ -85,7 +85,10 @@ class RuleActionEventMapper {
         .map(
             effect ->
                 buildEventRuleActionExecutor(
-                    effect.getRuleId(), effect.data(), effect.ruleAction(), event.getDataValues()))
+                    effect.getRuleId(),
+                    effect.getData(),
+                    effect.getRuleAction(),
+                    event.getDataValues()))
         .filter(Objects::nonNull)
         .filter(
             executor -> isDataElementPartOfProgramStage(executor.getDataElementUid(), programStage))

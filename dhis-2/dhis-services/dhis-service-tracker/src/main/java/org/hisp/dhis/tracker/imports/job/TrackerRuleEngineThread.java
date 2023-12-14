@@ -83,7 +83,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
         enrollment.setProgram(sideEffectDataBundle.getProgram());
 
         entry.getValue().stream()
-            .filter(effect -> ruleActionImplementer.accept(effect.ruleAction()))
+            .filter(effect -> ruleActionImplementer.accept(effect.getRuleAction()))
             .forEach(effect -> ruleActionImplementer.implement(effect, enrollment));
       }
 
@@ -92,7 +92,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
         event.getProgramStage().setProgram(sideEffectDataBundle.getProgram());
 
         entry.getValue().stream()
-            .filter(effect -> ruleActionImplementer.accept(effect.ruleAction()))
+            .filter(effect -> ruleActionImplementer.accept(effect.getRuleAction()))
             .forEach(effect -> ruleActionImplementer.implement(effect, event));
       }
     }
