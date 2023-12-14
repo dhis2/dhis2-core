@@ -123,7 +123,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
     this.dataElementsWithoutGroups =
         listOfDisplayNameWithUid(detailsByName.get("data_elements_aggregate_no_groups"));
     this.invalidCategoryCombos =
-        listOfDisplayNameOrUid(detailsByName.get("invalid_category_combos"));
+        listOfDisplayNameWithUid(detailsByName.get("invalid_category_combos"));
     this.dataSetsNotAssignedToOrganisationUnits =
         listOfDisplayNameOrUid(detailsByName.get("datasets_not_assigned_to_org_units"));
     this.indicatorsWithoutGroups =
