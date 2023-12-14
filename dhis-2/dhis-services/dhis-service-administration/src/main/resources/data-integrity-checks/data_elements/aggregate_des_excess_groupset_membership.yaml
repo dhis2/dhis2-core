@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: data_elements_excess_groupset_membership
+name: data_elements_violating_exclusive_group_sets
 description: Data elements which belong to multiple groups in a group set.
 section: data_elements
 section_order: 10
@@ -58,8 +58,10 @@ summary_sql: >-
   FROM des_multiple_groups;
 details_sql: >-
   SELECT x.uid,x.name, x.degs_name || ' :{'||
-  string_agg(x.deg_name,',') || '}' as comment from (
-  SELECT de.uid,de.name,degs.name as degs_name,deg.name as deg_name
+  string_agg(x.deg_name,',') || '}' as comment,
+  array_agg(x.deg_name || ':' || x.deg_uid) as refs
+  from (
+  SELECT de.uid,de.name,degs.name as degs_name,deg.name as deg_name, deg.uid as deg_uid
   from (
   SELECT d.dataelementid,d.dataelementgroupsetid,
   unnest(d.groupids) as dataelementgroupid
@@ -77,7 +79,7 @@ details_sql: >-
   INNER JOIN dataelement de on e.dataelementid = de.dataelementid
   INNER JOIN dataelementgroupset degs on e.dataelementgroupsetid = degs.dataelementgroupsetid
   INNER JOIN dataelementgroup deg on e.dataelementgroupid = deg.dataelementgroupid ) x
-  GROUP BY x.uid,x.name,x.degs_name
+  GROUP BY x.uid,x.name,x.degs_name;
 details_id_type: data_elements_aggregate
 severity: SEVERE
 introduction: >

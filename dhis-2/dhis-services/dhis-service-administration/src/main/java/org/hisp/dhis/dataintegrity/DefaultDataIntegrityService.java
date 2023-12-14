@@ -515,10 +515,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   public void initIntegrityChecks() {
 
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-        DataElement.class,
-        this::getDataElementsViolatingExclusiveGroupSets);
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.DATA_ELEMENTS_IN_DATA_SET_NOT_IN_FORM,
         DataSet.class,
         this::getDataElementsInDataSetNotInForm);
@@ -644,6 +640,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       checks.add("data_elements_aggregate_with_different_period_types");
       checks.add("data_elements_without_datasets");
       checks.add("datasets_not_assigned_to_org_units");
+      checks.add("data_elements_violating_exclusive_group_sets");
       checks.add("invalid_category_combos");
     }
     runDetailsChecks(checks, progress);

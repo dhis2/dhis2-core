@@ -39,7 +39,6 @@ public enum DataIntegrityCheckType {
    */
 
   // DataElements
-  DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS,
   DATA_ELEMENTS_IN_DATA_SET_NOT_IN_FORM,
 
   // Indicators
