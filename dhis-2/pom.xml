@@ -81,7 +81,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.0.1-SNAPSHOT</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.0.0-SNAPSHOT</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.3</dhis-hisp-quick.version>
@@ -412,7 +412,7 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis.rules</groupId>
-        <artifactId>rule-engine</artifactId>
+        <artifactId>rule-engine-jvm</artifactId>
         <version>${dhis2-rule-engine.version}</version>
         <exclusions>
           <exclusion>
