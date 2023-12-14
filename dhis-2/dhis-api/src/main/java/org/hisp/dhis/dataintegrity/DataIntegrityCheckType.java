@@ -41,9 +41,6 @@ public enum DataIntegrityCheckType {
   // DataElements
   DATA_ELEMENTS_IN_DATA_SET_NOT_IN_FORM,
 
-  // CategoryOptionCombos
-  CATEGORY_COMBOS_BEING_INVALID,
-
   // Indicators
   INDICATORS_WITH_IDENTICAL_FORMULAS,
   INDICATORS_WITHOUT_GROUPS,
