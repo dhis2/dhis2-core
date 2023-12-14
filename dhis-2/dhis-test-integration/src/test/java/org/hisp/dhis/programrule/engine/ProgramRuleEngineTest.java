@@ -465,7 +465,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
         programRuleEngine.evaluate(
             event.getEnrollment(), event, Sets.newHashSet(), List.of(programRule));
     assertNotNull(ruleEffects);
-    assertEquals(ruleEffects.get(0).getData(), "10");
+    assertEquals("10", ruleEffects.get(0).getData());
   }
 
   @Test
@@ -485,14 +485,14 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
             .getRuleEffects()
             .isEmpty());
     assertEquals(
+        "10",
         ruleEffects.stream()
             .filter(e -> e.isEvent())
             .findFirst()
             .get()
             .getRuleEffects()
             .get(0)
-            .getData(),
-        "10");
+            .getData());
   }
 
   @Test
@@ -503,7 +503,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
         programRuleEngine.evaluate(
             event.getEnrollment(), event, Sets.newHashSet(), List.of(programRule));
     assertNotNull(ruleEffects);
-    assertEquals(ruleEffects.get(0).getData(), "10");
+    assertEquals("10", ruleEffects.get(0).getData());
   }
 
   @Test

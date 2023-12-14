@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import kotlinx.datetime.LocalDate;
+import kotlinx.datetime.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -88,6 +88,7 @@ import org.hisp.dhis.rules.models.RuleVariablePreviousEvent;
 import org.hisp.dhis.rules.utils.RuleEngineUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -440,8 +441,10 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     return new RuleEnrollment(
         enrollment.getUid(),
         enrollment.getProgram().getName(),
-        LocalDate.Companion.parse(enrollment.getOccurredDate().toString()),
-        LocalDate.Companion.parse(enrollment.getEnrollmentDate().toString()),
+        LocalDateTime.Companion.parse(DateUtils.getIso8601NoTz(enrollment.getOccurredDate()))
+            .getDate(),
+        LocalDateTime.Companion.parse(DateUtils.getIso8601NoTz(enrollment.getEnrollmentDate()))
+            .getDate(),
         RuleEnrollment.Status.valueOf(enrollment.getStatus().toString()),
         orgUnit,
         orgUnitCode,
@@ -472,11 +475,23 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         eventToEvaluate.getProgramStage().getUid(),
         eventToEvaluate.getProgramStage().getName(),
         RuleEvent.Status.valueOf(eventToEvaluate.getStatus().toString()),
-        eventToEvaluate.getOccurredDate() == null
-            ? LocalDate.Companion.parse(eventToEvaluate.getOccurredDate().toString())
-            : LocalDate.Companion.parse(eventToEvaluate.getScheduledDate().toString()),
-        LocalDate.Companion.parse(eventToEvaluate.getScheduledDate().toString()),
-        LocalDate.Companion.parse(eventToEvaluate.getCompletedDate().toString()),
+        eventToEvaluate.getOccurredDate() != null
+            ? LocalDateTime.Companion.parse(
+                    DateUtils.getIso8601NoTz(eventToEvaluate.getOccurredDate()))
+                .getDate()
+            : LocalDateTime.Companion.parse(
+                    DateUtils.getIso8601NoTz(eventToEvaluate.getScheduledDate()))
+                .getDate(),
+        eventToEvaluate.getScheduledDate() == null
+            ? null
+            : LocalDateTime.Companion.parse(
+                    DateUtils.getIso8601NoTz(eventToEvaluate.getScheduledDate()))
+                .getDate(),
+        eventToEvaluate.getCompletedDate() == null
+            ? null
+            : LocalDateTime.Companion.parse(
+                    DateUtils.getIso8601NoTz(eventToEvaluate.getCompletedDate()))
+                .getDate(),
         orgUnit,
         orgUnitCode,
         eventToEvaluate.getEventDataValues().stream()
@@ -485,11 +500,13 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             .map(
                 dv ->
                     new RuleDataValue(
-                        eventToEvaluate.getOccurredDate() == null
-                            ? LocalDate.Companion.parse(
-                                eventToEvaluate.getOccurredDate().toString())
-                            : LocalDate.Companion.parse(
-                                eventToEvaluate.getScheduledDate().toString()),
+                        eventToEvaluate.getOccurredDate() != null
+                            ? LocalDateTime.Companion.parse(
+                                    DateUtils.getIso8601NoTz(eventToEvaluate.getOccurredDate()))
+                                .getDate()
+                            : LocalDateTime.Companion.parse(
+                                    DateUtils.getIso8601NoTz(eventToEvaluate.getScheduledDate()))
+                                .getDate(),
                         eventToEvaluate.getProgramStage().getUid(),
                         dv.getDataElement(),
                         dv.getValue()))
