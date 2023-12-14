@@ -79,6 +79,7 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -676,6 +677,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
     handleCategoryCombo(metadata, program.getCategoryCombo());
     handleDataEntryForm(metadata, program.getDataEntryForm());
     handleTrackedEntityType(metadata, program.getTrackedEntityType());
+    program
+        .getProgramSections()
+        .forEach(programSection -> handleProgramSection(metadata, programSection));
 
     program
         .getNotificationTemplates()
@@ -1002,6 +1006,18 @@ public class DefaultMetadataExportService implements MetadataExportService {
             av ->
                 metadata.putValue(
                     Attribute.class, attributeService.getAttribute(av.getAttribute().getUid())));
+
+    return metadata;
+  }
+
+  private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramSection(
+      SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
+      ProgramSection programSection) {
+    if (programSection == null) return metadata;
+    metadata.putValue(ProgramSection.class, programSection);
+    programSection
+        .getTrackedEntityAttributes()
+        .forEach(tea -> handleTrackedEntityAttribute(metadata, tea));
 
     return metadata;
   }
