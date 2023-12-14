@@ -35,8 +35,9 @@ import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.metadata.objectbundle.*;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
@@ -68,8 +69,7 @@ class TrackedEntityTypeValidationTest extends SingleSetupIntegrationTestBase {
     MetadataImportParams importParams = new MetadataImportParams();
     importParams.setImportMode(ObjectBundleMode.COMMIT);
     importParams.setImportStrategy(ImportStrategy.CREATE);
-    importParams.setObjects(metadata);
-    ImportReport report = importService.importMetadata(importParams);
+    ImportReport report = importService.importMetadata(importParams, new MetadataObjects(metadata));
     assertEquals(Status.OK, report.getStatus());
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> importMetadata =
         renderService.fromMetadata(
@@ -78,8 +78,8 @@ class TrackedEntityTypeValidationTest extends SingleSetupIntegrationTestBase {
     MetadataImportParams importParamsFail = new MetadataImportParams();
     importParamsFail.setImportMode(ObjectBundleMode.COMMIT);
     importParamsFail.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
-    importParamsFail.setObjects(importMetadata);
-    ImportReport importReport = importService.importMetadata(importParamsFail);
+    ImportReport importReport =
+        importService.importMetadata(importParamsFail, new MetadataObjects(importMetadata));
     assertEquals(Status.OK, importReport.getStatus());
   }
 
@@ -91,8 +91,7 @@ class TrackedEntityTypeValidationTest extends SingleSetupIntegrationTestBase {
     MetadataImportParams importParams = new MetadataImportParams();
     importParams.setImportMode(ObjectBundleMode.COMMIT);
     importParams.setImportStrategy(ImportStrategy.CREATE);
-    importParams.setObjects(metadata);
-    ImportReport report = importService.importMetadata(importParams);
+    ImportReport report = importService.importMetadata(importParams, new MetadataObjects(metadata));
     assertEquals(Status.OK, report.getStatus());
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> importMetadata =
         renderService.fromMetadata(
@@ -101,8 +100,8 @@ class TrackedEntityTypeValidationTest extends SingleSetupIntegrationTestBase {
     MetadataImportParams importParamsFail = new MetadataImportParams();
     importParamsFail.setImportMode(ObjectBundleMode.COMMIT);
     importParamsFail.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
-    importParamsFail.setObjects(importMetadata);
-    ImportReport importReport = importService.importMetadata(importParamsFail);
+    ImportReport importReport =
+        importService.importMetadata(importParamsFail, new MetadataObjects(importMetadata));
     assertEquals(Status.ERROR, importReport.getStatus());
   }
 }

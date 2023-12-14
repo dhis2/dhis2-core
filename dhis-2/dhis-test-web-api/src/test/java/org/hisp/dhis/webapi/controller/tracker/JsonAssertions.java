@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -43,6 +44,8 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.util.DateUtils;
 
 public class JsonAssertions {
 
@@ -65,6 +68,10 @@ public class JsonAssertions {
   public static void assertRelationship(Relationship expected, JsonRelationship actual) {
     assertFalse(actual.isEmpty(), "relationship should not be empty");
     assertEquals(expected.getUid(), actual.getRelationship(), "relationship UID");
+    assertEquals(
+        DateUtils.getIso8601NoTz(expected.getCreatedAtClient()),
+        actual.getCreatedAtClient(),
+        "createdAtClient date");
     assertEquals(
         expected.getRelationshipType().getUid(),
         actual.getRelationshipType(),
@@ -90,21 +97,23 @@ public class JsonAssertions {
         expected.getEnrollment().getUid(), jsonEvent.getEnrollment(), "event enrollment UID");
     assertFalse(
         jsonEvent.has("relationships"), "relationships is not returned within relationship items");
+    assertEquals(expected.getEnrollment().getFollowup(), jsonEvent.getFollowUp(), "followUp");
+    assertEquals(expected.getEnrollment().getFollowup(), jsonEvent.getLegacyFollowUp(), "followup");
   }
 
   public static void assertTrackedEntityWithinRelationshipItem(
       TrackedEntity expected, JsonRelationshipItem actual) {
-    JsonRelationshipItem.JsonTrackedEntity jsonTEI = actual.getTrackedEntity();
-    assertFalse(jsonTEI.isEmpty(), "trackedEntity should not be empty");
-    assertEquals(expected.getUid(), jsonTEI.getTrackedEntity(), "trackedEntity UID");
+    JsonRelationshipItem.JsonTrackedEntity jsonTe = actual.getTrackedEntity();
+    assertFalse(jsonTe.isEmpty(), "trackedEntity should not be empty");
+    assertEquals(expected.getUid(), jsonTe.getTrackedEntity(), "trackedEntity UID");
     assertEquals(
         expected.getTrackedEntityType().getUid(),
-        jsonTEI.getTrackedEntityType(),
+        jsonTe.getTrackedEntityType(),
         "trackedEntityType UID");
-    assertEquals(expected.getOrganisationUnit().getUid(), jsonTEI.getOrgUnit(), "orgUnit UID");
-    assertTrue(jsonTEI.getAttributes().isEmpty(), "attributes should be empty");
+    assertEquals(expected.getOrganisationUnit().getUid(), jsonTe.getOrgUnit(), "orgUnit UID");
+    assertTrue(jsonTe.getAttributes().isEmpty(), "attributes should be empty");
     assertFalse(
-        jsonTEI.has("relationships"), "relationships is not returned within relationship items");
+        jsonTe.has("relationships"), "relationships is not returned within relationship items");
   }
 
   public static void assertHasOnlyUid(String expectedUid, String member, JsonObject json) {
@@ -124,6 +133,7 @@ public class JsonAssertions {
         jsonEnrollment.getTrackedEntity(),
         "trackedEntity UID");
     assertEquals(expected.getProgram().getUid(), jsonEnrollment.getProgram(), "program UID");
+    assertEquals(expected.getFollowup(), jsonEnrollment.getFollowUp(), "followUp");
     assertEquals(
         expected.getOrganisationUnit().getUid(), jsonEnrollment.getOrgUnit(), "orgUnit UID");
     assertTrue(jsonEnrollment.getArray("events").isEmpty(), "events should be empty");
@@ -146,12 +156,6 @@ public class JsonAssertions {
     assertFalse(json.has(name), String.format("member \"%s\" should NOT be in %s", name, json));
   }
 
-  public static void assertHasMembers(JsonObject json, String... names) {
-    for (String name : names) {
-      assertHasMember(json, name);
-    }
-  }
-
   public static void assertHasMember(JsonObject json, String name) {
     assertTrue(json.has(name), String.format("member \"%s\" should be in %s", name, json));
   }
@@ -163,5 +167,20 @@ public class JsonAssertions {
     assertTrue(
         actual.containsAll(toValue, expected),
         () -> String.format("expected %s instead got %s", expected, actual));
+  }
+
+  public static void assertReportEntities(
+      List<String> expectedEntityUids, TrackerType trackerType, JsonImportReport importReport) {
+    JsonTypeReport jsonTypeReport =
+        switch (trackerType) {
+          case TRACKED_ENTITY -> importReport.getBundleReport().getTrackedEntities();
+          case ENROLLMENT -> importReport.getBundleReport().getEnrollments();
+          case EVENT -> importReport.getBundleReport().getEvents();
+          case RELATIONSHIP -> importReport.getBundleReport().getRelationships();
+        };
+
+    List<String> reportEntityUids =
+        jsonTypeReport.getEntityReport().stream().map(JsonEntity::getUid).toList();
+    assertEquals(expectedEntityUids, reportEntityUids);
   }
 }

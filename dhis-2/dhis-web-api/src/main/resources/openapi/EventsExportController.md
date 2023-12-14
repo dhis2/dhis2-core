@@ -145,21 +145,45 @@ Get events with given UID(s).
 
 Get events with given UID(s).
 
-### `*.parameter.EventRequestParams.skipEventId`
-
 ### `*.parameter.EventRequestParams.order`
 
 `<propertyName1:sortDirection>[,<propertyName2:sortDirection>...]`
 
-Get events in given order. Valid `sortDirection`s are `asc` and `desc`. `propName` is
-case-sensitive, `sortDirection`
-is case-insensitive.
+Get events in given order. Events can be ordered by data elements and tracked entity attributes by
+passing a UID instead of a property name. This will order events by the values of the specified
+attribute and data element not their UIDs. Events can also be ordered by the following
+case-sensitive properties
 
-Supported properties
-are `assignedUser`, `assignedUserDisplayName`, `attributeOptionCombo`, `completedAt`,
-`completedBy`, `createdAt`, `createdBy`, `deleted`, `enrolledAt`, `enrollment`, `enrollmentStatus`, `event`, `followup`,
-`occurredAt`, `orgUnit`, `orgUnitName`, `program`, `programStage`, `scheduleAt`, `status`, `storedBy`, `trackedEntity`,
-`updatedAt`, `updatedBy`.
+* `assignedUser`
+* `assignedUserDisplayName`
+* `attributeOptionCombo`
+* `completedAt`
+* `completedBy`
+* `createdAt`
+* `createdBy`
+* `deleted`
+* `enrolledAt`
+* `enrollment`
+* `enrollmentStatus`
+* `event`
+* `followup` (deprecated)
+* `followUp`
+* `occurredAt`
+* `orgUnit`
+* `program`
+* `programStage`
+* `scheduledAt`
+* `status`
+* `storedBy`
+* `trackedEntity`
+* `updatedAt`
+* `updatedBy`
+
+Valid `sortDirection`s are `asc` and `desc`. `sortDirection` is case-insensitive. `sortDirection`
+defaults to `asc` for properties or UIDs without explicit `sortDirection` as in `order=scheduledAt`.
+
+Events are ordered by newest (internal id desc) by default meaning when no `order` parameter is
+provided.
 
 ### `*.parameter.EventRequestParams.fields`
 
@@ -176,16 +200,12 @@ NOTE: this query parameter has no effect on a CSV response!
 `<filter1>[,<filter2>...]`
 
 Get events matching given filters on data values. A filter is a colon separated data element UID
-with operator and value
-pairs. Example: `filter=H9IlTX2X6SL:sw:A` with operator starts with `sw` followed by a value.
-Special characters
-like `+` need to be percent-encoded so `%2B` instead of `+`. Multiple operator/value pairs for the
-same data element
-like `filter=AuPLng5hLbE:gt:438901703:lt:448901704` are allowed. Repeating the same data element UID
-is not allowed.
-Operator and values are case-insensitive. A user needs metadata read access to the data element and
-data read access to
-the program (if the program is without registration) or the program stage (if the program is with
+with operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with operator starts with `sw`
+followed by a value. Special characters like `+` need to be percent-encoded so `%2B` instead of `+`.
+Multiple operator/value pairs for the same data element
+as `filter=AuPLng5hLbE:gt:438901703:lt:448901704` are allowed. Operator and values are
+case-insensitive. A user needs metadata read access to the data element and data read access to the
+program (if the program is without registration) or the program stage (if the program is with
 registration).
 
 Valid operators are:
@@ -211,19 +231,15 @@ Valid operators are:
 
 `<filter1>[,<filter2>...]`
 
-Get events matching given filters on tracked entity attributes. A filter is a colon separated
-attribute UID with
-optional operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with operator starts with `sw`
-followed by a
-value. Special characters like `+` need to be percent-encoded so `%2B` instead of `+`. Multiple
-operator/value pairs for
-the same attribute like `filter=AuPLng5hLbE:gt:438901703:lt:448901704` are allowed. Repeating the
-same attribute UID is
-not allowed. Operator and values are case-insensitive. A user needs metadata read access to the
-attribute and data
-read access to the program (if the program is without registration) or to the program stage (if the
-program is with
-registration).
+Get events matching given filters on tracked entity attributes. A filter is a colon separated 
+attribute UID with optional operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with 
+operator starts with `sw` followed by a value. Special characters like `+` need to be 
+percent-encoded so `%2B` instead of `+`. Characters such as `:` (colon) or `,` (comma), as part 
+of the filter value, need to be escaped by / (slash). Likewise, `/` needs to be escaped. 
+Multiple operator/value pairs for the same attribute as `filter=AuPLng5hLbE:gt:438901703:lt:448901704` 
+are allowed. Repeating the same attribute UID is not allowed. Operator and values are case-insensitive. 
+A user needs metadata read access to the attribute and data read access to the program 
+(if the program is without registration) or to the program stage (if the program is with registration).
 
 Valid operators are:
 

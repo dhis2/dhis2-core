@@ -41,6 +41,9 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.STATIC_DIMS;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asActualDimension;
+import static org.hisp.dhis.common.DimensionalObjectUtils.linkAssociations;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
@@ -78,7 +81,6 @@ import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.eventvisualization.Attribute;
-import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.eventvisualization.SimpleDimension.Type;
 import org.hisp.dhis.eventvisualization.SimpleDimensionHandler;
@@ -103,6 +105,7 @@ import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.DefaultValue;
+import org.hisp.dhis.visualization.LegendDefinitions;
 
 /**
  * This class contains associations to dimensional meta-data. Should typically be sub-classed by
@@ -116,29 +119,77 @@ import org.hisp.dhis.visualization.DefaultValue;
  */
 @JacksonXmlRootElement(localName = "analyticalObject", namespace = DxfNamespaces.DXF_2_0)
 public abstract class BaseAnalyticalObject extends BaseNameableObject implements AnalyticalObject {
-  public static final int ASC = -1;
-
-  public static final int DESC = 1;
-
-  public static final int NONE = 0;
 
   public static final String NOT_A_VALID_DIMENSION = "Not a valid dimension: %s";
 
-  // -------------------------------------------------------------------------
-  // Persisted properties
-  // -------------------------------------------------------------------------
+  /** Line and axis labels. */
+  protected String domainAxisLabel;
+
+  protected String rangeAxisLabel;
+  protected String baseLineLabel;
+  protected String targetLineLabel;
+
+  /** Line and axis values. */
+  protected Double targetLineValue;
+
+  protected Double baseLineValue;
+  protected Double rangeAxisMaxValue;
+  protected Double rangeAxisMinValue;
+
+  /** How many axis steps. */
+  protected Integer rangeAxisSteps; // Minimum 1
+
+  /** How many axis decimals. */
+  protected Integer rangeAxisDecimals;
+
+  /** The regression type. */
+  protected RegressionType regressionType = RegressionType.NONE;
+
+  /** The display density of the text in the table. */
+  protected DisplayDensity displayDensity;
+
+  /** The font size of the text in the table. */
+  protected FontSize fontSize;
+
+  protected RelativePeriods relatives;
+
+  protected int sortOrder;
+
+  protected int topLimit;
+
+  protected String orgUnitField;
+
+  protected String title;
+
+  /** Indicates rendering of empty rows for the table. */
+  protected boolean hideEmptyRows;
+
+  /** Indicates rendering of empty rows for the table. */
+  protected boolean showHierarchy;
+
+  /** Include user org. unit. */
+  protected boolean userOrganisationUnit;
+
+  /** Include user org. unit children. */
+  protected boolean userOrganisationUnitChildren;
+
+  /** Include user org. unit grand children. */
+  protected boolean userOrganisationUnitGrandChildren;
+
+  /** Include completed events only. */
+  protected boolean completedOnly;
+
+  /** Apply or not rounding. */
+  protected boolean skipRounding;
+
+  /** Dimensions to use as filter. */
+  protected List<String> filterDimensions = new ArrayList<>();
 
   protected List<DataDimensionItem> dataDimensionItems = new ArrayList<>();
 
   protected List<OrganisationUnit> organisationUnits = new ArrayList<>();
 
   protected List<Period> periods = new ArrayList<>();
-
-  private Date startDate;
-
-  private Date endDate;
-
-  protected RelativePeriods relatives;
 
   protected List<DataElementGroupSetDimension> dataElementGroupSetDimensions = new ArrayList<>();
 
@@ -159,45 +210,28 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   protected List<TrackedEntityProgramIndicatorDimension> programIndicatorDimensions =
       new ArrayList<>();
 
-  protected boolean userOrganisationUnit;
-
-  protected boolean userOrganisationUnitChildren;
-
-  protected boolean userOrganisationUnitGrandChildren;
-
   protected List<OrganisationUnitGroup> itemOrganisationUnitGroups = new ArrayList<>();
-
-  protected DigitGroupSeparator digitGroupSeparator;
-
-  protected int sortOrder;
-
-  protected int topLimit;
-
-  protected AggregationType aggregationType;
-
-  protected boolean completedOnly;
-
-  protected String timeField;
-
-  protected String orgUnitField;
-
-  protected String title;
-
-  protected String subtitle;
-
-  protected boolean hideTitle;
-
-  protected boolean hideSubtitle;
-
-  protected Set<Interpretation> interpretations = new HashSet<>();
 
   protected Set<String> subscribers = new HashSet<>();
 
-  protected UserOrgUnitType userOrgUnitType;
+  protected transient I18nFormat format;
 
-  // -------------------------------------------------------------------------
-  // Analytical properties
-  // -------------------------------------------------------------------------
+  protected transient User relativeUser;
+
+  protected transient List<OrganisationUnit> organisationUnitsAtLevel = new ArrayList<>();
+
+  protected transient List<OrganisationUnit> organisationUnitsInGroups = new ArrayList<>();
+
+  /** Used to return tabular data, mainly related to analytics queries. */
+  protected transient Grid dataItemGrid = null;
+
+  protected transient List<OrganisationUnit> transientOrganisationUnits = new ArrayList<>();
+
+  protected transient List<CategoryOptionCombo> transientCategoryOptionCombos = new ArrayList<>();
+
+  protected transient Date relativePeriodDate;
+
+  protected transient OrganisationUnit relativeOrganisationUnit;
 
   protected transient List<DimensionalObject> columns = new ArrayList<>();
 
@@ -207,23 +241,69 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   protected transient Map<String, String> parentGraphMap = new HashMap<>();
 
+  private Date startDate;
+
+  private Date endDate;
+
+  private AggregationType aggregationType;
+
+  private UserOrgUnitType userOrgUnitType;
+
+  private String timeField;
+
+  private String subtitle;
+
+  private DigitGroupSeparator digitGroupSeparator;
+
+  /** The display strategy for empty row items. */
+  private HideEmptyItemStrategy hideEmptyRowItems = HideEmptyItemStrategy.NONE;
+
+  /** The legend and legend set definitions. */
+  private LegendDefinitions legendDefinitions;
+
+  /** Show/hide the legend. Very likely to be used by graphics/charts. */
+  private boolean hideLegend;
+
+  /** Show/hide space between columns. */
+  private boolean noSpaceBetweenColumns;
+
+  /** Indicates whether the visualization contains cumulative values or columns. */
+  protected boolean cumulativeValues;
+
+  /** User stacked values or not. Very likely to be applied for graphics/charts. */
+  private boolean percentStackedValues;
+
+  /** Used by charts to hide or not data/values within the rendered model. */
+  private boolean showData;
+
+  /** Indicates rendering of sub-totals for the table. */
+  private boolean colTotals;
+
+  /** Indicates rendering of sub-totals for the table. */
+  private boolean rowTotals;
+
+  /** Indicates rendering of row sub-totals for the table. */
+  private boolean rowSubTotals;
+
+  /** Indicates rendering of column sub-totals for the table. */
+  private boolean colSubTotals;
+
+  /** Hide/show the title. */
+  private boolean hideTitle;
+
+  /** Hide/show the subtitle. */
+  private boolean hideSubtitle;
+
+  /** The font size of the text in the table. */
+  private boolean showDimensionLabels;
+
   /**
    * Keeps the uids of element + program stage, so we are able to return the correct elements in
    * cases of repeated elements with distinct program stages.
    */
   private Set<String> addedElementsProgramStages = new HashSet<>();
 
-  // -------------------------------------------------------------------------
-  // Transient properties
-  // -------------------------------------------------------------------------
-
-  protected transient List<OrganisationUnit> transientOrganisationUnits = new ArrayList<>();
-
-  protected transient List<CategoryOptionCombo> transientCategoryOptionCombos = new ArrayList<>();
-
-  protected transient Date relativePeriodDate;
-
-  protected transient OrganisationUnit relativeOrganisationUnit;
+  private Set<Interpretation> interpretations = new HashSet<>();
 
   // -------------------------------------------------------------------------
   // Logic
@@ -508,18 +588,20 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * (one that is not defined anywhere and only exists for very specific use cases. See {@link
    * SimpleDimension}).
    *
-   * @param eventAnalyticalObject the object of type EventAnalyticalObject
-   * @param dimension the dimension, ie: dx, pe, eventDate
+   * @param eventAnalyticalObject the object of type {@link EventAnalyticalObject}.
+   * @param dimension the dimension, ie: dx, pe, eventDate. It can be a qualified one like
+   *     program.eventDate, or program.stage.dimension.
    * @param parent the parent attribute
    * @return the dimensional object related to the given dimension and attribute.
    */
   protected DimensionalObject getDimensionalObject(
       EventAnalyticalObject eventAnalyticalObject, String dimension, Attribute parent) {
     Optional<DimensionalObject> optionalDimensionalObject = getDimensionalObject(dimension);
+    String actualDim = asActualDimension(dimension);
 
     if (optionalDimensionalObject.isPresent()) {
       return linkAssociations(eventAnalyticalObject, optionalDimensionalObject.get(), parent);
-    } else if (Type.contains(dimension)) {
+    } else if (Type.contains(actualDim)) {
       DimensionalObject dimensionalObject =
           new SimpleDimensionHandler(eventAnalyticalObject).getDimensionalObject(dimension, parent);
 
@@ -527,35 +609,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     } else {
       throw new IllegalArgumentException(format(NOT_A_VALID_DIMENSION, dimension));
     }
-  }
-
-  /**
-   * This method links existing associations between objects. This is mainly needed in cases where
-   * attributes need to be programmatically associated to fulfill client requirements.
-   *
-   * @param eventAnalyticalObject the source object
-   * @param dimensionalObject where the associations will happen
-   * @param parent the parent attribute, where the association object should be appended to
-   * @return the dimensional object containing the correct associations.
-   */
-  private DimensionalObject linkAssociations(
-      EventAnalyticalObject eventAnalyticalObject,
-      DimensionalObject dimensionalObject,
-      Attribute parent) {
-    // Associating event repetitions.
-    List<EventRepetition> repetitions = eventAnalyticalObject.getEventRepetitions();
-
-    if (isNotEmpty(repetitions)) {
-      for (EventRepetition eventRepetition : repetitions) {
-        if (eventRepetition.getDimension() != null
-            && eventRepetition.getDimension().equals(dimensionalObject.getDimension())
-            && parent == eventRepetition.getParent()) {
-          ((BaseDimensionalObject) dimensionalObject).setEventRepetition(eventRepetition);
-        }
-      }
-    }
-
-    return dimensionalObject;
   }
 
   /**
@@ -614,11 +667,13 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * @return a list of DimensionalObjects.
    */
   protected Optional<DimensionalObject> getDimensionalObject(String dimension) {
-    if (DATA_X_DIM_ID.equals(dimension)) {
+    String actualDim = asActualDimension(dimension);
+
+    if (DATA_X_DIM_ID.equals(actualDim)) {
       return Optional.of(
           new BaseDimensionalObject(
               dimension, DimensionType.DATA_X, getDataDimensionNameableObjects()));
-    } else if (PERIOD_DIM_ID.equals(dimension)) {
+    } else if (PERIOD_DIM_ID.equals(actualDim)) {
       List<Period> periodList = new ArrayList<>(periods);
 
       if (hasRelativePeriods()) {
@@ -630,7 +685,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
       }
 
       return Optional.of(new BaseDimensionalObject(dimension, DimensionType.PERIOD, periodList));
-    } else if (ORGUNIT_DIM_ID.equals(dimension)) {
+    } else if (ORGUNIT_DIM_ID.equals(actualDim)) {
       List<DimensionalItemObject> ouList = new ArrayList<>();
       ouList.addAll(organisationUnits);
       ouList.addAll(transientOrganisationUnits);
@@ -665,14 +720,14 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
       return Optional.of(
           new BaseDimensionalObject(dimension, DimensionType.ORGANISATION_UNIT, ouList));
-    } else if (CATEGORYOPTIONCOMBO_DIM_ID.equals(dimension)) {
+    } else if (CATEGORYOPTIONCOMBO_DIM_ID.equals(actualDim)) {
       return Optional.of(
           new BaseDimensionalObject(
               dimension, DimensionType.CATEGORY_OPTION_COMBO, new ArrayList<>()));
-    } else if (DATA_COLLAPSED_DIM_ID.equals(dimension)) {
+    } else if (DATA_COLLAPSED_DIM_ID.equals(actualDim)) {
       return Optional.of(
           new BaseDimensionalObject(dimension, DimensionType.DATA_COLLAPSED, new ArrayList<>()));
-    } else if (STATIC_DIMS.contains(dimension)) {
+    } else if (STATIC_DIMS.contains(actualDim)) {
       return Optional.of(
           new BaseDimensionalObject(dimension, DimensionType.STATIC, new ArrayList<>()));
     } else {
@@ -709,13 +764,15 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   }
 
   private Optional<DimensionalObject> getTrackedEntityDimension(String dimension) {
+    String actualDim = asActualDimension(dimension);
+
     // Tracked entity attribute.
     Map<String, TrackedEntityAttributeDimension> attributes =
         attributeDimensions.stream()
             .collect(toMap(TrackedEntityAttributeDimension::getUid, Function.identity()));
 
-    if (attributes.containsKey(dimension)) {
-      TrackedEntityAttributeDimension tead = attributes.get(dimension);
+    if (attributes.containsKey(actualDim)) {
+      TrackedEntityAttributeDimension tead = attributes.get(actualDim);
 
       if (tead != null) {
         ValueType valueType =
@@ -740,7 +797,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
     // Tracked entity data element.
     for (TrackedEntityDataElementDimension tedd : dataElementDimensions) {
-      if (tedd != null && dimension.equals(tedd.getUid())) {
+      if (tedd != null && actualDim.equals(tedd.getUid())) {
         ValueType valueType =
             tedd.getDataElement() != null ? tedd.getDataElement().getValueType() : null;
 
@@ -748,7 +805,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
             tedd.getDataElement() != null ? tedd.getDataElement().getOptionSet() : null;
 
         String elementProgramStage =
-            dimension + (tedd.getProgramStage() != null ? tedd.getProgramStage().getUid() : EMPTY);
+            actualDim + (tedd.getProgramStage() != null ? tedd.getProgramStage().getUid() : EMPTY);
 
         // Return dimensions with distinct program stages.
         if (!addedElementsProgramStages.contains(elementProgramStage)) {
@@ -775,8 +832,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
         programIndicatorDimensions.stream()
             .collect(toMap(TrackedEntityProgramIndicatorDimension::getUid, Function.identity()));
 
-    if (programIndicators.containsKey(dimension)) {
-      TrackedEntityProgramIndicatorDimension teid = programIndicators.get(dimension);
+    if (programIndicators.containsKey(actualDim)) {
+      TrackedEntityProgramIndicatorDimension teid = programIndicators.get(actualDim);
 
       return Optional.of(
           new BaseDimensionalObject(
@@ -804,11 +861,13 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   private <T extends DimensionalEmbeddedObject>
       Optional<DimensionalObject> getDimensionFromEmbeddedObjects(
           String dimension, DimensionType dimensionType, List<T> embeddedObjects) {
+    String actualDim = asActualDimension(dimension);
+
     Map<String, T> dimensions =
         Maps.uniqueIndex(embeddedObjects, d -> d.getDimension().getDimension());
 
-    if (dimensions.containsKey(dimension)) {
-      DimensionalEmbeddedObject object = dimensions.get(dimension);
+    if (dimensions.containsKey(actualDim)) {
+      DimensionalEmbeddedObject object = dimensions.get(actualDim);
 
       if (object != null) {
         return Optional.of(
@@ -870,6 +929,266 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   // -------------------------------------------------------------------------
   // Getters and setters
   // -------------------------------------------------------------------------
+
+  public void setRangeAxisMaxValue(Double rangeAxisMaxValue) {
+    this.rangeAxisMaxValue = rangeAxisMaxValue;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public RegressionType getRegressionType() {
+    return regressionType;
+  }
+
+  public void setRegressionType(RegressionType regressionType) {
+    this.regressionType = regressionType;
+  }
+
+  public void setDomainAxisLabel(String domainAxisLabel) {
+    this.domainAxisLabel = domainAxisLabel;
+  }
+
+  public void setRangeAxisLabel(String rangeAxisLabel) {
+    this.rangeAxisLabel = rangeAxisLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isHideLegend() {
+    return hideLegend;
+  }
+
+  public void setHideLegend(boolean hideLegend) {
+    this.hideLegend = hideLegend;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isNoSpaceBetweenColumns() {
+    return noSpaceBetweenColumns;
+  }
+
+  public void setNoSpaceBetweenColumns(boolean noSpaceBetweenColumns) {
+    this.noSpaceBetweenColumns = noSpaceBetweenColumns;
+  }
+
+  public void setTargetLineValue(Double targetLineValue) {
+    this.targetLineValue = targetLineValue;
+  }
+
+  public void setTargetLineLabel(String targetLineLabel) {
+    this.targetLineLabel = targetLineLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  @Translatable(propertyName = "targetLineLabel")
+  public String getDisplayTargetLineLabel() {
+    return getTranslation("targetLineLabel", targetLineLabel);
+  }
+
+  public void setBaseLineValue(Double baseLineValue) {
+    this.baseLineValue = baseLineValue;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "baseLineLabel")
+  public String getDisplayBaseLineLabel() {
+    return getTranslation("baseLineLabel", baseLineLabel);
+  }
+
+  public void setBaseLineLabel(String baseLineLabel) {
+    this.baseLineLabel = baseLineLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isShowData() {
+    return showData;
+  }
+
+  public void setShowData(boolean showData) {
+    this.showData = showData;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public HideEmptyItemStrategy getHideEmptyRowItems() {
+    return hideEmptyRowItems;
+  }
+
+  public void setHideEmptyRowItems(HideEmptyItemStrategy hideEmptyRowItems) {
+    this.hideEmptyRowItems = hideEmptyRowItems;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isPercentStackedValues() {
+    return percentStackedValues;
+  }
+
+  public void setPercentStackedValues(boolean percentStackedValues) {
+    this.percentStackedValues = percentStackedValues;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isCumulativeValues() {
+    return cumulativeValues;
+  }
+
+  public void setCumulativeValues(boolean cumulativeValues) {
+    this.cumulativeValues = cumulativeValues;
+  }
+
+  public void setRangeAxisMinValue(Double rangeAxisMinValue) {
+    this.rangeAxisMinValue = rangeAxisMinValue;
+  }
+
+  public void setRangeAxisSteps(Integer rangeAxisSteps) {
+    this.rangeAxisSteps = rangeAxisSteps;
+  }
+
+  public void setRangeAxisDecimals(Integer rangeAxisDecimals) {
+    this.rangeAxisDecimals = rangeAxisDecimals;
+  }
+
+  @JsonProperty("legend")
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public LegendDefinitions getLegendDefinitions() {
+    return legendDefinitions;
+  }
+
+  public void setLegendDefinitions(LegendDefinitions legendDefinitions) {
+    this.legendDefinitions = legendDefinitions;
+  }
+
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "filterDimensions", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "filterDimension", namespace = DXF_2_0)
+  public List<String> getFilterDimensions() {
+    return filterDimensions;
+  }
+
+  public void setFilterDimensions(List<String> filterDimensions) {
+    this.filterDimensions = filterDimensions;
+  }
+
+  @JsonIgnore
+  public User getRelativeUser() {
+    return relativeUser;
+  }
+
+  public void setRelativeUser(User relativeUser) {
+    this.relativeUser = relativeUser;
+  }
+
+  @JsonIgnore
+  public List<OrganisationUnit> getOrganisationUnitsAtLevel() {
+    return organisationUnitsAtLevel;
+  }
+
+  public void setOrganisationUnitsAtLevel(List<OrganisationUnit> organisationUnitsAtLevel) {
+    this.organisationUnitsAtLevel = organisationUnitsAtLevel;
+  }
+
+  @JsonIgnore
+  public List<OrganisationUnit> getOrganisationUnitsInGroups() {
+    return organisationUnitsInGroups;
+  }
+
+  public void setOrganisationUnitsInGroups(List<OrganisationUnit> organisationUnitsInGroups) {
+    this.organisationUnitsInGroups = organisationUnitsInGroups;
+  }
+
+  @JsonIgnore
+  public Grid getDataItemGrid() {
+    return dataItemGrid;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isRowTotals() {
+    return rowTotals;
+  }
+
+  public void setRowTotals(boolean rowTotals) {
+    this.rowTotals = rowTotals;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isColTotals() {
+    return colTotals;
+  }
+
+  public void setColTotals(boolean colTotals) {
+    this.colTotals = colTotals;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isRowSubTotals() {
+    return rowSubTotals;
+  }
+
+  public void setRowSubTotals(boolean rowSubTotals) {
+    this.rowSubTotals = rowSubTotals;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isColSubTotals() {
+    return colSubTotals;
+  }
+
+  public void setColSubTotals(boolean colSubTotals) {
+    this.colSubTotals = colSubTotals;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isHideEmptyRows() {
+    return hideEmptyRows;
+  }
+
+  public void setHideEmptyRows(boolean hideEmptyRows) {
+    this.hideEmptyRows = hideEmptyRows;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isShowHierarchy() {
+    return showHierarchy;
+  }
+
+  public void setShowHierarchy(boolean showHierarchy) {
+    this.showHierarchy = showHierarchy;
+  }
+
+  public void setDisplayDensity(DisplayDensity displayDensity) {
+    this.displayDensity = displayDensity;
+  }
+
+  public void setFontSize(FontSize fontSize) {
+    this.fontSize = fontSize;
+  }
+
+  @JsonIgnore
+  public I18nFormat getFormat() {
+    return format;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isShowDimensionLabels() {
+    return showDimensionLabels;
+  }
+
+  public void setShowDimensionLabels(boolean showDimensionLabels) {
+    this.showDimensionLabels = showDimensionLabels;
+  }
 
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "dataDimensionItems", namespace = DxfNamespaces.DXF_2_0)
@@ -1139,6 +1458,16 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   public void setCompletedOnly(boolean completedOnly) {
     this.completedOnly = completedOnly;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isSkipRounding() {
+    return skipRounding;
+  }
+
+  public void setSkipRounding(boolean skipRounding) {
+    this.skipRounding = skipRounding;
   }
 
   @Override

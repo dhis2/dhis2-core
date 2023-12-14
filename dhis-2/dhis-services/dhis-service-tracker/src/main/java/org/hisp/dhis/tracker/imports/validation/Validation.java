@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
+import java.util.List;
+
 /**
  * Validation represents an issue found by the validation process. It contains information that help
  * the client to understand and fix the problem.
@@ -39,4 +41,8 @@ public interface Validation {
   String getType();
 
   String getUid();
+
+  default List<String> getArgs() {
+    return List.of();
+  }
 }

@@ -39,9 +39,9 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
@@ -148,7 +148,8 @@ class AllTest {
    * tracker type, uid or error code.
    */
   private static void addError(Reporter reporter, String message) {
-    reporter.addError(new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid"));
+    reporter.addError(
+        new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid", List.of()));
   }
 
   private List<String> actualErrorMessages() {

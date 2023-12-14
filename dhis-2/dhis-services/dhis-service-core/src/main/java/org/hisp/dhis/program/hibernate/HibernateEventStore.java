@@ -35,11 +35,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.apache.commons.lang3.time.DateUtils;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.event.EventStatus;
@@ -61,7 +61,7 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.program.EventStore")
 public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
     implements EventStore {
-  private static final String EVENT_HQL_BY_UIDS = "from Event as psi where psi.uid in (:uids)";
+  private static final String EVENT_HQL_BY_UIDS = "from Event as ev where ev.uid in (:uids)";
 
   private static final Set<NotificationTrigger> SCHEDULED_EVENT_TRIGGERS =
       Sets.intersection(
@@ -69,19 +69,13 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
           NotificationTrigger.getAllScheduledTriggers());
 
   public HibernateEventStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        Event.class,
-        currentUserService,
-        aclService,
-        false);
+        entityManager, jdbcTemplate, publisher, Event.class, currentUserService, aclService, false);
   }
 
   @Override
@@ -149,7 +143,7 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
 
   @Override
   public List<String> getUidsIncludingDeleted(List<String> uids) {
-    final String hql = "select psi.uid " + EVENT_HQL_BY_UIDS;
+    final String hql = "select ev.uid " + EVENT_HQL_BY_UIDS;
     List<String> resultUids = new ArrayList<>();
     List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
 
@@ -206,14 +200,14 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
     Date targetDate = DateUtils.addDays(notificationDate, template.getRelativeScheduledDays() * -1);
 
     String hql =
-        "select distinct psi from Event as psi "
-            + "inner join psi.programStage as ps "
+        "select distinct ev from Event as ev "
+            + "inner join ev.programStage as ps "
             + "where :notificationTemplate in elements(ps.notificationTemplates) "
-            + "and psi.dueDate is not null "
-            + "and psi.executionDate is null "
-            + "and psi.status != :skippedEventStatus "
-            + "and cast(:targetDate as date) = psi.dueDate "
-            + "and psi.deleted is false";
+            + "and ev.scheduledDate is not null "
+            + "and ev.occurredDate is null "
+            + "and ev.status != :skippedEventStatus "
+            + "and cast(:targetDate as date) = ev.scheduledDate "
+            + "and ev.deleted is false";
 
     return getQuery(hql)
         .setParameter("notificationTemplate", template)

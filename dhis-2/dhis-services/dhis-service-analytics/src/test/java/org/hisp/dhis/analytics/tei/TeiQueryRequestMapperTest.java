@@ -29,12 +29,14 @@ package org.hisp.dhis.analytics.tei;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Set;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.QueryRequest;
+import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.processing.CommonQueryRequestMapper;
 import org.hisp.dhis.analytics.common.processing.Processor;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -53,11 +55,14 @@ class TeiQueryRequestMapperTest {
 
   private TeiQueryRequestMapper teiQueryRequestMapper;
 
+  private CommonQueryRequestMapper commonQueryRequestMapper;
+
   @BeforeEach
   public void setUp() {
+    commonQueryRequestMapper = mock(CommonQueryRequestMapper.class);
     teiQueryRequestMapper =
         new TeiQueryRequestMapper(
-            mock(CommonQueryRequestMapper.class),
+            commonQueryRequestMapper,
             trackedEntityTypeService,
             mock(Processor.class),
             programService);
@@ -118,6 +123,30 @@ class TeiQueryRequestMapperTest {
         .thenReturn(trackedEntityType);
 
     when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of(programA, programB));
+
+    when(commonQueryRequestMapper.map(any())).thenReturn(CommonParams.builder().build());
+
+    TeiQueryParams mapped = teiQueryRequestMapper.map(queryRequest);
+  }
+
+  @Test
+  void testOKWhenNoPrograms() {
+    String trackedEntityTypeUid = "T1";
+
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+
+    QueryRequest<TeiQueryRequest> queryRequest =
+        QueryRequest.<TeiQueryRequest>builder()
+            .request(new TeiQueryRequest(trackedEntityTypeUid))
+            .commonQueryRequest(new CommonQueryRequest())
+            .build();
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+
+    when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of());
+
+    when(commonQueryRequestMapper.map(any())).thenReturn(CommonParams.builder().build());
 
     TeiQueryParams mapped = teiQueryRequestMapper.map(queryRequest);
   }

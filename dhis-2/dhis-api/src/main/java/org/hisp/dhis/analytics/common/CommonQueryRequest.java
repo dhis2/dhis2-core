@@ -43,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 
 /**
@@ -186,10 +187,12 @@ public class CommonQueryRequest {
 
   private String lastUpdated;
 
-  /** weather the query should consider only items with lat/long coordinates */
+  private String created;
+
+  /** whether the query should consider only items with lat/long coordinates */
   private boolean coordinatesOnly;
 
-  /** weather the query should consider only items with geometry */
+  /** whether the query should consider only items with geometry */
   private boolean geometryOnly;
 
   /**
@@ -226,5 +229,10 @@ public class CommonQueryRequest {
    */
   public boolean hasEventStatus() {
     return emptyIfNull(eventStatus).stream().anyMatch(StringUtils::isNotBlank);
+  }
+
+  @OpenApi.Ignore
+  public DimensionalItemObject getValue() {
+    return value;
   }
 }

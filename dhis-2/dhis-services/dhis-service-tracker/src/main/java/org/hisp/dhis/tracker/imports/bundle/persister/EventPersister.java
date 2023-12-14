@@ -39,24 +39,22 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.hisp.dhis.tracker.imports.TrackerType;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
-import org.hisp.dhis.tracker.imports.converter.TrackerSideEffectConverterService;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -72,32 +70,24 @@ public class EventPersister
   private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event>
       eventConverter;
 
-  private final TrackedEntityCommentService trackedEntityCommentService;
-
-  private final TrackerSideEffectConverterService sideEffectConverterService;
-
   private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
 
   public EventPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
-      TrackedEntityCommentService trackedEntityCommentService,
-      TrackerSideEffectConverterService sideEffectConverterService,
       TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
       TrackedEntityDataValueAuditService trackedEntityDataValueAuditService) {
     super(reservedValueService, trackedEntityAttributeValueAuditService);
     this.eventConverter = eventConverter;
-    this.trackedEntityCommentService = trackedEntityCommentService;
-    this.sideEffectConverterService = sideEffectConverterService;
     this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
   }
 
   @Override
-  protected void persistComments(TrackerPreheat preheat, Event event) {
-    if (!event.getComments().isEmpty()) {
-      for (TrackedEntityComment comment : event.getComments()) {
-        if (Objects.isNull(preheat.getNote(comment.getUid()))) {
-          this.trackedEntityCommentService.addTrackedEntityComment(comment);
+  protected void persistNotes(EntityManager entityManager, TrackerPreheat preheat, Event event) {
+    if (!event.getNotes().isEmpty()) {
+      for (Note note : event.getNotes()) {
+        if (Objects.isNull(preheat.getNote(note.getUid()))) {
+          entityManager.persist(note);
         }
       }
     }
@@ -118,8 +108,7 @@ public class EventPersister
     return TrackerSideEffectDataBundle.builder()
         .klass(Event.class)
         .enrollmentRuleEffects(new HashMap<>())
-        .eventRuleEffects(
-            sideEffectConverterService.toTrackerSideEffects(bundle.getEventRuleEffects()))
+        .eventRuleEffects(bundle.getEventRuleEffects())
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())
@@ -140,7 +129,7 @@ public class EventPersister
 
   @Override
   protected void updateAttributes(
-      Session session,
+      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
       Event hibernateEntity) {
@@ -149,15 +138,18 @@ public class EventPersister
 
   @Override
   protected void updateDataValues(
-      Session session,
+      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
       Event hibernateEntity) {
-    handleDataValues(session, preheat, event.getDataValues(), hibernateEntity);
+    handleDataValues(entityManager, preheat, event.getDataValues(), hibernateEntity);
   }
 
   private void handleDataValues(
-      Session session, TrackerPreheat preheat, Set<DataValue> payloadDataValues, Event event) {
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      Set<DataValue> payloadDataValues,
+      Event event) {
     Map<String, EventDataValue> dataValueDBMap =
         Optional.ofNullable(preheat.getEvent(event.getUid()))
             .map(
@@ -186,7 +178,8 @@ public class EventPersister
 
           if (StringUtils.isEmpty(dv.getValue())) {
             if (dataElement.isFileType()) {
-              unassignFileResource(session, preheat, event.getUid(), eventDataValue.getValue());
+              unassignFileResource(
+                  entityManager, preheat, event.getUid(), eventDataValue.getValue());
             }
 
             event.getEventDataValues().remove(eventDataValue);
@@ -194,7 +187,7 @@ public class EventPersister
             eventDataValue.setValue(dv.getValue());
 
             if (dataElement.isFileType()) {
-              assignFileResource(session, preheat, event.getUid(), eventDataValue.getValue());
+              assignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
             }
 
             event.getEventDataValues().remove(eventDataValue);

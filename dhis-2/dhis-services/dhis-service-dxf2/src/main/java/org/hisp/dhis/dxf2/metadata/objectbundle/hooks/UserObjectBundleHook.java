@@ -64,6 +64,8 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   public static final String USERNAME = "username";
+  public static final String INVALIDATE_SESSIONS_KEY = "shouldInvalidateUserSessions";
+  public static final String PRE_UPDATE_USER_KEY = "preUpdateUser";
 
   private final UserService userService;
 
@@ -140,7 +142,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
 
     if (currentUser != null) {
       user.getCogsDimensionConstraints().addAll(currentUser.getCogsDimensionConstraints());
-
       user.getCatDimensionConstraints().addAll(currentUser.getCatDimensionConstraints());
     }
   }
@@ -158,7 +159,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     }
 
     preheatService.connectReferences(user, bundle.getPreheat(), bundle.getPreheatIdentifier());
-    sessionFactory.getCurrentSession().update(user);
+    getSession().update(user);
     userSettingService.saveUserSettings(user.getSettings(), user);
   }
 
@@ -166,7 +167,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   public void preUpdate(User user, User persisted, ObjectBundle bundle) {
     if (user == null) return;
 
-    bundle.putExtras(user, "preUpdateUser", user);
+    bundle.putExtras(user, PRE_UPDATE_USER_KEY, user);
+    bundle.putExtras(persisted, INVALIDATE_SESSIONS_KEY, userRolesUpdated(user, persisted));
 
     if (persisted.getAvatar() != null
         && (user.getAvatar() == null
@@ -183,17 +185,34 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     }
   }
 
+  private Boolean userRolesUpdated(User preUpdateUser, User persistedUser) {
+    Set<String> before =
+        preUpdateUser.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
+    Set<String> after =
+        persistedUser.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
+
+    return !Objects.equals(before, after);
+  }
+
   @Override
   public void postUpdate(User persistedUser, ObjectBundle bundle) {
-    final User preUpdateUser = (User) bundle.getExtras(persistedUser, "preUpdateUser");
+    final User preUpdateUser = (User) bundle.getExtras(persistedUser, PRE_UPDATE_USER_KEY);
+    final Boolean invalidateSessions =
+        (Boolean) bundle.getExtras(persistedUser, INVALIDATE_SESSIONS_KEY);
 
     if (!StringUtils.isEmpty(preUpdateUser.getPassword())) {
       userService.encodeAndSetPassword(persistedUser, preUpdateUser.getPassword());
-      sessionFactory.getCurrentSession().update(persistedUser);
+      getSession().update(persistedUser);
     }
 
-    bundle.removeExtras(persistedUser, "preUpdateUser");
     userSettingService.saveUserSettings(persistedUser.getSettings(), persistedUser);
+
+    if (Boolean.TRUE.equals(invalidateSessions)) {
+      currentUserService.invalidateUserSessions(persistedUser.getUid());
+    }
+
+    bundle.removeExtras(persistedUser, PRE_UPDATE_USER_KEY);
+    bundle.removeExtras(persistedUser, INVALIDATE_SESSIONS_KEY);
   }
 
   @Override
@@ -243,8 +262,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
       preheatService.connectReferences(user, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
       handleNoAccessRoles(user, bundle, userRoles);
-
-      sessionFactory.getCurrentSession().update(user);
+      getSession().update(user);
     }
   }
 

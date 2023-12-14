@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.validation;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,8 +40,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
 import lombok.experimental.NonFinal;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 
 /**
@@ -158,7 +159,8 @@ public class Reporter {
             MessageFormatter.format(idSchemes, code.getMessage(), args),
             code,
             dto.getTrackerType(),
-            dto.getUid()));
+            dto.getUid(),
+            args == null ? List.of() : Arrays.asList(args)));
     return true;
   }
 

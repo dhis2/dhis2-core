@@ -29,8 +29,6 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static java.lang.String.join;
 import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toSet;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
@@ -39,7 +37,6 @@ import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -58,7 +55,6 @@ import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.context.TeiStaticField;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
@@ -79,44 +75,23 @@ public class TeiFields {
   private static final String ENROLLMENT_COLUMN_PREFIX = "Enrollment";
 
   /**
-   * Retrieves all object attributes from the given param encapsulating them into a stream of {@link
+   * Retrieves all TEAs attributes from the given param encapsulating them into a stream of {@link
    * Field}.
    *
    * @param teiQueryParams the {@link TeiQueryParams}.
    * @return a {@link Stream} of {@link Field}.
    */
   public static Stream<Field> getDimensionFields(TeiQueryParams teiQueryParams) {
-    Set<String> programAttributesUids =
-        teiQueryParams.getCommonParams().getPrograms().stream()
-            .map(Program::getProgramAttributes)
-            .flatMap(List::stream)
-            .map(programAttr -> programAttr.getAttribute().getUid())
-            .collect(toSet());
-
-    Stream<Field> programAttributes =
-        teiQueryParams.getCommonParams().getPrograms().stream()
-            .map(Program::getProgramAttributes)
-            .flatMap(List::stream)
-            .map(
-                programAttr ->
-                    Field.of(
-                        TEI_ALIAS,
-                        () -> programAttr.getAttribute().getUid(),
-                        join(
-                            ".",
-                            programAttr.getProgram().getUid(),
-                            programAttr.getAttribute().getUid())));
-
-    Stream<Field> trackedEntityAttributesFromType =
-        getTrackedEntityAttributes(teiQueryParams.getTrackedEntityType())
-            .filter(
-                programTrackedEntityAttribute ->
-                    !programAttributesUids.contains(programTrackedEntityAttribute.getUid()))
-            .map(IdentifiableObject::getUid)
-            .map(attr -> Field.of(TEI_ALIAS, () -> attr, attr));
-
-    // TET and program attribute uids.
-    return Stream.concat(trackedEntityAttributesFromType, programAttributes);
+    return Stream.concat(
+            teiQueryParams.getCommonParams().getPrograms().stream()
+                .map(Program::getProgramAttributes)
+                .flatMap(List::stream)
+                .map(ProgramTrackedEntityAttribute::getAttribute)
+                .map(TrackedEntityAttribute::getUid),
+            teiQueryParams.getTrackedEntityType().getTrackedEntityAttributes().stream()
+                .map(TrackedEntityAttribute::getUid))
+        .distinct()
+        .map(attr -> Field.of(TEI_ALIAS, () -> attr, attr));
   }
 
   /**
@@ -222,28 +197,6 @@ public class TeiFields {
         });
 
     return headers;
-  }
-
-  /**
-   * Based on the given item this method returns the correct UID based on internal rules.
-   *
-   * @param dimIdentifier the current {@link DimensionIdentifier}.
-   * @return the respective item's uid.
-   */
-  private static String getItemUid(DimensionIdentifier<DimensionParam> dimIdentifier) {
-    List<String> uids = new ArrayList<>();
-
-    if (dimIdentifier.hasProgram()) {
-      uids.add(dimIdentifier.getProgram().getElement().getUid());
-    }
-
-    if (dimIdentifier.hasProgramStage()) {
-      uids.add(dimIdentifier.getProgramStage().getElement().getUid());
-    }
-
-    uids.add(dimIdentifier.getDimension().getUid());
-
-    return uids.stream().collect(joining("."));
   }
 
   /**
@@ -354,7 +307,7 @@ public class TeiFields {
           queryItem.getProgramStage().getUid(),
           repeatableStageParams);
     } else {
-      String itemUid = getItemUid(dimIdentifier);
+      String itemUid = dimIdentifier.toString();
       String column = queryItem.getItem().getDisplayProperty(commonParams.getDisplayProperty());
 
       return new GridHeader(
@@ -380,7 +333,7 @@ public class TeiFields {
   private static DimensionIdentifier<DimensionParam> findDimensionParamForField(
       Field field, List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers) {
     return dimensionIdentifiers.stream()
-        .filter(di -> di.getKey().equals(field.getDimensionIdentifier()))
+        .filter(di -> di.toString().equals(field.getDimensionIdentifier()))
         .findFirst()
         .orElse(null);
   }

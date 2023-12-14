@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import com.google.gson.JsonObject;
 import java.io.File;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
@@ -45,7 +46,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TrackerImportExportActions extends RestApiActions {
-  private Logger logger = LogManager.getLogger(TrackerImportExportActions.class.getName());
+  private final Logger logger = LogManager.getLogger(TrackerImportExportActions.class.getName());
 
   public TrackerImportExportActions() {
     super("/tracker");
@@ -61,7 +62,7 @@ public class TrackerImportExportActions extends RestApiActions {
     Callable<Boolean> jobIsCompleted =
         () -> getJob(jobId).validateStatus(200).extractList("completed").contains(true);
 
-    with().atMost(20, TimeUnit.SECONDS).await().until(() -> jobIsCompleted.call());
+    with().atMost(20, TimeUnit.SECONDS).await().until(jobIsCompleted::call);
 
     logger.info("Tracker job is completed. Message: " + getJob(jobId).extract("message"));
   }
@@ -89,6 +90,10 @@ public class TrackerImportExportActions extends RestApiActions {
     ApiResponse response = this.post(jsonObject, queryParamsBuilder);
 
     return getJobReportByImportResponse(response);
+  }
+
+  public ApiResponse checkJobReport(String jobId, String reportMode) {
+    return this.get(String.format("/jobs/%s/report?reportMode=%s", jobId, reportMode));
   }
 
   public TrackerApiResponse getJobReport(String jobId, String reportMode) {
@@ -170,11 +175,8 @@ public class TrackerImportExportActions extends RestApiActions {
 
       if (response.extractList(path) != null) {
         response.extractList(path).stream()
-            .filter(o -> o != null)
-            .forEach(
-                id -> {
-                  this.addCreatedEntity(s.split(",")[1], id.toString());
-                });
+            .filter(Objects::nonNull)
+            .forEach(id -> this.addCreatedEntity(s.split(",")[1], id.toString()));
       }
     }
   }
@@ -190,6 +192,10 @@ public class TrackerImportExportActions extends RestApiActions {
     String jobId = response.extractString("response.id");
 
     this.waitUntilJobIsCompleted(jobId);
+
+    Callable<Integer> jobIsCompleted = () -> this.checkJobReport(jobId, "FULL").statusCode();
+
+    with().atMost(21, TimeUnit.SECONDS).await().until(() -> jobIsCompleted.call() == 200);
 
     return this.getJobReport(jobId, "FULL");
   }

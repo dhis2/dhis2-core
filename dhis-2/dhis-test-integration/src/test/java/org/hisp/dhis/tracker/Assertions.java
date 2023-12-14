@@ -30,18 +30,25 @@ package org.hisp.dhis.tracker;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Objects;
 import java.util.function.Supplier;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.util.DateUtils;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.function.Executable;
 
 /**
@@ -60,6 +67,12 @@ import org.junit.jupiter.api.function.Executable;
  * the duplicated assertion code until we have a better solution.
  */
 public class Assertions {
+
+  private static final String DATE_WITH_TIMESTAMP_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+
+  private static final DateTimeFormatter DATE_WITH_TIMESTAMP =
+      DateTimeFormat.forPattern(DATE_WITH_TIMESTAMP_PATTERN).withZoneUTC();
+
   /**
    * assertHasErrors asserts the report contains only errors of given codes in any order.
    *
@@ -274,6 +287,37 @@ public class Assertions {
     assertNotNull(report);
     assertFalse(
         report.hasErrors(), errorMessage("Expected no validation errors, instead got:\n", report));
+  }
+
+  public static void assertSlimPager(int pageNumber, int pageSize, boolean isLast, Pager pager) {
+    assertInstanceOf(SlimPager.class, pager, "SlimPager should be returned if totalPages=false");
+    SlimPager slimPager = (SlimPager) pager;
+    assertAll(
+        "pagination details",
+        () -> assertEquals(pageNumber, slimPager.getPage(), "number of current page"),
+        () -> assertEquals(pageSize, slimPager.getPageSize(), "page size"),
+        () ->
+            assertEquals(
+                isLast,
+                slimPager.isLastPage(),
+                isLast ? "should be the last page" : "should NOT be the last page"));
+  }
+
+  public static void assertHasTimeStamp(Date date) {
+    assertTrue(
+        hasTimeStamp(date),
+        String.format("Supported format is %s but found %s", DATE_WITH_TIMESTAMP_PATTERN, date));
+  }
+
+  private static boolean hasTimeStamp(Date date) {
+    try {
+
+      DATE_WITH_TIMESTAMP.parseDateTime(DateUtils.getLongGmtDateString(date));
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+
+    return true;
   }
 
   private static Supplier<String> errorMessage(String errorTitle, ValidationReport report) {

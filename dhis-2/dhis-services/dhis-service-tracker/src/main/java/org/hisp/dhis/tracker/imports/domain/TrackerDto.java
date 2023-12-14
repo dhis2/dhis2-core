@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.tracker.imports.domain;
 
-import org.hisp.dhis.tracker.imports.TrackerType;
+import org.hisp.dhis.tracker.TrackerType;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public interface TrackerDto {
+
   String getUid();
 
   TrackerType getTrackerType();

@@ -38,7 +38,6 @@ import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconResponse;
-import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -61,13 +60,17 @@ public class IconMapper {
           icon.getKeywords(),
           ci.getFileResourceUid(),
           ci.getCreatedByUserUid(),
-          getCustomIconReference(ci.getFileResourceUid()));
+          getCustomIconReference(ci.getKey()),
+          icon.getCreated(),
+          icon.getLastUpdated());
     } else {
       return new IconResponse(
           icon.getKey(),
           icon.getDescription(),
           icon.getKeywords(),
-          getDefaultIconReference(icon.getKey()));
+          getDefaultIconReference(icon.getKey()),
+          icon.getCreated(),
+          icon.getLastUpdated());
     }
   }
 
@@ -89,8 +92,8 @@ public class IconMapper {
 
   private String getCustomIconReference(String fileResourceUid) {
     return String.format(
-        "%s%s/%s/data",
-        contextService.getApiPath(), FileResourceSchemaDescriptor.API_ENDPOINT, fileResourceUid);
+        "%s%s/%s/icon",
+        contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, fileResourceUid);
   }
 
   private String getDefaultIconReference(String key) {

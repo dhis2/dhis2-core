@@ -28,10 +28,12 @@
 package org.hisp.dhis.indicator.hibernate;
 
 import java.util.List;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorStore;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -45,13 +47,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<Indicator>
     implements IndicatorStore {
   public HibernateIndicatorStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         Indicator.class,
@@ -83,5 +85,13 @@ public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<In
     final String hql = "from Indicator d where size(d.dataSets) > 0";
 
     return getQuery(hql).setCacheable(true).list();
+  }
+
+  @Override
+  public List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes) {
+    TypedQuery<Indicator> query =
+        entityManager.createQuery(
+            "FROM Indicator i where i.indicatorType in :indicatorTypes", Indicator.class);
+    return query.setParameter("indicatorTypes", indicatorTypes).getResultList();
   }
 }

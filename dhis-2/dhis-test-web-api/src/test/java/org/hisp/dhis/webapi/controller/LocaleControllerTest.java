@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.jsontree.*;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonWebLocale;
@@ -82,12 +82,6 @@ class LocaleControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Locale code existed.",
         POST("/locales/dbLocales?language=en&country=GB").content(HttpStatus.CONFLICT));
-  }
-
-  @Test
-  void testGetUiLocales() {
-    JsonArray response = GET("/locales/ui").content();
-    assertEquals(38, response.size());
   }
 
   @Test

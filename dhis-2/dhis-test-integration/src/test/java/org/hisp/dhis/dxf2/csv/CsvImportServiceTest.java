@@ -32,14 +32,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.indicator.Indicator;
@@ -194,8 +197,10 @@ class CsvImportServiceTest extends SingleSetupIntegrationTestBase {
 
     assertEquals(2, metadata.getIndicators().size());
     MetadataImportParams params = new MetadataImportParams();
-    params.addMetadata(schemaService.getMetadataSchemas(), metadata);
-    ImportReport report = importService.importMetadata(params);
+    ImportReport report =
+        importService.importMetadata(
+            params,
+            new MetadataObjects().addMetadata(schemaService.getMetadataSchemas(), metadata));
     assertEquals(Status.OK, report.getStatus());
 
     Indicator indicatorA = manager.get(Indicator.class, "yiAKjiZVoOU");
@@ -218,5 +223,42 @@ class CsvImportServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals("#{fbfJHSPpUQD}", indicatorB.getDenominator());
     assertEquals("#{h0xKKjijTdI}", indicatorB.getNumerator());
     assertEquals(indicatorType.getUid(), indicatorB.getIndicatorType().getUid());
+  }
+
+  @Test
+  void testImportCategoryOptionGroup() throws IOException {
+    InputStream in = new ClassPathResource("csv/category_option_group.csv").getInputStream();
+    Metadata metadata =
+        csvImportService.fromCsv(
+            in,
+            new CsvImportOptions()
+                .setImportClass(CsvImportClass.CATEGORY_OPTION_GROUP)
+                .setFirstRowIsHeader(true));
+    assertEquals(3, metadata.getCategoryOptionGroups().size());
+    // make sure all groups have data dimension type set
+    for (CategoryOptionGroup group : metadata.getCategoryOptionGroups()) {
+      assertNotNull(group.getDataDimensionType());
+    }
+
+    ImportReport report =
+        importService.importMetadata(
+            new MetadataImportParams(),
+            new MetadataObjects().addMetadata(schemaService.getMetadataSchemas(), metadata));
+
+    assertEquals(Status.OK, report.getStatus());
+    List<CategoryOptionGroup> allGroups = manager.getAll(CategoryOptionGroup.class);
+    assertEquals(3, allGroups.size());
+    CategoryOptionGroup groupA =
+        allGroups.stream().filter(g -> g.getName().equals("GroupA")).findFirst().orElse(null);
+    assertNotNull(groupA);
+    assertEquals(DataDimensionType.DISAGGREGATION, groupA.getDataDimensionType());
+    CategoryOptionGroup groupB =
+        allGroups.stream().filter(g -> g.getName().equals("GroupB")).findFirst().orElse(null);
+    assertNotNull(groupB);
+    assertEquals(DataDimensionType.DISAGGREGATION, groupB.getDataDimensionType());
+    CategoryOptionGroup groupC =
+        allGroups.stream().filter(g -> g.getName().equals("GroupC")).findFirst().orElse(null);
+    assertNotNull(groupC);
+    assertEquals(DataDimensionType.ATTRIBUTE, groupC.getDataDimensionType());
   }
 }

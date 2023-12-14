@@ -175,7 +175,7 @@ public interface TrackedEntityAttributeService {
    *
    * @param trackedEntityAttribute TrackedEntityAttribute
    * @param value Value
-   * @param trackedEntity TrackedEntity - required if updating TEI
+   * @param trackedEntity TrackedEntity - required if updating TE
    * @param organisationUnit OrganisationUnit - only required if org unit scoped
    * @return null if valid, a message if not
    */

@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.imports.converter;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import com.google.common.base.Objects;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -78,7 +77,7 @@ public class EnrollmentTrackerConverterService
     List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = new ArrayList<>();
 
     preheatEnrollments.forEach(
-        tei -> {
+        te -> {
           // TODO: Add implementation
         });
 
@@ -140,10 +139,10 @@ public class EnrollmentTrackerConverterService
     dbEnrollment.setLastUpdatedAtClient(DateUtils.fromInstant(enrollment.getUpdatedAtClient()));
 
     Date enrollmentDate = DateUtils.fromInstant(enrollment.getEnrolledAt());
-    Date incidentDate = DateUtils.fromInstant(enrollment.getOccurredAt());
+    Date occurredDate = DateUtils.fromInstant(enrollment.getOccurredAt());
 
     dbEnrollment.setEnrollmentDate(enrollmentDate);
-    dbEnrollment.setIncidentDate(incidentDate != null ? incidentDate : enrollmentDate);
+    dbEnrollment.setOccurredDate(occurredDate != null ? occurredDate : enrollmentDate);
     dbEnrollment.setOrganisationUnit(organisationUnit);
     dbEnrollment.setProgram(program);
     dbEnrollment.setTrackedEntity(trackedEntity);
@@ -157,17 +156,17 @@ public class EnrollmentTrackerConverterService
     ProgramStatus previousStatus = dbEnrollment.getStatus();
     dbEnrollment.setStatus(enrollment.getStatus().getProgramStatus());
 
-    if (!Objects.equal(previousStatus, dbEnrollment.getStatus())) {
+    if (previousStatus != dbEnrollment.getStatus()) {
       if (dbEnrollment.isCompleted()) {
-        dbEnrollment.setEndDate(new Date());
+        dbEnrollment.setCompletedDate(now);
         dbEnrollment.setCompletedBy(preheat.getUsername());
       } else if (dbEnrollment.getStatus().equals(ProgramStatus.CANCELLED)) {
-        dbEnrollment.setEndDate(new Date());
+        dbEnrollment.setCompletedDate(now);
       }
     }
 
     if (isNotEmpty(enrollment.getNotes())) {
-      dbEnrollment.getComments().addAll(notesConverterService.from(preheat, enrollment.getNotes()));
+      dbEnrollment.getNotes().addAll(notesConverterService.from(preheat, enrollment.getNotes()));
     }
     return dbEnrollment;
   }

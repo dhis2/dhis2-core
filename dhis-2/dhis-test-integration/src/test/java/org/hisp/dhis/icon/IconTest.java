@@ -30,8 +30,10 @@ package org.hisp.dhis.icon;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
@@ -208,6 +210,30 @@ class IconTest extends TrackerTest {
     assertEquals(expectedMessage, exception.getMessage());
   }
 
+  @Test
+  void shouldUpdateLastUpdatedWhenCustomIconIsUpdated()
+      throws BadRequestException, NotFoundException {
+    FileResource fileResourceC = createAndPersistFileResource('C');
+    CustomIcon original =
+        new CustomIcon(
+            "iconKeyB",
+            "description",
+            new String[] {"k4", "k5"},
+            fileResourceC.getUid(),
+            currentUserService.getCurrentUser().getUid());
+    iconService.addCustomIcon(original);
+
+    CustomIcon fetched = iconService.getCustomIcon("iconKeyB");
+    Date firstUpdate = fetched.getLastUpdated();
+    fetched.setDescription("updated");
+    iconService.updateCustomIcon(fetched);
+
+    Date secondUpdate = iconService.getCustomIcon("iconKeyB").getLastUpdated();
+
+    assertTrue(secondUpdate.after(firstUpdate));
+    assertFalse(secondUpdate.before(firstUpdate));
+  }
+
   public FileResource createAndPersistFileResource(char uniqueChar) {
     byte[] content = "content".getBytes(StandardCharsets.UTF_8);
     String filename = "filename" + uniqueChar;
@@ -226,7 +252,7 @@ class IconTest extends TrackerTest {
     fileResource.setCreated(new Date());
     fileResource.setAutoFields();
 
-    String fileResourceUid = fileResourceService.saveFileResource(fileResource, content);
+    String fileResourceUid = fileResourceService.asyncSaveFileResource(fileResource, content);
     return fileResourceService.getFileResource(fileResourceUid);
   }
 

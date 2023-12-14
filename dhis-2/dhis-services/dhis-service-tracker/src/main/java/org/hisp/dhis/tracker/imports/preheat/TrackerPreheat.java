@@ -55,6 +55,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -69,11 +70,10 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdScheme;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.user.User;
@@ -231,7 +231,7 @@ public class TrackerPreheat {
   private final Set<String> existingRelationships = new HashSet<>();
 
   /** Internal map of all preheated notes (events and enrollments) */
-  private final Map<String, TrackedEntityComment> notes = new HashMap<>();
+  private final Map<String, Note> notes = new HashMap<>();
 
   /**
    * Internal map of all existing TrackedEntityProgramOwner. Used for ownership validations and
@@ -270,7 +270,7 @@ public class TrackerPreheat {
   private List<String> enrollmentsWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
 
   /** A list of Program Stage UID having 1 or more Events */
-  private List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
+  private final List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
 
   /** idScheme map */
   @Getter @Setter private TrackerIdSchemeParams idSchemes = new TrackerIdSchemeParams();
@@ -479,15 +479,15 @@ public class TrackerPreheat {
     events.put(uid, event);
   }
 
-  public void putNotes(List<TrackedEntityComment> trackedEntityComments) {
-    trackedEntityComments.forEach(c -> putNote(c.getUid(), c));
+  public void putNotes(List<Note> notes) {
+    notes.forEach(c -> putNote(c.getUid(), c));
   }
 
-  public void putNote(String uid, TrackedEntityComment comment) {
-    notes.put(uid, comment);
+  public void putNote(String uid, Note note) {
+    notes.put(uid, note);
   }
 
-  public Optional<TrackedEntityComment> getNote(String uid) {
+  public Optional<Note> getNote(String uid) {
     return Optional.ofNullable(notes.get(uid));
   }
 
@@ -552,16 +552,16 @@ public class TrackerPreheat {
   }
 
   private void addProgramOwner(
-      String teiUid, String programUid, TrackedEntityProgramOwnerOrgUnit tepo) {
-    programOwner.computeIfAbsent(teiUid, k -> new HashMap<>()).put(programUid, tepo);
+      String teUid, String programUid, TrackedEntityProgramOwnerOrgUnit tepo) {
+    programOwner.computeIfAbsent(teUid, k -> new HashMap<>()).put(programUid, tepo);
   }
 
-  public void addProgramOwner(String teiUid, String programUid, OrganisationUnit orgUnit) {
-    programOwner.computeIfAbsent(teiUid, k -> new HashMap<>());
-    if (!programOwner.get(teiUid).containsKey(programUid)) {
+  public void addProgramOwner(String teUid, String programUid, OrganisationUnit orgUnit) {
+    programOwner.computeIfAbsent(teUid, k -> new HashMap<>());
+    if (!programOwner.get(teUid).containsKey(programUid)) {
       TrackedEntityProgramOwnerOrgUnit tepo =
-          new TrackedEntityProgramOwnerOrgUnit(teiUid, programUid, orgUnit);
-      programOwner.get(teiUid).put(programUid, tepo);
+          new TrackedEntityProgramOwnerOrgUnit(teUid, programUid, orgUnit);
+      programOwner.get(teUid).put(programUid, tepo);
     }
   }
 

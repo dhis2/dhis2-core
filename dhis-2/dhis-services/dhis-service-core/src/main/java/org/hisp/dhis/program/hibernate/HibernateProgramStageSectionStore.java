@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionStore;
@@ -45,13 +45,13 @@ public class HibernateProgramStageSectionStore
     extends HibernateIdentifiableObjectStore<ProgramStageSection>
     implements ProgramStageSectionStore {
   public HibernateProgramStageSectionStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         ProgramStageSection.class,

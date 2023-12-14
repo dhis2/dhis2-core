@@ -32,15 +32,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
@@ -48,6 +48,7 @@ import org.hisp.dhis.tracker.imports.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.imports.sideeffect.SideEffectHandlerService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,7 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackerBundleService implements TrackerBundleService {
   private final TrackerPreheatService trackerPreheatService;
 
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
 
   private final CommitService commitService;
 
@@ -78,9 +79,11 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   }
 
   @Override
-  public TrackerBundle create(TrackerImportParams params) {
-    TrackerBundle trackerBundle = ParamsConverter.convert(params);
-    TrackerPreheat preheat = trackerPreheatService.preheat(params);
+  public TrackerBundle create(
+      TrackerImportParams params, TrackerObjects trackerObjects, User user) {
+    TrackerBundle trackerBundle = ParamsConverter.convert(params, trackerObjects, user);
+    TrackerPreheat preheat =
+        trackerPreheatService.preheat(trackerObjects, params.getIdSchemes(), user);
     trackerBundle.setPreheat(preheat);
 
     return trackerBundle;
@@ -100,17 +103,16 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
       return PersistenceReport.emptyReport();
     }
 
-    Session session = sessionFactory.getCurrentSession();
     Map<TrackerType, TrackerTypeReport> reportMap =
         Map.of(
             TrackerType.TRACKED_ENTITY,
-            commitService.getTrackerPersister().persist(session, bundle),
+            commitService.getTrackerPersister().persist(entityManager, bundle),
             TrackerType.ENROLLMENT,
-            commitService.getEnrollmentPersister().persist(session, bundle),
+            commitService.getEnrollmentPersister().persist(entityManager, bundle),
             TrackerType.EVENT,
-            commitService.getEventPersister().persist(session, bundle),
+            commitService.getEventPersister().persist(entityManager, bundle),
             TrackerType.RELATIONSHIP,
-            commitService.getRelationshipPersister().persist(session, bundle));
+            commitService.getRelationshipPersister().persist(entityManager, bundle));
 
     return new PersistenceReport(reportMap);
   }
@@ -123,7 +125,9 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   private void updateTeisLastUpdated(TrackerBundle bundle) {
     Optional.ofNullable(bundle.getUpdatedTeis())
         .filter(ut -> !ut.isEmpty())
-        .ifPresent(teis -> trackedEntityService.updateTrackedEntityLastUpdated(teis, new Date()));
+        .ifPresent(
+            trackedEntities ->
+                trackedEntityService.updateTrackedEntityLastUpdated(trackedEntities, new Date()));
   }
 
   @Override

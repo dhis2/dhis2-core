@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTempOwner;
@@ -45,10 +45,8 @@ import org.springframework.stereotype.Repository;
 public class HibernateProgramTempOwnerStore extends HibernateGenericStore<ProgramTempOwner>
     implements ProgramTempOwnerStore {
   public HibernateProgramTempOwnerStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher) {
-    super(sessionFactory, jdbcTemplate, publisher, ProgramTempOwner.class, false);
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, ProgramTempOwner.class, false);
   }
 
   // -------------------------------------------------------------------------
@@ -57,14 +55,14 @@ public class HibernateProgramTempOwnerStore extends HibernateGenericStore<Progra
 
   @Override
   public void addProgramTempOwner(ProgramTempOwner programTempOwner) {
-    sessionFactory.getCurrentSession().save(programTempOwner);
+    getSession().save(programTempOwner);
   }
 
   @Override
   public int getValidTempOwnerCount(Program program, TrackedEntity entityInstance, User user) {
     final String sql =
         "select count(1) from programtempowner "
-            + "where programid = ? and trackedentityinstanceid=? and userid=? "
+            + "where programid = ? and trackedentityid=? and userid=? "
             + "and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0";
     return jdbcTemplate.queryForObject(
         sql, new Object[] {program.getId(), entityInstance.getId(), user.getId()}, Integer.class);

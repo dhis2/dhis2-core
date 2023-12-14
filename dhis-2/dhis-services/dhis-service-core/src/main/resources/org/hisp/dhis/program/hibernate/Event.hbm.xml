@@ -31,7 +31,7 @@
     <property name="lastSynchronized" column="lastsynchronized" type="timestamp" not-null="false" />
 
     <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
-                 column="programinstanceid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid"
+                 column="enrollmentid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid"
                  index="programstageinstance_programinstanceid" />
 
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
@@ -44,19 +44,12 @@
 
     <property name="storedBy" />
 
-    <property name="dueDate" column="duedate" />
+    <property name="scheduledDate" column="scheduleddate" />
 
-    <property name="executionDate" column="executiondate" type="timestamp" index="programstageinstance_executiondate" />
+    <property name="occurredDate" column="occurreddate" type="timestamp" index="programstageinstance_executiondate" />
 
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
       foreign-key="fk_programstageinstance_organisationunitid" index="programstageinstance_organisationunitid" />
-
-    <list name="messageConversations" table="event_messageconversation">
-      <key column="eventid" />
-      <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.message.MessageConversation"
-        column="messageconversationid" />
-    </list>
 
     <property name="status" column="status" type="org.hisp.dhis.program.EventStatusUserType" not-null="true" />
 
@@ -71,11 +64,11 @@
 
     <property name="eventDataValues" type="jsbEventDataValues" />
 
-    <list name="comments" table="eventcomments" cascade="all-delete-orphan">
+    <list name="notes" table="event_notes" cascade="all-delete-orphan">
       <key column="eventid" foreign-key="fk_programstageinstancecomments_programstageinstanceid" />
       <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" column="trackedentitycommentid"
-        unique="true" foreign-key="fk_programstageinstancecomments_trackedentitycommentid" />
+      <many-to-many class="org.hisp.dhis.note.Note" column="noteid"
+                    unique="true" foreign-key="fk_programstageinstancecomments_trackedentitycommentid" />
     </list>
 
     <set name="relationshipItems" inverse="true">

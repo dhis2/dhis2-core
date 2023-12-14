@@ -67,6 +67,24 @@ public class OptionActions {
     return optionActions.create(option);
   }
 
+  public String createOption(
+      String optionName, String optionCode, String optionSetId, int sortOrder) {
+    JsonObject option = new JsonObject();
+
+    option.addProperty("name", optionName);
+    option.addProperty("code", optionCode);
+    option.addProperty("sortOrder", sortOrder);
+
+    if (optionSetId != null) {
+      JsonObject optionSet = new JsonObject();
+      optionSet.addProperty("id", optionSetId);
+
+      option.add("optionSet", optionSet);
+    }
+
+    return optionActions.create(option);
+  }
+
   /**
    * Creates an option set. If optionIds are provided, links options with option set.
    *

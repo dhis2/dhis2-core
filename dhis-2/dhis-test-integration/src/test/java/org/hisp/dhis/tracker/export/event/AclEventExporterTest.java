@@ -28,11 +28,13 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -47,6 +49,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -56,6 +59,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,13 +79,15 @@ class AclEventExporterTest extends TrackerTest {
 
   private Program program;
 
+  private EventOperationParams.EventOperationParamsBuilder operationParamsBuilder;
+
   @Override
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
     User userA = userService.getUser("M5zQapPyTZI");
+    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
     assertNoErrors(
-        trackerImportService.importTracker(
-            fromJson("tracker/event_and_enrollment.json", userA.getUid())));
+        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     ProgramStage programStage = get(ProgramStage.class, "NpsdDv6kKSO");
     program = programStage.getProgram();
@@ -99,6 +105,7 @@ class AclEventExporterTest extends TrackerTest {
     // needed as some tests are run using another user (injectSecurityContext) while most tests
     // expect to be run by admin
     injectAdminUser();
+    operationParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
   }
 
   @Test
@@ -106,13 +113,13 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .programUid("pcxIanBWlSY")
             .orgUnitUid(orgUnit.getUid())
             .orgUnitMode(DESCENDANTS)
             .build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -132,19 +139,23 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .orgUnitMode(DESCENDANTS)
-            .build();
+        operationParamsBuilder.orgUnitUid(orgUnit.getUid()).orgUnitMode(DESCENDANTS).build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertFalse(
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode descendants and org units in search scope");
     assertContainsOnly(
-        events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()),
-        List.of("uoNW0E3xXUy", "h4w96yEMlzO", "tSsGrtfRzjY"));
+        List.of(
+            "YKmfzHdjUDL",
+            "jxgFyJEMUPf",
+            "D9PbzJY8bJM",
+            "pTzf9KYMk72",
+            "JaRDIvcEcEx",
+            "SbUJzkxKYAG",
+            "gvULMgNiAfM"),
+        events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 
   @Test
@@ -152,13 +163,13 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .programUid("pcxIanBWlSY")
             .orgUnitUid(orgUnit.getUid())
             .orgUnitMode(CHILDREN)
             .build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -178,23 +189,23 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder().orgUnitUid(orgUnit.getUid()).orgUnitMode(CHILDREN).build();
+        operationParamsBuilder.orgUnitUid(orgUnit.getUid()).orgUnitMode(CHILDREN).build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertFalse(
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode children and org units in search scope");
     assertContainsOnly(
-        events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()),
-        List.of("uoNW0E3xXUy", "h4w96yEMlzO"));
+        List.of("YKmfzHdjUDL", "jxgFyJEMUPf", "JaRDIvcEcEx", "D9PbzJY8bJM", "pTzf9KYMk72"),
+        events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 
   @Test
   void shouldFailWhenProgramIsOpenAndOrgUnitNotInSearchScope() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .programUid(program.getUid())
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(DESCENDANTS)
@@ -202,14 +213,15 @@ class AclEventExporterTest extends TrackerTest {
 
     ForbiddenException exception =
         assertThrows(ForbiddenException.class, () -> eventService.getEvents(params));
-    assertEquals("User does not have access to orgUnit: DiszpKrYNg8", exception.getMessage());
+    assertEquals(
+        "Organisation unit is not part of your search scope: DiszpKrYNg8", exception.getMessage());
   }
 
   @Test
-  void shouldFailWhenProgramIsClosedAndOrgUnitNotInCaptureScope() {
+  void shouldFailWhenProgramIsClosedAndOrgUnitNotInSearchScope() {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .programUid("pcxIanBWlSY")
             .orgUnitUid("DiszpKrYNg8")
             .orgUnitMode(DESCENDANTS)
@@ -217,7 +229,8 @@ class AclEventExporterTest extends TrackerTest {
 
     ForbiddenException exception =
         assertThrows(ForbiddenException.class, () -> eventService.getEvents(params));
-    assertEquals("User does not have access to orgUnit: DiszpKrYNg8", exception.getMessage());
+    assertEquals(
+        "Organisation unit is not part of your search scope: DiszpKrYNg8", exception.getMessage());
   }
 
   @Test
@@ -225,13 +238,13 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .programUid("pcxIanBWlSY")
             .orgUnitUid("uoNW0E3xXUy")
             .orgUnitMode(SELECTED)
             .build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -249,24 +262,37 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeSelectedAndOrgUnitInSearchScope()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContext(userService.getUser("nIidJVYpQQK"));
     EventOperationParams params =
-        EventOperationParams.builder().orgUnitUid(orgUnit.getUid()).orgUnitMode(SELECTED).build();
+        operationParamsBuilder.orgUnitUid("DiszpKrYNg8").orgUnitMode(SELECTED).build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertFalse(
         events.isEmpty(),
-        "Expected to find events when no program specified, ou mode descendants and org units in search scope");
+        "Expected to find events when no program specified, ou mode selected and org units in search scope");
 
-    events.forEach(
-        e ->
-            assertEquals(
-                "h4w96yEMlzO",
-                e.getOrganisationUnit().getUid(),
-                "Expected to find selected org unit h4w96yEMlzO, but found "
-                    + e.getOrganisationUnit().getUid()
-                    + " instead"));
+    assertContainsOnly(
+        List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"),
+        events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
+  }
+
+  @Test
+  void shouldReturnEventsWhenNoProgramSpecifiedOuModeSelectedAndOrgUnitInCaptureScope()
+      throws ForbiddenException, BadRequestException {
+    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    EventOperationParams params =
+        operationParamsBuilder.orgUnitUid("RojfDTBhoGC").orgUnitMode(SELECTED).build();
+
+    List<Event> events = eventService.getEvents(params);
+
+    assertFalse(
+        events.isEmpty(),
+        "Expected to find events when no program specified, ou mode selected and org units in capture scope");
+
+    assertContainsOnly(
+        List.of("SbUJzkxKYAG"),
+        events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 
   @Test
@@ -274,13 +300,13 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .programUid("shPjYNifvMK")
             .orgUnitUid(orgUnit.getUid())
             .orgUnitMode(SELECTED)
             .build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertTrue(events.isEmpty(), "Expected to find no events, but found: " + events.size());
   }
@@ -290,13 +316,9 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
-            .programUid("pcxIanBWlSY")
-            .orgUnitUid("uoNW0E3xXUy")
-            .orgUnitMode(ACCESSIBLE)
-            .build();
+        operationParamsBuilder.programUid("pcxIanBWlSY").orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode accessible and program closed");
@@ -315,9 +337,9 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder().programUid(program.getUid()).orgUnitMode(ACCESSIBLE).build();
+        operationParamsBuilder.programUid(program.getUid()).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode accessible and program open");
@@ -332,17 +354,13 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnEventsWhenProgramOpenOuModeCapture()
+  void shouldReturnEventsWhenProgramClosedOuModeCapture()
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder()
-            .programUid("pcxIanBWlSY")
-            .orgUnitUid("uoNW0E3xXUy")
-            .orgUnitMode(CAPTURE)
-            .build();
+        operationParamsBuilder.programUid("pcxIanBWlSY").orgUnitMode(CAPTURE).build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode capture and program closed");
@@ -357,47 +375,17 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnSelectedOrgUnitEventsWhenNoOuModeSpecifiedAndUserHasAccessToOrgUnit()
+  void shouldReturnAccessibleOrgUnitEventsWhenNoOrgUnitSpecified()
       throws ForbiddenException, BadRequestException {
     injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
-        EventOperationParams.builder().programUid("pcxIanBWlSY").orgUnitUid("uoNW0E3xXUy").build();
+        operationParamsBuilder.programUid("pcxIanBWlSY").orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.getEvents(params).getEvents();
-
-    assertFalse(
-        events.isEmpty(), "Expected to find selected org unit events when ou mode not specified");
-    events.forEach(
-        e ->
-            assertEquals(
-                "uoNW0E3xXUy",
-                e.getOrganisationUnit().getUid(),
-                "Expected to find accessible org unit uoNW0E3xXUy, but found "
-                    + e.getOrganisationUnit().getUid()
-                    + " instead"));
-  }
-
-  @Test
-  void shouldFailWhenNoOuModeSpecifiedAndUserHasNoAccessToOrgUnit() {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
-        EventOperationParams.builder().programUid("pcxIanBWlSY").orgUnitUid("DiszpKrYNg8").build();
-
-    ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> eventService.getEvents(params));
-    assertEquals("User does not have access to orgUnit: DiszpKrYNg8", exception.getMessage());
-  }
-
-  @Test
-  void shouldReturnAccessibleOrgUnitEventsWhenNoOrgUnitSpecifiedNorOuModeSpecified()
-      throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params = EventOperationParams.builder().programUid("pcxIanBWlSY").build();
-
-    List<Event> events = eventService.getEvents(params).getEvents();
+    List<Event> events = eventService.getEvents(params);
 
     assertFalse(
-        events.isEmpty(), "Expected to find accessible org unit events when ou mode not specified");
+        events.isEmpty(),
+        "Expected to find accessible org unit events when org unit not specified");
     events.forEach(
         e ->
             assertEquals(
@@ -416,16 +404,17 @@ class AclEventExporterTest extends TrackerTest {
     injectSecurityContext(userService.getUser("o1HMTIzBGo7"));
 
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
+            .orgUnitMode(SELECTED)
             .events(Set.of("lumVtWwwy0O", "cadc5eGj0j7"))
             .build();
 
-    Events events = eventService.getEvents(params);
+    List<Event> events = eventService.getEvents(params);
 
-    assertContainsOnly(List.of("lumVtWwwy0O", "cadc5eGj0j7"), eventUids(events));
+    assertContainsOnly(List.of("lumVtWwwy0O", "cadc5eGj0j7"), uids(events));
     List<Executable> executables =
-        events.getEvents().stream()
+        events.stream()
             .map(
                 e ->
                     (Executable)
@@ -449,8 +438,9 @@ class AclEventExporterTest extends TrackerTest {
     injectSecurityContext(userService.getUser("CYVgFNKCaUS"));
 
     EventOperationParams params =
-        EventOperationParams.builder()
+        operationParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
+            .orgUnitMode(SELECTED)
             .events(Set.of("lumVtWwwy0O", "cadc5eGj0j7"))
             .build();
 
@@ -459,20 +449,86 @@ class AclEventExporterTest extends TrackerTest {
     assertIsEmpty(events);
   }
 
+  @Test
+  void shouldReturnAllEventsWhenOrgUnitModeAllAndNoOrgUnitProvided()
+      throws ForbiddenException, BadRequestException {
+    injectSecurityContext(userService.getUser("lPaILkLkgOM"));
+
+    EventOperationParams params = operationParamsBuilder.orgUnitMode(ALL).build();
+
+    List<Event> events = eventService.getEvents(params);
+
+    assertFalse(
+        events.isEmpty(),
+        "Expected to find events when ou mode ALL no program specified and no org unit provided");
+    assertContainsOnly(
+        List.of(
+            "lbDXJBlvtZe",
+            "uoNW0E3xXUy",
+            "RojfDTBhoGC",
+            "tSsGrtfRzjY",
+            "h4w96yEMlzO",
+            "DiszpKrYNg8"),
+        events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()));
+  }
+
+  @Test
+  void shouldIgnoreRequestedOrgUnitAndReturnAllEventsWhenOrgUnitModeAllAndOrgUnitProvided()
+      throws ForbiddenException, BadRequestException {
+    injectSecurityContext(userService.getUser("lPaILkLkgOM"));
+
+    EventOperationParams params =
+        operationParamsBuilder.orgUnitUid("uoNW0E3xXUy").orgUnitMode(ALL).build();
+
+    List<Event> events = eventService.getEvents(params);
+
+    assertFalse(
+        events.isEmpty(),
+        "Expected to find events when ou mode ALL no program specified and org unit provided");
+    assertContainsOnly(
+        List.of(
+            "lbDXJBlvtZe",
+            "uoNW0E3xXUy",
+            "RojfDTBhoGC",
+            "tSsGrtfRzjY",
+            "h4w96yEMlzO",
+            "DiszpKrYNg8"),
+        events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()));
+  }
+
+  @Test
+  void
+      shouldReturnOnlyVisibleEventsInSearchAndCaptureScopeWhenNoProgramPresentOrgUnitModeAccessible()
+          throws ForbiddenException, BadRequestException {
+    injectSecurityContext(userService.getUser("nIidJVYpQQK"));
+
+    EventOperationParams params = operationParamsBuilder.orgUnitMode(ACCESSIBLE).build();
+
+    List<Event> events = eventService.getEvents(params);
+
+    assertFalse(
+        events.isEmpty(), "Expected to find events when ou mode ACCESSIBLE and events visible");
+    assertContainsOnly(
+        List.of(
+            "ck7DzdxqLqA",
+            "OTmjvJDn0Fu",
+            "kWjSezkXHVp",
+            "jxgFyJEMUPf",
+            "JaRDIvcEcEx",
+            "YKmfzHdjUDL",
+            "SbUJzkxKYAG",
+            "gvULMgNiAfM"),
+        events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
+  }
+
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
     T t = manager.get(type, uid);
     assertNotNull(t, () -> String.format("metadata with uid '%s' should have been created", uid));
     return t;
   }
 
-  private static List<String> eventUids(Events events) {
-    return events.getEvents().stream().map(Event::getUid).collect(Collectors.toList());
-  }
-
   private List<String> getEvents(EventOperationParams params)
       throws ForbiddenException, BadRequestException {
-    return eventService.getEvents(params).getEvents().stream()
-        .map(Event::getUid)
-        .collect(Collectors.toList());
+    return uids(eventService.getEvents(params));
   }
 }

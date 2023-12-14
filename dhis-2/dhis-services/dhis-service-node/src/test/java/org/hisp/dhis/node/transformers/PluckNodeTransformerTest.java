@@ -28,7 +28,7 @@
 package org.hisp.dhis.node.transformers;
 
 import java.util.Collections;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManagerFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.node.Node;
@@ -55,7 +55,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PluckNodeTransformerTest {
   private final PluckNodeTransformer transformer = new PluckNodeTransformer();
 
-  @Mock private SessionFactory sessionFactory;
+  @Mock private EntityManagerFactory entityManagerFactory;
 
   private SchemaService schemaService;
 
@@ -66,7 +66,7 @@ class PluckNodeTransformerTest {
     schemaService =
         new DefaultSchemaService(
             new DefaultPropertyIntrospectorService(new JacksonPropertyIntrospector()),
-            sessionFactory);
+            entityManagerFactory);
 
     collectionNode = new CollectionNode("organisationUnits", 2);
     collectionNode.setNamespace("testUrn");

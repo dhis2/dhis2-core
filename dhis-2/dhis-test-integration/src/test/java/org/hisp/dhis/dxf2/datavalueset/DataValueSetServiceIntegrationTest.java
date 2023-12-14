@@ -96,6 +96,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -279,7 +280,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
     periodService.addPeriod(peC);
     dataSetService.addDataSet(dsA);
 
-    user = createAndAddUser(false, "A", null, Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority());
+    user = createAndAddUser(false, "A", null, Authorities.F_SKIP_DATA_IMPORT_AUDIT.name());
     user.addOrganisationUnits(Sets.newHashSet(ouA, ouB));
     userService.updateUser(user);
 
@@ -555,7 +556,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
 
   /**
    * Import 12 data values where 4 are marked as deleted. Then import 12 data values which reverse
-   * deletion of the 4 values and update the other 8 values.
+   * deletion of the 4 values and ignore the other 8 unchanged values.
    */
   @Test
   void testImportReverseDeletedValuesXml() {
@@ -569,13 +570,13 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
     // Reverse deletion and update
     summary = dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetB.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(4, 8, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(4, 0, 0, 8, summary);
     assertDataValuesCount(12);
   }
 
   /**
    * Import 12 data values where 4 are marked as deleted. Then import 12 data values which reverse
-   * deletion of the 4 values, update 4 values and add 4 values.
+   * deletion of the 4 values, ignore 4 unchanged values and add 4 values.
    */
   @Test
   void testImportAddAndReverseDeletedValuesXml() {
@@ -590,11 +591,11 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
     summary =
         dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetBNew.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(8, 4, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(8, 0, 0, 4, summary);
     assertDataValuesCount(16);
   }
 
-  /** Import 12 data values. Then import 12 values where 4 are marked as deleted. */
+  /** Import 12 data values. Then import 12 unchanged values where 4 are marked as deleted. */
   @Test
   void testDeleteValuesXml() {
     assertDataValuesCount(0);
@@ -608,12 +609,12 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
         dataValueSetService.importDataValueSetXml(
             readFile("datavalueset/dataValueSetBDeleted.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(0, 8, 4, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 0, 4, 8, summary);
     assertDataValuesCount(8);
   }
 
   /**
-   * Import 12 data values. Then import 12 values where 4 are marked as deleted, 6 are updates and 2
+   * Import 12 data values. Then import 12 values where 4 are marked as deleted, 6 are ignored and 2
    * are new.
    */
   @Test
@@ -629,7 +630,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
         dataValueSetService.importDataValueSetXml(
             readFile("datavalueset/dataValueSetBNewDeleted.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(2, 6, 4, summary);
+    assertSuccessWithImportedUpdatedDeleted(2, 0, 4, 6, summary);
     assertDataValuesCount(10);
   }
 
@@ -815,6 +816,53 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
 
     assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
     assertImportDataValues(summary);
+  }
+
+  @Test
+  @DisplayName("Import summary should show correct ignore count when importing unchanged values")
+  void testImportDataValueSetIgnoreCount() {
+    // given 12 new data values are imported
+    ImportOptions importOptions = new ImportOptions();
+
+    List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValues =
+        List.of(
+            getDataValue("f7n9E0hX8qk", "201201", "DiszpKrYNg8", "10001"),
+            getDataValue("f7n9E0hX8qk", "201201", "BdfsJfj87js", "10002"),
+            getDataValue("f7n9E0hX8qk", "201202", "DiszpKrYNg8", "10003"),
+            getDataValue("f7n9E0hX8qk", "201202", "BdfsJfj87js", "10004"),
+            getDataValue("Ix2HsbDMLea", "201201", "DiszpKrYNg8", "10005"),
+            getDataValue("Ix2HsbDMLea", "201201", "BdfsJfj87js", "10006"),
+            getDataValue("Ix2HsbDMLea", "201202", "DiszpKrYNg8", "10007"),
+            getDataValue("Ix2HsbDMLea", "201202", "BdfsJfj87js", "10008"),
+            getDataValue("eY5ehpbEsB7", "201201", "DiszpKrYNg8", "10009"),
+            getDataValue("eY5ehpbEsB7", "201201", "BdfsJfj87js", "10010"),
+            getDataValue("eY5ehpbEsB7", "201202", "DiszpKrYNg8", "10011"),
+            getDataValue("eY5ehpbEsB7", "201202", "BdfsJfj87js", "10012"));
+
+    DataValueSet dataValueSet = new DataValueSet();
+    dataValueSet.setDataValues(dataValues);
+
+    ImportSummary summary = dataValueSetService.importDataValueSet(dataValueSet, importOptions);
+
+    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
+    assertImportDataValues(summary);
+
+    // when an import is processed including 1 new value & 2 unchanged values
+    List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValuesUpdateIgnore =
+        List.of(
+            getDataValue("f7n9E0hX8qk", "201201", "DiszpKrYNg8", "20001"),
+            getDataValue("f7n9E0hX8qk", "201201", "BdfsJfj87js", "10002"),
+            getDataValue("f7n9E0hX8qk", "201202", "DiszpKrYNg8", "10003"));
+
+    DataValueSet dataValueSetUpdateIgnore = new DataValueSet();
+    dataValueSetUpdateIgnore.setDataValues(dataValuesUpdateIgnore);
+
+    ImportSummary summary2 =
+        dataValueSetService.importDataValueSet(dataValueSetUpdateIgnore, importOptions);
+
+    // then the ignore count should be 2 and the updated count should be 1
+    assertSuccessWithImportedUpdatedDeleted(0, 1, 0, 2, summary2);
+    assertImportDataValues(summary2);
   }
 
   @Test

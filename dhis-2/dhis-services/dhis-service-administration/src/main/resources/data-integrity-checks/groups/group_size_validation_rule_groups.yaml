@@ -26,10 +26,9 @@
 #
 ---
 name: validation_rule_groups_scarce
-description: Validation rule should have at least two members.
+description: Validation rule groups should have at least two members.
 section: Group size
 section_order: 2
-summary_uid: adbASuPTWMW
 summary_sql: >-
   WITH group_size as (
   SELECT uid,name,  COALESCE(x.count,0) as count from
@@ -43,7 +42,6 @@ summary_sql: >-
   SELECT COUNT(*) as value,
    100*COUNT(*) / NULLIF( ( select COUNT(*) from validationrulegroup), 0) as percent
   from group_size where count < 2;
-details_uid: fXJHZMwuGOh
 details_sql: >-
   WITH group_size as (
   SELECT uid,name,  COALESCE(x.count,0) as count from

@@ -94,6 +94,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
 
 /**
  * Class representing query parameters for retrieving event data from the event analytics service.
@@ -232,6 +233,8 @@ public class EventQueryParams extends DataQueryParams {
 
   @Getter protected EndpointAction endpointAction;
 
+  @Getter protected boolean multipleQueries = false;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -300,6 +303,8 @@ public class EventQueryParams extends DataQueryParams {
     params.endpointItem = this.endpointItem;
     params.endpointAction = this.endpointAction;
     params.rowContext = this.rowContext;
+    params.multipleQueries = this.multipleQueries;
+    params.userOrganisationUnitsCriteria = this.userOrganisationUnitsCriteria;
     return params;
   }
 
@@ -463,7 +468,6 @@ public class EventQueryParams extends DataQueryParams {
     for (List<DateRange> ranges : timeDateRanges.values()) {
       ranges.sort(Comparator.comparing(DateRange::getStartDate));
     }
-
     removeDimensionOrFilter(PERIOD_DIM_ID);
   }
 
@@ -842,6 +846,11 @@ public class EventQueryParams extends DataQueryParams {
     }
 
     return DESC == sortOrder ? 1 : 0;
+  }
+
+  /** Returns true when parameters are incoming from analytics enrollments/aggregate entry point */
+  public boolean isAggregatedEnrollments() {
+    return endpointAction == EndpointAction.AGGREGATE && endpointItem == EndpointItem.ENROLLMENT;
   }
 
   @Override
@@ -1249,6 +1258,13 @@ public class EventQueryParams extends DataQueryParams {
       return this;
     }
 
+    public Builder withUserOrganisationUnitsCriteria(String userOrganisationUnitsCriteria) {
+
+      this.params.userOrganisationUnitsCriteria =
+          OrganisationUnitCriteriaUtils.getAnalyticsMetaDataKeys(userOrganisationUnitsCriteria);
+      return this;
+    }
+
     public Builder withClusterSize(Long clusterSize) {
       this.params.clusterSize = clusterSize;
       return this;
@@ -1337,6 +1353,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withRowContext(boolean rowContext) {
       this.params.rowContext = rowContext;
+      return this;
+    }
+
+    public Builder withMultipleQueries(boolean multipleQueries) {
+      this.params.multipleQueries = multipleQueries;
       return this;
     }
   }

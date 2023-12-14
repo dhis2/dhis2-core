@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.attribute;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
@@ -577,5 +579,23 @@ class MetadataAttributeCheckTest {
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6021, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
+  }
+
+  @Test
+  void testEmptyValue() {
+    attribute.setValueType(ValueType.EMAIL);
+    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, ""));
+    List<ObjectReport> objectReportList = new ArrayList<>();
+
+    metadataAttributeCheck.check(
+        objectBundle,
+        OrganisationUnit.class,
+        Lists.newArrayList(organisationUnit),
+        Collections.emptyList(),
+        ImportStrategy.CREATE_AND_UPDATE,
+        validationContext,
+        objectReport -> objectReportList.add(objectReport));
+
+    assertTrue(CollectionUtils.isEmpty(objectReportList));
   }
 }

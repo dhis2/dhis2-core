@@ -44,11 +44,11 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.Instant;
 import java.util.Date;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.commons.jackson.config.geometry.GeometrySerializer;
 import org.hisp.dhis.commons.jackson.config.geometry.JtsXmlModule;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dataexchange.aggregate.ApiSerializer;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
@@ -94,8 +94,8 @@ public class JacksonObjectMapperConfig {
   }
 
   @Bean("hibernateAwareJsonMapper")
-  public ObjectMapper hibernateAwareJsonMapper(SessionFactory sessionFactory) {
-    Hibernate5Module hibernate5Module = new Hibernate5Module(sessionFactory);
+  public ObjectMapper hibernateAwareJsonMapper() {
+    Hibernate5Module hibernate5Module = new Hibernate5Module();
     hibernate5Module.enable(
         Hibernate5Module.Feature.SERIALIZE_IDENTIFIER_FOR_LAZY_NOT_LOADED_OBJECTS);
     hibernateAwareJsonMapper.registerModule(hibernate5Module);
@@ -153,6 +153,7 @@ public class JacksonObjectMapperConfig {
     module.addSerializer(Date.class, new WriteDateStdSerializer());
     module.addSerializer(JsonPointer.class, new JsonPointerStdSerializer());
     module.addSerializer(Api.class, new ApiSerializer());
+    module.addSerializer(JsonValue.class, new JsonValueSerializer());
 
     // Registering a custom Instant serializer/deserializer for DTOs
     JavaTimeModule javaTimeModule = new JavaTimeModule();

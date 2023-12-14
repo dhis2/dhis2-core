@@ -111,7 +111,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     progress.startingStage("Invalidate analytics caches", SKIP_STAGE);
     progress.runStage(analyticsCache::invalidateAll);
-    progress.completedProcess("Analytics tables updated");
+    progress.completedProcess("Analytics tables updated: " + clock.time());
   }
 
   private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
@@ -149,8 +149,6 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   // -------------------------------------------------------------------------
 
   private void generateResourceTablesInternal(JobProgress progress) {
-    final Date startTime = new Date();
-
     resourceTableService.dropAllSqlViews(progress);
 
     Map<String, Runnable> generators = new LinkedHashMap<>();
@@ -178,12 +176,12 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     generators.put(
         "generating CategoryOptionCombo table",
         resourceTableService::generateCategoryOptionComboTable);
-    progress.startingStage("Generating resource tables", generators.size());
+    progress.startingStage("Generating resource tables", generators.size(), SKIP_STAGE);
     progress.runStage(generators);
 
     resourceTableService.createAllSqlViews(progress);
 
     systemSettingManager.saveSystemSetting(
-        SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, startTime);
+        SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, new Date());
   }
 }

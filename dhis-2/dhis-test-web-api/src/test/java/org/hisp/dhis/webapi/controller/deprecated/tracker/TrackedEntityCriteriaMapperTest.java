@@ -31,6 +31,12 @@ import static com.google.common.collect.Sets.newHashSet;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,7 +45,6 @@ import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
@@ -198,13 +203,10 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     assertThat(
         queryParams.getProgramEnrollmentStartDate(), is(criteria.getProgramEnrollmentStartDate()));
     assertThat(
-        queryParams.getProgramEnrollmentEndDate(),
-        is(DateUtils.addDays(criteria.getProgramEnrollmentEndDate(), 1)));
+        queryParams.getProgramEnrollmentEndDate(), is(criteria.getProgramEnrollmentEndDate()));
     assertThat(
         queryParams.getProgramIncidentStartDate(), is(criteria.getProgramIncidentStartDate()));
-    assertThat(
-        queryParams.getProgramIncidentEndDate(),
-        is(DateUtils.addDays(criteria.getProgramIncidentEndDate(), 1)));
+    assertThat(queryParams.getProgramIncidentEndDate(), is(criteria.getProgramIncidentEndDate()));
     assertThat(queryParams.getEventStatus(), is(EventStatus.COMPLETED));
     assertThat(queryParams.getEventStartDate(), is(criteria.getEventStartDate()));
     assertThat(queryParams.getEventEndDate(), is(criteria.getEventEndDate()));
@@ -284,7 +286,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
         assertThrows(IllegalQueryException.class, () -> trackedEntityCriteriaMapper.map(criteria));
 
     assertEquals(
-        "User does not have access to organisation unit: " + organisationUnitB.getUid(),
+        "Organisation unit is not part of the search scope: " + organisationUnitB.getUid(),
         e.getMessage());
   }
 
@@ -303,7 +305,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
         assertThrows(IllegalQueryException.class, () -> trackedEntityCriteriaMapper.map(criteria));
 
     assertEquals(
-        "User does not have access to organisation unit: " + organisationUnitB.getUid(),
+        "Organisation unit is not part of the search scope: " + organisationUnitB.getUid(),
         e.getMessage());
   }
 
@@ -317,5 +319,62 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     assertEquals(
         "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED",
         e.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeAccessible() {
+    TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+    criteria.setOu(organisationUnit.getUid());
+    criteria.setOuMode(ACCESSIBLE);
+
+    Exception exception =
+        assertThrows(IllegalQueryException.class, () -> trackedEntityCriteriaMapper.map(criteria));
+
+    assertStartsWith("ouMode ACCESSIBLE cannot be used with orgUnits.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitSuppliedAndOrgUnitModeCapture() {
+    TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+    criteria.setOu(organisationUnit.getUid());
+    criteria.setOuMode(CAPTURE);
+
+    Exception exception =
+        assertThrows(IllegalQueryException.class, () -> trackedEntityCriteriaMapper.map(criteria));
+
+    assertStartsWith("ouMode CAPTURE cannot be used with orgUnits.", exception.getMessage());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeSelected() {
+    TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+    criteria.setOu(organisationUnit.getUid());
+    criteria.setOuMode(SELECTED);
+
+    TrackedEntityQueryParams queryParams = trackedEntityCriteriaMapper.map(criteria);
+
+    assertEquals(SELECTED, queryParams.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeDescendants() {
+    TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+    criteria.setOu(organisationUnit.getUid());
+    criteria.setOuMode(DESCENDANTS);
+
+    TrackedEntityQueryParams queryParams = trackedEntityCriteriaMapper.map(criteria);
+
+    assertEquals(DESCENDANTS, queryParams.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldMapOrgUnitModeWhenOrgUnitSuppliedAndOrgUnitModeChildren() {
+    TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+    criteria.setOu(organisationUnit.getUid());
+    criteria.setOuMode(CHILDREN);
+
+    TrackedEntityQueryParams queryParams = trackedEntityCriteriaMapper.map(criteria);
+
+    assertEquals(CHILDREN, queryParams.getOrgUnitMode());
   }
 }

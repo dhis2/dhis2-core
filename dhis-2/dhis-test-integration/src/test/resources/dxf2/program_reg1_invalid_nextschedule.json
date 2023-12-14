@@ -366,22 +366,6 @@
       }
     }
   ],
-  "trackedEntityAttributeGroups": [
-    {
-      "name": "TrackedEntityAttributeGroupA",
-      "trackedEntityAttributes": [
-        {
-          "id": "QhEcRpLZwMb"
-        },
-        {
-          "id": "cpaMZredRXb"
-        }
-      ],
-      "created": "2016-03-11T07:00:02.917+0000",
-      "lastUpdated": "2016-03-11T07:00:02.917+0000",
-      "id": "TLxOGInNoVL"
-    }
-  ],
   "users": [
     {
       "dataViewOrganisationUnits": [],
@@ -440,7 +424,6 @@
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
-        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
         "F_TRACKED_ENTITY_INSTANCE_DELETE",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
         "F_MAP_PUBLIC_ADD",
@@ -458,7 +441,6 @@
         "F_EVENT_VISUALIZATION_EXTERNAL",
         "F_VIEW_UNAPPROVED_DATA",
         "F_VISUALIZATION_EXTERNAL",
-        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
         "F_METADATA_EXPORT",
         "F_PROGRAM_UNENROLLMENT",
         "F_APPROVE_DATA",
@@ -467,7 +449,6 @@
         "F_USERGROUP_PUBLIC_ADD",
         "F_OAUTH2_CLIENT_MANAGE",
         "F_TRACKED_ENTITY_DATAVALUE_ADD",
-        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
         "F_MAP_EXTERNAL",
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_TRACKED_ENTITY_DATAVALUE_DELETE"

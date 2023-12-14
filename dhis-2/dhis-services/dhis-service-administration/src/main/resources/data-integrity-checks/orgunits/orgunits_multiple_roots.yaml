@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: ezQJxORagqI
 name: orgunits_multiple_roots
 description: The organisation unit hierarchy should have a single root.
 section: Organisation units
@@ -41,7 +40,6 @@ summary_sql: >-
   100.0 * COUNT(*) / NULLIF( ( SELECT COUNT(*) FROM organisationunit), 0)  as percent
   FROM orgunit_multiple_roots
   WHERE array_length(comment,1) > 1;
-details_uid: CVy8mwGN6Ec
 details_sql: >-
   WITH duplicate_roots as (
   SELECT uid,name,

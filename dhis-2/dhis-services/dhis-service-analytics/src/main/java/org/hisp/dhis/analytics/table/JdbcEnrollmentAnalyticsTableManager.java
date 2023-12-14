@@ -62,7 +62,8 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,8 +83,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       AnalyticsTableHookService tableHookService,
       StatementBuilder statementBuilder,
       PartitionManager partitionManager,
-      DatabaseInfo databaseInfo,
-      JdbcTemplate jdbcTemplate,
+      DatabaseInfoProvider databaseInfoProvider,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsExportSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
     super(
@@ -96,7 +97,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         tableHookService,
         statementBuilder,
         partitionManager,
-        databaseInfo,
+        databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
         periodDataProvider);
@@ -106,11 +107,11 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       List.of(
           new AnalyticsTableColumn(quote("pi"), CHARACTER_11, NOT_NULL, "pi.uid"),
           new AnalyticsTableColumn(quote("enrollmentdate"), TIMESTAMP, "pi.enrollmentdate"),
-          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.incidentdate"),
+          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.occurreddate"),
           new AnalyticsTableColumn(
               quote("completeddate"),
               TIMESTAMP,
-              "case pi.status when 'COMPLETED' then pi.enddate end"),
+              "case pi.status when 'COMPLETED' then pi.completeddate end"),
           new AnalyticsTableColumn(quote("lastupdated"), TIMESTAMP, "pi.lastupdated"),
           new AnalyticsTableColumn(quote("storedby"), VARCHAR_255, "pi.storedby"),
           new AnalyticsTableColumn(
@@ -210,9 +211,9 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     Program program = partition.getMasterTable().getProgram();
 
     String fromClause =
-        "from programinstance pi "
+        "from enrollment pi "
             + "inner join program pr on pi.programid=pr.programid "
-            + "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid "
+            + "left join trackedentity tei on pi.trackedentityid=tei.trackedentityid "
             + "and tei.deleted is false "
             + "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid "
             + "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid "
@@ -227,7 +228,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             + "and pi.lastupdated <= '"
             + getLongDateString(params.getStartTime())
             + "' "
-            + "and pi.incidentdate is not null "
+            + "and pi.occurreddate is not null "
             + "and pi.deleted is false ";
 
     populateTableInternal(partition, getDimensionColumns(program), fromClause);

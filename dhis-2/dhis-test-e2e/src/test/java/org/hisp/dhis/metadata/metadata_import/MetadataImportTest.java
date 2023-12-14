@@ -28,8 +28,23 @@
 package org.hisp.dhis.metadata.metadata_import;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.oneOf;
+import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.stringContainsInOrder;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -220,7 +235,7 @@ public class MetadataImportTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body(notNullValue())
-        .body("response.name", equalTo("metadataImport"))
+        .body("response.name", startsWith("METADATA_IMPORT"))
         .body("response.jobType", equalTo("METADATA_IMPORT"));
 
     String taskId = response.extractString("response.id");
@@ -230,8 +245,9 @@ public class MetadataImportTest extends ApiTest {
     systemActions
         .waitUntilTaskCompleted("METADATA_IMPORT", taskId)
         .validate()
-        .body("message", hasItem(containsString("Import:Start")))
-        .body("message", hasItem(containsString("Import:Done")));
+        .body("message", hasItem(containsString("Metadata import started")))
+        .body("message", hasItem(containsString("Import complete with status")));
+    ;
 
     // validate task summaries were created
     systemActions
@@ -275,7 +291,7 @@ public class MetadataImportTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body("response", notNullValue())
-        .body("response.name", equalTo("metadataImport"))
+        .body("response.name", startsWith("METADATA_IMPORT"))
         .body("response.jobType", equalTo("METADATA_IMPORT"));
 
     String taskId = response.extractString("response.id");
@@ -286,8 +302,8 @@ public class MetadataImportTest extends ApiTest {
         .waitUntilTaskCompleted("METADATA_IMPORT", taskId)
         .validate()
         .body("message", notNullValue())
-        .body("message", hasItem(containsString("Import:Start")))
-        .body("message", hasItem(containsString("Import:Done")));
+        .body("message", hasItem(containsString("Metadata import started")))
+        .body("message", hasItem(containsString("Import complete with status")));
 
     // validate task summaries were created
     systemActions

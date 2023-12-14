@@ -76,7 +76,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-  private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
+  private static final String TE_TYPE_ID = "TEI_TYPE_ID";
 
   private static final String ENROLLMENT_ID = "ENROLLMENT_ID";
 
@@ -757,8 +757,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
   }
 
   private Program programWithRegistration(String uid, OrganisationUnit orgUnit) {
-    return program(
-        uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, trackedEntityType(TEI_TYPE_ID));
+    return program(uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, trackedEntityType(TE_TYPE_ID));
   }
 
   private Program program(
@@ -766,12 +765,12 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
       ProgramType type,
       char uniqueCharacter,
       OrganisationUnit orgUnit,
-      TrackedEntityType teiType) {
+      TrackedEntityType teType) {
     Program program = createProgram(uniqueCharacter);
     program.setUid(uid);
     program.setProgramType(type);
     program.setOrganisationUnits(Sets.newHashSet(orgUnit));
-    program.setTrackedEntityType(teiType);
+    program.setTrackedEntityType(teType);
     return program;
   }
 

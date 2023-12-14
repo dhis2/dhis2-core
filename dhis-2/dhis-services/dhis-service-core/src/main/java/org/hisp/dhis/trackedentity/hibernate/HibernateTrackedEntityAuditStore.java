@@ -33,11 +33,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -59,11 +59,11 @@ public class HibernateTrackedEntityAuditStore extends HibernateGenericStore<Trac
   private final StatementBuilder statementBuilder;
 
   public HibernateTrackedEntityAuditStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       StatementBuilder statementBuilder) {
-    super(sessionFactory, jdbcTemplate, publisher, TrackedEntityAudit.class, false);
+    super(entityManager, jdbcTemplate, publisher, TrackedEntityAudit.class, false);
     this.statementBuilder = statementBuilder;
   }
 
@@ -79,9 +79,9 @@ public class HibernateTrackedEntityAuditStore extends HibernateGenericStore<Trac
   @Override
   public void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudit) {
     final String sql =
-        "INSERT INTO trackedentityinstanceaudit ("
-            + "trackedentityinstanceauditid, "
-            + "trackedentityinstance, "
+        "INSERT INTO trackedentityaudit ("
+            + "trackedentityauditid, "
+            + "trackedentity, "
             + "created, "
             + "accessedby, "
             + "audittype, "

@@ -29,7 +29,6 @@ name: program_indicator_groups_scarce
 description: Program indicator groups should have at least two members.
 section: Group size
 section_order: 3
-summary_uid: iOZtfxbXjoo
 summary_sql: >-
   WITH group_size as (
   SELECT uid,name, COALESCE(x.count,0) as count from
@@ -43,7 +42,6 @@ summary_sql: >-
   SELECT COUNT(*) as value,
    100*COUNT(*) / NULLIF( ( select COUNT(*) from programindicatorgroup), 0) as percent
   from group_size where count < 2;
-details_uid: rmPoiiAjHNV
 details_sql: >-
   WITH group_size as (
   SELECT uid,name, COALESCE(x.count,0) as count from

@@ -36,9 +36,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -71,11 +72,11 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
   private final CurrentUserService currentUserService;
 
   public HibernateValidationResultStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService) {
-    super(sessionFactory, jdbcTemplate, publisher, ValidationResult.class, true);
+    super(entityManager, jdbcTemplate, publisher, ValidationResult.class, true);
     checkNotNull(currentUserService);
     this.currentUserService = currentUserService;
   }
@@ -211,7 +212,7 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
   }
 
   @Override
-  public void save(ValidationResult validationResult) {
+  public void save(@Nonnull ValidationResult validationResult) {
     validationResult.setCreated(new Date());
     super.save(validationResult);
   }

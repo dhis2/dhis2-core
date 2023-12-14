@@ -30,17 +30,15 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Objects;
-import org.hibernate.Session;
+import javax.persistence.EntityManager;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
-import org.hisp.dhis.tracker.imports.TrackerType;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
-import org.hisp.dhis.tracker.imports.converter.TrackerSideEffectConverterService;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
@@ -54,36 +52,28 @@ public class EnrollmentPersister
   private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
       enrollmentConverter;
 
-  private final TrackedEntityCommentService trackedEntityCommentService;
-
-  private final TrackerSideEffectConverterService sideEffectConverterService;
-
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   public EnrollmentPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
           enrollmentConverter,
-      TrackedEntityCommentService trackedEntityCommentService,
-      TrackerSideEffectConverterService sideEffectConverterService,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
       TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService) {
     super(reservedValueService, trackedEntityAttributeValueAuditService);
 
     this.enrollmentConverter = enrollmentConverter;
-    this.trackedEntityCommentService = trackedEntityCommentService;
-    this.sideEffectConverterService = sideEffectConverterService;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 
   @Override
   protected void updateAttributes(
-      Session session,
+      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Enrollment enrollmentToPersist) {
     handleTrackedEntityAttributeValues(
-        session,
+        entityManager,
         preheat,
         enrollment.getAttributes(),
         preheat.getTrackedEntity(enrollmentToPersist.getTrackedEntity().getUid()));
@@ -91,19 +81,20 @@ public class EnrollmentPersister
 
   @Override
   protected void updateDataValues(
-      Session session,
+      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Enrollment enrollmentToPersist) {
-    // DO NOTHING - TEI HAVE NO DATA VALUES
+    // DO NOTHING - TE HAVE NO DATA VALUES
   }
 
   @Override
-  protected void persistComments(TrackerPreheat preheat, Enrollment enrollment) {
-    if (!enrollment.getComments().isEmpty()) {
-      for (TrackedEntityComment comment : enrollment.getComments()) {
-        if (Objects.isNull(preheat.getNote(comment.getUid()))) {
-          this.trackedEntityCommentService.addTrackedEntityComment(comment);
+  protected void persistNotes(
+      EntityManager entityManager, TrackerPreheat preheat, Enrollment enrollment) {
+    if (!enrollment.getNotes().isEmpty()) {
+      for (Note note : enrollment.getNotes()) {
+        if (Objects.isNull(preheat.getNote(note.getUid()))) {
+          entityManager.persist(note);
         }
       }
     }
@@ -128,8 +119,7 @@ public class EnrollmentPersister
       TrackerBundle bundle, Enrollment enrollment) {
     return TrackerSideEffectDataBundle.builder()
         .klass(Enrollment.class)
-        .enrollmentRuleEffects(
-            sideEffectConverterService.toTrackerSideEffects(bundle.getEnrollmentRuleEffects()))
+        .enrollmentRuleEffects(bundle.getEnrollmentRuleEffects())
         .eventRuleEffects(new HashMap<>())
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())

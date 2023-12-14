@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -47,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class PeriodServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired private PeriodService periodService;
 
-  @Autowired private SessionFactory sessionFactory;
+  @Autowired private EntityManagerFactory entityManagerFactory;
 
   // -------------------------------------------------------------------------
   // Period
@@ -391,7 +392,8 @@ class PeriodServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   private void removeTestPeriod(String period) {
-    StatelessSession session = sessionFactory.openStatelessSession();
+    StatelessSession session =
+        entityManagerFactory.unwrap(SessionFactory.class).openStatelessSession();
     session.beginTransaction();
     try {
       session.delete(periodService.getPeriod(period));

@@ -27,25 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.datastore.DatastoreQuery.parseFields;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -53,15 +46,14 @@ import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreParams;
 import org.hisp.dhis.datastore.DatastoreQuery;
-import org.hisp.dhis.datastore.DatastoreQuery.Field;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.JsonWriter;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -84,12 +76,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/dataStore")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
-public class DatastoreController {
+public class DatastoreController extends AbstractDatastoreController {
+
   private final DatastoreService service;
-
   private final AclService aclService;
-
-  private final ObjectMapper jsonMapper;
 
   /**
    * Returns a JSON array of strings representing the different namespaces used. If no namespaces
@@ -107,7 +97,6 @@ public class DatastoreController {
    * DatastoreParams, HttpServletResponse)} therefore a collision free alternative was added {@code
    * /{namespace}/keys}.
    */
-  @OpenApi.Response(status = Status.NOT_FOUND, value = WebMessage.class)
   @GetMapping(
       value = {"/{namespace}/keys"},
       produces = APPLICATION_JSON_VALUE)
@@ -138,23 +127,7 @@ public class DatastoreController {
     return keys;
   }
 
-  @Value
-  @OpenApi.Shared(value = false)
-  private static class Pager {
-    int page;
-
-    int pageSize;
-  }
-
-  @Value
-  private static class EntriesResponse {
-    Pager pager;
-
-    List<Map<String, JsonNode>> entries;
-  }
-
   @OpenApi.Response(status = Status.OK, value = EntriesResponse.class)
-  @OpenApi.Response(status = Status.BAD_REQUEST, value = WebMessage.class)
   @GetMapping(value = "/{namespace}", params = "fields", produces = APPLICATION_JSON_VALUE)
   public void getEntries(
       @PathVariable String namespace,
@@ -162,7 +135,7 @@ public class DatastoreController {
       @RequestParam(required = false, defaultValue = "false") boolean includeAll,
       DatastoreParams params,
       HttpServletResponse response)
-      throws IOException {
+      throws IOException, ConflictException {
     DatastoreQuery query =
         service.plan(
             DatastoreQuery.builder()
@@ -172,56 +145,10 @@ public class DatastoreController {
                 .build()
                 .with(params));
 
-    response.setContentType(APPLICATION_JSON_VALUE);
-    setNoStore(response);
-
-    try (PrintWriter writer = response.getWriter();
-        JsonWriter out = new JsonWriter(writer)) {
-      try {
-        List<String> members = query.getFields().stream().map(Field::getAlias).collect(toList());
-        service.getFields(
-            query,
-            entries -> {
-              if (!query.isHeadless()) {
-                writer.write("{\"pager\":{");
-                writer.write("\"page\":" + query.getPage() + ",");
-                writer.write("\"pageSize\":" + query.getPageSize());
-                writer.write("},\"entries\":");
-              }
-              out.writeEntries(members, entries);
-              return true;
-            });
-        if (!query.isHeadless()) {
-          writer.write("}");
-        }
-      } catch (RuntimeException ex) {
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        Throwable cause = ex.getCause();
-        String msg =
-            "Unknown error when running the query: "
-                + (cause != null && ex.getMessage().contains("could not extract ResultSet")
-                    ? cause.getMessage()
-                    : ex.getMessage());
-        if (cause != null
-            && cause.getMessage().contains("cannot cast type ")
-            && cause.getMessage().contains(" to double precision")) {
-          String sortProperty = query.getOrder().getPath();
-          msg =
-              "Cannot use numeric sort order on property `"
-                  + sortProperty
-                  + "` as the property contains non-numeric values for matching entries. Use "
-                  + query.getOrder().getDirection().name().substring(1)
-                  + " instead or apply a filter that only matches entries with numeric values for "
-                  + sortProperty
-                  + ".";
-        }
-        jsonMapper.writeValue(writer, WebMessageUtils.badRequest(msg));
-      }
-    }
+    writeEntries(response, query, (q, entries) -> service.getEntries(q, entries::test));
   }
 
   /** Deletes all keys with the given namespace. */
-  @OpenApi.Response(status = Status.NOT_FOUND, value = WebMessage.class)
   @ResponseBody
   @DeleteMapping("/{namespace}")
   public WebMessage deleteNamespace(@PathVariable String namespace) throws NotFoundException {
@@ -237,17 +164,15 @@ public class DatastoreController {
   /**
    * Retrieves the value of the KeyJsonValue represented by the given key from the given namespace.
    */
-  @OpenApi.Response(status = Status.NOT_FOUND, value = WebMessage.class)
   @GetMapping(value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody String getKeyJsonValue(
-      @PathVariable String namespace, @PathVariable String key) throws NotFoundException {
+  public @ResponseBody String getEntry(@PathVariable String namespace, @PathVariable String key)
+      throws NotFoundException {
     return getExistingEntry(namespace, key).getValue();
   }
 
   /** Retrieves the KeyJsonValue represented by the given key from the given namespace. */
-  @OpenApi.Response(status = Status.NOT_FOUND, value = WebMessage.class)
   @GetMapping(value = "/{namespace}/{key}/metaData", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody DatastoreEntry getKeyJsonValueMetaData(
+  public @ResponseBody DatastoreEntry getEntryMetaData(
       @PathVariable String namespace, @PathVariable String key, @CurrentUser User currentUser)
       throws NotFoundException, InvocationTargetException, IllegalAccessException {
     DatastoreEntry entry = getExistingEntry(namespace, key);
@@ -268,12 +193,12 @@ public class DatastoreController {
       produces = APPLICATION_JSON_VALUE,
       consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
-  public WebMessage addKeyJsonValue(
+  public WebMessage addEntry(
       @PathVariable String namespace,
       @PathVariable String key,
       @RequestBody String value,
-      @RequestParam(defaultValue = "false") boolean encrypt,
-      HttpServletRequest request) {
+      @RequestParam(defaultValue = "false") boolean encrypt)
+      throws ConflictException, BadRequestException {
     DatastoreEntry entry = new DatastoreEntry();
     entry.setKey(key);
     entry.setNamespace(namespace);
@@ -285,30 +210,43 @@ public class DatastoreController {
     return created(String.format("Key created: '%s'", key));
   }
 
-  /** Update a key in the given namespace. */
-  @OpenApi.Response(status = Status.NOT_FOUND, value = WebMessage.class)
+  /**
+   * Create or update a key in the given namespace <br>
+   * <br>
+   *
+   * <p>If the key or namespace do not exist then a create will be attempted
+   *
+   * <p>If the key and namespace exist then an update will be attempted
+   */
+  @OpenApi.Response(
+      status = {Status.CREATED, Status.OK},
+      value = WebMessage.class)
   @ResponseBody
   @PutMapping(
       value = "/{namespace}/{key}",
       produces = APPLICATION_JSON_VALUE,
       consumes = APPLICATION_JSON_VALUE)
-  public WebMessage updateKeyJsonValue(
-      @PathVariable String namespace, @PathVariable String key, @RequestBody String value)
-      throws Exception {
-    DatastoreEntry entry = getExistingEntry(namespace, key);
-    entry.setValue(value);
+  public WebMessage putEntry(
+      @PathVariable String namespace,
+      @PathVariable String key,
+      @RequestBody(required = false) String value,
+      @RequestParam(required = false) String path,
+      @RequestParam(required = false) Integer roll,
+      @RequestParam(defaultValue = "false") boolean encrypt)
+      throws BadRequestException, ConflictException {
+    DatastoreEntry dataEntry = service.getEntry(namespace, key);
 
-    service.updateEntry(entry);
+    if (dataEntry == null) return addEntry(namespace, key, value, encrypt);
 
+    service.updateEntry(namespace, key, value, path, roll);
     return ok(String.format("Key updated: '%s'", key));
   }
 
   /** Delete a key from the given namespace. */
-  @OpenApi.Response(status = Status.NOT_FOUND, value = WebMessage.class)
   @ResponseBody
   @DeleteMapping(value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE)
-  public WebMessage deleteKeyJsonValue(@PathVariable String namespace, @PathVariable String key)
-      throws Exception {
+  public WebMessage deleteEntry(@PathVariable String namespace, @PathVariable String key)
+      throws NotFoundException {
     DatastoreEntry entry = getExistingEntry(namespace, key);
     service.deleteEntry(entry);
 

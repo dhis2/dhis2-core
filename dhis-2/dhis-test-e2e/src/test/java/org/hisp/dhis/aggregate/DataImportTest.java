@@ -28,14 +28,21 @@
 package org.hisp.dhis.aggregate;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
-import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.SystemActions;
@@ -46,7 +53,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -118,9 +125,9 @@ public class DataImportTest extends ApiTest {
     systemActions
         .waitUntilTaskCompleted("DATAVALUE_IMPORT", taskId)
         .validate()
-        .body(
-            "message",
-            Matchers.containsInAnyOrder("Process started", "Importing data values", "Import done"));
+        .body("message", hasItem(containsString("Process started")))
+        .body("message", hasItem(containsString("Importing data values")))
+        .body("message", hasItem(containsString("Import done")));
 
     // validate task summaries were created
     ApiResponse taskSummariesResponse =
@@ -200,7 +207,7 @@ public class DataImportTest extends ApiTest {
     }
   }
 
-  @AfterAll
+  @AfterEach
   public void cleanUp() {
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     queryParamsBuilder.addAll("importReportMode=FULL", "importStrategy=DELETE");

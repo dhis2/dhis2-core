@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -91,6 +92,9 @@ public class DefaultAttributeValidator implements AttributeValidator {
    */
   @Override
   public void validate(ValueType valueType, String value, Consumer<ErrorReport> addError) {
+    if (StringUtils.isEmpty(value)) {
+      return;
+    }
     mapValidators.getOrDefault(valueType, str -> List.of()).apply(value).forEach(addError::accept);
 
     mapEntityCheck

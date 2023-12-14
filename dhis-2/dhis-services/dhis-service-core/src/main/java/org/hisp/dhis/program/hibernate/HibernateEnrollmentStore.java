@@ -30,8 +30,8 @@ package org.hisp.dhis.program.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import com.google.common.collect.Lists;
@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -53,7 +54,6 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -82,7 +82,7 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.program.EnrollmentStore")
 public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment>
     implements EnrollmentStore {
-  private static final String PI_HQL_BY_UIDS = "from Enrollment as pi where pi.uid in (:uids)";
+  private static final String PI_HQL_BY_UIDS = "from Enrollment as en where en.uid in (:uids)";
 
   private static final String STATUS = "status";
 
@@ -92,13 +92,13 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
           NotificationTrigger.getAllScheduledTriggers());
 
   public HibernateEnrollmentStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         Enrollment.class,
@@ -119,7 +119,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
   private String buildCountEnrollmentHql(EnrollmentQueryParams params) {
     return buildEnrollmentHql(params)
         .getQuery()
-        .replaceFirst("from Enrollment pi", "select count(distinct uid) from Enrollment pi");
+        .replaceFirst("from Enrollment en", "select count(distinct uid) from Enrollment en");
   }
 
   @Override
@@ -145,31 +145,28 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
   }
 
   private QueryWithOrderBy buildEnrollmentHql(EnrollmentQueryParams params) {
-    String hql = "from Enrollment pi";
+    String hql = "from Enrollment en";
     SqlHelper hlp = new SqlHelper(true);
 
     if (params.hasLastUpdatedDuration()) {
       hql +=
           hlp.whereAnd()
-              + "pi.lastUpdated >= '"
+              + "en.lastUpdated >= '"
               + getLongGmtDateString(nowMinusDuration(params.getLastUpdatedDuration()))
               + "'";
     } else if (params.hasLastUpdated()) {
       hql +=
-          hlp.whereAnd()
-              + "pi.lastUpdated >= '"
-              + getMediumDateString(params.getLastUpdated())
-              + "'";
+          hlp.whereAnd() + "en.lastUpdated >= '" + getLongDateString(params.getLastUpdated()) + "'";
     }
 
     if (params.hasTrackedEntity()) {
-      hql += hlp.whereAnd() + "pi.trackedEntity.uid = '" + params.getTrackedEntity().getUid() + "'";
+      hql += hlp.whereAnd() + "en.trackedEntity.uid = '" + params.getTrackedEntity().getUid() + "'";
     }
 
     if (params.hasTrackedEntityType()) {
       hql +=
           hlp.whereAnd()
-              + "pi.trackedEntity.trackedEntityType.uid = '"
+              + "en.trackedEntity.trackedEntityType.uid = '"
               + params.getTrackedEntityType().getUid()
               + "'";
     }
@@ -181,7 +178,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
 
         for (OrganisationUnit organisationUnit : params.getOrganisationUnits()) {
           ouClause +=
-              orHlp.or() + "pi.organisationUnit.path LIKE '" + organisationUnit.getPath() + "%'";
+              orHlp.or() + "en.organisationUnit.path LIKE '" + organisationUnit.getPath() + "%'";
         }
 
         ouClause += ")";
@@ -190,42 +187,42 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
       } else {
         hql +=
             hlp.whereAnd()
-                + "pi.organisationUnit.uid in ("
+                + "en.organisationUnit.uid in ("
                 + getQuotedCommaDelimitedString(getUids(params.getOrganisationUnits()))
                 + ")";
       }
     }
 
     if (params.hasProgram()) {
-      hql += hlp.whereAnd() + "pi.program.uid = '" + params.getProgram().getUid() + "'";
+      hql += hlp.whereAnd() + "en.program.uid = '" + params.getProgram().getUid() + "'";
     }
 
     if (params.hasProgramStatus()) {
-      hql += hlp.whereAnd() + "pi." + STATUS + " = '" + params.getProgramStatus() + "'";
+      hql += hlp.whereAnd() + "en." + STATUS + " = '" + params.getProgramStatus() + "'";
     }
 
     if (params.hasFollowUp()) {
-      hql += hlp.whereAnd() + "pi.followup = " + params.getFollowUp();
+      hql += hlp.whereAnd() + "en.followup = " + params.getFollowUp();
     }
 
     if (params.hasProgramStartDate()) {
       hql +=
           hlp.whereAnd()
-              + "pi.enrollmentDate >= '"
-              + getMediumDateString(params.getProgramStartDate())
+              + "en.enrollmentDate >= '"
+              + getLongDateString(params.getProgramStartDate())
               + "'";
     }
 
     if (params.hasProgramEndDate()) {
       hql +=
           hlp.whereAnd()
-              + "pi.enrollmentDate <= '"
-              + getMediumDateString(params.getProgramEndDate())
+              + "en.enrollmentDate <= '"
+              + getLongDateString(params.getProgramEndDate())
               + "'";
     }
 
     if (!params.isIncludeDeleted()) {
-      hql += hlp.whereAnd() + " pi.deleted is false ";
+      hql += hlp.whereAnd() + " en.deleted is false ";
     }
 
     QueryWithOrderBy query = QueryWithOrderBy.builder().query(hql).build();
@@ -304,7 +301,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
     Query<?> query =
         getSession()
             .createNativeQuery(
-                "select exists(select 1 from programinstance where uid=:uid and deleted is false)");
+                "select exists(select 1 from enrollment where uid=:uid and deleted is false)");
     query.setParameter("uid", uid);
 
     return ((Boolean) query.getSingleResult()).booleanValue();
@@ -317,8 +314,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
     }
 
     Query<?> query =
-        getSession()
-            .createNativeQuery("select exists(select 1 from programinstance where uid=:uid)");
+        getSession().createNativeQuery("select exists(select 1 from enrollment where uid=:uid)");
     query.setParameter("uid", uid);
 
     return ((Boolean) query.getSingleResult()).booleanValue();
@@ -326,7 +322,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
 
   @Override
   public List<String> getUidsIncludingDeleted(List<String> uids) {
-    String hql = "select pi.uid " + PI_HQL_BY_UIDS;
+    String hql = "select en.uid " + PI_HQL_BY_UIDS;
     List<String> resultUids = new ArrayList<>();
     List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
 
@@ -375,14 +371,14 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
     Date targetDate = DateUtils.addDays(notificationDate, template.getRelativeScheduledDays() * -1);
 
     String hql =
-        "select distinct pi from Enrollment as pi "
-            + "inner join pi.program as p "
+        "select distinct en from Enrollment as en "
+            + "inner join en.program as p "
             + "where :notificationTemplate in elements(p.notificationTemplates) "
-            + "and pi."
+            + "and en."
             + dateProperty
             + " is not null "
-            + "and pi.status = :activeEnrollmentStatus "
-            + "and cast(:targetDate as date) = pi."
+            + "and en.status = :activeEnrollmentStatus "
+            + "and cast(:targetDate as date) = en."
             + dateProperty;
 
     return getQuery(hql)
@@ -403,7 +399,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
 
   @Override
   public List<Enrollment> getByType(ProgramType type) {
-    String hql = "select pi from Enrollment pi join fetch pi.program p where p.programType = :type";
+    String hql = "select en from Enrollment pi join fetch pi.program p where p.programType = :type";
 
     Query<Enrollment> query = getQuery(hql);
     query.setParameter("type", type);
@@ -419,14 +415,14 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
 
   @Override
   public List<Enrollment> getByProgramAndTrackedEntity(
-      List<Pair<Program, TrackedEntity>> programTeiPair, ProgramStatus programStatus) {
-    checkNotNull(programTeiPair);
+      List<Pair<Program, TrackedEntity>> programTePair, ProgramStatus programStatus) {
+    checkNotNull(programTePair);
 
-    if (programTeiPair.isEmpty()) {
+    if (programTePair.isEmpty()) {
       return new ArrayList<>();
     }
 
-    CriteriaBuilder cb = sessionFactory.getCurrentSession().getCriteriaBuilder();
+    CriteriaBuilder cb = entityManager.getCriteriaBuilder();
     CriteriaQuery<Enrollment> cr = cb.createQuery(Enrollment.class);
     Root<Enrollment> enrollment = cr.from(Enrollment.class);
 
@@ -436,7 +432,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
     // TODO we may have potentially thousands of events here, so, it's
     // better to
     // partition the list
-    for (Pair<Program, TrackedEntity> pair : programTeiPair) {
+    for (Pair<Program, TrackedEntity> pair : programTePair) {
       predicates.add(
           cb.and(
               cb.equal(enrollment.get("program"), pair.getLeft()),
@@ -446,14 +442,14 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
 
     cr.select(enrollment).where(cb.or(predicates.toArray(new Predicate[] {})));
 
-    return sessionFactory.getCurrentSession().createQuery(cr).getResultList();
+    return entityManager.createQuery(cr).getResultList();
   }
 
   private String toDateProperty(NotificationTrigger trigger) {
     if (trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE) {
       return "enrollmentDate";
     } else if (trigger == NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE) {
-      return "incidentDate";
+      return "occurredDate";
     }
 
     return null;

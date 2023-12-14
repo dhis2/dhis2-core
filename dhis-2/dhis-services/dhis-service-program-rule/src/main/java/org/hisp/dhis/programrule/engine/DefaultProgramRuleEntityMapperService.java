@@ -33,7 +33,11 @@ import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -44,11 +48,45 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.DataItem;
 import org.hisp.dhis.rules.ItemValueType;
 import org.hisp.dhis.rules.Option;
-import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.rules.models.AttributeType;
+import org.hisp.dhis.rules.models.Rule;
+import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleActionAssign;
+import org.hisp.dhis.rules.models.RuleActionCreateEvent;
+import org.hisp.dhis.rules.models.RuleActionDisplayKeyValuePair;
+import org.hisp.dhis.rules.models.RuleActionDisplayText;
+import org.hisp.dhis.rules.models.RuleActionErrorOnCompletion;
+import org.hisp.dhis.rules.models.RuleActionHideField;
+import org.hisp.dhis.rules.models.RuleActionHideProgramStage;
+import org.hisp.dhis.rules.models.RuleActionHideSection;
+import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
+import org.hisp.dhis.rules.models.RuleActionSendMessage;
+import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
+import org.hisp.dhis.rules.models.RuleActionShowError;
+import org.hisp.dhis.rules.models.RuleActionShowWarning;
+import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
+import org.hisp.dhis.rules.models.RuleAttributeValue;
+import org.hisp.dhis.rules.models.RuleDataValue;
+import org.hisp.dhis.rules.models.RuleEnrollment;
+import org.hisp.dhis.rules.models.RuleEvent;
+import org.hisp.dhis.rules.models.RuleValueType;
+import org.hisp.dhis.rules.models.RuleVariable;
+import org.hisp.dhis.rules.models.RuleVariableAttribute;
+import org.hisp.dhis.rules.models.RuleVariableCalculatedValue;
+import org.hisp.dhis.rules.models.RuleVariableCurrentEvent;
+import org.hisp.dhis.rules.models.RuleVariableNewestEvent;
+import org.hisp.dhis.rules.models.RuleVariableNewestStageEvent;
+import org.hisp.dhis.rules.models.RuleVariablePreviousEvent;
 import org.hisp.dhis.rules.utils.RuleEngineUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -406,7 +444,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
     return RuleEnrollment.create(
         enrollment.getUid(),
-        enrollment.getIncidentDate(),
+        enrollment.getOccurredDate(),
         enrollment.getEnrollmentDate(),
         RuleEnrollment.Status.valueOf(enrollment.getStatus().toString()),
         orgUnit,
@@ -438,8 +476,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         eventToEvaluate.getUid(),
         eventToEvaluate.getProgramStage().getUid(),
         RuleEvent.Status.valueOf(eventToEvaluate.getStatus().toString()),
-        ObjectUtils.defaultIfNull(eventToEvaluate.getExecutionDate(), eventToEvaluate.getDueDate()),
-        eventToEvaluate.getDueDate(),
+        ObjectUtils.defaultIfNull(
+            eventToEvaluate.getOccurredDate(), eventToEvaluate.getScheduledDate()),
+        eventToEvaluate.getScheduledDate(),
         orgUnit,
         orgUnitCode,
         eventToEvaluate.getEventDataValues().stream()
@@ -449,7 +488,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 dv ->
                     RuleDataValue.create(
                         ObjectUtils.defaultIfNull(
-                            eventToEvaluate.getExecutionDate(), eventToEvaluate.getDueDate()),
+                            eventToEvaluate.getOccurredDate(), eventToEvaluate.getScheduledDate()),
                         eventToEvaluate.getProgramStage().getUid(),
                         dv.getDataElement(),
                         dv.getValue()))

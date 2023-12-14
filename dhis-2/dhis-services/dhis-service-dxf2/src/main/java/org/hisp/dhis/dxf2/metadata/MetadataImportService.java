@@ -29,20 +29,33 @@ package org.hisp.dhis.dxf2.metadata;
 
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface MetadataImportService {
   /**
+   * @see #importMetadata(MetadataImportParams, MetadataObjects, JobProgress)
+   */
+  ImportReport importMetadata(
+      @Nonnull MetadataImportParams params, @Nonnull MetadataObjects objects);
+
+  /**
    * Import object using provided params. Takes the objects through all phases of the importer from
    * preheating to validation, and then finished with a commit (unless its validate only)
    *
    * @param params Parameters for import, including objects
+   * @param objects the objects to import
+   * @param progress to track import progress
    * @return Report giving status of import (and any errors)
    */
-  ImportReport importMetadata(MetadataImportParams params);
+  ImportReport importMetadata(
+      @Nonnull MetadataImportParams params,
+      @Nonnull MetadataObjects objects,
+      @Nonnull JobProgress progress);
 
   /**
    * Parses, and creates a MetadataImportParams instance based on given map of parameters.

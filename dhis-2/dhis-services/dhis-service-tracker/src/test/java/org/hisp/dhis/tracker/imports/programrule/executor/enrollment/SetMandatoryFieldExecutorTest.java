@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.imports.programrule.executor.enrollment;
 
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.*;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1306;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -70,7 +70,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
 
   private static final String ATTRIBUTE_CODE = "AttributeCode";
 
-  private static final String TEI_ID = "TeiId";
+  private static final String TE_ID = "TeiId";
 
   private static final String ATTRIBUTE_VALUE = "23.0";
 
@@ -163,7 +163,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   private Enrollment getEnrollmentWithMandatoryAttributeSet(TrackerIdSchemeParams idSchemes) {
     return Enrollment.builder()
         .enrollment(ACTIVE_ENROLLMENT_ID)
-        .trackedEntity(TEI_ID)
+        .trackedEntity(TE_ID)
         .status(EnrollmentStatus.ACTIVE)
         .attributes(getAttributes(idSchemes))
         .build();
@@ -172,7 +172,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   private Enrollment getEnrollmentWithMandatoryAttributeSet() {
     return Enrollment.builder()
         .enrollment(ACTIVE_ENROLLMENT_ID)
-        .trackedEntity(TEI_ID)
+        .trackedEntity(TE_ID)
         .status(EnrollmentStatus.ACTIVE)
         .attributes(getAttributes())
         .build();
@@ -181,7 +181,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   private Enrollment getEnrollmentWithMandatoryAttributeNOTSet() {
     return Enrollment.builder()
         .enrollment(COMPLETED_ENROLLMENT_ID)
-        .trackedEntity(TEI_ID)
+        .trackedEntity(TE_ID)
         .status(EnrollmentStatus.COMPLETED)
         .build();
   }

@@ -29,13 +29,11 @@
   description: Aggregate data elements not in any data element groups.
   section: Data elements (aggregate)
   section_order: 4
-  summary_uid: f4YhSfEAbHN
   summary_sql: >-
    SELECT COUNT(*) as value,
     100*COUNT(*)/ NULLIF( (SELECT COUNT(*) from dataelement where domaintype = 'AGGREGATE'), 0) as percent
    from dataelement where domaintype = 'AGGREGATE'
    and dataelementid not in (select dataelementid from dataelementgroupmembers);
-  details_uid: bOxvtqRYGXh
   details_sql: >-
     select uid,name from dataelement
     where domaintype = 'AGGREGATE'

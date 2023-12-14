@@ -27,18 +27,18 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
+import java.util.List;
 import lombok.Value;
-import org.hisp.dhis.tracker.imports.TrackerType;
+import org.hisp.dhis.tracker.TrackerType;
 
 @Value
 public class Error implements Validation {
+
   String message;
-
   ValidationCode code;
-
   TrackerType type;
-
   String uid;
+  List<Object> args;
 
   public ValidationCode getErrorCode() {
     return code;
@@ -66,5 +66,10 @@ public class Error implements Validation {
   @Override
   public String getUid() {
     return uid;
+  }
+
+  @Override
+  public List<String> getArgs() {
+    return args.stream().map(obj -> obj == null ? null : obj.toString()).toList();
   }
 }

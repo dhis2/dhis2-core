@@ -42,14 +42,14 @@ public class vDueDate extends ProgramDateVariable {
     ProgramExpressionParams params = visitor.getProgParams();
 
     if (AnalyticsType.EVENT == params.getProgramIndicator().getAnalyticsType()) {
-      return "duedate";
+      return "scheduleddate";
     }
 
     return visitor
         .getStatementBuilder()
         .getProgramIndicatorEventColumnSql(
             null,
-            "duedate",
+            "scheduleddate",
             params.getReportingStartDate(),
             params.getReportingEndDate(),
             params.getProgramIndicator());

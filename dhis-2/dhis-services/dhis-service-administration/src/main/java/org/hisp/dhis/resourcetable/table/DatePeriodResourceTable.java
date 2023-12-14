@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.period.Cal;
@@ -49,8 +49,14 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 public class DatePeriodResourceTable extends ResourceTable<Integer> {
   private final String tableType;
 
-  public DatePeriodResourceTable(List<Integer> objects, String tableType) {
-    super(objects);
+  /**
+   * Constructor method.
+   *
+   * @param years the list of years that periods will be generated for.
+   * @param tableType the table type.
+   */
+  public DatePeriodResourceTable(List<Integer> years, String tableType) {
+    super(years);
     this.tableType = tableType;
   }
 
@@ -97,15 +103,14 @@ public class DatePeriodResourceTable extends ResourceTable<Integer> {
     List<Period> dailyPeriods = new DailyPeriodType().generatePeriods(startDate, endDate);
 
     List<Date> days =
-        new UniqueArrayList<>(
-            dailyPeriods.stream().map(Period::getStartDate).collect(Collectors.toList()));
+        new UniqueArrayList<>(dailyPeriods.stream().map(Period::getStartDate).collect(toList()));
 
     Calendar calendar = PeriodType.getCalendar();
 
     for (Date day : days) {
       List<Object> values = new ArrayList<>();
 
-      final int year = PeriodType.getCalendar().fromIso(day).getYear();
+      int year = PeriodType.getCalendar().fromIso(day).getYear();
 
       values.add(day);
       values.add(year);

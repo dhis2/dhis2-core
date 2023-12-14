@@ -27,49 +27,41 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 @Getter
 @Builder(toBuilder = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class RelationshipOperationParams {
+  private TrackerType type;
 
-  public static final int DEFAULT_PAGE = 1;
+  private String identifier;
 
-  public static final int DEFAULT_PAGE_SIZE = 50;
+  private List<Order> order;
 
-  private Integer page;
+  public static class RelationshipOperationParamsBuilder {
 
-  private Integer pageSize;
+    private final List<Order> order = new ArrayList<>();
 
-  private boolean totalPages;
+    // Do not remove this unused method. This hides the order field from the builder which Lombok
+    // does not support. The repeated order field and private order method prevent access to order
+    // via the builder.
+    // Order should be added via the orderBy builder methods.
+    private RelationshipOperationParamsBuilder order(List<Order> order) {
+      return this;
+    }
 
-  private boolean skipPaging;
-
-  private String trackedEntity;
-
-  private String enrollment;
-
-  private String event;
-
-  public boolean isPaging() {
-    return page != null || pageSize != null;
-  }
-
-  public int getPageWithDefault() {
-    return page != null && page > 0 ? page : DEFAULT_PAGE;
-  }
-
-  public int getPageSizeWithDefault() {
-    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-  }
-
-  public void setDefaultPaging() {
-    this.page = DEFAULT_PAGE;
-    this.pageSize = DEFAULT_PAGE_SIZE;
-    this.skipPaging = false;
+    public RelationshipOperationParamsBuilder orderBy(String field, SortDirection direction) {
+      this.order.add(new Order(field, direction));
+      return this;
+    }
   }
 }

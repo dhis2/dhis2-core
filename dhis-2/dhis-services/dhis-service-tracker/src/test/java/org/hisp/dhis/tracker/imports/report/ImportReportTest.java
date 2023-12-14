@@ -35,7 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.tracker.imports.TrackerType;
+import org.hisp.dhis.tracker.TrackerType;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -47,7 +47,7 @@ class ImportReportTest {
 
   @Test
   void testImportCalculatesIgnoredValues() {
-    // Create Bundle report for tei and enrollment
+    // Create Bundle report for te and enrollment
     final Map<TrackerType, TrackerTypeReport> trackerTypeReportMap = new HashMap<>();
     trackerTypeReportMap.put(
         TrackerType.TRACKED_ENTITY, createTypeReport(TrackerType.TRACKED_ENTITY, 5, 3, 0));
@@ -57,8 +57,6 @@ class ImportReportTest {
     // Create validation report with 3 objects
     ValidationReport validationReport = ValidationReport.emptyReport();
     validationReport.addErrors(rnd.objects(Error.class, 3).collect(Collectors.toList()));
-    // Create empty Timing Stats report
-    TimingsStats timingsStats = new TimingsStats();
     // Create payload map
     Map<TrackerType, Integer> originalPayload = new HashMap<>();
     originalPayload.put(TrackerType.TRACKED_ENTITY, 10);
@@ -66,7 +64,7 @@ class ImportReportTest {
     // Method under test
     ImportReport rep =
         ImportReport.withImportCompleted(
-            Status.OK, persistenceReport, validationReport, timingsStats, originalPayload);
+            Status.OK, persistenceReport, validationReport, originalPayload);
     assertThat(rep.getStats().getCreated(), is(8));
     assertThat(rep.getStats().getUpdated(), is(6));
     assertThat(rep.getStats().getIgnored(), is(3));
@@ -87,10 +85,10 @@ class ImportReportTest {
 
   private TrackerTypeReport createTypeReport(
       TrackerType type, int created, int updated, int deleted) {
-    final Stats teiStats = new Stats();
-    teiStats.setCreated(created);
-    teiStats.setUpdated(updated);
-    teiStats.setDeleted(deleted);
-    return new TrackerTypeReport(type, teiStats, new ArrayList<>(), new ArrayList<>());
+    final Stats teStats = new Stats();
+    teStats.setCreated(created);
+    teStats.setUpdated(updated);
+    teStats.setDeleted(deleted);
+    return new TrackerTypeReport(type, teStats, new ArrayList<>(), new ArrayList<>());
   }
 }

@@ -35,6 +35,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
+import static org.hisp.dhis.util.ObjectUtils.notNull;
 
 import java.util.Date;
 import java.util.List;
@@ -42,6 +43,8 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -248,6 +251,15 @@ public class AggregateDataExchangeService {
     if (isNotBlank(request.getIdScheme())) {
       options.setIdScheme(request.getIdScheme());
     }
+    if (notNull(request.getImportStrategy())) {
+      options.setImportStrategy(request.getImportStrategy());
+    }
+    if (notNull(request.getSkipAudit())) {
+      options.setSkipAudit(request.getSkipAudit());
+    }
+    if (notNull(request.getDryRun())) {
+      options.setDryRun(request.getDryRun());
+    }
 
     return options;
   }
@@ -263,10 +275,13 @@ public class AggregateDataExchangeService {
     String queryOutputIdScheme = params.getOutputIdScheme();
 
     IdScheme inputIdScheme = toIdSchemeOrDefault(request.getInputIdScheme());
+
     IdScheme outputDataElementIdScheme =
         toIdScheme(queryOutputIdScheme, request.getOutputDataElementIdScheme());
     IdScheme outputOrgUnitIdScheme =
         toIdScheme(queryOutputIdScheme, request.getOutputOrgUnitIdScheme());
+    IdScheme outputDataItemIdScheme =
+        toIdScheme(queryOutputIdScheme, request.getOutputDataItemIdScheme());
     IdScheme outputIdScheme = toIdScheme(queryOutputIdScheme, request.getOutputIdScheme());
 
     List<DimensionalObject> filters =
@@ -277,8 +292,10 @@ public class AggregateDataExchangeService {
         .addDimension(toDimensionalObject(PERIOD_DIM_ID, request.getPe(), inputIdScheme))
         .addDimension(toDimensionalObject(ORGUNIT_DIM_ID, request.getOu(), inputIdScheme))
         .addFilters(filters)
+        .withAggregationType(toAnalyticsAggregationType(request.getAggregationType()))
         .withOutputDataElementIdScheme(outputDataElementIdScheme)
         .withOutputOrgUnitIdScheme(outputOrgUnitIdScheme)
+        .withOutputDataItemIdScheme(outputDataItemIdScheme)
         .withOutputIdScheme(outputIdScheme)
         .build();
   }
@@ -310,6 +327,18 @@ public class AggregateDataExchangeService {
   }
 
   /**
+   * Returns the {@link AnalyticsAggregationType} based on the given {@link AggregationType}.
+   *
+   * @param aggregationType the {@link AggregationType}.
+   * @return the {@link AnalyticsAggregationType}.
+   */
+  AnalyticsAggregationType toAnalyticsAggregationType(AggregationType aggregationType) {
+    return aggregationType != null
+        ? AnalyticsAggregationType.fromAggregationType(aggregationType)
+        : null;
+  }
+
+  /**
    * Returns the {@link IdScheme} based on the given ID scheme strings. The first non-null value
    * will be used. Returns null if all of the given ID scheme strings are null.
    *
@@ -318,7 +347,6 @@ public class AggregateDataExchangeService {
    */
   IdScheme toIdScheme(String... idSchemes) {
     String idScheme = ObjectUtils.firstNonNull(idSchemes);
-
     return idScheme != null ? IdScheme.from(idScheme) : null;
   }
 

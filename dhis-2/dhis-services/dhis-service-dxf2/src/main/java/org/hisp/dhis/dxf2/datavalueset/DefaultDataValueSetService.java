@@ -620,14 +620,13 @@ public class DefaultDataValueSetService implements DataValueSetService {
       ImportOptions options, JobConfiguration id, Callable<DataValueSetReader> createReader) {
     options = ObjectUtils.firstNonNull(options, ImportOptions.getDefaultImportOptions());
 
-    BatchHandler<DataValue> dvBatch =
-        batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class);
-    BatchHandler<DataValueAudit> dvaBatch =
-        batchHandlerFactory.createBatchHandler(DataValueAuditBatchHandler.class);
-
     notifier.clear(id);
 
-    try (DataValueSetReader reader = createReader.call()) {
+    try (BatchHandler<DataValue> dvBatch =
+            batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class);
+        BatchHandler<DataValueAudit> dvaBatch =
+            batchHandlerFactory.createBatchHandler(DataValueAuditBatchHandler.class);
+        DataValueSetReader reader = createReader.call()) {
       ImportSummary summary = importDataValueSet(options, id, reader, dvBatch, dvaBatch);
 
       dvBatch.flush();
@@ -640,8 +639,6 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
       return summary;
     } catch (Exception ex) {
-      dvBatch.flush();
-      dvaBatch.flush();
       log.error(DebugUtils.getStackTrace(ex));
       notifier.notify(id, ERROR, "Process failed: " + ex.getMessage(), true);
       return new ImportSummary(ImportStatus.ERROR, "The import process failed: " + ex.getMessage());
@@ -941,13 +938,10 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
       importCount.incrementDeleted();
     } else {
-      importCount.incrementUpdated();
-    }
-    if (!internalValue.isDeleted()
-        && Objects.equals(existingValue.getValue(), internalValue.getValue())
-        && Objects.equals(existingValue.getComment(), internalValue.getComment())
-        && existingValue.isFollowup() == internalValue.isFollowup()) {
-      return; // avoid performing unnecessary updates
+      if (dataValueUpdateShouldBeIgnored(internalValue, existingValue)) {
+        importCount.incrementIgnored();
+        return;
+      } else importCount.incrementUpdated();
     }
     if (!context.isDryRun()) {
       context.getDataValueBatchHandler().updateObject(internalValue);
@@ -974,6 +968,14 @@ public class DefaultDataValueSetService implements DataValueSetService {
         }
       }
     }
+  }
+
+  private static boolean dataValueUpdateShouldBeIgnored(
+      DataValue internalValue, DataValue existingValue) {
+    return !internalValue.isDeleted()
+        && Objects.equals(existingValue.getValue(), internalValue.getValue())
+        && Objects.equals(existingValue.getComment(), internalValue.getComment())
+        && existingValue.isFollowup() == internalValue.isFollowup();
   }
 
   private void preheatCaches(ImportContext context) {

@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -49,8 +51,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.StatelessSession;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.query.NativeQuery;
@@ -75,7 +75,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
 
   protected static final int OBJECT_FETCH_SIZE = 2000;
 
-  protected SessionFactory sessionFactory;
+  protected EntityManager entityManager;
 
   protected JdbcTemplate jdbcTemplate;
 
@@ -86,17 +86,17 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   protected boolean cacheable;
 
   public HibernateGenericStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       Class<T> clazz,
       boolean cacheable) {
-    checkNotNull(sessionFactory);
+    checkNotNull(entityManager);
     checkNotNull(jdbcTemplate);
     checkNotNull(publisher);
     checkNotNull(clazz);
 
-    this.sessionFactory = sessionFactory;
+    this.entityManager = entityManager;
     this.jdbcTemplate = jdbcTemplate;
     this.publisher = publisher;
     this.clazz = clazz;
@@ -104,6 +104,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   }
 
   /** Could be overridden programmatically. */
+  @Nonnull
   @Override
   public Class<T> getClazz() {
     return clazz;
@@ -129,11 +130,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
    * @return the current session.
    */
   protected final Session getSession() {
-    return sessionFactory.getCurrentSession();
-  }
-
-  protected final StatelessSession getStatelessSession() {
-    return sessionFactory.openStatelessSession();
+    return entityManager.unwrap(Session.class);
   }
 
   /**
@@ -176,7 +173,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   protected void preProcessDetachedCriteria(DetachedCriteria detachedCriteria) {}
 
   public CriteriaBuilder getCriteriaBuilder() {
-    return sessionFactory.getCriteriaBuilder();
+    return entityManager.getCriteriaBuilder();
   }
 
   // ------------------------------------------------------------------------------------------
@@ -189,10 +186,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
    * @return executable TypedQuery
    */
   private TypedQuery<T> getExecutableTypedQuery(CriteriaQuery<T> criteriaQuery) {
-    return getSession()
-        .createQuery(criteriaQuery)
-        .setCacheable(cacheable)
-        .setHint(QueryHints.CACHEABLE, cacheable);
+    return entityManager.createQuery(criteriaQuery).setHint(QueryHints.CACHEABLE, cacheable);
   }
 
   /** Method for adding additional Predicates into where clause */
@@ -378,19 +372,18 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   // -------------------------------------------------------------------------
 
   @Override
-  public void save(T object) {
+  public void save(@Nonnull T object) {
     AuditLogUtil.infoWrapper(log, object, AuditLogUtil.ACTION_CREATE);
-
     getSession().save(object);
   }
 
   @Override
-  public void update(T object) {
+  public void update(@Nonnull T object) {
     getSession().update(object);
   }
 
   @Override
-  public void delete(T object) {
+  public void delete(@Nonnull T object) {
     publisher.publishEvent(new ObjectDeletionRequestedEvent(object));
 
     getSession().delete(object);
@@ -418,13 +411,15 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     return object;
   }
 
+  @Nonnull
   @Override
   public List<T> getAll() {
     return getList(getCriteriaBuilder(), new JpaQueryParameters<>());
   }
 
+  @Nonnull
   @Override
-  public List<T> getAllByAttributes(List<Attribute> attributes) {
+  public List<T> getAllByAttributes(@Nonnull List<Attribute> attributes) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<T> query = builder.createQuery(getClazz());
@@ -448,8 +443,9 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     return getSession().createQuery(query).list();
   }
 
+  @Nonnull
   @Override
-  public List<AttributeValue> getAllValuesByAttributes(List<Attribute> attributes) {
+  public List<AttributeValue> getAllValuesByAttributes(@Nonnull List<Attribute> attributes) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<String> query = builder.createQuery(String.class);
@@ -489,7 +485,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   }
 
   @Override
-  public long countAllValuesByAttributes(List<Attribute> attributes) {
+  public long countAllValuesByAttributes(@Nonnull List<Attribute> attributes) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<Long> query = builder.createQuery(Long.class);
@@ -513,8 +509,9 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     return getSession().createQuery(query).getSingleResult();
   }
 
+  @Nonnull
   @Override
-  public List<AttributeValue> getAttributeValueByAttribute(Attribute attribute) {
+  public List<AttributeValue> getAttributeValueByAttribute(@Nonnull Attribute attribute) {
     return getAllValuesByAttributes(Lists.newArrayList(attribute));
   }
 
@@ -527,8 +524,9 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
         .intValue();
   }
 
+  @Nonnull
   @Override
-  public List<T> getByAttribute(Attribute attribute) {
+  public List<T> getByAttribute(@Nonnull Attribute attribute) {
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaQuery<T> query = builder.createQuery(getClazz());
 
@@ -547,8 +545,9 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     return getSession().createQuery(query).list();
   }
 
+  @Nonnull
   @Override
-  public List<T> getByAttributeAndValue(Attribute attribute, String value) {
+  public List<T> getByAttributeAndValue(@Nonnull Attribute attribute, String value) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<T> query = builder.createQuery(getClazz());
@@ -566,9 +565,10 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     return getSession().createQuery(query).list();
   }
 
+  @Nonnull
   @Override
   public List<AttributeValue> getAttributeValueByAttributeAndValue(
-      Attribute attribute, String value) {
+      @Nonnull Attribute attribute, @Nonnull String value) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<String> query = builder.createQuery(String.class);
@@ -597,8 +597,9 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
         JsonAttributeValueBinaryType.MAPPER, result, AttributeValue.class);
   }
 
+  @Nonnull
   @Override
-  public List<T> getByAttributeValue(AttributeValue attributeValue) {
+  public List<T> getByAttributeValue(@Nonnull AttributeValue attributeValue) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<T> query = builder.createQuery(getClazz());
@@ -617,21 +618,24 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   }
 
   @Override
-  public boolean isAttributeValueUnique(T object, AttributeValue attributeValue) {
+  public boolean isAttributeValueUnique(@Nonnull T object, @Nonnull AttributeValue attributeValue) {
     List<T> objects = getByAttributeValue(attributeValue);
     return objects.isEmpty()
         || (object != null && objects.size() == 1 && object.equals(objects.get(0)));
   }
 
   @Override
-  public boolean isAttributeValueUnique(T object, Attribute attribute, String value) {
+  public boolean isAttributeValueUnique(
+      @Nonnull T object, @Nonnull Attribute attribute, @Nonnull String value) {
     List<T> objects = getByAttributeAndValue(attribute, value);
     return objects.isEmpty()
         || (object != null && objects.size() == 1 && object.equals(objects.get(0)));
   }
 
+  @Nonnull
   @Override
-  public List<T> getAllByAttributeAndValues(Attribute attribute, List<String> values) {
+  public List<T> getAllByAttributeAndValues(
+      @Nonnull Attribute attribute, @Nonnull List<String> values) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<T> query = builder.createQuery(getClazz());
@@ -651,7 +655,8 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   }
 
   @Override
-  public int updateAllAttributeValues(Attribute attribute, String newValue, boolean createMissing) {
+  public int updateAllAttributeValues(
+      @Nonnull Attribute attribute, @Nonnull String newValue, boolean createMissing) {
     String template =
         "update %s set attributevalues = jsonb_strip_nulls("
             + "jsonb_set(cast(attributevalues as jsonb), '{%s}', cast(:value as jsonb), :createMissing))";

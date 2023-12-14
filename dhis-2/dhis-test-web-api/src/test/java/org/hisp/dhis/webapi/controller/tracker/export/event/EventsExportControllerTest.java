@@ -44,6 +44,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -58,7 +59,6 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
@@ -162,7 +162,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void getEventByIdWithNotes() {
     Event event = event(enrollment(trackedEntity()));
-    event.setComments(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
+    event.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     manager.update(event);
 
     JsonEvent jsonEvent =
@@ -290,12 +290,12 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void getEventByIdContainsCreatedByAndUpdateByAndAssignedUserInDataValues() {
 
-    TrackedEntity tei = trackedEntity();
-    Enrollment enrollment = enrollment(tei);
-    Event programStageInstance = event(enrollment);
-    programStageInstance.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-    programStageInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-    programStageInstance.setAssignedUser(user);
+    TrackedEntity te = trackedEntity();
+    Enrollment enrollment = enrollment(te);
+    Event event = event(enrollment);
+    event.setCreatedByUserInfo(UserInfoSnapshot.from(user));
+    event.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
+    event.setAssignedUser(user);
     EventDataValue eventDataValue = new EventDataValue();
     eventDataValue.setValue("6");
 
@@ -303,27 +303,26 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
     Set<EventDataValue> eventDataValues = Set.of(eventDataValue);
-    programStageInstance.setEventDataValues(eventDataValues);
-    manager.save(programStageInstance);
+    event.setEventDataValues(eventDataValues);
+    manager.save(event);
 
-    JsonObject event =
-        GET("/tracker/events/{id}", programStageInstance.getUid()).content(HttpStatus.OK);
+    JsonObject jsonEvent = GET("/tracker/events/{id}", event.getUid()).content(HttpStatus.OK);
 
-    assertTrue(event.isObject());
-    assertFalse(event.isEmpty());
-    assertEquals(programStageInstance.getUid(), event.getString("event").string());
-    assertEquals(enrollment.getUid(), event.getString("enrollment").string());
-    assertEquals(orgUnit.getUid(), event.getString("orgUnit").string());
-    assertEquals(user.getUsername(), event.getString("createdBy.username").string());
-    assertEquals(user.getUsername(), event.getString("updatedBy.username").string());
-    assertEquals(user.getDisplayName(), event.getString("assignedUser.displayName").string());
-    assertFalse(event.getArray("dataValues").isEmpty());
+    assertTrue(jsonEvent.isObject());
+    assertFalse(jsonEvent.isEmpty());
+    assertEquals(event.getUid(), jsonEvent.getString("event").string());
+    assertEquals(enrollment.getUid(), jsonEvent.getString("enrollment").string());
+    assertEquals(orgUnit.getUid(), jsonEvent.getString("orgUnit").string());
+    assertEquals(user.getUsername(), jsonEvent.getString("createdBy.username").string());
+    assertEquals(user.getUsername(), jsonEvent.getString("updatedBy.username").string());
+    assertEquals(user.getDisplayName(), jsonEvent.getString("assignedUser.displayName").string());
+    assertFalse(jsonEvent.getArray("dataValues").isEmpty());
     assertEquals(
         user.getUsername(),
-        event.getArray("dataValues").getObject(0).getString("createdBy.username").string());
+        jsonEvent.getArray("dataValues").getObject(0).getString("createdBy.username").string());
     assertEquals(
         user.getUsername(),
-        event.getArray("dataValues").getObject(0).getString("updatedBy.username").string());
+        jsonEvent.getArray("dataValues").getObject(0).getString("updatedBy.username").string());
   }
 
   @Test
@@ -372,21 +371,21 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   private TrackedEntity trackedEntity() {
-    TrackedEntity tei = trackedEntity(orgUnit);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(orgUnit);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntityNotInSearchScope() {
-    TrackedEntity tei = trackedEntity(anotherOrgUnit);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(anotherOrgUnit);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntity(TrackedEntityType trackedEntityType) {
-    TrackedEntity tei = trackedEntity(orgUnit, trackedEntityType);
-    manager.save(tei, false);
-    return tei;
+    TrackedEntity te = trackedEntity(orgUnit, trackedEntityType);
+    manager.save(te, false);
+    return te;
   }
 
   private TrackedEntity trackedEntity(OrganisationUnit orgUnit) {
@@ -395,18 +394,18 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity tei = createTrackedEntity(orgUnit);
-    tei.setTrackedEntityType(trackedEntityType);
-    tei.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    tei.getSharing().setOwner(owner);
-    return tei;
+    TrackedEntity te = createTrackedEntity(orgUnit);
+    te.setTrackedEntityType(trackedEntityType);
+    te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    te.getSharing().setOwner(owner);
+    return te;
   }
 
-  private Enrollment enrollment(TrackedEntity tei) {
-    Enrollment enrollment = new Enrollment(program, tei, tei.getOrganisationUnit());
+  private Enrollment enrollment(TrackedEntity te) {
+    Enrollment enrollment = new Enrollment(program, te, te.getOrganisationUnit());
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
     enrollment.setStatus(ProgramStatus.COMPLETED);
     manager.save(enrollment);
     return enrollment;
@@ -481,7 +480,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     return r;
   }
 
-  private Relationship relationship(TrackedEntity from, Event to) {
+  private void relationship(TrackedEntity from, Event to) {
     Relationship r = new Relationship();
 
     RelationshipItem fromItem = new RelationshipItem();
@@ -506,20 +505,19 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     r.setAutoFields();
     r.getSharing().setOwner(owner);
     manager.save(r, false);
-    return r;
   }
 
-  private TrackedEntityComment note(String note, String value, String storedBy) {
-    TrackedEntityComment comment = new TrackedEntityComment(value, storedBy);
-    comment.setUid(note);
-    manager.save(comment, false);
-    return comment;
+  private Note note(String uid, String value, String storedBy) {
+    Note note = new Note(value, storedBy);
+    note.setUid(uid);
+    manager.save(note, false);
+    return note;
   }
 
   private void assertDefaultResponse(JsonObject json, Event event) {
     // note that some fields are not included in the response because they
     // are not part of the setup
-    // i.e attributeOptionCombo, ...
+    // i.e. attributeOptionCombo, ...
     assertTrue(json.isObject());
     assertFalse(json.isEmpty());
     assertEquals(event.getUid(), json.getString("event").string(), "event UID");
@@ -528,7 +526,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     assertEquals(programStage.getUid(), json.getString("programStage").string());
     assertEquals(event.getEnrollment().getUid(), json.getString("enrollment").string());
     assertEquals(orgUnit.getUid(), json.getString("orgUnit").string());
-    assertEquals(orgUnit.getName(), json.getString("orgUnitName").string());
+    assertFalse(json.getBoolean("followUp").booleanValue());
     assertFalse(json.getBoolean("followup").booleanValue());
     assertFalse(json.getBoolean("deleted").booleanValue());
     assertHasMember(json, "createdAt");

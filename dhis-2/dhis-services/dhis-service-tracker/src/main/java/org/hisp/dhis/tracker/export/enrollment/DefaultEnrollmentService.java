@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -40,16 +37,12 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentQueryParams;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.hibernate.HibernateEnrollmentStore;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -57,17 +50,20 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
-public class DefaultEnrollmentService
+class DefaultEnrollmentService
     implements org.hisp.dhis.tracker.export.enrollment.EnrollmentService {
-
-  private final EnrollmentService enrollmentService;
+  private final EnrollmentStore enrollmentStore;
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
@@ -82,26 +78,31 @@ public class DefaultEnrollmentService
   @Override
   public Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    Enrollment enrollment = enrollmentService.getEnrollment(uid);
+    Enrollment enrollment = enrollmentStore.getByUid(uid);
 
     if (enrollment == null) {
       throw new NotFoundException(Enrollment.class, uid);
     }
 
-    return getEnrollment(enrollment, params, includeDeleted);
+    return getEnrollment(enrollment, params, includeDeleted, null);
   }
 
   @Override
   public Enrollment getEnrollment(
-      @Nonnull Enrollment enrollment, EnrollmentParams params, boolean includeDeleted)
+      @Nonnull Enrollment enrollment,
+      EnrollmentParams params,
+      boolean includeDeleted,
+      OrganisationUnitSelectionMode orgUnitMode)
       throws ForbiddenException {
     User user = currentUserService.getCurrentUser();
-    List<String> errors = trackerAccessManager.canRead(user, enrollment, false);
+    List<String> errors = trackerAccessManager.canRead(user, enrollment, orgUnitMode == ALL);
+
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
     }
 
     Enrollment result = new Enrollment();
+    result.setId(enrollment.getId());
     result.setUid(enrollment.getUid());
 
     if (enrollment.getTrackedEntity() != null) {
@@ -118,15 +119,15 @@ public class DefaultEnrollmentService
     result.setProgram(enrollment.getProgram());
     result.setStatus(enrollment.getStatus());
     result.setEnrollmentDate(enrollment.getEnrollmentDate());
-    result.setIncidentDate(enrollment.getIncidentDate());
+    result.setOccurredDate(enrollment.getOccurredDate());
     result.setFollowup(enrollment.getFollowup());
-    result.setEndDate(enrollment.getEndDate());
+    result.setCompletedDate(enrollment.getCompletedDate());
     result.setCompletedBy(enrollment.getCompletedBy());
     result.setStoredBy(enrollment.getStoredBy());
     result.setCreatedByUserInfo(enrollment.getCreatedByUserInfo());
     result.setLastUpdatedByUserInfo(enrollment.getLastUpdatedByUserInfo());
     result.setDeleted(enrollment.isDeleted());
-    result.setComments(enrollment.getComments());
+    result.setNotes(enrollment.getNotes());
     if (params.isIncludeEvents()) {
       result.setEvents(getEvents(user, enrollment, includeDeleted));
     }
@@ -187,77 +188,56 @@ public class DefaultEnrollmentService
   }
 
   @Override
-  public Enrollments getEnrollments(EnrollmentOperationParams params)
+  public List<Enrollment> getEnrollments(EnrollmentOperationParams params)
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
-    List<Enrollment> enrollmentList =
-        getEnrollments(
-            new ArrayList<>(enrollmentService.getEnrollments(queryParams)),
-            params.getEnrollmentParams(),
-            params.isIncludeDeleted());
-
-    if (params.isSkipPaging()) {
-      return Enrollments.withoutPagination(enrollmentList);
-    }
-
-    Pager pager;
-
-    if (params.isTotalPages()) {
-      int count = enrollmentService.countEnrollments(queryParams);
-      pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
-    } else {
-      pager = handleLastPageFlag(queryParams, enrollmentList);
-    }
-
-    return Enrollments.of(enrollmentList, pager);
+    return getEnrollments(
+        new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
+        params.getEnrollmentParams(),
+        params.isIncludeDeleted(),
+        queryParams.getOrganisationUnitMode());
   }
 
-  /**
-   * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link
-   * HibernateEnrollmentStore#getEnrollments(EnrollmentQueryParams)}
-   *
-   * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
-   * allow us to evaluate if we are in the last page or not. And this is what his method does,
-   * returning the respective Pager object.
-   *
-   * @param params the request params
-   * @param enrollments the reference to the list of Enrollment
-   * @return the populated SlimPager instance
-   */
-  private Pager handleLastPageFlag(EnrollmentQueryParams params, List<Enrollment> enrollments) {
-    Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
-    Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
-    boolean isLastPage = false;
+  @Override
+  public Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
+      throws ForbiddenException, BadRequestException {
+    EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
-    if (isNotEmpty(enrollments)) {
-      isLastPage = enrollments.size() <= originalPageSize;
-      if (!isLastPage) {
-        // Get the same number of elements of the pageSize, forcing
-        // the removal of the last additional element added at querying
-        // time.
-        enrollments.retainAll(enrollments.subList(0, originalPageSize));
-      }
-    }
+    Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
+    List<Enrollment> enrollments =
+        getEnrollments(
+            enrollmentsPage.getItems(),
+            params.getEnrollmentParams(),
+            params.isIncludeDeleted(),
+            queryParams.getOrganisationUnitMode());
 
-    return new SlimPager(originalPage, originalPageSize, isLastPage);
+    return Page.of(enrollments, enrollmentsPage.getPager());
   }
 
   private List<Enrollment> getEnrollments(
-      Iterable<Enrollment> enrollments, EnrollmentParams params, boolean includeDeleted)
+      Iterable<Enrollment> enrollments,
+      EnrollmentParams params,
+      boolean includeDeleted,
+      OrganisationUnitSelectionMode orgUnitMode)
       throws ForbiddenException {
     List<Enrollment> enrollmentList = new ArrayList<>();
     User user = currentUserService.getCurrentUser();
 
     for (Enrollment enrollment : enrollments) {
       if (enrollment != null
-          && trackerOwnershipAccessManager.hasAccess(
-              user, enrollment.getTrackedEntity(), enrollment.getProgram())) {
-        enrollmentList.add(getEnrollment(enrollment, params, includeDeleted));
+          && (orgUnitMode == ALL
+              || trackerOwnershipAccessManager.hasAccess(
+                  user, enrollment.getTrackedEntity(), enrollment.getProgram()))) {
+        enrollmentList.add(getEnrollment(enrollment, params, includeDeleted, orgUnitMode));
       }
     }
 
     return enrollmentList;
+  }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return enrollmentStore.getOrderableFields();
   }
 }

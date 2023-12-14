@@ -76,6 +76,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -111,8 +112,6 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -154,7 +153,7 @@ public abstract class AbstractEnrollmentService
 
   protected CurrentUserService currentUserService;
 
-  protected TrackedEntityCommentService commentService;
+  protected NoteService commentService;
 
   protected IdentifiableObjectManager manager;
 
@@ -319,16 +318,16 @@ public abstract class AbstractEnrollmentService
     enrollment.setProgram(programInstance.getProgram().getUid());
     enrollment.setStatus(EnrollmentStatus.fromProgramStatus(programInstance.getStatus()));
     enrollment.setEnrollmentDate(programInstance.getEnrollmentDate());
-    enrollment.setIncidentDate(programInstance.getIncidentDate());
+    enrollment.setIncidentDate(programInstance.getOccurredDate());
     enrollment.setFollowup(programInstance.getFollowup());
-    enrollment.setCompletedDate(programInstance.getEndDate());
+    enrollment.setCompletedDate(programInstance.getCompletedDate());
     enrollment.setCompletedBy(programInstance.getCompletedBy());
     enrollment.setStoredBy(programInstance.getStoredBy());
     enrollment.setCreatedByUserInfo(programInstance.getCreatedByUserInfo());
     enrollment.setLastUpdatedByUserInfo(programInstance.getLastUpdatedByUserInfo());
     enrollment.setDeleted(programInstance.isDeleted());
 
-    enrollment.getNotes().addAll(NoteHelper.convertNotes(programInstance.getComments()));
+    enrollment.getNotes().addAll(NoteHelper.convertNotes(programInstance.getNotes()));
 
     if (params.isIncludeEvents()) {
       for (Event event : programInstance.getEvents()) {
@@ -599,7 +598,7 @@ public abstract class AbstractEnrollmentService
       }
 
       programInstance.setCompletedBy(user);
-      programInstance.setEndDate(date);
+      programInstance.setCompletedDate(date);
     }
 
     programInstance.setCreatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
@@ -669,7 +668,7 @@ public abstract class AbstractEnrollmentService
       return importSummary;
     }
 
-    if (program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null) {
+    if (program.getDisplayIncidentDate() && programInstance.getOccurredDate() == null) {
       importSummary.setStatus(ImportStatus.ERROR);
       importSummary.setDescription("DisplayIncidentDate is true but IncidentDate is null ");
       importSummary.incrementIgnored();
@@ -677,12 +676,12 @@ public abstract class AbstractEnrollmentService
       return importSummary;
     }
 
-    if (programInstance.getIncidentDate() != null
+    if (programInstance.getOccurredDate() != null
         && !DateUtils.dateIsValid(
-            DateUtils.getMediumDateString(programInstance.getIncidentDate()))) {
+            DateUtils.getMediumDateString(programInstance.getOccurredDate()))) {
       importSummary.setStatus(ImportStatus.ERROR);
       importSummary.setDescription(
-          "Invalid enollment incident date:  " + programInstance.getIncidentDate());
+          "Invalid enollment incident date:  " + programInstance.getOccurredDate());
       importSummary.incrementIgnored();
 
       return importSummary;
@@ -937,7 +936,7 @@ public abstract class AbstractEnrollmentService
     programInstance.setProgram(program);
 
     if (enrollment.getIncidentDate() != null) {
-      programInstance.setIncidentDate(enrollment.getIncidentDate());
+      programInstance.setOccurredDate(enrollment.getIncidentDate());
     }
 
     if (enrollment.getEnrollmentDate() != null) {
@@ -952,7 +951,7 @@ public abstract class AbstractEnrollmentService
 
     programInstance.setFollowup(enrollment.getFollowup());
 
-    if (program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null) {
+    if (program.getDisplayIncidentDate() && programInstance.getOccurredDate() == null) {
       return new ImportSummary(
               ImportStatus.ERROR, "DisplayIncidentDate is true but IncidentDate is null")
           .incrementIgnored();
@@ -974,11 +973,11 @@ public abstract class AbstractEnrollmentService
       }
 
       if (EnrollmentStatus.CANCELLED == enrollment.getStatus()) {
-        programInstance.setEndDate(endDate);
+        programInstance.setCompletedDate(endDate);
 
         enrollmentService.cancelEnrollmentStatus(programInstance);
       } else if (EnrollmentStatus.COMPLETED == enrollment.getStatus()) {
-        programInstance.setEndDate(endDate);
+        programInstance.setCompletedDate(endDate);
         programInstance.setCompletedBy(user);
 
         enrollmentService.completeEnrollmentStatus(programInstance);
@@ -1307,8 +1306,7 @@ public abstract class AbstractEnrollmentService
 
   private boolean doValidationOfMandatoryAttributes(User user) {
     return user == null
-        || !user.isAuthorized(
-            Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority());
+        || !user.isAuthorized(Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.name());
   }
 
   private void checkAttributes(
@@ -1523,11 +1521,10 @@ public abstract class AbstractEnrollmentService
       String noteUid =
           CodeGenerator.isValidUid(note.getNote()) ? note.getNote() : CodeGenerator.generateUid();
 
-      if (!commentService.trackedEntityCommentExists(noteUid)
-          && !StringUtils.isEmpty(note.getValue())) {
-        TrackedEntityComment comment = new TrackedEntityComment();
+      if (!commentService.noteExists(noteUid) && !StringUtils.isEmpty(note.getValue())) {
+        org.hisp.dhis.note.Note comment = new org.hisp.dhis.note.Note();
         comment.setUid(noteUid);
-        comment.setCommentText(note.getValue());
+        comment.setNoteText(note.getValue());
         comment.setCreator(
             StringUtils.isEmpty(note.getStoredBy()) ? user.getUsername() : note.getStoredBy());
 
@@ -1542,9 +1539,9 @@ public abstract class AbstractEnrollmentService
         comment.setLastUpdatedBy(user);
         comment.setLastUpdated(new Date());
 
-        commentService.addTrackedEntityComment(comment);
+        commentService.addNote(comment);
 
-        programInstance.getComments().add(comment);
+        programInstance.getNotes().add(comment);
 
         enrollmentService.updateEnrollment(programInstance, user);
         teiService.updateTrackedEntity(programInstance.getTrackedEntity(), user);
@@ -1632,13 +1629,13 @@ public abstract class AbstractEnrollmentService
         pi.getEvents().stream().filter(psi -> !psi.isDeleted()).collect(Collectors.toSet());
 
     if (!notDeletedEvents.isEmpty()
-        && !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority())) {
+        && !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.name())) {
       importConflicts.addConflict(
           pi.getUid(),
           "Enrollment "
               + pi.getUid()
               + " cannot be deleted as it has associated events and user does not have authority: "
-              + Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority());
+              + Authorities.F_ENROLLMENT_CASCADE_DELETE.name());
     }
 
     List<String> errors = trackerAccessManager.canDelete(user, pi, false);

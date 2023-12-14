@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.tracker.imports.TrackerType;
+import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
 
 /**
@@ -45,7 +46,7 @@ import org.locationtech.jts.geom.Geometry;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackedEntity implements TrackerDto {
+public class TrackedEntity implements TrackerDto, Serializable {
   @JsonProperty private String trackedEntity;
 
   @JsonProperty private MetadataIdentifier trackedEntityType;

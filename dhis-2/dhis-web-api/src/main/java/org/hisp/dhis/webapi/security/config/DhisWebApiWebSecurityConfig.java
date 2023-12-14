@@ -78,6 +78,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
@@ -115,7 +116,7 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired public DataSource dataSource;
 
   @Bean
-  public SessionRegistryImpl sessionRegistry() {
+  public SessionRegistry sessionRegistry() {
     return new SessionRegistryImpl();
   }
 
@@ -255,6 +256,12 @@ public class DhisWebApiWebSecurityConfig {
           // migrated
           .antMatchers("/index.html")
           .permitAll()
+          .antMatchers("/external-static/**")
+          .permitAll()
+          .antMatchers("/favicon.ico")
+          .permitAll()
+          .antMatchers("/oauth2/**")
+          .permitAll()
           .antMatchers(apiContextPath + "/authentication/login")
           .permitAll()
           .antMatchers(apiContextPath + "/account/recovery")
@@ -263,11 +270,15 @@ public class DhisWebApiWebSecurityConfig {
           .permitAll()
           .antMatchers(apiContextPath + "/account")
           .permitAll()
-          .antMatchers(apiContextPath + "/staticContent/*")
+          .antMatchers(apiContextPath + "/staticContent/**")
           .permitAll()
-          .antMatchers(apiContextPath + "/externalFileResources/*")
+          .antMatchers(apiContextPath + "/externalFileResources/**")
           .permitAll()
           .antMatchers(apiContextPath + "/icons/*/icon.svg")
+          .permitAll()
+          .antMatchers(apiContextPath + "/files/style/external")
+          .permitAll()
+          .antMatchers(apiContextPath + "/publicKeys/**")
           .permitAll()
           .anyRequest()
           .authenticated()
@@ -311,17 +322,6 @@ public class DhisWebApiWebSecurityConfig {
                   return filter;
                 }
               });
-
-      http.sessionManagement()
-          .requireExplicitAuthenticationStrategy(true)
-          .sessionFixation()
-          .migrateSession()
-          .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
-          .enableSessionUrlRewriting(false)
-          .maximumSessions(
-              Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
-          .expiredUrl("/dhis-web-commons-security/logout.action");
-
       // Special handling if we are running in embedded Jetty mode
       if (Arrays.asList(activeProfiles).contains("embeddedJetty")) {
         http.formLogin()
@@ -338,7 +338,17 @@ public class DhisWebApiWebSecurityConfig {
             .logoutUrl("/dhis-web-commons-security/logout.action")
             .logoutSuccessUrl("/")
             .logoutSuccessHandler(dhisOidcLogoutSuccessHandler)
-            .deleteCookies("JSESSIONID");
+            .deleteCookies("JSESSIONID")
+            .and()
+            .sessionManagement()
+            .requireExplicitAuthenticationStrategy(true)
+            .sessionFixation()
+            .migrateSession()
+            .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+            .enableSessionUrlRewriting(false)
+            .maximumSessions(
+                Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
+            .expiredUrl("/dhis-web-commons-security/logout.action");
       }
     }
 

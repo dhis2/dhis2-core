@@ -171,6 +171,7 @@ class OrganisationUnitTest {
     assertTrue(unitC.isDescendant(Set.of(unitA, unitD)));
     assertTrue(unitB.isDescendant(Set.of(unitA)));
     assertTrue(unitB.isDescendant(Set.of(unitA, unitD)));
+    assertTrue(unitD.isDescendant(Set.of(unitA, unitB, unitC)));
 
     assertFalse(unitC.isDescendant(Set.of(unitD)));
     assertFalse(unitB.isDescendant(Set.of(unitD)));

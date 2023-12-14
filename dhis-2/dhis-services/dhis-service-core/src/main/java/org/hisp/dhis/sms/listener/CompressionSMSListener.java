@@ -269,8 +269,8 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
     event.setOrganisationUnit(orgUnit);
     event.setProgramStage(programStage);
     event.setEnrollment(enrollment);
-    event.setExecutionDate(eventDate);
-    event.setDueDate(dueDate);
+    event.setOccurredDate(eventDate);
+    event.setScheduledDate(dueDate);
     event.setAttributeOptionCombo(aoc);
     event.setStoredBy(user.getUsername());
 

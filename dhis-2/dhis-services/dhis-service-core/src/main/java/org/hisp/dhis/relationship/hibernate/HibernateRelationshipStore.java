@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -40,7 +41,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
@@ -73,13 +73,13 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
   private static final String EVENT = "event";
 
   public HibernateRelationshipStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         Relationship.class,
@@ -235,7 +235,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
 
       if (pagingAndSortingCriteriaAdapter.isPagingRequest()) {
         jpaQueryParameters.setFirstResult(pagingAndSortingCriteriaAdapter.getFirstResult());
-        jpaQueryParameters.setMaxResults(pagingAndSortingCriteriaAdapter.getPageSize());
+        jpaQueryParameters.setMaxResults(pagingAndSortingCriteriaAdapter.getPageSize() + 1);
       }
     }
 

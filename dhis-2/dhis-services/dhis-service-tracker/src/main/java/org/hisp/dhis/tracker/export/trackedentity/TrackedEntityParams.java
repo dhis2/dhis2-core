@@ -46,18 +46,18 @@ public class TrackedEntityParams {
 
   boolean includeRelationships;
 
-  TrackedEntityEnrollmentParams teiEnrollmentParams;
+  TrackedEntityEnrollmentParams teEnrollmentParams;
 
   boolean includeProgramOwners;
 
   boolean includeAttributes;
 
   public boolean isIncludeEnrollments() {
-    return teiEnrollmentParams.isIncludeEnrollments();
+    return teEnrollmentParams.isIncludeEnrollments();
   }
 
   public EnrollmentParams getEnrollmentParams() {
-    return this.teiEnrollmentParams.getEnrollmentParams();
+    return this.teEnrollmentParams.getEnrollmentParams();
   }
 
   public EventParams getEventParams() {

@@ -246,12 +246,12 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     OrganisationUnit ou =
         getOwner(entityInstance.getId(), program, entityInstance::getOrganisationUnit);
 
-    if (program.isOpen() || program.isAudited()) {
-      return organisationUnitService.isInUserSearchHierarchyCached(user, ou);
-    } else {
-      return organisationUnitService.isInUserHierarchyCached(user, ou)
+    return switch (program.getAccessLevel()) {
+      case OPEN, AUDITED -> organisationUnitService.isInUserSearchHierarchyCached(user, ou);
+      case PROTECTED -> organisationUnitService.isInUserHierarchyCached(user, ou)
           || hasTemporaryAccess(entityInstance, program, user);
-    }
+      case CLOSED -> organisationUnitService.isInUserHierarchyCached(user, ou);
+    };
   }
 
   @Override
@@ -262,12 +262,13 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       return true;
     }
 
-    if (program.isOpen() || program.isAudited()) {
-      return organisationUnitService.isInUserSearchHierarchyCached(user, owningOrgUnit);
-    } else {
-      return organisationUnitService.isInUserHierarchyCached(user, owningOrgUnit)
+    return switch (program.getAccessLevel()) {
+      case OPEN, AUDITED -> organisationUnitService.isInUserSearchHierarchyCached(
+          user, owningOrgUnit);
+      case PROTECTED -> organisationUnitService.isInUserHierarchyCached(user, owningOrgUnit)
           || hasTemporaryAccessWithUid(entityInstance, program, user);
-    }
+      case CLOSED -> organisationUnitService.isInUserHierarchyCached(user, owningOrgUnit);
+    };
   }
 
   @Override
@@ -285,10 +286,10 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   // -------------------------------------------------------------------------
 
   /**
-   * Get the current owner of this TEI-program combination. Falls back to the registered
-   * organisation unit if no owner explicitly exists for the program.
+   * Get the current owner of this TE-program combination. Falls back to the registered organisation
+   * unit if no owner explicitly exists for the program.
    *
-   * @param entityInstanceId the TEI.
+   * @param entityInstanceId the TE.
    * @param program The program
    * @return The owning organisation unit.
    */
@@ -335,9 +336,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   }
 
   /**
-   * Check if the user has temporary access for a specific tei-program combination
+   * Check if the user has temporary access for a specific te-program combination
    *
-   * @param entityInstance The tracked entity instance object
+   * @param entityInstance The tracked entity object
    * @param program The program object
    * @param user The user object against which the check has to be performed
    * @return true if the user has temporary access, false otherwise
@@ -386,13 +387,13 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   /**
    * Returns key used to store and retrieve cached records for ownership
    *
-   * @param teiUid
+   * @param teUid
    * @param programUid
    * @return a String representing a record of ownership
    */
-  private String getTempOwnershipCacheKey(String teiUid, String programUid, String userUid) {
+  private String getTempOwnershipCacheKey(String teUid, String programUid, String userUid) {
     return new StringBuilder()
-        .append(teiUid)
+        .append(teUid)
         .append("-")
         .append(programUid)
         .append("-")

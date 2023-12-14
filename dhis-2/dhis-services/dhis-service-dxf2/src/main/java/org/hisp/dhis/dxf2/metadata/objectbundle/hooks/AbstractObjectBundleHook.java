@@ -29,13 +29,15 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
 import java.util.function.Consumer;
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHook;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.preheat.PreheatService;
-import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,11 +49,11 @@ public class AbstractObjectBundleHook<T> implements ObjectBundleHook<T> {
 
   @Autowired protected PreheatService preheatService;
 
-  @Autowired protected SessionFactory sessionFactory;
+  @PersistenceContext protected EntityManager entityManager;
 
   @Autowired protected SchemaService schemaService;
 
-  @Autowired protected MergeService mergeService;
+  @Autowired protected MetadataMergeService metadataMergeService;
 
   @Override
   public void validate(T object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
@@ -101,5 +103,9 @@ public class AbstractObjectBundleHook<T> implements ObjectBundleHook<T> {
   @Override
   public void preDelete(T persistedObject, ObjectBundle bundle) {
     // by default nothing to do
+  }
+
+  protected Session getSession() {
+    return entityManager.unwrap(Session.class);
   }
 }

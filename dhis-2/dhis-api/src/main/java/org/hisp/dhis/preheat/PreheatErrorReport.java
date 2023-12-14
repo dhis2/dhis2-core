@@ -75,6 +75,6 @@ public class PreheatErrorReport extends ErrorReport {
   }
 
   public IdentifiableObject getObjectReference() {
-    return value != null ? (IdentifiableObject) value : null;
+    return getValue() != null ? (IdentifiableObject) getValue() : null;
   }
 }

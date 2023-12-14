@@ -28,10 +28,6 @@ NOTE: this query parameter has no effect on a response in CSV!
 
 ## Common for all endpoints
 
-### `*.parameter.TrackedEntityRequestParams.query`
-
-### `*.parameter.TrackedEntityRequestParams.attribute`
-
 ### `*.parameter.TrackedEntityRequestParams.orgUnits`
 
 `<orgUnit1-uid>[,<orgUnit2-uid>...]`
@@ -123,13 +119,32 @@ if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredBefore`
 
-### `*.parameter.TrackedEntityRequestParams.skipMeta`
-
 ### `*.parameter.TrackedEntityRequestParams.includeDeleted`
 
-### `*.parameter.TrackedEntityRequestParams.includeAllAttributes`
-
 ### `*.parameter.TrackedEntityRequestParams.potentialDuplicate`
+
+### `*.parameter.TrackedEntityRequestParams.order`
+
+`<propertyName1:sortDirection>[,<propertyName2:sortDirection>...]`
+
+Get tracked entities in given order. Tracked entities can be ordered by tracked entity attributes by
+passing a UID instead of a property name. This will order tracked entities by the values of the
+specified attribute not their UIDs. Tracked entities can also be ordered by the following
+case-sensitive properties
+
+* `createdAt`
+* `createdAtClient`
+* `enrolledAt`
+* `inactive`
+* `trackedEntity`
+* `updatedAt`
+* `updatedAtClient`
+
+Valid `sortDirection`s are `asc` and `desc`. `sortDirection` is case-insensitive. `sortDirection`
+defaults to `asc` for properties or UIDs without explicit `sortDirection` as in `order=createdAt`.
+
+Tracked entities are ordered by newest (internal id desc) by default meaning when no `order`
+parameter is provided.
 
 ### `*.parameter.TrackedEntityRequestParams.fields`
 
@@ -141,21 +156,30 @@ for how to use it.
 
 NOTE: this query parameter has no effect on a CSV response!
 
+### `*.parameter.TrackedEntityRequestParams.query`
+
+**REMOVED as of 2.41:** Use parameter `filter`!
+
+### `*.parameter.TrackedEntityRequestParams.attribute`
+
+**REMOVED as of 2.41:** Use parameter `filter`!
+
+### `*.parameter.TrackedEntityRequestParams.includeAllAttributes`
+
+**REMOVED as of 2.41:**!
+
 ### `*.parameter.TrackedEntityRequestParams.filter`
 
 `<filter1>[,<filter2>...]`
 
-Get tracked entities matching given filters on attributes. A filter is a colon separated attribute
-UID with operator and
-value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with operator starts with `sw` followed by a value.
-Special characters
-like `+` need to be percent-encoded so `%2B` instead of `+`. Multiple operator/value pairs for the
-same attribute
-like `filter=AuPLng5hLbE:gt:438901703:lt:448901704` are allowed. Repeating the same attribute UID is
-not allowed. A user
-needs metadata read access to the attribute and data read access to the program (if the program is
-without registration)
-or the program stage (if the program is with registration).
+Get tracked entities matching given filters on attributes. A filter is a colon separated attribute UID 
+with optional operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with operator starts with `sw` 
+followed by a value. Special characters like `+` need to be percent-encoded so `%2B` instead of `+`. 
+Characters such as `:` (colon) or `,` (comma), as part of the filter value, need to be escaped by `/` (slash).
+Likewise, `/` needs to be escaped. Multiple operator/value pairs for the same attribute 
+as `filter=AuPLng5hLbE:gt:438901703:lt:448901704` are allowed. Repeating the same attribute UID 
+is not allowed.  A user needs metadata read access to the attribute and data read access to the program 
+(if the program is without registration) or the program stage (if the program is with registration).
 
 Valid operators are:
 

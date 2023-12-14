@@ -47,7 +47,7 @@ public enum ErrorCode {
   E1103("Category option combo not found or not accessible: `{0}`"),
   E1104("Attribute option combo not found or not accessible: `{0}`"),
   E1105("Data set not found or not accessible: `{0}`"),
-  E1106("There are duplicate translation record for property `{0}` and locale `{1}`"),
+  E1106("There are duplicate translation records for property `{0}` and locale `{1}` on {2} `{3}`"),
   E1107("Object type `{0}` is not translatable"),
   E1108("Could not add item to collection: {0}"),
   E1109("Could not remove item from collection: {0}"),
@@ -87,6 +87,12 @@ public enum ErrorCode {
   E1521("User `{0}` is not allowed to move organisation `{1}`"),
   E1522("User `{0}` is not allowed to move organisation `{1}` unit from parent `{2}`"),
   E1523("User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`"),
+
+  /* Indicator Type merge */
+  E1530("At least one source indicator type must be specified"),
+  E1531("Target indicator type must be specified"),
+  E1532("Target indicator type cannot be a source indicator type"),
+  E1533("{0} indicator type does not exist: `{1}`"),
 
   /* Data */
   E2000("Query parameters cannot be null"),
@@ -146,6 +152,9 @@ public enum ErrorCode {
   E2206("Max results exceeds the allowed max limit: `{0}`"),
   E2207("Data start date must be before data end date"),
   E2208("Non-numeric data values encountered during outlier value detection"),
+  E2209("Data start date not allowed"),
+  E2210("Data end date not allowed"),
+  E2211("Algorithm min-max values not allowed"),
 
   /* Followup analysis */
   E2300("At least one data element or data set must be specified"),
@@ -188,6 +197,7 @@ public enum ErrorCode {
   E3031("Two factor authentication is not enabled"),
   E3032("User `{0}` does not have access to user role"),
   E3040("Could not resolve JwsAlgorithm from the JWK. Can not write a valid JWKSet"),
+  E3041("User `{0}` is not allowed to change a user having the ALL authority"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),
@@ -195,7 +205,7 @@ public enum ErrorCode {
   E4002("Allowed length range for property `{0}` is [{1} to {2}], but given length was {3}"),
   E4003("Property `{0}` requires a valid email address, was given `{1}`"),
   E4004("Property `{0}` requires a valid URL, was given `{1}`"),
-  E4005("Property `{0}` requires a valid password, was given `{1}`"),
+  E4005("Property `{0}` requires a valid password, `{1}`"),
   E4006("Property `{0}` requires a valid HEX color, was given `{1}`"),
   E4007("Allowed size range for collection property `{0}` is [{1} to {2}], but size given was {3}"),
   E4008("Allowed range for numeric property `{0}` is [{1} to {2}], but number given was {3}"),
@@ -272,6 +282,7 @@ public enum ErrorCode {
   E4067("Attribute UID is missing in filter"),
   E4068("No tracked entity attribute found for attribute: `{0}`"),
   E4069("DashboardItem `{0}` object reference `{1}` with id `{2}` not accessible"),
+  E4070("Dashboard `{0}` has a layout with more than 60 columns. `{1}` columns found"),
 
   /* SQL views */
   E4300("SQL query is null"),
@@ -330,10 +341,13 @@ public enum ErrorCode {
   E6019("AttributeValue `{0}` is an invalid `{1}` ID"),
   E6020("AttributeValue `{0}` is an invalid username"),
   E6021("AttributeValue `{0}` is an invalid phone number"),
+  E6022("Object cannot reference itself by property `{0}`"),
 
   /* File resource */
   E6100("Filename not present"),
   E6101("File type not allowed"),
+  E6102("File content could not be stored"),
+  E6103("File resource appears to have no content"),
 
   /* Users */
   E6200("Feedback message recipients user group not defined"),
@@ -408,18 +422,21 @@ public enum ErrorCode {
   E7129("Program is specified but does not exist: `{0}`"),
   E7130("Program stage is specified but does not exist: `{0}`"),
   E7131("Query failed, likely because the query timed out"),
-  E7132("An indicator expression caused division by zero operation"),
+  E7132("Expression violation. Maybe an indicator caused division by zero?"),
   E7133("Query cannot be executed, possibly because of invalid types or invalid operation"),
   E7134("Cannot retrieve total value for data elements with skip total category combination"),
   E7135("Date time is not parsable: `{0}`"),
-  E7136("Program is not specified"),
   E7137("Expression is not parsable: `{0}`"),
   E7138("Invalid offset: `{0}`"),
-  E7139("programStatus and enrollmentStatus cannot be used together."),
+  E7139("Parameters programStatus and enrollmentStatus cannot be used together"),
   E7140(
-      "parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]"),
-  E7141("parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]"),
+      "Parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]"),
+  E7141("Parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]"),
   E7142("Program(s) `{0}` are not defined on Tracked Entity Type `{1}`"),
+  E7143("Organisation unit or organisation unit level is not valid"),
+  E7144(
+      "Query failed because a referenced table does not exist. Please ensure analytics job was run"),
+  E7145("Query failed because of a syntax error"),
 
   /* Event analytics */
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
@@ -466,12 +483,14 @@ public enum ErrorCode {
   E7237("Sorting must have a valid dimension and a direction"),
   E7238("Sorting dimension ‘{0}’ is not a column"),
 
-  /* TEI analytics */
+  /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
   E7301("At least one organisation unit group set must be specified"),
+  E7302(
+      "Invalid organisation unit sets specified: `{0}`. Please verify it and also ensure that the analytics job was run"),
 
   /* Debug analytics */
   E7400("Debug query must contain at least one data element, one period and one organisation unit"),

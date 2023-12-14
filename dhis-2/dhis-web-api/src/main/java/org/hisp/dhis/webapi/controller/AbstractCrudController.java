@@ -32,7 +32,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
@@ -41,7 +40,6 @@ import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -64,6 +62,7 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -77,7 +76,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.BulkJsonPatch;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
@@ -88,8 +86,7 @@ import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.MergeService;
-import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.sharing.SharingService;
 import org.hisp.dhis.translation.Translation;
@@ -132,7 +129,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
   @Autowired protected CollectionService collectionService;
 
-  @Autowired protected MergeService mergeService;
+  @Autowired protected MetadataMergeService metadataMergeService;
 
   @Autowired protected JsonPatchManager jsonPatchManager;
 
@@ -151,111 +148,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @Autowired private TranslationsCheck translationsCheck;
 
   @Autowired protected EventHookPublisher eventHookPublisher;
-
-  // --------------------------------------------------------------------------
-  // OLD PATCH
-  // --------------------------------------------------------------------------
-
-  @OpenApi.Ignore
-  @OpenApi.Params(WebOptions.class)
-  @OpenApi.Param(OpenApi.EntityType.class)
-  @PatchMapping(value = "/{uid}")
-  @ResponseStatus(value = HttpStatus.NO_CONTENT)
-  @SuppressWarnings("java:S1130")
-  public void partialUpdateObject(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @RequestParam Map<String, String> rpParameters,
-      @CurrentUser User currentUser,
-      HttpServletRequest request)
-      throws NotFoundException,
-          ForbiddenException,
-          BadRequestException,
-          ConflictException,
-          IOException,
-          JsonPatchException {
-    WebOptions options = new WebOptions(rpParameters);
-
-    T patchedObject = getEntity(pvUid, options);
-    T persistedObject = jsonPatchManager.apply(new JsonPatch(List.of()), patchedObject);
-
-    if (!aclService.canUpdate(currentUser, patchedObject)) {
-      throw new UpdateAccessDeniedException(
-          "You don't have the proper permissions to update this object.");
-    }
-
-    Patch patch = diff(request);
-
-    patchService.apply(patch, patchedObject);
-    prePatchEntity(persistedObject, patchedObject);
-
-    validateAndThrowErrors(() -> schemaValidator.validate(patchedObject));
-    manager.update(patchedObject);
-
-    postPatchEntity(null, patchedObject);
-  }
-
-  @OpenApi.Params(WebOptions.class)
-  @OpenApi.Params(MetadataImportParams.class)
-  @OpenApi.Param(OpenApi.EntityType.class)
-  @PatchMapping("/{uid}/{property}")
-  @ResponseStatus(value = HttpStatus.NO_CONTENT)
-  public void updateObjectProperty(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
-      @RequestParam Map<String, String> rpParameters,
-      @CurrentUser User currentUser,
-      HttpServletRequest request)
-      throws NotFoundException,
-          ConflictException,
-          ForbiddenException,
-          BadRequestException,
-          IOException,
-          JsonPatchException {
-    WebOptions options = new WebOptions(rpParameters);
-
-    if (!getSchema().hasProperty(pvProperty)) {
-      throw new NotFoundException(
-          "Property " + pvProperty + " does not exist on " + getEntityName());
-    }
-
-    Property property = getSchema().getProperty(pvProperty);
-    T patchedObject = getEntity(pvUid, options);
-    T persistedObject = jsonPatchManager.apply(new JsonPatch(List.of()), patchedObject);
-
-    if (!aclService.canUpdate(currentUser, patchedObject)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this object.");
-    }
-
-    if (!property.isWritable()) {
-      throw new ForbiddenException("This property is read-only.");
-    }
-
-    T object = deserialize(request);
-
-    if (object == null) {
-      throw new BadRequestException("Unknown payload format.");
-    }
-
-    try {
-      Object value = property.getGetterMethod().invoke(object);
-      property.getSetterMethod().invoke(patchedObject, value);
-    } catch (IllegalAccessException | InvocationTargetException ex) {
-      throw new RuntimeException(ex);
-    }
-    prePatchEntity(persistedObject, patchedObject);
-
-    Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
-    MetadataImportParams params = importService.getParamsFromMap(parameterValuesMap);
-    params.setUser(currentUser).setImportStrategy(ImportStrategy.UPDATE).addObject(patchedObject);
-
-    ImportReport importReport = importService.importMetadata(params);
-    if (importReport.getStatus() != Status.OK) {
-      throw new ConflictException("Import has errors.")
-          .setObjectReport(importReport.getFirstObjectReport());
-    }
-
-    postPatchEntity(null, patchedObject);
-  }
 
   // --------------------------------------------------------------------------
   // PATCH
@@ -315,9 +207,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     MetadataImportParams params = importService.getParamsFromMap(parameterValuesMap);
 
-    params.setUser(currentUser).setImportStrategy(ImportStrategy.UPDATE).addObject(patchedObject);
+    params.setUser(UID.of(currentUser)).setImportStrategy(ImportStrategy.UPDATE);
 
-    ImportReport importReport = importService.importMetadata(params);
+    ImportReport importReport =
+        importService.importMetadata(params, new MetadataObjects().addObject(patchedObject));
     WebMessage webMessage = objectReport(importReport);
 
     if (importReport.getStatus() == Status.OK) {
@@ -392,11 +285,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     MetadataImportParams params = importService.getParamsFromMap(parameterValuesMap);
 
     params
-        .setUser(currentUserService.getCurrentUser())
-        .setImportStrategy(ImportStrategy.UPDATE)
-        .addObjects(patchedObjects);
+        .setUser(UID.of(currentUserService.getCurrentUser()))
+        .setImportStrategy(ImportStrategy.UPDATE);
 
-    ImportReport importReport = importService.importMetadata(params);
+    ImportReport importReport =
+        importService.importMetadata(params, new MetadataObjects().addObjects(patchedObjects));
 
     if (patchParams.hasErrorReports()) {
       importReport.addTypeReports(patchParams.getTypeReports());
@@ -454,11 +347,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         importService
             .getParamsFromMap(contextService.getParameterValuesMap())
             .setImportReportMode(ImportReportMode.FULL)
-            .setUser(user)
-            .setImportStrategy(ImportStrategy.CREATE)
-            .addObject(parsed);
+            .setUser(UID.of(user))
+            .setImportStrategy(ImportStrategy.CREATE);
 
-    return postObject(getObjectReport(importService.importMetadata(params)));
+    return postObject(
+        getObjectReport(
+            importService.importMetadata(params, new MetadataObjects().addObject(parsed))));
   }
 
   protected final WebMessage postObject(ObjectReport objectReport) {
@@ -547,14 +441,15 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     MetadataImportParams params =
         importService.getParamsFromMap(contextService.getParameterValuesMap());
 
-    params.setUser(currentUser).setImportStrategy(ImportStrategy.UPDATE).addObject(parsed);
+    params.setUser(UID.of(currentUser)).setImportStrategy(ImportStrategy.UPDATE);
 
     // default to FULL unless ERRORS_NOT_OWNER has been requested
     if (ImportReportMode.ERRORS_NOT_OWNER != params.getImportReportMode()) {
       params.setImportReportMode(ImportReportMode.FULL);
     }
 
-    ImportReport importReport = importService.importMetadata(params);
+    ImportReport importReport =
+        importService.importMetadata(params, new MetadataObjects().addObject(parsed));
     WebMessage webMessage = objectReport(importReport);
 
     if (importReport.getStatus() == Status.OK) {
@@ -593,11 +488,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         importService
             .getParamsFromMap(contextService.getParameterValuesMap())
             .setImportReportMode(ImportReportMode.FULL)
-            .setUser(currentUser)
-            .setImportStrategy(ImportStrategy.UPDATE)
-            .addObject(parsed);
+            .setUser(UID.of(currentUser))
+            .setImportStrategy(ImportStrategy.UPDATE);
 
-    ImportReport importReport = importService.importMetadata(params);
+    ImportReport importReport =
+        importService.importMetadata(params, new MetadataObjects().addObject(parsed));
     WebMessage webMessage = objectReport(importReport);
 
     if (importReport.getStatus() == Status.OK) {
@@ -670,11 +565,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     MetadataImportParams params =
         new MetadataImportParams()
             .setImportReportMode(ImportReportMode.FULL)
-            .setUser(currentUser)
-            .setImportStrategy(ImportStrategy.DELETE)
-            .addObject(persistedObject);
+            .setUser(UID.of(currentUser))
+            .setImportStrategy(ImportStrategy.DELETE);
 
-    ImportReport importReport = importService.importMetadata(params);
+    ImportReport importReport =
+        importService.importMetadata(params, new MetadataObjects().addObject(persistedObject));
 
     postDeleteEntity(pvUid);
 
@@ -967,32 +862,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
-
-  /**
-   * Deserializes a payload from the request, handles JSON/XML payloads
-   *
-   * @param request HttpServletRequest from current session
-   * @return Parsed entity or null if invalid type
-   */
-  private T deserialize(HttpServletRequest request) throws IOException {
-    String type = request.getContentType();
-    type = !StringUtils.isEmpty(type) ? type : APPLICATION_JSON_VALUE;
-
-    // allow type to be overridden by path extension
-    if (request.getPathInfo().endsWith(".json")) {
-      type = APPLICATION_JSON_VALUE;
-    } else if (request.getPathInfo().endsWith(".xml")) {
-      type = APPLICATION_XML_VALUE;
-    }
-
-    if (isCompatibleWith(type, MediaType.APPLICATION_JSON)) {
-      return renderService.fromJson(request.getInputStream(), getEntityClass());
-    } else if (isCompatibleWith(type, MediaType.APPLICATION_XML)) {
-      return renderService.fromXml(request.getInputStream(), getEntityClass());
-    }
-
-    return null;
-  }
 
   /**
    * Are we receiving JSON data?

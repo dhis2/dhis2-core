@@ -33,6 +33,7 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import net.ttddyy.dsproxy.listener.logging.DefaultQueryLogEntryCreator;
@@ -44,11 +45,9 @@ import org.hibernate.engine.jdbc.internal.Formatter;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
-import org.hisp.dhis.datasource.DefaultReadOnlyDataSourceManager;
+import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,10 +61,13 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
  */
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class DataSourceConfig {
-  @Autowired private DhisConfigurationProvider dhisConfig;
 
-  @Bean
+  private final DhisConfigurationProvider dhisConfig;
+
+  @Bean("namedParameterJdbcTemplate")
+  @Primary
   @DependsOn("dataSource")
   public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
       @Qualifier("dataSource") DataSource dataSource) {
@@ -81,19 +83,10 @@ public class DataSourceConfig {
     return jdbcTemplate;
   }
 
-  @Bean("executionPlanJdbcTemplate")
-  @DependsOn("dataSource")
-  public JdbcTemplate executionPlanJdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    jdbcTemplate.setFetchSize(1000);
-    jdbcTemplate.setQueryTimeout(10);
-    return jdbcTemplate;
-  }
-
   @Bean("readOnlyJdbcTemplate")
   @DependsOn("dataSource")
   public JdbcTemplate readOnlyJdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
-    DefaultReadOnlyDataSourceManager manager = new DefaultReadOnlyDataSourceManager(dhisConfig);
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(dhisConfig);
 
     JdbcTemplate jdbcTemplate =
         new JdbcTemplate(MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
@@ -102,9 +95,7 @@ public class DataSourceConfig {
     return jdbcTemplate;
   }
 
-  @Bean("actualDataSource")
-  public DataSource actualDataSource(
-      HibernateConfigurationProvider hibernateConfigurationProvider) {
+  static DataSource createActualDataSource(DhisConfigurationProvider dhisConfig) {
     String jdbcUrl = dhisConfig.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = dhisConfig.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
@@ -112,7 +103,6 @@ public class DataSourceConfig {
     DatabasePoolUtils.PoolConfig poolConfig =
         DatabasePoolUtils.PoolConfig.builder()
             .dhisConfig(dhisConfig)
-            .hibernateConfig(hibernateConfigurationProvider)
             .dbPoolType(dbPoolType)
             .build();
 
@@ -131,10 +121,8 @@ public class DataSourceConfig {
     }
   }
 
-  @Bean("dataSource")
-  @DependsOn("actualDataSource")
-  @Primary
-  public DataSource dataSource(@Qualifier("actualDataSource") DataSource actualDataSource) {
+  static DataSource createLoggingDataSource(
+      DhisConfigurationProvider dhisConfig, DataSource actualDataSource) {
     boolean enableQueryLogging = dhisConfig.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
 
     if (!enableQueryLogging) {
@@ -180,6 +168,18 @@ public class DataSourceConfig {
     }
 
     return builder.build();
+  }
+
+  @Bean("dataSource")
+  @DependsOn("actualDataSource")
+  @Primary
+  public DataSource dataSource(@Qualifier("actualDataSource") DataSource actualDataSource) {
+    return createLoggingDataSource(dhisConfig, actualDataSource);
+  }
+
+  @Bean("actualDataSource")
+  public DataSource actualDataSource() {
+    return createActualDataSource(dhisConfig);
   }
 
   private static void executeAfterMethod(MethodExecutionContext executionContext) {

@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -55,30 +55,30 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
   private static final String SQL =
       "select distinct ps.uid as "
           + PS_UID
-          + ", pi.uid as "
+          + ", en.uid as "
           + PI_UID
           + " "
-          + " from programinstance as pi "
-          + " join programstage as ps on pi.programid = ps.programid "
-          + " join event as psi on pi.programinstanceid = psi.programinstanceid "
-          + " where psi.deleted = false "
-          + " and psi.status != 'SKIPPED' "
-          + " and ps.programstageid = psi.programstageid "
+          + " from enrollment as en "
+          + " join programstage as ps on en.programid = ps.programid "
+          + " join event as ev on en.enrollmentid = ev.enrollmentid "
+          + " where ev.deleted = false "
+          + " and ev.status != 'SKIPPED' "
+          + " and ps.programstageid = ev.programstageid "
           + " and ps.uid in (:programStageUids) "
-          + " and pi.uid in (:enrollmentUids) ";
+          + " and en.uid in (:enrollmentUids) ";
 
   protected EventProgramStageMapSupplier(JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
   }
 
   @Override
-  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
-    if (params.getEvents().isEmpty()) {
+  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
+    if (trackerObjects.getEvents().isEmpty()) {
       return;
     }
 
     List<String> notRepeatableProgramStageUids =
-        params.getEvents().stream()
+        trackerObjects.getEvents().stream()
             .map(Event::getProgramStage)
             .filter(Objects::nonNull)
             .map(preheat::getProgramStage)
@@ -90,7 +90,7 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
             .collect(Collectors.toList());
 
     List<String> enrollmentUids =
-        params.getEvents().stream()
+        trackerObjects.getEvents().stream()
             .map(Event::getEnrollment)
             .filter(Objects::nonNull)
             .distinct()

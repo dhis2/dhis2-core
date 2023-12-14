@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.dxf2.webmessage;
 
+import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
+
+import java.sql.SQLException;
 import java.util.List;
 import java.util.function.Supplier;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -36,12 +40,14 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.MergeWebResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.TypeReportWebMessageResponse;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
@@ -211,9 +217,19 @@ public final class WebMessageUtils {
         .setResponse(new ObjectReportWebMessageResponse(objectReport));
   }
 
-  public static WebMessage jobConfigurationReport(JobConfiguration jobConfiguration) {
-    return ok("Initiated " + jobConfiguration.getName())
-        .setResponse(new JobConfigurationWebMessageResponse(jobConfiguration));
+  public static WebMessage mergeReport(MergeReport mergeReport) {
+    if (!mergeReport.hasErrorMessages()) {
+      return ok().setResponse(new MergeWebResponse(mergeReport));
+    }
+    return new WebMessage(Status.WARNING, HttpStatus.CONFLICT)
+        .setMessage("One or more errors occurred, please see full details in merge report.")
+        .setResponse(new MergeWebResponse(mergeReport));
+  }
+
+  public static WebMessage jobConfigurationReport(JobConfiguration config) {
+    return ok("Initiated " + config.getName())
+        .setResponse(new JobConfigurationWebMessageResponse(config))
+        .setLocation("/system/tasks/" + config.getJobType());
   }
 
   public static WebMessage errorReports(List<ErrorReport> errorReports) {
@@ -247,4 +263,26 @@ public final class WebMessageUtils {
   }
 
   private WebMessageUtils() {}
+
+  public static WebMessage createWebMessage(SQLException ex) {
+    WebMessage message = new WebMessage();
+    String sqlState = ex.getSQLState();
+    message.setHttpStatus(HttpStatus.CONFLICT);
+    message.setStatus(Status.ERROR);
+    ErrorCode errorCode = getErrorCode(ex);
+    message.setErrorCode(errorCode);
+    message.setMessage(errorCode.getMessage());
+    if (StringUtils.isNotBlank(sqlState)) {
+      message.setDevMessage("SqlState: " + sqlState);
+      message.setMessage(message.getMessage() + " (SqlState: " + sqlState + ")");
+    }
+    return message;
+  }
+
+  public static ErrorCode getErrorCode(SQLException ex) {
+    if (relationDoesNotExist(ex)) {
+      return ErrorCode.E7144;
+    }
+    return ErrorCode.E7145;
+  }
 }

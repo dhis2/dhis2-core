@@ -29,7 +29,6 @@
   description: Aggregate data elements which belong to datasets with different period types.
   section: Data elements (aggregate)
   section_order: 7
-  summary_uid: DnXxP2Nfn6i
   summary_sql: >-
     WITH des_different_periodtypes as (
     SELECT uid,dataelement_name as name,
@@ -58,13 +57,15 @@
     SELECT COUNT(*) as value,
     100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM dataelement), 0) as percent
     FROM des_different_periodtypes;
-  details_uid: N45TSlWpBwu
   details_sql: >-
     SELECT uid,dataelement_name as name,
-    STRING_AGG(dataset_name, ';') as comment from (
+    STRING_AGG(dataset_name, ';') as comment,
+    ARRAY_AGG(ds_uid) as refs  
+      from (
     SELECT e.dataelement_name,
     e.uid,
-    h.name as dataset_name
+    h.name as dataset_name,
+    h.uid as ds_uid
     FROM (
     SELECT dataelementid,dataelement_name,uid,
     UNNEST(periodtypes) as periodtypeid FROM (

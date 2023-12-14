@@ -76,7 +76,7 @@ class CsvEventServiceTest {
 
     service.write(out, Collections.singletonList(new Event()), false);
 
-    assertEquals(",ACTIVE,,,,,,,,,,,false,false,,,,,,,,,,,,,,,,,\n", out.toString());
+    assertEquals(",ACTIVE,,,,,,,,,,false,false,,,,,,,,,,,,,,,,,\n", out.toString());
   }
 
   @Test
@@ -84,7 +84,7 @@ class CsvEventServiceTest {
     Event event =
         Event.builder()
             .event("BuA2R2Gr4vt")
-            .followup(true)
+            .followUp(true)
             .deleted(false)
             .status(EventStatus.ACTIVE)
             .build();
@@ -93,7 +93,7 @@ class CsvEventServiceTest {
 
     service.write(out, Collections.singletonList(event), false);
 
-    assertEquals("BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,,,,,,,\n", out.toString());
+    assertEquals("BuA2R2Gr4vt,ACTIVE,,,,,,,,,,true,false,,,,,,,,,,,,,,,,,\n", out.toString());
   }
 
   @Test
@@ -106,7 +106,7 @@ class CsvEventServiceTest {
     Event event =
         Event.builder()
             .event("BuA2R2Gr4vt")
-            .followup(true)
+            .followUp(true)
             .deleted(false)
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(dataValue1, dataValue2))
@@ -116,8 +116,8 @@ class CsvEventServiceTest {
 
     service.write(out, Collections.singletonList(event), false);
 
-    assertInCSV(out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,color,yellow,,true,,,\n");
-    assertInCSV(out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,color,purple,,true,,,\n");
+    assertInCSV(out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,true,false,,,,,,,,,,,color,yellow,,true,,,\n");
+    assertInCSV(out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,true,false,,,,,,,,,,,color,purple,,true,,,\n");
   }
 
   private void assertInCSV(ByteArrayOutputStream out, String expectedLine) {
@@ -142,6 +142,7 @@ class CsvEventServiceTest {
     assertEquals("programId", events.get(0).getProgram());
     assertEquals("programStageId", events.get(0).getProgramStage());
     assertEquals("orgUnitId", events.get(0).getOrgUnit());
+    assertEquals("attributeOptionComboId", events.get(0).getAttributeOptionCombo());
     assertEquals("2018-11-01T00:00:00Z", events.get(0).getOccurredAt().toString());
     assertEquals(EventStatus.ACTIVE, events.get(0).getStatus());
     assertNull(events.get(0).getEnrollment());
@@ -153,7 +154,6 @@ class CsvEventServiceTest {
     assertNull(events.get(0).getCompletedAt());
     assertNull(events.get(0).getCompletedBy());
     assertNull(events.get(0).getStoredBy());
-    assertNull(events.get(0).getAttributeOptionCombo());
     assertNull(events.get(0).getAttributeCategoryOptions());
     assertEquals(new User(), events.get(0).getAssignedUser());
     assertTrue(events.get(0).getDataValues().isEmpty());
@@ -207,9 +207,9 @@ class CsvEventServiceTest {
 
   @ValueSource(
       strings = {
-        ",,,,,,,,,POINT (-11.4283223849698 8.06311527044516)",
-        ",,,,,,,,,\"POINT (-11.4283223849698 8.06311527044516)\"",
-        ",,,,,,,,,'POINT (-11.4283223849698 8.06311527044516)'",
+        ",,,,,,,,POINT (-11.4283223849698 8.06311527044516)",
+        ",,,,,,,,\"POINT (-11.4283223849698 8.06311527044516)\"",
+        ",,,,,,,,'POINT (-11.4283223849698 8.06311527044516)'",
       })
   @ParameterizedTest
   void testReadEventsParsesGeometryEvenIfQuoted(String csv) throws IOException, ParseException {

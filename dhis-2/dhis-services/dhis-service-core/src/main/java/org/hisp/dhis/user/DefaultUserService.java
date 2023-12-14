@@ -70,6 +70,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.SecurityService;
@@ -82,8 +84,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -106,13 +106,13 @@ public class DefaultUserService implements UserService {
 
   private final PasswordManager passwordManager;
 
-  private final SessionRegistry sessionRegistry;
-
   private final SecurityService securityService;
 
   private final Cache<String> userDisplayNameCache;
 
   private final AclService aclService;
+
+  private final OrganisationUnitService organisationUnitService;
 
   public DefaultUserService(
       UserStore userStore,
@@ -122,17 +122,17 @@ public class DefaultUserService implements UserService {
       SystemSettingManager systemSettingManager,
       CacheProvider cacheProvider,
       @Lazy PasswordManager passwordManager,
-      @Lazy SessionRegistry sessionRegistry,
       @Lazy SecurityService securityService,
-      AclService aclService) {
+      AclService aclService,
+      @Lazy OrganisationUnitService organisationUnitService) {
     checkNotNull(userStore);
     checkNotNull(userGroupService);
     checkNotNull(userRoleStore);
     checkNotNull(systemSettingManager);
     checkNotNull(passwordManager);
-    checkNotNull(sessionRegistry);
     checkNotNull(securityService);
     checkNotNull(aclService);
+    checkNotNull(organisationUnitService);
 
     this.userStore = userStore;
     this.userGroupService = userGroupService;
@@ -140,10 +140,10 @@ public class DefaultUserService implements UserService {
     this.currentUserService = currentUserService;
     this.systemSettingManager = systemSettingManager;
     this.passwordManager = passwordManager;
-    this.sessionRegistry = sessionRegistry;
     this.securityService = securityService;
     this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
     this.aclService = aclService;
+    this.organisationUnitService = organisationUnitService;
   }
 
   @Override
@@ -618,49 +618,55 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ErrorReport> validateUser(User user, User currentUser) {
+  public List<ErrorReport> validateUserCreateOrUpdateAccess(User user, User currentUser) {
+
     List<ErrorReport> errors = new ArrayList<>();
 
-    if (currentUser == null || user == null) {
+    if (currentUser == null || user == null || currentUser.isSuper()) {
       return errors;
     }
 
-    // Validate user role
-
-    boolean canGrantOwnUserRoles =
-        systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
-
-    Set<UserRole> userRoles = user.getUserRoles();
-
-    if (userRoles != null) {
-      List<UserRole> roles =
-          userRoleStore.getByUid(
-              userRoles.stream().map(IdentifiableObject::getUid).collect(Collectors.toList()));
-
-      roles.forEach(
-          ur -> {
-            if (ur == null) {
-              errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, user.getUsername()));
-            } else if (!currentUser.canIssueUserRole(ur, canGrantOwnUserRoles)) {
-              errors.add(
-                  new ErrorReport(
-                      UserRole.class, ErrorCode.E3003, currentUser.getUsername(), ur.getName()));
-            }
-          });
+    User userToChange = userStore.get(user.getId());
+    if (userToChange != null && userToChange.isSuper()) {
+      errors.add(new ErrorReport(User.class, ErrorCode.E3041, currentUser.getUsername()));
     }
 
-    // Validate user group
+    checkHasAccessToUserRoles(user, currentUser, errors);
+    checkHasAccessToUserGroups(user, currentUser, errors);
+
+    checkIsInOrgUnitHierarchy(user.getOrganisationUnits(), currentUser, errors);
+    checkIsInOrgUnitHierarchy(user.getDataViewOrganisationUnits(), currentUser, errors);
+    checkIsInOrgUnitHierarchy(user.getTeiSearchOrganisationUnits(), currentUser, errors);
+
+    return errors;
+  }
+
+  private void checkIsInOrgUnitHierarchy(
+      Set<OrganisationUnit> organisationUnits, User currentUser, List<ErrorReport> errors) {
+    for (OrganisationUnit orgUnit : organisationUnits) {
+      boolean inUserHierarchy = organisationUnitService.isInUserHierarchy(currentUser, orgUnit);
+      if (!inUserHierarchy) {
+        errors.add(
+            new ErrorReport(
+                OrganisationUnit.class,
+                ErrorCode.E7617,
+                orgUnit.getUid(),
+                currentUser.getUsername()));
+      }
+    }
+  }
+
+  private void checkHasAccessToUserGroups(User user, User currentUser, List<ErrorReport> errors) {
+
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
-
     if (canAdd) {
-      return errors;
+      return;
     }
 
     boolean canAddInGroup = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD_IN_GROUP);
-
     if (!canAddInGroup) {
       errors.add(new ErrorReport(UserGroup.class, ErrorCode.E3004, currentUser));
-      return errors;
+      return;
     }
 
     user.getGroups()
@@ -671,6 +677,51 @@ public class DefaultUserService implements UserService {
                 errors.add(new ErrorReport(UserGroup.class, ErrorCode.E3005, currentUser, ug));
               }
             });
+  }
+
+  private void checkHasAccessToUserRoles(User user, User currentUser, List<ErrorReport> errors) {
+    Set<UserRole> userRoles = user.getUserRoles();
+
+    boolean canGrantOwnUserRoles =
+        systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
+
+    if (userRoles != null) {
+      List<UserRole> roles =
+          userRoleStore.getByUid(
+              userRoles.stream().map(IdentifiableObject::getUid).collect(Collectors.toList()));
+
+      roles.forEach(
+          ur -> {
+            if (ur == null) {
+              errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, user.getUsername()));
+
+            } else if (!currentUser.canIssueUserRole(ur, canGrantOwnUserRoles)) {
+              errors.add(
+                  new ErrorReport(
+                      UserRole.class, ErrorCode.E3003, currentUser.getUsername(), ur.getName()));
+            }
+          });
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, User currentUser) {
+
+    List<ErrorReport> errors = new ArrayList<>();
+
+    if (currentUser == null || role == null) {
+      return errors;
+    }
+
+    if (!currentUser.isSuper() && role.isSuper()) {
+      errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, currentUser.getUsername()));
+    }
+
+    UserRole userRoleBefore = userRoleStore.get(role.getId());
+    if (!currentUser.isSuper() && userRoleBefore != null && userRoleBefore.isSuper()) {
+      errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, currentUser.getUsername()));
+    }
 
     return errors;
   }
@@ -740,9 +791,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   public void expireActiveSessions(User user) {
-    List<SessionInformation> sessions = sessionRegistry.getAllSessions(user, false);
-
-    sessions.forEach(SessionInformation::expireNow);
+    currentUserService.invalidateUserSessions(user.getUid());
   }
 
   @Override

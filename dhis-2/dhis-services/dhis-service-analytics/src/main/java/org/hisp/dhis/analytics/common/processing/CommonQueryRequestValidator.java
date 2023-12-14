@@ -31,7 +31,6 @@ import static org.apache.commons.lang3.StringUtils.countMatches;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.feedback.ErrorCode.E4014;
-import static org.hisp.dhis.feedback.ErrorCode.E7136;
 import static org.hisp.dhis.feedback.ErrorCode.E7139;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
@@ -51,9 +50,6 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
    */
   @Override
   public void validate(CommonQueryRequest commonQueryRequest) {
-    if (!commonQueryRequest.hasPrograms()) {
-      throw new IllegalQueryException(new ErrorMessage(E7136));
-    }
 
     for (String programUid : commonQueryRequest.getProgram()) {
       if (!isValidUid(programUid)) {

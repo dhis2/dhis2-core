@@ -47,6 +47,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -89,6 +90,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.design.Column;
+import org.hisp.dhis.dashboard.design.Layout;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -191,6 +195,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.utils.Dxf2NamespaceResolver;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
@@ -220,6 +225,7 @@ public abstract class DhisConvenienceTest {
   protected static final String BASE_UID = "abcdefghij";
 
   protected static final String BASE_IN_UID = "inabcdefgh";
+  protected static final String BASE_IN_TYPE_UID = "IntY123abg";
 
   protected static final String BASE_DE_UID = "deabcdefgh";
 
@@ -237,7 +243,7 @@ public abstract class DhisConvenienceTest {
 
   protected static final String BASE_PR_UID = "prabcdefgh";
 
-  protected static final String BASE_TEI_UID = "teibcdefgh";
+  protected static final String BASE_TE_UID = "teibcdefgh";
 
   protected static final String BASE_PREDICTOR_GROUP_UID = "predictorg";
 
@@ -721,6 +727,7 @@ public abstract class DhisConvenienceTest {
         new CategoryOptionGroup("CategoryOptionGroup" + uniqueIdentifier);
     categoryOptionGroup.setShortName("ShortName" + uniqueIdentifier);
     categoryOptionGroup.setAutoFields();
+    categoryOptionGroup.setDataDimensionType(DISAGGREGATION);
 
     categoryOptionGroup.setMembers(new HashSet<>());
 
@@ -742,6 +749,7 @@ public abstract class DhisConvenienceTest {
     CategoryOptionGroupSet categoryOptionGroupSet =
         new CategoryOptionGroupSet("CategoryOptionGroupSet" + categoryGroupSetUniqueIdentifier);
     categoryOptionGroupSet.setAutoFields();
+    categoryOptionGroupSet.setDataDimensionType(DISAGGREGATION);
 
     for (CategoryOptionGroup categoryOptionGroup : categoryOptionGroups) {
       categoryOptionGroupSet.addCategoryOptionGroup(categoryOptionGroup);
@@ -820,6 +828,7 @@ public abstract class DhisConvenienceTest {
     IndicatorType type = new IndicatorType();
     type.setAutoFields();
 
+    type.setUid(BASE_IN_TYPE_UID + uniqueCharacter);
     type.setName("IndicatorType" + uniqueCharacter);
     type.setFactor(100);
 
@@ -1618,15 +1627,15 @@ public abstract class DhisConvenienceTest {
   }
 
   public static Enrollment createEnrollment(
-      Program program, TrackedEntity tei, OrganisationUnit organisationUnit) {
-    Enrollment enrollment = new Enrollment(program, tei, organisationUnit);
+      Program program, TrackedEntity te, OrganisationUnit organisationUnit) {
+    Enrollment enrollment = new Enrollment(program, te, organisationUnit);
     enrollment.setAutoFields();
 
     enrollment.setProgram(program);
-    enrollment.setTrackedEntity(tei);
+    enrollment.setTrackedEntity(te);
     enrollment.setOrganisationUnit(organisationUnit);
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setIncidentDate(new Date());
+    enrollment.setOccurredDate(new Date());
 
     return enrollment;
   }
@@ -1649,7 +1658,7 @@ public abstract class DhisConvenienceTest {
       OrganisationUnit organisationUnit,
       Set<EventDataValue> dataValues) {
     Event event = createEvent(programStage, enrollment, organisationUnit);
-    event.setExecutionDate(new Date());
+    event.setOccurredDate(new Date());
     event.setStatus(EventStatus.ACTIVE);
     event.setEventDataValues(dataValues);
     return event;
@@ -1919,19 +1928,19 @@ public abstract class DhisConvenienceTest {
     eventConstraint.setProgram(program);
     eventConstraint.setTrackedEntityType(trackedEntityType);
     eventConstraint.setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
-    RelationshipConstraint teiConstraint = new RelationshipConstraint();
-    teiConstraint.setProgram(program);
-    teiConstraint.setTrackedEntityType(trackedEntityType);
-    teiConstraint.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    RelationshipConstraint teConstraint = new RelationshipConstraint();
+    teConstraint.setProgram(program);
+    teConstraint.setTrackedEntityType(trackedEntityType);
+    teConstraint.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     RelationshipType relationshipType = createRelationshipType(uniqueCharacter);
     relationshipType.setName("Malaria case linked to person");
     relationshipType.setBidirectional(true);
     relationshipType.setFromConstraint(eventConstraint);
-    relationshipType.setToConstraint(teiConstraint);
+    relationshipType.setToConstraint(teConstraint);
     return relationshipType;
   }
 
-  public static Relationship createTeiToTeiRelationship(
+  public static Relationship createTeToTeRelationship(
       TrackedEntity from, TrackedEntity to, RelationshipType relationshipType) {
     Relationship relationship = new Relationship();
     RelationshipItem riFrom = new RelationshipItem();
@@ -1951,7 +1960,7 @@ public abstract class DhisConvenienceTest {
     return relationship;
   }
 
-  public static Relationship createTeiToEnrollmentRelationship(
+  public static Relationship createTeToEnrollmentRelationship(
       TrackedEntity from, Enrollment to, RelationshipType relationshipType) {
     Relationship relationship = new Relationship();
     RelationshipItem riFrom = new RelationshipItem();
@@ -1971,7 +1980,7 @@ public abstract class DhisConvenienceTest {
     return relationship;
   }
 
-  public static Relationship createTeiToEventRelationship(
+  public static Relationship createTeToEventRelationship(
       TrackedEntity from, Event to, RelationshipType relationshipType) {
     Relationship relationship = new Relationship();
     RelationshipItem riFrom = new RelationshipItem();
@@ -1996,61 +2005,61 @@ public abstract class DhisConvenienceTest {
       Program program,
       TrackedEntityType trackedEntityType,
       boolean isBidirectional) {
-    RelationshipConstraint teiConstraintA = new RelationshipConstraint();
-    teiConstraintA.setProgram(program);
-    teiConstraintA.setTrackedEntityType(trackedEntityType);
-    teiConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
-    RelationshipConstraint teiConstraintB = new RelationshipConstraint();
-    teiConstraintB.setProgram(program);
-    teiConstraintB.setTrackedEntityType(trackedEntityType);
-    teiConstraintB.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    RelationshipConstraint teConstraintA = new RelationshipConstraint();
+    teConstraintA.setProgram(program);
+    teConstraintA.setTrackedEntityType(trackedEntityType);
+    teConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    RelationshipConstraint teConstraintB = new RelationshipConstraint();
+    teConstraintB.setProgram(program);
+    teConstraintB.setTrackedEntityType(trackedEntityType);
+    teConstraintB.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     RelationshipType relationshipType = createRelationshipType(uniqueCharacter);
     relationshipType.setName("Person_to_person_" + uniqueCharacter);
     relationshipType.setBidirectional(isBidirectional);
-    relationshipType.setFromConstraint(teiConstraintA);
-    relationshipType.setToConstraint(teiConstraintB);
+    relationshipType.setFromConstraint(teConstraintA);
+    relationshipType.setToConstraint(teConstraintB);
     return relationshipType;
   }
 
-  public static RelationshipType createTeiToEnrollmentRelationshipType(
+  public static RelationshipType createTeToEnrollmentRelationshipType(
       char uniqueCharacter,
       Program program,
       TrackedEntityType trackedEntityType,
       boolean isBidirectional) {
-    RelationshipConstraint teiConstraintA = new RelationshipConstraint();
-    teiConstraintA.setProgram(program);
-    teiConstraintA.setTrackedEntityType(trackedEntityType);
-    teiConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
-    RelationshipConstraint teiConstraintB = new RelationshipConstraint();
-    teiConstraintB.setProgram(program);
-    teiConstraintB.setTrackedEntityType(trackedEntityType);
-    teiConstraintB.setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
+    RelationshipConstraint teConstraintA = new RelationshipConstraint();
+    teConstraintA.setProgram(program);
+    teConstraintA.setTrackedEntityType(trackedEntityType);
+    teConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    RelationshipConstraint teConstraintB = new RelationshipConstraint();
+    teConstraintB.setProgram(program);
+    teConstraintB.setTrackedEntityType(trackedEntityType);
+    teConstraintB.setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
     RelationshipType relationshipType = createRelationshipType(uniqueCharacter);
     relationshipType.setName("Tei_to_enrollment_" + uniqueCharacter);
     relationshipType.setBidirectional(isBidirectional);
-    relationshipType.setFromConstraint(teiConstraintA);
-    relationshipType.setToConstraint(teiConstraintB);
+    relationshipType.setFromConstraint(teConstraintA);
+    relationshipType.setToConstraint(teConstraintB);
     return relationshipType;
   }
 
-  public static RelationshipType createTeiToEventRelationshipType(
+  public static RelationshipType createTeToEventRelationshipType(
       char uniqueCharacter,
       Program program,
       TrackedEntityType trackedEntityType,
       boolean isBidirectional) {
-    RelationshipConstraint teiConstraintA = new RelationshipConstraint();
-    teiConstraintA.setProgram(program);
-    teiConstraintA.setTrackedEntityType(trackedEntityType);
-    teiConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
-    RelationshipConstraint teiConstraintB = new RelationshipConstraint();
-    teiConstraintB.setProgram(program);
-    teiConstraintB.setTrackedEntityType(trackedEntityType);
-    teiConstraintB.setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
+    RelationshipConstraint teConstraintA = new RelationshipConstraint();
+    teConstraintA.setProgram(program);
+    teConstraintA.setTrackedEntityType(trackedEntityType);
+    teConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    RelationshipConstraint teConstraintB = new RelationshipConstraint();
+    teConstraintB.setProgram(program);
+    teConstraintB.setTrackedEntityType(trackedEntityType);
+    teConstraintB.setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
     RelationshipType relationshipType = createRelationshipType(uniqueCharacter);
     relationshipType.setName("Tei_to_event_" + uniqueCharacter);
     relationshipType.setBidirectional(isBidirectional);
-    relationshipType.setFromConstraint(teiConstraintA);
-    relationshipType.setToConstraint(teiConstraintB);
+    relationshipType.setFromConstraint(teConstraintA);
+    relationshipType.setToConstraint(teConstraintB);
     return relationshipType;
   }
 
@@ -2105,7 +2114,7 @@ public abstract class DhisConvenienceTest {
     TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setAutoFields();
     trackedEntity.setOrganisationUnit(organisationUnit);
-    trackedEntity.setUid(BASE_TEI_UID + uniqueChar);
+    trackedEntity.setUid(BASE_TE_UID + uniqueChar);
 
     return trackedEntity;
   }
@@ -2272,16 +2281,19 @@ public abstract class DhisConvenienceTest {
       DataSetNotificationTrigger dataSetNotificationTrigger,
       Integer relativeScheduledDays,
       SendStrategy sendStrategy) {
-    return new DataSetNotificationTemplate(
-        Sets.newHashSet(),
-        Sets.newHashSet(),
-        "Message",
-        notificationRecipient,
-        dataSetNotificationTrigger,
-        "Subject",
-        null,
-        relativeScheduledDays,
-        sendStrategy);
+    DataSetNotificationTemplate dst =
+        new DataSetNotificationTemplate(
+            newHashSet(),
+            newHashSet(),
+            "Message",
+            notificationRecipient,
+            dataSetNotificationTrigger,
+            "Subject",
+            null,
+            relativeScheduledDays,
+            sendStrategy);
+    dst.setName(name);
+    return dst;
   }
 
   public static ValidationNotificationTemplate createValidationNotificationTemplate(String name) {
@@ -2649,6 +2661,10 @@ public abstract class DhisConvenienceTest {
     object.getSharing().resetUserAccesses();
   }
 
+  protected void removePublicAccess(IdentifiableObject object) {
+    object.getSharing().setPublicAccess("--------");
+  }
+
   protected void enableDataSharing(User user, IdentifiableObject object, String access) {
     object.getSharing().resetUserAccesses();
 
@@ -2657,6 +2673,17 @@ public abstract class DhisConvenienceTest {
     userAccess.setAccess(access);
 
     object.getSharing().addUserAccess(userAccess);
+  }
+
+  protected void enableDataSharingWithUserGroup(
+      UserGroup userGroup, IdentifiableObject object, String access) {
+    object.getSharing().resetUserGroupAccesses();
+
+    UserGroupAccess userGroupAccess = new UserGroupAccess();
+    userGroupAccess.setUserGroup(userGroup);
+    userGroupAccess.setAccess(access);
+
+    object.getSharing().addUserGroupAccess(userGroupAccess);
   }
 
   private static User createUser(String username, String uid) {
@@ -2871,5 +2898,25 @@ public abstract class DhisConvenienceTest {
     relType.setToConstraint(relationshipConstraintTo);
 
     return relType;
+  }
+
+  protected Dashboard createDashboard(char uniqueChar) {
+    Dashboard dashboard = new Dashboard();
+    dashboard.setName("Dashboard " + uniqueChar);
+    dashboard.setUid(CodeGenerator.generateUid());
+    return dashboard;
+  }
+
+  protected Layout createLayoutWithColumns(int numColumns) {
+    Layout layout = new Layout();
+    List<Column> columns = new ArrayList<>();
+    for (int i = 0; i < numColumns; i++) {
+      Column column = new Column();
+      column.setIndex(i);
+      column.setSpan(i);
+      columns.add(column);
+    }
+    layout.setColumns(columns);
+    return layout;
   }
 }

@@ -30,9 +30,10 @@ package org.hisp.dhis.tracker.imports.validation;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.imports.TrackerType;
+import org.hisp.dhis.tracker.TrackerType;
 import org.junit.jupiter.api.Test;
 
 class ValidationResultTest {
@@ -77,7 +78,7 @@ class ValidationResultTest {
   }
 
   private Error newError(String uid, ValidationCode code) {
-    return new Error("", code, TrackerType.EVENT, uid);
+    return new Error("", code, TrackerType.EVENT, uid, List.of());
   }
 
   private Warning newWarning() {

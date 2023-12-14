@@ -49,7 +49,7 @@ public interface TrackedEntityStore {
   Map<String, TrackedEntity> getTrackedEntities(List<Long> ids, Context ctx);
 
   /**
-   * Fetches all the relationships having the TEI id specified in the arg as "left" or "right"
+   * Fetches all the relationships having the TE id specified in the arg as "left" or "right"
    * relationship
    *
    * @param ids a list of Tracked Entity Primary Keys
@@ -73,11 +73,12 @@ public interface TrackedEntityStore {
   Multimap<String, TrackedEntityProgramOwner> getProgramOwners(List<Long> ids);
 
   /**
-   * For each tei, get the list of programs for which the user has ownership.
+   * For each te, get the list of programs for which the user has ownership.
    *
    * @param ids a list of Tracked Entity primary keys
    * @param ctx aggregate context
    * @return Tei uids mapped to a list of program uids to which user has ownership
    */
-  Multimap<String, String> getOwnedTeis(List<Long> ids, Context ctx);
+  Multimap<String, String> getOwnedTeis(
+      List<Long> ids, Context ctx, boolean skipUserScopeValidation);
 }

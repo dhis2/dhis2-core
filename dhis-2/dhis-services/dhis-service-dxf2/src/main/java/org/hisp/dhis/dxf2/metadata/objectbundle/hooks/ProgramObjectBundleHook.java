@@ -78,6 +78,19 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
     if (program.getId() != 0 && getProgramInstancesCount(program) > 1) {
       addReports.accept(new ErrorReport(Program.class, ErrorCode.E6000, program.getName()));
     }
+    Program relatedProgram = program.getRelatedProgram();
+    if (relatedProgram != null && Objects.equals(relatedProgram.getUid(), program.getUid())) {
+      addReports.accept(new ErrorReport(Program.class, ErrorCode.E6022, "relatedProgram"));
+    }
+    if (relatedProgram != null && program.getProgramType().isEventProgram()) {
+      addReports.accept(
+          new ErrorReport(
+              Program.class,
+              ErrorCode.E4023,
+              "relatedProgram",
+              "programType",
+              ProgramType.WITHOUT_REGISTRATION.name()));
+    }
     validateAttributeSecurity(program, bundle, addReports);
   }
 
@@ -113,7 +126,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
     if (getProgramInstancesCount(program) == 0 && program.isWithoutRegistration()) {
       Enrollment pi = new Enrollment();
       pi.setEnrollmentDate(new Date());
-      pi.setIncidentDate(new Date());
+      pi.setOccurredDate(new Date());
       pi.setProgram(program);
       pi.setStatus(ProgramStatus.ACTIVE);
       pi.setStoredBy("system-process");

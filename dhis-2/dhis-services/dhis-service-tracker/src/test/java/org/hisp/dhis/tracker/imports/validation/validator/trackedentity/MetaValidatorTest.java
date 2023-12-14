@@ -78,40 +78,40 @@ class MetaValidatorTest {
 
   @Test
   void verifyTrackedEntityValidationSuccess() {
-    TrackedEntity tei = validTei();
+    TrackedEntity te = validTe();
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
         .thenReturn(new OrganisationUnit());
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TRACKED_ENTITY_TYPE_UID)))
         .thenReturn(new TrackedEntityType());
 
-    validator.validate(reporter, bundle, tei);
+    validator.validate(reporter, bundle, te);
 
     assertIsEmpty(reporter.getErrors());
   }
 
   @Test
   void verifyTrackedEntityValidationFailsWhenOrgUnitIsNotPresentInDb() {
-    TrackedEntity tei = validTei();
+    TrackedEntity te = validTe();
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TRACKED_ENTITY_TYPE_UID)))
         .thenReturn(new TrackedEntityType());
 
-    validator.validate(reporter, bundle, tei);
+    validator.validate(reporter, bundle, te);
 
-    assertHasError(reporter, tei, E1049);
+    assertHasError(reporter, te, E1049);
   }
 
   @Test
   void verifyTrackedEntityValidationFailsWhenTrackedEntityTypeIsNotPresentInDb() {
-    TrackedEntity tei = validTei();
+    TrackedEntity te = validTe();
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
         .thenReturn(new OrganisationUnit());
 
-    validator.validate(reporter, bundle, tei);
+    validator.validate(reporter, bundle, te);
 
-    assertHasError(reporter, tei, E1005);
+    assertHasError(reporter, te, E1005);
   }
 
-  private TrackedEntity validTei() {
+  private TrackedEntity validTe() {
     return TrackedEntity.builder()
         .trackedEntity(TRACKED_ENTITY_UID)
         .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID))

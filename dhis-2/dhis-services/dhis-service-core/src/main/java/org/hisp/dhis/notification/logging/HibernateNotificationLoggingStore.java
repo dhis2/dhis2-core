@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.notification.logging;
 
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -42,13 +42,13 @@ public class HibernateNotificationLoggingStore
     extends HibernateIdentifiableObjectStore<ExternalNotificationLogEntry>
     implements NotificationLoggingStore {
   public HibernateNotificationLoggingStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         ExternalNotificationLogEntry.class,

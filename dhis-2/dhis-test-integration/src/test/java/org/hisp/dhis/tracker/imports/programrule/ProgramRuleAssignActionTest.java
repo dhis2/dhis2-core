@@ -52,6 +52,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,28 +87,31 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
     assignProgramRule();
     trackerImportService.importTracker(
+        new TrackerImportParams(),
         fromJson("tracker/programrule/tei_enrollment_completed_event.json"));
   }
 
   @Test
   void shouldImportWithWarningWhenDataElementWithSameValueIsAssignedByAssignRule()
       throws IOException {
-    TrackerImportParams params =
+    TrackerImportParams params = new TrackerImportParams();
+    TrackerObjects trackerObjects =
         fromJson("tracker/programrule/event_update_datavalue_same_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-    ImportReport importReport = trackerImportService.importTracker(params);
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasOnlyWarnings(importReport, E1308);
   }
 
   @Test
   void shouldNotImportWhenDataElementWithDifferentValueIsAssignedByAssignRule() throws IOException {
-    TrackerImportParams params =
+    TrackerImportParams params = new TrackerImportParams();
+    TrackerObjects trackerObjects =
         fromJson("tracker/programrule/event_update_datavalue_different_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-    ImportReport importReport = trackerImportService.importTracker(params);
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasOnlyErrors(importReport, E1307);
   }
@@ -117,22 +121,33 @@ class ProgramRuleAssignActionTest extends TrackerTest {
       shouldImportWithWarningWhenDataElementWithDifferentValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
           throws IOException {
     systemSettingManager.saveSystemSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE, true);
-    TrackerImportParams params =
+    TrackerImportParams params = new TrackerImportParams();
+    TrackerObjects trackerObjects =
         fromJson("tracker/programrule/event_update_datavalue_different_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-    ImportReport importReport = trackerImportService.importTracker(params);
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    assertHasOnlyWarnings(importReport, E1308);
+  }
+
+  @Test
+  void
+      shouldImportWithWarningWhenDataElementWithDifferentAndEmptyValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
+          throws IOException {
+    systemSettingManager.saveSystemSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE, true);
+    TrackerImportParams params = new TrackerImportParams();
+    TrackerObjects trackerObjects =
+        fromJson("tracker/programrule/event_update_datavalue_empty_value.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasOnlyWarnings(importReport, E1308);
   }
 
   private void assignProgramRule() {
-    ProgramRule programRule =
-        createProgramRule(
-            'F',
-            program,
-            null,
-            "d2:daysBetween('2019-01-28', d2:lastEventDate('ProgramRuleVariableA')) < 5");
+    ProgramRule programRule = createProgramRule('F', program, null, "true");
     programRuleService.addProgramRule(programRule);
     ProgramRuleAction programRuleAction =
         createProgramRuleAction(programRule, ASSIGN, dataElement1, "#{ProgramRuleVariableA}");

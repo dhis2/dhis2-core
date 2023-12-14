@@ -59,6 +59,7 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javax.persistence.EntityManagerFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -99,6 +100,7 @@ import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
@@ -152,6 +154,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping(value = EventController.RESOURCE_PATH)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
+@OpenApi.Ignore
 public class EventController {
   public static final String RESOURCE_PATH = "/events";
 
@@ -192,6 +195,8 @@ public class EventController {
   private final ContextUtils contextUtils;
 
   private final DhisConfigurationProvider dhisConfig;
+
+  private final EntityManagerFactory entityManagerFactory;
 
   private Schema schema;
 
@@ -252,7 +257,7 @@ public class EventController {
       Model model,
       HttpServletResponse response,
       HttpServletRequest request)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
@@ -639,13 +644,14 @@ public class EventController {
       @RequestParam Map<String, String> parameters,
       Model model,
       HttpServletResponse response,
-      HttpServletRequest request) {
+      HttpServletRequest request)
+      throws ForbiddenException {
     WebOptions options = new WebOptions(parameters);
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
       fields.add(
-          "event,uid,program,programStage,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup,deleted,dataValues");
+          "event,uid,program,programStage,programType,status,assignedUser,orgUnit,orgUnitName,attributeOptionCombo,eventDate,created,lastUpdated,followup,deleted,dataValues");
     }
 
     EventSearchParams params = requestToSearchParamsMapper.map(eventCriteria);
@@ -695,7 +701,7 @@ public class EventController {
       Model model,
       HttpServletResponse response,
       HttpServletRequest request)
-      throws WebMessageException {
+      throws ForbiddenException {
     WebOptions options = new WebOptions(parameters);
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
@@ -767,7 +773,7 @@ public class EventController {
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       HttpServletResponse response,
       HttpServletRequest request)
-      throws IOException, WebMessageException {
+      throws IOException, ForbiddenException {
     EventSearchParams params = requestToSearchParamsMapper.map(eventCriteria);
 
     Events events = eventService.getEvents(params);
@@ -821,7 +827,7 @@ public class EventController {
       @RequestParam Map<String, String> parameters,
       IdSchemes idSchemes,
       Model model)
-      throws WebMessageException {
+      throws ForbiddenException {
     CategoryOptionCombo attributeOptionCombo =
         inputUtils.getAttributeOptionCombo(attributeCc, attributeCos, true);
 
@@ -1148,7 +1154,7 @@ public class EventController {
     Event updatedEvent = renderService.fromJson(inputStream, Event.class);
     updatedEvent.setEvent(uid);
 
-    return updateEvent(updatedEvent, true, null);
+    return importSummary(eventService.updateEventDataValues(updatedEvent));
   }
 
   @PutMapping(value = "/{uid}/eventDate", consumes = APPLICATION_JSON_VALUE)
@@ -1191,13 +1197,11 @@ public class EventController {
   private WebMessage startAsyncImport(ImportOptions importOptions, List<Event> events) {
     JobConfiguration jobId =
         new JobConfiguration(
-            "inMemoryEventImport",
-            EVENT_IMPORT,
-            currentUserService.getCurrentUser().getUid(),
-            true);
-    taskExecutor.executeTask(new ImportEventsTask(events, eventService, importOptions, jobId));
+            "inMemoryEventImport", EVENT_IMPORT, currentUserService.getCurrentUser().getUid());
+    taskExecutor.executeTask(
+        new ImportEventsTask(events, eventService, importOptions, jobId, entityManagerFactory));
 
-    return jobConfigurationReport(jobId).setLocation("/system/tasks/" + EVENT_IMPORT);
+    return jobConfigurationReport(jobId);
   }
 
   private boolean fieldsContains(String match, List<String> fields) {

@@ -28,8 +28,8 @@
 package org.hisp.dhis.dataapproval.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelStore;
@@ -46,13 +46,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateDataApprovalLevelStore
     extends HibernateIdentifiableObjectStore<DataApprovalLevel> implements DataApprovalLevelStore {
   public HibernateDataApprovalLevelStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         DataApprovalLevel.class,

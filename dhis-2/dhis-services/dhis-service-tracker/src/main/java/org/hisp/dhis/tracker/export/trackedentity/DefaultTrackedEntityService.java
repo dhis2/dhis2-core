@@ -27,11 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
-
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -47,8 +42,6 @@ import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -63,18 +56,17 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventParams;
-import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.tracker.export.event.EventStore;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -85,9 +77,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @Service("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService")
 @RequiredArgsConstructor
-public class DefaultTrackedEntityService implements TrackedEntityService {
+class DefaultTrackedEntityService implements TrackedEntityService {
 
-  private final org.hisp.dhis.trackedentity.TrackedEntityService teiService;
+  private final TrackedEntityStore trackedEntityStore;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -113,7 +105,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   public TrackedEntity getTrackedEntity(
       String uid, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    TrackedEntity daoTrackedEntity = teiService.getTrackedEntity(uid);
+    TrackedEntity daoTrackedEntity = trackedEntityStore.getByUid(uid);
+    addTrackedEntityAudit(daoTrackedEntity, currentUserService.getCurrentUsername());
     if (daoTrackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
@@ -150,7 +143,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       if (params.isIncludeProgramOwners()) {
         Set<TrackedEntityProgramOwner> filteredProgramOwners =
             trackedEntity.getProgramOwners().stream()
-                .filter(tei -> tei.getProgram().getUid().equals(programIdentifier))
+                .filter(te -> te.getProgram().getUid().equals(programIdentifier))
                 .collect(Collectors.toSet());
         trackedEntity.setProgramOwners(filteredProgramOwners);
       }
@@ -185,6 +178,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     TrackedEntity result = new TrackedEntity();
+    result.setId(trackedEntity.getId());
     result.setUid(trackedEntity.getUid());
     result.setOrganisationUnit(trackedEntity.getOrganisationUnit());
     result.setTrackedEntityType(trackedEntity.getTrackedEntityType());
@@ -266,8 +260,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
     if (item.getTrackedEntity() != null) {
       if (trackedEntity.getUid().equals(item.getTrackedEntity().getUid())) {
-        // only fetch the TEI if we do not already have access to it. meaning the TEI owns the item
-        // this is just mapping the TEI
+        // only fetch the TE if we do not already have access to it. meaning the TE owns the item
+        // this is just mapping the TE
         result.setTrackedEntity(trackedEntity);
       } else {
         result.setTrackedEntity(
@@ -292,18 +286,17 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
-  public TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
+  public List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams);
-    final List<Long> ids = teiService.getTrackedEntityIds(queryParams, false, false);
-
-    if (ids.isEmpty()) {
-      return TrackedEntities.EMPTY;
-    }
+    final List<Long> ids = getTrackedEntityIds(queryParams);
 
     List<TrackedEntity> trackedEntities =
         this.trackedEntityAggregate.find(
-            ids, operationParams.getTrackedEntityParams(), queryParams);
+            ids,
+            operationParams.getTrackedEntityParams(),
+            queryParams,
+            operationParams.getOrgUnitMode());
 
     mapRelationshipItems(
         trackedEntities,
@@ -312,21 +305,39 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
     addSearchAudit(trackedEntities, queryParams.getUser());
 
-    if (operationParams.isSkipPaging()) {
-      return TrackedEntities.withoutPagination(trackedEntities);
-    }
+    return trackedEntities;
+  }
 
-    Pager pager;
+  @Override
+  public Page<TrackedEntity> getTrackedEntities(
+      TrackedEntityOperationParams operationParams, PageParams pageParams)
+      throws BadRequestException, ForbiddenException, NotFoundException {
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams);
+    final Page<Long> ids = getTrackedEntityIds(queryParams, pageParams);
 
-    if (operationParams.isTotalPages()) {
-      int count = teiService.getTrackedEntityCount(queryParams, true, true);
-      pager =
-          new Pager(queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault());
-    } else {
-      pager = handleLastPageFlag(operationParams, trackedEntities);
-    }
+    List<TrackedEntity> trackedEntities =
+        this.trackedEntityAggregate.find(
+            ids.getItems(),
+            operationParams.getTrackedEntityParams(),
+            queryParams,
+            operationParams.getOrgUnitMode());
 
-    return TrackedEntities.of(trackedEntities, pager);
+    mapRelationshipItems(
+        trackedEntities,
+        operationParams.getTrackedEntityParams(),
+        operationParams.isIncludeDeleted());
+
+    addSearchAudit(trackedEntities, queryParams.getUser());
+
+    return Page.of(trackedEntities, ids.getPager());
+  }
+
+  public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
+    return trackedEntityStore.getTrackedEntityIds(params);
+  }
+
+  public Page<Long> getTrackedEntityIds(TrackedEntityQueryParams params, PageParams pageParams) {
+    return trackedEntityStore.getTrackedEntityIds(params, pageParams);
   }
 
   /**
@@ -430,9 +441,9 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     List<TrackedEntityAudit> auditable =
         trackedEntities.stream()
             .filter(Objects::nonNull)
-            .filter(tei -> tei.getTrackedEntityType() != null)
-            .filter(tei -> tetMap.get(tei.getTrackedEntityType().getUid()).isAllowAuditLog())
-            .map(tei -> new TrackedEntityAudit(tei.getUid(), accessedBy, AuditType.SEARCH))
+            .filter(te -> te.getTrackedEntityType() != null)
+            .filter(te -> tetMap.get(te.getTrackedEntityType().getUid()).isAllowAuditLog())
+            .map(te -> new TrackedEntityAudit(te.getUid(), accessedBy, AuditType.SEARCH))
             .toList();
 
     if (!auditable.isEmpty()) {
@@ -440,35 +451,19 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
   }
 
-  /**
-   * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link EventStore#getEvents(EventSearchParams,
-   * Map<String,Set<String>>)}
-   *
-   * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
-   * allow us to evaluate if we are in the last page or not. And this is what his method does,
-   * returning the respective Pager object.
-   *
-   * @param params the request params
-   * @param trackedEntityList the reference to the list of Tracked Entities
-   * @return the populated SlimPager instance
-   */
-  private Pager handleLastPageFlag(
-      TrackedEntityOperationParams params, List<TrackedEntity> trackedEntityList) {
-    Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
-    Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
-    boolean isLastPage = false;
-
-    if (isNotEmpty(trackedEntityList)) {
-      isLastPage = trackedEntityList.size() <= originalPageSize;
-      if (!isLastPage) {
-        // Get the same number of elements of the pageSize, forcing
-        // the removal of the last additional element added at querying
-        // time.
-        trackedEntityList.retainAll(trackedEntityList.subList(0, originalPageSize));
-      }
+  private void addTrackedEntityAudit(TrackedEntity trackedEntity, String user) {
+    if (user != null
+        && trackedEntity != null
+        && trackedEntity.getTrackedEntityType() != null
+        && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
+      TrackedEntityAudit trackedEntityAudit =
+          new TrackedEntityAudit(trackedEntity.getUid(), user, AuditType.READ);
+      trackedEntityAuditService.addTrackedEntityAudit(trackedEntityAudit);
     }
+  }
 
-    return new SlimPager(originalPage, originalPageSize, isLastPage);
+  @Override
+  public Set<String> getOrderableFields() {
+    return trackedEntityStore.getOrderableFields();
   }
 }

@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 
 public interface TrackedEntityService {
 
@@ -39,19 +43,25 @@ public interface TrackedEntityService {
 
   TrackedEntity getTrackedEntity(
       TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
+      throws ForbiddenException;
 
   TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
+  /** Get all tracked entities matching given params. */
+  List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
+      throws BadRequestException, ForbiddenException, NotFoundException;
+
+  /** Get a page of tracked entities matching given params. */
+  Page<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams params, PageParams pageParams)
+      throws BadRequestException, ForbiddenException, NotFoundException;
+
   /**
-   * Fetches {@see TrackedEntity}s based on the specified parameters.
-   *
-   * @param operationParams a {@see TrackedEntityOperationParams} instance with the operation
-   *     parameters
-   * @return {@see TrackedEntity}s
+   * Fields the {@link #getTrackedEntities(TrackedEntityOperationParams)} can order tracked entities
+   * by. Ordering by fields other than these is considered a programmer error. Validation of user
+   * provided field names should occur before calling {@link
+   * #getTrackedEntities(TrackedEntityOperationParams)}.
    */
-  TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
-      throws ForbiddenException, NotFoundException, BadRequestException;
+  Set<String> getOrderableFields();
 }

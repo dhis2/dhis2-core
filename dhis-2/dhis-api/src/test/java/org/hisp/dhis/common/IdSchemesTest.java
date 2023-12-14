@@ -29,6 +29,8 @@ package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 class IdSchemesTest {
@@ -50,5 +52,26 @@ class IdSchemesTest {
     assertEquals(IdentifiableProperty.ATTRIBUTE, schemeA.getIdentifiableProperty());
     assertEquals("abcdefghijA", schemeA.getAttribute());
     assertEquals(IdentifiableProperty.CODE, schemeB.getIdentifiableProperty());
+  }
+
+  @Test
+  void testSerializeIdSchemes() throws JsonProcessingException {
+    IdSchemes original = new IdSchemes();
+    original.setProgramIdScheme("CODE");
+    // language=JSON
+    String expected = """
+        {"programIdScheme":{"type":"CODE"}}""";
+    assertEquals(expected, new ObjectMapper().writeValueAsString(original));
+  }
+
+  @Test
+  void testDeserializeIdSchemes() throws JsonProcessingException {
+    IdSchemes expected = new IdSchemes();
+    expected.setProgramIdScheme("CODE");
+
+    ObjectMapper mapper = new ObjectMapper();
+    IdSchemes actual = mapper.readValue(mapper.writeValueAsString(expected), IdSchemes.class);
+    assertEquals(expected, actual);
+    assertEquals(IdentifiableProperty.CODE, actual.getProgramIdScheme().getIdentifiableProperty());
   }
 }

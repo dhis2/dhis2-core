@@ -34,8 +34,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetStore;
@@ -71,12 +72,12 @@ public class HibernateLockExceptionStore extends HibernateGenericStore<LockExcep
   private final PeriodService periodService;
 
   public HibernateLockExceptionStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       DataSetStore dataSetStore,
       PeriodService periodService) {
-    super(sessionFactory, jdbcTemplate, publisher, LockException.class, false);
+    super(entityManager, jdbcTemplate, publisher, LockException.class, false);
 
     checkNotNull(dataSetStore);
     checkNotNull(periodService);
@@ -90,7 +91,7 @@ public class HibernateLockExceptionStore extends HibernateGenericStore<LockExcep
   // -------------------------------------------------------------------------
 
   @Override
-  public void save(LockException lockException) {
+  public void save(@Nonnull LockException lockException) {
     lockException.setPeriod(periodService.reloadPeriod(lockException.getPeriod()));
     lockException.setAutoFields();
 
@@ -98,7 +99,7 @@ public class HibernateLockExceptionStore extends HibernateGenericStore<LockExcep
   }
 
   @Override
-  public void update(LockException lockException) {
+  public void update(@Nonnull LockException lockException) {
     lockException.setPeriod(periodService.reloadPeriod(lockException.getPeriod()));
     lockException.setAutoFields();
 

@@ -29,13 +29,13 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValueAuditService;
-import org.hisp.dhis.merge.orgunit.DataMergeStrategy;
+import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.validation.ValidationResultService;
@@ -55,7 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RequiredArgsConstructor
 public class DataOrgUnitMergeHandler {
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -93,32 +93,34 @@ public class DataOrgUnitMergeHandler {
   }
 
   private String getMergeDataValuesLastUpdatedSql(OrgUnitMergeRequest request) {
-    // @formatter:off
     return String.format(
         // Delete existing target data values
-        "delete from datavalue where sourceid = :target_id; " +
-        // Insert target data values for last modified source data values
-        "with dv_rank as ( " +
+        "delete from datavalue where sourceid = :target_id; "
+            +
+            // Insert target data values for last modified source data values
+            "with dv_rank as ( "
+            +
             // Window over data value sources ranked by last modification
-            "select dv.*, row_number() over (" +
-                "partition by dv.dataelementid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid " +
-                "order by dv.lastupdated desc, dv.created desc) as lastupdated_rank " +
-            "from datavalue dv " +
-            "where dv.sourceid in (:source_ids) " +
-            "and dv.deleted is false" +
-        ") " +
-        // Insert target data values
-        "insert into datavalue (" +
-            "dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, " +
-            "value, storedby, created, lastupdated, comment, followup, deleted) " +
-        "select dataelementid, periodid, %s, categoryoptioncomboid, attributeoptioncomboid, " +
-            "value, storedby, created, lastupdated, comment, followup, false " +
-        "from dv_rank " +
-        "where dv_rank.lastupdated_rank = 1; " +
-        // Delete source data values
-        "delete from datavalue where sourceid in (:source_ids);",
-        request.getTarget().getId() );
-    // @formatter:on
+            "select dv.*, row_number() over ("
+            + "partition by dv.dataelementid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid "
+            + "order by dv.lastupdated desc, dv.created desc) as lastupdated_rank "
+            + "from datavalue dv "
+            + "where dv.sourceid in (:source_ids) "
+            + "and dv.deleted is false"
+            + ") "
+            +
+            // Insert target data values
+            "insert into datavalue ("
+            + "dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, "
+            + "value, storedby, created, lastupdated, comment, followup, deleted) "
+            + "select dataelementid, periodid, %s, categoryoptioncomboid, attributeoptioncomboid, "
+            + "value, storedby, created, lastupdated, comment, followup, false "
+            + "from dv_rank "
+            + "where dv_rank.lastupdated_rank = 1; "
+            +
+            // Delete source data values
+            "delete from datavalue where sourceid in (:source_ids);",
+        request.getTarget().getId());
   }
 
   public void mergeDataApprovalAudits(OrgUnitMergeRequest request) {
@@ -145,7 +147,6 @@ public class DataOrgUnitMergeHandler {
   }
 
   private String getMergeDataApprovalsLastUpdatedSql(OrgUnitMergeRequest request) {
-    // @formatter:off
     return String.format(
         // Delete existing target data approvals
         "delete from dataapproval where organisationunitid = :target_id; "
@@ -173,7 +174,6 @@ public class DataOrgUnitMergeHandler {
             // Delete source data approvals
             "delete from dataapproval where organisationunitid in (:source_ids);",
         request.getTarget().getId());
-    // @formatter:on
   }
 
   public void mergeLockExceptions(OrgUnitMergeRequest request) {
@@ -201,11 +201,10 @@ public class DataOrgUnitMergeHandler {
   }
 
   private void migrate(String hql, OrgUnitMergeRequest request) {
-    sessionFactory
-        .getCurrentSession()
+    entityManager
         .createQuery(hql)
         .setParameter("target", request.getTarget())
-        .setParameterList("sources", IdentifiableObjectUtils.getIdentifiers(request.getSources()))
+        .setParameter("sources", IdentifiableObjectUtils.getIdentifiers(request.getSources()))
         .executeUpdate();
   }
 }

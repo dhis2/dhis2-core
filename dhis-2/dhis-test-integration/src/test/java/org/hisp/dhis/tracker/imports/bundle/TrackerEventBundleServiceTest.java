@@ -38,6 +38,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +59,10 @@ class TrackerEventBundleServiceTest extends TrackerTest {
 
   @Test
   void testCreateSingleEventData() throws IOException {
-    TrackerImportParams trackerImportParams = fromJson("tracker/event_events_and_enrollment.json");
-    assertEquals(8, trackerImportParams.getEvents().size());
-    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    TrackerObjects trackerObjects = fromJson("tracker/event_events_and_enrollment.json");
+    assertEquals(8, trackerObjects.getEvents().size());
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
     assertNoErrors(importReport);
 
     List<Event> events = eventStore.getAll();
@@ -69,13 +71,15 @@ class TrackerEventBundleServiceTest extends TrackerTest {
 
   @Test
   void testUpdateSingleEventData() throws IOException {
-    TrackerImportParams trackerImportParams = fromJson("tracker/event_events_and_enrollment.json");
+    TrackerObjects trackerObjects = fromJson("tracker/event_events_and_enrollment.json");
+    TrackerImportParams trackerImportParams = new TrackerImportParams();
     trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
-    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    ImportReport importReport =
+        trackerImportService.importTracker(trackerImportParams, trackerObjects);
     assertNoErrors(importReport);
     assertEquals(8, eventStore.getAll().size());
 
-    importReport = trackerImportService.importTracker(trackerImportParams);
+    importReport = trackerImportService.importTracker(trackerImportParams, trackerObjects);
     assertNoErrors(importReport);
 
     assertEquals(8, eventStore.getAll().size());

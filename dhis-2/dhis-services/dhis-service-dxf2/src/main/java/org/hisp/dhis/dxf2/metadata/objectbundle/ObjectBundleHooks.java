@@ -77,7 +77,7 @@ public class ObjectBundleHooks {
    *     ObjectBundleHook#preDelete(Object, ObjectBundle)}.
    */
   @SuppressWarnings("unchecked")
-  public <T> List<ObjectBundleHook<? super T>> getObjectHooks(T object) {
+  public <T> List<ObjectBundleHook<T>> getObjectHooks(T object) {
     return getTypeImportHooks(HibernateProxyUtils.getRealClass(object));
   }
 
@@ -91,7 +91,7 @@ public class ObjectBundleHooks {
    *     ObjectBundleHook#postTypeImport(Class, List, ObjectBundle)}.
    */
   @SuppressWarnings({"unchecked", "rawtypes"})
-  public <T> List<ObjectBundleHook<? super T>> getTypeImportHooks(Class<T> objectType) {
+  public <T> List<ObjectBundleHook<T>> getTypeImportHooks(Class<T> objectType) {
     return (List) hooksForObjectType.computeIfAbsent(objectType, this::computeHooks);
   }
 

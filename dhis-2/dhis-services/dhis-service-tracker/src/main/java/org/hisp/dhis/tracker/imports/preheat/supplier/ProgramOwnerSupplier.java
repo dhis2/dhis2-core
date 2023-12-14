@@ -38,8 +38,8 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.OrganisationUnitMapper;
 import org.springframework.stereotype.Component;
@@ -53,26 +53,26 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier {
   @Nonnull private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
 
   @Override
-  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
     final Map<String, TrackedEntity> preheatedTrackedEntities = preheat.getTrackedEntities();
     final Map<String, Enrollment> preheatedEnrollments = preheat.getEnrollments();
-    Set<Long> teiIds = new HashSet<>();
-    for (org.hisp.dhis.tracker.imports.domain.Enrollment en : params.getEnrollments()) {
-      TrackedEntity tei = preheatedTrackedEntities.get(en.getTrackedEntity());
-      if (tei != null) {
-        teiIds.add(tei.getId());
+    Set<Long> teIds = new HashSet<>();
+    for (org.hisp.dhis.tracker.imports.domain.Enrollment en : trackerObjects.getEnrollments()) {
+      TrackedEntity te = preheatedTrackedEntities.get(en.getTrackedEntity());
+      if (te != null) {
+        teIds.add(te.getId());
       }
     }
 
-    for (Event ev : params.getEvents()) {
+    for (Event ev : trackerObjects.getEvents()) {
       Enrollment enrollment = preheatedEnrollments.get(ev.getEnrollment());
       if (enrollment != null && enrollment.getTrackedEntity() != null) {
-        teiIds.add(enrollment.getTrackedEntity().getId());
+        teIds.add(enrollment.getTrackedEntity().getId());
       }
     }
 
     List<TrackedEntityProgramOwnerOrgUnit> tepos =
-        trackedEntityProgramOwnerStore.getTrackedEntityProgramOwnerOrgUnits(teiIds);
+        trackedEntityProgramOwnerStore.getTrackedEntityProgramOwnerOrgUnits(teIds);
 
     tepos =
         tepos.stream()

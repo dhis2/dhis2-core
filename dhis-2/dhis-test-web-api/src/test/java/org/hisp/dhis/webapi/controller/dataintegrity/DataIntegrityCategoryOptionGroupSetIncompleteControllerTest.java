@@ -61,7 +61,7 @@ class DataIntegrityCategoryOptionGroupSetIncompleteControllerTest
             HttpStatus.CREATED,
             POST(
                 "/categoryOptionGroups",
-                "{ 'name': 'Warm', 'shortName': 'Warm', 'categoryOptions' : [{'id' : '"
+                "{ 'name': 'Warm', 'shortName': 'Warm', 'dataDimensionType':'DISAGGREGATION', 'categoryOptions' : [{'id' : '"
                     + categoryOptionRed
                     + "'}]}"));
 
@@ -70,7 +70,7 @@ class DataIntegrityCategoryOptionGroupSetIncompleteControllerTest
             HttpStatus.CREATED,
             POST(
                 "/categoryOptionGroups",
-                "{ 'name': 'Cold', 'shortName': 'Cold', 'categoryOptions' : [{'id' : '"
+                "{ 'name': 'Cold', 'shortName': 'Cold', 'dataDimensionType':'DISAGGREGATION', 'categoryOptions' : [{'id' : '"
                     + categoryOptionBlue
                     + "'}]}"));
 
@@ -79,7 +79,7 @@ class DataIntegrityCategoryOptionGroupSetIncompleteControllerTest
             HttpStatus.CREATED,
             POST(
                 "/categoryOptionGroupSets",
-                "{ 'name': 'Color set', 'shortName': 'Color set', 'categoryOptionGroups' : [{'id': '"
+                "{ 'name': 'Color set', 'shortName': 'Color set', 'dataDimensionType':'DISAGGREGATION', 'categoryOptionGroups' : [{'id': '"
                     + warmGroup
                     + "'}, {'id' : '"
                     + coldGroup
@@ -98,7 +98,7 @@ class DataIntegrityCategoryOptionGroupSetIncompleteControllerTest
             HttpStatus.CREATED,
             POST(
                 "/categoryOptionGroups",
-                "{ 'name': 'Warm', 'shortName': 'Warm', 'categoryOptions' : [{'id' : '"
+                "{ 'name': 'Warm', 'shortName': 'Warm', 'dataDimensionType':'DISAGGREGATION', 'categoryOptions' : [{'id' : '"
                     + categoryOptionRed
                     + "'}, {'id' : '"
                     + categoryOptionYellow
@@ -109,7 +109,7 @@ class DataIntegrityCategoryOptionGroupSetIncompleteControllerTest
             HttpStatus.CREATED,
             POST(
                 "/categoryOptionGroups",
-                "{ 'name': 'Cold', 'shortName': 'Cold', 'categoryOptions' : [{'id' : '"
+                "{ 'name': 'Cold', 'shortName': 'Cold', 'dataDimensionType':'DISAGGREGATION', 'categoryOptions' : [{'id' : '"
                     + categoryOptionBlue
                     + "'}]}"));
 
@@ -117,7 +117,7 @@ class DataIntegrityCategoryOptionGroupSetIncompleteControllerTest
         HttpStatus.CREATED,
         POST(
             "/categoryOptionGroupSets",
-            "{ 'name': 'Color set', 'shortName': 'Color set', 'categoryOptionGroups' : [{'id': '"
+            "{ 'name': 'Color set', 'shortName': 'Color set', 'dataDimensionType':'DISAGGREGATION', 'categoryOptionGroups' : [{'id': '"
                 + warmGroup
                 + "'}, {'id' : '"
                 + coldGroup

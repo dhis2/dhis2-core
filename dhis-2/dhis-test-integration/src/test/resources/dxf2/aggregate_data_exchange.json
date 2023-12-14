@@ -54,10 +54,11 @@
             "ou": [
               "ImspTQPwCqd"
             ],
-            "inputIdScheme": null,
-            "outputDataElementIdScheme": null,
-            "outputOrgUnitIdScheme": null,
-            "outputIdscheme": null
+            "inputIdScheme": "UID",
+            "outputDataElementIdScheme": "UID",
+            "outputOrgUnitIdScheme": "UID",
+            "outputDataItemIdScheme": "UID",
+            "outputIdScheme": "UID"
           }
         ]
       },
@@ -67,7 +68,10 @@
           "dataElementIdScheme": null,
           "orgUnitIdScheme": null,
           "categoryOptionComboIdScheme": null,
-          "idScheme": null
+          "idScheme": null,
+          "importStrategy": "CREATE_AND_UPDATE",
+          "skipAudit": false,
+          "dryRun": false
         }
       }
     },
@@ -99,7 +103,8 @@
             "inputIdScheme": "UID",
             "outputDataElementIdScheme": "UID",
             "outputOrgUnitIdScheme": "UID",
-            "outputIdscheme": "UID"
+            "outputDataItemIdScheme": "UID",
+            "outputIdScheme": "UID"
           }
         ]
       },
@@ -114,7 +119,10 @@
           "dataElementIdScheme": "UID",
           "orgUnitIdScheme": "UID",
           "categoryOptionComboIdScheme": "UID",
-          "idScheme": "UID"
+          "idScheme": "UID",
+          "importStrategy": "CREATE_AND_UPDATE",
+          "skipAudit": false,
+          "dryRun": false
         }
       }
     },
@@ -146,7 +154,8 @@
             "inputIdScheme": "UID",
             "outputDataElementIdScheme": "UID",
             "outputOrgUnitIdScheme": "UID",
-            "outputIdscheme": "UID"
+            "outputDataItemIdScheme": "UID",
+            "outputIdScheme": "UID"
           }
         ]
       },
@@ -160,7 +169,10 @@
           "dataElementIdScheme": "UID",
           "orgUnitIdScheme": "UID",
           "categoryOptionComboIdScheme": "UID",
-          "idScheme": "UID"
+          "idScheme": "UID",
+          "importStrategy": "CREATE_AND_UPDATE",
+          "skipAudit": false,
+          "dryRun": false
         }
       }
     }

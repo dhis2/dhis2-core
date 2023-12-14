@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClient.ContentType;
@@ -37,10 +38,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
+import java.util.Set;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -48,7 +52,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class DataValueSetControllerTest extends DhisControllerConvenienceTest {
+class DataValueSetControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testPostJsonDataValueSet() {
@@ -62,12 +66,8 @@ class DataValueSetControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testPostJsonDataValueSet_Async() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Initiated dataValueImport",
-        POST("/dataValueSets?async=true", "{}").content(HttpStatus.OK));
+    JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/dataValueSets?async=true", "{}"));
+    assertStartsWith("Initiated DATAVALUE_IMPORT", msg.getMessage());
   }
 
   @Test
@@ -100,7 +100,7 @@ class DataValueSetControllerTest extends DhisControllerConvenienceTest {
                 Accept(CONTENT_TYPE_XML))
             .content(APPLICATION_XML.toString());
     assertTrue(content.contains("httpStatusCode=\"200\""));
-    assertTrue(content.contains("Initiated dataValueImport"));
+    assertTrue(content.contains("Initiated DATAVALUE_IMPORT"));
   }
 
   @Test
@@ -137,7 +137,7 @@ class DataValueSetControllerTest extends DhisControllerConvenienceTest {
                 Accept(CONTENT_TYPE_XML))
             .content(APPLICATION_XML.toString());
     assertTrue(content.contains("httpStatusCode=\"200\""));
-    assertTrue(content.contains("Initiated dataValueImport"));
+    assertTrue(content.contains("Initiated DATAVALUE_IMPORT"));
   }
 
   @Test
@@ -165,13 +165,11 @@ class DataValueSetControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testPostCsvDataValueSet_Async() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Initiated dataValueImport",
-        POST("/dataValueSets?async=true", Body("abc"), ContentType("application/csv"))
-            .content(HttpStatus.OK));
+    JsonWebMessage msg =
+        assertWebMessage(
+            HttpStatus.OK,
+            POST("/dataValueSets?async=true", Body("abc"), ContentType("application/csv")));
+    assertStartsWith("Initiated DATAVALUE_IMPORT", msg.getMessage());
   }
 
   @Test
@@ -207,5 +205,35 @@ class DataValueSetControllerTest extends DhisControllerConvenienceTest {
             .as(JsonWebMessage.class);
     assertEquals(
         String.format("User is not allowed to view org unit: `%s`", ouId), response.getMessage());
+  }
+
+  @Test
+  @DisplayName("Should return error message when user does not have DATA_READ to DataSet")
+  void testGetDataValueSetJsonWithNonAccessibleDataSet() {
+    String orgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', 'code':'OU1'}"));
+    String dsId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
+
+    switchToNewUser(
+        createAndAddUser(Set.of(), Set.of(manager.get(OrganisationUnit.class, orgUnitId))));
+    JsonWebMessage response =
+        GET(
+                "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}&period=2022-01&dataSet={ds}&async=true",
+                "OU1",
+                dsId)
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+    assertEquals(
+        String.format("User is not allowed to read data for data set: `%s`", dsId),
+        response.getMessage());
   }
 }

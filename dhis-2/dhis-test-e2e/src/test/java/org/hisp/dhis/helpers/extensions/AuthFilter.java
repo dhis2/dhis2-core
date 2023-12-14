@@ -33,6 +33,7 @@ import io.restassured.filter.FilterContext;
 import io.restassured.response.Response;
 import io.restassured.specification.FilterableRequestSpecification;
 import io.restassured.specification.FilterableResponseSpecification;
+import java.util.Objects;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -57,10 +58,12 @@ public class AuthFilter implements io.restassured.spi.AuthFilter {
     }
 
     if (requestSpec.getAuthenticationScheme() instanceof PreemptiveBasicAuthScheme
-        && (((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName()
-                != lastLoggedInUser
-            || ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getPassword()
-                != lastLoggedInUserPsw)) {
+        && (!Objects.equals(
+                ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName(),
+                lastLoggedInUser)
+            || !Objects.equals(
+                ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getPassword(),
+                lastLoggedInUserPsw))) {
       if (hasSessionCookie(requestSpec)) {
         requestSpec.removeCookies();
       }
@@ -71,8 +74,7 @@ public class AuthFilter implements io.restassured.spi.AuthFilter {
           ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getPassword();
     }
 
-    final Response response = ctx.next(requestSpec, responseSpec);
-    return response;
+    return ctx.next(requestSpec, responseSpec);
   }
 
   private boolean hasSessionCookie(FilterableRequestSpecification requestSpec) {

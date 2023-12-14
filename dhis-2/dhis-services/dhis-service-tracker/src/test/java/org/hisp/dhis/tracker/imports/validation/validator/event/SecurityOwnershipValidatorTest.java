@@ -76,9 +76,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-  private static final String TEI_ID = "TEI_ID";
+  private static final String TE_ID = "TEI_ID";
 
-  private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
+  private static final String TE_TYPE_ID = "TEI_TYPE_ID";
 
   private static final String PROGRAM_ID = "PROGRAM_ID";
 
@@ -121,7 +121,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     organisationUnit.setUid(ORG_UNIT_ID);
 
     trackedEntityType = createTrackedEntityType('A');
-    trackedEntityType.setUid(TEI_TYPE_ID);
+    trackedEntityType.setUid(TE_TYPE_ID);
     program = createProgram('A');
     program.setUid(PROGRAM_ID);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
@@ -305,22 +305,21 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(preheat.getProgramOwner())
         .thenReturn(
             Collections.singletonMap(
-                TEI_ID,
+                TE_ID,
                 Collections.singletonMap(
                     PROGRAM_ID,
-                    new TrackedEntityProgramOwnerOrgUnit(TEI_ID, PROGRAM_ID, organisationUnit))));
+                    new TrackedEntityProgramOwnerOrgUnit(TE_ID, PROGRAM_ID, organisationUnit))));
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(aclService.canDataWrite(user, programStage)).thenReturn(true);
 
-    when(ownershipAccessManager.hasAccess(user, TEI_ID, organisationUnit, program))
+    when(ownershipAccessManager.hasAccess(user, TE_ID, organisationUnit, program))
         .thenReturn(false);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, E1102);
 
-    when(ownershipAccessManager.hasAccess(user, TEI_ID, organisationUnit, program))
-        .thenReturn(true);
+    when(ownershipAccessManager.hasAccess(user, TE_ID, organisationUnit, program)).thenReturn(true);
 
     reporter = new Reporter(idSchemes);
     validator.validate(reporter, bundle, event);
@@ -482,9 +481,9 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     assertIsEmpty(reporter.getErrors());
   }
 
-  private TrackedEntity getTEIWithNoEnrollments() {
+  private TrackedEntity teWithNoEnrollments() {
     TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
-    trackedEntity.setUid(TEI_ID);
+    trackedEntity.setUid(TE_ID);
     trackedEntity.setEnrollments(Sets.newHashSet());
     trackedEntity.setTrackedEntityType(trackedEntityType);
 
@@ -498,7 +497,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     Enrollment enrollment = new Enrollment();
     enrollment.setUid(enrollmentUid);
     enrollment.setOrganisationUnit(organisationUnit);
-    enrollment.setTrackedEntity(getTEIWithNoEnrollments());
+    enrollment.setTrackedEntity(teWithNoEnrollments());
     enrollment.setProgram(program);
     enrollment.setStatus(ProgramStatus.ACTIVE);
     return enrollment;

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi;
 
+import java.time.Duration;
+import java.util.function.BooleanSupplier;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.IntegrationTest;
@@ -46,7 +48,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
@@ -77,6 +81,8 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
   @Autowired protected DhisConfigurationProvider dhisConfigurationProvider;
 
+  @Autowired private TransactionTemplate txTemplate;
+
   @BeforeEach
   final void setup() throws Exception {
     userService = _userService;
@@ -106,5 +112,27 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
       Configurator.setLevel(ORG_HISP_DHIS_DATASOURCE_QUERY, Level.INFO);
       Configurator.setRootLevel(Level.INFO);
     }
+  }
+
+  protected static boolean await(Duration timeout, BooleanSupplier test)
+      throws InterruptedException {
+    while (!timeout.isNegative() && !test.getAsBoolean()) {
+      Thread.sleep(20);
+      timeout = timeout.minusMillis(20);
+    }
+    if (!timeout.isNegative()) return true;
+    return test.getAsBoolean();
+  }
+
+  protected final void doInTransaction(Runnable operation) {
+    final int defaultPropagationBehaviour = txTemplate.getPropagationBehavior();
+    txTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    txTemplate.execute(
+        status -> {
+          operation.run();
+          return null;
+        });
+    // restore original propagation behaviour
+    txTemplate.setPropagationBehavior(defaultPropagationBehaviour);
   }
 }

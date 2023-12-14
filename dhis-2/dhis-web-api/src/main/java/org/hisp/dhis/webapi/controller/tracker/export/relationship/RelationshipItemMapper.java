@@ -80,15 +80,14 @@ interface RelationshipItemMapper
   @Mapping(target = "trackedEntity", source = "trackedEntity.uid")
   @Mapping(target = "program", source = "program.uid")
   @Mapping(target = "orgUnit", source = "organisationUnit.uid")
-  @Mapping(target = "orgUnitName", source = "organisationUnit.name")
   @Mapping(target = "enrolledAt", source = "enrollmentDate")
-  @Mapping(target = "occurredAt", source = "incidentDate")
+  @Mapping(target = "occurredAt", source = "occurredDate")
   @Mapping(target = "followUp", source = "followup")
-  @Mapping(target = "completedAt", source = "endDate")
+  @Mapping(target = "completedAt", source = "completedDate")
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "attributes", source = "trackedEntity.trackedEntityAttributeValues")
-  @Mapping(target = "notes", source = "comments")
+  @Mapping(target = "notes", source = "notes")
   RelationshipItem.Enrollment from(Enrollment enrollment);
 
   default EnrollmentStatus from(ProgramStatus programStatus) {
@@ -100,10 +99,10 @@ interface RelationshipItemMapper
   @Mapping(target = "programStage", source = "programStage.uid")
   @Mapping(target = "enrollment", source = "enrollment.uid")
   @Mapping(target = "orgUnit", source = "organisationUnit.uid")
-  @Mapping(target = "orgUnitName", source = "organisationUnit.name")
-  @Mapping(target = "occurredAt", source = "executionDate")
-  @Mapping(target = "scheduledAt", source = "dueDate")
-  @Mapping(target = "followup", source = "enrollment.followup")
+  @Mapping(target = "occurredAt", source = "occurredDate")
+  @Mapping(target = "scheduledAt", source = "scheduledDate")
+  @Mapping(target = "followUp", source = "enrollment.followup")
+  @Mapping(target = "legacyFollowUp", source = "enrollment.followup")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")
@@ -114,7 +113,7 @@ interface RelationshipItemMapper
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "dataValues", source = "eventDataValues")
-  @Mapping(target = "notes", source = "comments")
+  @Mapping(target = "notes", source = "notes")
   RelationshipItem.Event from(Event event);
 
   @Mapping(target = "displayName", source = "name")

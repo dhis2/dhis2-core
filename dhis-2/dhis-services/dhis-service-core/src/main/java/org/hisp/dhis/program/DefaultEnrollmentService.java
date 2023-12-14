@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 import java.util.Date;
@@ -174,6 +175,9 @@ public class DefaultEnrollmentService implements EnrollmentService {
     if (user != null && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
       params.setOrganisationUnits(user.getTeiSearchOrganisationUnitsWithFallback());
       params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    } else if (user != null && params.isOrganisationUnitMode(CAPTURE)) {
+      params.setOrganisationUnits(user.getOrganisationUnits());
+      params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (params.isOrganisationUnitMode(CHILDREN)) {
       Set<OrganisationUnit> organisationUnits = new HashSet<>(params.getOrganisationUnits());
 
@@ -182,10 +186,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
       }
 
       params.setOrganisationUnits(organisationUnits);
-    }
-
-    if (!params.isPaging() && !params.isSkipPaging()) {
-      params.setDefaultPaging();
     }
 
     return enrollmentStore.getEnrollments(params);
@@ -224,7 +224,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     if (params.hasProgram()) {
       if (!aclService.canDataRead(params.getUser(), params.getProgram())) {
         throw new IllegalQueryException(
-            "Current user is not authorized to read data from selected program:  "
+            "Current user is not authorized to read data from selected program: "
                 + params.getProgram().getUid());
       }
 
@@ -256,7 +256,9 @@ public class DefaultEnrollmentService implements EnrollmentService {
     User user = params.getUser();
 
     if (!params.hasOrganisationUnits()
-        && !(params.isOrganisationUnitMode(ALL) || params.isOrganisationUnitMode(ACCESSIBLE))) {
+        && !(params.isOrganisationUnitMode(ALL)
+            || params.isOrganisationUnitMode(ACCESSIBLE)
+            || params.isOrganisationUnitMode(CAPTURE))) {
       violation = "At least one organisation unit must be specified";
     }
 
@@ -264,6 +266,11 @@ public class DefaultEnrollmentService implements EnrollmentService {
         && (user == null || !user.hasDataViewOrganisationUnitWithFallback())) {
       violation =
           "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
+    }
+
+    if (params.isOrganisationUnitMode(CAPTURE) && (user == null || !user.hasOrganisationUnit())) {
+      violation =
+          "Current user must be associated with at least one organisation unit when selection mode is CAPTURE";
     }
 
     if (params.hasProgram() && params.hasTrackedEntityType()) {
@@ -329,13 +336,13 @@ public class DefaultEnrollmentService implements EnrollmentService {
       Program program,
       ProgramStatus programStatus,
       Date enrollmentDate,
-      Date incidentDate,
+      Date occurredDate,
       OrganisationUnit organisationUnit,
       String uid) {
     if (program.getTrackedEntityType() != null
         && !program.getTrackedEntityType().equals(trackedEntity.getTrackedEntityType())) {
       throw new IllegalQueryException(
-          "Tracked entity instance must have same tracked entity as program: " + program.getUid());
+          "Tracked entity must have same tracked entity as program: " + program.getUid());
     }
 
     Enrollment enrollment = new Enrollment();
@@ -349,10 +356,10 @@ public class DefaultEnrollmentService implements EnrollmentService {
       enrollment.setEnrollmentDate(new Date());
     }
 
-    if (incidentDate != null) {
-      enrollment.setIncidentDate(incidentDate);
+    if (occurredDate != null) {
+      enrollment.setOccurredDate(occurredDate);
     } else {
-      enrollment.setIncidentDate(new Date());
+      enrollment.setOccurredDate(new Date());
     }
 
     enrollment.setStatus(programStatus);
@@ -366,13 +373,13 @@ public class DefaultEnrollmentService implements EnrollmentService {
       TrackedEntity trackedEntity,
       Program program,
       Date enrollmentDate,
-      Date incidentDate,
+      Date occurredDate,
       OrganisationUnit organisationUnit) {
     return enrollTrackedEntity(
         trackedEntity,
         program,
         enrollmentDate,
-        incidentDate,
+        occurredDate,
         organisationUnit,
         CodeGenerator.generateUid());
   }
@@ -383,7 +390,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
       TrackedEntity trackedEntity,
       Program program,
       Date enrollmentDate,
-      Date incidentDate,
+      Date occurredDate,
       OrganisationUnit organisationUnit,
       String uid) {
     // ---------------------------------------------------------------------
@@ -396,7 +403,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
             program,
             ProgramStatus.ACTIVE,
             enrollmentDate,
-            incidentDate,
+            occurredDate,
             organisationUnit,
             uid);
     addEnrollment(enrollment);
@@ -417,7 +424,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     eventPublisher.publishEvent(new EnrollmentEvaluationEvent(this, enrollment.getId()));
 
     // -----------------------------------------------------------------
-    // Update Enrollment and TEI
+    // Update Enrollment and TE
     // -----------------------------------------------------------------
 
     updateEnrollment(enrollment);
@@ -430,7 +437,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
   @Transactional
   public void completeEnrollmentStatus(Enrollment enrollment) {
     // -----------------------------------------------------------------
-    // Update program-instance
+    // Update enrollment
     // -----------------------------------------------------------------
 
     enrollment.setStatus(ProgramStatus.COMPLETED);
@@ -450,22 +457,22 @@ public class DefaultEnrollmentService implements EnrollmentService {
   @Transactional
   public void cancelEnrollmentStatus(Enrollment enrollment) {
     // ---------------------------------------------------------------------
-    // Set status of the program-instance
+    // Set status of the enrollment
     // ---------------------------------------------------------------------
     enrollment.setStatus(ProgramStatus.CANCELLED);
     updateEnrollment(enrollment);
 
     // ---------------------------------------------------------------------
-    // Set statuses of the program-stage-instances
+    // Set statuses of the event
     // ---------------------------------------------------------------------
 
     for (Event event : enrollment.getEvents()) {
-      if (event.getExecutionDate() == null) {
+      if (event.getOccurredDate() == null) {
         // -------------------------------------------------------------
         // Set status as skipped for overdue events, or delete
         // -------------------------------------------------------------
 
-        if (event.getDueDate().before(enrollment.getEndDate())) {
+        if (event.getScheduledDate().before(enrollment.getCompletedDate())) {
           event.setStatus(EventStatus.SKIPPED);
           eventStore.update(event);
         } else {
@@ -480,9 +487,9 @@ public class DefaultEnrollmentService implements EnrollmentService {
   public void incompleteEnrollmentStatus(Enrollment enrollment) {
     Program program = enrollment.getProgram();
 
-    TrackedEntity tei = enrollment.getTrackedEntity();
+    TrackedEntity te = enrollment.getTrackedEntity();
 
-    if (getEnrollments(tei, program, ProgramStatus.ACTIVE).size() > 0) {
+    if (getEnrollments(te, program, ProgramStatus.ACTIVE).size() > 0) {
       log.warn("Program has another active enrollment going on. Not possible to incomplete");
 
       throw new IllegalQueryException(
@@ -490,11 +497,11 @@ public class DefaultEnrollmentService implements EnrollmentService {
     }
 
     // -----------------------------------------------------------------
-    // Update program-instance
+    // Update enrollment
     // -----------------------------------------------------------------
 
     enrollment.setStatus(ProgramStatus.ACTIVE);
-    enrollment.setEndDate(null);
+    enrollment.setCompletedDate(null);
 
     updateEnrollment(enrollment);
   }

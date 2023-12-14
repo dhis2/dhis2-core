@@ -40,6 +40,7 @@ import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.DataType.TEXT;
+import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.getParamsWithOffsetPeriods;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
@@ -47,11 +48,14 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSepa
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteWithFunction;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quotedListOf;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.collection.CollectionUtils.concat;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
+import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -73,6 +77,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
+import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.table.PartitionUtils;
@@ -152,7 +157,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
   private final QueryPlanner queryPlanner;
 
-  @Qualifier("readOnlyJdbcTemplate")
+  @Qualifier("analyticsReadOnlyJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
 
   private final ExecutionPlanStore executionPlanStore;
@@ -180,21 +185,33 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         params = queryPlanner.assignPartitionsFromQueryPeriods(params, tableType);
       }
 
+      if (params.hasSubexpressions() && params.getSubexpression().hasPeriodOffsets()) {
+        params = getParamsWithOffsetPartitions(params, tableType);
+      }
+
       String sql = getSql(params, tableType);
 
       log.debug(sql);
 
+      final DataQueryParams immutableParams = DataQueryParams.newBuilder(params).build();
+
       if (params.analyzeOnly()) {
-        executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql);
+        withExceptionHandling(
+            () -> executionPlanStore.addExecutionPlan(immutableParams.getExplainOrderId(), sql));
         return new AsyncResult<>(Maps.newHashMap());
       }
 
       Map<String, Object> map;
 
       try {
-        map = getKeyValueMap(params, sql, maxLimit);
+        map =
+            withExceptionHandling(() -> getKeyValueMap(immutableParams, sql, maxLimit))
+                .orElse(Map.of());
       } catch (BadSqlGrammarException ex) {
-        log.info(AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+        if (relationDoesNotExist(ex.getSQLException())) {
+          throw ex;
+        }
+        log.warn(ERR_MSG_SILENT_FALLBACK, ex);
         return new AsyncResult<>(Maps.newHashMap());
       }
 
@@ -202,7 +219,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
       return new AsyncResult<>(map);
     } catch (DataAccessResourceFailureException ex) {
-      log.warn(ErrorCode.E7131.getMessage(), ex);
       throw new QueryRuntimeException(ErrorCode.E7131);
     } catch (RuntimeException ex) {
       log.error(DebugUtils.getStackTrace(ex));
@@ -238,7 +254,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
             periods,
             String.format(
                 "Period list cannot be null, key: '%s', map: '%s'",
-                key, dataPeriodAggregationPeriodMap.toString()));
+                key, dataPeriodAggregationPeriodMap));
 
         Object value = dataValueMap.get(key);
 
@@ -271,6 +287,23 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
+
+  /**
+   * For params with subexpression period offsets, inserts the partitions we will need to fetch the
+   * offset data from the database.
+   *
+   * <p>Note that the params query periods are not changed because these are still the reporting
+   * periods that we need to know when constructing the subexpression sub-query.
+   */
+  private DataQueryParams getParamsWithOffsetPartitions(
+      DataQueryParams params, AnalyticsTableType tableType) {
+
+    DataQueryParams paramsWithOffsetPeriods = getParamsWithOffsetPeriods(params);
+    DataQueryParams paramsWithOffsetPartitions =
+        queryPlanner.assignPartitionsFromQueryPeriods(paramsWithOffsetPeriods, tableType);
+    Partitions offsetParitions = paramsWithOffsetPartitions.getPartitions();
+    return DataQueryParams.newBuilder(params).withPartitions(offsetParitions).build();
+  }
 
   /**
    * Generates the query SQL.

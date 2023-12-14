@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,24 +53,19 @@ class TrackerEntityStrategyTest {
   @Mock private TrackerPreheat preheat;
 
   @Test
-  void verifyStrategyAddRightTeisToPreheat() {
-    final List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =
-        trackedEntities();
-    final TrackerImportParams params =
-        TrackerImportParams.builder().trackedEntities(trackedEntities).build();
-
+  void verifyStrategyAddRightTeToPreheat() {
     final List<String> uids = List.of("TEIA", "TEIB");
 
     List<List<String>> splitUids = new ArrayList<>();
     splitUids.add(uids);
 
-    TrackedEntity teiA = new TrackedEntity();
-    teiA.setUid("TEIA");
-    TrackedEntity teiB = new TrackedEntity();
-    teiB.setUid("TEIB");
-    List<TrackedEntity> dbTrackedEntities = List.of(teiA, teiB);
+    TrackedEntity teA = new TrackedEntity();
+    teA.setUid("TEIA");
+    TrackedEntity teB = new TrackedEntity();
+    teB.setUid("TEIB");
+    List<TrackedEntity> dbTrackedEntities = List.of(teA, teB);
     when(trackedEntityStore.getIncludingDeleted(uids)).thenReturn(dbTrackedEntities);
-    strategy.add(params, splitUids, preheat);
+    strategy.add(splitUids, preheat);
 
     Mockito.verify(trackedEntityStore).getIncludingDeleted(uids);
     Mockito.verify(preheat).putTrackedEntities(dbTrackedEntities);

@@ -40,53 +40,6 @@ import org.hisp.dhis.common.Grid;
  * @author Lars Helge Overland
  */
 public interface EventAnalyticsService {
-  String ITEM_EVENT = "psi";
-
-  String ITEM_TRACKED_ENTITY_INSTANCE = "tei";
-
-  String ITEM_PROGRAM_INSTANCE = "pi";
-
-  String ITEM_PROGRAM_STAGE = "ps";
-
-  String ITEM_EVENT_DATE = "eventdate";
-
-  String ITEM_STORED_BY = "storedby";
-
-  String ITEM_CREATED_BY_DISPLAY_NAME = "createdbydisplayname";
-
-  String ITEM_LAST_UPDATED_BY_DISPLAY_NAME = "lastupdatedbydisplayname";
-
-  String ITEM_LAST_UPDATED = "lastupdated";
-
-  String ITEM_SCHEDULED_DATE = "scheduleddate";
-
-  String ITEM_ENROLLMENT_DATE = "enrollmentdate";
-
-  String ITEM_INCIDENT_DATE = "incidentdate";
-
-  String ITEM_GEOMETRY = "geometry";
-
-  String ITEM_LONGITUDE = "longitude";
-
-  String ITEM_LATITUDE = "latitude";
-
-  String ITEM_ORG_UNIT_NAME = "ouname";
-
-  String ITEM_ORG_UNIT_NAME_HIERARCHY = "ounamehierarchy";
-
-  String ITEM_ORG_UNIT_CODE = "oucode";
-
-  String ITEM_COUNT = "count";
-
-  String ITEM_CENTER = "center";
-
-  String ITEM_EXTENT = "extent";
-
-  String ITEM_POINTS = "points";
-
-  String ITEM_PROGRAM_STATUS = "programstatus";
-
-  String ITEM_EVENT_STATUS = "eventstatus";
 
   /**
    * Generates aggregated event data for the given query.

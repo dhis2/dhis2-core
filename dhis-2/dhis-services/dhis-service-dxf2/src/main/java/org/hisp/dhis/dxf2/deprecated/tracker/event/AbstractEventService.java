@@ -55,6 +55,7 @@ import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.PAGE
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,7 +83,6 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SlimPager;
@@ -110,6 +110,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentService;
@@ -122,7 +123,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -131,8 +131,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -189,7 +187,7 @@ public abstract class AbstractEventService
 
   protected TrackedEntityService entityInstanceService;
 
-  protected TrackedEntityCommentService commentService;
+  protected NoteService commentService;
 
   protected EventStore eventStore;
 
@@ -598,8 +596,8 @@ public abstract class AbstractEventService
     event.setEnrollmentStatus(
         EnrollmentStatus.fromProgramStatus(programStageInstance.getEnrollment().getStatus()));
     event.setStatus(programStageInstance.getStatus());
-    event.setEventDate(DateUtils.getIso8601NoTz(programStageInstance.getExecutionDate()));
-    event.setDueDate(DateUtils.getIso8601NoTz(programStageInstance.getDueDate()));
+    event.setEventDate(DateUtils.getIso8601NoTz(programStageInstance.getOccurredDate()));
+    event.setDueDate(DateUtils.getIso8601NoTz(programStageInstance.getScheduledDate()));
     event.setStoredBy(programStageInstance.getStoredBy());
     event.setCompletedBy(programStageInstance.getCompletedBy());
     event.setCompletedDate(DateUtils.getIso8601NoTz(programStageInstance.getCompletedDate()));
@@ -690,7 +688,7 @@ public abstract class AbstractEventService
       }
     }
 
-    event.getNotes().addAll(NoteHelper.convertNotes(programStageInstance.getComments()));
+    event.getNotes().addAll(NoteHelper.convertNotes(programStageInstance.getNotes()));
 
     if (eventParams.isIncludeRelationships()) {
       event.setRelationships(
@@ -763,6 +761,38 @@ public abstract class AbstractEventService
         event, workContextLoader.load(localImportOptions, Collections.singletonList(event)));
   }
 
+  /**
+   * @param event
+   * @return
+   * @throws JsonProcessingException
+   */
+  @Transactional
+  @Override
+  public ImportSummary updateEventDataValues(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event) throws JsonProcessingException {
+
+    WorkContext context =
+        workContextLoader.load(
+            ImportOptions.getDefaultImportOptions(),
+            Collections.singletonList(
+                event)); // load the event data values merging existing and new values
+
+    Set<EventDataValue> eventDataValues =
+        context.getEventDataValueMap().get(event.getEvent()).stream()
+            .filter(
+                edv ->
+                    event.getDataValues().stream()
+                        .anyMatch(
+                            input ->
+                                input
+                                    .getDataElement()
+                                    .equals(edv.getDataElement()))) // filter only for the required
+            // data elements
+            .collect(Collectors.toSet());
+
+    return eventManager.updateEventDataValues(event, eventDataValues, context);
+  }
+
   @Transactional
   @Override
   public void updateEventForNote(org.hisp.dhis.dxf2.deprecated.tracker.event.Event event) {
@@ -803,20 +833,20 @@ public abstract class AbstractEventService
       return;
     }
 
-    Date executionDate = new Date();
+    Date occurreddate = new Date();
 
     if (event.getEventDate() != null) {
-      executionDate = DateUtils.parseDate(event.getEventDate());
+      occurreddate = DateUtils.parseDate(event.getEventDate());
     }
 
-    Date eventDate = executionDate != null ? executionDate : programStageInstance.getDueDate();
+    Date eventDate = occurreddate != null ? occurreddate : programStageInstance.getScheduledDate();
 
     validateAttributeOptionComboDate(programStageInstance.getAttributeOptionCombo(), eventDate);
 
     if (event.getStatus() == EventStatus.COMPLETED) {
       programStageInstance.setStatus(EventStatus.COMPLETED);
     } else {
-      programStageInstance.setStatus(EventStatus.VISITED);
+      programStageInstance.setStatus(EventStatus.ACTIVE);
     }
 
     ImportOptions importOptions = new ImportOptions();
@@ -829,7 +859,7 @@ public abstract class AbstractEventService
     }
 
     programStageInstance.setOrganisationUnit(organisationUnit);
-    programStageInstance.setExecutionDate(executionDate);
+    programStageInstance.setOccurredDate(occurreddate);
     eventService.updateEvent(programStageInstance);
   }
 
@@ -901,11 +931,10 @@ public abstract class AbstractEventService
       String noteUid =
           CodeGenerator.isValidUid(note.getNote()) ? note.getNote() : CodeGenerator.generateUid();
 
-      if (!commentService.trackedEntityCommentExists(noteUid)
-          && !StringUtils.isEmpty(note.getValue())) {
-        TrackedEntityComment comment = new TrackedEntityComment();
+      if (!commentService.noteExists(noteUid) && !StringUtils.isEmpty(note.getValue())) {
+        org.hisp.dhis.note.Note comment = new org.hisp.dhis.note.Note();
         comment.setUid(noteUid);
-        comment.setCommentText(note.getValue());
+        comment.setNoteText(note.getValue());
         comment.setCreator(getValidUsername(note.getStoredBy(), null, storedBy));
 
         Date created = DateUtils.parseDate(note.getStoredDate());
@@ -914,9 +943,9 @@ public abstract class AbstractEventService
         comment.setLastUpdatedBy(user);
         comment.setLastUpdated(new Date());
 
-        commentService.addTrackedEntityComment(comment);
+        commentService.addNote(comment);
 
-        programStageInstance.getComments().add(comment);
+        programStageInstance.getNotes().add(comment);
       }
     }
   }
@@ -975,91 +1004,11 @@ public abstract class AbstractEventService
       violation = "Duration is not valid: " + params.getLastUpdatedDuration();
     }
 
-    if (violation == null
-        && params.getOrgUnit() != null
-        && !trackerAccessManager.canAccess(user, params.getProgram(), params.getOrgUnit())) {
-      violation = "User does not have access to orgUnit: " + params.getOrgUnit().getUid();
-    }
-
-    if (violation == null && params.getOrgUnitSelectionMode() != null) {
-      violation = getOuModeViolation(params, user);
-    }
-
     if (violation != null) {
       log.warn("Validation failed: " + violation);
 
       throw new IllegalQueryException(violation);
     }
-  }
-
-  private String getOuModeViolation(EventSearchParams params, User user) {
-    OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
-
-    String violation = null;
-
-    switch (selectedOuMode) {
-      case ALL:
-        violation =
-            userCanSearchOuModeALL(user)
-                ? null
-                : "Current user is not authorized to query across all organisation units";
-        break;
-      case ACCESSIBLE:
-        violation = getAccessibleScopeValidation(user, params);
-        break;
-      case CAPTURE:
-        violation = getCaptureScopeValidation(user);
-        break;
-      case CHILDREN:
-      case SELECTED:
-      case DESCENDANTS:
-        violation =
-            params.getOrgUnit() == null
-                ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
-                : null;
-        break;
-      default:
-        violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
-        break;
-    }
-
-    return violation;
-  }
-
-  private String getCaptureScopeValidation(User user) {
-    String violation = null;
-
-    if (user == null) {
-      violation = "User is required for ouMode: " + OrganisationUnitSelectionMode.CAPTURE;
-    } else if (user.getOrganisationUnits().isEmpty()) {
-      violation = "User needs to be assigned data capture orgunits";
-    }
-
-    return violation;
-  }
-
-  private String getAccessibleScopeValidation(User user, EventSearchParams params) {
-    String violation = null;
-
-    if (user == null) {
-      return "User is required for ouMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
-    }
-
-    if (params.getProgram() == null
-        || params.getProgram().isClosed()
-        || params.getProgram().isProtected()) {
-      violation =
-          user.getOrganisationUnits().isEmpty()
-              ? "User needs to be assigned data capture orgunits"
-              : null;
-    } else {
-      violation =
-          user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()
-              ? "User needs to be assigned either TEI search, data view or data capture org units"
-              : null;
-    }
-
-    return violation;
   }
 
   /**
@@ -1140,14 +1089,5 @@ public abstract class AbstractEventService
     }
 
     importOptions.setUser(userService.getUser(importOptions.getUser().getId()));
-  }
-
-  private boolean userCanSearchOuModeALL(User user) {
-    if (user == null) {
-      return false;
-    }
-
-    return user.isSuper()
-        || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
   }
 }

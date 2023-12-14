@@ -39,9 +39,9 @@ import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,11 +59,11 @@ class DuplicateRelationshipSupplierTest extends DhisConvenienceTest {
 
   private static final String REL_C_UID = "RELC";
 
-  private static final String TEIA_UID = "TEIA";
+  private static final String TE_A_UID = "TEIA";
 
-  private static final String TEIB_UID = "TEIB";
+  private static final String TE_B_UID = "TEIB";
 
-  private static final String TEIC_UID = "TEIC";
+  private static final String TE_C_UID = "TEIC";
 
   private static final String KEY_REL_A = "UNIRELTYPE_TEIA_TEIB";
 
@@ -85,7 +85,7 @@ class DuplicateRelationshipSupplierTest extends DhisConvenienceTest {
 
   private RelationshipType bidirectionalRelationshipType;
 
-  private TrackedEntity teiA, teiB, teiC;
+  private TrackedEntity teA, teB, teC;
 
   private TrackerPreheat preheat;
 
@@ -105,35 +105,35 @@ class DuplicateRelationshipSupplierTest extends DhisConvenienceTest {
 
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
 
-    teiA = createTrackedEntity(organisationUnit);
-    teiA.setUid(TEIA_UID);
-    teiB = createTrackedEntity(organisationUnit);
-    teiB.setUid(TEIB_UID);
-    teiC = createTrackedEntity(organisationUnit);
-    teiC.setUid(TEIC_UID);
+    teA = createTrackedEntity(organisationUnit);
+    teA.setUid(TE_A_UID);
+    teB = createTrackedEntity(organisationUnit);
+    teB.setUid(TE_B_UID);
+    teC = createTrackedEntity(organisationUnit);
+    teC.setUid(TE_C_UID);
 
     relationshipA =
         org.hisp.dhis.tracker.imports.domain.Relationship.builder()
             .relationship(REL_A_UID)
             .relationshipType(MetadataIdentifier.ofUid(UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID))
-            .from(RelationshipItem.builder().trackedEntity(TEIA_UID).build())
-            .to(RelationshipItem.builder().trackedEntity(TEIB_UID).build())
+            .from(RelationshipItem.builder().trackedEntity(TE_A_UID).build())
+            .to(RelationshipItem.builder().trackedEntity(TE_B_UID).build())
             .build();
 
     relationshipB =
         org.hisp.dhis.tracker.imports.domain.Relationship.builder()
             .relationship(REL_B_UID)
             .relationshipType(MetadataIdentifier.ofUid(BIDIRECTIONAL_RELATIONSHIP_TYPE_UID))
-            .from(RelationshipItem.builder().trackedEntity(TEIB_UID).build())
-            .to(RelationshipItem.builder().trackedEntity(TEIC_UID).build())
+            .from(RelationshipItem.builder().trackedEntity(TE_B_UID).build())
+            .to(RelationshipItem.builder().trackedEntity(TE_C_UID).build())
             .build();
 
     relationshipC =
         org.hisp.dhis.tracker.imports.domain.Relationship.builder()
             .relationship(REL_C_UID)
             .relationshipType(MetadataIdentifier.ofUid(UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID))
-            .from(RelationshipItem.builder().trackedEntity(TEIC_UID).build())
-            .to(RelationshipItem.builder().trackedEntity(TEIA_UID).build())
+            .from(RelationshipItem.builder().trackedEntity(TE_C_UID).build())
+            .to(RelationshipItem.builder().trackedEntity(TE_A_UID).build())
             .build();
 
     preheat = new TrackerPreheat();
@@ -148,29 +148,29 @@ class DuplicateRelationshipSupplierTest extends DhisConvenienceTest {
     when(relationshipStore.getByUid(List.of(REL_A_UID, REL_B_UID)))
         .thenReturn(List.of(relationshipA(), relationshipB()));
 
-    TrackerImportParams trackerImportParams =
-        TrackerImportParams.builder()
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
             .relationships(List.of(relationshipA, relationshipB, relationshipC))
             .build();
 
-    supplier.preheatAdd(trackerImportParams, preheat);
+    supplier.preheatAdd(trackerObjects, preheat);
 
     assertTrue(preheat.isDuplicate(relationshipA));
-    assertFalse(preheat.isDuplicate(invertTeiToTeiRelationship(relationshipA)));
+    assertFalse(preheat.isDuplicate(invertTeToTeRelationship(relationshipA)));
     assertTrue(preheat.isDuplicate(relationshipB));
-    assertTrue(preheat.isDuplicate(invertTeiToTeiRelationship(relationshipB)));
+    assertTrue(preheat.isDuplicate(invertTeToTeRelationship(relationshipB)));
     assertFalse(preheat.isDuplicate(relationshipC));
   }
 
   private Relationship relationshipA() {
-    return createTeiToTeiRelationship(teiA, teiB, unidirectionalRelationshipType);
+    return createTeToTeRelationship(teA, teB, unidirectionalRelationshipType);
   }
 
   private Relationship relationshipB() {
-    return createTeiToTeiRelationship(teiB, teiC, bidirectionalRelationshipType);
+    return createTeToTeRelationship(teB, teC, bidirectionalRelationshipType);
   }
 
-  private org.hisp.dhis.tracker.imports.domain.Relationship invertTeiToTeiRelationship(
+  private org.hisp.dhis.tracker.imports.domain.Relationship invertTeToTeRelationship(
       org.hisp.dhis.tracker.imports.domain.Relationship relationship) {
     return org.hisp.dhis.tracker.imports.domain.Relationship.builder()
         .relationship(relationship.getRelationship())

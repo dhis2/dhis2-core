@@ -52,9 +52,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValue;
 import org.springframework.stereotype.Component;
@@ -74,20 +74,20 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
   @Nonnull private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Override
-  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
     List<TrackedEntityAttribute> uniqueTrackedEntityAttributes =
         trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes();
 
     Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>>
         allUniqueAttributesByTrackedEntity =
-            getAllAttributesByTrackedEntity(params, preheat, uniqueTrackedEntityAttributes);
+            getAllAttributesByTrackedEntity(trackerObjects, preheat, uniqueTrackedEntityAttributes);
 
     List<UniqueAttributeValue> uniqueAttributeValuesFromPayload =
         getDuplicatedUniqueValuesInPayload(allUniqueAttributesByTrackedEntity);
 
     List<UniqueAttributeValue> uniqueAttributeValuesFromDB =
         getAlreadyPresentInDbUniqueValues(
-            params.getIdSchemes(),
+            preheat.getIdSchemes(),
             allUniqueAttributesByTrackedEntity,
             uniqueTrackedEntityAttributes);
 
@@ -102,23 +102,23 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
 
   private Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>>
       getAllAttributesByTrackedEntity(
-          TrackerImportParams params,
+          TrackerObjects trackerObjects,
           TrackerPreheat preheat,
           List<TrackedEntityAttribute> uniqueTrackedEntityAttributes) {
-    Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> teiUniqueAttributes =
-        params.getTrackedEntities().stream()
+    Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> teUniqueAttributes =
+        trackerObjects.getTrackedEntities().stream()
             .collect(
                 toMap(
                     Function.identity(),
-                    tei ->
-                        filterUniqueAttributes(
-                            tei.getAttributes(), uniqueTrackedEntityAttributes)));
+                    te ->
+                        filterUniqueAttributes(te.getAttributes(), uniqueTrackedEntityAttributes)));
 
     Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>>
         enrollmentUniqueAttributes =
-            params.getEnrollments().stream()
+            trackerObjects.getEnrollments().stream()
                 .collect(
-                    groupingBy(e -> getEntityForEnrollment(params, preheat, e.getTrackedEntity())))
+                    groupingBy(
+                        e -> getEntityForEnrollment(trackerObjects, preheat, e.getTrackedEntity())))
                 .entrySet()
                 .stream()
                 .collect(
@@ -133,44 +133,43 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
                                             .stream())
                                 .collect(toSet())));
 
-    return mergeAttributes(teiUniqueAttributes, enrollmentUniqueAttributes);
+    return mergeAttributes(teUniqueAttributes, enrollmentUniqueAttributes);
   }
 
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity getEntityForEnrollment(
-      TrackerImportParams params, TrackerPreheat preheat, String teiUid) {
-    TrackedEntity trackedEntity = preheat.getTrackedEntity(teiUid);
+      TrackerObjects trackerObjects, TrackerPreheat preheat, String teUid) {
+    TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
 
-    // Get tei from Preheat
-    Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> optionalTei =
-        params.getTrackedEntities().stream()
-            .filter(tei -> Objects.equals(tei.getTrackedEntity(), teiUid))
+    // Get te from Preheat
+    Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> optionalTe =
+        trackerObjects.getTrackedEntities().stream()
+            .filter(te -> Objects.equals(te.getTrackedEntity(), teUid))
             .findAny();
-    if (optionalTei.isPresent()) {
-      return optionalTei.get();
+    if (optionalTe.isPresent()) {
+      return optionalTe.get();
     } else if (trackedEntity != null) // Otherwise build it from Payload
     {
-      org.hisp.dhis.tracker.imports.domain.TrackedEntity tei =
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity te =
           new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-      tei.setTrackedEntity(teiUid);
-      tei.setOrgUnit(
-          params.getIdSchemes().toMetadataIdentifier(trackedEntity.getOrganisationUnit()));
-      return tei;
-    } else // TEI is not present. but we do not fail here.
+      te.setTrackedEntity(teUid);
+      te.setOrgUnit(
+          preheat.getIdSchemes().toMetadataIdentifier(trackedEntity.getOrganisationUnit()));
+      return te;
+    } else // TE is not present. but we do not fail here.
     // A validation error will be thrown in validation phase
     {
-      org.hisp.dhis.tracker.imports.domain.TrackedEntity tei =
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity te =
           new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-      tei.setTrackedEntity(teiUid);
-      return tei;
+      te.setTrackedEntity(teUid);
+      return te;
     }
   }
 
   private Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> mergeAttributes(
-      Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> teiAttributes,
+      Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> teAttributes,
       Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>>
           enrollmentAttributes) {
-    return Stream.concat(
-            teiAttributes.entrySet().stream(), enrollmentAttributes.entrySet().stream())
+    return Stream.concat(teAttributes.entrySet().stream(), enrollmentAttributes.entrySet().stream())
         .collect(
             toMap(
                 Map.Entry::getKey,
@@ -185,10 +184,10 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
   private List<UniqueAttributeValue> getDuplicatedUniqueValuesInPayload(
       Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> allAttributes) {
 
-    // TEIs grouped by attribute and value.
+    // TE grouped by attribute and value.
     // Two attributes with the same value and uid are considered equals
     TreeMap<Attribute, List<org.hisp.dhis.tracker.imports.domain.TrackedEntity>>
-        teiByAttributeValue =
+        teByAttributeValue =
             new TreeMap<>(
                 (o1, o2) -> {
                   if (Objects.equals(o1.getValue(), o2.getValue())
@@ -201,28 +200,28 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
     for (Map.Entry<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> entry :
         allAttributes.entrySet()) {
       for (Attribute attribute : entry.getValue()) {
-        if (!teiByAttributeValue.containsKey(attribute)) {
-          teiByAttributeValue.put(attribute, Lists.newArrayList());
+        if (!teByAttributeValue.containsKey(attribute)) {
+          teByAttributeValue.put(attribute, Lists.newArrayList());
         }
-        teiByAttributeValue.get(attribute).add(entry.getKey());
+        teByAttributeValue.get(attribute).add(entry.getKey());
       }
     }
 
-    // If an attribute and value appear in 2 or more teis
+    // If an attribute and value appear in 2 or more tracked entities
     // it means that is not unique
-    return teiByAttributeValue.entrySet().stream()
+    return teByAttributeValue.entrySet().stream()
         .filter(e -> e.getValue().size() > 1)
         .flatMap(av -> buildUniqueAttributeValues(av.getKey(), av.getValue()).stream())
         .collect(toList());
   }
 
   private Collection<UniqueAttributeValue> buildUniqueAttributeValues(
-      Attribute attribute, List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> teis) {
-    return teis.stream()
+      Attribute attribute, List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> teList) {
+    return teList.stream()
         .map(
-            tei ->
+            te ->
                 new UniqueAttributeValue(
-                    tei.getUid(), attribute.getAttribute(), attribute.getValue(), tei.getOrgUnit()))
+                    te.getUid(), attribute.getAttribute(), attribute.getValue(), te.getOrgUnit()))
         .collect(toList());
   }
 

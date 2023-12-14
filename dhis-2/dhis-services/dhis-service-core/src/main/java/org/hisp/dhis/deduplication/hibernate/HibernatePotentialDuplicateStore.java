@@ -42,12 +42,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
@@ -92,7 +92,7 @@ public class HibernatePotentialDuplicateStore
   private final DhisConfigurationProvider config;
 
   public HibernatePotentialDuplicateStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
@@ -102,7 +102,7 @@ public class HibernatePotentialDuplicateStore
       TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore,
       DhisConfigurationProvider config) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         PotentialDuplicate.class,
@@ -166,12 +166,12 @@ public class HibernatePotentialDuplicateStore
 
     predicateList.add(root.get("status").in(getInStatusValue(query.getStatus())));
 
-    if (!query.getTeis().isEmpty()) {
+    if (!query.getTrackedEntities().isEmpty()) {
       predicateList.add(
           builder.and(
               builder.or(
-                  root.get("original").in(query.getTeis()),
-                  root.get("duplicate").in(query.getTeis()))));
+                  root.get("original").in(query.getTrackedEntities()),
+                  root.get("duplicate").in(query.getTrackedEntities()))));
     }
 
     return predicateList.toArray(new Predicate[0]);
@@ -198,7 +198,7 @@ public class HibernatePotentialDuplicateStore
         getSession()
             .createNativeQuery(
                 "select count(potentialduplicateid) from potentialduplicate pd "
-                    + "where (pd.teia = :original and pd.teib = :duplicate) or (pd.teia = :duplicate and pd.teib = :original)");
+                    + "where (pd.original = :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and pd.duplicate = :original)");
 
     query.setParameter("original", potentialDuplicate.getOriginal());
     query.setParameter("duplicate", potentialDuplicate.getDuplicate());

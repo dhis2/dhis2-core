@@ -74,8 +74,7 @@ public class TrackerRuleEngineMessageManager extends BaseMessageManager {
     }
 
     JobConfiguration jobConfiguration =
-        new JobConfiguration(
-            "", JobType.TRACKER_IMPORT_RULE_ENGINE_JOB, bundle.getAccessedBy(), true);
+        new JobConfiguration("", JobType.TRACKER_IMPORT_RULE_ENGINE_JOB, bundle.getAccessedBy());
 
     bundle.setJobConfiguration(jobConfiguration);
 

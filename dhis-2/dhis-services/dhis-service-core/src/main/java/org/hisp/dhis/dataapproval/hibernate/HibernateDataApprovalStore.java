@@ -42,11 +42,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
@@ -63,7 +63,6 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
@@ -110,10 +109,8 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
   private final StatementBuilder statementBuilder;
 
-  private final OrganisationUnitService organisationUnitService;
-
   public HibernateDataApprovalStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CacheProvider cacheProvider,
@@ -122,9 +119,8 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
       CurrentUserService currentUserService,
       CategoryService categoryService,
       SystemSettingManager systemSettingManager,
-      StatementBuilder statementBuilder,
-      OrganisationUnitService organisationUnitService) {
-    super(sessionFactory, jdbcTemplate, publisher, DataApproval.class, false);
+      StatementBuilder statementBuilder) {
+    super(entityManager, jdbcTemplate, publisher, DataApproval.class, false);
 
     checkNotNull(cacheProvider);
     checkNotNull(periodService);
@@ -133,7 +129,6 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     checkNotNull(categoryService);
     checkNotNull(systemSettingManager);
     checkNotNull(statementBuilder);
-    checkNotNull(organisationUnitService);
 
     this.periodService = periodService;
     this.periodStore = periodStore;
@@ -142,7 +137,6 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     this.systemSettingManager = systemSettingManager;
     this.statementBuilder = statementBuilder;
     this.isApprovedCache = cacheProvider.createIsDataApprovedCache();
-    this.organisationUnitService = organisationUnitService;
   }
 
   // -------------------------------------------------------------------------
@@ -362,7 +356,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
     if (orgUnits != null) {
       for (OrganisationUnit orgUnit : orgUnits) {
-        if (!organisationUnitService.isDescendant(orgUnit, userOrgUnits)) {
+        if (!orgUnit.isDescendant(userOrgUnits)) {
           log.debug("User " + user.getUsername() + " can't see orgUnit " + orgUnit.getName());
 
           return new ArrayList<>(); // Unapprovable.
@@ -645,7 +639,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
             "where not exists ( "
             + "select 1 "
             + "from categoryoptioncombos_categoryoptions cocco "
-            + "join dataelementcategoryoption co on co.categoryoptionid = cocco.categoryoptionid "
+            + "join categoryoption co on co.categoryoptionid = cocco.categoryoptionid "
             + "where cocco.categoryoptioncomboid = coc.categoryoptioncomboid "
             + "and ( "
             +
@@ -765,7 +759,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
       final int level = approved == null ? 0 : Integer.parseInt(approved[0]) - MAX_APPROVAL_LEVEL;
       final boolean accepted =
           approved == null ? false : approved[1].substring(0, 1).equalsIgnoreCase("t");
-      final int approvedOrgUnitId = approved == null ? 0 : Integer.parseInt(approved[2]);
+      final long approvedOrgUnitId = approved == null ? 0 : Long.parseLong(approved[2]);
 
       // null if not approved
       DataApprovalLevel approvedLevel = (level == 0 ? null : levelMap.get(level));

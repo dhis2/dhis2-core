@@ -29,15 +29,22 @@ package org.hisp.dhis.webapi.dimension;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.PrefixedDimension;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.ProgramStageDataElement;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TeiAnalyticsPrefixStrategy implements PrefixStrategy {
 
-  public static final TeiAnalyticsPrefixStrategy INSTANCE = new TeiAnalyticsPrefixStrategy();
+  public static final PrefixStrategy INSTANCE = new TeiAnalyticsPrefixStrategy();
 
   @Override
   public String apply(PrefixedDimension pDimension) {
-    return pDimension.getPrefix();
+    if (pDimension.getItem() instanceof DataElement
+        || pDimension.getItem() instanceof ProgramStageDataElement) {
+      return pDimension.getPrefix();
+    }
+    return StringUtils.EMPTY;
   }
 }

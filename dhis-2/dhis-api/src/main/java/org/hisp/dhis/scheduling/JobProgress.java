@@ -28,28 +28,42 @@
 package org.hisp.dhis.scheduling;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 
 /**
  *
@@ -90,10 +104,10 @@ import lombok.Setter;
  * <h3>Flow-Control</h3>
  *
  * The second part of the {@link JobProgress} is control flow. This is all based on a single method
- * {@link #isCancellationRequested()}. The coordination is cooperative. This means cancellation of
- * the running process might be requested externally at any point or as a consequence of a failing
- * work item. This would flip the state returned by {@link #isCancellationRequested()} which
- * is/should be checked before starting a new stage or work item.
+ * {@link #isCancelled()}. The coordination is cooperative. This means cancellation of the running
+ * process might be requested externally at any point or as a consequence of a failing work item.
+ * This would flip the state returned by {@link #isCancelled()} which is/should be checked before
+ * starting a new stage or work item.
  *
  * <p>A process should only continue starting new work as long as cancellation is not requested.
  * When cancellation is requested ongoing work items are finished and the process exists
@@ -111,10 +125,25 @@ public interface JobProgress {
    */
 
   /**
+   * OBS! Should only be called after the task is complete and no further progress is tracked.
+   *
+   * @return true, if all processes in this tracking object were successful.
+   */
+  default boolean isSuccessful() {
+    return true;
+  }
+
+  /**
    * @return true, if the job got cancelled and requests the processing thread to terminate, else
    *     false to continue processing the job
    */
-  boolean isCancellationRequested();
+  default boolean isCancelled() {
+    return false;
+  }
+
+  default boolean isAborted() {
+    return false;
+  }
 
   /**
    * Note that this indication resets to false once another stage is started.
@@ -123,7 +152,42 @@ public interface JobProgress {
    *     case if cancellation was requested.
    */
   default boolean isSkipCurrentStage() {
-    return isCancellationRequested();
+    return isCancelled();
+  }
+
+  /*
+  Error reporting API:
+  */
+
+  default void addError(
+      @Nonnull ErrorCode code, @CheckForNull String uid, @Nonnull String type, String... args) {
+    addError(code, uid, type, List.of(args));
+  }
+
+  default void addError(
+      @Nonnull ValidationCode code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      String... args) {
+    addError(code, uid, type, List.of(args));
+  }
+
+  default void addError(
+      @Nonnull ErrorCode code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      @Nonnull List<String> args) {
+    // is overridden by a tracker that collects errors
+    // default is to not collect errors
+  }
+
+  default void addError(
+      @Nonnull ValidationCode code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      @Nonnull List<String> args) {
+    // is overridden by a tracker that collects errors
+    // default is to not collect errors
   }
 
   /*
@@ -339,7 +403,7 @@ public interface JobProgress {
    * Automatically complete a stage as failed based on the {@link #isSkipCurrentStage()} state.
    *
    * <p>This completes the stage either with a {@link CancellationException} in case {@link
-   * #isCancellationRequested()} is true, or with just a summary text if it is false.
+   * #isCancelled()} is true, or with just a summary text if it is false.
    *
    * @param summary optional callback to produce a summary
    * @param success number of successful items
@@ -350,7 +414,7 @@ public interface JobProgress {
       BiFunction<Integer, Integer, String> summary, int success, int failed) {
     if (isSkipCurrentStage()) {
       String text = summary == null ? "" : summary.apply(success, failed);
-      if (isCancellationRequested()) {
+      if (isCancelled()) {
         failedStage(new CancellationException("skipped stage, failing item caused abort. " + text));
       } else {
         failedStage("skipped stage. " + text);
@@ -386,6 +450,10 @@ public interface JobProgress {
           work.run();
           return true;
         });
+  }
+
+  default <T> T runStage(Callable<T> work) {
+    return runStage(null, work);
   }
 
   /**
@@ -509,9 +577,9 @@ public interface JobProgress {
    * Using a {@link FailurePolicy} allows to customise this behaviour on a stage or item basis.
    *
    * <p>The implementation of {@link FailurePolicy} is done by affecting {@link
-   * #isSkipCurrentStage()} and {@link #isCancellationRequested()} acordingly after the failure
-   * occured and has been tracked using one of the {@link #failedStage(String)} or {@link
-   * #failedWorkItem(String)} methods.
+   * #isSkipCurrentStage()} and {@link #isCancelled()} acordingly after the failure occured and has
+   * been tracked using one of the {@link #failedStage(String)} or {@link #failedWorkItem(String)}
+   * methods.
    */
   enum FailurePolicy {
     /**
@@ -539,15 +607,94 @@ public interface JobProgress {
   }
 
   @Getter
+  final class Progress {
+
+    @Nonnull @JsonProperty final Deque<Process> sequence;
+
+    @Nonnull
+    @JsonProperty
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private final Map<String, Map<String, Queue<Error>>> errors;
+
+    public Progress() {
+      this.sequence = new ConcurrentLinkedDeque<>();
+      this.errors = new ConcurrentHashMap<>();
+    }
+
+    @JsonCreator
+    public Progress(
+        @Nonnull @JsonProperty("sequence") Deque<Process> sequence,
+        @CheckForNull @JsonProperty("errors") Map<String, Map<String, Queue<Error>>> errors) {
+      this.sequence = sequence;
+      this.errors = errors == null ? Map.of() : errors;
+    }
+
+    public void addError(Error error) {
+      Queue<Error> sameObjectAndCode =
+          errors
+              .computeIfAbsent(error.getId(), key -> new ConcurrentHashMap<>())
+              .computeIfAbsent(error.getCode(), key2 -> new ConcurrentLinkedQueue<>());
+      if (sameObjectAndCode.stream().noneMatch(e -> e.args.equals(error.args))) {
+        sameObjectAndCode.add(error);
+      }
+    }
+
+    public boolean hasErrors() {
+      return !errors.isEmpty();
+    }
+
+    public Set<String> getErrorCodes() {
+      return errors.values().stream()
+          .flatMap(e -> e.keySet().stream())
+          .collect(toUnmodifiableSet());
+    }
+  }
+
+  @Getter
+  @Accessors(chain = true)
+  final class Error {
+
+    @Nonnull @JsonProperty private final String code;
+
+    /** The object that has the error */
+    @Nonnull @JsonProperty private final String id;
+
+    /** The type of the object identified by #id that has the error */
+    @Nonnull @JsonProperty private final String type;
+
+    /** The arguments used in the {@link #code}'s {@link ErrorCode#getMessage()} template */
+    @Nonnull @JsonProperty private final List<String> args;
+
+    /**
+     * The message as created from {@link #code} and {@link #args}. This is only set in service
+     * layer for the web API using the setter, it is not persisted.
+     */
+    @Setter
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String message;
+
+    @JsonCreator
+    public Error(
+        @Nonnull @JsonProperty("code") String code,
+        @Nonnull @JsonProperty("id") String id,
+        @Nonnull @JsonProperty("type") String type,
+        @Nonnull @JsonProperty("args") List<String> args) {
+      this.code = code;
+      this.id = id;
+      this.type = type;
+      this.args = args;
+    }
+  }
+
+  @Getter
+  @NoArgsConstructor
+  @AllArgsConstructor(access = AccessLevel.PROTECTED)
   abstract class Node implements Serializable {
+
     @JsonProperty private String error;
-
     @JsonProperty private String summary;
-
     private Exception cause;
-
     @JsonProperty protected Status status = Status.RUNNING;
-
     @JsonProperty private Date completedTime;
 
     @JsonProperty
@@ -587,23 +734,45 @@ public interface JobProgress {
   }
 
   @Getter
-  @RequiredArgsConstructor
   final class Process extends Node {
     public static Date startedTime(Collection<Process> job, Date defaultValue) {
       return job.isEmpty() ? defaultValue : job.iterator().next().getStartedTime();
     }
 
-    private final Date startedTime = new Date();
-
+    private final Date startedTime;
     @JsonProperty private final String description;
-
-    @JsonProperty private final Deque<Stage> stages = new ConcurrentLinkedDeque<>();
-
+    @JsonProperty private final Deque<Stage> stages;
     @Setter @JsonProperty private String jobId;
-
     @JsonProperty private Date cancelledTime;
-
     @Setter @JsonProperty private String userId;
+
+    public Process(String description) {
+      this.description = description;
+      this.startedTime = new Date();
+      this.stages = new ConcurrentLinkedDeque<>();
+    }
+
+    /** For recreation when de-serializing from a JSON string */
+    @JsonCreator
+    public Process(
+        @JsonProperty("error") String error,
+        @JsonProperty("summary") String summary,
+        @JsonProperty("status") Status status,
+        @JsonProperty("startedTime") Date startedTime,
+        @JsonProperty("completedTime") Date completedTime,
+        @JsonProperty("description") String description,
+        @JsonProperty("stages") Deque<Stage> stages,
+        @JsonProperty("jobId") String jobId,
+        @JsonProperty("cancelledTime") Date cancelledTime,
+        @JsonProperty("userId") String userId) {
+      super(error, summary, null, status, completedTime);
+      this.startedTime = startedTime;
+      this.description = description;
+      this.stages = stages;
+      this.jobId = jobId;
+      this.cancelledTime = cancelledTime;
+      this.userId = userId;
+    }
 
     public void cancel() {
       this.cancelledTime = new Date();
@@ -612,9 +781,8 @@ public interface JobProgress {
   }
 
   @Getter
-  @RequiredArgsConstructor
   final class Stage extends Node {
-    private final Date startedTime = new Date();
+    private final Date startedTime;
 
     @JsonProperty private final String description;
 
@@ -625,18 +793,63 @@ public interface JobProgress {
     @JsonProperty private final int totalItems;
 
     @JsonProperty private final FailurePolicy onFailure;
+    @JsonProperty private final Deque<Item> items;
 
-    @JsonProperty private final Deque<Item> items = new ConcurrentLinkedDeque<>();
+    public Stage(String description, int totalItems, FailurePolicy onFailure) {
+      this.description = description;
+      this.totalItems = totalItems;
+      this.onFailure = onFailure;
+      this.startedTime = new Date();
+      this.items = new ConcurrentLinkedDeque<>();
+    }
+
+    @JsonCreator
+    public Stage(
+        @JsonProperty("error") String error,
+        @JsonProperty("summary") String summary,
+        @JsonProperty("status") Status status,
+        @JsonProperty("startedTime") Date startedTime,
+        @JsonProperty("completedTime") Date completedTime,
+        @JsonProperty("description") String description,
+        @JsonProperty("totalItems") int totalItems,
+        @JsonProperty("onFailure") FailurePolicy onFailure,
+        @JsonProperty("items") Deque<Item> items) {
+      super(error, summary, null, status, completedTime);
+      this.description = description;
+      this.totalItems = totalItems;
+      this.onFailure = onFailure;
+      this.items = items;
+      this.startedTime = startedTime;
+    }
   }
 
   @Getter
-  @AllArgsConstructor
   final class Item extends Node {
-    private final Date startedTime = new Date();
+    private final Date startedTime;
 
     @JsonProperty private final String description;
-
     @JsonProperty private final FailurePolicy onFailure;
+
+    public Item(String description, FailurePolicy onFailure) {
+      this.description = description;
+      this.onFailure = onFailure;
+      this.startedTime = new Date();
+    }
+
+    @JsonCreator
+    public Item(
+        @JsonProperty("error") String error,
+        @JsonProperty("summary") String summary,
+        @JsonProperty("status") Status status,
+        @JsonProperty("startedTime") Date startedTime,
+        @JsonProperty("completedTime") Date completedTime,
+        @JsonProperty("description") String description,
+        @JsonProperty("onFailure") FailurePolicy onFailure) {
+      super(error, summary, null, status, completedTime);
+      this.startedTime = startedTime;
+      this.description = description;
+      this.onFailure = onFailure;
+    }
   }
 
   static String getMessage(Exception cause) {

@@ -28,8 +28,8 @@
 package org.hisp.dhis.dataelement.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -51,13 +51,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<DataElement>
     implements DataElementStore {
   public HibernateDataElementStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         DataElement.class,

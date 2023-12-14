@@ -220,8 +220,8 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     // Event to be provided in message renderer
     eventA = new Event(enrollmentA, programStageA);
     eventA.setOrganisationUnit(organisationUnitA);
-    eventA.setDueDate(enrollmentDate);
-    eventA.setExecutionDate(new Date());
+    eventA.setScheduledDate(enrollmentDate);
+    eventA.setOccurredDate(new Date());
     eventA.setUid("PSI-UID");
     eventDataValueA = new EventDataValue();
     eventDataValueA.setDataElement(dataElementA.getUid());
@@ -326,8 +326,8 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     NotificationMessage notificationMessage =
         programStageNotificationMessageRenderer.render(eventA, programNotificationTemplate);
     assertEquals(
-        "message is " + formatDate(eventA.getExecutionDate()), notificationMessage.getMessage());
+        "message is " + formatDate(eventA.getOccurredDate()), notificationMessage.getMessage());
     assertEquals(
-        "subject is " + formatDate(eventA.getExecutionDate()), notificationMessage.getSubject());
+        "subject is " + formatDate(eventA.getOccurredDate()), notificationMessage.getSubject());
   }
 }

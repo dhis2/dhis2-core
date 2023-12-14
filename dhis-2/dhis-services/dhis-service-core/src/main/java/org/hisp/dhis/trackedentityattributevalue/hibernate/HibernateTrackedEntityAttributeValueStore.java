@@ -30,8 +30,8 @@ package org.hisp.dhis.trackedentityattributevalue.hibernate;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Program;
@@ -51,10 +51,8 @@ public class HibernateTrackedEntityAttributeValueStore
     extends HibernateGenericStore<TrackedEntityAttributeValue>
     implements TrackedEntityAttributeValueStore {
   public HibernateTrackedEntityAttributeValueStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher) {
-    super(sessionFactory, jdbcTemplate, publisher, TrackedEntityAttributeValue.class, false);
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, TrackedEntityAttributeValue.class, false);
   }
 
   // -------------------------------------------------------------------------
@@ -63,7 +61,7 @@ public class HibernateTrackedEntityAttributeValueStore
 
   @Override
   public void saveVoid(TrackedEntityAttributeValue attributeValue) {
-    sessionFactory.getCurrentSession().save(attributeValue);
+    getSession().save(attributeValue);
   }
 
   @Override

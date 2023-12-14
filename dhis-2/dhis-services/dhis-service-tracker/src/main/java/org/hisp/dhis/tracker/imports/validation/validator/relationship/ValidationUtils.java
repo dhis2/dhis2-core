@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.tracker.imports.TrackerType;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 
 /**

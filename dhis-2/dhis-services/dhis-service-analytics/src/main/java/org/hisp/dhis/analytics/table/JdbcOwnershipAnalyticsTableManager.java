@@ -64,8 +64,9 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.quick.JdbcConfiguration;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,8 +97,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       AnalyticsTableHookService tableHookService,
       StatementBuilder statementBuilder,
       PartitionManager partitionManager,
-      DatabaseInfo databaseInfo,
-      JdbcTemplate jdbcTemplate,
+      DatabaseInfoProvider databaseInfoProvider,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       JdbcConfiguration jdbcConfiguration,
       AnalyticsExportSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
@@ -111,7 +112,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
         tableHookService,
         statementBuilder,
         partitionManager,
-        databaseInfo,
+        databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
         periodDataProvider);
@@ -177,30 +178,32 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     List<String> columnNames =
         getDimensionColumns().stream().map(AnalyticsTableColumn::getName).collect(toList());
 
-    MappingBatchHandler batchHandler =
+    try (MappingBatchHandler batchHandler =
         MappingBatchHandler.builder()
             .jdbcConfiguration(jdbcConfiguration)
             .tableName(partition.getTempTableName())
             .columns(columnNames)
-            .build();
+            .build()) {
+      batchHandler.init();
 
-    batchHandler.init();
+      JdbcOwnershipWriter writer = JdbcOwnershipWriter.getInstance(batchHandler);
+      AtomicInteger queryRowCount = new AtomicInteger();
 
-    JdbcOwnershipWriter writer = JdbcOwnershipWriter.getInstance(batchHandler);
-    AtomicInteger queryRowCount = new AtomicInteger();
+      jdbcTemplate.query(
+          sql,
+          resultSet -> {
+            writer.write(getRowMap(columnNames, resultSet));
+            queryRowCount.getAndIncrement();
+          });
 
-    jdbcTemplate.query(
-        sql,
-        resultSet -> {
-          writer.write(getRowMap(columnNames, resultSet));
-          queryRowCount.getAndIncrement();
-        });
-
-    log.info(
-        "OwnershipAnalytics query row count was {} for {}",
-        queryRowCount,
-        partition.getTempTableName());
-    batchHandler.flush();
+      log.info(
+          "OwnershipAnalytics query row count was {} for {}",
+          queryRowCount,
+          partition.getTempTableName());
+      batchHandler.flush();
+    } catch (Exception ex) {
+      log.error("Failed to alter table ownership: ", ex);
+    }
   }
 
   private String getInputSql(Program program) {
@@ -232,7 +235,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     return sb.append(
             " from ("
-                + "select h.trackedentityinstanceid, '"
+                + "select h.trackedentityid, '"
                 + HISTORY_TABLE_ID
                 + "' as startdate, h.enddate as enddate, h.organisationunitid "
                 + "from programownershiphistory h "
@@ -241,7 +244,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
                 + SPACE
                 + "and h.organisationunitid is not null "
                 + "union "
-                + "select o.trackedentityinstanceid, '"
+                + "select o.trackedentityid, '"
                 + TEI_OWN_TABLE_ID
                 + "' as startdate, null as enddate, o.organisationunitid "
                 + "from trackedentityprogramowner o "
@@ -249,13 +252,13 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
                 + program.getId()
                 + SPACE
                 + "and exists (select 1 from programownershiphistory p "
-                + "where o.trackedentityinstanceid = p.trackedentityinstanceid "
+                + "where o.trackedentityid = p.trackedentityid "
                 + "and p.programid="
                 + program.getId()
                 + SPACE
                 + "and p.organisationunitid is not null)"
                 + ") a "
-                + "inner join trackedentityinstance tei on a.trackedentityinstanceid = tei.trackedentityinstanceid "
+                + "inner join trackedentity tei on a.trackedentityid = tei.trackedentityid "
                 + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
                 + "left join _orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
                 + "left join _organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "

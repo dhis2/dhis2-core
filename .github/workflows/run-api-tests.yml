@@ -8,7 +8,6 @@ on:
     branches:
       - master
   pull_request:
-    types: [ opened, labeled, synchronize ]
 concurrency:
   group: ${{ github.workflow}}-${{ github.ref }}
   cancel-in-progress: true
@@ -20,11 +19,10 @@ jobs:
       CORE_IMAGE_NAME: "dhis2/core-pr:${{ github.event_name == 'pull_request' && github.event.number || 'local' }}"
 
     runs-on: ubuntu-latest
-    if: "!contains(github.event.pull_request.labels.*.name, 'skip-api-tests')"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: temurin
@@ -32,15 +30,15 @@ jobs:
 
       - name: Login to Docker Hub
         if: ${{ env.DOCKERHUB_PUSH == 'true' }}
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DHIS2_BOT_DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DHIS2_BOT_DOCKER_HUB_PASSWORD }}
 
       - name: Build war
         run: |
-          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-dhis-test-integration,-dhis-test-coverage
-          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/pom.xml
+          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true --update-snapshots -f dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-dhis-test-integration,-dhis-test-coverage
+          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true --update-snapshots -f dhis-2/dhis-web/pom.xml
 
       - name: Build container image
         run: |

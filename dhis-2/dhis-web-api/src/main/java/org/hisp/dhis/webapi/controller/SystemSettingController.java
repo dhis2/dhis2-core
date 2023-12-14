@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.springframework.http.CacheControl.noCache;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.Serializable;
@@ -59,7 +60,6 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -88,6 +88,9 @@ public class SystemSettingController {
   private final SystemSettingManager systemSettingManager;
 
   private final UserSettingService userSettingService;
+
+  private static final String SETTING_DOESNT_EXIST_OR_CONFIDENTIAL =
+      "Setting does not exist or is marked as confidential";
 
   // -------------------------------------------------------------------------
   // Create
@@ -191,20 +194,24 @@ public class SystemSettingController {
   // -------------------------------------------------------------------------
 
   @GetMapping(value = "/{key}", produces = ContextUtils.CONTENT_TYPE_TEXT)
-  public @ResponseBody Serializable getSystemSettingOrTranslationAsPlainText(
+  public @ResponseBody ResponseEntity<String> getSystemSettingOrTranslationAsPlainText(
       @PathVariable("key") String key,
       @RequestParam(value = "locale", required = false) String locale,
       HttpServletResponse response,
       @CurrentUser User currentUser) {
+    if (!settingExistsAndIsNotConfidential(key)) {
+      return ResponseEntity.status(404).body(SETTING_DOESNT_EXIST_OR_CONFIDENTIAL);
+    }
     response.setHeader(
-        ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
+        ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
 
-    return String.valueOf(getSystemSettingOrTranslation(key, locale, currentUser));
+    return ResponseEntity.ok()
+        .body(String.valueOf(getSystemSettingOrTranslation(key, locale, currentUser)));
   }
 
   @GetMapping(
       value = "/{key}",
-      produces = {ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML})
+      produces = {ContextUtils.CONTENT_TYPE_JSON})
   public @ResponseBody ResponseEntity<Map<String, Serializable>>
       getSystemSettingOrTranslationAsJson(
           @PathVariable("key") String key,
@@ -212,11 +219,11 @@ public class SystemSettingController {
           @CurrentUser User currentUser)
           throws NotFoundException {
     if (!settingExistsAndIsNotConfidential(key)) {
-      throw new NotFoundException("Setting does not exist or is marked as confidential");
+      throw new NotFoundException(SETTING_DOESNT_EXIST_OR_CONFIDENTIAL);
     }
 
     return ResponseEntity.ok()
-        .cacheControl(CacheControl.noCache().cachePrivate())
+        .cacheControl(noCache().cachePrivate())
         .contentType(MediaType.APPLICATION_JSON)
         .body(Map.of(key, getSystemSettingOrTranslation(key, locale, currentUser)));
   }
@@ -271,10 +278,16 @@ public class SystemSettingController {
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Map<String, Serializable>> getSystemSettingsJson(
-      @RequestParam(value = "key", required = false) Set<String> keys) {
+      @RequestParam(value = "key", required = false) Set<String> keys) throws NotFoundException {
+    Set<SettingKey> settingKeysToFetch = getSettingKeysToFetch(keys);
+
+    if (settingKeysToFetch.isEmpty()) {
+      throw new NotFoundException(SETTING_DOESNT_EXIST_OR_CONFIDENTIAL);
+    }
+
     return ResponseEntity.ok()
-        .cacheControl(CacheControl.noCache().cachePrivate())
-        .body(systemSettingManager.getSystemSettings(getSettingKeysToFetch(keys)));
+        .headers(ContextUtils.noCacheNoStoreMustRevalidate())
+        .body(systemSettingManager.getSystemSettings(settingKeysToFetch));
   }
 
   private Set<SettingKey> getSettingKeysToFetch(Set<String> keys) {

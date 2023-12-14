@@ -36,6 +36,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -44,7 +45,6 @@ import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -73,20 +73,20 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Slf4j
 public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     extends SharingHibernateGenericStoreImpl<T> implements GenericDimensionalObjectStore<T> {
+  private static final Set<String> EXISTS_BY_USER_PROPERTIES = Set.of("createdBy", "lastUpdatedBy");
   @Autowired protected DbmsManager dbmsManager;
 
   protected boolean transientIdentifiableProperties = false;
 
   public HibernateIdentifiableObjectStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       Class<T> clazz,
       CurrentUserService currentUserService,
       AclService aclService,
       boolean cacheable) {
-    super(
-        sessionFactory, jdbcTemplate, publisher, clazz, aclService, currentUserService, cacheable);
+    super(entityManager, jdbcTemplate, publisher, clazz, aclService, currentUserService, cacheable);
 
     this.cacheable = cacheable;
   }
@@ -120,8 +120,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   private void save(T object, User user, boolean clearSharing) {
     String username = user != null ? user.getUsername() : "system-process";
-
-    object.setAutoFields();
 
     object.setAutoFields();
     object.setLastUpdatedBy(user);
@@ -171,8 +169,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     String username = user != null ? user.getUsername() : "system-process";
 
     object.setAutoFields();
-
-    object.setAutoFields();
     object.setLastUpdatedBy(user);
 
     if (object.getSharing().getOwner() == null) {
@@ -189,7 +185,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE);
-
     getSession().update(object);
   }
 
@@ -901,6 +896,30 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         10000,
         partition ->
             newJpaParameters().addPredicate(root -> builder.equal(root.get("createdBy"), user)));
+  }
+
+  /**
+   * Look up objects which have property createdBy or lastUpdatedBy linked to given {@link User}
+   *
+   * @param user the {@link User} for filtering
+   * @return TRUE of objects found. FALSE otherwise.
+   */
+  @Override
+  public boolean existsByUser(@Nonnull User user, final Set<String> checkProperties) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+    CriteriaQuery<Integer> query = builder.createQuery(Integer.class);
+    Root<T> root = query.from(getClazz());
+    query.select(builder.literal(1));
+    List<Predicate> predicates =
+        checkProperties.stream()
+            .filter(EXISTS_BY_USER_PROPERTIES::contains)
+            .map(p -> builder.equal(root.get(p), user))
+            .toList();
+    if (predicates.isEmpty()) {
+      return false;
+    }
+    query.where(builder.or(predicates.toArray(new Predicate[0])));
+    return !getSession().createQuery(query).setMaxResults(1).getResultList().isEmpty();
   }
 
   /**

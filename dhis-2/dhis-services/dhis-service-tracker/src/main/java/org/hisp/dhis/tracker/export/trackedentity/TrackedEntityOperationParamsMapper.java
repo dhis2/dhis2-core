@@ -27,26 +27,23 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
-import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
-import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
+import static java.util.Collections.emptyList;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -54,14 +51,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,43 +76,40 @@ class TrackedEntityOperationParamsMapper {
 
   @Nonnull private final TrackedEntityAttributeService attributeService;
 
-  @Nonnull private final TrackerAccessManager trackerAccessManager;
+  @Nonnull private final AclService aclService;
+
+  // TODO Remove this dependency from the mapper when working on
+  // https://dhis2.atlassian.net/browse/DHIS2-15915
+  @Nonnull private final TrackedEntityStore trackedEntityStore;
+
+  @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
 
   @Transactional(readOnly = true)
   public TrackedEntityQueryParams map(TrackedEntityOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
-    Program program = validateProgram(operationParams.getProgramUid());
-    ProgramStage programStage = validateProgramStage(operationParams, program);
-    TrackedEntityType trackedEntityType =
-        validateTrackedEntityType(operationParams.getTrackedEntityTypeUid());
-
     User user = operationParams.getUser();
-    Set<OrganisationUnit> orgUnits =
-        validateOrgUnits(
-            user,
-            operationParams.getOrganisationUnits(),
-            program,
-            operationParams.getOrgUnitMode());
 
-    QueryFilter queryFilter = operationParams.getQuery();
+    Program program = validateProgram(operationParams.getProgramUid(), user);
+    ProgramStage programStage = validateProgramStage(operationParams, program);
 
-    Map<String, TrackedEntityAttribute> attributes =
-        attributeService.getAllTrackedEntityAttributes().stream()
-            .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
+    TrackedEntityType requestedTrackedEntityType =
+        validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
 
-    List<QueryItem> attributeItems =
-        parseAttributeQueryItems(operationParams.getAttributes(), attributes);
+    List<TrackedEntityType> trackedEntityTypes =
+        getTrackedEntityTypes(requestedTrackedEntityType, program, user);
 
-    List<QueryItem> filters = parseAttributeQueryItems(operationParams.getFilters(), attributes);
-
-    validateDuplicatedAttributeFilters(filters);
-
-    List<OrderParam> orderParams = toOrderParams(operationParams.getOrders());
-    validateOrderParams(orderParams, attributes);
+    Set<OrganisationUnit> orgUnits = validateOrgUnits(user, operationParams.getOrganisationUnits());
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+    mapAttributeFilters(params, operationParams.getFilters());
+
+    mapOrderParam(params, operationParams.getOrder());
+
+    validateTrackedEntityAttributeFilters(
+        program, requestedTrackedEntityType, operationParams, orgUnits, params);
+
     params
-        .setQuery(queryFilter)
         .setProgram(program)
         .setProgramStage(programStage)
         .setProgramStatus(operationParams.getProgramStatus())
@@ -128,7 +121,8 @@ class TrackedEntityOperationParamsMapper {
         .setProgramEnrollmentEndDate(operationParams.getProgramEnrollmentEndDate())
         .setProgramIncidentStartDate(operationParams.getProgramIncidentStartDate())
         .setProgramIncidentEndDate(operationParams.getProgramIncidentEndDate())
-        .setTrackedEntityType(trackedEntityType)
+        .setTrackedEntityType(requestedTrackedEntityType)
+        .setTrackedEntityTypes(trackedEntityTypes)
         .addOrgUnits(orgUnits)
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setEventStatus(operationParams.getEventStatus())
@@ -137,87 +131,87 @@ class TrackedEntityOperationParamsMapper {
         .setAssignedUserQueryParam(operationParams.getAssignedUserQueryParam())
         .setUser(user)
         .setTrackedEntityUids(operationParams.getTrackedEntityUids())
-        .setAttributes(attributeItems)
-        .setFilters(filters)
-        .setSkipMeta(operationParams.isSkipMeta())
-        .setPage(operationParams.getPage())
-        .setPageSize(operationParams.getPageSize())
-        .setTotalPages(operationParams.isTotalPages())
-        .setSkipPaging(toBooleanDefaultIfNull(operationParams.isSkipPaging(), false))
         .setIncludeDeleted(operationParams.isIncludeDeleted())
-        .setIncludeAllAttributes(operationParams.isIncludeAllAttributes())
-        .setPotentialDuplicate(operationParams.getPotentialDuplicate())
-        .setOrders(orderParams);
+        .setPotentialDuplicate(operationParams.getPotentialDuplicate());
+
+    validateGlobalSearchParameters(params);
 
     return params;
   }
 
-  private void validateDuplicatedAttributeFilters(List<QueryItem> attributeItems)
-      throws BadRequestException {
-    Set<DimensionalItemObject> duplicatedAttributes = getDuplicatedAttributes(attributeItems);
+  private List<TrackedEntityType> getTrackedEntityTypes(
+      TrackedEntityType trackedEntityType, Program program, User user) throws BadRequestException {
 
-    if (!duplicatedAttributes.isEmpty()) {
-      List<String> errorMessages = new ArrayList<>();
-      for (DimensionalItemObject duplicatedAttribute : duplicatedAttributes) {
-        List<String> duplicatedFilters = getDuplicatedFilters(attributeItems, duplicatedAttribute);
-        String message =
-            MessageFormat.format(
-                "Filter for attribute {0} was specified more than once. "
-                    + "Try to define a single filter with multiple operators [{0}:{1}]",
-                duplicatedAttribute.getUid(), StringUtils.join(duplicatedFilters, ':'));
-        errorMessages.add(message);
+    if (program != null && program.getTrackedEntityType() != null) {
+      return List.of(program.getTrackedEntityType());
+    } else if (trackedEntityType == null) {
+      return filterAndValidateTrackedEntityTypes(user);
+    }
+
+    return emptyList();
+  }
+
+  private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(User user)
+      throws BadRequestException {
+    List<TrackedEntityType> trackedEntityTypes =
+        trackedEntityTypeService.getAllTrackedEntityType().stream()
+            .filter(tet -> aclService.canDataRead(user, tet))
+            .toList();
+
+    if (trackedEntityTypes.isEmpty()) {
+      throw new BadRequestException("User has no access to any Tracked Entity Type");
+    }
+
+    return trackedEntityTypes;
+  }
+
+  private void mapAttributeFilters(
+      TrackedEntityQueryParams params, Map<String, List<QueryFilter>> attributeFilters)
+      throws BadRequestException {
+    for (Map.Entry<String, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
+      TrackedEntityAttribute tea =
+          attributeService.getTrackedEntityAttribute(attributeFilter.getKey());
+      if (tea == null) {
+        throw new BadRequestException(
+            String.format(
+                "attribute filters are invalid. Tracked entity attribute '%s' does not exist.",
+                attributeFilter.getKey()));
       }
 
-      throw new BadRequestException(StringUtils.join(errorMessages, ", "));
+      if (attributeFilter.getValue().isEmpty()) {
+        params.filterBy(tea);
+      }
+
+      for (QueryFilter filter : attributeFilter.getValue()) {
+        params.filterBy(tea, filter);
+      }
     }
   }
 
-  private List<String> getDuplicatedFilters(
-      List<QueryItem> attributeItems, DimensionalItemObject duplicatedAttribute) {
-    return attributeItems.stream()
-        .filter(q -> Objects.equals(q.getItem(), duplicatedAttribute))
-        .flatMap(q -> q.getFilters().stream())
-        .map(f -> f.getOperator() + ":" + f.getFilter())
-        .toList();
-  }
-
-  private Set<DimensionalItemObject> getDuplicatedAttributes(List<QueryItem> attributeItems) {
-    return attributeItems.stream()
-        .collect(Collectors.groupingBy(QueryItem::getItem, Collectors.counting()))
-        .entrySet()
-        .stream()
-        .filter(m -> m.getValue() > 1)
-        .map(Map.Entry::getKey)
-        .collect(Collectors.toSet());
-  }
-
-  private Set<OrganisationUnit> validateOrgUnits(
-      User user, Set<String> orgUnitIds, Program program, OrganisationUnitSelectionMode orgUnitMode)
+  private Set<OrganisationUnit> validateOrgUnits(User user, Set<String> orgUnitIds)
       throws BadRequestException, ForbiddenException {
     Set<OrganisationUnit> orgUnits = new HashSet<>();
     for (String orgUnitUid : orgUnitIds) {
       OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid);
-
       if (orgUnit == null) {
         throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
       }
 
-      if (!trackerAccessManager.canAccess(user, program, orgUnit)) {
+      if (!user.isSuper()
+          && !organisationUnitService.isInUserHierarchy(
+              orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
         throw new ForbiddenException(
-            "User does not have access to organisation unit: " + orgUnitUid);
+            "Organisation unit is not part of the search scope: " + orgUnit.getUid());
       }
 
       orgUnits.add(orgUnit);
     }
 
-    if (orgUnitMode == OrganisationUnitSelectionMode.CAPTURE && user != null) {
-      orgUnits.addAll(user.getOrganisationUnits());
-    }
-
     return orgUnits;
   }
 
-  private Program validateProgram(String uid) throws BadRequestException {
+  private Program validateProgram(String uid, User user)
+      throws BadRequestException, ForbiddenException {
     if (uid == null) {
       return null;
     }
@@ -227,10 +221,24 @@ class TrackedEntityOperationParamsMapper {
       throw new BadRequestException("Program is specified but does not exist: " + uid);
     }
 
+    if (!aclService.canDataRead(user, program)) {
+      throw new ForbiddenException(
+          "Current user is not authorized to read data from selected program:  "
+              + program.getUid());
+    }
+
+    if (program.getTrackedEntityType() != null
+        && !aclService.canDataRead(user, program.getTrackedEntityType())) {
+      throw new ForbiddenException(
+          "Current user is not authorized to read data from selected program's tracked entity type:  "
+              + program.getTrackedEntityType().getUid());
+    }
+
     return program;
   }
 
-  private TrackedEntityType validateTrackedEntityType(String uid) throws BadRequestException {
+  private TrackedEntityType validateTrackedEntityType(String uid, User user)
+      throws BadRequestException, ForbiddenException {
     if (uid == null) {
       return null;
     }
@@ -238,6 +246,12 @@ class TrackedEntityOperationParamsMapper {
     TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType(uid);
     if (trackedEntityType == null) {
       throw new BadRequestException("Tracked entity type is specified but does not exist: " + uid);
+    }
+
+    if (!aclService.canDataRead(user, trackedEntityType)) {
+      throw new ForbiddenException(
+          "Current user is not authorized to read data from selected tracked entity type:  "
+              + trackedEntityType.getUid());
     }
 
     return trackedEntityType;
@@ -269,15 +283,193 @@ class TrackedEntityOperationParamsMapper {
         .orElse(null);
   }
 
-  private void validateOrderParams(
-      List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes)
+  private void mapOrderParam(TrackedEntityQueryParams params, List<Order> orders)
       throws BadRequestException {
-    if (orderParams != null && !orderParams.isEmpty()) {
-      for (OrderParam orderParam : orderParams) {
-        if (findColumn(orderParam.getField()).isEmpty()
-            && !attributes.containsKey(orderParam.getField())) {
-          throw new BadRequestException("Invalid order property: " + orderParam.getField());
+    if (orders == null || orders.isEmpty()) {
+      return;
+    }
+
+    for (Order order : orders) {
+      if (order.getField() instanceof String field) {
+        params.orderBy(field, order.getDirection());
+      } else if (order.getField() instanceof UID uid) {
+        TrackedEntityAttribute tea = attributeService.getTrackedEntityAttribute(uid.getValue());
+        if (tea == null) {
+          throw new BadRequestException(
+              "Cannot order by '"
+                  + uid.getValue()
+                  + "' as its not a tracked entity attribute. Tracked entities can be ordered by fields and tracked entity attributes.");
         }
+
+        params.orderBy(tea, order.getDirection());
+      } else {
+        throw new IllegalArgumentException(
+            "Cannot order by '"
+                + order.getField()
+                + "'. Tracked entities can be ordered by fields and tracked entity attributes.");
+      }
+    }
+  }
+
+  private void validateTrackedEntityAttributeFilters(
+      Program program,
+      TrackedEntityType trackedEntityType,
+      TrackedEntityOperationParams operationParams,
+      Set<OrganisationUnit> orgUnits,
+      TrackedEntityQueryParams params) {
+    if (program == null
+        && trackedEntityType == null
+        && operationParams.getFilters() != null
+        && orgUnits.isEmpty()) {
+      List<String> uniqueAttributeIds =
+          trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
+              .map(TrackedEntityAttribute::getUid)
+              .toList();
+
+      for (String att : params.getFilterIds()) {
+        if (!uniqueAttributeIds.contains(att)) {
+          throw new IllegalQueryException(
+              "Either a program or tracked entity type must be specified");
+        }
+      }
+    }
+  }
+
+  private void validateGlobalSearchParameters(TrackedEntityQueryParams params)
+      throws IllegalQueryException {
+    if (!isLocalSearch(params, params.getUser())) {
+
+      if (params.hasFilters()) {
+        List<String> searchableAttributeIds = getSearchableAttributeIds(params);
+        validateSearchableAttributes(params, searchableAttributeIds);
+      }
+
+      int maxTeiLimit = getMaxTeiLimit(params);
+      checkIfMaxTeiLimitIsReached(params, maxTeiLimit);
+      params.setMaxTeLimit(maxTeiLimit);
+    }
+  }
+
+  private List<String> getSearchableAttributeIds(TrackedEntityQueryParams params) {
+    List<String> searchableAttributeIds = new ArrayList<>();
+
+    if (params.hasProgram()) {
+      searchableAttributeIds.addAll(params.getProgram().getSearchableAttributeIds());
+    }
+
+    if (params.hasTrackedEntityType()) {
+      searchableAttributeIds.addAll(params.getTrackedEntityType().getSearchableAttributeIds());
+    }
+
+    if (!params.hasProgram() && !params.hasTrackedEntityType()) {
+      searchableAttributeIds.addAll(
+          trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
+              .map(TrackedEntityAttribute::getUid)
+              .toList());
+    }
+
+    return searchableAttributeIds;
+  }
+
+  private void validateSearchableAttributes(
+      TrackedEntityQueryParams params, List<String> searchableAttributeIds) {
+    List<String> violatingAttributes = new ArrayList<>();
+
+    for (String attributeId : params.getFilterIds()) {
+      if (!searchableAttributeIds.contains(attributeId)) {
+        violatingAttributes.add(attributeId);
+      }
+    }
+
+    if (!violatingAttributes.isEmpty()) {
+      throw new IllegalQueryException(
+          "Non-searchable attribute(s) can not be used during global search:  "
+              + violatingAttributes);
+    }
+  }
+
+  private int getMaxTeiLimit(TrackedEntityQueryParams params) {
+    int maxTeiLimit = 0;
+    if (params.hasTrackedEntityType()) {
+      maxTeiLimit = params.getTrackedEntityType().getMaxTeiCountToReturn();
+
+      if (!params.hasTrackedEntities() && isTeTypeMinAttributesViolated(params)) {
+        throw new IllegalQueryException(
+            "At least "
+                + params.getTrackedEntityType().getMinAttributesRequiredToSearch()
+                + " attributes should be mentioned in the search criteria.");
+      }
+    }
+
+    if (params.hasProgram()) {
+      maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
+
+      if (!params.hasTrackedEntities() && isProgramMinAttributesViolated(params)) {
+        throw new IllegalQueryException(
+            "At least "
+                + params.getProgram().getMinAttributesRequiredToSearch()
+                + " attributes should be mentioned in the search criteria.");
+      }
+    }
+
+    return maxTeiLimit;
+  }
+
+  private boolean isLocalSearch(TrackedEntityQueryParams params, User user) {
+    Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
+
+    Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
+
+    if (params.isOrganisationUnitMode(SELECTED)) {
+      searchOrgUnits = params.getOrgUnits();
+    } else if (params.isOrganisationUnitMode(CHILDREN)
+        || params.isOrganisationUnitMode(DESCENDANTS)) {
+      for (OrganisationUnit orgUnit : params.getOrgUnits()) {
+        searchOrgUnits.addAll(orgUnit.getChildren());
+      }
+    } else if (params.isOrganisationUnitMode(ALL)) {
+      searchOrgUnits.addAll(organisationUnitService.getRootOrganisationUnits());
+    } else {
+      searchOrgUnits.addAll(user.getTeiSearchOrganisationUnitsWithFallback());
+    }
+
+    for (OrganisationUnit ou : searchOrgUnits) {
+      if (!ou.isDescendant(localOrgUnits)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private boolean isTeTypeMinAttributesViolated(TrackedEntityQueryParams params) {
+    if (params.hasUniqueFilter()) {
+      return false;
+    }
+
+    return (!params.hasFilters()
+            && params.getTrackedEntityType().getMinAttributesRequiredToSearch() > 0)
+        || (params.hasFilters()
+            && params.getFilters().size()
+                < params.getTrackedEntityType().getMinAttributesRequiredToSearch());
+  }
+
+  private boolean isProgramMinAttributesViolated(TrackedEntityQueryParams params) {
+    if (params.hasUniqueFilter()) {
+      return false;
+    }
+
+    return (!params.hasFilters() && params.getProgram().getMinAttributesRequiredToSearch() > 0)
+        || (params.hasFilters()
+            && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch());
+  }
+
+  private void checkIfMaxTeiLimitIsReached(TrackedEntityQueryParams params, int maxTeiLimit) {
+    if (maxTeiLimit > 0) {
+      int teCount = trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(params);
+
+      if (teCount > maxTeiLimit) {
+        throw new IllegalQueryException("maxteicountreached");
       }
     }
   }

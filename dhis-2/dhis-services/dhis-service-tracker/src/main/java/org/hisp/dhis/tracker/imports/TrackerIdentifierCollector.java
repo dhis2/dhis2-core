@@ -47,13 +47,13 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -71,12 +71,12 @@ import org.springframework.stereotype.Component;
 public class TrackerIdentifierCollector {
   private final ProgramRuleService programRuleService;
 
-  public Map<Class<?>, Set<String>> collect(TrackerImportParams params) {
+  public Map<Class<?>, Set<String>> collect(TrackerObjects trackerObjects) {
     final Map<Class<?>, Set<String>> identifiers = new HashMap<>();
-    collectTrackedEntities(identifiers, params.getTrackedEntities());
-    collectEnrollments(identifiers, params.getEnrollments());
-    collectEvents(identifiers, params.getEvents());
-    collectRelationships(identifiers, params.getRelationships());
+    collectTrackedEntities(identifiers, trackerObjects.getTrackedEntities());
+    collectEnrollments(identifiers, trackerObjects.getEnrollments());
+    collectEvents(identifiers, trackerObjects.getEvents());
+    collectRelationships(identifiers, trackerObjects.getRelationships());
     collectProgramRulesFields(identifiers);
     return identifiers;
   }
@@ -149,7 +149,7 @@ public class TrackerIdentifierCollector {
     notes.forEach(
         note -> {
           if (!StringUtils.isEmpty(note.getNote()) && !StringUtils.isEmpty(note.getValue())) {
-            addIdentifier(identifiers, TrackedEntityComment.class, note.getNote());
+            addIdentifier(identifiers, org.hisp.dhis.note.Note.class, note.getNote());
           }
         });
   }

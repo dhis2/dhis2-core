@@ -113,8 +113,8 @@ public class TrackedEntityInstanceSupplier
   private Map<String, TrackedEntity> getTrackedEntityInstances(
       Set<String> teiUids, Multimap<String, String> teiToEvent) {
     final String sql =
-        "select tei.trackedentityinstanceid, tei.uid, tei.code "
-            + "from trackedentityinstance tei where tei.uid in (:ids)";
+        "select tei.trackedentityid, tei.uid, tei.code "
+            + "from trackedentity tei where tei.uid in (:ids)";
 
     MapSqlParameterSource parameters = new MapSqlParameterSource();
     parameters.addValue("ids", teiUids);
@@ -127,7 +127,7 @@ public class TrackedEntityInstanceSupplier
 
           while (rs.next()) {
             TrackedEntity tei = new TrackedEntity();
-            tei.setId(rs.getLong("trackedentityinstanceid"));
+            tei.setId(rs.getLong("trackedentityid"));
             tei.setUid(rs.getString("uid"));
             tei.setCode(rs.getString("code"));
             for (String event : teiToEvent.get(tei.getUid())) {

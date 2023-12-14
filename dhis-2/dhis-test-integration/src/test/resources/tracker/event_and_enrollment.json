@@ -37,8 +37,6 @@
         "idScheme": "UID",
         "identifier": "ja8NY4PW7Xm"
       },
-      "createdAt": "2020-02-20T12:09:21.844",
-      "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
@@ -46,6 +44,7 @@
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
+      "createdAtClient": "2018-10-01T12:17:30.163",
       "relationships": [],
       "attributes": [
         {
@@ -81,8 +80,6 @@
         "idScheme": "UID",
         "identifier": "ja8NY4PW7Xm"
       },
-      "createdAt": "2020-02-20T12:09:21.844",
-      "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
@@ -90,6 +87,7 @@
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
+      "createdAtClient": "2018-11-01T12:17:30.163",
       "relationships": [],
       "attributes": [
         {
@@ -133,8 +131,6 @@
         "idScheme": "UID",
         "identifier": "ja8NY4PW7Xm"
       },
-      "createdAt": "2020-02-20T12:09:21.844",
-      "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
@@ -166,7 +162,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 88
+          "value": 72
         }
       ],
       "enrollments": []
@@ -177,8 +173,6 @@
         "idScheme": "UID",
         "identifier": "ja8NY4PW7Xm"
       },
-      "createdAt": "2020-02-20T12:09:21.844",
-      "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
@@ -210,7 +204,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 88
+          "value": 89
         }
       ],
       "enrollments": []
@@ -221,8 +215,6 @@
         "idScheme": "UID",
         "identifier": "ja8NY4PW7Xm"
       },
-      "createdAt": "2020-02-20T12:09:21.844",
-      "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "tSsGrtfRzjY"
@@ -254,7 +246,49 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 88
+          "value": 91
+        }
+      ],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "woitxQbWYNq",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "ja8NY4PW7Xm"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "RojfDTBhoGC"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toDelete000"
+          },
+          "value": "just day"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toUpdate000"
+          },
+          "value": "summer day"
+        },
+        {
+          "valueType": "INTEGER",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "numericAttr"
+          },
+          "value": 90
         }
       ],
       "enrollments": []
@@ -277,7 +311,7 @@
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "dueDate": "2021-02-28T12:05:00.000",
+      "scheduledAt": "2021-02-28T12:05:00.000",
       "followUp": false,
       "deleted": false,
       "events": [],
@@ -301,7 +335,7 @@
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2021-03-28T12:05:00.000",
       "occurredAt": "2021-03-28T12:05:00.000",
-      "dueDate": "2021-02-28T12:05:00.000",
+      "scheduledAt": "2021-02-28T12:05:00.000",
       "followUp": false,
       "deleted": false,
       "events": [],
@@ -325,7 +359,7 @@
       "orgUnitName": "test-orgunit-2",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "dueDate": "2021-02-28T12:05:00.000",
+      "scheduledAt": "2021-02-28T12:05:00.000",
       "followUp": false,
       "deleted": false,
       "events": [],
@@ -349,7 +383,7 @@
       "orgUnitName": "test-orgunit-2",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "dueDate": "2021-02-28T12:05:00.000",
+      "scheduledAt": "2021-02-28T12:05:00.000",
       "followUp": false,
       "deleted": false,
       "events": [],
@@ -373,7 +407,79 @@
       "orgUnitName": "test-orgunit-3",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "dueDate": "2021-02-28T12:05:00.000",
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
+    },
+    {
+      "enrollment": "qxOSXoEZkOA",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "woitxQbWYNq",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "YlUmbgnKWkd"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "RojfDTBhoGC"
+      },
+      "orgUnitName": "test-orgunit-3",
+      "enrolledAt": "2021-02-28T12:05:00.000",
+      "occurredAt": "2021-02-28T12:05:00.000",
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
+    },
+    {
+      "enrollment": "HDWTYSYkICe",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "woitxQbWYNq",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "SeeUNWLQmZk"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "DiszpKrYNg8"
+      },
+      "orgUnitName": "test-orgunit-3",
+      "enrolledAt": "2021-02-28T12:05:00.000",
+      "occurredAt": "2021-02-28T12:05:00.000",
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
+    },
+    {
+      "enrollment": "FXWSSZunTLk",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "woitxQbWYNq",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "sLngICFQjvH"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "lbDXJBlvtZe"
+      },
+      "orgUnitName": "test-orgunit-3",
+      "enrolledAt": "2021-02-28T12:05:00.000",
+      "occurredAt": "2021-02-28T12:05:00.000",
+      "scheduledAt": "2021-02-28T12:05:00.000",
       "followUp": false,
       "deleted": false,
       "events": [],
@@ -400,13 +506,13 @@
         "identifier": "h4w96yEMlzO"
       },
       "relationships": [],
-      "occurredAt": "2019-01-28T00:00:00.000",
-      "scheduledAt": "2019-01-28T12:10:38.100",
+      "occurredAt": "2019-01-25T12:10:38.100",
+      "scheduledAt": "2019-01-28T12:32:38.100",
+      "createdAtClient": "2020-01-25T12:10:38.100",
+      "updatedAtClient": "2020-01-26T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
+      "followUp": true,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -417,8 +523,7 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+
       "dataValues": [
         {
           "dataElement": {
@@ -428,7 +533,6 @@
           "value": "value00001",
           "createdAt": "2021-07-01T12:05:00",
           "storedBy": null,
-          "updatedAt": "2022-07-01T12:05:00",
           "providedElsewhere": false
         },
         {
@@ -439,7 +543,6 @@
           "value": "option1",
           "createdAt": "2021-07-01T12:05:00",
           "storedBy": null,
-          "updatedAt": "2022-07-01T12:05:00",
           "providedElsewhere": false
         },
         {
@@ -450,11 +553,21 @@
           "value": "88",
           "createdAt": "2021-07-01T12:05:00",
           "storedBy": null,
-          "updatedAt": "2022-07-01T12:05:00",
           "providedElsewhere": false
         }
       ],
-      "notes": []
+      "notes": [
+        {
+          "note": "SGuCABkhpgn",
+          "value": "comment value",
+          "storedBy": "admin"
+        },
+        {
+          "note": "DRKO4xUVrpr",
+          "value": "comment value",
+          "storedBy": "admin"
+        }
+      ]
     },
     {
       "event": "D9PbzJY8bJM",
@@ -474,14 +587,12 @@
       },
       "relationships": [],
       "occurredAt": "2020-01-28T00:00:00.000",
-      "executionDate": "2019-01-28T00:00:00.000",
-      "updatedAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
+      "createdAtClient": "2019-01-25T12:10:38.100",
+      "updatedAtClient": "2021-01-26T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
+      "followUp": true,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -492,8 +603,7 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+
       "dataValues": [
         {
           "dataElement": {
@@ -503,7 +613,6 @@
           "value": "value00002",
           "created": "2021-07-01T12:05:00",
           "storedBy": null,
-          "lastUpdated": "2022-07-01T12:05:00",
           "providedElsewhere": false
         },
         {
@@ -514,7 +623,6 @@
           "value": "value00002",
           "created": "2021-07-01T12:05:00",
           "storedBy": null,
-          "lastUpdated": "2022-07-01T12:05:00",
           "providedElsewhere": false
         },
         {
@@ -525,7 +633,6 @@
           "value": "option2",
           "created": "2021-07-01T12:05:00",
           "storedBy": null,
-          "lastUpdated": "2022-07-01T12:05:00",
           "providedElsewhere": false
         },
         {
@@ -536,23 +643,10 @@
           "value": "70",
           "created": "2021-07-01T12:05:00",
           "storedBy": null,
-          "lastUpdated": "2022-07-01T12:05:00",
           "providedElsewhere": false
         }
       ],
       "notes": [],
-      "lastUpdatedByUserInfo": {
-        "uid": "xE7jOejl9FI",
-        "firstName": "John",
-        "surname": "Traore",
-        "username": "admin"
-      },
-      "createdByUserInfo": {
-        "uid": "xE7jOejl9FI",
-        "firstName": "John",
-        "surname": "Traore",
-        "username": "admin"
-      },
       "assignedUser": {
         "uid": "xE7jOejl9FI",
         "firstName": "John",
@@ -580,10 +674,8 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
+      "followUp": true,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -594,8 +686,7 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+
       "notes": []
     },
     {
@@ -618,10 +709,8 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
+      "followUp": true,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
@@ -632,8 +721,7 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+
       "notes": []
     },
     {
@@ -670,18 +758,6 @@
       },
       "status": "ACTIVE",
       "deleted": false,
-      "lastUpdatedByUserInfo": {
-        "uid": "xE7jOejl9FI",
-        "firstName": "John",
-        "surname": "Traore",
-        "username": "admin"
-      },
-      "createdByUserInfo": {
-        "uid": "xE7jOejl9FI",
-        "firstName": "John",
-        "surname": "Traore",
-        "username": "admin"
-      },
       "dataValues": [
         {
           "created": "2022-04-22T06:00:38.339",
@@ -690,19 +766,7 @@
             "identifier": "GieVkTxp4HH"
           },
           "value": "15",
-          "providedElsewhere": false,
-          "createdByUserInfo": {
-            "uid": "xE7jOejl9FI",
-            "firstName": "John",
-            "surname": "Traore",
-            "username": "admin"
-          },
-          "lastUpdatedByUserInfo": {
-            "uid": "xE7jOejl9FI",
-            "firstName": "John",
-            "surname": "Traore",
-            "username": "admin"
-          }
+          "providedElsewhere": false
         }
       ],
       "notes": [],
@@ -742,18 +806,6 @@
       },
       "status": "ACTIVE",
       "deleted": false,
-      "lastUpdatedByUserInfo": {
-        "uid": "xE7jOejl9FI",
-        "firstName": "John",
-        "surname": "Traore",
-        "username": "admin"
-      },
-      "createdByUserInfo": {
-        "uid": "xE7jOejl9FI",
-        "firstName": "John",
-        "surname": "Traore",
-        "username": "admin"
-      },
       "dataValues": [
         {
           "created": "2022-04-22T06:00:34.319",
@@ -762,19 +814,7 @@
             "identifier": "GieVkTxp4HH"
           },
           "value": "14",
-          "providedElsewhere": false,
-          "createdByUserInfo": {
-            "uid": "xE7jOejl9FI",
-            "firstName": "John",
-            "surname": "Traore",
-            "username": "admin"
-          },
-          "lastUpdatedByUserInfo": {
-            "uid": "xE7jOejl9FI",
-            "firstName": "John",
-            "surname": "Traore",
-            "username": "admin"
-          }
+          "providedElsewhere": false
         }
       ],
       "notes": [],
@@ -814,18 +854,6 @@
       },
       "status": "ACTIVE",
       "deleted": false,
-      "lastUpdatedByUserInfo": {
-        "uid": "xE7jOejl9FI",
-        "firstName": "John",
-        "surname": "Traore",
-        "username": "admin"
-      },
-      "createdByUserInfo": {
-        "uid": "xE7jOejl9FI",
-        "firstName": "John",
-        "surname": "Traore",
-        "username": "admin"
-      },
       "dataValues": [
         {
           "created": "2022-04-22T06:00:30.559",
@@ -834,19 +862,7 @@
             "identifier": "GieVkTxp4HH"
           },
           "value": "13",
-          "providedElsewhere": false,
-          "createdByUserInfo": {
-            "uid": "xE7jOejl9FI",
-            "firstName": "John",
-            "surname": "Traore",
-            "username": "admin"
-          },
-          "lastUpdatedByUserInfo": {
-            "uid": "xE7jOejl9FI",
-            "firstName": "John",
-            "surname": "Traore",
-            "username": "admin"
-          }
+          "providedElsewhere": false
         }
       ],
       "notes": [],
@@ -886,18 +902,6 @@
       },
       "status": "ACTIVE",
       "deleted": false,
-      "lastUpdatedByUserInfo": {
-        "uid": "xE7jOejl9FI",
-        "firstName": "John",
-        "surname": "Traore",
-        "username": "admin"
-      },
-      "createdByUserInfo": {
-        "uid": "xE7jOejl9FI",
-        "firstName": "John",
-        "surname": "Traore",
-        "username": "admin"
-      },
       "dataValues": [
         {
           "created": "2022-04-22T06:00:14.224",
@@ -906,19 +910,7 @@
             "identifier": "GieVkTxp4HH"
           },
           "value": "12",
-          "providedElsewhere": false,
-          "createdByUserInfo": {
-            "uid": "xE7jOejl9FI",
-            "firstName": "John",
-            "surname": "Traore",
-            "username": "admin"
-          },
-          "lastUpdatedByUserInfo": {
-            "uid": "xE7jOejl9FI",
-            "firstName": "John",
-            "surname": "Traore",
-            "username": "admin"
-          }
+          "providedElsewhere": false
         }
       ],
       "notes": [],
@@ -1012,19 +1004,129 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "followup": false,
+      "followUp": true,
       "deleted": false,
-      "createdAt": "2019-01-28T12:10:38.108",
-      "updatedAt": "2019-01-28T12:10:38.109",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
       },
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
+      "notes": []
+    },
+    {
+      "event": "SbUJzkxKYAG",
+      "status": "COMPLETED",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "YlUmbgnKWkd"
+      },
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "uLQthmAPTPq"
+      },
+      "enrollment": "qxOSXoEZkOA",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "RojfDTBhoGC"
+      },
+      "relationships": [],
+      "occurredAt": "2019-01-28T00:00:00.000",
+      "scheduledAt": "2019-01-28T12:10:38.100",
+      "storedBy": "admin",
+      "followUp": true,
+      "deleted": false,
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
+    },
+    {
+      "event": "LCSfHnurnNB",
+      "status": "COMPLETED",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "SeeUNWLQmZk"
+      },
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "GmxBvezOlGA"
+      },
+      "enrollment": "HDWTYSYkICe",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "DiszpKrYNg8"
+      },
+      "relationships": [],
+      "occurredAt": "2019-01-28T00:00:00.000",
+      "scheduledAt": "2019-01-28T12:10:38.100",
+      "storedBy": "admin",
+      "followUp": true,
+      "deleted": false,
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      },
+      "notes": []
+    },
+    {
+      "event": "YKmfzHdjUDL",
+      "status": "COMPLETED",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "sLngICFQjvH"
+      },
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "zydGjigJcJb"
+      },
+      "enrollment": "FXWSSZunTLk",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "lbDXJBlvtZe"
+      },
+      "relationships": [],
+      "occurredAt": "2019-01-28T00:00:00.000",
+      "scheduledAt": "2019-01-28T12:10:38.100",
+      "storedBy": "admin",
+      "followUp": true,
+      "deleted": false,
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      },
       "notes": []
     }
   ],
-  "relationships": [],
+  "relationships": [
+    {
+      "relationship": "oLT07jKRu9e",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "TV9oB9LT3sh"
+      },
+      "bidirectional": false,
+      "deleted": false,
+      "from": {
+        "trackedEntity": "QS6w44flWAf"
+      },
+      "to": {
+        "event": "pTzf9KYMk72"
+      }
+    },
+    {
+      "relationship": "yZxjxJli9mO",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "TV9oB9LT3sh"
+      },
+      "bidirectional": false,
+      "deleted": false,
+      "from": {
+        "trackedEntity": "dUE514NMOlo"
+      },
+      "to": {
+        "event": "pTzf9KYMk72"
+      }
+    }
+  ],
   "username": "system-process"
 }

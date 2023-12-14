@@ -39,14 +39,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.webapi.common.UID;
 import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(pattern = Pattern.INFO)
+@OpenApi.Shared(pattern = Pattern.TRACKER)
 @Data
 @Builder
 @NoArgsConstructor
@@ -72,8 +72,6 @@ public class Event {
 
   @JsonProperty private String orgUnit;
 
-  @JsonProperty private String orgUnitName;
-
   @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
   @JsonProperty private Instant occurredAt;
@@ -82,7 +80,11 @@ public class Event {
 
   @JsonProperty private String storedBy;
 
-  @JsonProperty private boolean followup;
+  @JsonProperty private boolean followUp;
+
+  @Deprecated(since = "2.41", forRemoval = true)
+  @JsonProperty("followup")
+  private boolean legacyFollowUp;
 
   @JsonProperty private boolean deleted;
 

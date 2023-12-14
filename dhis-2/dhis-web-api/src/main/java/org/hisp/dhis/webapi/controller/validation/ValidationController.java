@@ -27,31 +27,31 @@
  */
 package org.hisp.dhis.webapi.controller.validation;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.ValidationSummary;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,12 +68,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/validation")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ValidationController {
+
   private final ValidationService validationService;
-
   private final CategoryService categoryService;
-
-  private final SchedulingManager schedulingManager;
-
+  private final JobConfigurationService jobConfigurationService;
+  private final JobSchedulerService jobSchedulerService;
   private final DataValidator dataValidator;
 
   @GetMapping("/dataSet/{ds}")
@@ -83,9 +82,7 @@ public class ValidationController {
       @RequestParam String ou,
       @RequestParam(required = false) String aoc,
       @RequestParam(required = false) String cc,
-      @RequestParam(required = false) String cp,
-      HttpServletResponse response,
-      Model model) {
+      @RequestParam(required = false) String cp) {
     DataSet dataSet = dataValidator.getAndValidateDataSet(ds);
     Period period = dataValidator.getAndValidatePeriod(pe);
     OrganisationUnit orgUnit = dataValidator.getAndValidateOrganisationUnit(ou);
@@ -111,19 +108,13 @@ public class ValidationController {
       value = "/sendNotifications",
       method = {RequestMethod.PUT, RequestMethod.POST})
   @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
-  public WebMessage runValidationNotificationsTask() {
-    JobConfiguration validationResultNotification =
-        new JobConfiguration(
-            "validation result notification from validation controller",
-            JobType.VALIDATION_RESULTS_NOTIFICATION,
-            "",
-            null);
-    validationResultNotification.setInMemoryJob(true);
-    validationResultNotification.setUid(CodeGenerator.generateUid());
+  public WebMessage runValidationNotificationsTask()
+      throws ConflictException, @OpenApi.Ignore NotFoundException {
+    JobConfiguration config = new JobConfiguration(JobType.VALIDATION_RESULTS_NOTIFICATION);
 
-    schedulingManager.executeNow(validationResultNotification);
+    jobSchedulerService.executeNow(jobConfigurationService.create(config));
 
-    return ok("Initiated validation result notification");
+    return jobConfigurationReport(config);
   }
 
   /**

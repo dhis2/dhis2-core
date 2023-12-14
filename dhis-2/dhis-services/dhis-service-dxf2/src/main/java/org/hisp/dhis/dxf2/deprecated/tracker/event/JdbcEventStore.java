@@ -56,13 +56,13 @@ import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventUtils.userInfoToJ
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.util.DateUtils.addDays;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -94,7 +94,6 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -115,7 +114,6 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jdbc.BatchPreparedStatementSetterWithKeyHolder;
 import org.hisp.dhis.jdbc.JdbcUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -155,8 +153,8 @@ public class JdbcEventStore implements EventStore {
 
   private static final String PSI_EVENT_COMMENT_QUERY =
       "select psic.eventid    as psic_id,"
-          + " psinote.trackedentitycommentid as psinote_id,"
-          + " psinote.commenttext            as psinote_value,"
+          + " psinote.noteid as psinote_id,"
+          + " psinote.notetext            as psinote_value,"
           + " psinote.created                as psinote_storeddate,"
           + " psinote.creator                as psinote_storedby,"
           + " psinote.uid                    as psinote_uid,"
@@ -167,9 +165,9 @@ public class JdbcEventStore implements EventStore {
           + " userinfo.username              as usernote_username,"
           + " userinfo.firstname             as userinfo_firstname,"
           + " userinfo.surname               as userinfo_surname"
-          + " from eventcomments psic"
-          + " inner join trackedentitycomment psinote"
-          + " on psic.trackedentitycommentid = psinote.trackedentitycommentid"
+          + " from event_notes psic"
+          + " inner join note psinote"
+          + " on psic.noteid = psinote.noteid"
           + " left join userinfo on psinote.lastupdatedby = userinfo.userinfoid ";
 
   private static final String PSI_STATUS = "psi_status";
@@ -185,6 +183,16 @@ public class JdbcEventStore implements EventStore {
   private static final String EQUALS = " = ";
 
   private static final String AND = " AND ";
+
+  private static final String COLUMN_USER_UID = "u_uid";
+
+  private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
+
+  private static final String USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
+      " ou.path like CONCAT(orgunit.path, '%') ";
+
+  private static final String CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
+      " ou.path like CONCAT(:" + COLUMN_ORG_UNIT_PATH + ", '%' ) ";
 
   private static final Map<String, String> QUERY_PARAM_COL_MAP =
       ImmutableMap.<String, String>builder()
@@ -248,7 +256,7 @@ public class JdbcEventStore implements EventStore {
   private static final List<String> INSERT_COLUMNS =
       List.of(
           EventQuery.COLUMNS.ID.getColumnName(), // nextval
-          "programinstanceid", // 1
+          "enrollmentid", // 1
           "programstageid", // 2
           EventQuery.COLUMNS.DUE_DATE.getColumnName(), // 3
           EventQuery.COLUMNS.EXECUTION_DATE.getColumnName(), // 4
@@ -275,7 +283,7 @@ public class JdbcEventStore implements EventStore {
 
   private static final List<String> UPDATE_COLUMNS =
       List.of(
-          "programInstanceId", // 1
+          "enrollmentid", // 1
           "programstageid", // 2
           EventQuery.COLUMNS.DUE_DATE.getColumnName(), // 3
           EventQuery.COLUMNS.EXECUTION_DATE.getColumnName(), // 4
@@ -297,9 +305,7 @@ public class JdbcEventStore implements EventStore {
 
   private static final String UPDATE_EVENT_SQL;
 
-  private static final String PATH_LIKE = "path LIKE";
-
-  private static final String PATH_EQ = "path =";
+  private static final String PERCENTAGE_SIGN = ", '%' ";
 
   /**
    * Updates Tracked Entity Instance after an event update. In order to prevent deadlocks, SELECT
@@ -307,8 +313,8 @@ public class JdbcEventStore implements EventStore {
    * when Postgres tries to update the same TEI.
    */
   private static final String UPDATE_TEI_SQL =
-      "SELECT * FROM trackedentityinstance WHERE uid IN (:teiUids) FOR UPDATE SKIP LOCKED;"
-          + "UPDATE trackedentityinstance SET lastupdated = :lastUpdated, lastupdatedby = :lastUpdatedBy WHERE uid IN (:teiUids)";
+      "SELECT * FROM trackedentity WHERE uid IN (:teiUids) FOR UPDATE SKIP LOCKED;"
+          + "UPDATE trackedentity SET lastupdated = :lastUpdated, lastupdatedby = :lastUpdatedBy WHERE uid IN (:teiUids)";
 
   static {
     INSERT_EVENT_SQL =
@@ -424,18 +430,20 @@ public class JdbcEventStore implements EventStore {
 
             event.setStoredBy(resultSet.getString("psi_storedby"));
             event.setOrgUnitName(resultSet.getString("ou_name"));
-            event.setDueDate(DateUtils.getIso8601NoTz(resultSet.getDate("psi_duedate")));
-            event.setEventDate(DateUtils.getIso8601NoTz(resultSet.getDate("psi_executiondate")));
-            event.setCreated(DateUtils.getIso8601NoTz(resultSet.getDate("psi_created")));
+            event.setDueDate(DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_duedate")));
+            event.setEventDate(
+                DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_executiondate")));
+            event.setCreated(DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_created")));
             event.setCreatedByUserInfo(
                 jsonToUserInfo(resultSet.getString("psi_createdbyuserinfo"), jsonMapper));
-            event.setLastUpdated(DateUtils.getIso8601NoTz(resultSet.getDate("psi_lastupdated")));
+            event.setLastUpdated(
+                DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_lastupdated")));
             event.setLastUpdatedByUserInfo(
                 jsonToUserInfo(resultSet.getString("psi_lastupdatedbyuserinfo"), jsonMapper));
 
             event.setCompletedBy(resultSet.getString("psi_completedby"));
             event.setCompletedDate(
-                DateUtils.getIso8601NoTz(resultSet.getDate("psi_completeddate")));
+                DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_completeddate")));
 
             if (resultSet.getObject("psi_geometry") != null) {
               try {
@@ -582,7 +590,7 @@ public class JdbcEventStore implements EventStore {
 
     final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
-    String sql = buildGridSql(user, params, mapSqlParameterSource);
+    String sql = buildGridSql(params, user, mapSqlParameterSource);
 
     return jdbcTemplate.query(
         sql,
@@ -828,7 +836,7 @@ public class JdbcEventStore implements EventStore {
     MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
     if (params.hasFilters()) {
-      sql = buildGridSql(user, params, mapSqlParameterSource);
+      sql = buildGridSql(params, user, mapSqlParameterSource);
     } else {
       sql = getEventSelectQuery(params, mapSqlParameterSource, user);
     }
@@ -859,7 +867,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String buildGridSql(
-      User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+      EventSearchParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder selectBuilder =
@@ -873,8 +881,8 @@ public class JdbcEventStore implements EventStore {
     return selectBuilder
         .append(
             getFromWhereClause(
-                user,
                 params,
+                user,
                 dataElementAndFiltersSql(params, mapSqlParameterSource, hlp, selectBuilder),
                 mapSqlParameterSource,
                 hlp))
@@ -936,8 +944,8 @@ public class JdbcEventStore implements EventStore {
           .append(" INNER JOIN trackedentityattributevalue ")
           .append(teaValueCol)
           .append(" ON ")
-          .append(teaValueCol + ".trackedentityinstanceid")
-          .append(" = TEI.trackedentityinstanceid ")
+          .append(teaValueCol + ".trackedentityid")
+          .append(" = TEI.trackedentityid ")
           .append(" INNER JOIN trackedentityattribute ")
           .append(teaCol)
           .append(" ON ")
@@ -1018,9 +1026,9 @@ public class JdbcEventStore implements EventStore {
             .append(" psi.uid as psi_uid, ")
             .append("ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, ")
             .append(
-                "psi.eventid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, ")
+                "psi.eventid as psi_id, psi.status as psi_status, psi.occurreddate as psi_executiondate, ")
             .append(
-                "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, ")
+                "psi.eventdatavalues as psi_eventdatavalues, psi.scheduleddate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, ")
             .append(
                 "psi.created as psi_created, psi.createdbyuserinfo as psi_createdbyuserinfo, psi.lastupdated as psi_lastupdated, psi.lastupdatedbyuserinfo as psi_lastupdatedbyuserinfo, ")
             .append("psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, ")
@@ -1043,10 +1051,10 @@ public class JdbcEventStore implements EventStore {
 
     return selectBuilder
         .append(
-            "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, pi.enrollmentdate as pi_enrollmentdate, pi.incidentdate as pi_incidentdate, ")
+            "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, pi.enrollmentdate as pi_enrollmentdate, pi.occurreddate as pi_incidentdate, ")
         .append("p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, ")
         .append(
-            "tei.trackedentityinstanceid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive ")
+            "tei.trackedentityid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive ")
         .append(
             getFromWhereClause(
                 params,
@@ -1078,14 +1086,14 @@ public class JdbcEventStore implements EventStore {
       StringBuilder dataElementAndFiltersSql) {
     StringBuilder fromBuilder =
         new StringBuilder(" from event psi ")
-            .append("inner join programinstance pi on pi.programinstanceid=psi.programinstanceid ")
+            .append("inner join enrollment pi on pi.enrollmentid=psi.enrollmentid ")
             .append("inner join program p on p.programid=pi.programid ")
             .append("inner join programstage ps on ps.programstageid=psi.programstageid ");
 
     if (checkForOwnership(params)) {
       fromBuilder
           .append(
-              "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) ")
+              "left join trackedentityprogramowner po on (pi.trackedentityid=po.trackedentityid) ")
           .append(
               "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) ")
           .append(
@@ -1096,8 +1104,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     fromBuilder
-        .append(
-            "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid ")
+        .append("left join trackedentity tei on tei.trackedentityid=pi.trackedentityid ")
         .append(
             "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ")
         .append("left join userinfo au on (psi.assigneduserid=au.userinfoid) ");
@@ -1111,12 +1118,12 @@ public class JdbcEventStore implements EventStore {
     fromBuilder.append(dataElementAndFiltersSql);
 
     if (params.getTrackedEntity() != null) {
-      mapSqlParameterSource.addValue("trackedentityinstanceid", params.getTrackedEntity().getId());
+      mapSqlParameterSource.addValue("trackedentityid", params.getTrackedEntity().getId());
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" tei.trackedentityinstanceid= ")
-          .append(":trackedentityinstanceid")
+          .append(" tei.trackedentityid= ")
+          .append(":trackedentityid")
           .append(" ");
     }
 
@@ -1163,13 +1170,13 @@ public class JdbcEventStore implements EventStore {
           "enrollmentOccurredBefore", params.getEnrollmentOccurredBefore(), Types.TIMESTAMP);
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (pi.incidentdate <= :enrollmentOccurredBefore ) ");
+          .append(" (pi.occurreddate <= :enrollmentOccurredBefore ) ");
     }
 
     if (params.getEnrollmentOccurredAfter() != null) {
       mapSqlParameterSource.addValue(
           "enrollmentOccurredAfter", params.getEnrollmentOccurredAfter(), Types.TIMESTAMP);
-      fromBuilder.append(hlp.whereAnd()).append(" (pi.incidentdate >= :enrollmentOccurredAfter ) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (pi.occurreddate >= :enrollmentOccurredAfter ) ");
     }
 
     if (params.getDueDateStart() != null) {
@@ -1177,7 +1184,7 @@ public class JdbcEventStore implements EventStore {
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (psi.duedate is not null and psi.duedate >= :startDueDate ) ");
+          .append(" (psi.scheduleddate is not null and psi.scheduleddate >= :startDueDate ) ");
     }
 
     if (params.getDueDateEnd() != null) {
@@ -1185,7 +1192,7 @@ public class JdbcEventStore implements EventStore {
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (psi.duedate is not null and psi.duedate <= :endDueDate ) ");
+          .append(" (psi.scheduleddate is not null and psi.scheduleddate <= :endDueDate ) ");
     }
 
     if (params.getFollowUp() != null) {
@@ -1221,9 +1228,9 @@ public class JdbcEventStore implements EventStore {
           .append(" ");
     }
 
-    String orgUnitSql = getOrgUnitSql(user, params, getOuTableName(params));
+    String orgUnitSql = getOrgUnitSql(params, user, mapSqlParameterSource);
 
-    if (orgUnitSql != null) {
+    if (!Strings.isNullOrEmpty(orgUnitSql)) {
       fromBuilder.append(hlp.whereAnd()).append(" (").append(orgUnitSql).append(") ");
     }
 
@@ -1232,21 +1239,21 @@ public class JdbcEventStore implements EventStore {
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (psi.executiondate >= ")
+          .append(" (psi.occurreddate >= ")
           .append(":startDate")
-          .append(" or (psi.executiondate is null and psi.duedate >= ")
+          .append(" or (psi.occurreddate is null and psi.scheduleddate >= ")
           .append(":startDate")
           .append(" )) ");
     }
 
     if (params.getEndDate() != null) {
-      mapSqlParameterSource.addValue("endDate", addDays(params.getEndDate(), 1), Types.DATE);
+      mapSqlParameterSource.addValue("endDate", params.getEndDate(), Types.TIMESTAMP);
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" (psi.executiondate < ")
+          .append(" (psi.occurreddate < ")
           .append(":endDate")
-          .append(" or (psi.executiondate is null and psi.duedate < ")
+          .append(" or (psi.occurreddate is null and psi.scheduleddate < ")
           .append(":endDate")
           .append(" )) ");
     }
@@ -1459,8 +1466,8 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String getFromWhereClause(
-      User user,
       EventSearchParams params,
+      User user,
       StringBuilder dataElementAndFiltersSql,
       MapSqlParameterSource mapSqlParameterSource,
       SqlHelper hlp) {
@@ -1468,7 +1475,7 @@ public class JdbcEventStore implements EventStore {
         new StringBuilder()
             .append(
                 " from event psi "
-                    + "inner join programinstance pi on pi.programinstanceid = psi.programinstanceid "
+                    + "inner join enrollment pi on pi.enrollmentid = psi.enrollmentid "
                     + "inner join program p on p.programid = pi.programid "
                     + "inner join programstage ps on ps.programstageid = psi.programstageid "
                     + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
@@ -1477,7 +1484,7 @@ public class JdbcEventStore implements EventStore {
     if (checkForOwnership(params)) {
       sqlBuilder
           .append(
-              "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) ")
+              "left join trackedentityprogramowner po on (pi.trackedentityid=po.trackedentityid) ")
           .append(
               "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) ")
           .append(
@@ -1489,7 +1496,7 @@ public class JdbcEventStore implements EventStore {
 
     sqlBuilder.append(dataElementAndFiltersSql);
 
-    String orgUnitSql = getOrgUnitSql(user, params, getOuTableName(params));
+    String orgUnitSql = getOrgUnitSql(params, user, mapSqlParameterSource);
 
     if (orgUnitSql != null) {
       sqlBuilder.append(hlp.whereAnd()).append(orgUnitSql + " ");
@@ -1521,21 +1528,21 @@ public class JdbcEventStore implements EventStore {
 
       sqlBuilder
           .append(hlp.whereAnd())
-          .append(" (psi.executiondate >= ")
+          .append(" (psi.occurreddate >= ")
           .append(":startDate")
-          .append(" or (psi.executiondate is null and psi.duedate >= ")
+          .append(" or (psi.occurreddate is null and psi.scheduleddate >= ")
           .append(":startDate")
           .append(" )) ");
     }
 
     if (params.getEndDate() != null) {
-      mapSqlParameterSource.addValue("endDate", addDays(params.getEndDate(), 1), Types.DATE);
+      mapSqlParameterSource.addValue("endDate", params.getEndDate(), Types.TIMESTAMP);
 
       sqlBuilder
           .append(hlp.whereAnd())
-          .append(" (psi.executiondate < ")
+          .append(" (psi.occurreddate < ")
           .append(":endDate ")
-          .append(" or (psi.executiondate is null and psi.duedate < ")
+          .append(" or (psi.occurreddate is null and psi.scheduleddate < ")
           .append(":endDate")
           .append(" )) ");
     }
@@ -1560,7 +1567,7 @@ public class JdbcEventStore implements EventStore {
 
       sqlBuilder
           .append(hlp.whereAnd())
-          .append(" psi.duedate is not null and psi.duedate >= ")
+          .append(" psi.scheduleddate is not null and psi.scheduleddate >= ")
           .append(":dueDate")
           .append(" ");
     }
@@ -1570,7 +1577,7 @@ public class JdbcEventStore implements EventStore {
 
       sqlBuilder
           .append(hlp.whereAnd())
-          .append(" psi.duedate is not null and psi.duedate <= ")
+          .append(" psi.scheduleddate is not null and psi.scheduleddate <= ")
           .append(":endDueDate")
           .append(" ");
     }
@@ -1623,13 +1630,13 @@ public class JdbcEventStore implements EventStore {
             .append(hlp.whereAnd())
             .append(PSI_STATUS_EQ)
             .append(":" + PSI_STATUS)
-            .append(" and psi.executiondate is not null ");
+            .append(" and psi.occurreddate is not null ");
       } else if (params.getEventStatus() == EventStatus.OVERDUE) {
         mapSqlParameterSource.addValue(PSI_STATUS, EventStatus.SCHEDULE.name());
 
         stringBuilder
             .append(hlp.whereAnd())
-            .append(" date(now()) > date(psi.duedate) and psi.status = ")
+            .append(" date(now()) > date(psi.scheduleddate) and psi.status = ")
             .append(":" + PSI_STATUS)
             .append(" ");
       } else {
@@ -1679,7 +1686,7 @@ public class JdbcEventStore implements EventStore {
       if (params.hasLastUpdatedEndDate()) {
         if (useDateAfterEndDate) {
           mapSqlParameterSource.addValue(
-              "lastUpdatedEnd", addDays(params.getLastUpdatedEndDate(), 1), Types.TIMESTAMP);
+              "lastUpdatedEnd", params.getLastUpdatedEndDate(), Types.TIMESTAMP);
 
           sqlBuilder
               .append(hlp.whereAnd())
@@ -1728,7 +1735,7 @@ public class JdbcEventStore implements EventStore {
             + " string_agg(co.uid, ';') as co_uids, count(co.categoryoptionid) as co_count"
             + " from categoryoptioncombo coc "
             + " inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid"
-            + " inner join dataelementcategoryoption co on cocco.categoryoptionid = co.categoryoptionid"
+            + " inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid"
             + " group by coc.categoryoptioncomboid ";
 
     if (!isSuper(user)) {
@@ -1832,7 +1839,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String getAttributeValueQuery() {
-    return "select pav.trackedentityinstanceid as pav_id, pav.created as pav_created, pav.lastupdated as pav_lastupdated, "
+    return "select pav.trackedentityid as pav_id, pav.created as pav_created, pav.lastupdated as pav_lastupdated, "
         + "pav.value as pav_value, ta.uid as ta_uid, ta.name as ta_name, ta.valuetype as ta_valuetype "
         + "from trackedentityattributevalue pav "
         + "inner join trackedentityattribute ta on pav.trackedentityattributeid=ta.trackedentityattributeid ";
@@ -1939,8 +1946,8 @@ public class JdbcEventStore implements EventStore {
       throws SQLException, JsonProcessingException {
     ps.setLong(1, event.getEnrollment().getId());
     ps.setLong(2, event.getProgramStage().getId());
-    ps.setTimestamp(3, JdbcEventSupport.toTimestamp(event.getDueDate()));
-    ps.setTimestamp(4, JdbcEventSupport.toTimestamp(event.getExecutionDate()));
+    ps.setTimestamp(3, JdbcEventSupport.toTimestamp(event.getScheduledDate()));
+    ps.setTimestamp(4, JdbcEventSupport.toTimestamp(event.getOccurredDate()));
     ps.setLong(5, event.getOrganisationUnit().getId());
     ps.setString(6, event.getStatus().toString());
     ps.setTimestamp(7, JdbcEventSupport.toTimestamp(event.getCompletedDate()));
@@ -1968,14 +1975,14 @@ public class JdbcEventStore implements EventStore {
   private MapSqlParameterSource getSqlParametersForUpdate(org.hisp.dhis.program.Event event)
       throws SQLException, JsonProcessingException {
     return new MapSqlParameterSource()
-        .addValue("programInstanceId", event.getEnrollment().getId())
+        .addValue("enrollmentid", event.getEnrollment().getId())
         .addValue("programstageid", event.getProgramStage().getId())
         .addValue(
             EventQuery.COLUMNS.DUE_DATE.getColumnName(),
-            JdbcEventSupport.toTimestamp(event.getDueDate()))
+            JdbcEventSupport.toTimestamp(event.getScheduledDate()))
         .addValue(
             EventQuery.COLUMNS.EXECUTION_DATE.getColumnName(),
-            JdbcEventSupport.toTimestamp(event.getExecutionDate()))
+            JdbcEventSupport.toTimestamp(event.getOccurredDate()))
         .addValue("organisationunitid", event.getOrganisationUnit().getId())
         .addValue(EventQuery.COLUMNS.STATUS.getColumnName(), event.getStatus().toString())
         .addValue(
@@ -2108,100 +2115,136 @@ public class JdbcEventStore implements EventStore {
         .collect(toList());
   }
 
-  private String getOrgUnitSql(User user, EventSearchParams params, String ouTable) {
-    OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
-
-    if (orgUnitSelectionMode == null) {
-      if (params.getOrgUnit() != null) {
-        return getSelectedOrgUnitsPath(params, ouTable);
-      }
-
-      return getAccessibleOrgUnitsPath(params, user, ouTable);
-    }
-
-    String orgUnitSql;
-
-    switch (orgUnitSelectionMode) {
-      case ALL:
-        orgUnitSql = null;
-        break;
-      case CHILDREN:
-        orgUnitSql = getChildrenOrgUnitsPath(params, ouTable);
-        break;
-      case DESCENDANTS:
-        orgUnitSql = getDescendantOrgUnitsPath(params, ouTable);
-        break;
+  private String getOrgUnitSql(
+      EventSearchParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
+    switch (params.getOrgUnitSelectionMode()) {
       case CAPTURE:
-        orgUnitSql = getCaptureOrgUnitsPath(user, ouTable);
-        break;
+        return createCaptureSql(user, mapSqlParameterSource);
+      case ACCESSIBLE:
+        return createAccessibleSql(user, params, mapSqlParameterSource);
+      case DESCENDANTS:
+        return createDescendantsSql(user, params, mapSqlParameterSource);
+      case CHILDREN:
+        return createChildrenSql(user, params, mapSqlParameterSource);
       case SELECTED:
-        orgUnitSql = getSelectedOrgUnitsPath(params, ouTable);
-        break;
+        return createSelectedSql(user, params, mapSqlParameterSource);
       default:
-        orgUnitSql = getAccessibleOrgUnitsPath(params, user, ouTable);
-        break;
+        return null;
     }
-
-    return orgUnitSql;
   }
 
-  private String getChildrenOrgUnitsPath(EventSearchParams params, String ouTable) {
-    return ouTable
-        + "."
-        + PATH_LIKE
-        + " '"
-        + params.getOrgUnit().getPath()
-        + "%' "
-        + " and "
-        + ouTable
-        + "."
-        + "hierarchylevel = "
-        + (params.getOrgUnit().getLevel() + 1);
+  private String createCaptureSql(User user, MapSqlParameterSource mapSqlParameterSource) {
+    return createCaptureScopeQuery(user, mapSqlParameterSource, "");
   }
 
-  private String getSelectedOrgUnitsPath(EventSearchParams params, String ouTable) {
-    return ouTable + "." + PATH_EQ + " '" + params.getOrgUnit().getPath() + "' ";
+  private String createAccessibleSql(
+      User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+
+    if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
+      return createCaptureSql(user, mapSqlParameterSource);
+    }
+
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
-  private String getDescendantOrgUnitsPath(EventSearchParams params, String ouTable) {
-    return ouTable + "." + PATH_LIKE + " '" + params.getOrgUnit().getPath() + "%' ";
+  private String createDescendantsSql(
+      User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+
+    if (isProgramRestricted(params.getProgram())) {
+      return createCaptureScopeQuery(
+          user, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+    }
+
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
-  private String getCaptureOrgUnitsPath(User user, String ouTable) {
-    if (user == null) {
-      return null;
+  private String createChildrenSql(
+      User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+
+    String customChildrenQuery =
+        " AND (ou.hierarchylevel = "
+            + params.getOrgUnit().getHierarchyLevel()
+            + " OR ou.hierarchylevel = "
+            + (params.getOrgUnit().getHierarchyLevel() + 1)
+            + " ) ";
+
+    if (isProgramRestricted(params.getProgram())) {
+      return createCaptureScopeQuery(
+          user,
+          mapSqlParameterSource,
+          AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
     }
 
-    List<String> orgUnitPaths = new ArrayList<>();
-
-    for (OrganisationUnit organisationUnit :
-        user.getOrganisationUnits().stream().collect(Collectors.toList())) {
-      orgUnitPaths.add(ouTable + "." + PATH_LIKE + " '" + organisationUnit.getPath() + "%' ");
-    }
-
-    return String.join(" OR ", orgUnitPaths);
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+        CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
   }
 
-  private String getAccessibleOrgUnitsPath(EventSearchParams params, User user, String ouTable) {
-    if (user == null) {
-      return null;
+  private String createSelectedSql(
+      User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+
+    String orgUnitPathEqualsMatchQuery =
+        " ou.path = :"
+            + COLUMN_ORG_UNIT_PATH
+            + " "
+            + AND
+            + USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY;
+
+    if (isProgramRestricted(params.getProgram())) {
+      String customSelectedClause = " AND ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
+      return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
     }
 
-    List<String> orgUnitPaths = new ArrayList<>();
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
+  }
 
-    List<OrganisationUnit> organisationUnits =
-        user.getTeiSearchOrganisationUnitsWithFallback().stream().collect(Collectors.toList());
+  private boolean isProgramRestricted(Program program) {
+    return program != null && (program.isProtected() || program.isClosed());
+  }
 
-    if (params.getProgram() == null
-        || params.getProgram().isClosed()
-        || params.getProgram().isProtected()) {
-      organisationUnits = user.getOrganisationUnits().stream().collect(Collectors.toList());
-    }
+  private boolean isUserSearchScopeNotSet(User user) {
+    return user.getTeiSearchOrganisationUnits().isEmpty();
+  }
 
-    for (OrganisationUnit organisationUnit : organisationUnits) {
-      orgUnitPaths.add(ouTable + "." + PATH_LIKE + " '" + organisationUnit.getPath() + "%' ");
-    }
+  private String createCaptureScopeQuery(
+      User user, MapSqlParameterSource mapSqlParameterSource, String customClause) {
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
 
-    return String.join(" OR ", orgUnitPaths);
+    return " EXISTS(SELECT cs.organisationunitid "
+        + " FROM usermembership cs "
+        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = cs.organisationunitid "
+        + " JOIN userinfo u ON u.userinfoid = cs.userinfoid "
+        + " WHERE u.uid = :"
+        + COLUMN_USER_UID
+        + " AND ou.path like CONCAT(orgunit.path, '%') "
+        + customClause
+        + ") ";
+  }
+
+  private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
+    return " (EXISTS(SELECT ss.organisationunitid "
+        + " FROM userteisearchorgunits ss "
+        + " JOIN userinfo u ON u.userinfoid = ss.userinfoid "
+        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = ss.organisationunitid "
+        + " WHERE u.uid = :"
+        + COLUMN_USER_UID
+        + AND
+        + orgUnitMatcher
+        + " AND p.accesslevel in ('OPEN', 'AUDITED')) "
+        + " OR EXISTS(SELECT cs.organisationunitid "
+        + " FROM usermembership cs "
+        + " JOIN userinfo u ON u.userinfoid = cs.userinfoid "
+        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = cs.organisationunitid "
+        + " WHERE u.uid = :"
+        + COLUMN_USER_UID
+        + AND
+        + orgUnitMatcher
+        + " )) ";
   }
 }

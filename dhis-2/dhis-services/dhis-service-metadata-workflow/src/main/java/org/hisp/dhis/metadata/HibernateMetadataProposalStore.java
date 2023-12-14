@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.metadata;
 
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -38,10 +38,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class HibernateMetadataProposalStore implements MetadataProposalStore {
-  private final SessionFactory sessionFactory;
+  private final EntityManager entityManager;
 
   private Session getSession() {
-    return sessionFactory.getCurrentSession();
+    return entityManager.unwrap(Session.class);
   }
 
   @Override
@@ -55,7 +55,7 @@ public class HibernateMetadataProposalStore implements MetadataProposalStore {
   @Override
   public void save(MetadataProposal proposal) {
     proposal.setAutoFields();
-    getSession().save(proposal);
+    entityManager.persist(proposal);
   }
 
   @Override

@@ -82,6 +82,7 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
     relationship.setRelationshipType(type);
     relationship.setCreated(rs.getTimestamp("created"));
     relationship.setLastUpdated(rs.getTimestamp("lastupdated"));
+    relationship.setCreatedAtClient(rs.getTimestamp("createdatclient"));
 
     RelationshipItem from = createItem(rs.getString("from_uid"));
     from.setRelationship(relationship);
@@ -96,12 +97,12 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
 
   /**
    * The SQL query that generates the ResultSet used by this {@see RowCallbackHandler} fetches both
-   * sides of a relationship: since each side can be a Tracked Entity Instance, a Enrollment or a
-   * Program Stage Instance, the query adds a "hint" to the final result to help this Handler to
-   * correctly associate the type to the left or right side of the relationship. The "typeWithUid"
-   * variable contains the UID of the object and a string representing the type. E.g.
+   * sides of a relationship: since each side can be a Tracked Entity, an Enrollment or an Event,
+   * the query adds a "hint" to the final result to help this Handler to correctly associate the
+   * type to the left or right side of the relationship. The "typeWithUid" variable contains the UID
+   * of the object and a string representing the type. E.g.
    *
-   * <p>tei|dj3382832 psi|332983893
+   * <p>te|dj3382832 ev|332983893
    *
    * <p>This function parses the string and extract the type and the uid, in order to instantiate
    * the appropriate object and assign it to the {@see RelationshipItem}
@@ -120,23 +121,23 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
     final String uid = typeWithUid.split("\\|")[1];
 
     switch (type) {
-      case "tei":
-        TrackedEntity tei = new TrackedEntity();
-        tei.setUid(uid);
-        ri.setTrackedEntity(tei);
+      case "te":
+        TrackedEntity te = new TrackedEntity();
+        te.setUid(uid);
+        ri.setTrackedEntity(te);
         break;
-      case "pi":
+      case "en":
         Enrollment enrollment = new Enrollment();
         enrollment.setUid(uid);
         ri.setEnrollment(enrollment);
         break;
-      case "psi":
+      case "ev":
         Event event = new Event();
         event.setUid(uid);
         ri.setEvent(event);
         break;
       default:
-        log.warn("Expecting tei|psi|pi as type when fetching a relationship, got: " + type);
+        log.warn("Expecting te|ev|en as type when fetching a relationship, got: " + type);
     }
 
     return ri;

@@ -74,23 +74,21 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
   @Override
   @Transactional
   public void handleEnrollment(String enrollment) {
-    Enrollment instance = enrollmentService.getEnrollment(enrollment);
+    Enrollment en = enrollmentService.getEnrollment(enrollment);
 
-    if (instance == null
-        || !templateService.isProgramLinkedToWebHookNotification(instance.getProgram())) {
+    if (en == null || !templateService.isProgramLinkedToWebHookNotification(en.getProgram())) {
       return;
     }
 
     List<ProgramNotificationTemplate> templates =
-        templateService.getProgramLinkedToWebHookNotifications(instance.getProgram());
+        templateService.getProgramLinkedToWebHookNotifications(en.getProgram());
 
     Map<String, String> requestPayload = new HashMap<>();
     ProgramNotificationMessageRenderer.VARIABLE_RESOLVERS.forEach(
-        (key, value) -> requestPayload.put(key.name(), value.apply(instance)));
+        (key, value) -> requestPayload.put(key.name(), value.apply(en)));
 
     // populate tracked entity attributes
-    instance
-        .getTrackedEntity()
+    en.getTrackedEntity()
         .getTrackedEntityAttributeValues()
         .forEach(attr -> requestPayload.put(attr.getAttribute().getUid(), attr.getValue()));
     sendPost(templates, renderService.toJsonAsString(requestPayload));
@@ -99,29 +97,26 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
   @Override
   @Transactional
   public void handleEvent(String event) {
-    Event instance = eventService.getEvent(event);
+    Event ev = eventService.getEvent(event);
 
-    if (instance == null
-        || !templateService.isProgramStageLinkedToWebHookNotification(instance.getProgramStage())) {
+    if (ev == null
+        || !templateService.isProgramStageLinkedToWebHookNotification(ev.getProgramStage())) {
       return;
     }
 
     List<ProgramNotificationTemplate> templates =
-        templateService.getProgramStageLinkedToWebHookNotifications(instance.getProgramStage());
+        templateService.getProgramStageLinkedToWebHookNotifications(ev.getProgramStage());
 
     // populate environment variables
     Map<String, String> requestPayload = new HashMap<>();
     ProgramStageNotificationMessageRenderer.VARIABLE_RESOLVERS.forEach(
-        (key, value) -> requestPayload.put(key.name(), value.apply(instance)));
+        (key, value) -> requestPayload.put(key.name(), value.apply(ev)));
 
     // populate data values
-    instance
-        .getEventDataValues()
-        .forEach(dv -> requestPayload.put(dv.getDataElement(), dv.getValue()));
+    ev.getEventDataValues().forEach(dv -> requestPayload.put(dv.getDataElement(), dv.getValue()));
 
     // populate tracked entity attributes
-    instance
-        .getEnrollment()
+    ev.getEnrollment()
         .getTrackedEntity()
         .getTrackedEntityAttributeValues()
         .forEach(attr -> requestPayload.put(attr.getAttribute().getUid(), attr.getValue()));

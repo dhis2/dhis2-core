@@ -32,8 +32,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
@@ -53,13 +53,13 @@ public class HibernateProgramStageDataElementStore
     extends HibernateIdentifiableObjectStore<ProgramStageDataElement>
     implements ProgramStageDataElementStore {
   public HibernateProgramStageDataElementStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         ProgramStageDataElement.class,
@@ -94,7 +94,7 @@ public class HibernateProgramStageDataElementStore
         "select ps.uid as ps_uid, de.uid as de_uid from programstagedataelement psde "
             + "join programstage ps on psde.programstageid = ps.programstageid "
             + "join dataelement de on psde.dataelementid = de.dataelementid "
-            + "where psde.programstageid in (select distinct ( programstageid ) from event psi where psi.lastupdated > psi.lastsynchronized) "
+            + "where psde.programstageid in (select distinct ( programstageid ) from event ev where ev.lastupdated > ev.lastsynchronized) "
             + "and psde.skipsynchronization = true";
 
     final Map<String, Set<String>> psdesWithSkipSync = new HashMap<>();

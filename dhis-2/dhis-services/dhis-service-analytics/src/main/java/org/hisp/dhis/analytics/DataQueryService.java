@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics;
 
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 
@@ -92,7 +93,8 @@ public interface DataQueryService {
         List<String> items = getDimensionItemsFromParam(param);
 
         if (dimension != null && items != null) {
-          list.add(
+          addIgnoreNull(
+              list,
               getDimension(
                   dimension,
                   items,

@@ -29,7 +29,12 @@ package org.hisp.dhis.tracker.deduplication;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsStringIgnoringCase;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 import com.google.gson.JsonObject;
@@ -125,7 +130,7 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest {
     potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, createTei());
 
     potentialDuplicatesActions
-        .get(new QueryParamsBuilder().add("teis=" + tei).add("skipPaging=true"))
+        .get(new QueryParamsBuilder().add("trackedEntities=" + tei).add("skipPaging=true"))
         .validate()
         .body("potentialDuplicates", hasSize(equalTo(3)))
         .body("potentialDuplicates.status", allOf(hasItem("OPEN")));

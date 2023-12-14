@@ -54,12 +54,12 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
   private static final String GET_ATTRIBUTES = ProgramAttributeQuery.getQuery();
 
   private static final String GET_NOTES_SQL =
-      "select pi.uid as key, tec.uid, tec.commenttext, "
+      "select pi.uid as key, tec.uid, tec.notetext, "
           + "tec.creator, tec.created "
-          + "from trackedentitycomment tec join programinstancecomments pic "
-          + "on tec.trackedentitycommentid = pic.trackedentitycommentid "
-          + "join programinstance pi on pic.programinstanceid = pi.programinstanceid "
-          + "where pic.programinstanceid in (:ids)";
+          + "from note tec join enrollment_notes enn "
+          + "on tec.noteid = enn.noteid "
+          + "join enrollment pi on enn.enrollmentid = pi.enrollmentid "
+          + "where enn.enrollmentid in (:ids)";
 
   private static final String FILTER_OUT_DELETED_ENROLLMENTS = "pi.deleted=false";
 
@@ -117,6 +117,6 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
 
   @Override
   String getRelationshipEntityColumn() {
-    return "programinstanceid";
+    return "enrollmentid";
   }
 }

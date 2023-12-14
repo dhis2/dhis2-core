@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -55,7 +58,7 @@ public class ProgramOrgUnitsSupplier extends JdbcAbstractPreheatSupplier {
   }
 
   @Override
-  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
     // fetch all existing Org Units from payload
     final List<Long> orgUnitIds =
         preheat.getAll(OrganisationUnit.class).stream()

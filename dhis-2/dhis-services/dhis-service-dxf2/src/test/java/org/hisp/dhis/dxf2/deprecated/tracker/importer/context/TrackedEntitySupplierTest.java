@@ -71,7 +71,7 @@ class TrackedEntitySupplierTest extends AbstractSupplierTest<TrackedEntity> {
   @Test
   void verifySupplier() throws SQLException {
     // mock resultset data
-    when(mockResultSet.getLong("trackedentityinstanceid")).thenReturn(100L);
+    when(mockResultSet.getLong("trackedentityid")).thenReturn(100L);
     when(mockResultSet.getString("uid")).thenReturn("abcded");
     when(mockResultSet.getString("code")).thenReturn("ALFA");
     // create event to import

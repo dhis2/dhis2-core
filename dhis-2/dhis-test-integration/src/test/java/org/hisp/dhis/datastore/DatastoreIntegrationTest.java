@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,14 @@ package org.hisp.dhis.datastore;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.utils.JavaToJson.toJson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -52,9 +56,12 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DatastoreIntegrationTest extends IntegrationTestBase {
   @Autowired private DatastoreService datastore;
+  @Autowired private UserService _userService;
 
   @Override
   protected void setUpTest() throws Exception {
+    this.userService = _userService;
+    createAndInjectAdminUser();
     datastore.deleteNamespace("pets");
 
     addEntry("dog", toJson(false));
@@ -78,13 +85,15 @@ class DatastoreIntegrationTest extends IntegrationTestBase {
     datastore.deleteNamespace("pets");
   }
 
-  private DatastoreEntry addEntry(String key, String value) {
+  private DatastoreEntry addEntry(String key, String value)
+      throws ConflictException, BadRequestException {
     DatastoreEntry entry = new DatastoreEntry("pets", key, value.replace('\'', '"'), false);
     datastore.addEntry(entry);
     return entry;
   }
 
-  private DatastoreEntry addPet(String key, String name, int age, List<String> eats) {
+  private DatastoreEntry addPet(String key, String name, int age, List<String> eats)
+      throws ConflictException, BadRequestException {
     return addEntry(
         key,
         toJson(
@@ -301,12 +310,16 @@ class DatastoreIntegrationTest extends IntegrationTestBase {
         .build();
   }
 
-  private List<DatastoreFields> queryAsList(DatastoreQuery query) {
-    return datastore.getFields(query, stream -> stream.collect(toList()));
+  private List<DatastoreFields> queryAsList(DatastoreQuery query) throws ConflictException {
+    return datastore.getEntries(query, stream -> stream.collect(toList()));
   }
 
   private void assertEntries(String filter, String... expectedKeys) {
-    assertEntries(List.of(expectedKeys), queryAsList(createQuery(filter)));
+    try {
+      assertEntries(List.of(expectedKeys), queryAsList(createQuery(filter)));
+    } catch (ConflictException ex) {
+      fail(ex);
+    }
   }
 
   private static void assertEntries(List<String> expectedKeys, List<DatastoreFields> actual) {

@@ -76,7 +76,7 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.StatementDialect;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,7 +114,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   @Mock private PartitionManager partitionManager;
 
-  @Mock private DatabaseInfo databaseInfo;
+  @Mock private DatabaseInfoProvider databaseInfoProvider;
 
   @Mock private JdbcTemplate jdbcTemplate;
 
@@ -157,7 +157,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             tableHookService,
             statementBuilder,
             partitionManager,
-            databaseInfo,
+            databaseInfoProvider,
             jdbcTemplate,
             jdbcConfiguration,
             analyticsExportSettings,
@@ -277,18 +277,18 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             "lastupdated <= 'yyyy-mm-ddThh:mm:ss'");
     assertEquals(
         "select tei.uid,a.startdate,a.enddate,ou.uid from ("
-            + "select h.trackedentityinstanceid, '1001-01-01' as startdate, h.enddate as enddate, h.organisationunitid "
+            + "select h.trackedentityid, '1001-01-01' as startdate, h.enddate as enddate, h.organisationunitid "
             + "from programownershiphistory h "
             + "where h.programid=0 and h.organisationunitid is not null "
             + "union "
-            + "select o.trackedentityinstanceid, '2002-02-02' as startdate, null as enddate, o.organisationunitid "
+            + "select o.trackedentityid, '2002-02-02' as startdate, null as enddate, o.organisationunitid "
             + "from trackedentityprogramowner o "
             + "where o.programid=0 "
             + "and exists (select 1 from programownershiphistory p "
-            + "where o.trackedentityinstanceid = p.trackedentityinstanceid "
+            + "where o.trackedentityid = p.trackedentityid "
             + "and p.programid=0 and p.organisationunitid is not null)"
             + ") a "
-            + "inner join trackedentityinstance tei on a.trackedentityinstanceid = tei.trackedentityinstanceid "
+            + "inner join trackedentity tei on a.trackedentityid = tei.trackedentityid "
             + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
             + "left join _orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
             + "left join _organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "

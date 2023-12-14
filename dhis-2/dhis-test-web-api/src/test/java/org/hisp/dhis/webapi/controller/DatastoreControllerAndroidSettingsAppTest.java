@@ -55,7 +55,7 @@ class DatastoreControllerAndroidSettingsAppTest extends DhisControllerConvenienc
 
   /** Everyone can read the keys */
   @Test
-  void testGetKeysInNamespace() {
+  void testGetKeysInNamespace_DefaultPublicAccess() {
     switchToNewUser("not-an-android-manager");
     assertEquals(singletonList("key"), GET("/dataStore/" + NAMESPACE).content().stringValues());
   }
@@ -101,16 +101,6 @@ class DatastoreControllerAndroidSettingsAppTest extends DhisControllerConvenienc
             .getMessage());
     switchToNewUser("andriod-manager", AUTHORITY);
     assertStatus(HttpStatus.CREATED, POST("/dataStore/" + NAMESPACE + "/new-key", "[]"));
-  }
-
-  @Test
-  void testUpdateKeyJsonValue() {
-    switchToNewUser("not-an-android-manager");
-    assertEquals(
-        "Namespace 'ANDROID_SETTINGS_APP' is protected, access denied",
-        PUT("/dataStore/" + NAMESPACE + "/key", "[]").error(HttpStatus.FORBIDDEN).getMessage());
-    switchToNewUser("andriod-manager", AUTHORITY);
-    assertStatus(HttpStatus.OK, PUT("/dataStore/" + NAMESPACE + "/key", "[]"));
   }
 
   @Test

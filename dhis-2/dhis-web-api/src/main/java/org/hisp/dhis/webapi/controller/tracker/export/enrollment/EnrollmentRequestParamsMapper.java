@@ -27,64 +27,140 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
-import org.hisp.dhis.webapi.common.UID;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.EnrollmentOperationParamsBuilder;
+import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
 /**
  * Maps operation parameters from {@link EnrollmentsExportController} stored in {@link
- * RequestParams} to {@link EnrollmentOperationParams} which is used to fetch enrollments from the
- * service.
+ * EnrollmentRequestParams} to {@link EnrollmentOperationParams} which is used to fetch enrollments
+ * from the service.
  */
 @Component
 @RequiredArgsConstructor
 class EnrollmentRequestParamsMapper {
+  private static final Set<String> ORDERABLE_FIELD_NAMES =
+      EnrollmentMapper.ORDERABLE_FIELDS.keySet();
+
   private final EnrollmentFieldsParamMapper fieldsParamMapper;
 
-  public EnrollmentOperationParams map(RequestParams requestParams) throws BadRequestException {
+  public EnrollmentOperationParams map(EnrollmentRequestParams enrollmentRequestParams)
+      throws BadRequestException {
     Set<UID> orgUnits =
         validateDeprecatedUidsParameter(
-            "orgUnit", requestParams.getOrgUnit(), "orgUnits", requestParams.getOrgUnits());
+            "orgUnit",
+            enrollmentRequestParams.getOrgUnit(),
+            "orgUnits",
+            enrollmentRequestParams.getOrgUnits());
 
     OrganisationUnitSelectionMode orgUnitMode =
         validateDeprecatedParameter(
-            "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
+            "ouMode",
+            enrollmentRequestParams.getOuMode(),
+            "orgUnitMode",
+            enrollmentRequestParams.getOrgUnitMode());
 
-    return EnrollmentOperationParams.builder()
-        .programUid(
-            requestParams.getProgram() != null ? requestParams.getProgram().getValue() : null)
-        .programStatus(requestParams.getProgramStatus())
-        .followUp(requestParams.getFollowUp())
-        .lastUpdated(requestParams.getUpdatedAfter())
-        .lastUpdatedDuration(requestParams.getUpdatedWithin())
-        .programStartDate(requestParams.getEnrolledAfter())
-        .programEndDate(requestParams.getEnrolledBefore())
-        .trackedEntityTypeUid(
-            requestParams.getTrackedEntityType() != null
-                ? requestParams.getTrackedEntityType().getValue()
-                : null)
-        .trackedEntityUid(
-            requestParams.getTrackedEntity() != null
-                ? requestParams.getTrackedEntity().getValue()
-                : null)
-        .orgUnitUids(UID.toValueSet(orgUnits))
-        .orgUnitMode(orgUnitMode)
-        .page(requestParams.getPage())
-        .pageSize(requestParams.getPageSize())
-        .totalPages(requestParams.isTotalPages())
-        .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
-        .includeDeleted(requestParams.isIncludeDeleted())
-        .order(toOrderParams(requestParams.getOrder()))
-        .enrollmentParams(fieldsParamMapper.map(requestParams.getFields()))
-        .build();
+    orgUnitMode = validateOrgUnitModeForEnrollmentsAndEvents(orgUnits, orgUnitMode);
+
+    validateOrderParams(enrollmentRequestParams.getOrder(), ORDERABLE_FIELD_NAMES);
+    validateRequestParams(enrollmentRequestParams);
+
+    Set<UID> enrollmentUids =
+        validateDeprecatedUidsParameter(
+            "enrollment",
+            enrollmentRequestParams.getEnrollment(),
+            "enrollments",
+            enrollmentRequestParams.getEnrollments());
+
+    EnrollmentOperationParamsBuilder builder =
+        EnrollmentOperationParams.builder()
+            .programUid(
+                enrollmentRequestParams.getProgram() != null
+                    ? enrollmentRequestParams.getProgram().getValue()
+                    : null)
+            .programStatus(enrollmentRequestParams.getProgramStatus())
+            .followUp(enrollmentRequestParams.getFollowUp())
+            .lastUpdated(enrollmentRequestParams.getUpdatedAfter())
+            .lastUpdatedDuration(enrollmentRequestParams.getUpdatedWithin())
+            .programStartDate(enrollmentRequestParams.getEnrolledAfter())
+            .programEndDate(enrollmentRequestParams.getEnrolledBefore())
+            .trackedEntityTypeUid(
+                enrollmentRequestParams.getTrackedEntityType() != null
+                    ? enrollmentRequestParams.getTrackedEntityType().getValue()
+                    : null)
+            .trackedEntityUid(
+                enrollmentRequestParams.getTrackedEntity() != null
+                    ? enrollmentRequestParams.getTrackedEntity().getValue()
+                    : null)
+            .orgUnitUids(UID.toValueSet(orgUnits))
+            .orgUnitMode(orgUnitMode)
+            .includeDeleted(enrollmentRequestParams.isIncludeDeleted())
+            .enrollmentUids(UID.toValueSet(enrollmentUids))
+            .enrollmentParams(fieldsParamMapper.map(enrollmentRequestParams.getFields()));
+
+    mapOrderParam(builder, enrollmentRequestParams.getOrder());
+
+    return builder.build();
+  }
+
+  private void mapOrderParam(EnrollmentOperationParamsBuilder builder, List<OrderCriteria> orders) {
+    if (orders == null || orders.isEmpty()) {
+      return;
+    }
+
+    for (OrderCriteria order : orders) {
+      if (EnrollmentMapper.ORDERABLE_FIELDS.containsKey(order.getField())) {
+        builder.orderBy(
+            EnrollmentMapper.ORDERABLE_FIELDS.get(order.getField()), order.getDirection());
+      }
+    }
+  }
+
+  private void validateRequestParams(EnrollmentRequestParams params) throws BadRequestException {
+    if (params.getProgram() != null && params.getTrackedEntityType() != null) {
+      throw new BadRequestException(
+          "Program and tracked entity cannot be specified simultaneously");
+    }
+
+    if (params.getProgram() == null) {
+      if (params.getProgramStatus() != null) {
+        throw new BadRequestException("Program must be defined when `programStatus` is defined");
+      }
+
+      if (params.getFollowUp() != null) {
+        throw new BadRequestException("Program must be defined when `followUp` status is defined");
+      }
+
+      if (params.getEnrolledAfter() != null) {
+        throw new BadRequestException("Program must be defined when `enrolledAfter` is specified");
+      }
+
+      if (params.getEnrolledBefore() != null) {
+        throw new BadRequestException("Program must be defined when `enrolledBefore` is specified");
+      }
+    }
+
+    if (params.getUpdatedWithin() != null && params.getUpdatedAfter() != null) {
+      throw new BadRequestException(
+          "`updatedAfter` and `updatedWithin` cannot be specified simultaneously");
+    }
+
+    if (params.getUpdatedWithin() != null
+        && DateUtils.getDuration(params.getUpdatedWithin()) == null) {
+      throw new BadRequestException("`updatedWithin` is not valid: " + params.getUpdatedWithin());
+    }
   }
 }

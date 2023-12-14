@@ -130,7 +130,7 @@ public class SimpleEventSMSListener extends CompressionSMSListener {
     if (enrollments.isEmpty()) {
       Enrollment enrollment = new Enrollment();
       enrollment.setEnrollmentDate(new Date());
-      enrollment.setIncidentDate(new Date());
+      enrollment.setOccurredDate(new Date());
       enrollment.setProgram(program);
       enrollment.setStatus(ProgramStatus.ACTIVE);
 

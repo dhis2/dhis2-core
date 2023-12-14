@@ -44,7 +44,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.ORG_UNIT_NAME
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.PAGER_META_KEY;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.POTENTIAL_DUPLICATE;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_INSTANCE_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_TYPE_ID;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -184,14 +184,14 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     User user = params.getUser();
     trackedEntities =
         trackedEntities.stream()
-            .filter((tei) -> aclService.canDataRead(user, tei.getTrackedEntityType()))
+            .filter((te) -> aclService.canDataRead(user, te.getTrackedEntityType()))
             .collect(Collectors.toList());
 
     // Avoiding NullPointerException
     String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
 
-    for (TrackedEntity tei : trackedEntities) {
-      addTrackedEntityAudit(tei, accessedBy, AuditType.SEARCH);
+    for (TrackedEntity te : trackedEntities) {
+      addTrackedEntityAudit(te, accessedBy, AuditType.SEARCH);
     }
 
     return trackedEntities;
@@ -298,12 +298,12 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
     Grid grid = new ListGrid();
 
-    grid.addHeader(new GridHeader(TRACKED_ENTITY_INSTANCE_ID, "Instance"));
+    grid.addHeader(new GridHeader(TRACKED_ENTITY_ID, "Instance"));
     grid.addHeader(new GridHeader(CREATED_ID, "Created"));
     grid.addHeader(new GridHeader(LAST_UPDATED_ID, "Last updated"));
     grid.addHeader(new GridHeader(ORG_UNIT_ID, "Organisation unit"));
     grid.addHeader(new GridHeader(ORG_UNIT_NAME, "Organisation unit name"));
-    grid.addHeader(new GridHeader(TRACKED_ENTITY_ID, "Tracked entity type"));
+    grid.addHeader(new GridHeader(TRACKED_ENTITY_TYPE_ID, "Tracked entity type"));
     grid.addHeader(new GridHeader(INACTIVE_ID, "Inactive"));
     grid.addHeader(new GridHeader(POTENTIAL_DUPLICATE, "Potential duplicate"));
 
@@ -343,20 +343,20 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
           && params.hasProgram()
           && (params.getProgram().getAccessLevel().equals(AccessLevel.PROTECTED)
               || params.getProgram().getAccessLevel().equals(AccessLevel.CLOSED))) {
-        TrackedEntity tei = trackedEntityStore.getByUid(entity.get(TRACKED_ENTITY_INSTANCE_ID));
+        TrackedEntity te = trackedEntityStore.getByUid(entity.get(TRACKED_ENTITY_ID));
 
-        if (!trackerOwnershipAccessManager.hasAccess(params.getUser(), tei, params.getProgram())) {
+        if (!trackerOwnershipAccessManager.hasAccess(params.getUser(), te, params.getProgram())) {
           continue;
         }
       }
 
       grid.addRow();
-      grid.addValue(entity.get(TRACKED_ENTITY_INSTANCE_ID));
+      grid.addValue(entity.get(TRACKED_ENTITY_ID));
       grid.addValue(entity.get(CREATED_ID));
       grid.addValue(entity.get(LAST_UPDATED_ID));
       grid.addValue(entity.get(ORG_UNIT_ID));
       grid.addValue(entity.get(ORG_UNIT_NAME));
-      grid.addValue(entity.get(TRACKED_ENTITY_ID));
+      grid.addValue(entity.get(TRACKED_ENTITY_TYPE_ID));
       grid.addValue(entity.get(INACTIVE_ID));
       grid.addValue(entity.get(POTENTIAL_DUPLICATE));
 
@@ -364,19 +364,18 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
         grid.addValue(entity.get(DELETED));
       }
 
-      tes.add(entity.get(TRACKED_ENTITY_ID));
+      tes.add(entity.get(TRACKED_ENTITY_TYPE_ID));
 
-      TrackedEntityType te = trackedEntityTypes.get(entity.get(TRACKED_ENTITY_ID));
+      TrackedEntityType te = trackedEntityTypes.get(entity.get(TRACKED_ENTITY_TYPE_ID));
 
       if (te == null) {
-        te = trackedEntityTypeService.getTrackedEntityType(entity.get(TRACKED_ENTITY_ID));
-        trackedEntityTypes.put(entity.get(TRACKED_ENTITY_ID), te);
+        te = trackedEntityTypeService.getTrackedEntityType(entity.get(TRACKED_ENTITY_TYPE_ID));
+        trackedEntityTypes.put(entity.get(TRACKED_ENTITY_TYPE_ID), te);
       }
 
       if (te != null && te.isAllowAuditLog() && accessedBy != null) {
         TrackedEntityAudit trackedEntityAudit =
-            new TrackedEntityAudit(
-                entity.get(TRACKED_ENTITY_INSTANCE_ID), accessedBy, AuditType.SEARCH);
+            new TrackedEntityAudit(entity.get(TRACKED_ENTITY_ID), accessedBy, AuditType.SEARCH);
         trackedEntityAuditService.addTrackedEntityAudit(trackedEntityAudit);
       }
 
@@ -678,15 +677,15 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       }
 
       checkIfMaxTeiLimitIsReached(params, maxTeiLimit);
-      params.setMaxTeiLimit(maxTeiLimit);
+      params.setMaxTeLimit(maxTeiLimit);
     }
   }
 
   private void checkIfMaxTeiLimitIsReached(TrackedEntityQueryParams params, int maxTeiLimit) {
     if (maxTeiLimit > 0) {
-      int instanceCount = trackedEntityStore.getTrackedEntityCountForGridWithMaxTeiLimit(params);
+      int teCount = trackedEntityStore.getTrackedEntityCountForGridWithMaxTeiLimit(params);
 
-      if (instanceCount > maxTeiLimit) {
+      if (teCount > maxTeiLimit) {
         throw new IllegalQueryException("maxteicountreached");
       }
     }
@@ -791,28 +790,28 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   @Transactional(readOnly = true)
   public TrackedEntity getTrackedEntity(long id) {
-    TrackedEntity tei = trackedEntityStore.get(id);
+    TrackedEntity te = trackedEntityStore.get(id);
 
-    addTrackedEntityAudit(tei, currentUserService.getCurrentUsername(), AuditType.READ);
+    addTrackedEntityAudit(te, currentUserService.getCurrentUsername(), AuditType.READ);
 
-    return tei;
+    return te;
   }
 
   @Override
   @Transactional
   public TrackedEntity getTrackedEntity(String uid) {
-    TrackedEntity tei = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(tei, currentUserService.getCurrentUsername(), AuditType.READ);
+    TrackedEntity te = trackedEntityStore.getByUid(uid);
+    addTrackedEntityAudit(te, currentUserService.getCurrentUsername(), AuditType.READ);
 
-    return tei;
+    return te;
   }
 
   @Override
   public TrackedEntity getTrackedEntity(String uid, User user) {
-    TrackedEntity tei = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(tei, User.username(user), AuditType.READ);
+    TrackedEntity te = trackedEntityStore.getByUid(uid);
+    addTrackedEntityAudit(te, User.username(user), AuditType.READ);
 
-    return tei;
+    return te;
   }
 
   @Override
@@ -851,7 +850,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     for (OrganisationUnit ou : searchOrgUnits) {
-      if (!organisationUnitService.isDescendant(ou, localOrgUnits)) {
+      if (!ou.isDescendant(localOrgUnits)) {
         return false;
       }
     }

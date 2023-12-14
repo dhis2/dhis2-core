@@ -71,6 +71,7 @@ import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -92,7 +93,7 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.SecurityService;
@@ -477,13 +478,15 @@ public class UserController extends AbstractCrudController<User> {
     }
 
     User userReplica = new User();
-    mergeService.merge(new MergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.MERGE));
+    metadataMergeService.merge(
+        new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.MERGE));
     copyAttributeValues(userReplica);
     userReplica.setId(0);
     userReplica.setUuid(UUID.randomUUID());
     userReplica.setUid(CodeGenerator.generateUid());
     userReplica.setCode(null);
     userReplica.setCreated(new Date());
+    userReplica.setCreatedBy(currentUser);
     userReplica.setLdapId(null);
     userReplica.setOpenId(null);
     userReplica.setUsername(username);
@@ -631,9 +634,9 @@ public class UserController extends AbstractCrudController<User> {
         importService.getParamsFromMap(contextService.getParameterValuesMap());
     params.setImportReportMode(ImportReportMode.FULL);
     params.setImportStrategy(ImportStrategy.UPDATE);
-    params.addObject(inputUser);
 
-    ImportReport importReport = importService.importMetadata(params);
+    ImportReport importReport =
+        importService.importMetadata(params, new MetadataObjects().addObject(inputUser));
 
     if (importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1) {
       updateUserGroups(userUid, inputUser, currentUser);
@@ -740,10 +743,10 @@ public class UserController extends AbstractCrudController<User> {
     MetadataImportParams importParams =
         new MetadataImportParams()
             .setImportReportMode(ImportReportMode.FULL)
-            .setImportStrategy(ImportStrategy.CREATE)
-            .addObject(user);
+            .setImportStrategy(ImportStrategy.CREATE);
 
-    ImportReport importReport = importService.importMetadata(importParams);
+    ImportReport importReport =
+        importService.importMetadata(importParams, new MetadataObjects().addObject(user));
 
     if (importReport.getStatus() == Status.OK && importReport.getStats().getCreated() == 1) {
       userGroupService.addUserToGroups(user, getUids(user.getGroups()), currentUser);

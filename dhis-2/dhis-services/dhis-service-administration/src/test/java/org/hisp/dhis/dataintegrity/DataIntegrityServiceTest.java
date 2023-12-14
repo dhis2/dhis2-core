@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
@@ -43,18 +42,20 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleVariableWithDat
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.issueName;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -72,6 +73,8 @@ import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.external.location.DefaultLocationManager;
+import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -83,7 +86,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -100,6 +102,7 @@ import org.hisp.dhis.validation.ValidationRuleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -112,6 +115,15 @@ class DataIntegrityServiceTest {
   private static final String INVALID_EXPRESSION = "INVALID_EXPRESSION";
 
   @Mock private I18nManager i18nManager;
+
+  @Mock private I18n i18n;
+  @Mock private DefaultLocationManager locationManager;
+
+  @Mock private SchemaService schemaService;
+
+  @Mock private CacheProvider cacheProvider;
+
+  @Mock private DataIntegrityStore dataIntegrityStore;
 
   @Mock private DataElementService dataElementService;
 
@@ -145,7 +157,7 @@ class DataIntegrityServiceTest {
 
   @Mock private ProgramRuleActionService programRuleActionService;
 
-  private DefaultDataIntegrityService subject;
+  @InjectMocks private DefaultDataIntegrityService subject;
 
   private DataElementGroup elementGroupA;
 
@@ -197,26 +209,6 @@ class DataIntegrityServiceTest {
 
   @BeforeEach
   public void setUp() {
-    subject =
-        new DefaultDataIntegrityService(
-            i18nManager,
-            programRuleService,
-            programRuleActionService,
-            programRuleVariableService,
-            dataElementService,
-            indicatorService,
-            dataSetService,
-            organisationUnitService,
-            organisationUnitGroupService,
-            validationRuleService,
-            expressionService,
-            dataEntryFormService,
-            categoryService,
-            periodService,
-            programIndicatorService,
-            mock(CacheProvider.class),
-            mock(DataIntegrityStore.class),
-            mock(SchemaService.class));
     setUpFixtures();
   }
 
@@ -335,65 +327,6 @@ class DataIntegrityServiceTest {
   }
 
   @Test
-  void testGetDataElementsAssignedToDataSetsWithDifferentPeriodType() {
-    String seed = "abcde";
-    Map<String, DataElement> dataElements = createRandomDataElements(6, seed);
-
-    DataSet dataSet1 = rnd.nextObject(DataSet.class);
-    dataSet1.setPeriodType(PeriodType.getPeriodTypeFromIsoString("2011"));
-    dataSet1.addDataSetElement(dataElements.get(seed + 1));
-    dataSet1.addDataSetElement(dataElements.get(seed + 2));
-    dataSet1.addDataSetElement(dataElements.get(seed + 3));
-    dataSet1.addDataSetElement(dataElements.get(seed + 4));
-
-    DataSet dataSet2 = rnd.nextObject(DataSet.class);
-    dataSet2.setPeriodType(PeriodType.getByIndex(5));
-    dataSet2.addDataSetElement(dataElements.get(seed + 4));
-    dataSet2.addDataSetElement(dataElements.get(seed + 5));
-    dataSet2.addDataSetElement(dataElements.get(seed + 6));
-    dataSet2.addDataSetElement(dataElements.get(seed + 1));
-
-    when(dataElementService.getAllDataElements()).thenReturn(List.copyOf(dataElements.values()));
-    when(dataSetService.getAllDataSets()).thenReturn(List.of(dataSet1, dataSet2));
-
-    List<DataIntegrityIssue> result =
-        subject.getDataElementsAssignedToDataSetsWithDifferentPeriodTypes();
-
-    assertEquals(2, result.size());
-    DataIntegrityIssue issue0 = result.get(0);
-    assertEquals(seed + 1, issue0.getId());
-    assertContainsOnly(List.of(issueName(dataSet1), issueName(dataSet2)), issue0.getRefs());
-    DataIntegrityIssue issue1 = result.get(1);
-    assertEquals(seed + 4, issue1.getId());
-    assertContainsOnly(List.of(issueName(dataSet1), issueName(dataSet2)), issue1.getRefs());
-  }
-
-  @Test
-  void testGetDataElementsAssignedToDataSetsWithDifferentPeriodTypeNoResult() {
-
-    String seed = "abcde";
-    Map<String, DataElement> dataElements = createRandomDataElements(6, seed);
-
-    DataSet dataSet1 = rnd.nextObject(DataSet.class);
-    dataSet1.setPeriodType(PeriodType.getPeriodTypeFromIsoString("2011"));
-    dataSet1.addDataSetElement(dataElements.get(seed + 1));
-    dataSet1.addDataSetElement(dataElements.get(seed + 2));
-    dataSet1.addDataSetElement(dataElements.get(seed + 3));
-
-    DataSet dataSet2 = rnd.nextObject(DataSet.class);
-    dataSet2.setPeriodType(PeriodType.getByIndex(5));
-    dataSet2.addDataSetElement(dataElements.get(seed + 4));
-    dataSet2.addDataSetElement(dataElements.get(seed + 5));
-    dataSet2.addDataSetElement(dataElements.get(seed + 6));
-
-    when(dataElementService.getAllDataElements())
-        .thenReturn(new ArrayList<>(dataElements.values()));
-    when(dataSetService.getAllDataSets()).thenReturn(newArrayList(dataSet1, dataSet2));
-
-    assertTrue(subject.getDataElementsAssignedToDataSetsWithDifferentPeriodTypes().isEmpty());
-  }
-
-  @Test
   void testGetDataSetsNotAssignedToOrganisationUnits() {
     clearInvocations(dataSetService);
     subject.getDataSetsNotAssignedToOrganisationUnits();
@@ -430,13 +363,6 @@ class DataIntegrityServiceTest {
   void testGetOrphanedOrganisationUnits() {
     subject.getOrphanedOrganisationUnits();
     verify(organisationUnitService).getOrphanedOrganisationUnits();
-    verifyNoMoreInteractions(organisationUnitService);
-  }
-
-  @Test
-  void testGetOrganisationUnitsWithoutGroups() {
-    subject.getOrganisationUnitsWithoutGroups();
-    verify(organisationUnitService).getOrganisationUnitsWithoutGroups();
     verifyNoMoreInteractions(organisationUnitService);
   }
 
@@ -612,6 +538,15 @@ class DataIntegrityServiceTest {
 
     verify(expressionService, times(0)).getExpressionDescription(anyString(), any());
     assertTrue(issues.isEmpty());
+  }
+
+  @Test
+  void testGetDataIntegrityChecks_ReadDataIntegrityYamlFilesOnClassPath() {
+    when(i18nManager.getI18n(DataIntegrityService.class)).thenReturn(i18n);
+    when(i18n.getString(anyString(), anyString())).thenReturn("default");
+    when(i18n.getString(contains("severity"), eq("WARNING"))).thenReturn("WARNING");
+    Collection<DataIntegrityCheck> dataIntegrityChecks = subject.getDataIntegrityChecks();
+    assertFalse(dataIntegrityChecks.isEmpty());
   }
 
   private Map<String, DataElement> createRandomDataElements(int quantity, String uidSeed) {

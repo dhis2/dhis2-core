@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.UncheckedIOException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,11 +47,10 @@ class DatastoreServiceTest extends SingleSetupIntegrationTestBase {
   private final String namespace = "DOGS";
 
   @Autowired private DatastoreService service;
-
   @Autowired private ObjectMapper jsonMapper;
 
   @Test
-  void testAddGetObject() {
+  void testAddGetObject() throws ConflictException, BadRequestException {
     Dog dogA = new Dog("1", "Fido", "Brown");
     Dog dogB = new Dog("2", "Aldo", "Black");
     addValue(namespace, dogA.getId(), dogA);
@@ -64,44 +65,24 @@ class DatastoreServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals("Aldo", dogB.getName());
   }
 
-  @Test
-  void testAddUpdateObject() {
-    Dog dogA = new Dog("1", "Fido", "Brown");
-    Dog dogB = new Dog("2", "Aldo", "Black");
-    addValue(namespace, dogA.getId(), dogA);
-    addValue(namespace, dogB.getId(), dogB);
-    dogA = getValue(namespace, dogA.getId(), Dog.class);
-    dogB = getValue(namespace, dogB.getId(), Dog.class);
-    assertEquals("Fido", dogA.getName());
-    assertEquals("Aldo", dogB.getName());
-    dogA.setName("Lilly");
-    dogB.setName("Teddy");
-    updateValue(namespace, dogA.getId(), dogA);
-    updateValue(namespace, dogB.getId(), dogB);
-    dogA = getValue(namespace, dogA.getId(), Dog.class);
-    dogB = getValue(namespace, dogB.getId(), Dog.class);
-    assertEquals("Lilly", dogA.getName());
-    assertEquals("Teddy", dogB.getName());
-  }
-
   private <T> T getValue(String namespace, String key, Class<T> type) {
     return mapJsonValueTo(type, service.getEntry(namespace, key));
   }
 
-  private <T> DatastoreEntry addValue(String namespace, String key, T object) {
+  private <T> DatastoreEntry addValue(String namespace, String key, T object)
+      throws ConflictException, BadRequestException {
     DatastoreEntry entry = new DatastoreEntry(namespace, key, mapValueToJson(object), false);
     service.addEntry(entry);
     return entry;
   }
 
-  public <T> void updateValue(String namespace, String key, T object) {
+  public <T> void updateValue(String namespace, String key, T object) throws BadRequestException {
     DatastoreEntry entry = service.getEntry(namespace, key);
     if (entry == null) {
       throw new IllegalStateException(
           String.format("No object found for namespace '%s' and key '%s'", namespace, key));
     }
-    entry.setValue(mapValueToJson(object));
-    service.updateEntry(entry);
+    service.updateEntry(entry.getNamespace(), entry.getKey(), mapValueToJson(object), null, null);
   }
 
   private <T> T mapJsonValueTo(Class<T> type, DatastoreEntry entry) {

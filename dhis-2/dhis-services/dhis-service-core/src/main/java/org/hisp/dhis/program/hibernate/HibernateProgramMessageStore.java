@@ -28,8 +28,8 @@
 package org.hisp.dhis.program.hibernate;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -50,13 +50,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateProgramMessageStore extends HibernateIdentifiableObjectStore<ProgramMessage>
     implements ProgramMessageStore {
   public HibernateProgramMessageStore(
-      SessionFactory sessionFactory,
+      EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        sessionFactory,
+        entityManager,
         jdbcTemplate,
         publisher,
         ProgramMessage.class,

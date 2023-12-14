@@ -28,14 +28,19 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.jsontree.*;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
+import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails.JsonDataIntegrityIssue;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +60,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
 
   final void postDetails(String check) {
     HttpResponse trigger = POST("/dataIntegrity/details?checks=" + check);
+    assertStatus(HttpStatus.OK, trigger);
     assertEquals("http://localhost/dataIntegrity/details?checks=" + check, trigger.location());
     assertTrue(trigger.content().isA(JsonWebMessage.class));
   }
@@ -70,6 +76,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
 
   public final void postSummary(String check) {
     HttpResponse trigger = POST("/dataIntegrity/summary?checks=" + check);
+    assertStatus(HttpStatus.OK, trigger);
     assertEquals("http://localhost/dataIntegrity/summary?checks=" + check, trigger.location());
     assertTrue(trigger.content().isA(JsonWebMessage.class));
   }
@@ -89,7 +96,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     }
   }
 
-  private Boolean hasComments(JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues) {
+  private Boolean hasComments(JsonList<JsonDataIntegrityIssue> issues) {
     return issues.stream()
         .map(issue -> issue.has("comment"))
         .reduce(Boolean.FALSE, Boolean::logicalOr);
@@ -104,7 +111,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     postDetails(check);
 
     JsonDataIntegrityDetails details = getDetails(check);
-    JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
+    JsonList<JsonDataIntegrityIssue> issues = details.getIssues();
     assertTrue(issues.exists());
     assertEquals(1, issues.size());
 
@@ -137,13 +144,14 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     postDetails(check);
 
     JsonDataIntegrityDetails details = getDetails(check);
-    JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
+    JsonList<JsonDataIntegrityIssue> issues = details.getIssues();
 
     assertTrue(issues.exists());
     assertEquals(expectedDetailsUnits.size(), issues.size());
 
     /* Always check the UIDs */
-    Set<String> issueUIDs = issues.stream().map(issue -> issue.getId()).collect(Collectors.toSet());
+    Set<String> issueUIDs =
+        issues.stream().map(JsonDataIntegrityIssue::getId).collect(Collectors.toSet());
     assertEquals(issueUIDs, expectedDetailsUnits);
 
     /*
@@ -152,7 +160,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
      */
     if (!expectedDetailsNames.isEmpty()) {
       Set<String> detailsNames =
-          issues.stream().map(issue -> issue.getName()).collect(Collectors.toSet());
+          issues.stream().map(JsonDataIntegrityIssue::getName).collect(Collectors.toSet());
       assertEquals(expectedDetailsNames, detailsNames);
     }
     /* This can be empty if comments do not exist in the JSON response. */
@@ -231,15 +239,6 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
   }
 
   @Autowired private TransactionTemplate txTemplate;
-
-  protected void doInTransaction(Runnable operation) {
-
-    txTemplate.execute(
-        status -> {
-          operation.run();
-          return null;
-        });
-  }
 
   protected final HttpResponse postNewDataValue(
       String period,

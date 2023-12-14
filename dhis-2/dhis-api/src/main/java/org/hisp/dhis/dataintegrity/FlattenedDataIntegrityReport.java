@@ -119,18 +119,13 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
   public FlattenedDataIntegrityReport(Map<String, DataIntegrityDetails> detailsByName) {
     // name/UID only
     this.dataElementsWithoutDataSet =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_DATA_SETS.getName()));
+        listOfDisplayNameWithUid(detailsByName.get("data_elements_without_datasets"));
     this.dataElementsWithoutGroups =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_GROUPS.getName()));
+        listOfDisplayNameWithUid(detailsByName.get("data_elements_aggregate_no_groups"));
     this.invalidCategoryCombos =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.CATEGORY_COMBOS_BEING_INVALID.getName()));
+        listOfDisplayNameWithUid(detailsByName.get("invalid_category_combos"));
     this.dataSetsNotAssignedToOrganisationUnits =
-        listOfDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType.DATA_SETS_NOT_ASSIGNED_TO_ORG_UNITS.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("datasets_not_assigned_to_org_units"));
     this.indicatorsWithoutGroups =
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.INDICATORS_WITHOUT_GROUPS.getName()));
@@ -143,9 +138,9 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
     this.orphanedOrganisationUnits =
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.ORG_UNITS_BEING_ORPHANED.getName()));
+    // Replaced with SQL based equivalent
     this.organisationUnitsWithoutGroups =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.ORG_UNITS_WITHOUT_GROUPS.getName()));
+        listOfDisplayNameWithUid(detailsByName.get("organisation_units_without_groups"));
     this.organisationUnitGroupsWithoutGroupSets =
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS.getName()));
@@ -188,14 +183,9 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
         mapOfCommentByDisplayNameOrUid(
             detailsByName.get(
                 DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_FILTERS.getName()));
-
-    // refs by name/UID
     this.dataElementsAssignedToDataSetsWithDifferentPeriodTypes =
         mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType
-                    .DATA_ELEMENTS_ASSIGNED_TO_DATA_SETS_WITH_DIFFERENT_PERIOD_TYPES
-                    .getName()));
+            detailsByName.get("data_elements_aggregate_with_different_period_types"));
     this.dataElementsViolatingExclusiveGroupSets =
         mapOfRefsByDisplayNameOrUid(
             detailsByName.get(
@@ -252,6 +242,14 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
         ? null
         : details.getIssues().stream()
             .map(DataIntegrityIssue::getName)
+            .collect(toUnmodifiableList());
+  }
+
+  private List<String> listOfDisplayNameWithUid(DataIntegrityDetails details) {
+    return details == null
+        ? null
+        : details.getIssues().stream()
+            .map(issue -> issue.getName() + ":" + issue.getId())
             .collect(toUnmodifiableList());
   }
 

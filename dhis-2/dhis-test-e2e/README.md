@@ -80,14 +80,14 @@ variables.
 
 ## Other properties
 
-  - `user.super.username` - super user username to use when running tests. Default: user created during test run
-  - `user.super.password` - super user password to use when running tests. Default: user created during test run
+  - `user.super.username` - superuser username to use when running tests. Default: user created during test run
+  - `user.super.password` - superuser password to use when running tests. Default: user created during test run
   - `user.default.username` - user to use for preconditions, like setting up metadata used in tests. Default: `admin`
   - `user.default.password` - user to use for preconditions, like setting up metadata used in tests. Default: `district`
 
 ### Test clean up
 
-After every test class, created data will be cleaned up starting from latest created object to avoid as much references as possible.
+After every test class, created data will be cleaned up starting from latest created object to avoid as many references as possible.
 
 If more controlled cleanup order is required - it can be explicitly specified. Just call one of the methods in TestCleanUp class.
 *Example: testCleanUp.deleteCreatedEntities("/users", "/dataElements")*
@@ -96,7 +96,7 @@ If more controlled cleanup order is required - it can be explicitly specified. J
 
 ### Failing On CI
 
-If e2e tests fail on GitHub/Jenkins a few things might help figuring out whats wrong.
+If e2e tests fail on GitHub/Jenkins a few things might help figuring out what's wrong.
 
 #### Logs
 
@@ -137,8 +137,8 @@ When running tests with `-Dtest.track_called_endpoints=true` `coverage.csv` in t
 will be written by the e2e tests. This file lists the tested HTTP method, url including query parameters and
 how often the request was made.
 
-Note: if you run the tests inside of a Docker container you will need to make sure to either write
-the file to a mounted volume or copy it out of the container. Otherwise it will be deleted with the
+Note: if you run the tests inside a Docker container you will need to make sure to either write
+the file to a mounted volume or copy it out of the container. Otherwise, it will be deleted with the
 container.
  
 ## Writing Tests
@@ -155,3 +155,37 @@ For convenience, every REST endpoint should be represented by object of type Res
 ### Connecting to Selenium Grid (for debugging)
 
 http://selenium:7900/?autoconnect=1&resize=scale&password=secret
+
+## Auto-generating analytics tests
+
+We have the capability to auto-generate analytics e2e tests.
+The class located at `src/test/java/org/hisp/dhis/analytics/generator/Main.java`
+can be executed in order to generate e2e tests based on the URL(s) present in `src/test/java/org/hisp/dhis/analytics/generator/test-urls.txt`
+
+There are a few different generators available. The usage of the correct one depends on the URL/API to be tested.
+Based on the URL/API, the respective generator implementation should be set at `src/test/java/org/hisp/dhis/analytics/generator/TestGenerator.java`.
+Currently, the supported generators are (along with their respective accepted URL format):
+
+```
+AnalyticsAggregatedTestGenerator.java -> /analytics?
+EnrollmentQueryTestGenerator.java -> /analytics/enrollments/query/{program}.json?
+EnrollmentAggregatedTestGenerator.java -> /analytics/enrollments/aggregate/{program}.json?
+EventAggregatedTestGenerator.java -> /analytics/events/aggregate/{program}.json?
+EventQueryTestGenerator.java -> /analytics/events/query/{program}.json?
+TeiQueryTestGenerator.java -> /analytics/trackedEntities/query/{trackedEntityType}.json?
+```
+_**NOTE**_: The `.json` extension in some URLs above. It's mandatory for all cases where we expect and `uid` of the respective entity/object.
+
+### How to generate the test(s)
+1. Add the URL(s) into `test-urls.txt` (check inside the file for examples)
+2. Define the generator implementation to use, in `TestGenerator.java`
+3. Go to the class `Main.java` and run it from your IDE
+4. Check the generated file(s) at the root level
+
+_**NOTE**_: You need to ensure that the URL(s) you have defined is pointing to a DHIS2 instance
+that is up and running. The tests are based on the request/response of each URL.
+
+**Important**: This generator only supports "happy" paths at the moment. In order to test validation
+errors or invalid requests, one should implement them programmatically. Also, if multiple URL(s) are defined
+in the `test-urls.txt` file, they must have the same format - remember that the implementation of the generator
+must match the URL(s) format expected, and we can pick only one generator at time.

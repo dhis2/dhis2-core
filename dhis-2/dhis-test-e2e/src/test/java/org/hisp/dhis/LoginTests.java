@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis;
 
-import static org.hamcrest.Matchers.*;
-
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.UaaActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
@@ -39,23 +36,17 @@ import org.junit.jupiter.api.BeforeAll;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class LoginTests extends ApiTest {
-  private LoginActions loginActions;
 
-  private UaaActions uaaActions;
-
-  private UserActions userActions;
-
-  private String userName = ("LoginTestsUser" + DataGenerator.randomString()).toLowerCase();
-
-  private String password = Constants.USER_PASSWORD;
+  private final String userName = ("LoginTestsUser" + DataGenerator.randomString()).toLowerCase();
 
   @BeforeAll
   public void preconditions() {
-    loginActions = new LoginActions();
-    userActions = new UserActions();
+    LoginActions loginActions = new LoginActions();
+    UserActions userActions = new UserActions();
 
     loginActions.loginAsSuperUser();
 
+    String password = Constants.USER_PASSWORD;
     userActions.addUser(userName, password);
   }
 }

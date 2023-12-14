@@ -103,7 +103,7 @@ public class EventBaseCheck implements Checker {
     } else if (COMPLETED.equals(enrollment.getStatus())) {
       if (importOptions == null
           || importOptions.getUser() == null
-          || importOptions.getUser().isAuthorized(F_EDIT_EXPIRED.getAuthority())) {
+          || importOptions.getUser().isAuthorized(F_EDIT_EXPIRED.name())) {
         return;
       }
 
@@ -115,12 +115,12 @@ public class EventBaseCheck implements Checker {
 
       referenceDate = removeTimeStamp(referenceDate);
 
-      if (referenceDate.after(removeTimeStamp(enrollment.getEndDate()))) {
+      if (referenceDate.after(removeTimeStamp(enrollment.getCompletedDate()))) {
         errors.add(
             "Not possible to add event to a completed enrollment. Event created date ( "
                 + referenceDate
                 + " ) is after enrollment completed date ( "
-                + removeTimeStamp(enrollment.getEndDate())
+                + removeTimeStamp(enrollment.getCompletedDate())
                 + " ).");
       }
     }

@@ -39,10 +39,11 @@ public enum FileResourceDomain {
   MESSAGE_ATTACHMENT("messageAttachment"),
   USER_AVATAR("userAvatar"),
   ORG_UNIT("organisationUnit"),
-  CUSTOM_ICON("customIcon");
+  CUSTOM_ICON("customIcon"),
+  JOB_DATA("jobData");
 
   /** Container name to use when storing blobs of this FileResourceDomain */
-  private String containerName;
+  private final String containerName;
 
   public static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES =
       Set.of(DATA_VALUE, USER_AVATAR, ORG_UNIT);

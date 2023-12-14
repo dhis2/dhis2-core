@@ -41,7 +41,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -49,7 +48,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
@@ -66,6 +64,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -106,7 +105,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
       OrganisationUnitLevelStore organisationUnitLevelStore,
       CurrentUserService currentUserService,
       ConfigurationService configurationService,
-      UserSettingService userSettingService,
+      @Lazy UserSettingService userSettingService,
       CacheProvider cacheProvider) {
     checkNotNull(organisationUnitStore);
     checkNotNull(idObjectManager);
@@ -453,55 +452,13 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
       return false;
     }
 
-    return isDescendant(organisationUnit, user.getOrganisationUnits());
-  }
-
-  @Override
-  @Transactional
-  public boolean isDescendant(OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors) {
-    Objects.requireNonNull(organisationUnit);
-
-    if (isEmpty(ancestors)) {
-      return false;
-    }
-
-    Set<String> ancestorUids = IdentifiableObjectUtils.getUidsAsSet(ancestors);
-
-    OrganisationUnit unit = getOrganisationUnit(organisationUnit.getUid());
+    OrganisationUnit unit = organisationUnitStore.getByUid(organisationUnit.getUid());
 
     if (unit == null) {
-      unit = organisationUnit;
-    }
-
-    while (unit != null) {
-      if (ancestorUids.contains(unit.getUid())) {
-        return true;
-      }
-
-      unit = unit.getParent();
-    }
-
-    return false;
-  }
-
-  @Transactional(readOnly = true)
-  @Override
-  public boolean isDescendant(OrganisationUnit organisationUnit, OrganisationUnit ancestor) {
-    if (ancestor == null) {
       return false;
     }
 
-    OrganisationUnit unit = getOrganisationUnit(organisationUnit.getUid());
-
-    while (unit != null) {
-      if (ancestor.equals(unit)) {
-        return true;
-      }
-
-      unit = unit.getParent();
-    }
-
-    return false;
+    return unit.isDescendant(user.getOrganisationUnits());
   }
 
   @Override
@@ -523,7 +480,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
       return false;
     }
 
-    return isDescendant(organisationUnit, user.getDataViewOrganisationUnitsWithFallback());
+    return organisationUnit.isDescendant(user.getDataViewOrganisationUnitsWithFallback());
   }
 
   @Override
@@ -563,7 +520,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
       return false;
     }
 
-    return isDescendant(organisationUnit, user.getTeiSearchOrganisationUnitsWithFallback());
+    return organisationUnit.isDescendant(user.getTeiSearchOrganisationUnitsWithFallback());
   }
 
   @Override
@@ -571,7 +528,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   public boolean isInUserHierarchy(String uid, Set<OrganisationUnit> organisationUnits) {
     OrganisationUnit organisationUnit = organisationUnitStore.getByUid(uid);
 
-    return organisationUnit != null && isDescendant(organisationUnit, organisationUnits);
+    return organisationUnit != null && organisationUnit.isDescendant(organisationUnits);
   }
 
   @Override

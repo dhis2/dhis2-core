@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.analytics.AggregationType.COUNT;
 import static org.hisp.dhis.analytics.AggregationType.MAX;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
@@ -156,6 +155,8 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   private String deBUid;
 
+  private String deDUid;
+
   private DataElement deH;
 
   private OrganisationUnit ouA;
@@ -252,8 +253,8 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     // We need to make sure that table generation start time is greater than
     // lastUpdated on tables populated in the setup
-    Date oneSecondFromNow =
-        Date.from(LocalDateTime.now().plusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
+    Date tenSecondsFromNow =
+        Date.from(LocalDateTime.now().plusSeconds(10).atZone(ZoneId.systemDefault()).toInstant());
 
     assertNull(
         systemSettingManager.getSystemSetting(
@@ -264,7 +265,7 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     processStartTime = new Date();
     // Generate analytics tables
     analyticsTableGenerator.generateTables(
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
+        AnalyticsTableUpdateParams.newBuilder().withStartTime(tenSecondsFromNow).build(),
         NoopJobProgress.INSTANCE);
   }
 
@@ -306,12 +307,13 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     deC = createDataElement('C');
     deD = createDataElement('D');
     deE = createDataElement('E', INTEGER, SUM);
-    deF = createDataElement('F', BOOLEAN, COUNT);
+    deF = createDataElement('F', BOOLEAN, MAX);
     deG = createDataElement('G', TEXT, MAX);
     deH = createDataElement('H', DATE, MAX);
 
     deAUid = deA.getUid();
     deBUid = deB.getUid();
+    deDUid = deD.getUid();
 
     dataElementService.addDataElement(deA);
     dataElementService.addDataElement(deB);
@@ -449,7 +451,8 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     categoryService.saveCategoryOptionGroup(optionGroupA);
     categoryService.saveCategoryOptionGroup(optionGroupB);
 
-    CategoryOptionGroupSet optionGroupSetB = new CategoryOptionGroupSet("OptionGroupSetB");
+    CategoryOptionGroupSet optionGroupSetB =
+        new CategoryOptionGroupSet("OptionGroupSetB", DataDimensionType.DISAGGREGATION);
     categoryService.saveCategoryOptionGroupSet(optionGroupSetB);
     optionGroupSetB.addCategoryOptionGroup(optionGroupA);
     optionGroupSetB.addCategoryOptionGroup(optionGroupB);
@@ -519,7 +522,7 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
       dataValueService.addDataValue(dataValue);
     }
     assertEquals(
-        30,
+        32,
         dataValueService.getAllDataValues().size(),
         "Import of data values failed, number of imports are wrong");
   }
@@ -1084,12 +1087,18 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     withIndicator(inA, "#{" + deF.getUid() + "}");
 
     assertDataValues(
-        Map.of("indicatorAA-ouabcdefghA-201701", 1.0),
+        Map.of(
+            "indicatorAA-ouabcdefghA-201701",
+            1.0,
+            "indicatorAA-ouabcdefghA-201702",
+            0.0,
+            "indicatorAA-ouabcdefghA-201703",
+            1.0),
         DataQueryParams.newBuilder()
             .withOrganisationUnit(ouA)
             .withIndicators(List.of(inA))
             .withAggregationType(AnalyticsAggregationType.SUM)
-            .withPeriods(List.of(peJan, peFeb))
+            .withPeriods(List.of(peJan, peFeb, peMar, peApr))
             .withOutputFormat(OutputFormat.ANALYTICS)
             .build());
   }
@@ -1114,12 +1123,100 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     withIndicator(inA, "subExpression( if( #{" + deF.getUid() + "}, 3, 4 ) )");
 
     assertDataValues(
-        Map.of("indicatorAA-ouabcdefghA-201701", 3.0),
+        Map.of(
+            "indicatorAA-ouabcdefghA-201701",
+            3.0,
+            "indicatorAA-ouabcdefghA-201702",
+            4.0,
+            "indicatorAA-ouabcdefghA-201703",
+            3.0),
         DataQueryParams.newBuilder()
             .withOrganisationUnit(ouA)
             .withIndicators(List.of(inA))
             .withAggregationType(AnalyticsAggregationType.SUM)
-            .withPeriods(List.of(peJan, peFeb))
+            .withPeriods(List.of(peJan, peFeb, peMar, peApr))
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+  }
+
+  @Test
+  void testIndicatorSubexpressionBooleanSum() {
+    withIndicator(
+        inA, "subExpression( if( #{" + deF.getUid() + "}.aggregationType(SUM) > 0, 5, 6 ) )");
+
+    assertDataValues(
+        Map.of(
+            "indicatorAA-ouabcdefghA-201701",
+            5.0,
+            "indicatorAA-ouabcdefghA-201702",
+            6.0,
+            "indicatorAA-ouabcdefghA-201703",
+            5.0),
+        DataQueryParams.newBuilder()
+            .withOrganisationUnit(ouA)
+            .withIndicators(List.of(inA))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withPeriods(List.of(peJan, peFeb, peMar, peApr))
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+  }
+
+  @Test
+  void testIndicatorSubexpressionBooleanMinQuarter() {
+    withIndicator(inA, "subExpression(#{" + deF.getUid() + "}.aggregationType(MIN))");
+
+    assertDataValues(
+        Map.of("indicatorAA-ouabcdefghA-2017Q1", 0.0),
+        DataQueryParams.newBuilder()
+            .withOrganisationUnit(ouA)
+            .withIndicators(List.of(inA))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withPeriods(List.of(quarter))
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+  }
+
+  @Test
+  void testIndicatorSubexpressionBooleanMaxQuarter() {
+    withIndicator(inA, "subExpression(#{" + deF.getUid() + "}.aggregationType(MAX))");
+
+    assertDataValues(
+        Map.of("indicatorAA-ouabcdefghA-2017Q1", 1.0),
+        DataQueryParams.newBuilder()
+            .withOrganisationUnit(ouA)
+            .withIndicators(List.of(inA))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withPeriods(List.of(quarter))
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+  }
+
+  @Test
+  void testIndicatorSubexpressionBooleanSumQuarter() {
+    withIndicator(inA, "subExpression(#{" + deF.getUid() + "}.aggregationType(SUM))");
+
+    assertDataValues(
+        Map.of("indicatorAA-ouabcdefghA-2017Q1", 2.0),
+        DataQueryParams.newBuilder()
+            .withOrganisationUnit(ouA)
+            .withIndicators(List.of(inA))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withPeriods(List.of(quarter))
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+  }
+
+  @Test
+  void testIndicatorSubexpressionBooleanCountQuarter() {
+    withIndicator(inA, "subExpression(#{" + deF.getUid() + "}.aggregationType(COUNT))");
+
+    assertDataValues(
+        Map.of("indicatorAA-ouabcdefghA-2017Q1", 3.0),
+        DataQueryParams.newBuilder()
+            .withOrganisationUnit(ouA)
+            .withIndicators(List.of(inA))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withPeriods(List.of(quarter))
             .withOutputFormat(OutputFormat.ANALYTICS)
             .build());
   }
@@ -1225,6 +1322,41 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             .withIndicators(List.of(inA))
             .withAggregationType(AnalyticsAggregationType.SUM)
             .withPeriods(List.of(quarter))
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+  }
+
+  @Test
+  void testIndicatorSubexpressionPeriodOffset() {
+    withIndicator(
+        inA,
+        "subExpression(if(#{"
+            + deDUid
+            + "}+#{"
+            + deDUid
+            + "}.periodOffset(-1)+#{"
+            + deDUid
+            + "}.periodOffset(-2)>0,1,0))");
+
+    assertDataValues(
+        Map.of(
+            "indicatorAA-ouabcdefghA-201702",
+            3.0,
+            "indicatorAA-ouabcdefghA-201703",
+            3.0,
+            "indicatorAA-ouabcdefghA-201704",
+            4.0,
+            "indicatorAA-ouabcdefghB-201702",
+            1.0,
+            "indicatorAA-ouabcdefghB-201703",
+            1.0,
+            "indicatorAA-ouabcdefghB-201704",
+            2.0),
+        DataQueryParams.newBuilder()
+            .withOrganisationUnits(List.of(ouA, ouB))
+            .withIndicators(List.of(inA))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withPeriods(List.of(peFeb, peMar, peApr))
             .withOutputFormat(OutputFormat.ANALYTICS)
             .build());
   }
@@ -1408,7 +1540,11 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         systemSettingManager.getSystemSetting(
             SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, Date.class);
     assertNotEquals(null, resourceTablesUpdated);
-    assertTrue(tableLastUpdated.compareTo(processStartTime) > 0);
-    assertTrue(resourceTablesUpdated.compareTo(processStartTime) > 0);
+    assertTrue(
+        tableLastUpdated.compareTo(processStartTime) > 0,
+        String.format("%s > %s", tableLastUpdated, processStartTime));
+    assertTrue(
+        resourceTablesUpdated.compareTo(processStartTime) > 0,
+        String.format("%s > %s", resourceTablesUpdated, processStartTime));
   }
 }

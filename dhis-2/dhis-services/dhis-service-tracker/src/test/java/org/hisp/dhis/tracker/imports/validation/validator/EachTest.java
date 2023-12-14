@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator;
 
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.UPDATE;
-import static org.hisp.dhis.tracker.imports.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.imports.validation.validator.Each.each;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -42,9 +42,9 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Note;
@@ -151,7 +151,8 @@ class EachTest {
    * tracker type, uid or error code.
    */
   private static void addError(Reporter reporter, String message) {
-    reporter.addError(new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid"));
+    reporter.addError(
+        new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid", List.of()));
   }
 
   private List<String> actualErrorMessages() {

@@ -27,19 +27,20 @@
  */
 package org.hisp.dhis.dbms;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
+@Component
 @Slf4j
 public class HibernateDbmsManager implements DbmsManager {
   // -------------------------------------------------------------------------
@@ -52,10 +53,10 @@ public class HibernateDbmsManager implements DbmsManager {
     this.jdbcTemplate = jdbcTemplate;
   }
 
-  private SessionFactory sessionFactory;
+  private EntityManager entityManager;
 
-  public void setSessionFactory(SessionFactory sessionFactory) {
-    this.sessionFactory = sessionFactory;
+  public void setEntityManager(EntityManager entityManager) {
+    this.entityManager = entityManager;
   }
 
   private HibernateCacheManager cacheManager;
@@ -228,10 +229,12 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("programnotificationinstance");
     emptyTable("trackedentitydatavalueaudit");
     emptyTable("trackedentityprogramowner");
-    emptyTable("eventcomments");
-    emptyTable("programinstancecomments");
+
+    emptyTable("event_notes");
+    emptyTable("enrollment_notes");
+    emptyTable("note");
     emptyTable("event");
-    emptyTable("programinstance");
+    emptyTable("enrollment");
     emptyTable("programnotificationtemplate");
     emptyTable("programstagedataelement");
     emptyTable("programstagesection_dataelements");
@@ -252,7 +255,7 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("trackedentityattributevalueaudit");
     emptyTable("trackedentitytypeattribute");
     emptyTable("trackedentityattribute");
-    emptyTable("trackedentityinstance");
+    emptyTable("trackedentity");
     emptyTable("trackedentitytype");
 
     emptyTable("minmaxdataelement");
@@ -301,8 +304,8 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("expressiondimensionitem");
     emptyTable("categoryoptioncombo");
     emptyTable("categorycombo");
-    emptyTable("dataelementcategory");
-    emptyTable("dataelementcategoryoption");
+    emptyTable("category");
+    emptyTable("categoryoption");
 
     emptyTable("optionvalue");
     emptyTable("optionset");
@@ -323,7 +326,6 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("previouspasswords");
     emptyTable("usersetting");
     emptyTable("fileresource");
-    emptyTable("trackedentitycomment");
     emptyTable("userinfo");
     emptyTable("route");
 
@@ -357,13 +359,13 @@ public class HibernateDbmsManager implements DbmsManager {
 
   @Override
   public void clearSession() {
-    sessionFactory.getCurrentSession().flush();
-    sessionFactory.getCurrentSession().clear();
+    entityManager.flush();
+    entityManager.clear();
   }
 
   @Override
   public void flushSession() {
-    sessionFactory.getCurrentSession().flush();
+    entityManager.flush();
   }
 
   @Override
@@ -436,20 +438,5 @@ public class HibernateDbmsManager implements DbmsManager {
     } catch (BadSqlGrammarException ex) {
       log.debug("Could not empty relationship tables");
     }
-  }
-
-  @Override
-  public void evictObject(Object object) {
-    sessionFactory.getCurrentSession().evict(object);
-  }
-
-  @Override
-  public boolean contains(Object object) {
-    return sessionFactory.getCurrentSession().contains(object);
-  }
-
-  @Override
-  public Serializable getIdentifier(Object object) {
-    return sessionFactory.getCurrentSession().getIdentifier(object);
   }
 }

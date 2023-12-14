@@ -27,122 +27,142 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
+import static java.util.Collections.emptySet;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.JdbcEventStore;
+import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.common.UID;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
 /**
- * Maps query parameters from {@link EventsExportController} stored in {@link RequestParams} to
+ * Maps query parameters from {@link EventsExportController} stored in {@link EventRequestParams} to
  * {@link EventOperationParams} which is used to fetch events from the DB.
  */
 @Component
 @RequiredArgsConstructor
 class EventRequestParamsMapper {
-  private static final Set<String> SORTABLE_PROPERTIES =
-      JdbcEventStore.QUERY_PARAM_COL_MAP.keySet();
+  private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
 
-  public EventOperationParams map(RequestParams requestParams) throws BadRequestException {
+  private final EventFieldsParamMapper eventsMapper;
+
+  public EventOperationParams map(EventRequestParams eventRequestParams)
+      throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
         validateDeprecatedParameter(
-            "ouMode", requestParams.getOuMode(), "orgUnitMode", requestParams.getOrgUnitMode());
+            "ouMode",
+            eventRequestParams.getOuMode(),
+            "orgUnitMode",
+            eventRequestParams.getOrgUnitMode());
+
+    orgUnitMode =
+        validateOrgUnitModeForEnrollmentsAndEvents(
+            eventRequestParams.getOrgUnit() != null
+                ? Set.of(eventRequestParams.getOrgUnit())
+                : emptySet(),
+            orgUnitMode);
 
     UID attributeCategoryCombo =
         validateDeprecatedParameter(
             "attributeCc",
-            requestParams.getAttributeCc(),
+            eventRequestParams.getAttributeCc(),
             "attributeCategoryCombo",
-            requestParams.getAttributeCategoryCombo());
+            eventRequestParams.getAttributeCategoryCombo());
 
     Set<UID> attributeCategoryOptions =
         validateDeprecatedUidsParameter(
             "attributeCos",
-            requestParams.getAttributeCos(),
+            eventRequestParams.getAttributeCos(),
             "attributeCategoryOptions",
-            requestParams.getAttributeCategoryOptions());
+            eventRequestParams.getAttributeCategoryOptions());
 
     Set<UID> eventUids =
         validateDeprecatedUidsParameter(
-            "event", requestParams.getEvent(), "events", requestParams.getEvents());
+            "event", eventRequestParams.getEvent(), "events", eventRequestParams.getEvents());
 
-    validateFilter(requestParams.getFilter(), eventUids);
+    validateFilter(eventRequestParams.getFilter(), eventUids);
+    Map<String, List<QueryFilter>> dataElementFilters =
+        parseFilters(eventRequestParams.getFilter());
+    Map<String, List<QueryFilter>> attributeFilters =
+        parseFilters(eventRequestParams.getFilterAttributes());
 
     Set<UID> assignedUsers =
         validateDeprecatedUidsParameter(
             "assignedUser",
-            requestParams.getAssignedUser(),
+            eventRequestParams.getAssignedUser(),
             "assignedUsers",
-            requestParams.getAssignedUsers());
+            eventRequestParams.getAssignedUsers());
 
-    validateUpdateDurationParams(requestParams);
+    validateUpdateDurationParams(eventRequestParams);
+    validateOrderParams(
+        eventRequestParams.getOrder(), ORDERABLE_FIELD_NAMES, "data element and attribute");
 
-    return EventOperationParams.builder()
-        .programUid(
-            requestParams.getProgram() != null ? requestParams.getProgram().getValue() : null)
-        .programStageUid(
-            requestParams.getProgramStage() != null
-                ? requestParams.getProgramStage().getValue()
-                : null)
-        .orgUnitUid(
-            requestParams.getOrgUnit() != null ? requestParams.getOrgUnit().getValue() : null)
-        .trackedEntityUid(
-            requestParams.getTrackedEntity() != null
-                ? requestParams.getTrackedEntity().getValue()
-                : null)
-        .programStatus(requestParams.getProgramStatus())
-        .followUp(requestParams.getFollowUp())
-        .orgUnitMode(orgUnitMode)
-        .assignedUserMode(requestParams.getAssignedUserMode())
-        .assignedUsers(UID.toValueSet(assignedUsers))
-        .startDate(requestParams.getOccurredAfter())
-        .endDate(requestParams.getOccurredBefore())
-        .scheduledAfter(requestParams.getScheduledAfter())
-        .scheduledBefore(requestParams.getScheduledBefore())
-        .updatedAfter(requestParams.getUpdatedAfter())
-        .updatedBefore(requestParams.getUpdatedBefore())
-        .updatedWithin(requestParams.getUpdatedWithin())
-        .enrollmentEnrolledBefore(requestParams.getEnrollmentEnrolledBefore())
-        .enrollmentEnrolledAfter(requestParams.getEnrollmentEnrolledAfter())
-        .enrollmentOccurredBefore(requestParams.getEnrollmentOccurredBefore())
-        .enrollmentOccurredAfter(requestParams.getEnrollmentOccurredAfter())
-        .eventStatus(requestParams.getStatus())
-        .attributeCategoryCombo(
-            attributeCategoryCombo != null ? attributeCategoryCombo.getValue() : null)
-        .attributeCategoryOptions(UID.toValueSet(attributeCategoryOptions))
-        .idSchemes(requestParams.getIdSchemes())
-        .page(requestParams.getPage())
-        .pageSize(requestParams.getPageSize())
-        .totalPages(requestParams.isTotalPages())
-        .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
-        .skipEventId(requestParams.getSkipEventId())
-        .includeAttributes(false)
-        .includeAllDataElements(false)
-        .filters(requestParams.getFilter())
-        .filterAttributes(requestParams.getFilterAttributes())
-        .orders(getOrderParams(requestParams.getOrder()))
-        .attributeOrders(requestParams.getOrder())
-        .events(UID.toValueSet(eventUids))
-        .enrollments(UID.toValueSet(requestParams.getEnrollments()))
-        .includeDeleted(requestParams.isIncludeDeleted())
-        .build();
+    EventOperationParamsBuilder builder =
+        EventOperationParams.builder()
+            .programUid(
+                eventRequestParams.getProgram() != null
+                    ? eventRequestParams.getProgram().getValue()
+                    : null)
+            .programStageUid(
+                eventRequestParams.getProgramStage() != null
+                    ? eventRequestParams.getProgramStage().getValue()
+                    : null)
+            .orgUnitUid(
+                eventRequestParams.getOrgUnit() != null
+                    ? eventRequestParams.getOrgUnit().getValue()
+                    : null)
+            .trackedEntityUid(
+                eventRequestParams.getTrackedEntity() != null
+                    ? eventRequestParams.getTrackedEntity().getValue()
+                    : null)
+            .programStatus(eventRequestParams.getProgramStatus())
+            .followUp(eventRequestParams.getFollowUp())
+            .orgUnitMode(orgUnitMode)
+            .assignedUserMode(eventRequestParams.getAssignedUserMode())
+            .assignedUsers(UID.toValueSet(assignedUsers))
+            .occurredAfter(eventRequestParams.getOccurredAfter())
+            .occurredBefore(eventRequestParams.getOccurredBefore())
+            .scheduledAfter(eventRequestParams.getScheduledAfter())
+            .scheduledBefore(eventRequestParams.getScheduledBefore())
+            .updatedAfter(eventRequestParams.getUpdatedAfter())
+            .updatedBefore(eventRequestParams.getUpdatedBefore())
+            .updatedWithin(eventRequestParams.getUpdatedWithin())
+            .enrollmentEnrolledBefore(eventRequestParams.getEnrollmentEnrolledBefore())
+            .enrollmentEnrolledAfter(eventRequestParams.getEnrollmentEnrolledAfter())
+            .enrollmentOccurredBefore(eventRequestParams.getEnrollmentOccurredBefore())
+            .enrollmentOccurredAfter(eventRequestParams.getEnrollmentOccurredAfter())
+            .eventStatus(eventRequestParams.getStatus())
+            .attributeCategoryCombo(
+                attributeCategoryCombo != null ? attributeCategoryCombo.getValue() : null)
+            .attributeCategoryOptions(UID.toValueSet(attributeCategoryOptions))
+            .idSchemes(eventRequestParams.getIdSchemes())
+            .includeAttributes(false)
+            .includeAllDataElements(false)
+            .dataElementFilters(dataElementFilters)
+            .attributeFilters(attributeFilters)
+            .events(UID.toValueSet(eventUids))
+            .enrollments(UID.toValueSet(eventRequestParams.getEnrollments()))
+            .includeDeleted(eventRequestParams.isIncludeDeleted())
+            .eventParams(eventsMapper.map(eventRequestParams.getFields()));
+
+    mapOrderParam(builder, eventRequestParams.getOrder());
+
+    return builder.build();
   }
 
   private static void validateFilter(String filter, Set<UID> eventIds) throws BadRequestException {
@@ -151,42 +171,33 @@ class EventRequestParamsMapper {
     }
   }
 
-  private List<OrderParam> getOrderParams(List<OrderCriteria> order) throws BadRequestException {
-    if (order == null || order.isEmpty()) {
-      return Collections.emptyList();
+  private void mapOrderParam(EventOperationParamsBuilder builder, List<OrderCriteria> orders) {
+    if (orders == null || orders.isEmpty()) {
+      return;
     }
-    validateOrderParams(order);
 
-    return OrderParamsHelper.toOrderParams(order);
-  }
-
-  private void validateOrderParams(List<OrderCriteria> order) throws BadRequestException {
-    Set<String> requestProperties =
-        order.stream()
-            .map(OrderCriteria::getField)
-            .filter(field -> !CodeGenerator.isValidUid(field))
-            .collect(Collectors.toSet());
-
-    requestProperties.removeAll(SORTABLE_PROPERTIES);
-    if (!requestProperties.isEmpty()) {
-      throw new BadRequestException(
-          String.format(
-              "Order by property `%s` is not supported. Supported are `%s`",
-              String.join(", ", requestProperties), String.join(", ", SORTABLE_PROPERTIES)));
+    for (OrderCriteria order : orders) {
+      if (EventMapper.ORDERABLE_FIELDS.containsKey(order.getField())) {
+        builder.orderBy(EventMapper.ORDERABLE_FIELDS.get(order.getField()), order.getDirection());
+      } else {
+        builder.orderBy(UID.of(order.getField()), order.getDirection());
+      }
     }
   }
 
-  private void validateUpdateDurationParams(RequestParams requestParams)
+  private void validateUpdateDurationParams(EventRequestParams eventRequestParams)
       throws BadRequestException {
-    if (requestParams.getUpdatedWithin() != null
-        && (requestParams.getUpdatedAfter() != null || requestParams.getUpdatedBefore() != null)) {
+    if (eventRequestParams.getUpdatedWithin() != null
+        && (eventRequestParams.getUpdatedAfter() != null
+            || eventRequestParams.getUpdatedBefore() != null)) {
       throw new BadRequestException(
           "Last updated from and/or to and last updated duration cannot be specified simultaneously");
     }
 
-    if (requestParams.getUpdatedWithin() != null
-        && DateUtils.getDuration(requestParams.getUpdatedWithin()) == null) {
-      throw new BadRequestException("Duration is not valid: " + requestParams.getUpdatedWithin());
+    if (eventRequestParams.getUpdatedWithin() != null
+        && DateUtils.getDuration(eventRequestParams.getUpdatedWithin()) == null) {
+      throw new BadRequestException(
+          "Duration is not valid: " + eventRequestParams.getUpdatedWithin());
     }
   }
 }

@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -76,10 +77,11 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -127,8 +129,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       AnalyticsTableHookService tableHookService,
       StatementBuilder statementBuilder,
       PartitionManager partitionManager,
-      DatabaseInfo databaseInfo,
-      JdbcTemplate jdbcTemplate,
+      DatabaseInfoProvider databaseInfoProvider,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsExportSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
     super(
@@ -141,7 +143,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         tableHookService,
         statementBuilder,
         partitionManager,
-        databaseInfo,
+        databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
         periodDataProvider);
@@ -329,7 +331,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     String sql = "insert into " + partition.getTempTableName() + " (";
 
-    List<AnalyticsTableColumn> columns = getDimensionColumns(partition.getYear());
+    List<AnalyticsTableColumn> columns = getDimensionColumns(partition.getYear(), params);
     List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
 
     validateDimensionColumns(columns);
@@ -355,6 +357,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             + "from datavalue dv "
             + "inner join period pe on dv.periodid=pe.periodid "
             + "inner join _periodstructure ps on dv.periodid=ps.periodid "
+            + "left join periodtype pt on pe.periodtypeid = pt.periodtypeid "
             + "inner join dataelement de on dv.dataelementid=de.dataelementid "
             + "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid "
             + "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid "
@@ -367,8 +370,14 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             + "inner join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid "
             + "inner join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid "
             + "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid "
-            + "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid "
-            + approvalClause
+            + "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid ";
+
+    if (!skipOutliers(params)) {
+      sql += getOutliersJoinStatement();
+    }
+
+    sql +=
+        approvalClause
             + "where de.valuetype in ("
             + valTypes
             + ") "
@@ -424,10 +433,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   private List<AnalyticsTableColumn> getDimensionColumns() {
-    return getDimensionColumns(null);
+    return getDimensionColumns(null, null);
   }
 
-  private List<AnalyticsTableColumn> getDimensionColumns(Integer year) {
+  private List<AnalyticsTableColumn> getDimensionColumns(
+      Integer year, AnalyticsTableUpdateParams params) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String idColAlias =
@@ -513,6 +523,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     columns.add(new AnalyticsTableColumn(quote("approvallevel"), INTEGER, approvalCol));
     columns.addAll(getFixedColumns());
+    if (!skipOutliers(params)) {
+      columns.addAll(getOutlierStatsColumns());
+    }
 
     return filterDimensionColumns(columns);
   }
@@ -528,6 +541,53 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, "daysno"),
         new AnalyticsTableColumn(quote("value"), DOUBLE, "value"),
         new AnalyticsTableColumn(quote("textvalue"), TEXT, "textvalue"));
+  }
+
+  /**
+   * Statistical outlier detection involves applying statistical tests or procedures to identify
+   * extreme values. The extreme data are converted into z scores that tell us how many standard
+   * deviations away they are from the mean. If a value has a high enough or low enough z score, it
+   * can be considered an outlier. Z scores can be affected by unusually large or small data values,
+   * which is why a more robust way to detect outliers can be used (a modified z-score).
+   *
+   * <p>Z-Score (xi – μ) / σ where: xi: A single data value μ: The mean of the dataset σ: The
+   * standard deviation of the dataset
+   *
+   * <p>Modified z-score = 0.6745(xi – x̃) / MAD where: xi: A single data value x̃: The median of
+   * the dataset MAD: The median absolute deviation of the dataset 0.6745: conversion factor (0.75
+   * percentiles)
+   *
+   * @return collection of analytics table columns dedicated to outlier identification.
+   */
+  private List<AnalyticsTableColumn> getOutlierStatsColumns() {
+    return List.of(
+
+        // TODO: Do not export IDs into analytics. We work only with UIDs.
+        new AnalyticsTableColumn(quote("sourceid"), INTEGER, NOT_NULL, "dv.sourceid"),
+        new AnalyticsTableColumn(quote("periodid"), INTEGER, NOT_NULL, "dv.periodid"),
+        new AnalyticsTableColumn(
+            quote("categoryoptioncomboid"), INTEGER, NOT_NULL, "dv.categoryoptioncomboid"),
+        new AnalyticsTableColumn(
+            quote("attributeoptioncomboid"), INTEGER, NOT_NULL, "dv.attributeoptioncomboid"),
+        new AnalyticsTableColumn(quote("dataelementid"), INTEGER, NOT_NULL, "dv.dataelementid")
+            .withIndexColumns(List.of(quote("dataelementid"))),
+
+        // TODO: Remove all these name columns from here. Analytics tables should not have them.
+        new AnalyticsTableColumn(quote("de_name"), VARCHAR_255, "de.name"),
+        new AnalyticsTableColumn(quote("ou_name"), VARCHAR_255, "ou.name"),
+        new AnalyticsTableColumn(quote("coc_name"), VARCHAR_255, "co.name"),
+        new AnalyticsTableColumn(quote("aoc_name"), VARCHAR_255, "ao.name"),
+        new AnalyticsTableColumn(quote("petype"), VARCHAR_255, "pt.name"),
+        new AnalyticsTableColumn(quote("path"), VARCHAR_255, "ou.path"),
+        // mean
+        new AnalyticsTableColumn(quote("avg_middle_value"), DOUBLE, "stats.avg_middle_value"),
+        // median
+        new AnalyticsTableColumn(
+            quote("percentile_middle_value"), DOUBLE, "stats.percentile_middle_value"),
+        // median of absolute deviations "MAD"
+        new AnalyticsTableColumn(quote("mad"), DOUBLE, "stats.mad"),
+        // standard deviation
+        new AnalyticsTableColumn(quote("std_dev"), DOUBLE, "stats.std_dev"));
   }
 
   /**
@@ -615,5 +675,89 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     } else {
       return setting && levels;
     }
+  }
+
+  /**
+   * The outlier identification is using z-score and modified z-score. The function is retrieving
+   * the sql statement for analytics table population (analytics and its partitions).
+   *
+   * @return sql statement fraction of statistic basic values for the outlier identification.
+   */
+  private String getOutliersJoinStatement() {
+    return "left join (select t3.dataelementid, "
+        + "                           t3.sourceid, "
+        + "                           t3.categoryoptioncomboid, "
+        + "                           t3.attributeoptioncomboid, "
+        // median of absolute deviations "mad" (median(xi - median(xi)))
+        + "                           percentile_cont(0.5) "
+        + "                           within group (order by abs(t3.value::double precision - t3.percentile_middle_value)) as MAD, "
+        // mean
+        + "                           avg(t3.value::double precision)                                                 as avg_middle_value, "
+        // median of the samples (median(xi))
+        + "                           percentile_cont(0.5) "
+        + "                           within group (order by t3.value::double precision)                              as percentile_middle_value, "
+        // standard deviation of the normal distribution
+        + "                           stddev_pop(t3.value::double precision)                                          as std_dev "
+        // Table "t3" is the composition of the tables "t2" (median of xi) and "t3" (values xi).
+        // For Z-Score  the mean (avg_middle_value) and standard deviation (std_dev) is used ((xi -
+        // mean(x))/std_dev).
+        // For modified Z-Score the median (percentile_middle_value) and the median of absolute
+        // deviations (mad) is used (0.6745*(xi - median(x)/mad)).
+        // The factor 0.6745 is the 0.75 quartile of the normal distribution, to which the "mad"
+        // converges to.
+        + "                    from (select t1.dataelementid, "
+        + "                                 t1.sourceid, "
+        + "                                 t1.categoryoptioncomboid, "
+        + "                                 t1.attributeoptioncomboid, "
+        + "                                 t1.percentile_middle_value, "
+        + "                                 t2.value "
+        // Table "t1" retrieving the median of all data element (dataelementid) values belongs to
+        // the same organisation (sourceid)
+        // coc and aoc.
+        + "                          from (select dv1.dataelementid                                   as dataelementid, "
+        + "                                       dv1.sourceid                                        as sourceid, "
+        + "                                       dv1.categoryoptioncomboid                           as categoryoptioncomboid, "
+        + "                                       dv1.attributeoptioncomboid                          as attributeoptioncomboid, "
+        // median
+        + "                                       percentile_cont(0.5) "
+        + "                                       within group (order by dv1.value::double precision) as percentile_middle_value "
+        + "                                from datavalue dv1 "
+        + "                                         inner join period pe on dv1.periodid = pe.periodid "
+        + "                                         inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
+        // Only numeric values (value is varchar or string) can be used for stats calculation.
+        + "                                where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
+        + "                                group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
+        + "                                         dv1.attributeoptioncomboid) t1 "
+        + "                                   join "
+        // Table "t2" is the complement of the t1 table. It contains all values belong to the
+        // specific median (see t1).
+        // To "group by" criteria is added the time dimension (periodid). This part of the query has
+        // to be verified (maybe add tei to aggregation criteria).
+        + "                               (select dv1.dataelementid          as dataelementid, "
+        + "                                       dv1.sourceid               as sourceid, "
+        + "                                       dv1.categoryoptioncomboid  as categoryoptioncomboid, "
+        + "                                       dv1.attributeoptioncomboid as attributeoptioncomboid, "
+        + "                                       dv1.value, "
+        + "                                       dv1.periodid "
+        + "                                from datavalue dv1 "
+        + "                                         inner join period pe on dv1.periodid = pe.periodid "
+        + "                                         inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
+        // Only numeric values (varchars) can be used for stats calculation.
+        + "                                where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
+        + "                                group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
+        + "                                         dv1.attributeoptioncomboid, dv1.value, dv1.periodid) t2 "
+        + "                               on t1.sourceid = t2.sourceid "
+        + "                                   and t1.categoryoptioncomboid = t2.categoryoptioncomboid "
+        + "                                   and t1.attributeoptioncomboid = t2.attributeoptioncomboid "
+        + "                                   and t1.dataelementid = t2.dataelementid) as t3 "
+        + "                    group by t3.dataelementid, t3.sourceid, t3.categoryoptioncomboid, "
+        + "                             t3.attributeoptioncomboid) as stats "
+        + "                   on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid and "
+        + "                      dv.categoryoptioncomboid = stats.categoryoptioncomboid and "
+        + "                      dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
+  }
+
+  private boolean skipOutliers(AnalyticsTableUpdateParams params) {
+    return params != null && params.isSkipOutliers();
   }
 }

@@ -46,10 +46,10 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.util.ObjectUtils;
 import org.locationtech.jts.geom.Geometry;
 
@@ -67,11 +67,11 @@ public class Enrollment extends SoftDeletableObject {
 
   @AuditAttribute private OrganisationUnit organisationUnit;
 
-  private Date incidentDate;
+  private Date occurredDate;
 
   private Date enrollmentDate;
 
-  private Date endDate;
+  private Date completedDate;
 
   private UserInfoSnapshot createdByUserInfo;
 
@@ -89,7 +89,7 @@ public class Enrollment extends SoftDeletableObject {
 
   private Boolean followup = false;
 
-  private List<TrackedEntityComment> comments = new ArrayList<>();
+  private List<Note> notes = new ArrayList<>();
 
   private String completedBy;
 
@@ -104,9 +104,9 @@ public class Enrollment extends SoftDeletableObject {
   public Enrollment() {}
 
   public Enrollment(
-      Date enrollmentDate, Date incidentDate, TrackedEntity trackedEntity, Program program) {
+      Date enrollmentDate, Date occurredDate, TrackedEntity trackedEntity, Program program) {
     this.enrollmentDate = enrollmentDate;
-    this.incidentDate = incidentDate;
+    this.occurredDate = occurredDate;
     this.trackedEntity = trackedEntity;
     this.program = program;
   }
@@ -160,7 +160,7 @@ public class Enrollment extends SoftDeletableObject {
     final int prime = 31;
     int result = super.hashCode();
 
-    result = prime * result + ((incidentDate == null) ? 0 : incidentDate.hashCode());
+    result = prime * result + ((occurredDate == null) ? 0 : occurredDate.hashCode());
     result = prime * result + ((enrollmentDate == null) ? 0 : enrollmentDate.hashCode());
     result = prime * result + ((trackedEntity == null) ? 0 : trackedEntity.hashCode());
     result = prime * result + ((program == null) ? 0 : program.hashCode());
@@ -174,7 +174,7 @@ public class Enrollment extends SoftDeletableObject {
   }
 
   private boolean objectEquals(Enrollment other) {
-    return Objects.equals(incidentDate, other.incidentDate)
+    return Objects.equals(occurredDate, other.occurredDate)
         && Objects.equals(enrollmentDate, other.enrollmentDate)
         && Objects.equals(trackedEntity, other.trackedEntity)
         && Objects.equals(program, other.program);
@@ -218,12 +218,12 @@ public class Enrollment extends SoftDeletableObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getIncidentDate() {
-    return incidentDate;
+  public Date getOccurredDate() {
+    return occurredDate;
   }
 
-  public void setIncidentDate(Date incidentDate) {
-    this.incidentDate = incidentDate;
+  public void setOccurredDate(Date occurredDate) {
+    this.occurredDate = occurredDate;
   }
 
   @JsonProperty
@@ -238,12 +238,12 @@ public class Enrollment extends SoftDeletableObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getEndDate() {
-    return endDate;
+  public Date getCompletedDate() {
+    return completedDate;
   }
 
-  public void setEndDate(Date endDate) {
-    this.endDate = endDate;
+  public void setCompletedDate(Date completedDate) {
+    this.completedDate = completedDate;
   }
 
   @JsonProperty
@@ -333,12 +333,12 @@ public class Enrollment extends SoftDeletableObject {
   @JsonProperty("trackedEntityComments")
   @JacksonXmlElementWrapper(localName = "trackedEntityComments", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
-  public List<TrackedEntityComment> getComments() {
-    return comments;
+  public List<Note> getNotes() {
+    return notes;
   }
 
-  public void setComments(List<TrackedEntityComment> comments) {
-    this.comments = comments;
+  public void setNotes(List<Note> notes) {
+    this.notes = notes;
   }
 
   @JsonProperty
@@ -405,7 +405,7 @@ public class Enrollment extends SoftDeletableObject {
         + ", organisationUnit="
         + (organisationUnit != null ? organisationUnit.getUid() : "null")
         + ", incidentDate="
-        + incidentDate
+        + occurredDate
         + ", enrollmentDate="
         + enrollmentDate
         + ", entityInstance="
@@ -430,16 +430,16 @@ public class Enrollment extends SoftDeletableObject {
 
   private static void setShallowCopyValues(
       Enrollment copy, Enrollment original, Program programCopy) {
-    copy.setComments(ObjectUtils.copyOf(original.getComments()));
+    copy.setNotes(ObjectUtils.copyOf(original.getNotes()));
     copy.setCompletedBy(original.getCompletedBy());
     copy.setCreatedAtClient(original.getCreatedAtClient());
     copy.setCreatedByUserInfo(original.getCreatedByUserInfo());
-    copy.setEndDate(original.getEndDate());
+    copy.setCompletedDate(original.getCompletedDate());
     copy.setEnrollmentDate(original.getEnrollmentDate());
     copy.setEvents(new HashSet<>());
     copy.setFollowup(original.getFollowup());
     copy.setGeometry(original.getGeometry());
-    copy.setIncidentDate(original.getIncidentDate());
+    copy.setOccurredDate(original.getOccurredDate());
     copy.setLastUpdatedAtClient(original.getLastUpdatedAtClient());
     copy.setLastUpdatedByUserInfo(original.getLastUpdatedByUserInfo());
     copy.setMessageConversations(ObjectUtils.copyOf(original.getMessageConversations()));

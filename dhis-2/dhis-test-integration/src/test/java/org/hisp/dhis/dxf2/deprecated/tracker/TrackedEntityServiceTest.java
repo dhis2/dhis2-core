@@ -49,11 +49,12 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.persistence.EntityManager;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentStatus;
@@ -65,6 +66,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentService;
@@ -110,9 +113,13 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private SessionFactory sessionFactory;
+  @Autowired private EntityManager entityManager;
 
   @Autowired private UserService _userService;
+
+  @Autowired private FileResourceService fileResourceService;
+
+  private TrackedEntity maleC;
 
   private TrackedEntity maleA;
 
@@ -140,22 +147,31 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
 
   private TrackedEntityInstance teiFemaleA;
 
+  private TrackedEntityAttribute imageAttribute;
+
   private TrackedEntityAttribute generatedAttribute;
 
   private TrackedEntityAttribute trackedEntityAttributeB;
 
   private TrackedEntityType trackedEntityType;
 
+  private FileResource fileResource;
   private User user;
 
   @Override
   protected void setUpTest() throws Exception {
+
+    fileResource = createFileResource('F', "fileResource".getBytes());
+    fileResourceService.asyncSaveFileResource(fileResource, "fileResource".getBytes());
+
     userService = _userService;
     user = createAndAddAdminUser(AUTHORITY_ALL);
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
     organisationUnitB.setParent(organisationUnitA);
+    imageAttribute = createTrackedEntityAttribute('F');
+    imageAttribute.setValueType(ValueType.IMAGE);
     generatedAttribute = createTrackedEntityAttribute('A');
     generatedAttribute.setGenerated(true);
     // uniqueIdAttribute.setPattern( "RANDOM(#####)" );
@@ -164,25 +180,47 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
     textPattern.setOwnerObject(Objects.TRACKEDENTITYATTRIBUTE);
     textPattern.setOwnerUid(generatedAttribute.getUid());
     generatedAttribute.setTextPattern(textPattern);
+
     trackedEntityAttributeService.addTrackedEntityAttribute(generatedAttribute);
+    trackedEntityAttributeService.addTrackedEntityAttribute(imageAttribute);
+
     trackedEntityAttributeB = createTrackedEntityAttribute('B');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeB);
+
     trackedEntityType = createTrackedEntityType('A');
+
     TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
     trackedEntityTypeAttribute.setTrackedEntityAttribute(generatedAttribute);
     trackedEntityTypeAttribute.setTrackedEntityType(trackedEntityType);
     trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
+
+    TrackedEntityTypeAttribute trackedEntityTypeFileAttribute = new TrackedEntityTypeAttribute();
+    trackedEntityTypeFileAttribute.setTrackedEntityAttribute(imageAttribute);
+    trackedEntityTypeFileAttribute.setTrackedEntityType(trackedEntityType);
+    trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeFileAttribute));
+
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
+
+    maleC = createTrackedEntity(organisationUnitA);
     maleA = createTrackedEntity(organisationUnitA);
     maleB = createTrackedEntity(organisationUnitB);
     femaleA = createTrackedEntity(organisationUnitA);
     femaleB = createTrackedEntity(organisationUnitB);
     dateConflictsMaleA = createTrackedEntity(organisationUnitA);
+
     TrackedEntityAttributeValue uniqueId =
         createTrackedEntityAttributeValue('A', maleA, generatedAttribute);
     uniqueId.setValue("12345");
+
+    TrackedEntityAttributeValue imageAttributeValue =
+        createTrackedEntityAttributeValue('E', maleC, imageAttribute);
+    imageAttributeValue.setValue(fileResource.getUid());
+
     maleA.setTrackedEntityType(trackedEntityType);
+    maleC.setTrackedEntityType(trackedEntityType);
     maleA.setTrackedEntityAttributeValues(Set.of(uniqueId));
+    maleC.setTrackedEntityAttributeValues(Set.of(imageAttributeValue));
+
     maleB.setTrackedEntityType(trackedEntityType);
     femaleA.setTrackedEntityType(trackedEntityType);
     femaleB.setTrackedEntityType(trackedEntityType);
@@ -196,6 +234,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
     manager.save(organisationUnitA);
     manager.save(organisationUnitB);
     manager.save(maleA);
+    manager.save(maleC);
     manager.save(maleB);
     manager.save(femaleA);
     manager.save(femaleB);
@@ -207,6 +246,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
     teiMaleB = trackedEntityInstanceService.getTrackedEntityInstance(maleB);
     teiFemaleA = trackedEntityInstanceService.getTrackedEntityInstance(femaleA);
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(uniqueId);
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(imageAttributeValue);
     enrollmentService.enrollTrackedEntity(maleA, programA, null, null, organisationUnitA);
     enrollmentService.enrollTrackedEntity(
         femaleA, programA, DateTime.now().plusMonths(1).toDate(), null, organisationUnitA);
@@ -269,6 +309,24 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
     assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
     // assertEquals( "UPDATED_NAME", personService.getTrackedEntity(
     // maleA.getUid() ).getName() );
+  }
+
+  @Test
+  void testUpdateTeiByProvidingNullValueToImageAttribute() {
+    TrackedEntityInstance trackedEntityInstance =
+        trackedEntityInstanceService.getTrackedEntityInstance(maleC.getUid());
+
+    Attribute attribute =
+        trackedEntityInstance.getAttributes().stream()
+            .filter(a -> a.getValueType() == ValueType.IMAGE)
+            .findFirst()
+            .orElse(null);
+    attribute.setValue(null);
+
+    ImportSummary importSummary =
+        trackedEntityInstanceService.updateTrackedEntityInstance(
+            trackedEntityInstance, null, null, true);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
   }
 
   @Test
@@ -414,7 +472,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
     // This is required because the Event creation takes place using JDBC,
     // therefore Hibernate does not
     // "see" the new event in the context of this session
-    sessionFactory.getCurrentSession().clear();
+    entityManager.clear();
     trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance(maleA.getUid());
     assertNotNull(trackedEntityInstance.getEnrollments());
     assertEquals(1, trackedEntityInstance.getEnrollments().size());
@@ -477,7 +535,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
         ImportStatus.SUCCESS,
         importSummary.getEnrollments().getImportSummaries().get(0).getEvents().getStatus());
     manager.flush();
-    sessionFactory.getCurrentSession().clear();
+    entityManager.clear();
     trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance(maleA.getUid());
     assertNotNull(trackedEntityInstance.getEnrollments());
     assertEquals(1, trackedEntityInstance.getEnrollments().size());
