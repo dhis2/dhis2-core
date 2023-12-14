@@ -150,34 +150,33 @@ class DefaultMetadataExportServiceTest {
   }
 
   @Test
-  void testExportProgramWithOptionGroup()
-  {
+  void testExportProgramWithOptionGroup() {
     Program program = new Program();
-    program.setName( "programA" );
+    program.setName("programA");
 
     OptionSet optionSet = new OptionSet();
-    optionSet.setName( "optionSetA" );
+    optionSet.setName("optionSetA");
 
     OptionGroup optionGroup = new OptionGroup();
-    optionGroup.setName( "optionGroupA" );
-    optionGroup.setOptionSet( optionSet );
+    optionGroup.setName("optionGroupA");
+    optionGroup.setOptionSet(optionSet);
 
     ProgramRuleAction programRuleAction = new ProgramRuleAction();
-    programRuleAction.setName( "programRuleActionA" );
-    programRuleAction.setOptionGroup( optionGroup );
+    programRuleAction.setName("programRuleActionA");
+    programRuleAction.setOptionGroup(optionGroup);
 
     ProgramRule programRule = new ProgramRule();
-    programRule.setName( "programRuleA" );
-    programRule.getProgramRuleActions().add( programRuleAction );
-    programRule.setProgram( program );
+    programRule.setName("programRuleA");
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRule.setProgram(program);
 
-    when( programRuleService.getProgramRule( program ) ).thenReturn( List.of( programRule ) );
+    when(programRuleService.getProgramRule(program)).thenReturn(List.of(programRule));
 
-    SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> result = service
-        .getMetadataWithDependencies( program );
+    SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> result =
+        service.getMetadataWithDependencies(program);
 
-    assertNotNull( result.get( ProgramRuleAction.class ) );
-    assertNotNull( result.get( OptionGroup.class ) );
-    assertNotNull( result.get( OptionSet.class ) );
+    assertNotNull(result.get(ProgramRuleAction.class));
+    assertNotNull(result.get(OptionGroup.class));
+    assertNotNull(result.get(OptionSet.class));
   }
 }

@@ -624,15 +624,14 @@ public class DefaultMetadataExportService implements MetadataExportService {
   }
 
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleOptionGroup(
-      SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, OptionGroup optionGroup )
-  {
-    if ( optionGroup == null )
-      return metadata;
-    metadata.putValue( OptionGroup.class, optionGroup );
-    handleAttributes( metadata, optionGroup );
-    handleOptionSet( metadata, optionGroup.getOptionSet() );
+      SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
+      OptionGroup optionGroup) {
+    if (optionGroup == null) return metadata;
+    metadata.putValue(OptionGroup.class, optionGroup);
+    handleAttributes(metadata, optionGroup);
+    handleOptionSet(metadata, optionGroup.getOptionSet());
 
-    optionGroup.getMembers().forEach( o -> handleOption( metadata, o ) );
+    optionGroup.getMembers().forEach(o -> handleOption(metadata, o));
 
     return metadata;
   }
@@ -790,7 +789,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
     handleProgramIndicator(metadata, programRuleAction.getProgramIndicator());
     handleProgramStageSection(metadata, programRuleAction.getProgramStageSection());
     handleProgramStage(metadata, programRuleAction.getProgramStage());
-    handleOptionGroup( metadata, programRuleAction.getOptionGroup() );
+    handleOptionGroup(metadata, programRuleAction.getOptionGroup());
 
     return metadata;
   }
