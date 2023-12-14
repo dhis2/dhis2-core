@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.outlierdetection.processor;
 
+import static org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm.MOD_Z_SCORE;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.DATA_ELEMENT_IDS;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.DATA_END_DATE;
 import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.DATA_START_DATE;
@@ -38,7 +39,6 @@ import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.THRESHOLD;
 import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.outlierdetection.Order;
-import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -65,7 +65,7 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
     String dataStartDateClause = getDataStartDateClause(request.getDataStartDate());
     String dataEndDateClause = getDataEndDateClause(request.getDataEndDate());
 
-    boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
+    boolean modifiedZ = request.getAlgorithm() == MOD_Z_SCORE;
     String middleStatsCalc =
         modifiedZ
             ? "percentile_cont(0.5) within group(order by dv.value::double precision)"

@@ -25,42 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.enrollment;
+package org.hisp.dhis.analytics;
 
-import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
-
-public interface EnrollmentService {
-  Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
-
-  Enrollment getEnrollment(
-      Enrollment enrollment,
-      EnrollmentParams params,
-      boolean includeDeleted,
-      OrganisationUnitSelectionMode orgUnitMode)
-      throws ForbiddenException;
-
-  /** Get all enrollments matching given params. */
-  List<Enrollment> getEnrollments(EnrollmentOperationParams params)
-      throws BadRequestException, ForbiddenException;
-
-  /** Get a page of enrollments matching given params. */
-  Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
-      throws BadRequestException, ForbiddenException;
-
-  /**
-   * Fields the {@link #getEnrollments(EnrollmentOperationParams)} can order enrollments by.
-   * Ordering by fields other than these is considered a programmer error. Validation of user
-   * provided field names should occur before calling {@link
-   * #getEnrollments(EnrollmentOperationParams)}.
-   */
-  Set<String> getOrderableFields();
+/**
+ * Algorithm for outlier value detection.
+ *
+ * @author Lars Helge Overland
+ */
+public enum OutlierDetectionAlgorithm {
+  Z_SCORE,
+  MIN_MAX,
+  MOD_Z_SCORE;
 }

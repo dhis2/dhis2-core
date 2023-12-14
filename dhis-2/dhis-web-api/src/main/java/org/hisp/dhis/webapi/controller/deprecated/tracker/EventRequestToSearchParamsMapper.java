@@ -462,15 +462,15 @@ class EventRequestToSearchParamsMapper {
 
   private void validateUser(
       User user, Program program, ProgramStage programStage, OrganisationUnit requestedOrgUnit) {
-    if (user == null || user.isSuper()) {
+    if (user.isSuper()) {
       return;
     }
 
-    if (program != null && !user.isSuper() && !aclService.canDataRead(user, program)) {
+    if (program != null && !aclService.canDataRead(user, program)) {
       throw new IllegalQueryException("User has no access to program: " + program.getUid());
     }
 
-    if (programStage != null && !user.isSuper() && !aclService.canDataRead(user, programStage)) {
+    if (programStage != null && !aclService.canDataRead(user, programStage)) {
       throw new IllegalQueryException(
           "User has no access to program stage: " + programStage.getUid());
     }

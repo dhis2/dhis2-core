@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
@@ -80,7 +81,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -177,8 +177,8 @@ class EventRequestToSearchParamsMapperTest {
         orgUnitId,
         orgUnitMode,
         "teiUid",
-        null,
-        null,
+        getDate(2019, 1, 1),
+        getDate(2019, 2, 1),
         null,
         null,
         null,
@@ -474,7 +474,6 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @ParameterizedTest
-  @NullSource
   @ValueSource(strings = {"admin", "superuser"})
   void shouldMapOrgUnitAndModeWhenModeAllAndUserIsAuthorized(String userName) {
     when(currentUserService.getCurrentUser()).thenReturn(userMap.get(userName));
@@ -483,6 +482,16 @@ class EventRequestToSearchParamsMapperTest {
 
     assertNull(eventSearchParams.getOrgUnit());
     assertEquals(ALL, eventSearchParams.getOrgUnitSelectionMode());
+  }
+
+  @Test
+  void shouldNotManipulateDates() {
+    when(currentUserService.getCurrentUser()).thenReturn(userMap.get("admin"));
+
+    EventSearchParams eventSearchParams = map(ALL);
+
+    assertEquals(getDate(2019, 1, 1), eventSearchParams.getStartDate());
+    assertEquals(getDate(2019, 2, 1), eventSearchParams.getEndDate());
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {

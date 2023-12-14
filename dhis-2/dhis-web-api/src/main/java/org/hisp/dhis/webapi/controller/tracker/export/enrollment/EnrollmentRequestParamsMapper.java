@@ -40,6 +40,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.EnrollmentOperationParamsBuilder;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
@@ -75,6 +76,7 @@ class EnrollmentRequestParamsMapper {
     orgUnitMode = validateOrgUnitModeForEnrollmentsAndEvents(orgUnits, orgUnitMode);
 
     validateOrderParams(enrollmentRequestParams.getOrder(), ORDERABLE_FIELD_NAMES);
+    validateRequestParams(enrollmentRequestParams);
 
     Set<UID> enrollmentUids =
         validateDeprecatedUidsParameter(
@@ -124,6 +126,41 @@ class EnrollmentRequestParamsMapper {
         builder.orderBy(
             EnrollmentMapper.ORDERABLE_FIELDS.get(order.getField()), order.getDirection());
       }
+    }
+  }
+
+  private void validateRequestParams(EnrollmentRequestParams params) throws BadRequestException {
+    if (params.getProgram() != null && params.getTrackedEntityType() != null) {
+      throw new BadRequestException(
+          "Program and tracked entity cannot be specified simultaneously");
+    }
+
+    if (params.getProgram() == null) {
+      if (params.getProgramStatus() != null) {
+        throw new BadRequestException("Program must be defined when `programStatus` is defined");
+      }
+
+      if (params.getFollowUp() != null) {
+        throw new BadRequestException("Program must be defined when `followUp` status is defined");
+      }
+
+      if (params.getEnrolledAfter() != null) {
+        throw new BadRequestException("Program must be defined when `enrolledAfter` is specified");
+      }
+
+      if (params.getEnrolledBefore() != null) {
+        throw new BadRequestException("Program must be defined when `enrolledBefore` is specified");
+      }
+    }
+
+    if (params.getUpdatedWithin() != null && params.getUpdatedAfter() != null) {
+      throw new BadRequestException(
+          "`updatedAfter` and `updatedWithin` cannot be specified simultaneously");
+    }
+
+    if (params.getUpdatedWithin() != null
+        && DateUtils.getDuration(params.getUpdatedWithin()) == null) {
+      throw new BadRequestException("`updatedWithin` is not valid: " + params.getUpdatedWithin());
     }
   }
 }
