@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.web.HttpStatus;
@@ -47,8 +48,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   private static final String description = "description";
 
   private static final String keywords = "[\"k1\",\"k2\"]";
-
-  private static final boolean custom = true;
 
   @Autowired private CurrentUserService currentUserService;
 
@@ -67,8 +66,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
                     + createFileResource()
                     + "', 'keywords':"
                     + keywords
-                    + ", 'custom' :"
-                    + custom
                     + "}")
             .content(HttpStatus.CREATED)
             .as(JsonWebMessage.class);
@@ -109,8 +106,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
                     + updatedDescription
                     + "', 'keywords':"
                     + updatedKeywords
-                    + ", 'custom' :"
-                    + custom
                     + "}")
             .content();
 
@@ -126,6 +121,19 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     assertEquals(String.format("Icon %s deleted", iconKey), response.getString("message").string());
   }
 
+  @Test
+  void shouldGetOnlyCustomIcons() throws IOException {
+    String fileResourceId = createFileResource();
+    createIcon(fileResourceId);
+
+    JsonArray iconArray = GET("/icons/type/custom").content(HttpStatus.OK);
+
+    assertEquals(iconKey, iconArray.getObject(0).getString("key").string());
+    assertEquals(description, iconArray.getObject(0).getString("description").string());
+    assertEquals(fileResourceId, iconArray.getObject(0).getString("fileResourceUid").string());
+    assertEquals(keywords, iconArray.getObject(0).getArray("keywords").toString());
+  }
+
   private String createIcon(String fileResourceId) {
     JsonWebMessage message =
         POST(
@@ -138,8 +146,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
                     + fileResourceId
                     + "', 'keywords':"
                     + keywords
-                    + ", 'custom' :"
-                    + custom
                     + "}")
             .content(HttpStatus.CREATED)
             .as(JsonWebMessage.class);
