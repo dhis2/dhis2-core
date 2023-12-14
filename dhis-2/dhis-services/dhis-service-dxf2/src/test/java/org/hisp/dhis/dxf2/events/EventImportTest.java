@@ -31,6 +31,7 @@ import static java.util.Collections.singleton;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hisp.dhis.util.DateUtils.getIso8601NoTz;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -326,7 +327,7 @@ class EventImportTest extends TransactionalIntegrationTest {
             programB.getUid(),
             programStageB.getUid(),
             organisationUnitB.getUid(),
-            null,
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(),
             dataElementB,
             "10");
     String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
@@ -351,6 +352,8 @@ class EventImportTest extends TransactionalIntegrationTest {
     dataValueB.setStoredBy(superUser.getName());
 
     event.setDataValues(Set.of(dataValueA, dataValueB));
+
+    Date now = new Date();
 
     eventService.updateEventDataValues(event);
 
@@ -389,6 +392,11 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertNotNull(eventDataValueB.getLastUpdatedByUserInfo());
     assertNotNull(eventDataValueB.getCreated());
     assertNotNull(eventDataValueB.getLastUpdated());
+
+    TrackedEntityInstance trackedEntityInstance =
+        trackedEntityInstanceService.getTrackedEntityInstance(
+            trackedEntityInstanceMaleA.getTrackedEntityInstance());
+    assertTrue(trackedEntityInstance.getLastUpdated().compareTo(getIso8601NoTz(now)) > 0);
   }
 
   @Test

@@ -111,9 +111,10 @@ public class EventManager {
     executorsByPhase.get(EventProcessorPhase.UPDATE_PRE).execute(context, List.of(event));
 
     for (EventDataValue de : eventDataValues) {
-      eventPersistenceService.updateEventDataValues(
-          de, event, context.getImportOptions().getUser());
+      eventPersistenceService.updateEventDataValues(de, event, context);
     }
+
+    eventPersistenceService.updateTrackedEntityInstances(context, List.of(event));
 
     incrementSummaryTotals(List.of(event), importSummaries, UPDATE);
 
