@@ -642,7 +642,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       checks.add("datasets_not_assigned_to_org_units");
       checks.add("data_elements_violating_exclusive_group_sets");
       checks.add("invalid_category_combos");
-
     }
     runDetailsChecks(checks, progress);
     return new FlattenedDataIntegrityReport(getDetails(checks, -1L));
