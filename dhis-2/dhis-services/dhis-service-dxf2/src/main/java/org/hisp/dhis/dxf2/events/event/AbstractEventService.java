@@ -55,6 +55,7 @@ import static org.hisp.dhis.dxf2.events.event.EventQueryParams.PAGER_META_KEY;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -727,6 +728,37 @@ public abstract class AbstractEventService implements EventService {
 
     return eventManager.updateEvent(
         event, workContextLoader.load(localImportOptions, Collections.singletonList(event)));
+  }
+
+  /**
+   * @param event
+   * @return
+   * @throws JsonProcessingException
+   */
+  @Transactional
+  @Override
+  public ImportSummary updateEventDataValues(Event event) throws JsonProcessingException {
+
+    WorkContext context =
+        workContextLoader.load(
+            ImportOptions.getDefaultImportOptions(),
+            Collections.singletonList(
+                event)); // load the event data values merging existing and new values
+
+    Set<EventDataValue> eventDataValues =
+        context.getEventDataValueMap().get(event.getEvent()).stream()
+            .filter(
+                edv ->
+                    event.getDataValues().stream()
+                        .anyMatch(
+                            input ->
+                                input
+                                    .getDataElement()
+                                    .equals(edv.getDataElement()))) // filter only for the required
+            // data elements
+            .collect(Collectors.toSet());
+
+    return eventManager.updateEventDataValues(event, eventDataValues, context);
   }
 
   @Transactional
