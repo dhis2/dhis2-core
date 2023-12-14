@@ -704,12 +704,12 @@ public class DefaultDataValueSetService implements DataValueSetService {
       return context.getSummary();
     }
 
-    Date completeDate = getCompletionDate(dataValueSet);
+    LocalDate completeDate = getCompletionDate(dataValueSet.getCompleteDate());
     if (dataSetContext.getDataSet() != null && completeDate != null) {
       notifier.notify(id, notificationLevel, "Completing data set");
       handleComplete(
           dataSetContext.getDataSet(),
-          completeDate,
+          Date.from(completeDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()),
           dataSetContext.getOuterPeriod(),
           dataSetContext.getOuterOrgUnit(),
           dataSetContext.getFallbackCategoryOptionCombo(),
@@ -763,17 +763,14 @@ public class DefaultDataValueSetService implements DataValueSetService {
     return context.getSummary();
   }
 
-  private static Date getCompletionDate(DataValueSet dataValueSet) {
-    String completeDateStr = dataValueSet.getCompleteDate();
-    if (completeDateStr == null || completeDateStr.isEmpty()) return null;
-    Function<LocalDate, Date> toDate =
-        date -> Date.from(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+  static LocalDate getCompletionDate(String completeDate) {
+    if (completeDate == null || completeDate.isEmpty()) return null;
     LocalDate today = LocalDate.now();
-    if ("true".equalsIgnoreCase(completeDateStr)) return toDate.apply(today);
-    if ("false".equalsIgnoreCase(completeDateStr)) return null;
-    LocalDate completeDate = LocalDate.parse(completeDateStr);
-    if (completeDate.isAfter(today)) return toDate.apply(today);
-    return toDate.apply(completeDate);
+    if ("true".equalsIgnoreCase(completeDate)) return today;
+    if ("false".equalsIgnoreCase(completeDate)) return null;
+    LocalDate date = LocalDate.parse(completeDate);
+    if (date.isAfter(today)) return today;
+    return date;
   }
 
   private void importDataValue(
