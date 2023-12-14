@@ -343,6 +343,39 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     assertEquals(List.of("ANC2" + ":" + dataElementB), results);
   }
 
+  @Test
+  void testDatasetsNotAssignedToOrgUnits() {
+    String defaultCatCombo = getDefaultCatCombo();
+    String dataSetUID = generateUid();
+    String dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataSets",
+            "{ 'id' : '"
+                + dataSetUID
+                + "', 'name': 'Test', 'shortName': 'Test', 'periodType' : 'Monthly', 'categoryCombo' : {'id': '"
+                + defaultCatCombo
+                + "'}, "
+                + " 'dataSetElements': [{ 'dataSet': { 'id': '"
+                + dataSetUID
+                + "'}, 'dataElement': { 'id': '"
+                + dataElementA
+                + "'}}]}"));
+    List<String> results =
+        getDataIntegrityReport()
+            .getDataSetsNotAssignedToOrganisationUnits()
+            .toList(JsonString::string);
+    assertEquals(List.of("Test"), results);
+  }
+
   private JsonDataIntegrityReport getDataIntegrityReport() {
     return getDataIntegrityReport("/dataIntegrity");
   }

@@ -45,9 +45,6 @@ public enum DataIntegrityCheckType {
   // CategoryOptionCombos
   CATEGORY_COMBOS_BEING_INVALID,
 
-  // DataSets
-  DATA_SETS_NOT_ASSIGNED_TO_ORG_UNITS,
-
   // Indicators
   INDICATORS_WITH_IDENTICAL_FORMULAS,
   INDICATORS_WITHOUT_GROUPS,
