@@ -171,7 +171,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
 
     assertEquals(1, ruleEffects.size());
 
-    RuleAction action = ruleEffects.get(0).ruleAction();
+    RuleAction action = ruleEffects.get(0).getRuleAction();
     if (action instanceof RuleActionSendMessage) {
       RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) action;
 
@@ -185,7 +185,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     verify(ruleActionSendMessage).implement(any(RuleEffect.class), argumentCaptor.capture());
 
     assertEquals(1, this.ruleEffects.size());
-    assertTrue(this.ruleEffects.get(0).ruleAction() instanceof RuleActionSendMessage);
+    assertTrue(this.ruleEffects.get(0).getRuleAction() instanceof RuleActionSendMessage);
   }
 
   @Test
@@ -216,11 +216,11 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     verify(programRuleEngine, times(1))
         .evaluate(enrollment, event, enrollment.getEvents(), List.of(programRuleA));
 
-    verify(ruleActionSendMessage).accept(ruleEffects.get(0).ruleAction());
+    verify(ruleActionSendMessage).accept(ruleEffects.get(0).getRuleAction());
     verify(ruleActionSendMessage).implement(any(RuleEffect.class), any(Event.class));
 
     assertEquals(1, this.ruleEffects.size());
-    assertTrue(this.ruleEffects.get(0).ruleAction() instanceof RuleActionSendMessage);
+    assertTrue(this.ruleEffects.get(0).getRuleAction() instanceof RuleActionSendMessage);
   }
 
   @Test
@@ -258,11 +258,11 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
 
     verify(enrollmentService, never()).getEnrollment(any());
 
-    verify(ruleActionSendMessage).accept(ruleEffects.get(0).ruleAction());
+    verify(ruleActionSendMessage).accept(ruleEffects.get(0).getRuleAction());
     verify(ruleActionSendMessage).implement(any(RuleEffect.class), any(Event.class));
 
     assertEquals(1, this.ruleEffects.size());
-    assertTrue(this.ruleEffects.get(0).ruleAction() instanceof RuleActionSendMessage);
+    assertTrue(this.ruleEffects.get(0).getRuleAction() instanceof RuleActionSendMessage);
   }
 
   @Test
