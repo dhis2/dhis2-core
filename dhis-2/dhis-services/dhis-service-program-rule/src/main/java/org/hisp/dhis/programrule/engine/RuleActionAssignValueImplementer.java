@@ -84,9 +84,9 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer {
       return;
     }
 
-    String value = ruleEffect.data();
+    String value = ruleEffect.getData();
 
-    RuleActionAssign assign = (RuleActionAssign) ruleEffect.ruleAction();
+    RuleActionAssign assign = (RuleActionAssign) ruleEffect.getRuleAction();
 
     String variable = assign.getField();
 

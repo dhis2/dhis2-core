@@ -146,7 +146,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
   }
 
   private void handleSingleEvent(RuleEffect ruleEffect, Event event) {
-    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.ruleAction());
+    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.getRuleAction());
 
     if (template == null) {
       return;

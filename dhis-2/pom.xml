@@ -411,6 +411,11 @@
         <version>${dhis-json-tree.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.jetbrains.kotlinx</groupId>
+        <artifactId>kotlinx-datetime-jvm</artifactId>
+        <version>0.4.0</version>
+      </dependency>
+      <dependency>
         <groupId>org.hisp.dhis.rules</groupId>
         <artifactId>rule-engine-jvm</artifactId>
         <version>${dhis2-rule-engine.version}</version>

@@ -212,17 +212,17 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
   void testMappedRuleEvent() {
     RuleEvent ruleEvent = subject.toMappedRuleEvent(eventA);
 
-    assertEquals(ruleEvent.event(), eventA.getUid());
-    assertEquals(ruleEvent.programStage(), eventA.getProgramStage().getUid());
-    assertEquals(ruleEvent.organisationUnit(), eventA.getOrganisationUnit().getUid());
-    assertEquals(ruleEvent.organisationUnitCode(), eventA.getOrganisationUnit().getCode());
-    assertEquals(ruleEvent.programStageName(), eventA.getProgramStage().getName());
-    assertEquals(1, ruleEvent.dataValues().size());
+    assertEquals(ruleEvent.getEvent(), eventA.getUid());
+    assertEquals(ruleEvent.getProgramStage(), eventA.getProgramStage().getUid());
+    assertEquals(ruleEvent.getOrganisationUnit(), eventA.getOrganisationUnit().getUid());
+    assertEquals(ruleEvent.getOrganisationUnitCode(), eventA.getOrganisationUnit().getCode());
+    assertEquals(ruleEvent.getProgramStageName(), eventA.getProgramStage().getName());
+    assertEquals(1, ruleEvent.getDataValues().size());
 
-    RuleDataValue ruleDataValue = ruleEvent.dataValues().get(0);
+    RuleDataValue ruleDataValue = ruleEvent.getDataValues().get(0);
 
     assertEquals(ruleDataValue.getDataElement(), dataElement.getUid());
-    assertEquals(ruleDataValue.getEventDate(), ruleEvent.eventDate());
+    assertEquals(ruleDataValue.getEventDate(), ruleEvent.getEventDate());
     assertEquals(ruleDataValue.getProgramStage(), eventA.getProgramStage().getUid());
     assertEquals(SAMPLE_VALUE_A, ruleDataValue.getValue());
   }
@@ -235,17 +235,17 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     assertEquals(1, ruleEvents.size());
     RuleEvent ruleEvent = ruleEvents.get(0);
 
-    assertEquals(ruleEvent.event(), eventB.getUid());
-    assertEquals(ruleEvent.programStage(), eventB.getProgramStage().getUid());
-    assertEquals(ruleEvent.organisationUnit(), eventB.getOrganisationUnit().getUid());
-    assertEquals(ruleEvent.organisationUnitCode(), eventB.getOrganisationUnit().getCode());
-    assertEquals(ruleEvent.programStageName(), eventB.getProgramStage().getName());
-    assertEquals(1, ruleEvent.dataValues().size());
+    assertEquals(ruleEvent.getEvent(), eventB.getUid());
+    assertEquals(ruleEvent.getProgramStage(), eventB.getProgramStage().getUid());
+    assertEquals(ruleEvent.getOrganisationUnit(), eventB.getOrganisationUnit().getUid());
+    assertEquals(ruleEvent.getOrganisationUnitCode(), eventB.getOrganisationUnit().getCode());
+    assertEquals(ruleEvent.getProgramStageName(), eventB.getProgramStage().getName());
+    assertEquals(1, ruleEvent.getDataValues().size());
 
-    RuleDataValue ruleDataValue = ruleEvent.dataValues().get(0);
+    RuleDataValue ruleDataValue = ruleEvent.getDataValues().get(0);
 
     assertEquals(ruleDataValue.getDataElement(), dataElement.getUid());
-    assertEquals(ruleDataValue.getEventDate(), ruleEvent.eventDate());
+    assertEquals(ruleDataValue.getEventDate(), ruleEvent.getEventDate());
     assertEquals(ruleDataValue.getProgramStage(), eventB.getProgramStage().getUid());
     assertEquals(SAMPLE_VALUE_B, ruleDataValue.getValue());
   }

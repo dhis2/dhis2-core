@@ -52,6 +52,10 @@
       <artifactId>rule-engine-jvm</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.jetbrains.kotlinx</groupId>
+      <artifactId>kotlinx-datetime-jvm</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>compile</scope>

@@ -101,7 +101,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
     checkNotNull(ruleEffect, "Rule Effect cannot be null");
     checkNotNull(enrollment, "Enrollment cannot be null");
 
-    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.ruleAction());
+    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.getRuleAction());
 
     if (template == null) {
       log.warn(

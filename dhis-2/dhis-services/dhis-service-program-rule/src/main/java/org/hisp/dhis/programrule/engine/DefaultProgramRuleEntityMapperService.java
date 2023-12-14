@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -89,6 +90,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import kotlinx.datetime.LocalDate;
 
 /**
  * @author Zubair Asghar
@@ -439,8 +441,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     return new RuleEnrollment(
         enrollment.getUid(),
         enrollment.getProgram().getName(),
-        enrollment.getOccurredDate(),
-        enrollment.getEnrollmentDate(),
+        LocalDate.Companion.parse(enrollment.getOccurredDate().toString()),
+        LocalDate.Companion.parse(enrollment.getEnrollmentDate().toString()),
         RuleEnrollment.Status.valueOf(enrollment.getStatus().toString()),
         orgUnit,
         orgUnitCode,
@@ -471,10 +473,11 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         eventToEvaluate.getProgramStage().getUid(),
         eventToEvaluate.getProgramStage().getName(),
         RuleEvent.Status.valueOf(eventToEvaluate.getStatus().toString()),
-        ObjectUtils.defaultIfNull(
-            eventToEvaluate.getOccurredDate(), eventToEvaluate.getScheduledDate()),
-        eventToEvaluate.getScheduledDate(),
-        eventToEvaluate.getCompletedDate(),
+            eventToEvaluate.getOccurredDate() == null ?
+            LocalDate.Companion.parse(eventToEvaluate.getOccurredDate().toString()) :
+                    LocalDate.Companion.parse(eventToEvaluate.getScheduledDate().toString()),
+            LocalDate.Companion.parse(eventToEvaluate.getScheduledDate().toString()),
+                    LocalDate.Companion.parse(eventToEvaluate.getCompletedDate().toString()),
         orgUnit,
         orgUnitCode,
         eventToEvaluate.getEventDataValues().stream()
@@ -483,8 +486,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             .map(
                 dv ->
                     new RuleDataValue(
-                        ObjectUtils.defaultIfNull(
-                            eventToEvaluate.getOccurredDate(), eventToEvaluate.getScheduledDate()),
+                        eventToEvaluate.getOccurredDate() == null ?
+                        LocalDate.Companion.parse(eventToEvaluate.getOccurredDate().toString()) :
+                        LocalDate.Companion.parse(eventToEvaluate.getScheduledDate().toString()),
                         eventToEvaluate.getProgramStage().getUid(),
                         dv.getDataElement(),
                         dv.getValue()))

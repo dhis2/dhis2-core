@@ -95,7 +95,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     for (RuleEffect effect : ruleEffects) {
       ruleActionImplementers.stream()
-          .filter(i -> i.accept(effect.ruleAction()))
+          .filter(i -> i.accept(effect.getRuleAction()))
           .forEach(
               i -> {
                 log.debug(
@@ -159,7 +159,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     for (RuleEffect effect : ruleEffects) {
       ruleActionImplementers.stream()
-          .filter(i -> i.accept(effect.ruleAction()))
+          .filter(i -> i.accept(effect.getRuleAction()))
           .forEach(
               i -> {
                 log.debug(

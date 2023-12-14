@@ -296,14 +296,12 @@ public class ProgramRuleEngine {
       RuleEngine ruleEngine,
       Enrollment enrollment,
       Event event,
-      List<TrackedEntityAttributeValue> trackedEntityAttributeValues)
-      throws Exception {
+      List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
     if (event == null) {
       return ruleEngine
-          .evaluate(getRuleEnrollment(enrollment, trackedEntityAttributeValues))
-          .call();
+          .evaluate(getRuleEnrollment(enrollment, trackedEntityAttributeValues));
     } else {
-      return ruleEngine.evaluate(getRuleEvent(event)).call();
+      return ruleEngine.evaluate(getRuleEvent(event));
     }
   }
 }

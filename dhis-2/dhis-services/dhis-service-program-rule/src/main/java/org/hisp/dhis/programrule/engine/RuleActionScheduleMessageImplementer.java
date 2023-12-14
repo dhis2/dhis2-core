@@ -101,7 +101,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
     String key = generateKey(template, enrollment);
 
-    String date = StringUtils.unwrap(ruleEffect.data(), '\'');
+    String date = StringUtils.unwrap(ruleEffect.getData(), '\'');
 
     if (!isDateValid(date)) {
       return;
@@ -147,7 +147,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     ProgramNotificationTemplate template = result.getTemplate();
     String key = generateKey(template, event.getEnrollment());
 
-    String date = StringUtils.unwrap(ruleEffect.data(), '\'');
+    String date = StringUtils.unwrap(ruleEffect.getData(), '\'');
 
     if (!isDateValid(date)) {
       return;
@@ -178,13 +178,13 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
   // -------------------------------------------------------------------------
 
   private void handleSingleEvent(RuleEffect ruleEffect, Event event) {
-    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.ruleAction());
+    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.getRuleAction());
 
     if (template == null) {
       return;
     }
 
-    String date = StringUtils.unwrap(ruleEffect.data(), '\'');
+    String date = StringUtils.unwrap(ruleEffect.getData(), '\'');
 
     if (!isDateValid(date)) {
       return;
