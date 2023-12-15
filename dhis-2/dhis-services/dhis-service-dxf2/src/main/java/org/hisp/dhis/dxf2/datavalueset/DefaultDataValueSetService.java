@@ -41,6 +41,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -697,12 +699,12 @@ public class DefaultDataValueSetService
       return context.getSummary();
     }
 
-    Date completeDate = parseDate(dataValueSet.getCompleteDate());
+    LocalDate completeDate = getCompletionDate(dataValueSet.getCompleteDate());
     if (dataSetContext.getDataSet() != null && completeDate != null) {
       notifier.notify(id, notificationLevel, "Completing data set");
       handleComplete(
           dataSetContext.getDataSet(),
-          completeDate,
+          Date.from(completeDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()),
           dataSetContext.getOuterPeriod(),
           dataSetContext.getOuterOrgUnit(),
           dataSetContext.getFallbackCategoryOptionCombo(),
@@ -754,6 +756,16 @@ public class DefaultDataValueSetService
             + importCount.getDeleted());
 
     return context.getSummary();
+  }
+
+  static LocalDate getCompletionDate(String completeDate) {
+    if (completeDate == null || completeDate.isEmpty()) return null;
+    LocalDate today = LocalDate.now();
+    if ("true".equalsIgnoreCase(completeDate)) return today;
+    if ("false".equalsIgnoreCase(completeDate)) return null;
+    LocalDate date = LocalDate.parse(completeDate);
+    if (date.isAfter(today)) return today;
+    return date;
   }
 
   private void importDataValue(
