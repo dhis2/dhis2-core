@@ -126,7 +126,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String fileResourceId = createFileResource();
     createIcon(fileResourceId);
 
-    JsonArray iconArray = GET("/icons/type/custom").content(HttpStatus.OK);
+    JsonArray iconArray = GET("/icons/type?type=custom").content(HttpStatus.OK);
 
     assertEquals(iconKey, iconArray.getObject(0).getString("key").string());
     assertEquals(description, iconArray.getObject(0).getString("description").string());

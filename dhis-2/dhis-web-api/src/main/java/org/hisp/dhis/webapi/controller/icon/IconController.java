@@ -140,9 +140,9 @@ public class IconController {
     return icons.stream().map(iconMapper::from).toList();
   }
 
-  @GetMapping(value = "/type/{type}")
+  @GetMapping(value = "/type")
   public @ResponseBody List<IconResponse> getIconByType(
-      @PathVariable String type, @RequestParam(required = false) String[] keywords)
+      @RequestParam String type, @RequestParam(required = false) String[] keywords)
       throws NotFoundException {
 
     if (IconType.from(type).isEmpty()) {
