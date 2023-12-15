@@ -924,6 +924,10 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       return getDefaultChecks(restricted);
     }
     Set<String> expanded = new LinkedHashSet<>();
+    Set<String> all_possible_checks =
+        getDataIntegrityChecks(Set.of()).stream()
+            .map(DataIntegrityCheck::getName)
+            .collect(toUnmodifiableSet());
 
     for (String name : names) {
       if (name.toUpperCase().equals(name) && name.indexOf('_') < 0) {
@@ -947,6 +951,9 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         expanded.add(name.toLowerCase().replace('-', '_'));
       }
     }
+    // Filter out any checks which actually do exist but have been requested
+    expanded.retainAll(all_possible_checks);
+
     return expanded;
   }
 
