@@ -523,10 +523,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         null,
         this::getIndicatorsWithIdenticalFormulas);
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.INDICATORS_WITHOUT_GROUPS,
-        Indicator.class,
-        this::getIndicatorsWithoutGroups);
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.INDICATORS_WITH_INVALID_NUMERATOR,
         Indicator.class,
         this::getInvalidIndicatorNumerators);
@@ -642,6 +638,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       checks.add("datasets_not_assigned_to_org_units");
       checks.add("data_elements_violating_exclusive_group_sets");
       checks.add("invalid_category_combos");
+      checks.add("indicators_without_groups");
     }
     runDetailsChecks(checks, progress);
     return new FlattenedDataIntegrityReport(getDetails(checks, -1L));
