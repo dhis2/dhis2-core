@@ -418,16 +418,15 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
                     + " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', "
                     + "'denominatorDescription' : 'Zero'} }"));
 
-    String indicatorB =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/indicators",
-                "{ 'name': 'Indicator B', 'shortName': 'Indicator B', 'indicatorType' : {'id' : '"
-                    + indicatorTypeA
-                    + "'},"
-                    + " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', "
-                    + "'denominatorDescription' : 'Zero'}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/indicators",
+            "{ 'name': 'Indicator B', 'shortName': 'Indicator B', 'indicatorType' : {'id' : '"
+                + indicatorTypeA
+                + "'},"
+                + " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', "
+                + "'denominatorDescription' : 'Zero'}"));
     assertStatus(
         HttpStatus.CREATED,
         POST(
@@ -436,7 +435,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
 
     List<String> results =
         getDataIntegrityReport().getIndicatorsWithoutGroups().toList(JsonString::string);
-    assertEquals(List.of("Indicator b"), results);
+    assertEquals(List.of("Indicator B"), results);
   }
 
   private JsonDataIntegrityReport getDataIntegrityReport() {
