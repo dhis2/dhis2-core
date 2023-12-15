@@ -32,13 +32,20 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.STATIC;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.byForeignType;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DATE_FILTERS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.FILTERS;
+import static org.hisp.dhis.analytics.tei.query.context.TeiStaticField.ORG_UNIT_CODE;
+import static org.hisp.dhis.analytics.tei.query.context.TeiStaticField.ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.tei.query.context.TeiStaticField.ORG_UNIT_NAME_HIERARCHY;
+import static org.hisp.dhis.analytics.tei.query.context.TeiStaticField.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.DATETIME;
+import static org.hisp.dhis.common.ValueType.GEOJSON;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
 import java.util.ArrayList;
@@ -230,26 +237,30 @@ public class DimensionParam implements UidObject {
 
   @RequiredArgsConstructor
   public enum StaticDimension implements TeiHeaderProvider {
-    OUNAME(TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_NAME),
-    OUCODE(TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_CODE),
-    OUNAMEHIERARCHY(TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_NAME_HIERARCHY),
+    TRACKEDENTITYINSTANCEUID(TEXT, STATIC, TRACKED_ENTITY_INSTANCE),
+    GEOMETRY(GEOJSON, STATIC, TeiStaticField.GEOMETRY),
+    LONGITUDE(COORDINATE, STATIC, TeiStaticField.LONGITUDE),
+    LATITUDE(COORDINATE, STATIC, TeiStaticField.LATITUDE),
+    OUNAME(TEXT, ORGANISATION_UNIT, ORG_UNIT_NAME),
+    OUCODE(TEXT, ORGANISATION_UNIT, ORG_UNIT_CODE),
+    OUNAMEHIERARCHY(TEXT, ORGANISATION_UNIT, ORG_UNIT_NAME_HIERARCHY),
     ENROLLMENTDATE(DATETIME, DimensionParamObjectType.PERIOD),
     ENDDATE(DATETIME, DimensionParamObjectType.PERIOD),
     INCIDENTDATE(DATETIME, DimensionParamObjectType.PERIOD),
     EXECUTIONDATE(DATETIME, DimensionParamObjectType.PERIOD),
-    LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD),
-    LASTUPDATEDBYDISPLAYNAME(TEXT, DimensionParamObjectType.STATIC),
+    LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD, TeiStaticField.LAST_UPDATED),
+    LASTUPDATEDBYDISPLAYNAME(TEXT, STATIC),
     CREATED(DATETIME, DimensionParamObjectType.PERIOD),
-    CREATEDBYDISPLAYNAME(TEXT, DimensionParamObjectType.STATIC),
-    STOREDBY(TEXT, DimensionParamObjectType.STATIC),
-    ENROLLMENT_STATUS(TEXT, DimensionParamObjectType.STATIC, null, "enrollmentstatus"),
+    CREATEDBYDISPLAYNAME(TEXT, STATIC),
+    STOREDBY(TEXT, STATIC),
+    ENROLLMENT_STATUS(TEXT, STATIC, null, "enrollmentstatus"),
     PROGRAM_STATUS(
         TEXT,
-        DimensionParamObjectType.STATIC,
+        STATIC,
         null,
         "enrollmentstatus",
         "programstatus"), /* this enum is an alias for ENROLLMENT_STATUS */
-    EVENT_STATUS(TEXT, DimensionParamObjectType.STATIC, null, "status", "eventstatus");
+    EVENT_STATUS(TEXT, STATIC, null, "status", "eventstatus");
 
     private final ValueType valueType;
 
@@ -333,6 +344,10 @@ public class DimensionParam implements UidObject {
     @Override
     public ValueType getType() {
       return valueType;
+    }
+
+    public boolean isTeiStaticField() {
+      return nonNull(teiStaticField);
     }
   }
 }
