@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
@@ -186,4 +187,8 @@ public interface EventService {
   ImportSummaries deleteEvents(List<String> uids, boolean clearSession);
 
   void validate(EventSearchParams params, User user);
+
+  ImportSummary updateEventDataValues(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent)
+      throws JsonProcessingException;
 }

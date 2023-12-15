@@ -343,6 +343,63 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     assertEquals(List.of("ANC2" + ":" + dataElementB), results);
   }
 
+  @Test
+  void testDatasetsNotAssignedToOrgUnits() {
+    String defaultCatCombo = getDefaultCatCombo();
+    String dataSetUID = generateUid();
+    String dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataSets",
+            "{ 'id' : '"
+                + dataSetUID
+                + "', 'name': 'Test', 'shortName': 'Test', 'periodType' : 'Monthly', 'categoryCombo' : {'id': '"
+                + defaultCatCombo
+                + "'}, "
+                + " 'dataSetElements': [{ 'dataSet': { 'id': '"
+                + dataSetUID
+                + "'}, 'dataElement': { 'id': '"
+                + dataElementA
+                + "'}}]}"));
+    List<String> results =
+        getDataIntegrityReport()
+            .getDataSetsNotAssignedToOrganisationUnits()
+            .toList(JsonString::string);
+    assertEquals(List.of("Test"), results);
+  }
+
+  @Test
+  void testInvalidCategoryCombos() {
+    String categoryTaste =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name': 'Taste', 'shortName': 'Taste', 'dataDimensionType': 'DISAGGREGATION' }"));
+
+    String testCatCombo =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryCombos",
+                "{ 'name' : 'Tasteless', "
+                    + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
+                    + " {'id' : '"
+                    + categoryTaste
+                    + "'}]} "));
+    List<String> results =
+        getDataIntegrityReport().getInvalidCategoryCombos().toList(JsonString::string);
+    assertEquals(List.of("Tasteless" + ":" + testCatCombo), results);
+  }
+
   private JsonDataIntegrityReport getDataIntegrityReport() {
     return getDataIntegrityReport("/dataIntegrity");
   }

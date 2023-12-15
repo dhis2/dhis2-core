@@ -1,0 +1,52 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: datasets_not_assigned_to_org_units
+description: Datasets which have not been assigned to any organisation units.
+section: Data sets
+section_order: 2
+summary_sql: >-
+  select count(*) as value,
+  100*count(*) / NULLIF( (select count(*) from dataset),0) as percent
+  from dataset where datasetid NOT IN (
+  SELECT DISTINCT datasetid from datasetsource);
+details_sql: >-
+  SELECT uid,name from dataset WHERE
+  datasetid NOT IN (SELECT DISTINCT datasetid from datasetsource);
+severity: WARNING
+introduction: >
+  Datasets should be assigned to organisation units. When data sets are not assigned to any organisation units,
+  they will not be available for data entry.
+  There may be legitimate reasons for not assigning a data set to any organisation units, such as when datasets
+  are no longer in use or which may be used on a seasonal basis. However, datasets which are not actively used
+  for any current data sets should be considered to be removed, as this may lead to decreased performance 
+  of the overall system.
+details_id_type: dataSets
+recommendation: >
+  Consider to remove any data sets which are not assigned to any organisation units if they are no longer needed.
+  Alternatively, assign the data sets to the correct organisation units if they should be made available to users
+  for the purpose of data entry.

@@ -73,7 +73,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -516,24 +515,9 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   public void initIntegrityChecks() {
 
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-        DataElement.class,
-        this::getDataElementsViolatingExclusiveGroupSets);
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.DATA_ELEMENTS_IN_DATA_SET_NOT_IN_FORM,
         DataSet.class,
         this::getDataElementsInDataSetNotInForm);
-
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.CATEGORY_COMBOS_BEING_INVALID,
-        CategoryCombo.class,
-        this::getInvalidCategoryCombos);
-
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.DATA_SETS_NOT_ASSIGNED_TO_ORG_UNITS,
-        DataSet.class,
-        this::getDataSetsNotAssignedToOrganisationUnits);
-
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.INDICATORS_WITH_IDENTICAL_FORMULAS,
         null,
@@ -655,6 +639,9 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       checks.add("data_elements_aggregate_no_groups");
       checks.add("data_elements_aggregate_with_different_period_types");
       checks.add("data_elements_without_datasets");
+      checks.add("datasets_not_assigned_to_org_units");
+      checks.add("data_elements_violating_exclusive_group_sets");
+      checks.add("invalid_category_combos");
     }
     runDetailsChecks(checks, progress);
     return new FlattenedDataIntegrityReport(getDetails(checks, -1L));

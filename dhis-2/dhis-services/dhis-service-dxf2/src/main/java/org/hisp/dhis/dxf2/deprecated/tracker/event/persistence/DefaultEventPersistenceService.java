@@ -29,16 +29,21 @@ package org.hisp.dhis.dxf2.deprecated.tracker.event.persistence;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.EventCommentStore;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.EventStore;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.mapper.ProgramStageInstanceMapper;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +56,10 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
   @Nonnull private final EventStore jdbcEventStore;
 
   @Nonnull private final EventCommentStore jdbcEventCommentStore;
+
+  @Nonnull private final EntityManager entityManager;
+
+  @Nonnull private final ObjectMapper mapper;
 
   @Override
   @Transactional
@@ -110,6 +119,49 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
     if (isNotEmpty(events)) {
       jdbcEventStore.delete(events);
     }
+  }
+
+  @Override
+  @Transactional
+  public void updateEventDataValues(
+      EventDataValue de,
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
+      WorkContext workContext)
+      throws JsonProcessingException {
+
+    String uid = de.getDataElement();
+    de.setDataElement(null); // de uid is used as a key in the json, so we don't need it here
+
+    String query =
+        """
+                UPDATE event SET
+                eventdatavalues= (CASE
+                        WHEN eventdatavalues->:de IS NOT NULL
+                          THEN jsonb_set(eventdatavalues, '{%1$s}', (eventdatavalues->:de) || '%2$s')
+                        WHEN eventdatavalues->:de IS NULL
+                          THEN jsonb_insert(eventdatavalues, '{%1$s}', '%2$s')
+                 END) ,
+                lastupdated = current_timestamp,
+                lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb)
+                 WHERE  uid = :event
+                 """
+            .formatted(uid, mapper.writeValueAsString(de));
+
+    entityManager
+        .createNativeQuery(query)
+        .setParameter("event", event.getEvent())
+        .setParameter("de", uid)
+        .setParameter(
+            "lastupdatedbyuserinfo",
+            mapper.writeValueAsString(
+                UserInfoSnapshot.from(workContext.getImportOptions().getUser())))
+        .executeUpdate();
+  }
+
+  @Override
+  public void updateTrackedEntityInstances(
+      WorkContext context, List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events) {
+    updateTeis(context, events);
   }
 
   /**

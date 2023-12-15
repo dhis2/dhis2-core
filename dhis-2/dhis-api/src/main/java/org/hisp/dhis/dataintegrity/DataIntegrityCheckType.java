@@ -39,14 +39,7 @@ public enum DataIntegrityCheckType {
    */
 
   // DataElements
-  DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS,
   DATA_ELEMENTS_IN_DATA_SET_NOT_IN_FORM,
-
-  // CategoryOptionCombos
-  CATEGORY_COMBOS_BEING_INVALID,
-
-  // DataSets
-  DATA_SETS_NOT_ASSIGNED_TO_ORG_UNITS,
 
   // Indicators
   INDICATORS_WITH_IDENTICAL_FORMULAS,
