@@ -949,9 +949,9 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     }
     // Filter out any checks which actually do not exist but have been requested
     expanded.retainAll(
-        getDataIntegrityChecks( Set.of() ).stream()
-            .map( check -> check.getName().toLowerCase().replace( '-', '_' ) )
-            .collect( toUnmodifiableSet() ) );
+        getDataIntegrityChecks(Set.of()).stream()
+            .map(check -> check.getName().toLowerCase().replace('-', '_'))
+            .collect(toUnmodifiableSet()));
 
     return expanded;
   }
