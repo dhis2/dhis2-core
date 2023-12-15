@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static java.util.stream.IntStream.range;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
@@ -46,9 +45,22 @@ class AuthoritiesControllerTest extends DhisControllerConvenienceTest {
   void testGetAuthorities() {
     JsonArray systemAuthorities = GET("/authorities").content().getArray("systemAuthorities");
     assertTrue(systemAuthorities.size() > 10);
-    // its sorted
-    JsonObject all = systemAuthorities.getObject(0);
-    assertEquals("ALL", all.getString("id").string());
-    assertEquals("ALL", all.getString("name").string());
+
+    assertTrue(
+        range(1, systemAuthorities.size())
+            .allMatch(
+                i ->
+                    systemAuthorities
+                            .getObject(i - 1)
+                            .getString("name")
+                            .string()
+                            .toLowerCase()
+                            .compareTo(
+                                systemAuthorities
+                                    .getObject(i)
+                                    .getString("name")
+                                    .string()
+                                    .toLowerCase())
+                        < 0));
   }
 }
