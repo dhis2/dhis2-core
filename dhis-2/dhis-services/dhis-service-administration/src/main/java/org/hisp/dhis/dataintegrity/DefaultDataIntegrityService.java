@@ -630,7 +630,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("data_elements_violating_exclusive_group_sets");
     checks.add("invalid_category_combos");
     checks.add("indicators_not_grouped");
-    return expandChecks(checks, false);
+    return checks;
   }
 
   @Nonnull
