@@ -951,7 +951,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         expanded.add(name.toLowerCase().replace('-', '_'));
       }
     }
-    // Filter out any checks which actually do exist but have been requested
+    // Filter out any checks which actually do not exist but have been requested
     expanded.retainAll(all_possible_checks);
 
     return expanded;
