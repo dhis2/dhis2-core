@@ -53,7 +53,7 @@ checks:
   - indicators/indicator_noanalysis.yaml
   - indicators/indicator_duplicated_terms.yaml
   - indicators/indicator_exact_duplicates.yaml
-  - periods/periods_same_start_end_date.yaml
+  - periods/periods_same_start_date_period_type.yaml
   - periods/periods_3y_future.yaml
   - periods/periods_distant_past.yaml
   - validation_rules/validation_rules_undefined_missing_value_strategy.yaml

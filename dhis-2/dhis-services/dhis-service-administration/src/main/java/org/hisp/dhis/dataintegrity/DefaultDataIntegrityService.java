@@ -96,7 +96,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -377,32 +376,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   }
 
   // -------------------------------------------------------------------------
-  // Period
-  // -------------------------------------------------------------------------
-
-  /** Lists all Periods which are duplicates, based on the period type and start date. */
-  List<DataIntegrityIssue> getDuplicatePeriods() {
-    List<Period> periods = periodService.getAllPeriods();
-
-    List<DataIntegrityIssue> issues = new ArrayList<>();
-
-    for (Entry<String, List<Period>> group :
-        periods.stream()
-            .collect(groupingBy(p -> p.getPeriodType().getName() + p.getStartDate().toString()))
-            .entrySet()) {
-      if (group.getValue().size() > 1) {
-        issues.add(
-            new DataIntegrityIssue(
-                null,
-                group.getKey(),
-                null,
-                group.getValue().stream().map(p -> p.toString() + ":" + p.getUid()).toList()));
-      }
-    }
-    return issues;
-  }
-
-  // -------------------------------------------------------------------------
   // OrganisationUnit
   // -------------------------------------------------------------------------
 
@@ -536,9 +509,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         this::getIndicatorsViolatingExclusiveGroupSets);
 
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PERIODS_DUPLICATES, null, this::getDuplicatePeriods);
-
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.ORG_UNITS_WITH_CYCLIC_REFERENCES,
         OrganisationUnit.class,
         this::getOrganisationUnitsWithCyclicReferences);
@@ -630,6 +600,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("data_elements_violating_exclusive_group_sets");
     checks.add("invalid_category_combos");
     checks.add("indicators_not_grouped");
+    checks.add("periods_same_start_date_period_type");
     return checks;
   }
 

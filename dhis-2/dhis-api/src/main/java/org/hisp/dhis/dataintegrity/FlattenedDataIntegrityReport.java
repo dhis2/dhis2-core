@@ -129,8 +129,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
     this.indicatorsWithoutGroups =
         listOfDisplayNameOrUid(detailsByName.get("indicators_not_grouped"));
     this.duplicatePeriods =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.PERIODS_DUPLICATES.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("periods_same_start_date_period_type"));
     this.organisationUnitsWithCyclicReferences =
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.ORG_UNITS_WITH_CYCLIC_REFERENCES.getName()));

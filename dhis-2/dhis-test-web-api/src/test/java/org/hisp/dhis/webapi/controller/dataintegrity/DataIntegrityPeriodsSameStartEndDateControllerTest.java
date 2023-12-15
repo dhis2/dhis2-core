@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * test that the check actually runs.
  *
  * <p>{@see
- * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/periods/periods_same_start_end_date.yaml}
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/periods/periods_same_start_date_period_type.yaml}
  *
  * @author Jason P. Pickering
  */
@@ -51,7 +51,7 @@ class DataIntegrityPeriodsSameStartEndDateControllerTest
     extends AbstractDataIntegrityIntegrationTest {
   @Autowired private PeriodService periodService;
 
-  private static final String check = "periods_same_start_end_date";
+  private static final String check = "periods_same_start_date_period_type";
 
   @Test
   void testNoBadPeriodsExist() {

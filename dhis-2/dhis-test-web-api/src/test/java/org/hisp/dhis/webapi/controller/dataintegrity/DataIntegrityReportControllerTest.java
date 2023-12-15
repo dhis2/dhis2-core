@@ -96,7 +96,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
   @Test
   void testPeriodsDuplicatesOnly() {
     JsonDataIntegrityReport report =
-        getDataIntegrityReport("/dataIntegrity?checks=PERIODS_DUPLICATES");
+        getDataIntegrityReport("/dataIntegrity?checks=periods_same_start_date_period_type");
     assertEquals(1, report.size());
     assertTrue(report.getArray("duplicatePeriods").exists());
   }
