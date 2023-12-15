@@ -48,6 +48,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -198,6 +199,88 @@ public class DataImportTest extends ApiTest {
 
       response.validate().statusCode(200).body(containsString(object.get("value").getAsString()));
     }
+  }
+
+  @Test
+  @DisplayName(
+      "When an empty json file is async-imported then a task summary should be available with an error message")
+  void asyncImportEmptyJsonFileSummaryAvailable() {
+    // given an empty json file is async imported
+    ApiResponse response =
+        dataValueSetActions
+            .postFile(
+                new File("src/test/resources/aggregate/empty_file.json"),
+                new QueryParamsBuilder().addAll("reportMode=DEBUG", "async=true", "format=json"))
+            .validateStatus(200);
+
+    String taskId = response.extractString("response.id");
+
+    // when the task is completed
+    systemActions
+        .waitUntilTaskCompleted("DATAVALUE_IMPORT", taskId)
+        .validate()
+        .body(
+            "message",
+            hasItem(
+                containsString(
+                    "Import complete with status ERROR, 0 created, 0 updated, 0 deleted, 0 ignored")))
+        .body("message", hasItem(containsString("No content to map due to end-of-input")));
+
+    // then a task summary should be available with an error message
+    ApiResponse taskSummariesResponse =
+        systemActions.waitForTaskSummaries("DATAVALUE_IMPORT", taskId);
+
+    taskSummariesResponse
+        .validate()
+        .statusCode(200)
+        .body("status", equalTo("ERROR"))
+        .body("description", containsString("No content to map due to end-of-input"))
+        .rootPath("importCount")
+        .body("imported", equalTo(0))
+        .body("updated", equalTo(0))
+        .body("deleted", equalTo(0))
+        .body("ignored", equalTo(0));
+  }
+
+  @Test
+  @DisplayName(
+      "When an empty xml file is async-imported for adx then a task summary should be available with an error message")
+  void asyncImportEmptyXmlFileSummaryAvailable() {
+    // given an empty xml file is async imported for adx
+    ApiResponse response =
+        dataValueSetActions
+            .postFile(
+                new File("src/test/resources/aggregate/empty_file.xml"),
+                new QueryParamsBuilder().addAll("reportMode=DEBUG", "async=true", "format=adx"),
+                "application/adx+xml")
+            .validateStatus(200);
+
+    String taskId = response.extractString("response.id");
+
+    // when the task is completed
+    systemActions
+        .waitUntilTaskCompleted("DATAVALUE_IMPORT", taskId)
+        .validate()
+        .body(
+            "message",
+            hasItem(
+                containsString(
+                    "Import complete with status ERROR, 0 created, 0 updated, 0 deleted, 0 ignored")));
+
+    // then a task summary should be available with an error message
+    ApiResponse taskSummariesResponse =
+        systemActions.waitForTaskSummaries("DATAVALUE_IMPORT", taskId);
+
+    taskSummariesResponse
+        .validate()
+        .statusCode(200)
+        .body("status", equalTo("ERROR"))
+        .body("description", containsString("Data set import failed"))
+        .rootPath("importCount")
+        .body("imported", equalTo(0))
+        .body("updated", equalTo(0))
+        .body("deleted", equalTo(0))
+        .body("ignored", equalTo(0));
   }
 
   @AfterEach

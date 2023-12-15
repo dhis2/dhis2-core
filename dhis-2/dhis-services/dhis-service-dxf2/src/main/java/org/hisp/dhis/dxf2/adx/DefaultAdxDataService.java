@@ -361,21 +361,19 @@ public class DefaultAdxDataService implements AdxDataService {
 
     ImportSummary importSummary;
 
-    adxReader.moveToStartElement(AdxDataService.ROOT, AdxDataService.NAMESPACE);
-
-    ExecutorService executor = Executors.newSingleThreadExecutor();
-
-    // For Async runs, give the DXF import a different notification task ID
-    // so it doesn't conflict with notifications from this level.
-    JobConfiguration dxfJobId =
-        (id == null)
-            ? null
-            : new JobConfiguration(
-                "dxfJob", JobType.DATAVALUE_IMPORT_INTERNAL, id.getUserUid(), true);
-
     int groupCount = 0;
-
+    ExecutorService executor = Executors.newSingleThreadExecutor();
     try (PipedOutputStream pipeOut = new PipedOutputStream()) {
+      adxReader.moveToStartElement(AdxDataService.ROOT, AdxDataService.NAMESPACE);
+
+      // For Async runs, give the DXF import a different notification task ID
+      // so it doesn't conflict with notifications from this level.
+      JobConfiguration dxfJobId =
+          (id == null)
+              ? null
+              : new JobConfiguration(
+                  "dxfJob", JobType.DATAVALUE_IMPORT_INTERNAL, id.getUserUid(), true);
+
       Future<ImportSummary> futureImportSummary =
           executor.submit(
               new AdxPipedImporter(
@@ -422,7 +420,9 @@ public class DefaultAdxDataService implements AdxDataService {
       importSummary.setStatus(ImportStatus.ERROR);
       importSummary.setDescription("Data set import failed within group number: " + groupCount);
       importSummary.addConflict(ex.getObject(), ex.getMessage());
-      notifier.update(id, NotificationLevel.ERROR, "ADX data import done", true);
+      notifier
+          .update(id, NotificationLevel.ERROR, "ADX data import done", true)
+          .addJobSummary(id, importSummary, ImportSummary.class);
       log.warn("Import failed: " + DebugUtils.getStackTrace(ex));
     } catch (IOException
         | XMLStreamException
@@ -432,7 +432,9 @@ public class DefaultAdxDataService implements AdxDataService {
       importSummary = new ImportSummary();
       importSummary.setStatus(ImportStatus.ERROR);
       importSummary.setDescription("Data set import failed within group number: " + groupCount);
-      notifier.update(id, NotificationLevel.ERROR, "ADX data import done", true);
+      notifier
+          .update(id, NotificationLevel.ERROR, "ADX data import done", true)
+          .addJobSummary(id, importSummary, ImportSummary.class);
       log.warn("Import failed: " + DebugUtils.getStackTrace(ex));
     }
 
