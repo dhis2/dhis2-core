@@ -620,6 +620,19 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         this::getProgramRuleActionsWithNoProgramStageId);
   }
 
+  Set<String> addSQLChecksToFlattedReport() {
+    Set<String> checks = new LinkedHashSet<>();
+    checks.add("organisation_units_without_groups");
+    checks.add("data_elements_aggregate_no_groups");
+    checks.add("data_elements_aggregate_with_different_period_types");
+    checks.add("data_elements_without_datasets");
+    checks.add("datasets_not_assigned_to_org_units");
+    checks.add("data_elements_violating_exclusive_group_sets");
+    checks.add("invalid_category_combos");
+    checks.add("indicators_not_grouped");
+    return expandChecks(checks, false);
+  }
+
   @Nonnull
   @Override
   @Transactional(readOnly = true)
@@ -631,14 +644,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
               .map(DataIntegrityCheckType::getName)
               .collect(Collectors.toSet());
       // Add additional SQL based checks here
-      checks.add("organisation_units_without_groups");
-      checks.add("data_elements_aggregate_no_groups");
-      checks.add("data_elements_aggregate_with_different_period_types");
-      checks.add("data_elements_without_datasets");
-      checks.add("datasets_not_assigned_to_org_units");
-      checks.add("data_elements_violating_exclusive_group_sets");
-      checks.add("invalid_category_combos");
-      checks.add("indicators_without_groups");
+      checks.addAll(addSQLChecksToFlattedReport());
     }
     runDetailsChecks(checks, progress);
     return new FlattenedDataIntegrityReport(getDetails(checks, -1L));
