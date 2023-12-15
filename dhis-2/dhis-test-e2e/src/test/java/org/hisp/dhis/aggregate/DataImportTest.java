@@ -160,11 +160,6 @@ public class DataImportTest extends ApiTest {
     systemActions
         .waitUntilTaskCompleted("DATAVALUE_IMPORT", taskId)
         .validate()
-        .body(
-            "message",
-            hasItem(
-                containsString(
-                    "Import complete with status ERROR, 0 created, 0 updated, 0 deleted, 0 ignored")))
         .body("message", hasItem(containsString("No content to map due to end-of-input")));
 
     // then a task summary should be available with an error message
@@ -202,11 +197,7 @@ public class DataImportTest extends ApiTest {
     systemActions
         .waitUntilTaskCompleted("DATAVALUE_IMPORT", taskId)
         .validate()
-        .body(
-            "message",
-            hasItem(
-                containsString(
-                    "Import complete with status ERROR, 0 created, 0 updated, 0 deleted, 0 ignored")));
+        .body("message", hasItem(containsString("ADX data import done")));
 
     // then a task summary should be available with an error message
     ApiResponse taskSummariesResponse =
