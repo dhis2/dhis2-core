@@ -523,10 +523,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         null,
         this::getIndicatorsWithIdenticalFormulas);
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.INDICATORS_WITHOUT_GROUPS,
-        Indicator.class,
-        this::getIndicatorsWithoutGroups);
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.INDICATORS_WITH_INVALID_NUMERATOR,
         Indicator.class,
         this::getInvalidIndicatorNumerators);
@@ -624,6 +620,19 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         this::getProgramRuleActionsWithNoProgramStageId);
   }
 
+  Set<String> addSQLChecksToFlattedReport() {
+    Set<String> checks = new LinkedHashSet<>();
+    checks.add("organisation_units_without_groups");
+    checks.add("data_elements_aggregate_no_groups");
+    checks.add("data_elements_aggregate_with_different_period_types");
+    checks.add("data_elements_without_datasets");
+    checks.add("datasets_not_assigned_to_org_units");
+    checks.add("data_elements_violating_exclusive_group_sets");
+    checks.add("invalid_category_combos");
+    checks.add("indicators_not_grouped");
+    return checks;
+  }
+
   @Nonnull
   @Override
   @Transactional(readOnly = true)
@@ -635,13 +644,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
               .map(DataIntegrityCheckType::getName)
               .collect(Collectors.toSet());
       // Add additional SQL based checks here
-      checks.add("organisation_units_without_groups");
-      checks.add("data_elements_aggregate_no_groups");
-      checks.add("data_elements_aggregate_with_different_period_types");
-      checks.add("data_elements_without_datasets");
-      checks.add("datasets_not_assigned_to_org_units");
-      checks.add("data_elements_violating_exclusive_group_sets");
-      checks.add("invalid_category_combos");
+      checks.addAll(addSQLChecksToFlattedReport());
     }
     runDetailsChecks(checks, progress);
     return new FlattenedDataIntegrityReport(getDetails(checks, -1L));
@@ -944,6 +947,12 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         expanded.add(name.toLowerCase().replace('-', '_'));
       }
     }
+    // Filter out any checks which actually do not exist but have been requested
+    expanded.retainAll(
+        getDataIntegrityChecks(Set.of()).stream()
+            .map(check -> check.getName().toLowerCase().replace('-', '_'))
+            .collect(toUnmodifiableSet()));
+
     return expanded;
   }
 
