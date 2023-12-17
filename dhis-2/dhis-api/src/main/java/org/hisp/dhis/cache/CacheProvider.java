@@ -45,6 +45,8 @@ public interface CacheProvider {
 
   <V> Cache<V> createAnalyticsCache();
 
+  <V> Cache<V> createOutliersCache();
+
   <V> Cache<V> createDefaultObjectCache();
 
   <V> Cache<V> createIsDataApprovedCache();

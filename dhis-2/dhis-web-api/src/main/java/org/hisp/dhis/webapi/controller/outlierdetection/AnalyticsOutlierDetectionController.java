@@ -37,7 +37,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.analytics.outlier.data.OutlierQuery;
+import org.hisp.dhis.analytics.outlier.data.OutlierQueryParams;
 import org.hisp.dhis.analytics.outlier.data.OutlierQueryParser;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequestValidator;
@@ -69,62 +69,66 @@ public class AnalyticsOutlierDetectionController {
   private final OutlierRequestValidator validator;
 
   @GetMapping(value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE)
-  public Grid getOutliersJson(OutlierQuery query) {
-    OutlierRequest request = getFromQuery(query);
+  public Grid getOutliersJson(OutlierQueryParams queryParams) {
+    OutlierRequest request = getFromQuery(queryParams);
 
-    Grid grid = outlierService.getOutlierValues(request);
+    Grid grid = outlierService.getOutliers(request);
 
-    if (query.hasHeaders()) {
-      grid.retainColumns(query.getHeaders());
+    if (queryParams.hasHeaders()) {
+      grid.retainColumns(queryParams.getHeaders());
     }
 
     return grid;
   }
 
   @GetMapping(value = RESOURCE_PATH + ".csv")
-  public void getOutliersCsv(OutlierQuery query, HttpServletResponse response) throws IOException {
-    OutlierRequest request = getFromQuery(query);
+  public void getOutliersCsv(OutlierQueryParams queryParams, HttpServletResponse response)
+      throws IOException {
+    OutlierRequest request = getFromQuery(queryParams);
     contextUtils.configureResponse(response, CONTENT_TYPE_CSV, NO_CACHE, "outlierdata.csv", true);
 
-    outlierService.getOutlierValuesAsCsv(request, response.getWriter());
+    outlierService.getOutlierAsCsv(request, response.getWriter());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".xml")
-  public void getOutliersXml(OutlierQuery query, HttpServletResponse response) throws IOException {
-    OutlierRequest request = getFromQuery(query);
+  public void getOutliersXml(OutlierQueryParams queryParams, HttpServletResponse response)
+      throws IOException {
+    OutlierRequest request = getFromQuery(queryParams);
     contextUtils.configureResponse(response, CONTENT_TYPE_XML, NO_CACHE);
 
-    outlierService.getOutlierValuesAsXml(request, response.getOutputStream());
+    outlierService.getOutliersAsXml(request, response.getOutputStream());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".xls")
-  public void getOutliersXls(OutlierQuery query, HttpServletResponse response) throws IOException {
-    OutlierRequest request = getFromQuery(query);
+  public void getOutliersXls(OutlierQueryParams queryParams, HttpServletResponse response)
+      throws IOException {
+    OutlierRequest request = getFromQuery(queryParams);
     contextUtils.configureResponse(response, CONTENT_TYPE_EXCEL, NO_CACHE, "outlierdata.xls", true);
 
-    outlierService.getOutlierValuesAsXls(request, response.getOutputStream());
+    outlierService.getOutliersAsXls(request, response.getOutputStream());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".html")
-  public void getOutliersHtml(OutlierQuery query, HttpServletResponse response) throws IOException {
-    OutlierRequest request = getFromQuery(query);
+  public void getOutliersHtml(OutlierQueryParams queryParams, HttpServletResponse response)
+      throws IOException {
+    OutlierRequest request = getFromQuery(queryParams);
 
     contextUtils.configureResponse(response, CONTENT_TYPE_HTML, NO_CACHE);
 
-    outlierService.getOutlierValuesAsHtml(request, response.getWriter());
+    outlierService.getOutliersAsHtml(request, response.getWriter());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".html+css")
-  public void getOutliersHtmlCss(OutlierQuery query, HttpServletResponse response)
+  public void getOutliersHtmlCss(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    OutlierRequest request = getFromQuery(query);
+    OutlierRequest request = getFromQuery(queryParams);
     contextUtils.configureResponse(response, CONTENT_TYPE_HTML, NO_CACHE);
 
-    outlierService.getOutlierValuesAsHtmlCss(request, response.getWriter());
+    outlierService.getOutliersAsHtmlCss(request, response.getWriter());
   }
 
-  private OutlierRequest getFromQuery(OutlierQuery query) {
-    OutlierRequest request = queryParser.getFromQuery(query);
+  private OutlierRequest getFromQuery(OutlierQueryParams queryParams) {
+    OutlierRequest request = queryParser.getFromQuery(queryParams);
     validator.validate(request, true);
 
     return request;
