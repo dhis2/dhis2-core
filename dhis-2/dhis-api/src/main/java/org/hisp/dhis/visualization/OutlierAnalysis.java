@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.Serializable;
 import lombok.Data;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /** Class responsible for keeping the settings related to outlier analysis in Visualization. */
 @Data
@@ -56,4 +57,9 @@ public class OutlierAnalysis implements Serializable {
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   private OutlierLine extremeLines;
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  @PropertyRange(min = 1, max = 500)
+  private Integer maxResults;
 }
