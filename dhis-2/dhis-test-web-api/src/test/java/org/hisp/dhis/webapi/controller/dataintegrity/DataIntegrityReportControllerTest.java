@@ -438,6 +438,42 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     assertEquals(List.of("Indicator B"), results);
   }
 
+  @Test
+  void testValidationRulesWithoutGroups() {
+    String validationRule1 =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/validationRules",
+                "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', "
+                    + ""
+                    + "'description':'Test','expression':'#{FTRrcoaog83.qk6n4eMAdtK}'},"
+                    + "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test1',"
+                    + "'expression':'#{FTRrcoaog83.sqGRzCziswD}'},'periodType':'Monthly','name':'Test rule 1'}"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/validationRules",
+            "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', "
+                + ""
+                + "'description':'Test','expression':'#{FTRrcoaog83.qk6n4eMAdtK}'},"
+                + "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test2',"
+                + "'expression':'#{FTRrcoaog83.sqGRzCziswD}'},'periodType':'Monthly','name':'Test rule 2'}"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/validationRuleGroups",
+            "{'name':'Test group', 'description':'Test group', 'validationRules': [{'id': '"
+                + validationRule1
+                + "'}]}"));
+
+    List<String> results =
+        getDataIntegrityReport().getValidationRulesWithoutGroups().toList(JsonString::string);
+    assertEquals(List.of("Test rule 2"), results);
+  }
+
   private JsonDataIntegrityReport getDataIntegrityReport() {
     return getDataIntegrityReport("/dataIntegrity");
   }

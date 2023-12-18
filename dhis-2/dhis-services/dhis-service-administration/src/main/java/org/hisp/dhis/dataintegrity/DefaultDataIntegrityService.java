@@ -517,10 +517,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         OrganisationUnitGroup.class,
         this::getOrganisationUnitGroupsWithoutGroupSets);
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.VALIDATION_RULES_WITHOUT_GROUPS,
-        ValidationRule.class,
-        this::getValidationRulesWithoutGroups);
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_LEFT_SIDE_EXPRESSION,
         ValidationRule.class,
         this::getInvalidValidationRuleLeftSideExpressions);
@@ -594,6 +590,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("indicators_not_grouped");
     checks.add("periods_same_start_date_period_type");
     checks.add("orgunits_orphaned");
+    checks.add("validation_rules_without_groups");
     return checks;
   }
 
