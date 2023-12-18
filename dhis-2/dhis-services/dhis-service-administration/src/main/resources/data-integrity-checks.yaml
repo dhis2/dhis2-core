@@ -57,6 +57,7 @@ checks:
   - periods/periods_3y_future.yaml
   - periods/periods_distant_past.yaml
   - validation_rules/validation_rules_undefined_missing_value_strategy.yaml
+  - validation_rules/validation_rules_without_groups.yaml
   - groups/group_size_data_element_groups.yaml
   - groups/group_size_indicator_groups.yaml
   - groups/group_size_program_indicator_groups.yaml
