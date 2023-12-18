@@ -25,8 +25,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  name: periods_same_start_end_date
-  description: Periods with the same start and end dates
+  name: periods_same_start_date_period_type
+  description: Periods with the same start date and period type.
   section: Periods
   section_order: 1
   summary_sql: >-
@@ -53,8 +53,10 @@
     order by p1.periodtypeid, p1.startdate;
   severity: CRITICAL
   introduction: >
-    Different periods should not have exactly the same start and end date.
+    Periods which have the same start date ane period type are considered to be duplicates. This may result
+    in unexpected behaviour in the system and the duplicated periods should be resolved.
   details_id_type: periods
   recommendation: >
     All references to the duplicate periods should be removed from the system and
-    reassigned. It is recommended to use the period with the lower periodid.
+    reassigned. If data has been entered for duplicated periods, the data should 
+    be reassigned to the period with the lower periodid.
