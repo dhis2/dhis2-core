@@ -482,7 +482,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
             POST(
                 "/programs",
                 "{'name':'Test program', 'shortName': 'Test program', 'programType': 'WITHOUT_REGISTRATION'}"));
-    String programRule1 =
+
         assertStatus(
             HttpStatus.CREATED,
             POST(

@@ -80,7 +80,6 @@ class DataIntegrityValidationRulesWithoutGroupsControllerTest
                     + "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test2',"
                     + "'expression':'#{FTRrcoaog83.sqGRzCziswD}'},'periodType':'Monthly','name':'Test rule'}"));
 
-    String validationRuleGroup =
         assertStatus(
             HttpStatus.CREATED,
             POST(
