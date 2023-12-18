@@ -38,6 +38,10 @@ import lombok.Data;
 /** Class responsible for keeping the settings related to outlier analysis in Visualization. */
 @Data
 public class OutlierAnalysis implements Serializable {
+
+  public static final int MAX_RESULTS_MIN_VALUE = 1;
+  public static final int MAX_RESULTS_MAX_VALUE = 500;
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   private boolean enabled;
@@ -71,8 +75,7 @@ public class OutlierAnalysis implements Serializable {
    */
   @JsonIgnore
   public boolean isValid() {
-    int min = 1;
-    int max = 500;
-    return maxResults != null && (maxResults >= min && maxResults <= max);
+    return maxResults != null
+        && (maxResults >= MAX_RESULTS_MIN_VALUE && maxResults <= MAX_RESULTS_MAX_VALUE);
   }
 }

@@ -29,8 +29,10 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
-import static org.hisp.dhis.feedback.ErrorCode.E7146;
+import static org.hisp.dhis.feedback.ErrorCode.E4002;
 import static org.hisp.dhis.schema.descriptors.VisualizationSchemaDescriptor.API_ENDPOINT;
+import static org.hisp.dhis.visualization.OutlierAnalysis.MAX_RESULTS_MAX_VALUE;
+import static org.hisp.dhis.visualization.OutlierAnalysis.MAX_RESULTS_MIN_VALUE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -94,7 +96,12 @@ public class VisualizationController extends AbstractCrudController<Visualizatio
     if (visualization != null
         && visualization.getOutlierAnalysis() != null
         && !visualization.getOutlierAnalysis().isValid()) {
-      throw new IllegalQueryException(E7146);
+      throw new IllegalQueryException(
+          E4002,
+          "maxResults",
+          MAX_RESULTS_MIN_VALUE,
+          MAX_RESULTS_MAX_VALUE,
+          visualization.getOutlierAnalysis().getMaxResults());
     }
   }
 

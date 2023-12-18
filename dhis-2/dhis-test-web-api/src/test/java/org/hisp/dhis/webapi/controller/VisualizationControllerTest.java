@@ -88,7 +88,7 @@ class VisualizationControllerTest extends DhisControllerConvenienceTest {
 
     // Then
     assertEquals(
-        "Property 'maxResults' is out range. Allowed range: [1..500]",
+        "Allowed length range for property `maxResults` is [1 to 500], but given length was 501",
         response.error(CONFLICT).getMessage());
   }
 }
