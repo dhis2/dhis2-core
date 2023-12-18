@@ -384,11 +384,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         organisationUnitService.getOrganisationUnitsWithCyclicReferences().stream());
   }
 
-  @Deprecated
-  List<DataIntegrityIssue> getOrphanedOrganisationUnits() {
-    return toSimpleIssueList(organisationUnitService.getOrphanedOrganisationUnits().stream());
-  }
-
   List<DataIntegrityIssue> getOrganisationUnitsViolatingExclusiveGroupSets() {
     return toIssueList(
         organisationUnitService.getOrganisationUnitsViolatingExclusiveGroupSets().stream(),
