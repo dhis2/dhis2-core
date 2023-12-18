@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.analytics.cache;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -55,9 +53,6 @@ public class OutliersCache {
    * overwritten during cache put operations.
    */
   public OutliersCache(CacheProvider cacheProvider, AnalyticsCacheSettings analyticsCacheSettings) {
-    checkNotNull(cacheProvider);
-    checkNotNull(analyticsCacheSettings);
-
     this.analyticsCacheSettings = analyticsCacheSettings;
     this.queryCache = cacheProvider.createOutliersCache();
   }
@@ -78,6 +73,7 @@ public class OutliersCache {
    * @param params the current {@link OutlierRequest}.
    * @param function that fetches a grid based on the given {@link OutlierRequest}.
    * @return the cached or fetched list of {@link Outlier}.
+   * @throws NullPointerException if any argument is null.
    */
   public List<Outlier> getOrFetch(
       OutlierRequest params, Function<OutlierRequest, List<Outlier>> function) {
@@ -103,6 +99,7 @@ public class OutliersCache {
    *
    * @param outlierRequest the {@link OutlierRequest}.
    * @param outliers the list of {@link Outlier} to cache.
+   * @throws NullPointerException if any argument is null.
    */
   public void put(OutlierRequest outlierRequest, List<Outlier> outliers) {
     // Respects the fixed (predefined) caching TTL.
