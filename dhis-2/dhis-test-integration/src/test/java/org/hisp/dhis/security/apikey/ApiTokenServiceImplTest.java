@@ -68,8 +68,8 @@ class ApiTokenServiceImplTest extends TransactionalIntegrationTest {
 
   @BeforeEach
   final void setup() throws Exception {
-    userService = _userService;
-    preCreateInjectAdminUser();
+    //    userService = _userService;
+    //    preCreateInjectAdminUser();
 
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     User currentUser = userService.getUserByUsername(currentUsername);

@@ -117,9 +117,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Override
   public void setUpTest() {
-    super.userService = _userService;
+    //    super.userService = _userService;
 
-    this.superUser = preCreateInjectAdminUser();
+    this.superUser = getAdminUser();
 
     trackedEntityType = createTrackedEntityType('A');
     TrackedEntityAttribute attrD = createTrackedEntityAttribute('D');

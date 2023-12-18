@@ -72,11 +72,11 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
 
   private Event event = new Event();
 
-  @Override
-  protected void setUpTest() throws Exception {
-    userService = _userService;
-    createAndInjectAdminUser();
-  }
+  //  @Override
+  //  protected void setUpTest() throws Exception {
+  //    userService = _userService;
+  //    createAndInjectAdminUser();
+  //  }
 
   //
   // PROGRAM ACL TESTS

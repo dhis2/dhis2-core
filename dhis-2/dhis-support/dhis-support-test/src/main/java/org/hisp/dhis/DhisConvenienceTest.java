@@ -63,6 +63,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -493,6 +494,9 @@ public abstract class DhisConvenienceTest {
     DataElement dataElement = new DataElement();
     dataElement.setAutoFields();
 
+    // TODO: MAS added after not allowing NULL user in HibernateIdentifiableObjectStore.save()
+    //    dataElement.getSharing().setPublicAccess("--------");
+
     dataElement.setUid(BASE_DE_UID + uniqueCharacter);
     dataElement.setName("DataElement" + uniqueCharacter);
     dataElement.setShortName("DataElementShort" + uniqueCharacter);
@@ -522,7 +526,9 @@ public abstract class DhisConvenienceTest {
     DataElement dataElement = createDataElement(uniqueCharacter);
     dataElement.setValueType(valueType);
     dataElement.setAggregationType(aggregationType);
-
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    // user is NULL anymore
+    //    dataElement.getSharing().setPublicAccess("--------");
     return dataElement;
   }
 
@@ -577,7 +583,9 @@ public abstract class DhisConvenienceTest {
         new CategoryCombo(name, DISAGGREGATION, Arrays.asList(categories));
     categoryCombo.setAutoFields();
     categoryCombo.setUid(uid);
-
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    // user is NULL anymore
+    //    categoryCombo.getSharing().setPublicAccess("--------");
     return categoryCombo;
   }
 
@@ -620,7 +628,9 @@ public abstract class DhisConvenienceTest {
     categoryOptionCombo.setName(name);
     categoryOptionCombo.setShortName(name);
     categoryOptionCombo.setUid(uid);
-
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    // user is NULL anymore
+    //    categoryOptionCombo.getSharing().setPublicAccess("--------");
     return categoryOptionCombo;
   }
 
@@ -672,7 +682,9 @@ public abstract class DhisConvenienceTest {
         new Category("Category" + categoryUniqueIdentifier, DataDimensionType.DISAGGREGATION);
     category.setAutoFields();
     category.setShortName(category.getName());
-
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    // user is NULL anymore
+    //    category.getSharing().setPublicAccess("--------");
     for (CategoryOption categoryOption : categoryOptions) {
       category.addCategoryOption(categoryOption);
     }
@@ -700,6 +712,9 @@ public abstract class DhisConvenienceTest {
 
   public static CategoryOption createCategoryOption(char uniqueIdentifier) {
     CategoryOption categoryOption = new CategoryOption("CategoryOption" + uniqueIdentifier);
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    // user is NULL anymore
+    //    categoryOption.getSharing().setPublicAccess("--------");
     categoryOption.setAutoFields();
 
     return categoryOption;
@@ -970,6 +985,7 @@ public abstract class DhisConvenienceTest {
     unit.setCode("OrganisationUnitCode" + uniqueCharacter);
     unit.setOpeningDate(date);
     unit.setComment("Comment" + uniqueCharacter);
+    //    unit.getSharing().setPublicAccess("--------");
 
     return unit;
   }
@@ -989,7 +1005,9 @@ public abstract class DhisConvenienceTest {
   public static OrganisationUnit createOrganisationUnit(
       char uniqueCharacter, OrganisationUnit parent) {
     OrganisationUnit unit = createOrganisationUnit(uniqueCharacter);
-
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    // user is NULL anymore
+    //    unit.getSharing().setPublicAccess("--------");
     unit.setParent(parent);
     parent.getChildren().add(unit);
 
@@ -1568,6 +1586,10 @@ public abstract class DhisConvenienceTest {
     Program program = createProgram(uniqueCharacter, null, null);
     program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
 
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    // user is NULL anymore
+    //    program.getSharing().setPublicAccess("--------");
+
     return program;
   }
 
@@ -1590,7 +1612,8 @@ public abstract class DhisConvenienceTest {
       CategoryCombo categoryCombo) {
     Program program = new Program();
     program.setAutoFields();
-
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    //    program.getSharing().setPublicAccess("--------");
     program.setUid(BASE_PR_UID + uniqueCharacter);
     program.setName("Program" + uniqueCharacter);
     program.setCode("ProgramCode" + uniqueCharacter);
@@ -1653,6 +1676,9 @@ public abstract class DhisConvenienceTest {
     event.setEnrollment(enrollment);
     event.setOrganisationUnit(organisationUnit);
 
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    // user is NULL anymore
+    //    event.getSharing().setPublicAccess("--------");
     return event;
   }
 
@@ -1787,6 +1813,10 @@ public abstract class DhisConvenienceTest {
     programStage.setDescription("description" + uniqueCharacter);
     programStage.setMinDaysFromStart(minDays);
     programStage.setRepeatable(repeatable);
+
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    // user is NULL anymore
+    //    programStage.getSharing().setPublicAccess("--------");
 
     return programStage;
   }
@@ -2102,6 +2132,9 @@ public abstract class DhisConvenienceTest {
     trackedEntityType.setName("TrackedEntityType" + uniqueChar);
     trackedEntityType.setDescription("TrackedEntityType" + uniqueChar + " description");
 
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    // user is NULL anymore
+    //    trackedEntityType.getSharing().setPublicAccess("--------");
     return trackedEntityType;
   }
 
@@ -2110,6 +2143,9 @@ public abstract class DhisConvenienceTest {
     trackedEntity.setAutoFields();
     trackedEntity.setOrganisationUnit(organisationUnit);
 
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    // user is NULL anymore
+    //    trackedEntity.getSharing().setPublicAccess("--------");
     return trackedEntity;
   }
 
@@ -2170,6 +2206,9 @@ public abstract class DhisConvenienceTest {
       char uniqueChar, ValueType valueType) {
     TrackedEntityAttribute attribute = createTrackedEntityAttribute(uniqueChar);
     attribute.setValueType(valueType);
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    // user is NULL anymore
+    //    attribute.getSharing().setPublicAccess("--------");
     return attribute;
   }
 
@@ -2186,6 +2225,10 @@ public abstract class DhisConvenienceTest {
 
     ptea.setProgram(program);
     ptea.setAttribute(attribute);
+
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    // user is NULL anymore
+    //    ptea.getSharing().setPublicAccess("--------");
 
     return ptea;
   }
@@ -2618,6 +2661,7 @@ public abstract class DhisConvenienceTest {
     }
     hibernateService.flushSession();
     user = userService.getUser(user.getUid());
+    // TODO: MAS: rewrite to use userService.createUserDetails(user) instead
     injectSecurityContext(UserDetails.fromUser(user));
   }
 
@@ -2866,10 +2910,11 @@ public abstract class DhisConvenienceTest {
   }
 
   protected User preCreateInjectAdminUserWithoutPersistence() {
-    UserRole role = createUserRole("Superuser_Test", "ALL");
+    UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
     role.setUid(CodeGenerator.generateUid());
 
     User user = new User();
+    user.setUid(CodeGenerator.generateUid());
     user.setFirstName("Admin");
     user.setSurname("User");
     user.setUsername(DEFAULT_USERNAME + "_test");
@@ -2921,5 +2966,26 @@ public abstract class DhisConvenienceTest {
     }
     layout.setColumns(columns);
     return layout;
+  }
+
+  public static User createRandomAdminUserWithEntityManager(EntityManager entityManager) {
+    UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
+    role.setUid(CodeGenerator.generateUid());
+
+    entityManager.persist(role);
+
+    User user = new User();
+    user.setUid("A_" + CodeGenerator.generateUid().substring(2));
+    user.setFirstName("Admin");
+    user.setSurname("User");
+    user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
+    user.setPassword(DEFAULT_ADMIN_PASSWORD);
+    user.getUserRoles().add(role);
+    user.setLastUpdated(new Date());
+    user.setCreated(new Date());
+
+    entityManager.persist(user);
+
+    return user;
   }
 }

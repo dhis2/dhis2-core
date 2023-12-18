@@ -85,7 +85,7 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest {
     assertEquals(1, validate.getErrorReportsCountByCode(UserRole.class, ErrorCode.E5003));
     objectBundleService.commit(bundle);
     List<User> users = manager.getAll(User.class);
-    assertEquals(4, users.size());
+    assertEquals(5, users.size());
     User userA = userService.getUser("sPWjoHSY03y");
     User userB = userService.getUser("MwhEJUnTHkn");
     assertEquals("usera", userA.getUsername());
@@ -121,7 +121,7 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest {
     assertEquals(1, validate.getErrorReportsCountByCode(UserRole.class, ErrorCode.E5001));
     objectBundleService.commit(bundle);
     List<User> users = manager.getAll(User.class);
-    assertEquals(4, users.size());
+    assertEquals(5, users.size());
     User userA = manager.get(User.class, "sPWjoHSY03y");
     User userB = manager.get(User.class, "MwhEJUnTHkn");
     assertEquals("usera", userA.getUsername());
@@ -163,7 +163,7 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest {
     ObjectBundle bundle = objectBundleService.create(params);
     objectBundleValidationService.validate(bundle);
     objectBundleService.commit(bundle);
-    assertEquals(1, manager.getAll(User.class).size());
+    assertEquals(2, manager.getAll(User.class).size());
   }
 
   @Test
@@ -178,7 +178,7 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest {
     ObjectBundle bundle = objectBundleService.create(params);
     objectBundleValidationService.validate(bundle);
     objectBundleService.commit(bundle);
-    assertEquals(2, manager.getAll(User.class).size());
+    assertEquals(3, manager.getAll(User.class).size());
   }
 
   @Test
@@ -229,6 +229,7 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest {
     manager.update(userManagerRole);
     SecurityContextHolder.clearContext();
     userA.setPassword("passwordUserA");
+    reLoginAdminUser();
     manager.update(userA);
     injectSecurityContextUser(userA);
     params =

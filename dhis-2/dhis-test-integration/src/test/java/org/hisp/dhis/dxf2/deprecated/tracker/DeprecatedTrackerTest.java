@@ -91,7 +91,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * @author Luciano Fiandesio
  */
-public abstract class TrackerTest extends IntegrationTestBase {
+public abstract class DeprecatedTrackerTest extends IntegrationTestBase {
   protected static final String TEST_USER = "testUser";
 
   @Autowired protected IdentifiableObjectManager manager;

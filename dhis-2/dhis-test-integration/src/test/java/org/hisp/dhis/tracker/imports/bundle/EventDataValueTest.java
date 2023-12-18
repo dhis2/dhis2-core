@@ -48,6 +48,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -61,9 +62,11 @@ class EventDataValueTest extends TrackerTest {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private EventService eventService;
+  @Autowired protected UserService _userService;
 
   @Override
   protected void initTest() throws IOException {
+    userService = _userService;
     setUpMetadata("tracker/simple_metadata.json");
     final User userA = userService.getUser("M5zQapPyTZI");
     injectSecurityContextUser(userA);

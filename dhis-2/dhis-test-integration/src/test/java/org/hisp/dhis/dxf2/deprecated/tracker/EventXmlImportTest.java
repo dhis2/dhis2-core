@@ -87,6 +87,7 @@ class EventXmlImportTest extends TransactionalIntegrationTest {
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
+
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitA.setUid("A");
     manager.save(organisationUnitA);
@@ -103,15 +104,19 @@ class EventXmlImportTest extends TransactionalIntegrationTest {
     programStageDataElement.setProgramStage(programStageA);
     programStageDataElementService.addProgramStageDataElement(programStageDataElement);
     programA = createProgram('A', new HashSet<>(), organisationUnitA);
+    programA.getSharing().setPublicAccess("--------");
     programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     programA.setUid("A");
-    manager.save(programA);
+    manager.save(programA, false);
     Enrollment enrollment = new Enrollment();
     enrollment.setProgram(programA);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
     enrollment.setStatus(ProgramStatus.ACTIVE);
+    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
+    enrollment.getSharing().setPublicAccess("--------");
+
     enrollmentService.addEnrollment(enrollment);
     programStageA.getProgramStageDataElements().add(programStageDataElement);
     programStageA.setProgram(programA);
@@ -149,16 +154,19 @@ class EventXmlImportTest extends TransactionalIntegrationTest {
                 .setProgram(programA)
                 .setOrgUnitSelectionMode(OrganisationUnitSelectionMode.ACCESSIBLE));
     assertEquals(1, events.getEvents().size());
+
     // Get by user without access
     User user = createUserWithAuth("A");
     user.addOrganisationUnit(organisationUnitA);
     userService.addUser(user);
     injectSecurityContextUser(user);
+
     events =
         eventService.getEvents(
             new EventSearchParams()
                 .setProgram(programA)
                 .setOrgUnitSelectionMode(OrganisationUnitSelectionMode.ACCESSIBLE));
+
     assertEquals(0, events.getEvents().size());
   }
 

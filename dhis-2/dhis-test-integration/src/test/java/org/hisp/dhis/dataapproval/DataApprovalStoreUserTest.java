@@ -95,8 +95,8 @@ class DataApprovalStoreUserTest extends IntegrationTestBase {
   // -------------------------------------------------------------------------
   @Override
   public void setUpTest() throws Exception {
-    userService = _userService;
-    preCreateInjectAdminUser();
+    //    userService = _userService;
+    //    preCreateInjectAdminUser();
 
     periodA = createPeriod("201801");
     periodService.addPeriod(periodA);

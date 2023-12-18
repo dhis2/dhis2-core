@@ -205,7 +205,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     orgUnitChildA.setChildren(Set.of(orgUnitGrandchildA));
     manager.update(orgUnitChildA);
 
-    superuser = preCreateInjectAdminUser();
+    //    superuser = preCreateInjectAdminUser();
+    superuser = userService.getUserByUsername("admin_test");
     superuser.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
     manager.save(superuser);
 

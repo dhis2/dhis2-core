@@ -44,8 +44,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dxf2.deprecated.tracker.DeprecatedTrackerTest;
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.deprecated.tracker.TrackerTest;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
@@ -72,7 +72,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Luciano Fiandesio
  */
-class TrackedEntityAttributesAggregateTest extends TrackerTest {
+class TrackedEntityAttributesAggregateTest extends DeprecatedTrackerTest {
   @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
   @Autowired private TrackedEntityAttributeService attributeService;
@@ -101,7 +101,8 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
   void setUp() {
     doInTransaction(
         () -> {
-          superUser = preCreateInjectAdminUser();
+          //          superUser = preCreateInjectAdminUser();
+          superUser = userService.getUserByUsername("admin_test");
           injectSecurityContextUser(superUser);
 
           nonSuperUser = createUserWithAuth("testUser2");

@@ -30,13 +30,14 @@ package org.hisp.dhis.dxf2.deprecated.tracker.aggregates;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dxf2.deprecated.tracker.DeprecatedTrackerTest;
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.deprecated.tracker.TrackerTest;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
@@ -48,10 +49,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Luciano Fiandesio
  */
-class TrackedEntityAttributesAggregateAclTest extends TrackerTest {
+class TrackedEntityAttributesAggregateAclTest extends DeprecatedTrackerTest {
   @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
-
-  private User superUser;
 
   @Test
   void verifyTeiCantBeAccessedNoPublicAccessOnTrackedEntityType() {
@@ -77,7 +76,9 @@ class TrackedEntityAttributesAggregateAclTest extends TrackerTest {
     final String tetUid = CodeGenerator.generateUid();
     doInTransaction(
         () -> {
-          injectSecurityContextUser(superUser);
+          User adminUser = userService.getUserByUsername("admin_test");
+          assertNotNull(adminUser);
+          injectSecurityContextUser(adminUser);
           TrackedEntityType trackedEntityTypeZ = createTrackedEntityType('Z');
           trackedEntityTypeZ.setUid(tetUid);
           trackedEntityTypeZ.setName("TrackedEntityTypeZ" + trackedEntityTypeZ.getUid());

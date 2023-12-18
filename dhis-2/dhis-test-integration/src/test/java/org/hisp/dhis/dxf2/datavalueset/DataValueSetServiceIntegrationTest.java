@@ -165,7 +165,8 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
   @Override
   public void setUpTest() {
     userService = _userService;
-    superUser = preCreateInjectAdminUser();
+    //    superUser = preCreateInjectAdminUser();
+    superUser = userService.getUserByUsername("admin_test");
     injectSecurityContextUser(superUser);
 
     CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
@@ -1424,6 +1425,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
   @Test
   void testImportValueDataSetWriteFail() {
     clearSecurityContext();
+    injectSecurityContextUser(superUser);
     enableDataSharing(user, dsA, AccessStringHelper.DATA_READ);
     dataSetService.updateDataSet(dsA);
     injectSecurityContextUser(user);

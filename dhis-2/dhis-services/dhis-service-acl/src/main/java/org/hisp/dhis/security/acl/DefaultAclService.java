@@ -117,6 +117,7 @@ public class DefaultAclService implements AclService {
   @Override
   public <T extends IdentifiableObject> boolean canRead(
       UserDetails userDetails, T object, Class<? extends T> objType) {
+
     if (readWriteCommonCheck(userDetails, objType)) {
       return true;
     }
@@ -362,6 +363,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canDataRead(User user, IdentifiableObject object) {
+    // TODO: MAS UserDetails.fromUser(user) needs further refactoring
     return canDataRead(UserDetails.fromUser(user), object);
   }
 
@@ -530,6 +532,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public <T extends IdentifiableObject> void resetSharing(T object, UserDetails userDetails) {
+    // TODO: MAS do not allow userDetails to be NULL here
     if (object == null || !isShareable(object) || userDetails == null) {
       return;
     }

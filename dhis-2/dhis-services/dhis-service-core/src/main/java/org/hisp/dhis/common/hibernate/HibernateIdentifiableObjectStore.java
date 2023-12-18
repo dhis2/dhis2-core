@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common.hibernate;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -115,35 +117,29 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   public void save(@Nonnull T object, boolean clearSharing) {
-    save(object, CurrentUserUtil.getCurrentUserDetails(), clearSharing);
-  }
-
-  public List<User> findAllUsers() {
-    CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-    CriteriaQuery<User> cq = cb.createQuery(User.class);
-    Root<User> rootEntry = cq.from(User.class);
-    CriteriaQuery<User> all = cq.select(rootEntry);
-    TypedQuery<User> allQuery = entityManager.createQuery(all);
-    return allQuery.getResultList();
-  }
-
-  private void save(T object, UserDetails userDetails, boolean clearSharing) {
-    String username = userDetails != null ? userDetails.getUsername() : "system-process";
-    object.setAutoFields();
-
-    if (userDetails != null && userDetails.getId() != 0L) {
-
-      List<User> allUsers = findAllUsers();
-      //      log.error("allUsers: " + allUsers.size());
-      //      User user2 = getSession().find(User.class, userDetails.getId());
-      //      User user1 = getSession().get(User.class, userDetails.getId());
-      User user = entityManager.getReference(User.class, userDetails.getId());
-      object.setLastUpdatedBy(user);
-
-      if (object.getCreatedBy() == null) {
-        object.setCreatedBy(user);
-      }
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    if (currentUserDetails == null) {
+      throw new IllegalArgumentException("Current user is not set, can not save object");
     }
+    save(object, currentUserDetails, clearSharing);
+  }
+
+  //  public List<User> findAllUsers() {
+  //    CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+  //    CriteriaQuery<User> cq = cb.createQuery(User.class);
+  //    Root<User> rootEntry = cq.from(User.class);
+  //    CriteriaQuery<User> all = cq.select(rootEntry);
+  //    TypedQuery<User> allQuery = entityManager.createQuery(all);
+  //    return allQuery.getResultList();
+  //  }
+
+  private void save(@Nonnull T object, @Nonnull UserDetails userDetails, boolean clearSharing) {
+    checkNotNull(object);
+    checkNotNull(userDetails);
+
+    String username = userDetails.getUsername();
+
+    setFields(object, userDetails);
 
     if (clearSharing) {
       object.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
@@ -157,7 +153,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
           .setOwner(object.getCreatedBy() != null ? object.getCreatedBy().getUid() : null);
     }
 
-    if (userDetails != null && aclService.isClassShareable(clazz)) {
+    if (aclService.isClassShareable(clazz)) {
       if (clearSharing) {
         if (aclService.canMakePublic(userDetails, (BaseIdentifiableObject) object)) {
           if (aclService.defaultPublic((BaseIdentifiableObject) object)) {
@@ -181,27 +177,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Override
   public void update(@Nonnull T object) {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    if (currentUserDetails == null) {
+      throw new IllegalArgumentException("Current user is not set, can not update object");
+    }
     update(object, currentUserDetails);
   }
 
   @Override
-  public void update(@Nonnull T object, @CheckForNull UserDetails userDetails) {
-    String username = userDetails != null ? userDetails.getUsername() : "system-process";
+  public void update(@Nonnull T object, @Nonnull UserDetails userDetails) {
+    checkNotNull(object);
+    checkNotNull(userDetails);
 
-    object.setAutoFields();
+    String username = userDetails.getUsername();
 
-    if (userDetails != null && userDetails.getId() != 0L) {
-      User user = entityManager.getReference(User.class, userDetails.getId());
-      // See: https://www.baeldung.com/jpa-entity-manager-get-reference for explanation of
-      object.setLastUpdatedBy(user);
-
-      if (object.getCreatedBy() == null) {
-        object.setCreatedBy(user);
-      }
-    }
+    setFields(object, userDetails);
 
     if (object.getSharing().getOwner() == null) {
-      object.getSharing().setOwner(userDetails != null ? userDetails.getUid() : null);
+      object.getSharing().setOwner(userDetails.getUid());
     }
 
     if (!isUpdateAllowed(object, userDetails)) {
@@ -211,6 +203,24 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE);
     getSession().update(object);
+  }
+
+  private void setFields(T object, UserDetails userDetails) {
+    checkNotNull(object);
+    checkNotNull(userDetails);
+
+    object.setAutoFields();
+
+    if (userDetails.getId() != 0L) { // TODO: MAS: should not be necessary
+
+      // See: https://www.baeldung.com/jpa-entity-manager-get-reference
+      User user = entityManager.getReference(User.class, userDetails.getId());
+      object.setLastUpdatedBy(user);
+
+      if (object.getCreatedBy() == null) {
+        object.setCreatedBy(user);
+      }
+    }
   }
 
   @Override
@@ -341,6 +351,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     T object = list != null && !list.isEmpty() ? list.get(0) : null;
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+
     if (isReadNotAllowed(object, currentUser)) {
       AuditLogUtil.infoWrapper(
           log, CurrentUserUtil.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
@@ -937,9 +948,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     return canMakePublic || (canMakePrivate && !canReadOrWrite);
   }
 
-  private boolean isReadNotAllowed(T object, UserDetails user) {
-    if (sharingEnabled(user == null || user.isSuper())) {
-      return !aclService.canRead(user, object);
+  private boolean isReadNotAllowed(T object, UserDetails userDetails) {
+    if (sharingEnabled(userDetails)) {
+      return !aclService.canRead(userDetails, object);
     }
     return false;
   }

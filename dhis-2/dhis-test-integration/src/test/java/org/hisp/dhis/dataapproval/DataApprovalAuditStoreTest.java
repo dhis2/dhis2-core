@@ -118,7 +118,7 @@ class DataApprovalAuditStoreTest extends SingleSetupIntegrationTestBase {
   @Override
   public void setUpTest() throws Exception {
     userService = _userService;
-    preCreateInjectAdminUser();
+    //    preCreateInjectAdminUser();
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------

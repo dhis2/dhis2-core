@@ -253,6 +253,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
   private DataValue createFileResourceDataValue(char uniqueChar, byte[] content) {
     DataElement fileElement =
         createDataElement(uniqueChar, ValueType.FILE_RESOURCE, AggregationType.NONE);
+
     OrganisationUnit orgUnit = createOrganisationUnit(uniqueChar);
 
     dataElementService.addDataElement(fileElement);

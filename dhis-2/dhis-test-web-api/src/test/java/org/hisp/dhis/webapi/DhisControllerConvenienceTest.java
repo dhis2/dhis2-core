@@ -28,12 +28,16 @@
 package org.hisp.dhis.webapi;
 
 import java.util.Collections;
+import java.util.Date;
 import org.hisp.dhis.IntegrationH2Test;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.config.ConfigProviderConfiguration;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,10 +73,16 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
 
   @Autowired protected DbmsManager dbmsManager;
 
+  private User adminUser;
+
   @BeforeEach
   final void setup() throws Exception {
     userService = _userService;
     clearSecurityContext();
+
+    this.adminUser = XpreCreateInjectAdminUserWithoutPersistence();
+    manager.persist(adminUser);
+    XinjectSecurityContextUser(adminUser);
 
     superUser = createAndAddAdminUser("ALL");
 
@@ -87,10 +97,55 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
     dbmsManager.clearSession();
   }
 
+  public User getAdminUser() {
+    return adminUser;
+  }
+
   protected void switchToUserWithOrgUnitDataView(String userName, String orgUnitId) {
     User user = makeUser(userName, Collections.singletonList("ALL"));
     user.getDataViewOrganisationUnits().add(manager.get(OrganisationUnit.class, orgUnitId));
     userService.addUser(user);
     switchContextToUser(user);
+  }
+
+  protected void XinjectSecurityContextUser(User user) {
+    if (user == null) {
+      clearSecurityContext();
+      return;
+    }
+    hibernateService.flushSession();
+    User user1 = manager.find(User.class, user.getId());
+    //    user = userService.getUser(user.getUid());
+    injectSecurityContext(UserDetails.fromUser(user1));
+  }
+
+  protected User XpreCreateInjectAdminUserWithoutPersistence() {
+    UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
+    role.setUid(CodeGenerator.generateUid());
+
+    manager.persist(role);
+
+    User user = new User();
+    user.setUid(CodeGenerator.generateUid());
+    user.setFirstName("Admin");
+    user.setSurname("User");
+    user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
+    user.setPassword(DEFAULT_ADMIN_PASSWORD);
+    user.getUserRoles().add(role);
+    user.setLastUpdated(new Date());
+    user.setCreated(new Date());
+
+    //    UserDetails currentUserDetails = UserDetails.fromUser(user);
+    //
+    //    Authentication authentication =
+    //        new UsernamePasswordAuthenticationToken(
+    //            currentUserDetails, DEFAULT_ADMIN_PASSWORD, List.of(new
+    // SimpleGrantedAuthority("ALL")));
+    //
+    //    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    //    context.setAuthentication(authentication);
+    //    SecurityContextHolder.setContext(context);
+
+    return user;
   }
 }

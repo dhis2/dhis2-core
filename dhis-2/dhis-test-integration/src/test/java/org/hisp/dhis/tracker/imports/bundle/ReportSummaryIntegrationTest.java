@@ -41,6 +41,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -50,12 +51,15 @@ class ReportSummaryIntegrationTest extends TrackerTest {
 
   private User userA;
 
+  @Autowired protected UserService _userService;
+
   @Override
   protected void initTest() throws IOException {
+    userService = _userService;
     setUpMetadata("tracker/simple_metadata.json");
-
+    injectAdminUser();
     userA = userService.getUser("M5zQapPyTZI");
-    injectSecurityContextUser(userA);
+    //    injectSecurityContextUser(userA);
   }
 
   @Test

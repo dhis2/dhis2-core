@@ -278,6 +278,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
   @Test
   void shouldThrowExceptionWhenProgramIsProtectedAndUserNotInCaptureScope() {
     clearSecurityContext();
+    reLoginAdminUser();
     User mockUser = createUserWithAuth("testUser2");
     mockUser.setOrganisationUnits(Set.of(organisationUnit));
     injectSecurityContextUser(mockUser);
@@ -297,6 +298,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
   @Test
   void shouldThrowExceptionWhenProgramIsOpenAndUserNotInSearchScope() {
     clearSecurityContext();
+    reLoginAdminUser();
     User mockUser = createUserWithAuth("testUser2");
     mockUser.setTeiSearchOrganisationUnits(Set.of(organisationUnit));
     injectSecurityContextUser(mockUser);

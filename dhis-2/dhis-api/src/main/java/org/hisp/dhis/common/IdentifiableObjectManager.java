@@ -386,4 +386,8 @@ public interface IdentifiableObjectManager {
 
   @Nonnull
   <T extends IdentifiableObject> List<T> getAllNoAcl(@Nonnull Class<T> type);
+
+  void persist(Object userAdmin);
+
+  User find(Class<User> userClass, long id);
 }

@@ -1027,6 +1027,16 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return store.getAllNoAcl();
   }
 
+  @Override
+  public void persist(Object userAdmin) {
+    entityManager.persist(userAdmin);
+  }
+
+  @Override
+  public User find(Class<User> userClass, long id) {
+    return entityManager.find(userClass, id);
+  }
+
   @Nonnull
   @Override
   @Transactional(readOnly = true)

@@ -55,6 +55,8 @@ import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.jupiter.api.Test;
@@ -211,6 +213,8 @@ class DashboardServiceTest extends TransactionalIntegrationTest {
   void testAddItemContent() {
     dashboardService.saveDashboard(dbA);
     dashboardService.saveDashboard(dbB);
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
     DashboardItem itemA =
         dashboardService.addItemContent(dbA.getUid(), VISUALIZATION, vzA.getUid());
     assertNotNull(itemA);

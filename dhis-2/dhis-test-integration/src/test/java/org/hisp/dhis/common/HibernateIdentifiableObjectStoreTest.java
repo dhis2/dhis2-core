@@ -110,6 +110,7 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest 
     userSharing.put(user2.getUid(), new UserAccess(user2, AccessStringHelper.READ));
     userSharing.put(user3.getUid(), new UserAccess(user3, AccessStringHelper.DEFAULT));
     userSharing.put(user4.getUid(), new UserAccess(user4, AccessStringHelper.DEFAULT));
+
     Map<String, UserGroupAccess> userGroupSharing = new HashMap<>();
     userGroupSharing.put(
         userGroup1.getUid(), new UserGroupAccess(userGroup1, AccessStringHelper.READ_WRITE));
@@ -136,7 +137,9 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest 
     assertEquals(2, dataElement.getSharing().getUserGroups().size());
     assertEquals(4, dataElement.getSharing().getUsers().size());
 
-    DataElement dataElement1 = dataElementStore.getDataElement(dataElement.getUid(), user1);
+    manager.flush();
+    User reloadedUser1 = manager.get(User.class, user1.getId());
+    DataElement dataElement1 = dataElementStore.getDataElement(dataElement.getUid(), reloadedUser1);
     assertNotNull(dataElement1);
     // User2 has access to DEA
     DataElement dataElement2 = dataElementStore.getDataElement(dataElement.getUid(), user2);

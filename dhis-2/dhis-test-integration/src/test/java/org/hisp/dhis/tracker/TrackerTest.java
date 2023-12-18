@@ -46,7 +46,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,7 +60,7 @@ public abstract class TrackerTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private RenderService _renderService;
 
-  @Autowired protected UserService _userService;
+  //  @Autowired protected UserService _userService;
 
   @Autowired private ObjectBundleService objectBundleService;
 
@@ -69,8 +68,8 @@ public abstract class TrackerTest extends SingleSetupIntegrationTestBase {
 
   @Override
   protected void setUpTest() throws IOException {
-    userService = _userService;
-    preCreateInjectAdminUser();
+    //    userService = _userService;
+    //    preCreateInjectAdminUser();
     renderService = _renderService;
     initTest();
   }

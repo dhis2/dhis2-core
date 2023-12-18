@@ -29,7 +29,9 @@ package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.web.WebClientUtils.failOnException;
 
+import javax.persistence.EntityManager;
 import javax.sql.DataSource;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.h2.H2SqlFunction;
 import org.hisp.dhis.user.User;
@@ -72,7 +74,7 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcCont
   @Autowired private UserService _userService;
 
   @Autowired private DataSource dataSource;
-
+  @Autowired EntityManager entityManager;
   protected MockMvc mvc;
 
   protected User superUser;
@@ -80,8 +82,12 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcCont
   @BeforeEach
   final void setup() throws Exception {
     userService = _userService;
-
     clearSecurityContext();
+
+    User randomAdminUser =
+        DhisConvenienceTest.createRandomAdminUserWithEntityManager(entityManager);
+    injectSecurityContextUser(randomAdminUser);
+
     superUser = createAndAddAdminUser("ALL");
 
     mvc =

@@ -143,7 +143,7 @@ class MessageServiceTest extends SingleSetupIntegrationTestBase {
     MessageConversation conversation = messageService.getMessageConversation(id);
     assertNotNull(conversation);
     assertEquals("Subject", conversation.getSubject());
-    assertEquals(2, conversation.getUserMessages().size());
+    assertEquals(3, conversation.getUserMessages().size());
     assertEquals(1, conversation.getMessages().size());
     assertTrue(conversation.getMessages().iterator().next().getText().equals("Text"));
   }

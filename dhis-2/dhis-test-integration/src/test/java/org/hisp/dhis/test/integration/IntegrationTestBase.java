@@ -31,8 +31,11 @@ import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.config.IntegrationBaseConfig;
 import org.hisp.dhis.config.TestContainerPostgresConfig;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -43,11 +46,23 @@ import org.springframework.test.context.ContextConfiguration;
 @IntegrationTest
 @ActiveProfiles(profiles = {"test-postgres"})
 public abstract class IntegrationTestBase extends BaseSpringTest {
+
+  @Autowired private UserService _userService;
+
+  private User adminUser;
+
   @BeforeEach
   public final void before() throws Exception {
     bindSession();
 
-    integrationTestBefore();
+    userService = _userService;
+    adminUser = preCreateInjectAdminUser();
+
+    integrationTestBeforeEach();
+  }
+
+  public User getAdminUser() {
+    return adminUser;
   }
 
   @AfterEach

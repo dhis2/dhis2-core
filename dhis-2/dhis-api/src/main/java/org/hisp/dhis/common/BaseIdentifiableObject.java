@@ -499,7 +499,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
 
   /** Set auto-generated fields on save or update */
   public void setAutoFields() {
-    if (uid == null || uid.length() == 0) {
+    if (uid == null || uid.isEmpty()) {
       setUid(CodeGenerator.generateUid());
     }
 

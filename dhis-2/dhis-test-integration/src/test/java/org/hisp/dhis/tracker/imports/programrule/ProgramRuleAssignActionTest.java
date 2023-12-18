@@ -54,6 +54,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -72,8 +73,11 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
   private DataElement dataElement1;
 
+  @Autowired protected UserService _userService;
+
   @Override
-  public void initTest() throws IOException {
+  protected void initTest() throws IOException {
+    userService = _userService;
     ObjectBundle bundle = setUpMetadata("tracker/simple_metadata.json");
     program = bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJnf");
     dataElement1 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00001");

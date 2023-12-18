@@ -70,8 +70,7 @@ public interface SharingHibernateGenericStore<T> extends InternalHibernateGeneri
    * @param access access string for checking.
    * @return List of {@link Predicate}
    */
-  List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, UserDetails user, String access);
+  List<Function<Root<T>, Predicate>> getSharingPredicatesXX(CriteriaBuilder builder, String access);
 
   /**
    * Get List of JPA Query Predicates for checking sharing access of current {@link UserDetails}

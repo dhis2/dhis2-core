@@ -131,13 +131,9 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
 
   @BeforeEach
   final void setup() throws Exception {
-    userService = _userService;
-    preCreateInjectAdminUser();
-
-    String adminUsername = CurrentUserUtil.getCurrentUsername();
+    String adminUsername = this.adminUsername;
     User adminUser = userService.getUserByUsername(adminUsername);
     injectSecurityContextUser(adminUser);
-
     this.adminUser = adminUser;
   }
 

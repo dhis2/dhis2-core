@@ -100,8 +100,18 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
 
   private TrackedEntityType trackedEntityType;
 
-  private void setup() {
+  @Override
+  protected void initTest() throws IOException {
     userService = _userService;
+    setUpMetadata("tracker/tracker_basic_metadata.json");
+    injectAdminUser();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            fromJson("tracker/validations/enrollments_te_te-data.json")));
+  }
+
+  private void setup() {
     injectAdminUser();
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
@@ -156,16 +166,6 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     manager.save(femaleA);
     manager.save(femaleB);
     manager.flush();
-  }
-
-  @Override
-  protected void initTest() throws IOException {
-    setUpMetadata("tracker/tracker_basic_metadata.json");
-    injectAdminUser();
-    assertNoErrors(
-        trackerImportService.importTracker(
-            new TrackerImportParams(),
-            fromJson("tracker/validations/enrollments_te_te-data.json")));
   }
 
   @Test

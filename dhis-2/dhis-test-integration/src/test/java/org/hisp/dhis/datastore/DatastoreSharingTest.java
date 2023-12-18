@@ -64,13 +64,15 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
 
   private static final String NAMESPACE = "FOOTBALL";
 
+  @Override
+  protected void setUpTest() throws Exception {
+    userService = _userService;
+  }
+
   @BeforeEach
   final void setup() throws Exception {
-    userService = _userService;
-    preCreateInjectAdminUser();
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    injectSecurityContextUser(currentUser);
+    clearSecurityContext();
+    injectSecurityContextUser(getAdminUser());
   }
 
   @Test
@@ -241,13 +243,16 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
   @Test
   void testGetNamespaceKeys_NoPublicAccess_FullUserGroupAccess()
       throws ConflictException, BadRequestException, JsonProcessingException {
+    UserDetails currentUserDetails1 = CurrentUserUtil.getCurrentUserDetails();
+
     // given
     // 2 existing namespace entries with sharing set a specific user group only & no public access
     User basicUser = createAndAddUser(false, "basicUser", null);
     User userWithUserGroupAccess = createAndAddUser(false, "userWithUserGroupAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(userWithUserGroupAccess));
     userWithUserGroupAccess.getGroups().add(userGroup);
-    injectAdminUser();
+    //    injectAdminUser();
+    reLoginAdminUser();
     _userService.updateUser(userWithUserGroupAccess);
     userGroupService.addUserGroup(userGroup);
     injectSecurityContextUser(basicUser);
@@ -282,13 +287,15 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
   @Test
   void testGetNamespaceKeys_NoPublicAccess_NoUserGroupAccess()
       throws ConflictException, BadRequestException, JsonProcessingException {
+    UserDetails currentUserDetails1 = CurrentUserUtil.getCurrentUserDetails();
     // given
     // 2 existing namespace entries with sharing set to a specific user group only & no public
     // access
     User basicUser = createAndAddUser(false, "basicUser", null);
     User userWithNoAccess = createAndAddUser(false, "userWithNoAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(basicUser));
-    injectAdminUser();
+    //    injectAdminUser();
+    reLoginAdminUser();
     userGroupService.addUserGroup(userGroup);
     injectSecurityContextUser(basicUser);
 
@@ -321,13 +328,15 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
   @Test
   void testGetNamespaceKeys_NoPublicAccess_UserGroupAccessOnOneEntryOnly()
       throws ConflictException, BadRequestException, JsonProcessingException {
+    UserDetails currentUserDetails1 = CurrentUserUtil.getCurrentUserDetails();
     // given
     // 2 existing namespace entries with sharing set to userWithSomeAccess on 1 entry only
     User basicUser = createAndAddUser(false, "basicUser", null);
     User userWithSomeAccess = createAndAddUser(false, "userWithSomeAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(userWithSomeAccess));
     userWithSomeAccess.getGroups().add(userGroup);
-    injectAdminUser();
+    //    injectAdminUser();
+    reLoginAdminUser();
     _userService.updateUser(userWithSomeAccess);
     userGroupService.addUserGroup(userGroup);
     injectSecurityContextUser(basicUser);

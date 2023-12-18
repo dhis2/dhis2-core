@@ -232,6 +232,11 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
     categoryService.addCategoryOption(categoryOptionA);
     categoryService.addCategoryOption(categoryOptionB);
 
+    categoryOptionA.setPublicAccess("--------");
+    categoryOptionB.setPublicAccess("--------");
+    categoryService.updateCategoryOption(categoryOptionA);
+    categoryService.updateCategoryOption(categoryOptionB);
+
     categoryA = createCategory('A', categoryOptionA, categoryOptionB);
 
     categoryService.addCategory(categoryA);
@@ -336,6 +341,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
           categoryOptionB.setEndDate(new DateTime(2020, 6, 30, 0, 0).toDate());
 
           clearSecurityContext();
+          injectSecurityContextUser(getAdminUser());
 
           categoryService.updateCategoryOption(categoryOptionA);
           categoryService.updateCategoryOption(categoryOptionB);
@@ -374,6 +380,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
     dataSetA.setOpenPeriodsAfterCoEndDate(1);
 
     clearSecurityContext();
+    reLoginAdminUser();
     dataSetService.updateDataSet(dataSetA);
 
     injectSecurityContextUser(userA);
@@ -499,7 +506,6 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
     dataApprovalLevelService.addDataApprovalLevel(level1);
 
-    //    Mockito.when(getCurrentUser()).thenReturn(userA);
     injectSecurityContextUser(userA);
 
     assertEquals(

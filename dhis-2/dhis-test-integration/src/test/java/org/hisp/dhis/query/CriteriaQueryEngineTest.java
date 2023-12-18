@@ -87,8 +87,11 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest {
     DataElementGroup dataElementGroupB = createDataElementGroup('B');
     dataElementGroupB.addDataElement(dataElementE);
     dataElementGroupB.addDataElement(dataElementF);
-    identifiableObjectManager.save(dataElementGroupA);
-    identifiableObjectManager.save(dataElementGroupB);
+    identifiableObjectManager.save(dataElementGroupA, false);
+    identifiableObjectManager.save(dataElementGroupB, false);
+
+    //    DataElement de = identifiableObjectManager.get(DataElement.class, "deabcdefghA");
+    //    de.setCategoryCombo(null);
   }
 
   private DataElement addDataElement(char uniqueCharacter, ValueType type, String yearCreated) {
@@ -101,7 +104,8 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest {
     de.setValueType(type);
     de.setName(name);
     de.setCreated(Year.parseYear(yearCreated).getStart());
-    identifiableObjectManager.save(de);
+    de.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    identifiableObjectManager.save(de, false);
     return de;
   }
 
@@ -561,8 +565,8 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest {
     de.setCreatedBy(userB);
     identifiableObjectManager.save(de, false);
     de = identifiableObjectManager.get(DataElement.class, "deabcdefghA");
-    assertEquals(AccessStringHelper.DEFAULT, de.getSharing().getPublicAccess());
     assertEquals(userB.getUid(), de.getSharing().getOwner());
+    assertEquals(AccessStringHelper.DEFAULT, de.getSharing().getPublicAccess());
     Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
     query.setCurrentUserDetails(UserDetails.fromUser(userB));
     injectSecurityContextUser(userB);

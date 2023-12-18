@@ -123,7 +123,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
         .getRelationshipsByTrackedEntity(tei, pagingAndSortingCriteriaAdapter, skipAccessValidation)
         .stream()
         .filter(
-            (r) -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())
+            r -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())
         .map(r -> getRelationship(r, currentUser))
         .filter(Optional::isPresent)
         .map(Optional::get)

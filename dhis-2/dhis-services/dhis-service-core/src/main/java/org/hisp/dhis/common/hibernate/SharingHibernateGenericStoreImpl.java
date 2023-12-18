@@ -65,7 +65,7 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   @Override
   public final List<Function<Root<T>, Predicate>> getSharingPredicates(
       CriteriaBuilder builder, String access) {
-    return getSharingPredicates(builder, CurrentUserUtil.getCurrentUserDetails(), access);
+    return getSharingPredicatesXX(builder, access);
   }
 
   @Override
@@ -78,6 +78,7 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     if (userGroupIds.size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
       // TODO: MAS test with and without current user group info
       log.error("userGroupIds.size()!=currentUserGroupInfo.getUserGroupUIDs().size()");
+      throw new RuntimeException(" NO MACH SIZE user group");
     }
 
     return getDataSharingPredicates(
@@ -85,55 +86,70 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   }
 
   @Override
-  public List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, UserDetails user, String access) {
+  public List<Function<Root<T>, Predicate>> getSharingPredicatesXX(
+      CriteriaBuilder builder, String access) {
 
-    if (!sharingEnabled(user == null || user.isSuper()) || user == null) {
+    UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
+    if (userDetails == null) {
+      throw new IllegalArgumentException("UserDetails is null");
+    }
+
+    if (!sharingEnabled(userDetails)) {
       return new ArrayList<>();
     }
 
-    Set<String> userGroupIds = user.getUserGroupIds();
-    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(user.getUid());
+    Set<String> userGroupIds = userDetails.getUserGroupIds();
 
+    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
     if (userGroupIds.size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
       // TODO: MAS test with and without current user group info
       log.error("userGroupIds.size()!=currentUserGroupInfo.getUserGroupUIDs().size()");
+      throw new RuntimeException(" MAS: NO MACH SIZE user group");
     }
 
     return getSharingPredicates(
-        builder, user.getUid(), currentUserGroupInfo.getUserGroupUIDs(), access);
+        builder, userDetails.getUid(), currentUserGroupInfo.getUserGroupUIDs(), access);
   }
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(CriteriaBuilder builder) {
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    return getSharingPredicates(builder, currentUserDetails, AclService.LIKE_READ_METADATA);
+    // This should be the only method that accepts null UserDetails
+    if (CurrentUserUtil.getCurrentUsername() == null) {
+      return List.of();
+    }
+    return getSharingPredicatesXX(builder, AclService.LIKE_READ_METADATA);
   }
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, UserDetails user) {
-    if (user == null) {
+      CriteriaBuilder builder, UserDetails userDetails) {
+    if (userDetails == null) {
       return List.of();
     }
 
-    if (!sharingEnabled(user.isSuper())) {
+    if (!sharingEnabled(userDetails)) {
       return List.of();
     }
 
     return getSharingPredicates(
-        builder, user.getUid(), user.getUserGroupIds(), AclService.LIKE_READ_METADATA);
+        builder,
+        userDetails.getUid(),
+        userDetails.getUserGroupIds(),
+        AclService.LIKE_READ_METADATA);
   }
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, UserDetails user) {
+      CriteriaBuilder builder, UserDetails userDetails) {
 
-    if (!sharingEnabled(user.isSuper())) {
+    if (!sharingEnabled(userDetails)) {
       return List.of();
     }
 
     return getDataSharingPredicates(
-        builder, user.getUid(), user.getUserGroupIds(), AclService.LIKE_READ_METADATA);
+        builder,
+        userDetails.getUid(),
+        userDetails.getUserGroupIds(),
+        AclService.LIKE_READ_METADATA);
   }
 }

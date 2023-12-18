@@ -54,7 +54,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -72,19 +71,20 @@ class AclServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private AclService aclService;
 
-  @Autowired private UserService _userService;
+  //  @Autowired private UserService _userService;
 
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  @Override
-  protected void setUpTest() throws Exception {
-    userService = _userService;
-  }
+  //  @Override
+  //  protected void setUpTest() throws Exception {
+  //    userService = _userService;
+  //  }
 
   @Test
   void testUpdateObjectWithPublicRWFail() {
+    reLoginAdminUser();
     User user = createAndAddAdminUser("F_OPTIONSET_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
@@ -380,12 +380,14 @@ class AclServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testDataElementSharingPrivateRW() {
+    reLoginAdminUser();
     User user1 = createUserWithAuth("user1A9", "F_DATAELEMENT_PRIVATE_ADD");
     User user2 = createUserWithAuth("user2A9", "F_DATAELEMENT_PRIVATE_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setCreatedBy(user1);
     dataElement.getSharing().setOwner(user1);
-    manager.save(dataElement);
+    dataElement.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.save(dataElement, false);
     assertFalse(aclService.canUpdate(user2, dataElement));
     assertEquals(AccessStringHelper.DEFAULT, dataElement.getPublicAccess());
     UserGroup userGroup = createUserGroup('A', new HashSet<>());
@@ -405,8 +407,9 @@ class AclServiceTest extends TransactionalIntegrationTest {
     User user2 = createUserWithAuth("user22", "F_CATEGORY_OPTION_PRIVATE_ADD");
     CategoryOption categoryOption = createCategoryOption('A');
     categoryOption.setCreatedBy(user1);
+    categoryOption.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     categoryOption.getSharing().setOwner(user1);
-    manager.save(categoryOption);
+    manager.save(categoryOption, false);
     assertFalse(aclService.canUpdate(user2, categoryOption));
     assertEquals(AccessStringHelper.DEFAULT, categoryOption.getPublicAccess());
     UserGroup userGroup = createUserGroup('A', new HashSet<>());
@@ -748,7 +751,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     program.setCreatedBy(user);
     program.getSharing().setOwner(user);
     program.setPublicAccess(AccessStringHelper.DEFAULT);
-    manager.save(program);
+    manager.save(program, false);
     Access access = aclService.getAccess(program, user);
     assertTrue(access.isRead());
     assertTrue(access.isWrite());
@@ -980,7 +983,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
     visualization.setType(VisualizationType.COLUMN);
     assertTrue(aclService.canUpdate(userA, visualization));
-    manager.save(visualization);
+    manager.save(visualization, false);
     UserRole userRole = new UserRole();
     userRole.setAutoFields();
     userRole.setName("UR");
@@ -1009,7 +1012,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     eventVisualization.setType(EventVisualizationType.COLUMN);
     eventVisualization.setProgram(program);
     assertTrue(aclService.canUpdate(userA, eventVisualization));
-    manager.save(eventVisualization);
+    manager.save(eventVisualization, false);
     // Then
     UserRole userRole = new UserRole();
     userRole.setAutoFields();
@@ -1035,7 +1038,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
     visualization.setType(VisualizationType.COLUMN);
     assertTrue(aclService.canUpdate(userA, visualization));
-    manager.save(visualization);
+    manager.save(visualization, false);
     User userB = makeUser("B");
     manager.save(userB);
     visualization.getSharing().addUserAccess(new UserAccess(userB, AccessStringHelper.FULL));
@@ -1059,7 +1062,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     eventVisualization.setType(EventVisualizationType.COLUMN);
     eventVisualization.setProgram(program);
     assertTrue(aclService.canUpdate(userA, eventVisualization));
-    manager.save(eventVisualization);
+    manager.save(eventVisualization, false);
     // Then
     User userB = makeUser("B");
     manager.save(userB);
@@ -1160,7 +1163,8 @@ class AclServiceTest extends TransactionalIntegrationTest {
     CategoryOption categoryOption = createCategoryOption('A');
     categoryOption.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     categoryOption.getSharing().setOwner(admin);
-    manager.save(categoryOption);
+    manager.save(categoryOption, false);
+
     User userA = makeUser("A");
     manager.save(userA);
 

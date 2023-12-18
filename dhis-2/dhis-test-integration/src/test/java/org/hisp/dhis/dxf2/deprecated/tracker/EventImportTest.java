@@ -159,7 +159,8 @@ class EventImportTest extends TransactionalIntegrationTest {
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
-    superUser = preCreateInjectAdminUser();
+    //    superUser = preCreateInjectAdminUser();
+    superUser = userService.getUserByUsername("admin_test");
     injectSecurityContextUser(superUser);
 
     organisationUnitA = createOrganisationUnit('A');

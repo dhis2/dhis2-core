@@ -202,8 +202,8 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest {
   // -------------------------------------------------------------------------
   @Override
   public void setUpTest() throws Exception {
-    userService = _userService;
-    preCreateInjectAdminUser();
+    //    userService = _userService;
+    //    preCreateInjectAdminUser();
 
     // ---------------------------------------------------------------------
     // Add supporting data

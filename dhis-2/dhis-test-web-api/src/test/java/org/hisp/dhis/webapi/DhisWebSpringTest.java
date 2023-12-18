@@ -33,6 +33,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 
+import javax.persistence.EntityManager;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -81,14 +82,21 @@ public abstract class DhisWebSpringTest extends DhisConvenienceTest {
 
   @Autowired protected UserService _userService;
 
+  @Autowired EntityManager entityManager;
+
   protected MockMvc mvc;
 
   @Autowired protected SchemaService schemaService;
+
+  private User adminUser;
 
   @BeforeEach
   public void setup(RestDocumentationContextProvider restDocumentation) throws Exception {
     userService = _userService;
     clearSecurityContext();
+
+    this.adminUser = DhisConvenienceTest.createRandomAdminUserWithEntityManager(entityManager);
+    injectSecurityContextUser(this.adminUser);
 
     User all = createAndAddAdminUser("ALL");
     injectSecurityContextUser(all);
@@ -104,6 +112,14 @@ public abstract class DhisWebSpringTest extends DhisConvenienceTest {
     TestUtils.executeStartupRoutines(webApplicationContext);
 
     setUpTest();
+  }
+
+  public User getAdminUser() {
+    return adminUser;
+  }
+
+  public void reLoginAdminUser() {
+    injectSecurityContextUser(adminUser);
   }
 
   protected void setUpTest() throws Exception {}

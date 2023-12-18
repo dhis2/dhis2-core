@@ -57,6 +57,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -66,12 +67,13 @@ class IconTest extends TrackerTest {
   @Autowired private FileResourceService fileResourceService;
 
   @Autowired private IconService iconService;
-
+  @Autowired protected UserService _userService;
   private final String[] keywords = {"k1", "k2", "k3"};
 
   @SneakyThrows
   @Override
   protected void initTest() throws IOException {
+    userService = _userService;
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     User currentUser = userService.getUserByUsername(currentUsername);
     injectSecurityContextUser(currentUser);

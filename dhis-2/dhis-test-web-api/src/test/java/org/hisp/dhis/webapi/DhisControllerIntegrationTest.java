@@ -28,15 +28,20 @@
 package org.hisp.dhis.webapi;
 
 import java.time.Duration;
+import java.util.Date;
 import java.util.function.BooleanSupplier;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.config.TestContainerPostgresConfig;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,6 +90,10 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     userService = _userService;
     clearSecurityContext();
 
+    User userAdmin = XpreCreateInjectAdminUserWithoutPersistence();
+    manager.persist(userAdmin);
+    XinjectSecurityContextUser(userAdmin);
+
     superUser = createAndAddAdminUser("ALL");
 
     mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
@@ -104,6 +113,47 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     //
     //    dbmsManager.flushSession();
     //    dbmsManager.clearSession();
+  }
+
+  protected void XinjectSecurityContextUser(User user) {
+    if (user == null) {
+      clearSecurityContext();
+      return;
+    }
+    hibernateService.flushSession();
+    User user1 = manager.find(User.class, user.getId());
+    //    user = userService.getUser(user.getUid());
+    injectSecurityContext(UserDetails.fromUser(user1));
+  }
+
+  protected User XpreCreateInjectAdminUserWithoutPersistence() {
+    UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
+    role.setUid(CodeGenerator.generateUid());
+
+    manager.persist(role);
+
+    User user = new User();
+    user.setUid(CodeGenerator.generateUid());
+    user.setFirstName("Admin");
+    user.setSurname("User");
+    user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
+    user.setPassword(DEFAULT_ADMIN_PASSWORD);
+    user.getUserRoles().add(role);
+    user.setLastUpdated(new Date());
+    user.setCreated(new Date());
+
+    //    UserDetails currentUserDetails = UserDetails.fromUser(user);
+    //
+    //    Authentication authentication =
+    //        new UsernamePasswordAuthenticationToken(
+    //            currentUserDetails, DEFAULT_ADMIN_PASSWORD, List.of(new
+    // SimpleGrantedAuthority("ALL")));
+    //
+    //    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    //    context.setAuthentication(authentication);
+    //    SecurityContextHolder.setContext(context);
+
+    return user;
   }
 
   protected void integrationTestBefore() throws Exception {

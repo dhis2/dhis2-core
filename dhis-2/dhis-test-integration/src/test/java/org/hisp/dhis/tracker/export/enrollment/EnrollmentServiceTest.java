@@ -124,8 +124,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Override
   protected void setUpTest() throws Exception {
-    userService = _userService;
-    admin = preCreateInjectAdminUser();
+    //    userService = _userService;
+    //    admin = preCreateInjectAdminUser();
+    admin = getAdminUser();
 
     orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);

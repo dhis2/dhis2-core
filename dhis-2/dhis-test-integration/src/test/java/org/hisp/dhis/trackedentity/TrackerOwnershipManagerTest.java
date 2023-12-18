@@ -74,8 +74,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   @Override
   protected void setUpTest() throws Exception {
-    userService = _userService;
-    preCreateInjectAdminUser();
+    //    userService = _userService;
+    //    preCreateInjectAdminUser();
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnitA);

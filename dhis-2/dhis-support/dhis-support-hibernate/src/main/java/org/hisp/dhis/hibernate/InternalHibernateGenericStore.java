@@ -63,8 +63,8 @@ public interface InternalHibernateGenericStore<T> extends GenericStore<T> {
    * @param access access string for checking.
    * @return List of {@link Predicate}
    */
-  List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, UserDetails userDetails, String access);
+  //  List<Function<Root<T>, Predicate>> getSharingPredicates(
+  //      CriteriaBuilder builder, UserDetails userDetails, String access);
 
   /**
    * Get List of JPA Query Predicates for checking AclService.LIKE_READ_DATA sharing access of

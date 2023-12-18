@@ -28,9 +28,12 @@
 package org.hisp.dhis.test.integration;
 
 import org.hisp.dhis.BaseSpringTest;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.config.IntegrationBaseConfig;
 import org.hisp.dhis.config.TestContainerPostgresConfig;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
@@ -50,11 +53,42 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
 public abstract class SingleSetupIntegrationTestBase extends BaseSpringTest {
+
+  public String adminUsername;
+  private UserDetails adminUserDetails;
+  private User adminUser;
+
   @BeforeAll
   public final void before() throws Exception {
     bindSession();
 
-    integrationTestBefore();
+    User userAdmin = DhisConvenienceTest.createRandomAdminUserWithEntityManager(entityManager);
+    adminUsername = userAdmin.getUsername();
+
+    XinjectSecurityContextUser(userAdmin);
+
+    integrationTestBeforeEach();
+  }
+
+  protected void reLoginAdminUser() {
+    injectSecurityContext(this.adminUserDetails);
+  }
+
+  public User getAdminUser() {
+    return adminUser;
+  }
+
+  protected void XinjectSecurityContextUser(User user) {
+    if (user == null) {
+      clearSecurityContext();
+      return;
+    }
+    hibernateService.flushSession();
+    User user1 = entityManager.find(User.class, user.getId());
+    this.adminUser = user1;
+    UserDetails currentUserDetails = UserDetails.fromUser(user1);
+    this.adminUserDetails = currentUserDetails;
+    injectSecurityContext(currentUserDetails);
   }
 
   @AfterAll

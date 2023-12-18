@@ -32,17 +32,15 @@ import static org.hisp.dhis.web.WebClient.ApiTokenHeader;
 import static org.hisp.dhis.web.WebClient.Header;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.TokenWrapper;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerWithApiTokenAuthTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
@@ -127,22 +125,19 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
 
     hibernateService.flushSession();
 
-    List<CategoryOption> allCategoryOptions = internalCategoryService.getAllCategoryOptions();
-    List<CategoryCombo> allCategoryCombos = internalCategoryService.getAllCategoryCombos();
-    List<CategoryOptionCombo> allCategoryOptionCombos =
-        internalCategoryService.getAllCategoryOptionCombos();
-
-    List<ApiToken> all = apiTokenService.getAll();
-
-    ApiToken fetchedToken = apiTokenService.getByUid(token.getUid());
-    fetchedToken.addIpToAllowedList("192.168.2.1");
+    token.addIpToAllowedList("192.168.2.1");
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     apiTokenService.update(token);
 
     String errorMessage =
         GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage();
     assertEquals(
         "Failed to authenticate API token, request ip address is not allowed.", errorMessage);
+
     token.addIpToAllowedList("127.0.0.1");
+
+    injectSecurityContextUser(getAdminUser());
+    UserDetails currentUserDetails2 = CurrentUserUtil.getCurrentUserDetails();
     apiTokenService.update(token);
 
     JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
@@ -162,6 +157,8 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
         "Failed to authenticate API token, request http method is not allowed.",
         GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
     token.addMethodToAllowedList("GET");
+
+    injectSecurityContextUser(getAdminUser());
     apiTokenService.update(token);
 
     JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
@@ -181,6 +178,8 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
         "Failed to authenticate API token, request http referrer is missing or not allowed.",
         GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
     token.addReferrerToAllowedList("https://two.io");
+
+    injectSecurityContextUser(getAdminUser());
     apiTokenService.update(token);
 
     JsonUser user =

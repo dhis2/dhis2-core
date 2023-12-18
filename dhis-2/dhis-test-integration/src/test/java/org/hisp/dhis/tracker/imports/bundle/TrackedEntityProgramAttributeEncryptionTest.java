@@ -41,6 +41,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -59,9 +60,12 @@ class TrackedEntityProgramAttributeEncryptionTest extends TrackerTest {
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
+  @Autowired protected UserService _userService;
+
   @Override
   protected void initTest() throws IOException {
-    setUpMetadata("tracker/te_program_with_tea_encryption_metadata.json");
+    this.userService = _userService;
+    setUpMetadata("tracker/te_program_with_tea_encryption_metadata.json", getAdminUser());
     injectAdminUser();
   }
 

@@ -118,7 +118,7 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
   @Override
   public void setUpTest() throws Exception {
     userService = _userService;
-    preCreateInjectAdminUser();
+    //    preCreateInjectAdminUser();
 
     periodType = new MonthlyPeriodType();
     period = createPeriod(periodType, getDate(2000, 3, 1), getDate(2000, 3, 31));

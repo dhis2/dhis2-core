@@ -41,8 +41,8 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -140,10 +140,21 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
   public DataElement getDataElement(String uid, User user) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
-    UserDetails currentUserDetails = UserDetails.fromUser(user);
+    // Need to refetch here since the user might have been updated, and tests transactional
+    // semantics might not have committed yet.
+    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(user.getUid());
+
+    //    if (user.getGroups().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+    //      // TODO: MAS test with and without current user group info
+    //      throw new RuntimeException(" MAS: NO MACH SIZE user group");
+    //    }
 
     List<Function<Root<DataElement>, Predicate>> sharingPredicates =
-        getSharingPredicates(builder, currentUserDetails, AclService.LIKE_READ_METADATA);
+        getSharingPredicates(
+            builder,
+            user.getUid(),
+            currentUserGroupInfo.getUserGroupUIDs(),
+            AclService.LIKE_READ_METADATA);
 
     JpaQueryParameters<DataElement> param =
         new JpaQueryParameters<DataElement>()
