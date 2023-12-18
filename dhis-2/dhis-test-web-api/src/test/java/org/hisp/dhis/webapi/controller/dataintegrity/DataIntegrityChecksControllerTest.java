@@ -66,6 +66,15 @@ class DataIntegrityChecksControllerTest extends AbstractDataIntegrityIntegration
   }
 
   @Test
+  void testFilterBogusCheck() {
+    JsonList<JsonDataIntegrityCheck> checks =
+        GET("/dataIntegrity?checks=this_check_does_not_exist")
+            .content()
+            .asList(JsonDataIntegrityCheck.class);
+    assertTrue(checks.isEmpty());
+  }
+
+  @Test
   void testGetAvailableChecksNamesAreUnique() {
     JsonList<JsonDataIntegrityCheck> checks =
         GET("/dataIntegrity").content().asList(JsonDataIntegrityCheck.class);

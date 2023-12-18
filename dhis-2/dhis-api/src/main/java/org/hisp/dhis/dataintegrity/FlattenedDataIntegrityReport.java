@@ -127,8 +127,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
     this.dataSetsNotAssignedToOrganisationUnits =
         listOfDisplayNameOrUid(detailsByName.get("datasets_not_assigned_to_org_units"));
     this.indicatorsWithoutGroups =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.INDICATORS_WITHOUT_GROUPS.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("indicators_not_grouped"));
     this.duplicatePeriods =
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.PERIODS_DUPLICATES.getName()));
