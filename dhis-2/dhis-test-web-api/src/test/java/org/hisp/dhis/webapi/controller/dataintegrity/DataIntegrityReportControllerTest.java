@@ -474,6 +474,30 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     assertEquals(List.of("Test rule 2"), results);
   }
 
+  @Test
+  void testProgramRulesWithoutCondition() {
+    String program =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs",
+                "{'name':'Test program', 'shortName': 'Test program', 'programType': 'WITHOUT_REGISTRATION'}"));
+    String programRule1 =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programRules",
+                "{'name':'Test rule 1', 'description':'Test rule 1', 'program': {'id': '"
+                    + program
+                    + "'}}"));
+
+    Map<String, List<String>> results =
+        getDataIntegrityReport()
+            .getProgramRulesWithNoCondition()
+            .toMap(JsonString::string, String::compareTo);
+    assertEquals(Map.of("Test rule 1", List.of("Test program:" + program)), results);
+  }
+
   private JsonDataIntegrityReport getDataIntegrityReport() {
     return getDataIntegrityReport("/dataIntegrity");
   }

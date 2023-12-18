@@ -198,8 +198,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
             detailsByName.get(
                 DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS.getName()));
     this.programRulesWithNoCondition =
-        mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_CONDITION.getName()));
+        mapOfRefsByDisplayNameOrUid(detailsByName.get("program_rules_without_condition"));
     this.programRulesWithNoPriority =
         mapOfRefsByDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_PRIORITY.getName()));

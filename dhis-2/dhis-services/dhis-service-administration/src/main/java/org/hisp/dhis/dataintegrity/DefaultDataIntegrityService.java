@@ -542,11 +542,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION,
         ProgramIndicator.class,
         this::getProgramIndicatorsWithNoExpression);
-
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_CONDITION,
-        Program.class,
-        this::getProgramRulesWithNoCondition);
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_PRIORITY,
         Program.class,
@@ -596,6 +591,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("periods_same_start_date_period_type");
     checks.add("orgunits_orphaned");
     checks.add("validation_rules_without_groups");
+    checks.add("program_rules_without_condition");
     return checks;
   }
 
