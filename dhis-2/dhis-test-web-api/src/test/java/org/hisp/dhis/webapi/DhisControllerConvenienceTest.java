@@ -126,9 +126,10 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
     manager.persist(role);
 
     User user = new User();
-    user.setUid(CodeGenerator.generateUid());
-    user.setFirstName("Admin");
-    user.setSurname("User");
+    String uid = CodeGenerator.generateUid();
+    user.setUid(uid);
+    user.setFirstName("Firstname_" + uid);
+    user.setSurname("Surname_" + uid);
     user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
     user.getUserRoles().add(role);

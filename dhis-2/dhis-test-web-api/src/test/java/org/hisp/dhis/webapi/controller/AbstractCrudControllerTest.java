@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.web.HttpStatus.Series.SUCCESSFUL;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClient.ContentType;
@@ -99,7 +100,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
     // response will look like: { "surname": <name> }
     JsonUser userProperty =
         GET("/users/{id}/surname", run(SomeUserId::new)).content(HttpStatus.OK).as(JsonUser.class);
-    assertEquals("Surnameadmin", userProperty.getSurname());
+    assertStartsWith("Surname_", userProperty.getSurname());
     assertEquals(1, userProperty.size());
   }
 
