@@ -94,6 +94,7 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.staxwax.XMLException;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
 import org.hisp.staxwax.writer.XMLWriter;
@@ -426,6 +427,7 @@ public class DefaultAdxDataService implements AdxDataService {
       log.warn("Import failed: " + DebugUtils.getStackTrace(ex));
     } catch (IOException
         | XMLStreamException
+        | XMLException
         | InterruptedException
         | ExecutionException
         | TimeoutException ex) {
