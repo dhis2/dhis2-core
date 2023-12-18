@@ -25,8 +25,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  name: program_rules_no_expression
-  description: Program rules with no expression.
+  name: program_rules_without_condition
+  description: Program rules without a defined rule condition.
   section: Program rules
   section_order: 2
   summary_sql: >-
@@ -36,14 +36,20 @@
     100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM programrule), 0) as percent
     FROM program_rules_no_expression;
   details_sql: >-
-    SELECT uid,name from programrule where rulecondition IS NULL;
+    SELECT a.uid,a.name,NULL AS comment,
+    array_agg(COALESCE(b.name,'NULL') || ':' || COALESCE(b.uid,'NULL')) as refs  
+      from programrule a
+    LEFT OUTER JOIN program  b on a.programid = b.programid
+      where a.rulecondition IS NULL
+      GROUP BY a.uid,a.name;
   severity: WARNING
   introduction: >
-    All program rules should have an expression. Expressions are used by program rules
+    All program rules should have an expression defined in the rule condition. Expressions are used by program rules
     to determine when they should be triggered. Program rules with no expression have 
     no purpose.
   details_id_type: programRules
   recommendation: >
     Using the DHIS2 user interface, assign an expression to each of the program rules
     which is missing one. Otherwise, if it is safe to delete the program rule with 
-    no expression, it is recommended to remove it. 
+    no expression, it is recommended to remove it.
+

@@ -77,9 +77,10 @@ class DataIntegrityProgramRulesControllerTest extends AbstractDataIntegrityInteg
         programRuleA.getName(),
         null,
         true);
+
     assertHasDataIntegrityIssues(
         detailsIdType,
-        "program_rules_no_expression",
+        "program_rules_without_condition",
         100,
         programRuleA.getUid(),
         programRuleA.getName(),
@@ -90,7 +91,7 @@ class DataIntegrityProgramRulesControllerTest extends AbstractDataIntegrityInteg
   @Test
   void testProgramRuleChecksRun() {
     assertHasNoDataIntegrityIssues(detailsIdType, "program_rules_no_action", false);
-    assertHasNoDataIntegrityIssues(detailsIdType, "program_rules_no_expression", false);
+    assertHasNoDataIntegrityIssues(detailsIdType, "program_rules_without_condition", false);
     assertHasNoDataIntegrityIssues(detailsIdType, "program_rules_message_no_template", false);
   }
 
