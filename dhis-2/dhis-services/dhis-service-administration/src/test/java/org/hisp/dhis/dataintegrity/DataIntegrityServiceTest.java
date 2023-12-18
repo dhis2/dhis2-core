@@ -360,13 +360,6 @@ class DataIntegrityServiceTest {
   }
 
   @Test
-  void testGetOrphanedOrganisationUnits() {
-    subject.getOrphanedOrganisationUnits();
-    verify(organisationUnitService).getOrphanedOrganisationUnits();
-    verifyNoMoreInteractions(organisationUnitService);
-  }
-
-  @Test
   void testGetProgramRulesWithNoExpression() {
     programRuleB.setCondition(null);
     when(programRuleService.getProgramRulesWithNoCondition()).thenReturn(List.of(programRuleB));
