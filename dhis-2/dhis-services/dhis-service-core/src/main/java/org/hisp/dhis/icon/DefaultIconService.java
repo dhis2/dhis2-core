@@ -90,7 +90,7 @@ public class DefaultIconService implements IconService {
   }
 
   @Override
-  public List<? extends Icon> getIcons(IconCriteria iconCriteria) {
+  public List<? extends Icon> getIconsByType(IconCriteria iconCriteria) {
 
     if (IconType.CUSTOM.equals(iconCriteria.getType())) {
       return iconCriteria.getKeywords() == null

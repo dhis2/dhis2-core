@@ -52,7 +52,13 @@ public interface IconService {
    */
   List<Icon> getIcons(String[] keywords);
 
-  List<? extends Icon> getIcons(IconCriteria iconCriteria);
+  /**
+   * Gets data about all the icons selected based on the given criteria
+   *
+   * @param iconCriteria IconCriteria contain IconType and Keywords
+   * @return a collection of matching icons
+   */
+  List<? extends Icon> getIconsByType(IconCriteria iconCriteria);
 
   /**
    * Gets the icon associated to a key, if it exists

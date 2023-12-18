@@ -154,7 +154,7 @@ public class IconController {
 
     List<? extends Icon> icons;
 
-    icons = iconService.getIcons(iconCriteria);
+    icons = iconService.getIconsByType(iconCriteria);
 
     return icons.stream().map(iconMapper::from).toList();
   }
