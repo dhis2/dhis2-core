@@ -29,11 +29,11 @@ package org.hisp.dhis.visualization;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.Serializable;
 import lombok.Data;
-import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /** Class responsible for keeping the settings related to outlier analysis in Visualization. */
 @Data
@@ -60,6 +60,19 @@ public class OutlierAnalysis implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
-  @PropertyRange(min = 1, max = 500)
   private Integer maxResults;
+
+  /**
+   * Checks basic rules o ensure this object is valid. The usual validation annotations do not work
+   * for this object because this is used as a Json/nested object. This kind of object does not
+   * trigger the usual validation through @PropertyRange.
+   *
+   * @return true if this object is valid, false otherwise.
+   */
+  @JsonIgnore
+  public boolean isValid() {
+    int min = 1;
+    int max = 500;
+    return maxResults != null && (maxResults >= min && maxResults <= max);
+  }
 }

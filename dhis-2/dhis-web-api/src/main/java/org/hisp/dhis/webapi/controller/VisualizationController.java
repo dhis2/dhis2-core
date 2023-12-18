@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.hisp.dhis.feedback.ErrorCode.E7146;
 import static org.hisp.dhis.schema.descriptors.VisualizationSchemaDescriptor.API_ENDPOINT;
 
 import java.io.IOException;
@@ -41,6 +42,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -82,9 +84,18 @@ public class VisualizationController extends AbstractCrudController<Visualizatio
   protected Visualization deserializeJsonEntity(HttpServletRequest request) throws IOException {
     Visualization visualization = super.deserializeJsonEntity(request);
 
+    validate(visualization);
     addDimensionsInto(visualization);
 
     return visualization;
+  }
+
+  private void validate(Visualization visualization) {
+    if (visualization != null
+        && visualization.getOutlierAnalysis() != null
+        && !visualization.getOutlierAnalysis().isValid()) {
+      throw new IllegalQueryException(E7146);
+    }
   }
 
   private void addDimensionsInto(Visualization visualization) {

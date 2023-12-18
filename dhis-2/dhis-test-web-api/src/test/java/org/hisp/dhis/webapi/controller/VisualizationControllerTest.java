@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.web.HttpStatus.CONFLICT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.JsonList;
@@ -54,5 +55,40 @@ class VisualizationControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonObject> visualizations = response.getList("visualizations", JsonObject.class);
     assertEquals(1, visualizations.size());
     assertEquals(1, visualizations.get(0).getList("filters", JsonObject.class).size());
+  }
+
+  @Test
+  void testPostForInvalidOutlierMaxResults() {
+    // Given
+    Integer invalidRange = 501;
+    String body =
+        """
+            {
+                "name": "Test Visualization",
+                "type": "LINE",
+                "program": {
+                    "id": "IpHINAT79UW"
+                },
+                "outlierAnalysis": {
+                    "enabled": true,
+                    "outlierMethod": "MODIFIED_Z_SCORE",
+                    "thresholdFactor": 3,
+                    "extremeLines": {
+                        "enabled": false,
+                        "value": 1
+                    },
+                    "maxResults": ${invalidRange}
+                }
+            }
+        """
+            .replace("${invalidRange}", invalidRange.toString());
+
+    // When
+    HttpResponse response = POST("/visualizations/", body);
+
+    // Then
+    assertEquals(
+        "Property 'maxResults' is out range. Allowed range: [1..500]",
+        response.error(CONFLICT).getMessage());
   }
 }
