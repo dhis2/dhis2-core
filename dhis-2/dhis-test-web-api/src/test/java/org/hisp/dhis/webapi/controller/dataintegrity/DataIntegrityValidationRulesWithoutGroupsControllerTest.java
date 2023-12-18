@@ -80,13 +80,13 @@ class DataIntegrityValidationRulesWithoutGroupsControllerTest
                     + "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test2',"
                     + "'expression':'#{FTRrcoaog83.sqGRzCziswD}'},'periodType':'Monthly','name':'Test rule'}"));
 
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/validationRuleGroups",
-                "{'name':'Test group', 'description':'Test group', 'validationRules': [{'id': '"
-                    + validationRule1
-                    + "'}]}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/validationRuleGroups",
+            "{'name':'Test group', 'description':'Test group', 'validationRules': [{'id': '"
+                + validationRule1
+                + "'}]}"));
 
     assertHasNoDataIntegrityIssues("validationRules", check, true);
   }

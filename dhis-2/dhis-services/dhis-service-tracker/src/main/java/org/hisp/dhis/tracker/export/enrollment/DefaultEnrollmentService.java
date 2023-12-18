@@ -84,22 +84,20 @@ class DefaultEnrollmentService
       throw new NotFoundException(Enrollment.class, uid);
     }
 
-    return getEnrollment(enrollment, params, includeDeleted, null);
-  }
-
-  @Override
-  public Enrollment getEnrollment(
-      @Nonnull Enrollment enrollment,
-      EnrollmentParams params,
-      boolean includeDeleted,
-      OrganisationUnitSelectionMode orgUnitMode)
-      throws ForbiddenException {
     User user = currentUserService.getCurrentUser();
-    List<String> errors = trackerAccessManager.canRead(user, enrollment, orgUnitMode == ALL);
+    List<String> errors = trackerAccessManager.canRead(user, enrollment, false);
 
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
     }
+
+    return getEnrollment(enrollment, params, includeDeleted, user);
+  }
+
+  @Override
+  public Enrollment getEnrollment(
+      @Nonnull Enrollment enrollment, EnrollmentParams params, boolean includeDeleted, User user)
+      throws ForbiddenException {
 
     Enrollment result = new Enrollment();
     result.setId(enrollment.getId());
@@ -228,8 +226,9 @@ class DefaultEnrollmentService
       if (enrollment != null
           && (orgUnitMode == ALL
               || trackerOwnershipAccessManager.hasAccess(
-                  user, enrollment.getTrackedEntity(), enrollment.getProgram()))) {
-        enrollmentList.add(getEnrollment(enrollment, params, includeDeleted, orgUnitMode));
+                  user, enrollment.getTrackedEntity(), enrollment.getProgram()))
+          && trackerAccessManager.canRead(user, enrollment, orgUnitMode == ALL).isEmpty()) {
+        enrollmentList.add(getEnrollment(enrollment, params, includeDeleted, user));
       }
     }
 
