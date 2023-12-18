@@ -76,7 +76,7 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
       List<AnalyticsSortingParams> acceptedSortingParams) {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-    // select fields are the union of headers, dimensions and sorting params
+    // Select fields are the union of headers, dimensions and sorting params
     streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
         .map(
             dimensionIdentifier ->
@@ -89,7 +89,7 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
                     dimensionIdentifier.toString()))
         .forEach(builder::selectField);
 
-    // groupable conditions comes from dimensions
+    // Groupable conditions comes from dimensions
     acceptedDimensions.stream()
         .filter(SqlQueryBuilders::hasRestrictions)
         .map(
@@ -98,7 +98,7 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
                     dimId.getGroupId(), DataElementCondition.of(queryContext, dimId)))
         .forEach(builder::groupableCondition);
 
-    // order clause comes from sorting params
+    // Order clause comes from sorting params
     acceptedSortingParams.forEach(
         analyticsSortingParams ->
             builder.orderClause(

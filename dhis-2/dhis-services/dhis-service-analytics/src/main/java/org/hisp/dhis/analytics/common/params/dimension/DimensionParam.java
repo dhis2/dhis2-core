@@ -283,7 +283,7 @@ public class DimensionParam implements UidObject {
       this.valueType = valueType;
 
       // By default, columnName is its own "name" in lowercase.
-      this.columnName = normalizeName(name());
+      this.columnName = normalizedName();
 
       this.dimensionParamObjectType = dimensionParamObjectType;
 
@@ -314,11 +314,7 @@ public class DimensionParam implements UidObject {
     }
 
     public String normalizedName() {
-      return normalizeName(name());
-    }
-
-    public static String normalizeName(String name) {
-      return name.toLowerCase().replace("_", "");
+      return name().toLowerCase().replace("_", "");
     }
 
     public static Optional<StaticDimension> of(String value) {

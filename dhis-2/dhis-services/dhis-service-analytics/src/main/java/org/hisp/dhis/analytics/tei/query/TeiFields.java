@@ -190,8 +190,8 @@ public class TeiFields {
   }
 
   /**
-   * Checks if the given {@link DimensionIdentifier} is eligible to be added as a header. it is
-   * eligible if it is a static dimension and it is either an event or enrollment dimension. and it
+   * Checks if the given {@link DimensionIdentifier} is eligible to be added as a header. It is
+   * eligible if it is a static dimension and it is either an event or enrollment dimension, and it
    * is not a TEI static field (which is already added to the grid headers).
    *
    * @param parsedHeader the {@link DimensionIdentifier}.
