@@ -636,8 +636,12 @@ public class DefaultDataValueSetService
       dvBatch.flush();
       dvaBatch.flush();
       log.error(DebugUtils.getStackTrace(ex));
-      notifier.notify(id, ERROR, "Process failed: " + ex.getMessage(), true);
-      return new ImportSummary(ImportStatus.ERROR, "The import process failed: " + ex.getMessage());
+      ImportSummary summary =
+          new ImportSummary(ImportStatus.ERROR, "The import process failed: " + ex.getMessage());
+      notifier
+          .notify(id, ERROR, "Process failed: " + ex.getMessage(), true)
+          .addJobSummary(id, summary, ImportSummary.class);
+      return summary;
     }
   }
 
