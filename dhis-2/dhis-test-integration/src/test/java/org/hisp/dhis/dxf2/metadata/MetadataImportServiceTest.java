@@ -215,7 +215,6 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
     // Check sharing data
     IdentifiableObject savedDashboard = manager.get(Dashboard.class, dashboard.getUid());
     savedDashboard.getSharing().setPublicAccess(null);
-    // TODO: MAS: Viet how can we adjust this without overriding public access
     boolean canWrite = aclService.canWrite(userA, savedDashboard);
     assertFalse(canWrite);
     assertTrue(aclService.canRead(userA, savedDashboard));

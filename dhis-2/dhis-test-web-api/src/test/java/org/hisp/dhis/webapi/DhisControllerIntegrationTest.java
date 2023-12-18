@@ -113,7 +113,10 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     //
     //    dbmsManager.flushSession();
     //    dbmsManager.clearSession();
+    beforeEach();
   }
+
+  protected void beforeEach() {}
 
   protected void XinjectSecurityContextUser(User user) {
     if (user == null) {

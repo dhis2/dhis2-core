@@ -463,10 +463,13 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   void shouldOrderEntitiesByCreatedAtInDescOrder() {
     injectSecurityContextUser(superUser);
 
-    entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
-    entityInstanceB1.setCreated(DateTime.now().toDate());
-    entityInstanceC1.setCreated(DateTime.now().minusDays(1).toDate());
-    entityInstanceD1.setCreated(DateTime.now().plusDays(2).toDate());
+    DateTime now = DateTime.now();
+
+    entityInstanceD1.setCreated(now.plusDays(2).toDate());
+    entityInstanceA1.setCreated(now.plusDays(1).toDate());
+    entityInstanceB1.setCreated(now.toDate());
+    entityInstanceC1.setCreated(now.minusDays(1).toDate());
+
     addEntityInstances();
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
@@ -485,63 +488,65 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         teiIdList);
   }
 
-  //  @Test
-  //  void shouldOrderEntitiesByUpdatedAtInAscOrder() {
-  //    injectSecurityContextUser(superUser);
-  //
-  //    addEntityInstances();
-  //    // lastupdated is automatically set by the store; update entities in a certain order and
-  // expect
-  //    // that to be returned
-  //    entityInstanceService.updateTrackedEntity(entityInstanceD1);
-  //    entityInstanceService.updateTrackedEntity(entityInstanceB1);
-  //    entityInstanceService.updateTrackedEntity(entityInstanceC1);
-  //    entityInstanceService.updateTrackedEntity(entityInstanceA1);
-  //
-  //    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-  //    // TODO: MAS flaky test
-  //    params.setOrgUnits(Set.of(organisationUnit));
-  //    params.setOrders(List.of(new OrderParam("updatedAt", SortDirection.ASC)));
-  //
-  //    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
-  //
-  //    assertEquals(
-  //        List.of(
-  //            entityInstanceD1.getId(),
-  //            entityInstanceB1.getId(),
-  //            entityInstanceC1.getId(),
-  //            entityInstanceA1.getId()),
-  //        teiIdList);
-  //  }
+  @Test
+  void shouldOrderEntitiesByUpdatedAtInAscOrder() throws InterruptedException {
+    injectSecurityContextUser(superUser);
 
-  //  @Test
-  //  void shouldOrderEntitiesByUpdatedAtInDescOrder() {
-  //    injectSecurityContext(superUser);
-  //
-  //    addEntityInstances();
-  //    // lastupdated is automatically set by the store; update entities in a certain order and
-  // expect
-  //    // that to be returned
-  //    entityInstanceService.updateTrackedEntity(entityInstanceD1);
-  //    entityInstanceService.updateTrackedEntity(entityInstanceB1);
-  //    entityInstanceService.updateTrackedEntity(entityInstanceC1);
-  //    entityInstanceService.updateTrackedEntity(entityInstanceA1);
-  //
-  //    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-  //
-  //    params.setOrgUnits(Set.of(organisationUnit));
-  //    params.setOrders(List.of(new OrderParam("updatedAt", SortDirection.DESC)));
-  //
-  //    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
-  //
-  //    assertEquals(
-  //        List.of(
-  //            entityInstanceA1.getId(),
-  //            entityInstanceC1.getId(),
-  //            entityInstanceB1.getId(),
-  //            entityInstanceD1.getId()),
-  //        teiIdList);
-  //  }
+    addEntityInstances();
+    // lastupdated is automatically set by the store; update entities in a certain order and
+    //   expect
+    // that to be returned
+    entityInstanceService.updateTrackedEntity(entityInstanceD1);
+    Thread.sleep(1000);
+    entityInstanceService.updateTrackedEntity(entityInstanceB1);
+    Thread.sleep(1000);
+    entityInstanceService.updateTrackedEntity(entityInstanceC1);
+    Thread.sleep(1000);
+    entityInstanceService.updateTrackedEntity(entityInstanceA1);
+
+    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrders(List.of(new OrderParam("updatedAt", SortDirection.ASC)));
+
+    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+
+    assertEquals(
+        List.of(
+            entityInstanceD1.getId(),
+            entityInstanceB1.getId(),
+            entityInstanceC1.getId(),
+            entityInstanceA1.getId()),
+        teiIdList);
+  }
+
+  @Test
+  void shouldOrderEntitiesByUpdatedAtInDescOrder() {
+    injectSecurityContextUser(superUser);
+
+    addEntityInstances();
+    // lastupdated is automatically set by the store; update entities in a certain order and
+    //   expect
+    // that to be returned
+    entityInstanceService.updateTrackedEntity(entityInstanceD1);
+    entityInstanceService.updateTrackedEntity(entityInstanceB1);
+    entityInstanceService.updateTrackedEntity(entityInstanceC1);
+    entityInstanceService.updateTrackedEntity(entityInstanceA1);
+
+    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+
+    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrders(List.of(new OrderParam("updatedAt", SortDirection.DESC)));
+
+    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+
+    assertEquals(
+        List.of(
+            entityInstanceA1.getId(),
+            entityInstanceC1.getId(),
+            entityInstanceB1.getId(),
+            entityInstanceD1.getId()),
+        teiIdList);
+  }
 
   @Test
   void shouldOrderEntitiesByTrackedEntityUidInDescOrder() {

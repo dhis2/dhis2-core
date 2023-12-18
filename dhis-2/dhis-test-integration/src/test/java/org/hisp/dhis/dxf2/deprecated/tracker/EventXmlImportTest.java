@@ -114,7 +114,6 @@ class EventXmlImportTest extends TransactionalIntegrationTest {
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
     enrollment.setStatus(ProgramStatus.ACTIVE);
-    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
     enrollment.getSharing().setPublicAccess("--------");
 
     enrollmentService.addEnrollment(enrollment);

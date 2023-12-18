@@ -291,8 +291,6 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     // Organisation Unit Levels
     OrganisationUnitLevel ou1 = new OrganisationUnitLevel(1, "Ou Level 1");
-    // TODO: MAS needs to set public access to DEFAULT, since save() will not do it default when
-    // user is NULL anymore
     ou1.getSharing().setPublicAccess("--------");
     OrganisationUnitLevel ou2 = new OrganisationUnitLevel(2, "Ou Level 2");
     ou2.getSharing().setPublicAccess("--------");

@@ -38,8 +38,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
@@ -82,28 +84,27 @@ class DataValueSetControllerTest extends DhisControllerIntegrationTest {
     assertEquals("SUCCESS", summary.getStatus());
   }
 
-  //  @Test
-  //  void testPostAdxDataValueSet() {
-  //    when(userService.getUserByUsername(currentUser.getUsername())).thenReturn(currentUser);
-  //    transactionTemplate.execute(
-  //        status -> {
-  //          User user = makeUser("X", List.of("ALL"));
-  //          userService.addUser(user);
-  //          injectSecurityContextUser(user);
-  //
-  //          String content =
-  //              POST(
-  //                      "/38/dataValueSets/",
-  //                      Body("<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>"),
-  //                      ContentType(CONTENT_TYPE_XML_ADX),
-  //                      Accept(CONTENT_TYPE_XML))
-  //                  .content(APPLICATION_XML.toString());
-  //
-  //          assertTrue(content.contains("httpStatusCode=\"200\""));
-  //
-  //          return null;
-  //        });
-  //  }
+  @Test
+  void testPostAdxDataValueSet() {
+    transactionTemplate.execute(
+        status -> {
+          User user = makeUser("X", List.of("ALL"));
+          userService.addUser(user);
+          injectSecurityContextUser(user);
+
+          String content =
+              POST(
+                      "/38/dataValueSets/",
+                      Body("<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>"),
+                      ContentType(CONTENT_TYPE_XML_ADX),
+                      Accept(CONTENT_TYPE_XML))
+                  .content(APPLICATION_XML.toString());
+
+          assertTrue(content.contains("httpStatusCode=\"200\""));
+
+          return null;
+        });
+  }
 
   @Test
   void testPostAdxDataValueSet_Async() {

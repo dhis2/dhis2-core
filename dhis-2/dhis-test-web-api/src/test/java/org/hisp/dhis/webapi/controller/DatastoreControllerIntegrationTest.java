@@ -27,10 +27,27 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Arrays.asList;
+import static org.hisp.dhis.appmanager.AndroidSettingsApp.AUTHORITY;
+import static org.hisp.dhis.appmanager.AndroidSettingsApp.NAMESPACE;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.io.IOException;
+import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.datastore.DatastoreEntry;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.json.domain.JsonDatastoreValue;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 
 /**
  * Update related tests that were moved over from in-memory DB controller tests as they now use SQL
@@ -48,108 +65,118 @@ class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
    */
   @Autowired private DatastoreService service;
 
-  // TODO: MAS: Fix these tests
+  @Override
+  protected void beforeEach() {
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    currentUserDetails.setId(0L);
+    clearSecurityContext();
+    injectSecurityContext(currentUserDetails);
+  }
 
-  //  @Test
-  //  void testUpdateKeyJsonValue_AndroidApp() {
-  //    switchToNewUser("not-an-android-manager");
-  //    assertEquals(
-  //        "Namespace 'ANDROID_SETTINGS_APP' is protected, access denied",
-  //        PUT("/dataStore/" + NAMESPACE + "/key", "[]").error(HttpStatus.FORBIDDEN).getMessage());
-  //    switchToNewUser("andriod-manager", AUTHORITY);
-  //    assertStatus(HttpStatus.CREATED, PUT("/dataStore/" + NAMESPACE + "/key", "[]"));
-  //  }
-  //
-  //  @Test
-  //  void testUpdateKeyJsonValue_App() throws IOException {
-  //    assertEquals(
-  //        AppStatus.OK,
-  //        appManager.installApp(new ClassPathResource("app/test-app.zip").getFile(),
-  // "test-app.zip"));
-  //    // by default we are an app manager
-  //    switchToNewUser("app-admin", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY);
-  //
-  //    assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-ns/key1", "[]"));
-  //    assertStatus(HttpStatus.OK, PUT("/dataStore/test-app-ns/key1", "{}"));
-  //    switchToNewUser("just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test");
-  //    assertStatus(HttpStatus.OK, PUT("/dataStore/test-app-ns/key1", "{}"));
-  //    switchToNewUser("has-no-app-authority");
-  //    assertEquals(
-  //        "Namespace 'test-app-ns' is protected, access denied",
-  //        PUT("/dataStore/test-app-ns/key1", "{}").error(HttpStatus.FORBIDDEN).getMessage());
-  //  }
-  //
-  //  @Test
-  //  void testPutEntry_EntryAlreadyExistsAndIsUpdated() {
-  //    doInTransaction(
-  //        () -> assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/emu",
-  // "{\"name\":\"harry\"}")));
-  //    doInTransaction(
-  //        () -> assertStatus(HttpStatus.OK, PUT("/dataStore/pets/emu", "{\"name\":\"james\"}")));
-  //    JsonDatastoreValue emu = GET("/dataStore/pets/emu").content().as(JsonDatastoreValue.class);
-  //    assertEquals("james", emu.getString("name").string());
-  //  }
-  //
-  //  @Test
-  //  void testUpdateKeyJsonValue_ProtectedNamespaceWhenRestricted() {
-  //    setUpNamespaceProtection(
-  //        "pets", DatastoreNamespaceProtection.ProtectionType.RESTRICTED, "pets-admin");
-  //    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{}"));
-  //    switchToNewUser("anonymous");
-  //    assertStatus(HttpStatus.FORBIDDEN, PUT("/dataStore/pets/cat", "[]"));
-  //    switchToNewUser("someone", "pets-admin");
-  //    assertStatus(HttpStatus.OK, PUT("/dataStore/pets/cat", "[]"));
-  //  }
-  //
-  //  @Test
-  //  void testUpdateKeyJsonValue() {
-  //    doInTransaction(() -> assertStatus(HttpStatus.CREATED, POST("/dataStore/animals/cat",
-  // "[]")));
-  //    doInTransaction(() -> assertStatus(HttpStatus.OK, PUT("/dataStore/animals/cat",
-  // "[1,2,3]")));
-  //    assertEquals(asList(1, 2, 3), GET("/dataStore/animals/cat").content().numberValues());
-  //  }
-  //
-  //  @Test
-  //  void testPutKeyJsonValue_ProtectedNamespaceWhenHidden() {
-  //    setUpNamespaceProtection(
-  //        "pets", DatastoreNamespaceProtection.ProtectionType.HIDDEN, "pets-admin");
-  //    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{}"));
-  //    switchToNewUser("anonymous");
-  //    assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/cat", "[]"));
-  //    switchToNewUser("someone", "pets-admin");
-  //    assertStatus(HttpStatus.OK, PUT("/dataStore/pets/cat", "[]"));
-  //  }
-  //
-  //  @Test
-  //  void testUpdateKeyJsonValue_ProtectedNamespaceWithSharing() {
-  //    setUpNamespaceProtectionWithSharing(
-  //        "pets", DatastoreNamespaceProtection.ProtectionType.HIDDEN, "pets-admin");
-  //    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{}"));
-  //    String uid =
-  // GET("/dataStore/pets/cat/metaData").content().as(JsonDatastoreValue.class).getId();
-  //    assertStatus(
-  //        HttpStatus.OK,
-  //        POST("/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'r-------'}}"));
-  //    switchToNewUser("someone", "pets-admin");
-  //    assertEquals(
-  //        "Access denied for key 'cat' in namespace 'pets'",
-  //        PUT("/dataStore/pets/cat", "[]").error(HttpStatus.FORBIDDEN).getMessage());
-  //    switchToSuperuser();
-  //    assertStatus(HttpStatus.OK, PUT("/dataStore/pets/cat", "[]"));
-  //  }
-  //
-  //  private void setUpNamespaceProtection(
-  //      String namespace,
-  //      DatastoreNamespaceProtection.ProtectionType readWrite,
-  //      String... authorities) {
-  //    service.addProtection(new DatastoreNamespaceProtection(namespace, readWrite, authorities));
-  //  }
-  //
-  //  private void setUpNamespaceProtectionWithSharing(
-  //      String namespace,
-  //      DatastoreNamespaceProtection.ProtectionType readWrite,
-  //      String... authorities) {
-  //    service.addProtection(new DatastoreNamespaceProtection(namespace, readWrite, authorities));
-  //  }
+  @Test
+  void testUpdateKeyJsonValue_AndroidApp() {
+    switchToNewUser("not-an-android-manager");
+    assertEquals(
+        "Namespace 'ANDROID_SETTINGS_APP' is protected, access denied",
+        PUT("/dataStore/" + NAMESPACE + "/key", "[]").error(HttpStatus.FORBIDDEN).getMessage());
+    switchToNewUser("andriod-manager", AUTHORITY);
+    assertStatus(HttpStatus.CREATED, PUT("/dataStore/" + NAMESPACE + "/key", "[]"));
+  }
+
+  @Test
+  void testUpdateKeyJsonValue_App() throws IOException {
+    assertEquals(
+        AppStatus.OK,
+        appManager.installApp(new ClassPathResource("app/test-app.zip").getFile(), "test-app.zip"));
+    // by default we are an app manager
+    switchToNewUser("app-admin", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY);
+
+    assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-ns/key1", "[]"));
+    assertStatus(HttpStatus.OK, PUT("/dataStore/test-app-ns/key1", "{}"));
+    switchToNewUser("just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test");
+    assertStatus(HttpStatus.OK, PUT("/dataStore/test-app-ns/key1", "{}"));
+    switchToNewUser("has-no-app-authority");
+    assertEquals(
+        "Namespace 'test-app-ns' is protected, access denied",
+        PUT("/dataStore/test-app-ns/key1", "{}").error(HttpStatus.FORBIDDEN).getMessage());
+  }
+
+  @Test
+  void testPutEntry_EntryAlreadyExistsAndIsUpdated() {
+
+    assertStatus(HttpStatus.CREATED, POST("/dataStore/ns1/key1", "42"));
+    doInTransaction(
+        () -> assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/emu", "{\"name\":\"harry\"}")));
+    doInTransaction(
+        () -> assertStatus(HttpStatus.OK, PUT("/dataStore/pets/emu", "{\"name\":\"james\"}")));
+    JsonDatastoreValue emu = GET("/dataStore/pets/emu").content().as(JsonDatastoreValue.class);
+    assertEquals("james", emu.getString("name").string());
+  }
+
+  @Test
+  void testUpdateKeyJsonValue_ProtectedNamespaceWhenRestricted() {
+    setUpNamespaceProtection(
+        "pets", DatastoreNamespaceProtection.ProtectionType.RESTRICTED, "pets-admin");
+    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{}"));
+    switchToNewUser("anonymous");
+    assertStatus(HttpStatus.FORBIDDEN, PUT("/dataStore/pets/cat", "[]"));
+    switchToNewUser("someone", "pets-admin");
+    assertStatus(HttpStatus.OK, PUT("/dataStore/pets/cat", "[]"));
+  }
+
+  @Test
+  void testUpdateKeyJsonValue() {
+    doInTransaction(() -> assertStatus(HttpStatus.CREATED, POST("/dataStore/animals/cat", "[]")));
+    doInTransaction(() -> assertStatus(HttpStatus.OK, PUT("/dataStore/animals/cat", "[1,2,3]")));
+    assertEquals(asList(1, 2, 3), GET("/dataStore/animals/cat").content().numberValues());
+  }
+
+  @Test
+  void testPutKeyJsonValue_ProtectedNamespaceWhenHidden() {
+    setUpNamespaceProtection(
+        "pets", DatastoreNamespaceProtection.ProtectionType.HIDDEN, "pets-admin");
+    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{}"));
+    switchToNewUser("anonymous");
+    assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/cat", "[]"));
+    switchToNewUser("someone", "pets-admin");
+    assertStatus(HttpStatus.OK, PUT("/dataStore/pets/cat", "[]"));
+  }
+
+  @Test
+  void testUpdateKeyJsonValue_ProtectedNamespaceWithSharing() {
+    switchContextToUser(superUser);
+
+    setUpNamespaceProtectionWithSharing(
+        "pets", DatastoreNamespaceProtection.ProtectionType.HIDDEN, "pets-admin");
+    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{}"));
+    String uid = GET("/dataStore/pets/cat/metaData").content().as(JsonDatastoreValue.class).getId();
+
+    assertStatus(
+        HttpStatus.OK,
+        POST("/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'r-------'}}"));
+
+    DatastoreEntry entry = service.getEntry("pets", "cat");
+    DatastoreEntry datastoreEntry = manager.get(DatastoreEntry.class, entry.getId());
+
+    switchToNewUser("someone", "pets-admin");
+    assertEquals(
+        "Access denied for key 'cat' in namespace 'pets'",
+        PUT("/dataStore/pets/cat", "[]").error(HttpStatus.FORBIDDEN).getMessage());
+    switchToSuperuser();
+    assertStatus(HttpStatus.OK, PUT("/dataStore/pets/cat", "[]"));
+  }
+
+  private void setUpNamespaceProtection(
+      String namespace,
+      DatastoreNamespaceProtection.ProtectionType readWrite,
+      String... authorities) {
+    service.addProtection(new DatastoreNamespaceProtection(namespace, readWrite, authorities));
+  }
+
+  private void setUpNamespaceProtectionWithSharing(
+      String namespace,
+      DatastoreNamespaceProtection.ProtectionType readWrite,
+      String... authorities) {
+    service.addProtection(new DatastoreNamespaceProtection(namespace, readWrite, authorities));
+  }
 }

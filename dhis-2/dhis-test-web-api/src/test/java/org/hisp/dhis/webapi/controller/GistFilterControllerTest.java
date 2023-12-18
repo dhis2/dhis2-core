@@ -126,7 +126,7 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
     assertEquals(1, GET("/users/gist?filter=surname:like:mi&headless=true").content().size());
     assertEquals(
         1, GET("/users/gist?filter=surname:like:?urnameuserA&headless=true").content().size());
-    assertEquals(2, GET("/users/gist?filter=surname:like:Surna*&headless=true").content().size());
+    assertEquals(3, GET("/users/gist?filter=surname:like:Surna*&headless=true").content().size());
     assertEquals(0, GET("/users/gist?filter=surname:like:Zulu&headless=true").content().size());
   }
 
@@ -143,7 +143,7 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
     assertEquals(1, GET("/users/gist?filter=surname:ilike:Mi&headless=true").content().size());
     assertEquals(
         0, GET("/users/gist?filter=surname:ilike:?headless&headless=true").content().size());
-    assertEquals(2, GET("/users/gist?filter=surname:ilike:Sur*&headless=true").content().size());
+    assertEquals(3, GET("/users/gist?filter=surname:ilike:Sur*&headless=true").content().size());
     assertEquals(0, GET("/users/gist?filter=surname:ilike:Zulu&headless=true").content().size());
   }
 
@@ -172,12 +172,12 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
     assertEquals(
         3, GET("/users/gist?filter=firstName:!startsWith:tic&headless=true").content().size());
     assertEquals(
-        1, GET("/users/gist?filter=firstName:!startsWith:Firs&headless=true").content().size());
+        0, GET("/users/gist?filter=firstName:!startsWith:Firs&headless=true").content().size());
   }
 
   @Test
   void testFilter_EndsWith() {
-    assertEquals(2, GET("/users/gist?filter=firstName:like$:dmin&headless=true").content().size());
+    assertEquals(1, GET("/users/gist?filter=firstName:like$:dmin&headless=true").content().size());
     assertEquals(2, GET("/users/gist?filter=firstName:ilike$:in&headless=true").content().size());
     assertEquals(
         2, GET("/users/gist?filter=firstName:endsWith:MIN&headless=true").content().size());
@@ -192,7 +192,7 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
     assertEquals(
         3, GET("/users/gist?filter=firstName:!endsWith:tic&headless=true").content().size());
     assertEquals(
-        1, GET("/users/gist?filter=firstName:!endsWith:MiN&headless=true").content().size());
+        2, GET("/users/gist?filter=firstName:!endsWith:MiN&headless=true").content().size());
   }
 
   @Test

@@ -83,7 +83,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
         GET("/users/").content(HttpStatus.OK).getList("users", JsonUser.class);
     assertEquals(2, users.size());
     JsonUser user = users.get(0);
-    assertEquals("FirstNameadmin Surnameadmin", user.getDisplayName());
+    assertStartsWith("Firstname", user.getDisplayName());
   }
 
   @Test

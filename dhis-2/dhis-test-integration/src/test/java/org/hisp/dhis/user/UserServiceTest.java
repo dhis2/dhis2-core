@@ -510,20 +510,19 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals(2, userService.getUserCount(params));
   }
 
-  // TODO: MAS This breaks test: testGetManagedGroupsOrganisationUnit(), SEE:
-  // DefaultUserService.handleUserQueryParams
+  @Test
+  void testGetManagedGroupsOrganisationUnit() {
+    User userA = addUser("A", unitA, unitB);
+    addUser("B", unitB);
+    User userC = addUser("C", unitA);
+    addUser("D", unitB);
 
-  //  @Test
-  //  void testGetManagedGroupsOrganisationUnit() {
-  //    User userA = addUser("A", unitA, unitB);
-  //    addUser("B", unitB);
-  //    User userC = addUser("C", unitA);
-  //    addUser("D", unitB);
-  //    UserQueryParams params = getDefaultParams().addOrganisationUnit(unitA);
-  //    List<User> users = userService.getUsers(params);
-  //    assertContainsOnly(List.of(userA, userC), users);
-  //    assertEquals(2, userService.getUserCount(params));
-  //  }
+    UserQueryParams params = getDefaultParams().addOrganisationUnit(unitA);
+    clearSecurityContext();
+    List<User> users = userService.getUsers(params);
+    assertContainsOnly(List.of(userA, userC), users);
+    assertEquals(2, userService.getUserCount(params));
+  }
 
   @Test
   void testGetInvitations() {
