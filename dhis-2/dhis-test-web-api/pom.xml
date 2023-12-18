@@ -297,6 +297,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>javax.persistence</groupId>
+      <artifactId>javax.persistence-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.restdocs</groupId>
       <artifactId>spring-restdocs-mockmvc</artifactId>
       <scope>test</scope>
@@ -363,7 +368,8 @@
           <ignoredUnusedDeclaredDependencies>
             <ignoredUnusedDeclaredDependency>com.h2database:h2</ignoredUnusedDeclaredDependency>
             // Removing cron-utils dependency is causing
-            // javax.persistence.PersistenceException: org.hibernate.PropertyValueException: not-null property references a null or transient value
+            // javax.persistence.PersistenceException: org.hibernate.PropertyValueException:
+            not-null property references a null or transient value
             // in MapControllerTest.testPutJsonObject()
             // in ApiTokenControllerTest.testListApiTokens()
             // in ApiTokenControllerTest.testListApiTokensNotYours()

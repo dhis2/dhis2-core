@@ -39,6 +39,8 @@ import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
  */
 class DatastoreUpdateControllerIntegrationTest extends DhisControllerIntegrationTest {
 
+  // TODO: MAS: Fix these tests
+
   //  @Test
   //  void testUpdateEntry_RootWithNullValue() {
   //    addEntry("ns1", "key1", "42");

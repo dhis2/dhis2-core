@@ -55,7 +55,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @param object the object instance.
    * @param user the user currently in the security context.
    */
-  void save(@Nonnull T object, @CheckForNull User user);
+  void save(@Nonnull T object, @Nonnull User user);
 
   /**
    * Updates the given object instance.
@@ -63,7 +63,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @param object the object instance.
    * @param userDetails User
    */
-  void update(@Nonnull T object, @CheckForNull UserDetails userDetails);
+  void update(@Nonnull T object, @Nonnull UserDetails userDetails);
 
   /**
    * Update object. Bypasses the ACL system.

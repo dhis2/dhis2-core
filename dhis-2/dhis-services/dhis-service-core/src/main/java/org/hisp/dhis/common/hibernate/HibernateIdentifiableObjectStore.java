@@ -111,7 +111,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   }
 
   @Override
-  public void save(@Nonnull T object, @CheckForNull User user) {
+  public void save(@Nonnull T object, @Nonnull User user) {
     save(object, UserDetails.fromUser(user), true);
   }
 

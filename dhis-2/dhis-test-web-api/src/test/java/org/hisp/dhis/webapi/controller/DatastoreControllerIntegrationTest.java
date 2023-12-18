@@ -48,6 +48,8 @@ class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
    */
   @Autowired private DatastoreService service;
 
+  // TODO: MAS: Fix these tests
+
   //  @Test
   //  void testUpdateKeyJsonValue_AndroidApp() {
   //    switchToNewUser("not-an-android-manager");
