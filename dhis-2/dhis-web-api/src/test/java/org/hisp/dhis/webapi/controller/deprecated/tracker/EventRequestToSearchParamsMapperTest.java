@@ -514,7 +514,8 @@ class EventRequestToSearchParamsMapperTest {
 
   @Test
   void shouldNotManipulateDates() {
-    when(currentUserService.getCurrentUser()).thenReturn(userMap.get("admin"));
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername()))
+        .thenReturn(userMap.get("admin"));
 
     EventSearchParams eventSearchParams = map(ALL);
 

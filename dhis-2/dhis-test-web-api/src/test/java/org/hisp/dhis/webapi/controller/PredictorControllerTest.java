@@ -31,6 +31,8 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
@@ -71,17 +73,24 @@ class PredictorControllerTest extends DhisControllerConvenienceTest {
     assertNull(response.getDescription());
   }
 
-  //  @Test
-  //  void testRunPredictor() {
-  //    String pId = postNewPredictor();
-  //    assertWebMessage(
-  //        "OK",
-  //        200,
-  //        "OK",
-  //        "Generated 0 predictions",
-  //        POST("/predictors/" + pId + "/run?startDate=2020-01-01&endDate=2021-01-01").content());
-  //  }
-  // TODO: MAS 2021-09-01: Fix this test
+  @Test
+  void testRunPredictor() {
+    String pId = postNewPredictor();
+
+    User actingUser = XpreCreateInjectAdminUserWithoutPersistence();
+    manager.persist(actingUser);
+
+    UserDetails currentUserDetails = UserDetails.fromUser(actingUser);
+    currentUserDetails.setId(0L);
+    injectSecurityContext(currentUserDetails);
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Generated 0 predictions",
+        POST("/predictors/" + pId + "/run?startDate=2020-01-01&endDate=2021-01-01").content());
+  }
 
   @Test
   void testRunPredictors() {

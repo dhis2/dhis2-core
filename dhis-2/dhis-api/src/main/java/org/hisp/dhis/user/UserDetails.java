@@ -156,4 +156,6 @@ public interface UserDetails extends org.springframework.security.core.userdetai
   boolean isTwoFactorEnabled();
 
   boolean hasAnyRestrictions(Collection<String> restrictions);
+
+  void setId(Long id);
 }

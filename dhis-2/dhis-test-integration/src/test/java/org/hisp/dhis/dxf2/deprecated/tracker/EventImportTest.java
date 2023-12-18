@@ -253,7 +253,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     manager.save(enrollment);
     event = createEvent("eventUid001");
     superUser = createAndAddAdminUser(AUTHORITY_ALL);
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
   }
 
   @Test

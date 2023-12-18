@@ -38,10 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
-import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
@@ -86,22 +84,12 @@ class DataValueSetControllerTest extends DhisControllerIntegrationTest {
 
   //  @Test
   //  void testPostAdxDataValueSet() {
-  //
-  //    //
-  // when(userService.getUserByUsername(currentUser.getUsername())).thenReturn(currentUser);
-  //    //    injectSecurityContext(CurrentUserDetailsImpl.fromUser(currentUser));
+  //    when(userService.getUserByUsername(currentUser.getUsername())).thenReturn(currentUser);
   //    transactionTemplate.execute(
   //        status -> {
-  //          SecurityContext context = SecurityContextHolder.getContext();
-  //
-  //          List<User> allUsers = userService.getAllUsers();
-  //
   //          User user = makeUser("X", List.of("ALL"));
   //          userService.addUser(user);
   //          injectSecurityContextUser(user);
-  //
-  //          String currentUsername = CurrentUserUtil.getCurrentUsername();
-  //          User currentUser = userService.getUserByUsername(currentUsername);
   //
   //          String content =
   //              POST(
@@ -116,12 +104,9 @@ class DataValueSetControllerTest extends DhisControllerIntegrationTest {
   //          return null;
   //        });
   //  }
-  // TODO: MAS 2021-09-01: Fix this test
 
   @Test
   void testPostAdxDataValueSet_Async() {
-    List<User> allUsers = userService.getAllUsers();
-
     String content =
         POST(
                 "/dataValueSets?async=true",
