@@ -28,6 +28,8 @@
 package org.hisp.dhis.commons.collection;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -42,5 +44,17 @@ class ListUtilsTest {
     List<String> union = List.of("One", "Two", "Three", "Four", "Five");
 
     assertEquals(union, ListUtils.distinctUnion(listA, listB, listC));
+  }
+
+  @Test
+  void testIsSortTed() {
+    List<String> listA = List.of("A", "Z", "B");
+    List<String> listB = List.of("A", "B", "C");
+    List<String> listC = List.of("A", "b", "C");
+    List<String> listD = List.of("A", "b", "C");
+    assertFalse(ListUtils.isSorted(listA, String::compareTo));
+    assertTrue(ListUtils.isSorted(listB, String::compareTo));
+    assertTrue(ListUtils.isSorted(listC, String::compareToIgnoreCase));
+    assertFalse(ListUtils.isSorted(listD, String::compareTo));
   }
 }
