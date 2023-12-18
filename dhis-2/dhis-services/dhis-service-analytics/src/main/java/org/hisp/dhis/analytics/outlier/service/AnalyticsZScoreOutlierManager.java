@@ -25,15 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.outlierdetection.service;
+package org.hisp.dhis.analytics.outlier.service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
+import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
+import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
-import org.hisp.dhis.outlierdetection.OutlierValue;
-import org.hisp.dhis.outlierdetection.processor.OutlierSqlStatementProcessor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -50,8 +50,8 @@ import org.springframework.stereotype.Repository;
  */
 @Slf4j
 @Repository
-public class AnalyticsZScoreOutlierDetectionManager extends AbstractOutlierDetectionManager {
-  protected AnalyticsZScoreOutlierDetectionManager(
+public class AnalyticsZScoreOutlierManager extends AbstractOutlierManager {
+  protected AnalyticsZScoreOutlierManager(
       NamedParameterJdbcTemplate jdbcTemplate,
       @Qualifier("analyticsZScoreSqlStatementProcessor")
           OutlierSqlStatementProcessor sqlStatementProcessor) {
@@ -60,25 +60,25 @@ public class AnalyticsZScoreOutlierDetectionManager extends AbstractOutlierDetec
 
   /** {@inheritDoc} */
   @Override
-  protected RowMapper<OutlierValue> getRowMapper(Calendar calendar, boolean modifiedZ) {
+  protected RowMapper<Outlier> getRowMapper(Calendar calendar, boolean modifiedZ) {
     return (rs, rowNum) -> {
-      OutlierValue outlierValue = getOutlierValue(calendar, rs);
-      addZScoreBasedParamsToOutlierValue(outlierValue, rs, modifiedZ);
+      Outlier outlier = getOutlierValue(calendar, rs);
+      addZScoreBasedParamsToOutlierValue(outlier, rs, modifiedZ);
 
-      return outlierValue;
+      return outlier;
     };
   }
 
   /** {@inheritDoc} */
   @Override
   protected void addZScoreBasedParamsToOutlierValue(
-      OutlierValue outlierValue, ResultSet rs, boolean modifiedZ) throws SQLException {
+      Outlier outlier, ResultSet rs, boolean modifiedZ) throws SQLException {
     if (modifiedZ) {
-      outlierValue.setStdDev(rs.getDouble("mad"));
+      outlier.setStdDev(rs.getDouble("mad"));
     } else {
-      outlierValue.setStdDev(rs.getDouble("stddev"));
+      outlier.setStdDev(rs.getDouble("std_dev"));
     }
 
-    super.addZScoreBasedParamsToOutlierValue(outlierValue, rs, modifiedZ);
+    super.addZScoreBasedParamsToOutlierValue(outlier, rs, modifiedZ);
   }
 }

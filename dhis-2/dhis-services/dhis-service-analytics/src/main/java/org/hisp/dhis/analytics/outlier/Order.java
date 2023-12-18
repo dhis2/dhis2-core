@@ -25,63 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataintegrity;
+package org.hisp.dhis.analytics.outlier;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
- * The different types of data integrity checks one can run
+ * Candidate on which to order an outlier detection result set.
  *
- * @author Jan Bernitt
+ * @author Lars Helge Overland
  */
-public enum DataIntegrityCheckType {
-  /*
-   * Please note that the integrity checks will be performed in the order
-   * given by the types.
-   */
+@RequiredArgsConstructor
+public enum Order {
+  MEAN_ABS_DEV("mean_abs_dev"),
+  Z_SCORE("z_score");
 
-  // DataElements
-  DATA_ELEMENTS_IN_DATA_SET_NOT_IN_FORM,
-
-  // Indicators
-  INDICATORS_WITH_IDENTICAL_FORMULAS,
-  INDICATORS_WITH_INVALID_NUMERATOR,
-  INDICATORS_WITH_INVALID_DENOMINATOR,
-  INDICATORS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-
-  // Periods
-  PERIODS_DUPLICATES,
-
-  // OrganisationUnits
-  ORG_UNITS_WITH_CYCLIC_REFERENCES,
-  ORG_UNITS_BEING_ORPHANED,
-  ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-  ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS,
-
-  // ValidationRules
-  VALIDATION_RULES_WITHOUT_GROUPS,
-  VALIDATION_RULES_WITH_INVALID_LEFT_SIDE_EXPRESSION,
-  VALIDATION_RULES_WITH_INVALID_RIGHT_SIDE_EXPRESSION,
-
-  // ProgramIndicators
-  PROGRAM_INDICATORS_WITH_INVALID_EXPRESSIONS,
-  PROGRAM_INDICATORS_WITH_INVALID_FILTERS,
-  PROGRAM_INDICATORS_WITHOUT_EXPRESSION,
-
-  // ProgramRules
-  PROGRAM_RULES_WITHOUT_CONDITION,
-  PROGRAM_RULES_WITHOUT_PRIORITY,
-  PROGRAM_RULES_WITHOUT_ACTION,
-
-  // ProgramRuleVariables
-  PROGRAM_RULE_VARIABLES_WITHOUT_DATA_ELEMENT,
-  PROGRAM_RULE_VARIABLES_WITHOUT_ATTRIBUTE,
-
-  // ProgramRuleActions
-  PROGRAM_RULE_ACTIONS_WITHOUT_DATA_OBJECT,
-  PROGRAM_RULE_ACTIONS_WITHOUT_NOTIFICATION,
-  PROGRAM_RULE_ACTIONS_WITHOUT_SECTION,
-  PROGRAM_RULE_ACTIONS_WITHOUT_STAGE_ID;
-
-  public String getName() {
-    return name().toLowerCase();
-  }
+  @Getter private final String key;
 }

@@ -25,40 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.analytics.outlier.data;
 
-import static org.hisp.dhis.dxf2.datavalueset.DefaultDataValueSetService.getCompletionDate;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDate;
-import org.junit.jupiter.api.Test;
+/** Enum for named params of parametrized sql query */
+@RequiredArgsConstructor
+public enum OutlierSqlParams {
+  // ZScore (modified ZScore) factor.
+  // For example the threshold=3 means all data lying outside 3 sigma (3 * standard deviation)
+  // are considered as the outliers
+  THRESHOLD("threshold"),
+  DATA_ELEMENT_IDS("data_element_ids"),
+  START_DATE("start_date"),
+  END_DATE("end_date"),
+  // start date criteria of statistic data collection (the stats will be based on data starting on
+  // this date)
+  DATA_START_DATE("data_start_date"),
+  // start date criteria of statistic data collection (the stats will be based on data ending on
+  // this date)
+  DATA_END_DATE("data_end_date"),
+  MAX_RESULTS("max_results");
 
-class DataValueSetServiceTest {
-
-  @Test
-  void testGetCompletionDate_True() {
-    assertEquals(LocalDate.now(), getCompletionDate("true"));
-  }
-
-  @Test
-  void testGetCompletionDate_False() {
-    assertNull(getCompletionDate("false"));
-  }
-
-  @Test
-  void testGetCompletionDate_TodayDate() {
-    assertEquals(LocalDate.now(), getCompletionDate(LocalDate.now().toString()));
-  }
-
-  @Test
-  void testGetCompletionDate_PastDate() {
-    LocalDate expected = LocalDate.now().minusDays(5);
-    assertEquals(expected, getCompletionDate(expected.toString()));
-  }
-
-  @Test
-  void testGetCompletionDate_FutureDate() {
-    assertEquals(LocalDate.now(), getCompletionDate(LocalDate.now().plusDays(1).toString()));
-  }
+  @Getter private final String key;
 }

@@ -39,6 +39,7 @@ import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
 import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -97,6 +98,26 @@ public class EventManager {
   @Nonnull private final TrackedEntityDataValueAuditService entityDataValueAuditService;
 
   private static final String IMPORT_ERROR_STRING = "Invalid or conflicting data";
+
+  public ImportSummary updateEventDataValues(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
+      Set<EventDataValue> eventDataValues,
+      WorkContext context)
+      throws JsonProcessingException {
+    final ImportSummaries importSummaries = new ImportSummaries();
+
+    executorsByPhase.get(EventProcessorPhase.UPDATE_PRE).execute(context, List.of(event));
+
+    for (EventDataValue de : eventDataValues) {
+      eventPersistenceService.updateEventDataValues(de, event, context);
+    }
+
+    eventPersistenceService.updateTrackedEntityInstances(context, List.of(event));
+
+    incrementSummaryTotals(List.of(event), importSummaries, UPDATE);
+
+    return importSummaries.getImportSummaries().get(0);
+  }
 
   public ImportSummary addEvent(
       final org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,

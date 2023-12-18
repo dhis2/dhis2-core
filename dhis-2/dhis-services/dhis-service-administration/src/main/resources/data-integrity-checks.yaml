@@ -14,7 +14,9 @@ checks:
   - categories/coc_no_category_combo.yaml
   - categories/category_option_groups_excess_members.yaml
   - categories/category_option_groups_sets_incomplete.yaml
+  - categories/invalid_category_combos.yaml
   - datasets/datasets_empty.yaml
+  - datasets/datasets_not_assigned_to_org_units.yaml
   - orgunits/compulsory_orgunit_groups.yaml
   - orgunits/orgunit_open_date_gt_closed_date.yaml
   - orgunits/orgunits_multiple_spaces.yaml
@@ -45,6 +47,7 @@ checks:
   - data_elements/aggregate_des_no_analysis.yaml
   - data_elements/aggregate_des_datasets_different_period_types.yaml
   - data_elements/aggregate_des_nodata.yaml
+  - data_elements/aggregate_des_no_datasets.yaml
   - indicators/indicator_duplicate_types.yaml
   - indicators/indicator_nongrouped.yaml
   - indicators/indicator_noanalysis.yaml

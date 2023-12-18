@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityDataElementsAggregateExcessGroupMembershipControllerTest
     extends AbstractDataIntegrityIntegrationTest {
-  private final String check = "data_elements_excess_groupset_membership";
+  private final String check = "data_elements_violating_exclusive_group_sets";
 
   private String dataElementA;
 

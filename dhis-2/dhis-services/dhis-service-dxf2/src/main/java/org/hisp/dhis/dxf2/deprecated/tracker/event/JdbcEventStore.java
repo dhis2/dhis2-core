@@ -56,7 +56,6 @@ import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventUtils.userInfoToJ
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.util.DateUtils.addDays;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -1251,7 +1250,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (params.getEndDate() != null) {
-      mapSqlParameterSource.addValue("endDate", addDays(params.getEndDate(), 1), Types.DATE);
+      mapSqlParameterSource.addValue("endDate", params.getEndDate(), Types.TIMESTAMP);
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -1540,7 +1539,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (params.getEndDate() != null) {
-      mapSqlParameterSource.addValue("endDate", addDays(params.getEndDate(), 1), Types.DATE);
+      mapSqlParameterSource.addValue("endDate", params.getEndDate(), Types.TIMESTAMP);
 
       sqlBuilder
           .append(hlp.whereAnd())
@@ -1690,7 +1689,7 @@ public class JdbcEventStore implements EventStore {
       if (params.hasLastUpdatedEndDate()) {
         if (useDateAfterEndDate) {
           mapSqlParameterSource.addValue(
-              "lastUpdatedEnd", addDays(params.getLastUpdatedEndDate(), 1), Types.TIMESTAMP);
+              "lastUpdatedEnd", params.getLastUpdatedEndDate(), Types.TIMESTAMP);
 
           sqlBuilder
               .append(hlp.whereAnd())

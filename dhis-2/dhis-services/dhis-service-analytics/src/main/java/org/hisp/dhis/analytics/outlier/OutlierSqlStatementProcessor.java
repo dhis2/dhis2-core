@@ -25,40 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.analytics.outlier;
 
-import static org.hisp.dhis.dxf2.datavalueset.DefaultDataValueSetService.getCompletionDate;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
-import java.time.LocalDate;
-import org.junit.jupiter.api.Test;
+public interface OutlierSqlStatementProcessor {
 
-class DataValueSetServiceTest {
+  /**
+   * Creates a parametrised SQL statement for outliers.
+   *
+   * @param request the instance of {@link OutlierRequest}.
+   * @return SQL statement as a string.
+   */
+  String getSqlStatement(OutlierRequest request);
 
-  @Test
-  void testGetCompletionDate_True() {
-    assertEquals(LocalDate.now(), getCompletionDate("true"));
-  }
-
-  @Test
-  void testGetCompletionDate_False() {
-    assertNull(getCompletionDate("false"));
-  }
-
-  @Test
-  void testGetCompletionDate_TodayDate() {
-    assertEquals(LocalDate.now(), getCompletionDate(LocalDate.now().toString()));
-  }
-
-  @Test
-  void testGetCompletionDate_PastDate() {
-    LocalDate expected = LocalDate.now().minusDays(5);
-    assertEquals(expected, getCompletionDate(expected.toString()));
-  }
-
-  @Test
-  void testGetCompletionDate_FutureDate() {
-    assertEquals(LocalDate.now(), getCompletionDate(LocalDate.now().plusDays(1).toString()));
-  }
+  /**
+   * Retrieve SQL parameters for outliers SQL statement
+   *
+   * @param request the instance of {@link OutlierRequest}.
+   * @return teh instance of {@link SqlParameterSource}.
+   */
+  SqlParameterSource getSqlParameterSource(OutlierRequest request);
 }

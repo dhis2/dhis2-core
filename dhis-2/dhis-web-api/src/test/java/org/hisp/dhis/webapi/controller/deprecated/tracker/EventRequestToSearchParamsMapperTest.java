@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
@@ -177,8 +178,8 @@ class EventRequestToSearchParamsMapperTest {
         orgUnitId,
         orgUnitMode,
         "teiUid",
-        null,
-        null,
+        getDate(2019, 1, 1),
+        getDate(2019, 2, 1),
         null,
         null,
         null,
@@ -509,6 +510,16 @@ class EventRequestToSearchParamsMapperTest {
 
     assertNull(eventSearchParams.getOrgUnit());
     assertEquals(ALL, eventSearchParams.getOrgUnitSelectionMode());
+  }
+
+  @Test
+  void shouldNotManipulateDates() {
+    when(currentUserService.getCurrentUser()).thenReturn(userMap.get("admin"));
+
+    EventSearchParams eventSearchParams = map(ALL);
+
+    assertEquals(getDate(2019, 1, 1), eventSearchParams.getStartDate());
+    assertEquals(getDate(2019, 2, 1), eventSearchParams.getEndDate());
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {

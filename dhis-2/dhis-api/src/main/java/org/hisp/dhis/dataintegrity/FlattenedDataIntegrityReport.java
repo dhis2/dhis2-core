@@ -119,20 +119,15 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
   public FlattenedDataIntegrityReport(Map<String, DataIntegrityDetails> detailsByName) {
     // name/UID only
     this.dataElementsWithoutDataSet =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_DATA_SETS.getName()));
+        listOfDisplayNameWithUid(detailsByName.get("data_elements_without_datasets"));
     this.dataElementsWithoutGroups =
         listOfDisplayNameWithUid(detailsByName.get("data_elements_aggregate_no_groups"));
     this.invalidCategoryCombos =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.CATEGORY_COMBOS_BEING_INVALID.getName()));
+        listOfDisplayNameWithUid(detailsByName.get("invalid_category_combos"));
     this.dataSetsNotAssignedToOrganisationUnits =
-        listOfDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType.DATA_SETS_NOT_ASSIGNED_TO_ORG_UNITS.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("datasets_not_assigned_to_org_units"));
     this.indicatorsWithoutGroups =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.INDICATORS_WITHOUT_GROUPS.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("indicators_not_grouped"));
     this.duplicatePeriods =
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.PERIODS_DUPLICATES.getName()));
@@ -192,8 +187,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
             detailsByName.get("data_elements_aggregate_with_different_period_types"));
     this.dataElementsViolatingExclusiveGroupSets =
         mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType.DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS.getName()));
+            detailsByName.get("data_elements_violating_exclusive_group_sets"));
     this.dataElementsInDataSetNotInForm =
         mapOfRefsByDisplayNameOrUid(
             detailsByName.get(
