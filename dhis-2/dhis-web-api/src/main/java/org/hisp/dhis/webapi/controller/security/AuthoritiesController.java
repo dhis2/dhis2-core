@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.security;
 import static java.util.Collections.singletonMap;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +65,6 @@ public class AuthoritiesController {
   public Map<String, List<Map<String, String>>> getAuthorities(HttpServletResponse response) {
     I18n i18n = i18nManager.getI18n();
     List<String> authorities = new ArrayList<>(authoritiesProvider.getSystemAuthorities());
-    Collections.sort(authorities);
     List<Map<String, String>> entries = new ArrayList<>();
     for (String auth : authorities) {
       String name = getAuthName(auth, i18n);
@@ -75,6 +74,7 @@ public class AuthoritiesController {
       authority.put("name", name);
       entries.add(authority);
     }
+    entries.sort(Comparator.comparing(e -> e.get("name").toLowerCase()));
     return singletonMap("systemAuthorities", entries);
   }
 
