@@ -183,6 +183,11 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
     List<AnalyticsTable> tables = new ArrayList<>();
 
+    // skipping if the latest partition is requested since it's not supported.
+    if (params.isLatestUpdate()) {
+      return tables;
+    }
+
     for (TrackedEntityType tet : trackedEntityTypes) {
       List<Integer> dataYears = getDataYears(params, tet);
 
@@ -195,7 +200,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         table.addPartitionTable(year, getStartDate(calendar, year), getEndDate(calendar, year));
       }
 
-      if (table.hasPartitionTables()) {
+      if (table.hasPartitionTables() || params.isCitusExtensionEnabled()) {
         tables.add(table);
       }
     }
@@ -312,6 +317,10 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                 + end
                 + "' ";
 
+    if (params.isCitusExtensionEnabled()) {
+      partitionClause = getDateLinkedToStatus() + " is not null";
+    }
+
     validateDimensionColumns(columns);
 
     StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
@@ -353,8 +362,8 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         .append(
             " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
         .append(" where psi.status in (" + join(",", EXPORTABLE_EVENT_STATUSES) + ")")
-        .append(" and " + partitionClause)
-        .append(" and psi.deleted is false ");
+        .append(" and psi.deleted is false ")
+        .append(" and " + partitionClause);
 
     invokeTimeAndLog(sql.toString(), partition.getTempTableName());
   }

@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -66,6 +67,8 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
   private final AnalyticsCache analyticsCache;
 
+  private final AnalyticsExportSettings analyticsExportSettings;
+
   // TODO introduce last successful timestamps per table type
 
   @Override
@@ -82,6 +85,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder(params0)
             .withLastSuccessfulUpdate(lastSuccessfulUpdate)
+            .withCitusEnabled(analyticsExportSettings.isCitusExtensionEnabled())
             .build();
 
     log.info("Found {} analytics table types: {}", availableTypes.size(), availableTypes);

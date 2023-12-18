@@ -174,6 +174,41 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   public void createTable(AnalyticsTable table) {
     createTempTable(table);
     createTempTablePartitions(table);
+    distributeTableIfNecessary(table);
+  }
+
+  private void distributeTableIfNecessary(AnalyticsTable table) {
+    if (analyticsExportSettings.isCitusExtensionEnabled()) {
+      if (!table.isTableTypeDistributed()) {
+        log.warn(
+            "No distribution column defined for table "
+                + table.getTableName()
+                + " so it won't be distributed");
+        return;
+      }
+
+      String tableName = table.getTempTableName();
+      String distributionColumn = table.getTableType().getDistributionColumn();
+
+      try {
+        jdbcTemplate.query(
+            "SELECT create_distributed_table( :1, :2 )",
+            ps -> {
+              ps.setString(1, tableName);
+              ps.setString(2, distributionColumn);
+            },
+            rs -> {});
+        log.info(
+            "Successfully distributed table " + tableName + " on column " + distributionColumn);
+      } catch (Exception e) {
+        log.warn(
+            "Failed to distribute table "
+                + table.getTempTableName()
+                + " on column "
+                + distributionColumn,
+            e);
+      }
+    }
   }
 
   @Override
@@ -391,11 +426,16 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         sqlCreate.append(TextUtils.removeLastComma(sqlCheck.toString()));
       }
 
-      sqlCreate
-          .append(") inherits (")
-          .append(table.getTempTableName())
-          .append(") ")
-          .append(getTableOptions());
+      sqlCreate.append(")");
+
+      // only use partitioned (inherited) tables when we should not distribute the table
+      if (!table.isTableDistributed()) {
+        sqlCreate
+            .append("inherits (")
+            .append(table.getTempTableName())
+            .append(") ")
+            .append(getTableOptions());
+      }
 
       log.info("Creating partition table: '{}'", tableName);
       log.debug("Create SQL: {}", sqlCreate);

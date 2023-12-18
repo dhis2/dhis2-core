@@ -102,7 +102,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       return;
     }
 
-    List<AnalyticsTable> tables = tableManager.getAnalyticsTables(params);
+    List<AnalyticsTable> tables = getAnalyticsTables(params);
 
     if (tables.isEmpty()) {
       clock.logTime(
@@ -167,6 +167,19 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     swapTables(params, tables, progress);
 
     clock.logTime("Table update done: " + tableType.getTableName());
+  }
+
+  private List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
+    return tableManager.getAnalyticsTables(params).stream()
+        .map(analyticsTable -> withDistributedFlag(analyticsTable, params))
+        .toList();
+  }
+
+  private AnalyticsTable withDistributedFlag(
+      AnalyticsTable analyticsTable, AnalyticsTableUpdateParams params) {
+    analyticsTable.setTableDistributed(
+        params.isCitusExtensionEnabled() && analyticsTable.isTableTypeDistributed());
+    return analyticsTable;
   }
 
   @Override

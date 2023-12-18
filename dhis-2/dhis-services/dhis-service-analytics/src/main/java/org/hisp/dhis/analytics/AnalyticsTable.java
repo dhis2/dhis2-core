@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics;
 
 import java.util.Date;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.program.Program;
@@ -54,6 +56,8 @@ public class AnalyticsTable {
   private Program program;
 
   private TrackedEntityType trackedEntityType;
+
+  @Getter @Setter private boolean tableDistributed = false;
 
   /** Analytics table partitions for this base analytics table. */
   private List<AnalyticsTablePartition> tablePartitions = new UniqueArrayList<>();
@@ -104,6 +108,7 @@ public class AnalyticsTable {
    * @return this analytics table.
    */
   public AnalyticsTable addPartitionTable(Integer year, Date startDate, Date endDate) {
+
     Assert.notNull(year, "Year must be specified");
 
     AnalyticsTablePartition tablePartition =
@@ -249,5 +254,9 @@ public class AnalyticsTable {
   @Override
   public String toString() {
     return "[Table name: " + getTableName() + ", partitions: " + tablePartitions + "]";
+  }
+
+  public boolean isTableTypeDistributed() {
+    return tableType.isDistributed();
   }
 }

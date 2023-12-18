@@ -72,7 +72,6 @@ import org.hisp.dhis.resourcetable.table.OrganisationUnitGroupSetResourceTable;
 import org.hisp.dhis.resourcetable.table.OrganisationUnitStructureResourceTable;
 import org.hisp.dhis.resourcetable.table.PeriodResourceTable;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.stereotype.Service;
