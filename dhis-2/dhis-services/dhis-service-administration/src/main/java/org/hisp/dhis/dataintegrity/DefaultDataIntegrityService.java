@@ -384,6 +384,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         organisationUnitService.getOrganisationUnitsWithCyclicReferences().stream());
   }
 
+  @Deprecated
   List<DataIntegrityIssue> getOrphanedOrganisationUnits() {
     return toSimpleIssueList(organisationUnitService.getOrphanedOrganisationUnits().stream());
   }
@@ -513,10 +514,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         OrganisationUnit.class,
         this::getOrganisationUnitsWithCyclicReferences);
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.ORG_UNITS_BEING_ORPHANED,
-        OrganisationUnit.class,
-        this::getOrphanedOrganisationUnits);
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS,
         OrganisationUnit.class,
         this::getOrganisationUnitsViolatingExclusiveGroupSets);
@@ -601,6 +598,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("invalid_category_combos");
     checks.add("indicators_not_grouped");
     checks.add("periods_same_start_date_period_type");
+    checks.add("orgunits_orphaned");
     return checks;
   }
 

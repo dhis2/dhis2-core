@@ -134,8 +134,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.ORG_UNITS_WITH_CYCLIC_REFERENCES.getName()));
     this.orphanedOrganisationUnits =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.ORG_UNITS_BEING_ORPHANED.getName()));
+        listOfDisplayNameWithUid(detailsByName.get("orgunits_orphaned"));
     // Replaced with SQL based equivalent
     this.organisationUnitsWithoutGroups =
         listOfDisplayNameWithUid(detailsByName.get("organisation_units_without_groups"));
