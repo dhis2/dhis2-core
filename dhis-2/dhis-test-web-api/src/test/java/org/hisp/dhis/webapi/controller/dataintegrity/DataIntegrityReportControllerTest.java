@@ -483,13 +483,13 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
                 "/programs",
                 "{'name':'Test program', 'shortName': 'Test program', 'programType': 'WITHOUT_REGISTRATION'}"));
 
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/programRules",
-                "{'name':'Test rule 1', 'description':'Test rule 1', 'program': {'id': '"
-                    + program
-                    + "'}}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/programRules",
+            "{'name':'Test rule 1', 'description':'Test rule 1', 'program': {'id': '"
+                + program
+                + "'}}"));
 
     Map<String, List<String>> results =
         getDataIntegrityReport()

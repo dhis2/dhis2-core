@@ -36,10 +36,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -53,11 +55,15 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 public abstract class AbstractOutlierManager {
   private final NamedParameterJdbcTemplate jdbcTemplate;
   private final OutlierSqlStatementProcessor sqlStatementProcessor;
+  private final ExecutionPlanStore executionPlanStore;
 
   protected AbstractOutlierManager(
-      NamedParameterJdbcTemplate jdbcTemplate, OutlierSqlStatementProcessor sqlStatementProcessor) {
+      NamedParameterJdbcTemplate jdbcTemplate,
+      OutlierSqlStatementProcessor sqlStatementProcessor,
+      ExecutionPlanStore executionPlanStore) {
     this.jdbcTemplate = jdbcTemplate;
     this.sqlStatementProcessor = sqlStatementProcessor;
+    this.executionPlanStore = executionPlanStore;
   }
 
   /**
@@ -75,6 +81,13 @@ public abstract class AbstractOutlierManager {
     return withExceptionHandling(
             () -> jdbcTemplate.query(sql, params, getRowMapper(calendar, modifiedZ)))
         .orElse(List.of());
+  }
+
+  public List<ExecutionPlan> getExecutionPlans(OutlierRequest request) {
+    String sql = sqlStatementProcessor.getPlainSqlStatement(request);
+    executionPlanStore.addExecutionPlan(request.getExplainOrderId(), sql);
+
+    return executionPlanStore.getExecutionPlans(request.getExplainOrderId());
   }
 
   /**

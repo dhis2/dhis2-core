@@ -41,6 +41,14 @@ public interface OutlierSqlStatementProcessor {
   String getSqlStatement(OutlierRequest request);
 
   /**
+   * Creates a plain SQL statement for outliers.
+   *
+   * @param request the instance of {@link OutlierRequest}.
+   * @return SQL statement as a string.
+   */
+  String getPlainSqlStatement(OutlierRequest request);
+
+  /**
    * Retrieve SQL parameters for outliers SQL statement
    *
    * @param request the instance of {@link OutlierRequest}.

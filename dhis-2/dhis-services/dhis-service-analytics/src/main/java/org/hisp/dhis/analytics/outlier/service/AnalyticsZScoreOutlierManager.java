@@ -31,6 +31,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.calendar.Calendar;
@@ -54,8 +55,9 @@ public class AnalyticsZScoreOutlierManager extends AbstractOutlierManager {
   protected AnalyticsZScoreOutlierManager(
       NamedParameterJdbcTemplate jdbcTemplate,
       @Qualifier("analyticsZScoreSqlStatementProcessor")
-          OutlierSqlStatementProcessor sqlStatementProcessor) {
-    super(jdbcTemplate, sqlStatementProcessor);
+          OutlierSqlStatementProcessor sqlStatementProcessor,
+      ExecutionPlanStore executionPlanStore) {
+    super(jdbcTemplate, sqlStatementProcessor, executionPlanStore);
   }
 
   /** {@inheritDoc} */

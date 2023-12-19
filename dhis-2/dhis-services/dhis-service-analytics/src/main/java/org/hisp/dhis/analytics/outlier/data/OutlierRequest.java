@@ -79,6 +79,8 @@ public class OutlierRequest {
 
   private boolean analyzeOnly;
 
+  private String explainOrderId;
+
   public List<Long> getDataElementIds() {
     return dataElements.stream().map(DataElement::getId).toList();
   }
