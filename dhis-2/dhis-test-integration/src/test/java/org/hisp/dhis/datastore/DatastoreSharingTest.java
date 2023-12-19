@@ -297,7 +297,9 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     //    injectAdminUser();
     reLoginAdminUser();
     userGroupService.addUserGroup(userGroup);
-    injectSecurityContextUser(basicUser);
+
+    User refetechedBasicUser = userService.getUserByUsername(basicUser.getUsername());
+    injectSecurityContextUser(refetechedBasicUser);
 
     String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
     String spurs = jsonMapper.writeValueAsString(club("spurs"));

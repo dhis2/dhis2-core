@@ -528,8 +528,11 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     //   expect
     // that to be returned
     entityInstanceService.updateTrackedEntity(entityInstanceD1);
+    Thread.sleep(1000);
     entityInstanceService.updateTrackedEntity(entityInstanceB1);
+    Thread.sleep(1000);
     entityInstanceService.updateTrackedEntity(entityInstanceC1);
+    Thread.sleep(1000);
     entityInstanceService.updateTrackedEntity(entityInstanceA1);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();

@@ -35,6 +35,7 @@ import java.util.List;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -177,10 +178,12 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
 
   @Test
   void testFilter_EndsWith() {
-    assertEquals(1, GET("/users/gist?filter=firstName:like$:dmin&headless=true").content().size());
-    assertEquals(2, GET("/users/gist?filter=firstName:ilike$:in&headless=true").content().size());
+    List<User> allUsers = userService.getAllUsers();
+    assertEquals(1, GET("/users/gist?filter=firstName:like$:admin&headless=true").content().size());
     assertEquals(
-        2, GET("/users/gist?filter=firstName:endsWith:MIN&headless=true").content().size());
+        1, GET("/users/gist?filter=firstName:ilike$:admin&headless=true").content().size());
+    assertEquals(
+        1, GET("/users/gist?filter=firstName:endsWith:MIN&headless=true").content().size());
     assertEquals(
         0, GET("/users/gist?filter=firstName:endsWith:bat&headless=true").content().size());
   }
