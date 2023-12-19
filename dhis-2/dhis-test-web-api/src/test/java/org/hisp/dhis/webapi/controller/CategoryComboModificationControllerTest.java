@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.lang.String.format;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
@@ -37,6 +36,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonCategoryOptionCombo;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class CategoryComboModificationControllerTest extends DhisControllerConvenienceTest {
@@ -51,43 +51,42 @@ class CategoryComboModificationControllerTest extends DhisControllerConvenienceT
 
   @Test
   void testModificationNoData() {
-    setupTest();
+
     setTestCatComboModifiableProperties();
     // Remove a category
     assertStatus(
         HttpStatus.OK,
         PUT(
             "/categoryCombos/" + testCatCombo + "?mergeMode=REPLACE",
-            "{ 'name' : 'COLOR AND TASTE', 'id' : '"
-                + testCatCombo
-                + "', "
-                + "'shortName': 'C_AND_T', 'skipTotals' : true, "
-                + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
-                + "{'id' : '"
-                + categoryColor
-                + "'} ]} "));
+            // language=JSON
+            """
+                { "name" : "COLOR AND TASTE",
+                "id" : "%s",
+                "shortName": "C_AND_T",
+                 "skipTotals" : true,
+                  "dataDimensionType" : "DISAGGREGATION",
+                  "categories" : [ {"id" : "%s"} ]} """
+                .formatted(testCatCombo, categoryColor)));
   }
 
   @Test
   void testModificationWithData() {
-    setupTest();
 
     JsonObject response =
         GET("/categoryCombos/" + testCatCombo + "?fields=categoryOptionCombos[id]").content();
     JsonList<JsonCategoryOptionCombo> catOptionCombos =
         response.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
     String categoryOptionComboId = catOptionCombos.get(0).getId();
-
+    // language=JSON
     String body =
-        format(
-            "{"
-                + "'dataElement':'%s',"
-                + "'categoryOptionCombo':'%s',"
-                + "'period':'20220102',"
-                + "'orgUnit':'%s',"
-                + "'value':'24',"
-                + "'comment':'OK'}",
-            dataElementId, categoryOptionComboId, orgUnitId);
+        """
+        {"dataElement": "%s",
+        "categoryOptionCombo": "%s",
+        "period": "20220102",
+        "orgUnit": "%s",
+        "value": "24",
+        "comment":"OK"}"""
+            .formatted(dataElementId, categoryOptionComboId, orgUnitId);
 
     assertStatus(HttpStatus.CREATED, POST("/dataValues", body));
 
@@ -96,14 +95,16 @@ class CategoryComboModificationControllerTest extends DhisControllerConvenienceT
         HttpStatus.CONFLICT,
         PUT(
             "/categoryCombos/" + testCatCombo + "?mergeMode=REPLACE",
-            "{ 'name' : 'COLOR AND TASTE', 'id' : '"
-                + testCatCombo
-                + "', "
-                + "'shortName': 'C_AND_T', 'skipTotals' : true, "
-                + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
-                + "{'id' : '"
-                + categoryColor
-                + "'} ]} "));
+            // language=JSON
+            """
+                { "name" : "COLOR AND TASTE",
+                "id" : "%s",
+                "shortName": "C_AND_T",
+                "skipTotals" : true,
+                "dataDimensionType" :
+                "DISAGGREGATION",
+                "categories" : [{"id" : "%s"} ]}"""
+                .formatted(testCatCombo, categoryColor)));
   }
 
   void setTestCatComboModifiableProperties() {
@@ -112,102 +113,99 @@ class CategoryComboModificationControllerTest extends DhisControllerConvenienceT
         HttpStatus.OK,
         PUT(
             "/categoryCombos/" + testCatCombo + "?mergeMode=REPLACE",
-            "{ 'name' : 'COLOR AND TASTE', 'id' : '"
-                + testCatCombo
-                + "', "
-                + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
-                + "{'id' : '"
-                + categoryColor
-                + "'} , {'id' : '"
-                + categoryTaste
-                + "'}]} "));
+            // language=JSON
+            """
+            { "name" : "COLOR AND TASTE",
+             "id" : "%s",
+             "dataDimensionType" : "DISAGGREGATION",
+             "categories" : [{"id" : "%s"} , {"id" : "%s"}]}"""
+                .formatted(testCatCombo, categoryColor, categoryTaste)));
     // Add a shortname
     assertStatus(
         HttpStatus.OK,
         PUT(
             "/categoryCombos/" + testCatCombo + "?mergeMode=REPLACE",
-            "{ 'name' : 'COLOR AND TASTE', 'id' : '"
-                + testCatCombo
-                + "', "
-                + "'shortName': 'C_AND_T', "
-                + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
-                + "{'id' : '"
-                + categoryColor
-                + "'} , {'id' : '"
-                + categoryTaste
-                + "'}]} "));
+            // language=JSON
+            """
+            { "name" : "COLOR AND TASTE",
+             "id" : "%s",
+             "shortName" : "C_AND_T",
+             "dataDimensionType" : "DISAGGREGATION",
+             "categories" : [{"id" : "%s"} , {"id" : "%s"}]}"""
+                .formatted(testCatCombo, categoryColor, categoryTaste)));
     // Skip totals
     assertStatus(
         HttpStatus.OK,
         PUT(
             "/categoryCombos/" + testCatCombo + "?mergeMode=REPLACE",
-            "{ 'name' : 'COLOR AND TASTE', 'id' : '"
-                + testCatCombo
-                + "', "
-                + "'shortName': 'C_AND_T', 'skipTotals' : true, "
-                + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
-                + "{'id' : '"
-                + categoryColor
-                + "'} , {'id' : '"
-                + categoryTaste
-                + "'}]} "));
+            // language=JSON
+            """
+            { "name" : "COLOR AND TASTE",
+             "id" : "%s",
+             "shortName" : "C_AND_T",
+             "skipTotals" : true,
+             "dataDimensionType" : "DISAGGREGATION",
+             "categories" : [{"id" : "%s"} , {"id" : "%s"}]}"""
+                .formatted(testCatCombo, categoryColor, categoryTaste)));
   }
 
+  private String createCategoryOptions(String name) {
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/categoryOptions",
+            // language=JSON
+            """
+                { "name": "%s", "shortName": "%s" }""".formatted(name, name)));
+  }
+
+  private String createSimpleCategory(String name, String categoryOptionId) {
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/categories",
+            // language=JSON
+            """
+                { "name": "%s", "shortName": "%s", "dataDimensionType": "DISAGGREGATION" ,
+                "categoryOptions" : [{"id" : "%s"} ] }"""
+                .formatted(name, name, categoryOptionId)));
+  }
+
+  @BeforeEach
   void setupTest() {
-    String categoryOptionSour =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST("/categoryOptions", "{ 'name': 'Sour', 'shortName': 'Sour' }"));
-
-    String categoryOptionRed =
-        assertStatus(
-            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
-
-    categoryColor =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/categories",
-                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ,"
-                    + "'categoryOptions' : [{'id' : '"
-                    + categoryOptionRed
-                    + "'} ] }"));
-
-    categoryTaste =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/categories",
-                "{ 'name': 'Taste', 'shortName': 'Taste', 'dataDimensionType': 'DISAGGREGATION' ,"
-                    + "'categoryOptions' : [{'id' : '"
-                    + categoryOptionSour
-                    + "'} ] }"));
+    String categoryOptionSour = createCategoryOptions("Sour");
+    String categoryOptionRed = createCategoryOptions("Red");
+    categoryColor = createSimpleCategory("Color", categoryOptionRed);
+    categoryTaste = createSimpleCategory("Taste", categoryOptionSour);
 
     testCatCombo =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/categoryCombos",
-                "{ 'name' : 'Taste and color', "
-                    + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
-                    + "{'id' : '"
-                    + categoryColor
-                    + "'} , {'id' : '"
-                    + categoryTaste
-                    + "'}]} "));
+                // language=JSON
+                """
+                    { "name" : "Taste and color",
+                    "dataDimensionType" : "DISAGGREGATION", "categories" : [
+                    {"id" : "%s"} , {"id" : "%s"}]} """
+                    .formatted(categoryColor, categoryTaste)));
 
     orgUnitId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/organisationUnits/",
-                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+                // language=JSON
+                """
+                    {"name":"My Unit", "shortName":"OU1", "openingDate": "2020-01-01"}"""));
     assertStatus(
         HttpStatus.OK,
         POST(
             "/users/{id}/organisationUnits",
             getCurrentUser().getUid(),
-            Body("{'additions':[{'id':'" + orgUnitId + "'}]}")));
+            Body( // language=JSON
+                """
+                    {"additions":[{"id":"%s"}]}""".formatted(orgUnitId))));
 
     dataElementId = addDataElement("My data element", "DE1", ValueType.INTEGER, null, testCatCombo);
   }
