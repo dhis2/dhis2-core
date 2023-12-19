@@ -74,7 +74,6 @@ class CompressedEventServiceTest {
     ZipInputStream zipInputStream =
         new ZipInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
     var buff = new byte[1024];
-    List<Event> eventsFromZip;
 
     ZipEntry zipEntry = zipInputStream.getNextEntry();
 
@@ -86,7 +85,8 @@ class CompressedEventServiceTest {
     while ((l = zipInputStream.read(buff)) > 0) {
       byteArrayOutputStream.write(buff, 0, l);
     }
-    eventsFromZip =
+
+    List<Event> eventsFromZip =
         objectMapper.readValue(byteArrayOutputStream.toString(), new TypeReference<>() {});
 
     assertNull(zipInputStream.getNextEntry()); // assert only one file is created
@@ -118,14 +118,14 @@ class CompressedEventServiceTest {
     GZIPInputStream gzipInputStream =
         new GZIPInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
     var buff = new byte[1024];
-    List<Event> eventsFromGZip;
 
     var byteArrayOutputStream = new ByteArrayOutputStream();
     int l;
     while ((l = gzipInputStream.read(buff)) > 0) {
       byteArrayOutputStream.write(buff, 0, l);
     }
-    eventsFromGZip =
+
+    List<Event> eventsFromGZip =
         objectMapper.readValue(byteArrayOutputStream.toString(), new TypeReference<>() {});
 
     assertEquals(eventToGZip.size(), eventsFromGZip.size());
