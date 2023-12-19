@@ -90,8 +90,11 @@ public class CategoryComboController extends AbstractCrudController<CategoryComb
 
   private void checkNoDataValueBecomesInaccessible(CategoryCombo entity, CategoryCombo newEntity)
       throws ConflictException {
-    if (!Objects.equals(entity.getCategories(), newEntity.getCategories())
-        && dataValueService.dataValueExists(entity)) {
+
+    Set<String> oldCategories = IdentifiableObjectUtils.getUidsAsSet(entity.getCategories());
+    Set<String> newCategories = IdentifiableObjectUtils.getUidsAsSet(newEntity.getCategories());
+
+    if (!Objects.equals(oldCategories, newCategories) && dataValueService.dataValueExists(entity)) {
       throw new ConflictException(ErrorCode.E1120);
     }
   }
