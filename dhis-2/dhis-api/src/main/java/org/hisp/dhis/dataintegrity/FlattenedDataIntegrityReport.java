@@ -144,9 +144,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
     this.validationRulesWithoutGroups =
         listOfDisplayNameOrUid(detailsByName.get("validation_rules_without_groups"));
     this.programIndicatorsWithNoExpression =
-        listOfDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("program_indicators_without_expression"));
 
     // grouped name/UID
     this.indicatorsWithIdenticalFormulas =

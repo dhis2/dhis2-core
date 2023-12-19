@@ -528,15 +528,10 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_EXPRESSIONS,
         ProgramIndicator.class,
         this::getInvalidProgramIndicatorExpressions);
-
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_FILTERS,
         ProgramIndicator.class,
         this::getInvalidProgramIndicatorFilters);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION,
-        ProgramIndicator.class,
-        this::getProgramIndicatorsWithNoExpression);
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_DATA_ELEMENT,
         Program.class,
@@ -579,6 +574,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("program_rules_without_condition");
     checks.add("program_rules_no_action");
     checks.add("program_rules_no_priority");
+    checks.add("program_indicators_without_expression");
     return checks;
   }
 
@@ -597,12 +593,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     }
     runDetailsChecks(checks, progress);
     return new FlattenedDataIntegrityReport(getDetails(checks, -1L));
-  }
-
-  /** Get all ProgramIndicators with no expression. */
-  List<DataIntegrityIssue> getProgramIndicatorsWithNoExpression() {
-    return toSimpleIssueList(
-        programIndicatorService.getProgramIndicatorsWithNoExpression().stream());
   }
 
   /** Get all ProgramIndicators with invalid expressions. */
@@ -631,11 +621,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       }
     }
     return issues;
-  }
-
-  /** Get all ProgramRules with no priority and grouped them by {@link Program} */
-  List<DataIntegrityIssue> getProgramRulesWithNoPriority() {
-    return groupRulesByProgram(programRuleService.getProgramRulesWithNoPriority());
   }
 
   /**
