@@ -95,7 +95,9 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
     setUpTranslation();
     User userA = createAndAddUser("userA", null, "ALL");
     userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.FRENCH, userA);
-    injectSecurityContextUser(userA);
+
+    injectSecurityContextUser(userService.getUserByUsername(userA.getUsername()));
+
     assertTrue(
         GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets").isEmpty());
     assertFalse(

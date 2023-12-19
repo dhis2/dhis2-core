@@ -83,7 +83,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
         GET("/users/").content(HttpStatus.OK).getList("users", JsonUser.class);
     assertEquals(2, users.size());
     JsonUser user = users.get(0);
-    assertStartsWith("Firstname", user.getDisplayName());
+    assertStartsWith("FirstName", user.getDisplayName());
   }
 
   @Test
@@ -100,7 +100,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
     // response will look like: { "surname": <name> }
     JsonUser userProperty =
         GET("/users/{id}/surname", run(SomeUserId::new)).content(HttpStatus.OK).as(JsonUser.class);
-    assertStartsWith("Surname_", userProperty.getSurname());
+    assertStartsWith("Surname", userProperty.getSurname());
     assertEquals(1, userProperty.size());
   }
 

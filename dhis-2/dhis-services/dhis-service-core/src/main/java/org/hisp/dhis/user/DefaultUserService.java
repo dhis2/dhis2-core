@@ -888,7 +888,7 @@ public class DefaultUserService implements UserService {
     if (user.getGroups().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
       String msg =
           String.format(
-              "User '%s' has %d groups, but only %d groups are in the cache",
+              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
               username, user.getGroups().size(), currentUserGroupInfo.getUserGroupUIDs().size());
 
       log.error(msg);

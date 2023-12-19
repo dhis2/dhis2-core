@@ -214,7 +214,7 @@ class JdbcOwnershipWriterTest {
   /** Gets a list of invocations of a mocked object */
   private String getUpdateSql() {
     List<Invocation> invocations = new ArrayList<>(mockingDetails(statement).getInvocations());
-    assertEquals(2, invocations.size());
+    assertEquals(3, invocations.size());
     assertEquals("executeUpdate", invocations.get(0).getMethod().getName());
     assertEquals("close", invocations.get(1).getMethod().getName());
 

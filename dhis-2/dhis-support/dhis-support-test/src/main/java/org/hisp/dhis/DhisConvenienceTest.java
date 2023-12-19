@@ -2662,7 +2662,7 @@ public abstract class DhisConvenienceTest {
     hibernateService.flushSession();
     user = userService.getUser(user.getUid());
     // TODO: MAS: rewrite to use userService.createUserDetails(user) instead
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContext(userService.createUserDetails(user));
   }
 
   public static void injectSecurityContext(UserDetails currentUserDetails) {
