@@ -25,16 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge;
+package org.hisp.dhis.merge.indicator.handler;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.indicator.Indicator;
+import org.springframework.stereotype.Service;
 
 /**
- * Enum for merge type.
+ * Merge handler for metadata entities.
  *
  * @author david mackessy
  */
-public enum MergeType {
-  ORG_UNIT,
+@Service
+@RequiredArgsConstructor
+public class MetadataIndicatorMergeHandler {
 
-  INDICATOR_TYPE,
-  INDICATOR
+  public void mergeDataSets(List<Indicator> sources, Indicator target) {
+    Set<DataSet> dataSets =
+        sources.stream()
+            .map(Indicator::getDataSets)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
+
+    dataSets.forEach(
+        ds -> {
+          ds.addIndicator(target);
+          ds.removeIndicators(sources);
+        });
+  }
 }

@@ -94,6 +94,12 @@ public enum ErrorCode {
   E1532("Target indicator type cannot be a source indicator type"),
   E1533("{0} indicator type does not exist: `{1}`"),
 
+  /* Indicator merge */
+  E1540("At least one source indicator must be specified"),
+  E1541("Target indicator must be specified"),
+  E1542("Target indicator cannot be a source indicator"),
+  E1543("{0} indicator does not exist: `{1}`"),
+
   /* Data */
   E2000("Query parameters cannot be null"),
   E2001("At least one data element, data set or data element group must be specified"),

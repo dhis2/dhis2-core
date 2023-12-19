@@ -57,6 +57,8 @@ public interface IndicatorService {
 
   List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes);
 
+  List<Indicator> getIndicatorsByUid(List<String> uids);
+
   // -------------------------------------------------------------------------
   // IndicatorType
   // -------------------------------------------------------------------------

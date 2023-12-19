@@ -25,16 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge;
+package org.hisp.dhis.merge.indicator;
+
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.merge.MergeProcessor;
+import org.hisp.dhis.merge.MergeService;
+import org.springframework.stereotype.Component;
 
 /**
- * Enum for merge type.
+ * Implementation of {@link MergeProcessor} that currently only uses its default method.
  *
  * @author david mackessy
  */
-public enum MergeType {
-  ORG_UNIT,
+@Component
+@RequiredArgsConstructor
+public class IndicatorMergeProcessor implements MergeProcessor {
+  private final MergeService indicatorMergeService;
 
-  INDICATOR_TYPE,
-  INDICATOR
+  @Override
+  public MergeService getMergeService() {
+    return indicatorMergeService;
+  }
 }

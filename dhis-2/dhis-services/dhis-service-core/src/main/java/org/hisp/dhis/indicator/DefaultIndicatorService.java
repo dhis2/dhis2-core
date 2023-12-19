@@ -117,6 +117,12 @@ public class DefaultIndicatorService implements IndicatorService {
     return indicatorStore.getAssociatedIndicators(indicatorTypes);
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public List<Indicator> getIndicatorsByUid(List<String> indicators) {
+    return indicatorStore.getByUid(indicators);
+  }
+
   // -------------------------------------------------------------------------
   // IndicatorType
   // -------------------------------------------------------------------------

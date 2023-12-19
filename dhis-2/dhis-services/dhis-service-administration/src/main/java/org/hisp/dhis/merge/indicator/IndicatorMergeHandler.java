@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge;
+package org.hisp.dhis.merge.indicator;
+
+import java.util.List;
+import org.hisp.dhis.indicator.Indicator;
 
 /**
- * Enum for merge type.
+ * Functional interface representing an indicator merge operation.
  *
  * @author david mackessy
  */
-public enum MergeType {
-  ORG_UNIT,
-
-  INDICATOR_TYPE,
-  INDICATOR
+@FunctionalInterface
+public interface IndicatorMergeHandler {
+  void merge(List<Indicator> sources, Indicator target);
 }
