@@ -29,11 +29,13 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -50,6 +52,9 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -113,52 +118,40 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
             .getMessage());
   }
 
-  @Test
-  void shouldMatchZipContent_whenEventJsonZipEndpointIsInvoked()
-      throws ForbiddenException, BadRequestException {
-    when(eventService.getEvents(any())).thenReturn(List.of());
-
-    injectSecurityContext(user);
-    HttpResponse res = GET("/tracker/events.json.zip?attachment=file.json.zip");
-    assertEquals(HttpStatus.OK, res.status());
-    assertEquals("application/json+zip", res.header("Content-Type"));
-    assertEquals("attachment; filename=file.json.zip", res.header("Content-Disposition"));
+  static Stream<Arguments>
+      shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvoked() {
+    return Stream.of(
+        arguments(
+            "/tracker/events.json.zip?attachment=file.json.zip",
+            "application/json+zip",
+            "attachment; filename=file.json.zip"),
+        arguments(
+            "/tracker/events.json.zip",
+            "application/json+zip",
+            "attachment; filename=events.json.zip"),
+        arguments(
+            "/tracker/events.json.gz?attachment=file.json.gzip",
+            "application/json+gzip",
+            "attachment; filename=file.json.gzip"),
+        arguments(
+            "/tracker/events.json.gz",
+            "application/json+gzip",
+            "attachment; filename=events.json.gzip"));
   }
 
-  @Test
-  void shouldMatchZipContent_whenEventJsonZipEndpointIsInvokedWithNoAttachment()
+  @ParameterizedTest
+  @MethodSource
+  void shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvoked(
+      String url, String expectedContentType, String expectedAttachment)
       throws ForbiddenException, BadRequestException {
+
     when(eventService.getEvents(any())).thenReturn(List.of());
-
     injectSecurityContext(user);
-    HttpResponse res = GET("/tracker/events.json.zip");
+
+    HttpResponse res = GET(url);
     assertEquals(HttpStatus.OK, res.status());
-    assertEquals("application/json+zip", res.header("Content-Type"));
-    assertEquals("attachment; filename=events.json.zip", res.header("Content-Disposition"));
-  }
-
-  @Test
-  void shouldMatchGZipContent_whenEventJsonGZipEndpointIsInvoked()
-      throws ForbiddenException, BadRequestException {
-    when(eventService.getEvents(any())).thenReturn(List.of());
-
-    injectSecurityContext(user);
-    HttpResponse res = GET("/tracker/events.json.gz?attachment=file.json.gzip");
-    assertEquals(HttpStatus.OK, res.status());
-    assertEquals("application/json+gzip", res.header("Content-Type"));
-    assertEquals("attachment; filename=file.json.gzip", res.header("Content-Disposition"));
-  }
-
-  @Test
-  void shouldMatchGZipContent_whenEventJsonGZipEndpointIsInvokedWithNoAttachment()
-      throws ForbiddenException, BadRequestException {
-    when(eventService.getEvents(any())).thenReturn(List.of());
-
-    injectSecurityContext(user);
-    HttpResponse res = GET("/tracker/events.json.gz");
-    assertEquals(HttpStatus.OK, res.status());
-    assertEquals("application/json+gzip", res.header("Content-Type"));
-    assertEquals("attachment; filename=events.json.gzip", res.header("Content-Disposition"));
+    assertEquals(expectedContentType, res.header("Content-Type"));
+    assertEquals(expectedAttachment, res.header("Content-Disposition"));
   }
 
   private UserAccess userAccess() {
