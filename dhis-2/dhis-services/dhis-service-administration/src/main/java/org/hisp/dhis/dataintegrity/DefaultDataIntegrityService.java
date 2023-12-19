@@ -684,10 +684,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     return null;
   }
 
-  private static List<DataIntegrityIssue> groupRulesByProgram(List<ProgramRule> rules) {
-    return groupBy(ProgramRule::getProgram, rules);
-  }
-
   private static List<DataIntegrityIssue> groupVariablesByProgram(
       List<ProgramRuleVariable> variables) {
     return groupBy(ProgramRuleVariable::getProgram, variables);
