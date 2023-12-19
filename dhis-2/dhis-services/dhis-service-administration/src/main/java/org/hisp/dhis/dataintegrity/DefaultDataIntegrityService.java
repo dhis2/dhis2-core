@@ -538,15 +538,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         ProgramIndicator.class,
         this::getProgramIndicatorsWithNoExpression);
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_PRIORITY,
-        Program.class,
-        this::getProgramRulesWithNoPriority);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_ACTION,
-        Program.class,
-        this::getProgramRulesWithNoAction);
-
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_DATA_ELEMENT,
         Program.class,
         this::getProgramRuleVariablesWithNoDataElement);
@@ -554,7 +545,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_ATTRIBUTE,
         Program.class,
         this::getProgramRuleVariablesWithNoAttribute);
-
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_DATA_OBJECT,
         ProgramRule.class,
@@ -587,6 +577,8 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("orgunits_orphaned");
     checks.add("validation_rules_without_groups");
     checks.add("program_rules_without_condition");
+    checks.add("program_rules_no_action");
+    checks.add("program_rules_no_priority");
     return checks;
   }
 
@@ -644,16 +636,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   /** Get all ProgramRules with no priority and grouped them by {@link Program} */
   List<DataIntegrityIssue> getProgramRulesWithNoPriority() {
     return groupRulesByProgram(programRuleService.getProgramRulesWithNoPriority());
-  }
-
-  /** Get all ProgramRules with no action and grouped them by {@link Program} */
-  List<DataIntegrityIssue> getProgramRulesWithNoAction() {
-    return groupRulesByProgram(programRuleService.getProgramRulesWithNoAction());
-  }
-
-  /** Get all ProgramRules with no condition expression and grouped them by {@link Program} */
-  List<DataIntegrityIssue> getProgramRulesWithNoCondition() {
-    return groupRulesByProgram(programRuleService.getProgramRulesWithNoCondition());
   }
 
   /**

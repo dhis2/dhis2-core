@@ -36,6 +36,7 @@ checks:
   - program_rules/program_rules_no_action.yaml
   - program_rules/program_rules_without_condition.yaml
   - program_rules/program_rules_message_no_template.yaml
+  - program_rules/program_rules_no_priority.yaml
   - analytical_objects/visualizations_not_used_1year.yaml
   - analytical_objects/maps_not_used_1year.yaml
   - analytical_objects/dashboards_not_used_1year.yaml

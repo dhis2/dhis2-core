@@ -483,19 +483,34 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
                 "/programs",
                 "{'name':'Test program', 'shortName': 'Test program', 'programType': 'WITHOUT_REGISTRATION'}"));
 
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/programRules",
-                "{'name':'Test rule 1', 'description':'Test rule 1', 'program': {'id': '"
-                    + program
-                    + "'}}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/programRules",
+            "{'name':'Test rule 1', 'description':'Test rule 1', 'program': {'id': '"
+                + program
+                + "'}}"));
 
+    // Test for program rules with no condition
     Map<String, List<String>> results =
         getDataIntegrityReport()
             .getProgramRulesWithNoCondition()
             .toMap(JsonString::string, String::compareTo);
     assertEquals(Map.of("Test rule 1", List.of("Test program:" + program)), results);
+
+    // Test for program rules with no action
+    Map<String, List<String>> results2 =
+        getDataIntegrityReport()
+            .getProgramRulesWithNoAction()
+            .toMap(JsonString::string, String::compareTo);
+    assertEquals(Map.of("Test rule 1", List.of("Test program:" + program)), results2);
+
+    // Test for program rules with no priority
+    Map<String, List<String>> results3 =
+        getDataIntegrityReport()
+            .getProgramRulesWithNoPriority()
+            .toMap(JsonString::string, String::compareTo);
+    assertEquals(Map.of("Test rule 1", List.of("Test program:" + program)), results3);
   }
 
   private JsonDataIntegrityReport getDataIntegrityReport() {
