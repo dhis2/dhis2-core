@@ -49,7 +49,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -97,6 +100,8 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
   private ProgramInstance programInstanceC;
 
   private ProgramInstance programInstanceD;
+
+  private ProgramInstance programInstanceE;
 
   private TrackedEntityInstance entityInstanceA;
 
@@ -160,6 +165,9 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
     programInstanceD = new ProgramInstance(enrollmentDate, incidentDate, entityInstanceB, programA);
     programInstanceD.setUid("UID-D");
     programInstanceD.setOrganisationUnit(organisationUnitB);
+    programInstanceE = new ProgramInstance(enrollmentDate, incidentDate, entityInstanceB, programA);
+    programInstanceE.setUid("UID-F");
+    programInstanceE.setOrganisationUnit(organisationUnitA);
 
     injectSecurityContext(user);
   }
@@ -373,5 +381,94 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
         ProgramStatus.CANCELLED, programInstanceService.getProgramInstance(idA).getStatus());
     assertEquals(
         ProgramStatus.CANCELLED, programInstanceService.getProgramInstance(idD).getStatus());
+  }
+
+  @Test
+  @Disabled("Enable after working on TECH-1675")
+  void shouldOrderByEnrollmentIdDescWhenNoOrderAttributePresent() {
+    User user = new User();
+    user.setOrganisationUnits(Set.of(organisationUnitA));
+    programInstanceService.addProgramInstance(programInstanceA);
+    programInstanceService.addProgramInstance(programInstanceB);
+    programInstanceService.addProgramInstance(programInstanceC);
+    programInstanceService.addProgramInstance(programInstanceD);
+    programInstanceService.addProgramInstance(programInstanceE);
+
+    ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+    params.setOrganisationUnits(Set.of(organisationUnitA));
+    params.setUser(user);
+
+    List<ProgramInstance> programInstances = programInstanceService.getProgramInstances(params);
+
+    assertEquals(List.of(programInstanceE, programInstanceC, programInstanceA), programInstances);
+  }
+
+  @Test
+  void shouldOrderByEnrolledAtAscWhenRequestedSortDirectionNotSpecified() {
+    User user = new User();
+    user.setOrganisationUnits(Set.of(organisationUnitA));
+    programInstanceA.setEnrollmentDate(DateTime.now().toDate());
+    programInstanceService.addProgramInstance(programInstanceA);
+    programInstanceService.addProgramInstance(programInstanceB);
+    programInstanceC.setEnrollmentDate(DateTime.now().minusDays(1).toDate());
+    programInstanceService.addProgramInstance(programInstanceC);
+    programInstanceService.addProgramInstance(programInstanceD);
+    programInstanceE.setEnrollmentDate(DateTime.now().plusDays(1).toDate());
+    programInstanceService.addProgramInstance(programInstanceE);
+
+    ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+    params.setOrganisationUnits(Set.of(organisationUnitA));
+    params.setOrder(List.of(new OrderParam("enrollmentdate", SortDirection.ASC)));
+    params.setUser(user);
+
+    List<ProgramInstance> programInstances = programInstanceService.getProgramInstances(params);
+
+    assertEquals(List.of(programInstanceC, programInstanceA, programInstanceE), programInstances);
+  }
+
+  @Test
+  void shouldOrderByCompletedAtAscWhenRequested() {
+    User user = new User();
+    user.setOrganisationUnits(Set.of(organisationUnitA));
+    programInstanceA.setEndDate(DateTime.now().toDate());
+    programInstanceService.addProgramInstance(programInstanceA);
+    programInstanceService.addProgramInstance(programInstanceB);
+    programInstanceC.setEndDate(DateTime.now().plusDays(1).toDate());
+    programInstanceService.addProgramInstance(programInstanceC);
+    programInstanceService.addProgramInstance(programInstanceD);
+    programInstanceE.setEndDate(DateTime.now().minusDays(1).toDate());
+    programInstanceService.addProgramInstance(programInstanceE);
+
+    ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+    params.setOrganisationUnits(Set.of(organisationUnitA));
+    params.setOrder(List.of(new OrderParam("enddate", SortDirection.ASC)));
+    params.setUser(user);
+
+    List<ProgramInstance> programInstances = programInstanceService.getProgramInstances(params);
+
+    assertEquals(List.of(programInstanceE, programInstanceA, programInstanceC), programInstances);
+  }
+
+  @Test
+  void shouldOrderByCreatedAtDescWhenRequested() {
+    User user = new User();
+    user.setOrganisationUnits(Set.of(organisationUnitA));
+    programInstanceA.setCreated(DateTime.now().plusDays(1).toDate());
+    programInstanceService.addProgramInstance(programInstanceA);
+    programInstanceService.addProgramInstance(programInstanceB);
+    programInstanceC.setCreated(DateTime.now().minusDays(1).toDate());
+    programInstanceService.addProgramInstance(programInstanceC);
+    programInstanceService.addProgramInstance(programInstanceD);
+    programInstanceE.setCreated(DateTime.now().toDate());
+    programInstanceService.addProgramInstance(programInstanceE);
+
+    ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+    params.setOrganisationUnits(Set.of(organisationUnitA));
+    params.setOrder(List.of(new OrderParam("created", SortDirection.DESC)));
+    params.setUser(user);
+
+    List<ProgramInstance> programInstances = programInstanceService.getProgramInstances(params);
+
+    assertEquals(List.of(programInstanceA, programInstanceE, programInstanceC), programInstances);
   }
 }
