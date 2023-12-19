@@ -55,15 +55,16 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
 
-    // Principal being a string implies anonymous authentication
-    // This is the state before the user is authenticated.
-    if (principal instanceof String principalString) {
-      if (!"anonymousUser".equals(principalString)) {
-        return null;
-      }
-
-      return (String) principal;
-    }
+    // TODO: MAS: We should handle system user
+    //    // Principal being a string implies anonymous authentication
+    //    // This is the state before the user is authenticated.
+    //    if (principal instanceof String principalString) {
+    //      if (!"anonymousUser".equals(principalString)) {
+    //        return null;
+    //      }
+    //
+    //      return (String) principal;
+    //    }
 
     if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
       org.springframework.security.core.userdetails.UserDetails userDetails =
@@ -92,11 +93,11 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
 
-    // Principal being a string implies anonymous authentication
-    // This is the state before the user is authenticated.
-    if (principal instanceof String) {
-      return null;
-    }
+    //    // Principal being a string implies anonymous authentication
+    //    // This is the state before the user is authenticated.
+    //    if (principal instanceof String) {
+    //      return null;
+    //    }
 
     if (principal instanceof UserDetails) {
       return (UserDetails) authentication.getPrincipal();

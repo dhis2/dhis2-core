@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,7 +125,7 @@ public class AuthenticationListener {
     if (Objects.nonNull(user) && !readOnly) {
       user.updateLastLogin();
       try {
-        userService.updateUser(user);
+        userService.updateUser(user, new SystemUser());
       } catch (Exception e) {
         log.warn("Failed to update the user!", e);
       }

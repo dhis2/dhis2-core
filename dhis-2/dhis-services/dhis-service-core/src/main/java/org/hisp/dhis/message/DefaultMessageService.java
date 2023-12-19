@@ -54,6 +54,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
@@ -181,9 +182,9 @@ public class DefaultMessageService implements MessageService {
 
   @Override
   @Transactional
-  public long sendMessage(MessageConversationParams params) {
+  public long sendMessage(MessageConversationParams params, UserDetails actingUser) {
     MessageConversation conversation = params.createMessageConversation();
-    long id = saveMessageConversation(conversation);
+    long id = saveMessageConversation(conversation, actingUser);
 
     Message message = new Message(params.getText(), params.getMetadata(), params.getSender());
 
@@ -212,6 +213,12 @@ public class DefaultMessageService implements MessageService {
   }
 
   @Override
+  @Transactional
+  public long sendMessage(MessageConversationParams params) {
+    return sendMessage(params, CurrentUserUtil.getCurrentUserDetails());
+  }
+
+  @Override
   @Async
   @Transactional
   public void asyncSendSystemErrorNotification(@Nonnull String subject, @Nonnull Throwable t) {
@@ -236,7 +243,7 @@ public class DefaultMessageService implements MessageService {
             .withMessageType(MessageType.SYSTEM)
             .build();
 
-    sendMessage(params);
+    sendMessage(params, new SystemUser());
   }
 
   @Override
@@ -329,6 +336,13 @@ public class DefaultMessageService implements MessageService {
   @Transactional
   public long saveMessageConversation(MessageConversation conversation) {
     messageConversationStore.save(conversation);
+    return conversation.getId();
+  }
+
+  @Override
+  @Transactional
+  public long saveMessageConversation(MessageConversation conversation, UserDetails actingUser) {
+    messageConversationStore.save(conversation, actingUser, false);
     return conversation.getId();
   }
 

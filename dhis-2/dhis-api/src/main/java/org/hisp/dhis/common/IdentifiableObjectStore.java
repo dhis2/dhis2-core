@@ -49,6 +49,8 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    */
   void save(@Nonnull T object, boolean clearSharing);
 
+  void save(@Nonnull T object, @Nonnull UserDetails userDetails, boolean clearSharing);
+
   /**
    * Saves the given object instance.
    *

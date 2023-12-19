@@ -87,12 +87,6 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     Authentication result = super.authenticate(auth);
     UserDetails principal = (UserDetails) result.getPrincipal();
 
-    //    User user = userService.getUserWithEagerFetchAuthorities(username);
-    //    if (user == null) {
-    //      log.info("Invalid username; username={}", username);
-    //      throw new BadCredentialsException("Invalid username or password");
-    //    }
-
     if (principal.isExternalAuth()) {
       log.info(
           String.format(
@@ -109,7 +103,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
   }
 
   private void validateTwoFactor(UserDetails userDetails, Object details) {
-    // If user has 2FA enabled and tries to authenticate with HTTP Basic or OAuth
+    // If the user has 2FA enabled and tries to authenticate with HTTP Basic or OAuth
     if (userDetails.isTwoFactorEnabled()
         && !(details instanceof TwoFactorWebAuthenticationDetails)) {
       throw new PreAuthenticatedCredentialsNotFoundException(
@@ -117,7 +111,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
               + userDetails.getUsername());
     }
 
-    // If user require 2FA, and it's not enabled/provisioned, redirect to
+    // If the user requires 2FA, and it's not enabled/provisioned, redirect to
     // the enrolment page, (via the CustomAuthFailureHandler)
     if (userService.hasTwoFactorRoleRestriction(userDetails) && !userDetails.isTwoFactorEnabled()) {
       throw new TwoFactorAuthenticationEnrolmentException(

@@ -63,6 +63,7 @@ import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,6 +113,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   public void save(@Nonnull T object, @Nonnull User user) {
+    // TODO: MAS: remove this, only in use one place
     save(object, UserDetails.fromUser(user), true);
   }
 
@@ -119,21 +121,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   public void save(@Nonnull T object, boolean clearSharing) {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     if (currentUserDetails == null) {
-      throw new IllegalArgumentException("Current user is not set, can not save object");
+      throw new IllegalArgumentException("Current user is not set, can not save object!");
     }
     save(object, currentUserDetails, clearSharing);
   }
 
-  //  public List<User> findAllUsers() {
-  //    CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-  //    CriteriaQuery<User> cq = cb.createQuery(User.class);
-  //    Root<User> rootEntry = cq.from(User.class);
-  //    CriteriaQuery<User> all = cq.select(rootEntry);
-  //    TypedQuery<User> allQuery = entityManager.createQuery(all);
-  //    return allQuery.getResultList();
-  //  }
-
-  private void save(@Nonnull T object, @Nonnull UserDetails userDetails, boolean clearSharing) {
+  public void save(@Nonnull T object, @Nonnull UserDetails userDetails, boolean clearSharing) {
     checkNotNull(object);
     checkNotNull(userDetails);
 
@@ -211,7 +204,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     object.setAutoFields();
 
-    if (userDetails.getId() != 0L) { // TODO: MAS: should not be necessary
+    // TODO: MAS: id=0 should not be necessary, only needed for some special case tests that have
+    // TODO: MAS: replace with a persistent system user to avoid
+    // issues with transaction isolation
+    if (userDetails.getId() != 0L && !(userDetails instanceof SystemUser)) {
 
       // See: https://www.baeldung.com/jpa-entity-manager-get-reference
       User user = entityManager.getReference(User.class, userDetails.getId());

@@ -113,7 +113,8 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(CriteriaBuilder builder) {
-    // This should be the only method that accepts null UserDetails
+    // TODO: MAS: This should be the only method that accepts null UserDetails
+    // We should handle this as a special case for the system user only
     if (CurrentUserUtil.getCurrentUsername() == null) {
       return List.of();
     }

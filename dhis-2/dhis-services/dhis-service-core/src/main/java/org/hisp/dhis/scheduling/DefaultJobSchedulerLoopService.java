@@ -35,6 +35,7 @@ import static org.hisp.dhis.eventhook.EventUtils.schedulerStart;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -157,6 +158,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     return job.getUid() != null ? "UID:" + job.getUid() : "TYPE:" + job.getJobType().name();
   }
 
+  @WithSpan
   @Override
   @Transactional(readOnly = true)
   public JobProgress startRun(@Nonnull String jobId, String user, Runnable observer)

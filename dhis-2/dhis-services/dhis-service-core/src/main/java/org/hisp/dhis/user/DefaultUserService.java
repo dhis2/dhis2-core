@@ -200,6 +200,15 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional
+  public void updateUser(User user, UserDetails actingUser) {
+    userStore.update(user, actingUser);
+
+    AuditLogUtil.infoWrapper(
+        log, CurrentUserUtil.getCurrentUsername(), user, AuditLogUtil.ACTION_UPDATE);
+  }
+
+  @Override
+  @Transactional
   public void deleteUser(User user) {
     AuditLogUtil.infoWrapper(
         log, CurrentUserUtil.getCurrentUsername(), user, AuditLogUtil.ACTION_DELETE);

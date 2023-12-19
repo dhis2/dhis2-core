@@ -58,6 +58,8 @@ public interface MessageService {
 
   long sendMessage(MessageConversationParams params);
 
+  long sendMessage(MessageConversationParams params, UserDetails actingUser);
+
   void asyncSendSystemErrorNotification(@Nonnull String subject, @Nonnull Throwable t);
 
   void sendReply(
@@ -68,6 +70,8 @@ public interface MessageService {
       Set<FileResource> attachments);
 
   long saveMessageConversation(MessageConversation conversation);
+
+  long saveMessageConversation(MessageConversation conversation, UserDetails actingUser);
 
   void updateMessageConversation(MessageConversation conversation);
 

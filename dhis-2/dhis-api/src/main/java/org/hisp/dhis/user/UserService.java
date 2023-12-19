@@ -97,6 +97,8 @@ public interface UserService {
    */
   void updateUser(User user);
 
+  void updateUser(User user, UserDetails actingUser);
+
   /**
    * Retrieves the User with the given identifier.
    *
