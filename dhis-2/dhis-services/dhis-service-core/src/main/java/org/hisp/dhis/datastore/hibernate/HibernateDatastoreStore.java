@@ -38,8 +38,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.datastore.DatastoreEntry;
@@ -60,13 +60,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<DatastoreEntry>
     implements DatastoreStore {
   public HibernateDatastoreStore(
-      EntityManager entityManager,
+      SessionFactory sessionFactory,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       CurrentUserService currentUserService,
       AclService aclService) {
     super(
-        entityManager,
+        sessionFactory,
         jdbcTemplate,
         publisher,
         DatastoreEntry.class,
