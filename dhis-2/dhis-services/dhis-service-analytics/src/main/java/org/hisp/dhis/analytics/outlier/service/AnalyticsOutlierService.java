@@ -59,6 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
+import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -89,6 +90,15 @@ public class AnalyticsOutlierService {
     setHeaders(grid, request);
     setMetaData(grid, request, outliers);
     setRows(grid, outliers, request);
+
+    return grid;
+  }
+
+  public Grid getOutliersPerformanceMetrics(OutlierRequest request) {
+    List<ExecutionPlan> executionPlans = zScoreOutlierDetection.getExecutionPlans(request);
+
+    Grid grid = new ListGrid();
+    grid.addPerformanceMetrics(executionPlans);
 
     return grid;
   }

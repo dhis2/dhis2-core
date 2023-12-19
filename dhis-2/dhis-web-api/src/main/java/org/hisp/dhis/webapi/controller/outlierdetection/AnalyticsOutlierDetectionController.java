@@ -69,21 +69,14 @@ public class AnalyticsOutlierDetectionController {
   private final OutlierQueryParser queryParser;
   private final OutlierRequestValidator validator;
 
-
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
   @GetMapping(
-          value = RESOURCE_PATH + "/explain",
-          produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+      value = RESOURCE_PATH + "/explain",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Grid getExplainOutliersJson(OutlierQuery query) {
     OutlierRequest request = getFromQuery(query, true);
 
-    Grid grid = outlierService.getOutlierValues(request);
-
-    if (query.hasHeaders()) {
-      grid.retainColumns(query.getHeaders());
-    }
-
-    return grid;
+    return outlierService.getOutliersPerformanceMetrics(request);
   }
 
   @GetMapping(value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE)

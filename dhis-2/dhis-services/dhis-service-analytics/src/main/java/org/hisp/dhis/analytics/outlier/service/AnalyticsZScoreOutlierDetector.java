@@ -37,11 +37,13 @@ import java.sql.SQLException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
@@ -66,6 +68,7 @@ public class AnalyticsZScoreOutlierDetector {
 
   @Qualifier("analyticsZScoreSqlStatementProcessor")
   private final OutlierSqlStatementProcessor sqlStatementProcessor;
+  private final ExecutionPlanStore executionPlanStore;
 
   /**
    * Retrieves all outliers.
@@ -82,6 +85,13 @@ public class AnalyticsZScoreOutlierDetector {
     return withExceptionHandling(
             () -> jdbcTemplate.query(sql, params, getRowMapper(calendar, modifiedZ)))
         .orElse(List.of());
+  }
+
+  public List<ExecutionPlan> getExecutionPlans(OutlierRequest request) {
+    String sql = sqlStatementProcessor.getPlainSqlStatement(request);
+    executionPlanStore.addExecutionPlan(request.getExplainOrderId(), sql);
+
+    return executionPlanStore.getExecutionPlans(request.getExplainOrderId());
   }
 
   /**
