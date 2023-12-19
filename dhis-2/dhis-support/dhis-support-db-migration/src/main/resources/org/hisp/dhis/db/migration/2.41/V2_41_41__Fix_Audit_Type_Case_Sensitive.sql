@@ -17,3 +17,9 @@ update trackedentityattributevalueaudit set audittype = 'UPDATE' where audittype
 update trackedentityattributevalueaudit set audittype = 'DELETE' where audittype = 'delete';
 update trackedentityattributevalueaudit set audittype = 'READ' where audittype = 'read';
 update trackedentityattributevalueaudit set audittype = 'SEARCH' where audittype = 'search';
+
+update trackedentitydatavalueaudit set audittype = 'CREATE' where audittype = 'create';
+update trackedentitydatavalueaudit set audittype = 'UPDATE' where audittype = 'update';
+update trackedentitydatavalueaudit set audittype = 'DELETE' where audittype = 'delete';
+update trackedentitydatavalueaudit set audittype = 'READ' where audittype = 'read';
+update trackedentitydatavalueaudit set audittype = 'SEARCH' where audittype = 'search';
