@@ -25,8 +25,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: orgunits_compulsory_group_count
-description: Orgunits that are not in all compulsory orgunit group sets
+name: org_units_not_in_compulsory_group_sets
+description: Orgunits that are not in all compulsory orgunit group sets.
 section: Organisation units
 section_order: 2
 summary_sql: >-

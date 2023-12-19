@@ -509,14 +509,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         OrganisationUnit.class,
         this::getOrganisationUnitsWithCyclicReferences);
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-        OrganisationUnit.class,
-        this::getOrganisationUnitsViolatingExclusiveGroupSets);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS,
-        OrganisationUnitGroup.class,
-        this::getOrganisationUnitGroupsWithoutGroupSets);
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_LEFT_SIDE_EXPRESSION,
         ValidationRule.class,
         this::getInvalidValidationRuleLeftSideExpressions);
@@ -575,6 +567,8 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("program_rules_no_action");
     checks.add("program_rules_no_priority");
     checks.add("program_indicators_without_expression");
+    checks.add("orgunit_group_sets_excess_groups");
+    checks.add("orgunits_compulsory_group_count");
     return checks;
   }
 

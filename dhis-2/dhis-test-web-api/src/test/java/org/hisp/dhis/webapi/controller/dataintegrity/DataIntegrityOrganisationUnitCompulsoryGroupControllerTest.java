@@ -45,7 +45,7 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest
 
   private String testOrgUnitGroup;
 
-  private static final String check = "orgunits_compulsory_group_count";
+  private static final String check = "org_units_not_in_compulsory_group_sets";
 
   private static final String detailsIdType = "organisationUnits";
 

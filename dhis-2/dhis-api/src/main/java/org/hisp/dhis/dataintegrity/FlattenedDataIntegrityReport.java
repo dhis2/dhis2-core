@@ -139,8 +139,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
     this.organisationUnitsWithoutGroups =
         listOfDisplayNameWithUid(detailsByName.get("organisation_units_without_groups"));
     this.organisationUnitGroupsWithoutGroupSets =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("org_units_not_in_compulsory_group_sets"));
     this.validationRulesWithoutGroups =
         listOfDisplayNameOrUid(detailsByName.get("validation_rules_without_groups"));
     this.programIndicatorsWithNoExpression =
@@ -192,9 +191,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
             detailsByName.get(
                 DataIntegrityCheckType.INDICATORS_VIOLATING_EXCLUSIVE_GROUP_SETS.getName()));
     this.organisationUnitsViolatingExclusiveGroupSets =
-        mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS.getName()));
+        mapOfRefsByDisplayNameOrUid(detailsByName.get( "orgunit_group_sets_excess_groups" ));
     this.programRulesWithNoCondition =
         mapOfRefsByDisplayNameOrUid(detailsByName.get("program_rules_without_condition"));
     this.programRulesWithNoPriority =
