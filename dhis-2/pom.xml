@@ -165,7 +165,7 @@
 
     <!-- Apache Artemis -->
     <artemis.version>2.31.2</artemis.version>
-    <netty-all.version>4.1.101.Final</netty-all.version>
+    <netty-all.version>4.1.104.Final</netty-all.version>
     <classgraph.version>4.8.165</classgraph.version>
 
     <!-- SMS/SMPP -->
