@@ -522,13 +522,13 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
                 "/programs",
                 "{'name':'Test program', 'shortName': 'Test program', 'programType': 'WITHOUT_REGISTRATION'}"));
 
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/programIndicators",
-                "{'name':'Test program indicator A', 'shortName': 'Test program indicator A', 'program': {'id': '"
-                    + program
-                    + "'}}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/programIndicators",
+            "{'name':'Test program indicator A', 'shortName': 'Test program indicator A', 'program': {'id': '"
+                + program
+                + "'}}"));
     // Test for program of indicators with no expression
     List<String> results =
         getDataIntegrityReport().getProgramIndicatorsWithNoExpression().toList(JsonString::string);
