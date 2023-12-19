@@ -28,7 +28,7 @@ jobs:
       - name: Tar surefire individual reports
         run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
       - name: Archive surefire reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: unit-test-surefire-reports
           path: |
@@ -54,7 +54,7 @@ jobs:
       - name: Tar surefire individual reports
         run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
       - name: Archive surefire reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: integration-test-surefire-reports
           path: |
@@ -81,7 +81,7 @@ jobs:
           MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
         run: mvn test -Pintegration --batch-mode --no-transfer-progress -f ./dhis-2/dhis-services/dhis-service-analytics/pom.xml
       - name: Archive surefire reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: integration-test-analytics-surefire-reports
           path: "**/target/surefire-reports/TEST-*.xml"
