@@ -491,26 +491,28 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
                 + program
                 + "'}}"));
 
+    final Map<String, List<String>> expectedResults =
+        Map.of("Test rule 1", List.of("Test program:" + program));
     // Test for program rules with no condition
     Map<String, List<String>> results =
         getDataIntegrityReport()
             .getProgramRulesWithNoCondition()
             .toMap(JsonString::string, String::compareTo);
-    assertEquals(Map.of("Test rule 1", List.of("Test program:" + program)), results);
+    assertEquals(expectedResults, results);
 
     // Test for program rules with no action
     Map<String, List<String>> results2 =
         getDataIntegrityReport()
             .getProgramRulesWithNoAction()
             .toMap(JsonString::string, String::compareTo);
-    assertEquals(Map.of("Test rule 1", List.of("Test program:" + program)), results2);
+    assertEquals(expectedResults, results2);
 
     // Test for program rules with no priority
     Map<String, List<String>> results3 =
         getDataIntegrityReport()
             .getProgramRulesWithNoPriority()
             .toMap(JsonString::string, String::compareTo);
-    assertEquals(Map.of("Test rule 1", List.of("Test program:" + program)), results3);
+    assertEquals(expectedResults, results3);
   }
 
   @Test
