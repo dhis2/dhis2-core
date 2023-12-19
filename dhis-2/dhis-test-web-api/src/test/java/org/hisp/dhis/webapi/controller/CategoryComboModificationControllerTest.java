@@ -39,7 +39,6 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonCategoryOptionCombo;
 import org.junit.jupiter.api.Test;
 
-
 class CategoryComboModificationControllerTest extends DhisControllerConvenienceTest {
 
   String testCatCombo;
