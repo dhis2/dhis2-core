@@ -79,7 +79,8 @@ class EnrollmentOperationParamsMapper {
     Program program = validateProgram(operationParams.getProgramUid(), user);
     TrackedEntityType trackedEntityType =
         validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
-    TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
+    TrackedEntity trackedEntity =
+        validateTrackedEntity(operationParams.getTrackedEntityUid(), user);
 
     Set<OrganisationUnit> orgUnits = validateOrgUnits(operationParams.getOrgUnitUids(), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
@@ -160,7 +161,7 @@ class EnrollmentOperationParamsMapper {
     }
 
     if (!aclService.canDataRead(user, trackedEntityType)) {
-      throw new IllegalQueryException(
+      throw new BadRequestException(
           "Current user is not authorized to read data from selected tracked entity type:  "
               + trackedEntityType.getUid());
     }
@@ -168,7 +169,7 @@ class EnrollmentOperationParamsMapper {
     return trackedEntityType;
   }
 
-  private TrackedEntity validateTrackedEntity(String uid) throws BadRequestException {
+  private TrackedEntity validateTrackedEntity(String uid, User user) throws BadRequestException {
     if (uid == null) {
       return null;
     }
@@ -176,6 +177,13 @@ class EnrollmentOperationParamsMapper {
     TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(uid);
     if (trackedEntity == null) {
       throw new BadRequestException("Tracked entity is specified but does not exist: " + uid);
+    }
+
+    if (trackedEntity.getTrackedEntityType() != null
+        && !aclService.canDataRead(user, trackedEntity.getTrackedEntityType())) {
+      throw new BadRequestException(
+          "Current user is not authorized to read data from type of selected tracked entity: "
+              + trackedEntity.getTrackedEntityType().getUid());
     }
 
     return trackedEntity;

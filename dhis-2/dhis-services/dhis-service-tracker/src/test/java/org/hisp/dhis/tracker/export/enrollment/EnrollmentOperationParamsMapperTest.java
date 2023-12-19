@@ -142,6 +142,7 @@ class EnrollmentOperationParamsMapperTest {
 
     trackedEntity = new TrackedEntity();
     trackedEntity.setUid(TRACKED_ENTITY_UID);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
     when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
   }
 
@@ -376,6 +377,8 @@ class EnrollmentOperationParamsMapperTest {
             .orgUnitMode(ACCESSIBLE)
             .build();
 
+    when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(true);
+
     EnrollmentQueryParams params = mapper.map(operationParams);
 
     assertEquals(trackedEntity, params.getTrackedEntity());
@@ -390,6 +393,22 @@ class EnrollmentOperationParamsMapperTest {
         assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
     assertEquals(
         "Tracked entity is specified but does not exist: JW6BrFd0HLu", exception.getMessage());
+  }
+
+  @Test
+  void shouldThrowExceptionWhenTypeOfTrackedEntityNotAccessible() {
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().trackedEntityUid(TRACKED_ENTITY_UID).build();
+
+    when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(false);
+
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
+    assertEquals(
+        String.format(
+            "Current user is not authorized to read data from type of selected tracked entity: %s",
+            trackedEntity.getTrackedEntityType().getUid()),
+        exception.getMessage());
   }
 
   @Test

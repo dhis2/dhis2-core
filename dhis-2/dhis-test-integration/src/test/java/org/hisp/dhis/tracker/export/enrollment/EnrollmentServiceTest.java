@@ -524,27 +524,6 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void shouldFailGettingEnrollmentsByTrackedEntityWhenUserHasNoAccessToTrackedEntityType() {
-    programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
-    manager.updateNoAcl(programA);
-
-    trackedEntityTypeA.getSharing().setOwner(superuser);
-    trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    manager.updateNoAcl(trackedEntityTypeA);
-
-    EnrollmentOperationParams params =
-        EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(trackedEntityA.getOrganisationUnit().getUid()))
-            .orgUnitMode(SELECTED)
-            .trackedEntityUid(trackedEntityA.getUid())
-            .build();
-
-    ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> enrollmentService.getEnrollments(params));
-    assertContains("access to tracked entity type", exception.getMessage());
-  }
-
-  @Test
   void shouldReturnEnrollmentIfEnrollmentWasUpdatedBeforePassedDateAndTime()
       throws ForbiddenException, BadRequestException {
     Date oneHourBeforeLastUpdated = oneHourBefore(enrollmentA.getLastUpdated());
