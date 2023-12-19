@@ -77,6 +77,8 @@ public class OutlierRequest {
 
   @Default private double threshold = 3.0d;
 
+  private boolean analyzeOnly;
+
   public List<Long> getDataElementIds() {
     return dataElements.stream().map(DataElement::getId).toList();
   }

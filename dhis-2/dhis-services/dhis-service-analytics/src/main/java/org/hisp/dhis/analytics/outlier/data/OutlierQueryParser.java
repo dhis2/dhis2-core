@@ -50,7 +50,7 @@ public class OutlierQueryParser {
    * @param query the {@link OutlierQuery}.
    * @return a {@link OutlierRequest}.
    */
-  public OutlierRequest getFromQuery(OutlierQuery query) {
+  public OutlierRequest getFromQuery(OutlierQuery query, boolean analyzeOnly) {
     List<DataSet> dataSets = idObjectManager.getByUid(DataSet.class, query.getDs());
 
     // Re-fetch data elements to maintain access control.
@@ -76,7 +76,8 @@ public class OutlierQueryParser {
             .endDate(query.getEndDate())
             .orgUnits(orgUnits)
             .dataStartDate(query.getDataStartDate())
-            .dataEndDate(query.getDataEndDate());
+            .dataEndDate(query.getDataEndDate())
+            .analyzeOnly(analyzeOnly);
 
     if (query.getAlgorithm() != null) {
       builder.algorithm(query.getAlgorithm());

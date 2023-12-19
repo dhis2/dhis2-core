@@ -49,6 +49,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -68,9 +69,26 @@ public class AnalyticsOutlierDetectionController {
   private final OutlierQueryParser queryParser;
   private final OutlierRequestValidator validator;
 
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @GetMapping(
+          value = RESOURCE_PATH + "/explain",
+          produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getExplainOutliersJson(OutlierQuery query) {
+    OutlierRequest request = getFromQuery(query, true);
+
+    Grid grid = outlierService.getOutlierValues(request);
+
+    if (query.hasHeaders()) {
+      grid.retainColumns(query.getHeaders());
+    }
+
+    return grid;
+  }
+
   @GetMapping(value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE)
   public Grid getOutliersJson(OutlierQuery query) {
-    OutlierRequest request = getFromQuery(query);
+    OutlierRequest request = getFromQuery(query, false);
 
     Grid grid = outlierService.getOutlierValues(request);
 
@@ -83,7 +101,7 @@ public class AnalyticsOutlierDetectionController {
 
   @GetMapping(value = RESOURCE_PATH + ".csv")
   public void getOutliersCsv(OutlierQuery query, HttpServletResponse response) throws IOException {
-    OutlierRequest request = getFromQuery(query);
+    OutlierRequest request = getFromQuery(query, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_CSV, NO_CACHE, "outlierdata.csv", true);
 
     outlierService.getOutlierValuesAsCsv(request, response.getWriter());
@@ -91,7 +109,7 @@ public class AnalyticsOutlierDetectionController {
 
   @GetMapping(value = RESOURCE_PATH + ".xml")
   public void getOutliersXml(OutlierQuery query, HttpServletResponse response) throws IOException {
-    OutlierRequest request = getFromQuery(query);
+    OutlierRequest request = getFromQuery(query, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_XML, NO_CACHE);
 
     outlierService.getOutlierValuesAsXml(request, response.getOutputStream());
@@ -99,7 +117,7 @@ public class AnalyticsOutlierDetectionController {
 
   @GetMapping(value = RESOURCE_PATH + ".xls")
   public void getOutliersXls(OutlierQuery query, HttpServletResponse response) throws IOException {
-    OutlierRequest request = getFromQuery(query);
+    OutlierRequest request = getFromQuery(query, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_EXCEL, NO_CACHE, "outlierdata.xls", true);
 
     outlierService.getOutlierValuesAsXls(request, response.getOutputStream());
@@ -107,7 +125,7 @@ public class AnalyticsOutlierDetectionController {
 
   @GetMapping(value = RESOURCE_PATH + ".html")
   public void getOutliersHtml(OutlierQuery query, HttpServletResponse response) throws IOException {
-    OutlierRequest request = getFromQuery(query);
+    OutlierRequest request = getFromQuery(query, false);
 
     contextUtils.configureResponse(response, CONTENT_TYPE_HTML, NO_CACHE);
 
@@ -117,14 +135,14 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".html+css")
   public void getOutliersHtmlCss(OutlierQuery query, HttpServletResponse response)
       throws IOException {
-    OutlierRequest request = getFromQuery(query);
+    OutlierRequest request = getFromQuery(query, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_HTML, NO_CACHE);
 
     outlierService.getOutlierValuesAsHtmlCss(request, response.getWriter());
   }
 
-  private OutlierRequest getFromQuery(OutlierQuery query) {
-    OutlierRequest request = queryParser.getFromQuery(query);
+  private OutlierRequest getFromQuery(OutlierQuery query, boolean analyzeOnly) {
+    OutlierRequest request = queryParser.getFromQuery(query, false);
     validator.validate(request, true);
 
     return request;
