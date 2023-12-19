@@ -39,10 +39,9 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonCategoryOptionCombo;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+
 
 class CategoryComboModificationControllerTest extends DhisControllerConvenienceTest {
-  @Autowired private DataValueService dataValueService;
 
   String testCatCombo;
 
