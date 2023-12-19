@@ -28,8 +28,10 @@
 package org.hisp.dhis.webapi.controller.category;
 
 import java.util.Objects;
+import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
@@ -90,8 +92,11 @@ public class CategoryComboController extends AbstractCrudController<CategoryComb
 
   private void checkNoDataValueBecomesInaccessible(CategoryCombo entity, CategoryCombo newEntity)
       throws ConflictException {
-    if (!Objects.equals(entity.getCategories(), newEntity.getCategories())
-        && dataValueService.dataValueExists(entity)) {
+
+    Set<String> oldCategories = IdentifiableObjectUtils.getUidsAsSet(entity.getCategories());
+    Set<String> newCategories = IdentifiableObjectUtils.getUidsAsSet(newEntity.getCategories());
+
+    if (!Objects.equals(oldCategories, newCategories) && dataValueService.dataValueExists(entity)) {
       throw new ConflictException(ErrorCode.E1120);
     }
   }
