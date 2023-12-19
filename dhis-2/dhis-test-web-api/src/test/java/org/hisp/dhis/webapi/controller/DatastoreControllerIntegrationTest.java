@@ -150,13 +150,15 @@ class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
       String namespace,
       DatastoreNamespaceProtection.ProtectionType readWrite,
       String... authorities) {
-    service.addProtection(new DatastoreNamespaceProtection(namespace, readWrite, authorities));
+    service.addProtection(
+        new DatastoreNamespaceProtection(namespace, readWrite, false, authorities));
   }
 
   private void setUpNamespaceProtectionWithSharing(
       String namespace,
       DatastoreNamespaceProtection.ProtectionType readWrite,
       String... authorities) {
-    service.addProtection(new DatastoreNamespaceProtection(namespace, readWrite, authorities));
+    service.addProtection(
+        new DatastoreNamespaceProtection(namespace, readWrite, false, authorities));
   }
 }
