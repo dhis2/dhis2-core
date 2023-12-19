@@ -31,7 +31,7 @@ section: Program rules
 section_order: 4
 summary_sql: >-
     WITH program_rules_no_priority as (
-    SELECT uid from programrule where programruleid
+    SELECT uid from programrule
     WHERE priority IS NULL)
     SELECT COUNT(*) as value,
     100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM programrule),0) as percent
@@ -46,9 +46,9 @@ details_sql: >-
 details_id_type: programRules
 severity: WARNING
 introduction: >
-    Classifying program rules by priority is important for letting users know the relative
-    level of severity of the program rule violation. Priorities are integer numbers and 
-    you are free to determine the level of severity for each priority.
+    Classifying program rules by priority may be used to determine the order in which 
+    they are evaluated. Program rules with no priority have no defined order and may
+    not be evaluated as expected.
 recommendation: >
     Using the DHIS2 user interface, assign a priority to each of the program rules
     which is missing one. Alternatively, if the program rule is not in use, then
