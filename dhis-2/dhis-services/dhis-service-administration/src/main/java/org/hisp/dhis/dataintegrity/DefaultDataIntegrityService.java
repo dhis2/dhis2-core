@@ -96,7 +96,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -377,42 +376,12 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   }
 
   // -------------------------------------------------------------------------
-  // Period
-  // -------------------------------------------------------------------------
-
-  /** Lists all Periods which are duplicates, based on the period type and start date. */
-  List<DataIntegrityIssue> getDuplicatePeriods() {
-    List<Period> periods = periodService.getAllPeriods();
-
-    List<DataIntegrityIssue> issues = new ArrayList<>();
-
-    for (Entry<String, List<Period>> group :
-        periods.stream()
-            .collect(groupingBy(p -> p.getPeriodType().getName() + p.getStartDate().toString()))
-            .entrySet()) {
-      if (group.getValue().size() > 1) {
-        issues.add(
-            new DataIntegrityIssue(
-                null,
-                group.getKey(),
-                null,
-                group.getValue().stream().map(p -> p.toString() + ":" + p.getUid()).toList()));
-      }
-    }
-    return issues;
-  }
-
-  // -------------------------------------------------------------------------
   // OrganisationUnit
   // -------------------------------------------------------------------------
 
   List<DataIntegrityIssue> getOrganisationUnitsWithCyclicReferences() {
     return toSimpleIssueList(
         organisationUnitService.getOrganisationUnitsWithCyclicReferences().stream());
-  }
-
-  List<DataIntegrityIssue> getOrphanedOrganisationUnits() {
-    return toSimpleIssueList(organisationUnitService.getOrphanedOrganisationUnits().stream());
   }
 
   List<DataIntegrityIssue> getOrganisationUnitsViolatingExclusiveGroupSets() {
@@ -536,16 +505,9 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         this::getIndicatorsViolatingExclusiveGroupSets);
 
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PERIODS_DUPLICATES, null, this::getDuplicatePeriods);
-
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.ORG_UNITS_WITH_CYCLIC_REFERENCES,
         OrganisationUnit.class,
         this::getOrganisationUnitsWithCyclicReferences);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.ORG_UNITS_BEING_ORPHANED,
-        OrganisationUnit.class,
-        this::getOrphanedOrganisationUnits);
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS,
         OrganisationUnit.class,
@@ -554,10 +516,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS,
         OrganisationUnitGroup.class,
         this::getOrganisationUnitGroupsWithoutGroupSets);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.VALIDATION_RULES_WITHOUT_GROUPS,
-        ValidationRule.class,
-        this::getValidationRulesWithoutGroups);
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_LEFT_SIDE_EXPRESSION,
         ValidationRule.class,
@@ -579,11 +537,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION,
         ProgramIndicator.class,
         this::getProgramIndicatorsWithNoExpression);
-
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_CONDITION,
-        Program.class,
-        this::getProgramRulesWithNoCondition);
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_PRIORITY,
         Program.class,
@@ -630,6 +583,10 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("data_elements_violating_exclusive_group_sets");
     checks.add("invalid_category_combos");
     checks.add("indicators_not_grouped");
+    checks.add("periods_same_start_date_period_type");
+    checks.add("orgunits_orphaned");
+    checks.add("validation_rules_without_groups");
+    checks.add("program_rules_without_condition");
     return checks;
   }
 
