@@ -46,6 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
@@ -66,13 +67,8 @@ public class TrackerCsvEventService implements CsvEventService<Event> {
   @Override
   public void writeEvents(OutputStream outputStream, List<Event> events, boolean withHeader)
       throws IOException {
-    final CsvSchema csvSchema =
-        CSV_MAPPER
-            .schemaFor(CsvEventDataValue.class)
-            .withLineSeparator("\n")
-            .withUseHeader(withHeader);
 
-    ObjectWriter writer = CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
+    ObjectWriter writer = getObjectWriter(withHeader);
 
     List<CsvEventDataValue> dataValues = new ArrayList<>();
 
@@ -145,6 +141,29 @@ public class TrackerCsvEventService implements CsvEventService<Event> {
     }
 
     writer.writeValue(outputStream, dataValues);
+  }
+
+  @Override
+  public void writeZip(
+      OutputStream outputStream, List<Event> toCompress, boolean withHeader, String file)
+      throws IOException {
+    CompressionUtil.writeZip(outputStream, toCompress, getObjectWriter(withHeader), file);
+  }
+
+  @Override
+  public void writeGzip(OutputStream outputStream, List<Event> toCompress, boolean withHeader)
+      throws IOException {
+    CompressionUtil.writeGzip(outputStream, toCompress, getObjectWriter(withHeader));
+  }
+
+  private ObjectWriter getObjectWriter(boolean withHeader) {
+    final CsvSchema csvSchema =
+        CSV_MAPPER
+            .schemaFor(CsvEventDataValue.class)
+            .withLineSeparator("\n")
+            .withUseHeader(withHeader);
+
+    return CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
   }
 
   @Override

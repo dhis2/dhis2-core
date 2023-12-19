@@ -59,7 +59,8 @@ import org.springframework.web.servlet.HandlerMapping;
 public class ContextUtils {
   public static final String CONTENT_TYPE_PDF = "application/pdf";
 
-  public static final String CONTENT_TYPE_ZIP = "application/zip";
+  public static final String CONTENT_TYPE_JSON_ZIP = "application/json+zip";
+  public static final String CONTENT_TYPE_JSON_GZIP = "application/json+gzip";
 
   public static final String CONTENT_TYPE_GZIP = "application/gzip";
 

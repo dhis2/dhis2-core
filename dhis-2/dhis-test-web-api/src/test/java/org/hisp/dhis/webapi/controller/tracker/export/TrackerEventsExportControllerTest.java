@@ -27,73 +27,55 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
-import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
-import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
-import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
-import java.util.Date;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.dxf2.events.event.EventService;
+import org.hisp.dhis.dxf2.events.event.Events;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
+@ContextConfiguration(classes = TrackerEventExportTestConfiguration.class)
+@ActiveProfiles("TrackerEventExport")
 class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest {
-
   @Autowired private IdentifiableObjectManager manager;
 
-  private OrganisationUnit orgUnit;
-
-  private OrganisationUnit anotherOrgUnit;
-
-  private Program program;
-
-  private ProgramStage programStage;
-
-  private User owner;
+  @Autowired private EventService eventService;
 
   private User user;
 
-  private TrackedEntityType trackedEntityType;
-
   @BeforeEach
   void setUp() {
-    owner = makeUser("owner");
+    User owner = makeUser("owner");
 
-    orgUnit = createOrganisationUnit('A');
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
     orgUnit.getSharing().setOwner(owner);
     manager.save(orgUnit, false);
 
-    anotherOrgUnit = createOrganisationUnit('B');
+    OrganisationUnit anotherOrgUnit = createOrganisationUnit('B');
     anotherOrgUnit.getSharing().setOwner(owner);
     manager.save(anotherOrgUnit, false);
 
@@ -102,238 +84,91 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     this.userService.updateUser(user);
 
-    program = createProgram('A');
+    Program program = createProgram('A');
     program.addOrganisationUnit(orgUnit);
     program.getSharing().setOwner(owner);
     program.getSharing().addUserAccess(userAccess());
     manager.save(program, false);
 
-    programStage = createProgramStage('A', program);
+    ProgramStage programStage = createProgramStage('A', program);
     programStage.getSharing().setOwner(owner);
     programStage.getSharing().addUserAccess(userAccess());
     manager.save(programStage, false);
 
-    trackedEntityType = trackedEntityTypeAccessible();
+    DataElement de = createDataElement('A');
+    de.getSharing().setOwner(owner);
+    manager.save(de, false);
   }
 
-  @Test
-  void getEventById() {
-    TrackedEntityInstance to = trackedEntityInstance();
-    ProgramStageInstance from = programStageInstance(programInstance(to));
-    relationship(from, to);
-
-    JsonObject json = GET("/tracker/events/{id}", from.getUid()).content(HttpStatus.OK);
-
-    assertDefaultResponse(json, from);
+  static Stream<Arguments>
+      shouldMatchContentTypeAndAttachmentWhenEndpointForCompressedEventJsonIsInvoked() {
+    return Stream.of(
+        arguments(
+            "/tracker/events.json.zip?attachment=file.json.zip",
+            "application/json+zip",
+            "attachment; filename=file.json.zip",
+            "binary"),
+        arguments(
+            "/tracker/events.json.zip",
+            "application/json+zip",
+            "attachment; filename=events.json.zip",
+            "binary"),
+        arguments(
+            "/tracker/events.json.gz?attachment=file.json.gz",
+            "application/json+gzip",
+            "attachment; filename=file.json.gz",
+            "binary"),
+        arguments(
+            "/tracker/events.json.gz",
+            "application/json+gzip",
+            "attachment; filename=events.json.gz",
+            "binary"),
+        arguments(
+            "/tracker/events.csv",
+            "application/csv; charset=UTF-8",
+            "attachment; filename=events.csv",
+            null),
+        arguments(
+            "/tracker/events.csv?attachment=file.csv",
+            "application/csv; charset=UTF-8",
+            "attachment; filename=file.csv",
+            null),
+        arguments(
+            "/tracker/events.csv.gz",
+            "application/csv+gzip",
+            "attachment; filename=events.csv.gz",
+            "binary"),
+        arguments(
+            "/tracker/events.csv.gz?attachment=file.csv.gz",
+            "application/csv+gzip",
+            "attachment; filename=file.csv.gz",
+            "binary"),
+        arguments(
+            "/tracker/events.csv.zip",
+            "application/csv+zip",
+            "attachment; filename=events.csv.zip",
+            "binary"),
+        arguments(
+            "/tracker/events.csv.zip?attachment=file.csv.zip",
+            "application/csv+zip",
+            "attachment; filename=file.csv.zip",
+            "binary"));
   }
 
-  @Test
-  void getEventByIdWithFields() {
-    TrackedEntityInstance tei = trackedEntityInstance();
-    ProgramStageInstance event = programStageInstance(programInstance(tei));
+  @ParameterizedTest
+  @MethodSource
+  void shouldMatchContentTypeAndAttachmentWhenEndpointForCompressedEventJsonIsInvoked(
+      String url, String expectedContentType, String expectedAttachment, String encoding)
+      throws ForbiddenException, BadRequestException {
 
-    JsonObject json =
-        GET("/tracker/events/{id}?fields=orgUnit,status", event.getUid()).content(HttpStatus.OK);
+    when(eventService.getEvents(any())).thenReturn(new Events());
+    injectSecurityContext(user);
 
-    assertFalse(json.isEmpty());
-    assertHasOnlyMembers(json, "orgUnit", "status");
-  }
-
-  @Test
-  void getEventByIdWithFieldsRelationships() {
-    TrackedEntityInstance to = trackedEntityInstance();
-    ProgramStageInstance from = programStageInstance(programInstance(to));
-    Relationship r = relationship(from, to);
-
-    JsonList<JsonRelationship> relationships =
-        GET("/tracker/events/{id}?fields=relationships", from.getUid())
-            .content(HttpStatus.OK)
-            .getList("relationships", JsonRelationship.class);
-
-    assertFalse(relationships.isEmpty());
-    assertEquals(1, relationships.size());
-    JsonRelationship relationship = assertFirstRelationship(r, relationships);
-    assertEventWithinRelationship(from, relationship.getFrom());
-    assertTrackedEntityWithinRelationship(to, relationship.getTo());
-  }
-
-  @Test
-  void getEventByIdRelationshipsNoAccessToRelationshipType() {
-    TrackedEntityInstance to = trackedEntityInstance();
-    ProgramStageInstance from = programStageInstance(programInstance(to));
-    relationship(relationshipTypeNotAccessible(), from, to);
-    this.switchContextToUser(user);
-
-    JsonList<JsonRelationship> relationships =
-        GET("/tracker/events/{id}?fields=relationships", from.getUid())
-            .content(HttpStatus.OK)
-            .getList("relationships", JsonRelationship.class);
-
-    assertEquals(0, relationships.size());
-  }
-
-  @Test
-  void getEventByIdRelationshipsNoAccessToRelationshipItemTo() {
-    TrackedEntityType type = trackedEntityTypeNotAccessible();
-    TrackedEntityInstance to = trackedEntityInstance(type);
-    ProgramStageInstance from = programStageInstance(programInstance(to));
-    relationship(from, to);
-    this.switchContextToUser(user);
-
-    JsonList<JsonRelationship> relationships =
-        GET("/tracker/events/{id}?fields=relationships", from.getUid())
-            .content(HttpStatus.OK)
-            .getList("relationships", JsonRelationship.class);
-
-    assertEquals(0, relationships.size());
-  }
-
-  @Test
-  void getEventByIdRelationshipsNoAccessToBothRelationshipItems() {
-    TrackedEntityInstance to = trackedEntityInstanceNotInSearchScope();
-    ProgramStageInstance from = programStageInstance(programInstance(to));
-    relationship(from, to);
-    this.switchContextToUser(user);
-
-    assertTrue(
-        GET("/tracker/events/{id}", from.getUid())
-            .error(HttpStatus.CONFLICT)
-            .getMessage()
-            .contains("OWNERSHIP_ACCESS_DENIED"));
-  }
-
-  @Test
-  void getEventByIdRelationshipsNoAccessToRelationshipItemFrom() {
-    TrackedEntityType type = trackedEntityTypeNotAccessible();
-    TrackedEntityInstance from = trackedEntityInstance(type);
-    ProgramStageInstance to = programStageInstance(programInstance(from));
-    relationship(from, to);
-    this.switchContextToUser(user);
-
-    JsonList<JsonRelationship> relationships =
-        GET("/tracker/events/{id}?fields=relationships", to.getUid())
-            .content(HttpStatus.OK)
-            .getList("relationships", JsonRelationship.class);
-
-    assertEquals(0, relationships.size());
-  }
-
-  @Test
-  void getEventByIdContainsCreatedByAndUpdateByAndAssignedUserInDataValues() {
-
-    TrackedEntityInstance tei = trackedEntityInstance();
-    ProgramInstance programInstance = programInstance(tei);
-    ProgramStageInstance programStageInstance = programStageInstance(programInstance);
-    programStageInstance.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-    programStageInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-    programStageInstance.setAssignedUser(user);
-    EventDataValue eventDataValue = new EventDataValue();
-    eventDataValue.setValue("6");
-    DataElement dataElement = createDataElement('A');
-    dataElement.setValueType(ValueType.NUMBER);
-    manager.save(dataElement);
-    eventDataValue.setDataElement(dataElement.getUid());
-    eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-    eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-    Set<EventDataValue> eventDataValues = Set.of(eventDataValue);
-    programStageInstance.setEventDataValues(eventDataValues);
-    manager.save(programStageInstance);
-
-    JsonObject event =
-        GET("/tracker/events/{id}", programStageInstance.getUid()).content(HttpStatus.OK);
-
-    assertTrue(event.isObject());
-    assertFalse(event.isEmpty());
-    assertEquals(programStageInstance.getUid(), event.getString("event").string());
-    assertEquals(programInstance.getUid(), event.getString("enrollment").string());
-    assertEquals(orgUnit.getUid(), event.getString("orgUnit").string());
-    assertEquals(user.getUsername(), event.getString("createdBy.username").string());
-    assertEquals(user.getUsername(), event.getString("updatedBy.username").string());
-    assertEquals(user.getDisplayName(), event.getString("assignedUser.displayName").string());
-    assertFalse(event.getArray("dataValues").isEmpty());
-    assertEquals(
-        user.getUsername(),
-        event.getArray("dataValues").getObject(0).getString("createdBy.username").string());
-    assertEquals(
-        user.getUsername(),
-        event.getArray("dataValues").getObject(0).getString("updatedBy.username").string());
-  }
-
-  @Test
-  void getEventByIdNotFound() {
-    assertEquals(
-        "Event with id Hq3Kc6HK4OZ could not be found.",
-        GET("/tracker/events/Hq3Kc6HK4OZ").error(HttpStatus.NOT_FOUND).getMessage());
-  }
-
-  private TrackedEntityType trackedEntityTypeAccessible() {
-    TrackedEntityType type = trackedEntityType('A');
-    type.getSharing().addUserAccess(userAccess());
-    manager.save(type, false);
-    return type;
-  }
-
-  private TrackedEntityType trackedEntityTypeNotAccessible() {
-    TrackedEntityType type = trackedEntityType('B');
-    manager.save(type, false);
-    return type;
-  }
-
-  private TrackedEntityType trackedEntityType(char uniqueChar) {
-    TrackedEntityType type = createTrackedEntityType(uniqueChar);
-    type.getSharing().setOwner(owner);
-    type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    return type;
-  }
-
-  private TrackedEntityInstance trackedEntityInstance() {
-    TrackedEntityInstance tei = trackedEntityInstance(orgUnit);
-    manager.save(tei, false);
-    return tei;
-  }
-
-  private TrackedEntityInstance trackedEntityInstanceNotInSearchScope() {
-    TrackedEntityInstance tei = trackedEntityInstance(anotherOrgUnit);
-    manager.save(tei, false);
-    return tei;
-  }
-
-  private TrackedEntityInstance trackedEntityInstance(TrackedEntityType trackedEntityType) {
-    TrackedEntityInstance tei = trackedEntityInstance(orgUnit, trackedEntityType);
-    manager.save(tei, false);
-    return tei;
-  }
-
-  private TrackedEntityInstance trackedEntityInstance(OrganisationUnit orgUnit) {
-    return trackedEntityInstance(orgUnit, trackedEntityType);
-  }
-
-  private TrackedEntityInstance trackedEntityInstance(
-      OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntityInstance tei = createTrackedEntityInstance(orgUnit);
-    tei.setTrackedEntityType(trackedEntityType);
-    tei.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    tei.getSharing().setOwner(owner);
-    return tei;
-  }
-
-  private ProgramInstance programInstance(TrackedEntityInstance tei) {
-    ProgramInstance programInstance = new ProgramInstance(program, tei, tei.getOrganisationUnit());
-    programInstance.setAutoFields();
-    programInstance.setEnrollmentDate(new Date());
-    programInstance.setIncidentDate(new Date());
-    programInstance.setStatus(ProgramStatus.COMPLETED);
-    manager.save(programInstance);
-    return programInstance;
-  }
-
-  private ProgramStageInstance programStageInstance(ProgramInstance programInstance) {
-    ProgramStageInstance programStageInstance =
-        new ProgramStageInstance(
-            programInstance, programStage, programInstance.getOrganisationUnit());
-    programStageInstance.setAutoFields();
-    manager.save(programStageInstance);
-    return programStageInstance;
+    HttpResponse res = GET(url);
+    assertEquals(HttpStatus.OK, res.status());
+    assertEquals(expectedContentType, res.header("Content-Type"));
+    assertEquals(expectedAttachment, res.header(ContextUtils.HEADER_CONTENT_DISPOSITION));
+    assertEquals(encoding, res.header(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING));
   }
 
   private UserAccess userAccess() {
@@ -341,140 +176,5 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest {
     a.setUser(user);
     a.setAccess(AccessStringHelper.FULL);
     return a;
-  }
-
-  private RelationshipType relationshipTypeAccessible(
-      RelationshipEntity from, RelationshipEntity to) {
-    RelationshipType type = relationshipType(from, to);
-    type.getSharing().addUserAccess(userAccess());
-    manager.save(type, false);
-    return type;
-  }
-
-  private RelationshipType relationshipTypeNotAccessible() {
-    return relationshipType(
-        RelationshipEntity.PROGRAM_STAGE_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
-  }
-
-  private RelationshipType relationshipType(RelationshipEntity from, RelationshipEntity to) {
-    RelationshipType type = createRelationshipType('A');
-    type.getFromConstraint().setRelationshipEntity(from);
-    type.getToConstraint().setRelationshipEntity(to);
-    type.getSharing().setOwner(owner);
-    type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    manager.save(type, false);
-    return type;
-  }
-
-  private Relationship relationship(ProgramStageInstance from, TrackedEntityInstance to) {
-    return relationship(
-        relationshipTypeAccessible(
-            RelationshipEntity.PROGRAM_STAGE_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE),
-        from,
-        to);
-  }
-
-  private Relationship relationship(
-      RelationshipType type, ProgramStageInstance from, TrackedEntityInstance to) {
-    Relationship r = new Relationship();
-
-    RelationshipItem fromItem = new RelationshipItem();
-    fromItem.setProgramStageInstance(from);
-    from.getRelationshipItems().add(fromItem);
-    fromItem.setRelationship(r);
-    r.setFrom(fromItem);
-
-    RelationshipItem toItem = new RelationshipItem();
-    toItem.setTrackedEntityInstance(to);
-    to.getRelationshipItems().add(toItem);
-    r.setTo(toItem);
-    toItem.setRelationship(r);
-
-    r.setRelationshipType(type);
-    r.setKey(type.getUid());
-    r.setInvertedKey(type.getUid());
-    r.setAutoFields();
-    r.getSharing().setOwner(owner);
-    manager.save(r, false);
-    return r;
-  }
-
-  private Relationship relationship(TrackedEntityInstance from, ProgramStageInstance to) {
-    Relationship r = new Relationship();
-
-    RelationshipItem fromItem = new RelationshipItem();
-    fromItem.setTrackedEntityInstance(from);
-    from.getRelationshipItems().add(fromItem);
-    r.setFrom(fromItem);
-    fromItem.setRelationship(r);
-
-    RelationshipItem toItem = new RelationshipItem();
-    toItem.setProgramStageInstance(to);
-    to.getRelationshipItems().add(toItem);
-    r.setTo(toItem);
-    toItem.setRelationship(r);
-
-    RelationshipType type =
-        relationshipTypeAccessible(
-            RelationshipEntity.PROGRAM_STAGE_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
-    r.setRelationshipType(type);
-    r.setKey(type.getUid());
-    r.setInvertedKey(type.getUid());
-
-    r.setAutoFields();
-    r.getSharing().setOwner(owner);
-    manager.save(r, false);
-    return r;
-  }
-
-  private void assertEventWithinRelationship(ProgramStageInstance expected, JsonObject json) {
-    JsonObject jsonEvent = json.getObject("event");
-    assertFalse(jsonEvent.isEmpty(), "event should not be empty");
-    assertEquals(expected.getUid(), jsonEvent.getString("event").string(), "event UID");
-    assertFalse(jsonEvent.has("status"));
-    assertFalse(jsonEvent.has("orgUnit"));
-    assertFalse(jsonEvent.has("programStage"));
-    assertFalse(
-        jsonEvent.has("relationships"), "relationships is not returned within relationship items");
-  }
-
-  private void assertTrackedEntityWithinRelationship(
-      TrackedEntityInstance expected, JsonObject json) {
-    JsonObject jsonTEI = json.getObject("trackedEntity");
-    assertFalse(jsonTEI.isEmpty(), "trackedEntity should not be empty");
-    assertEquals(
-        expected.getUid(), jsonTEI.getString("trackedEntity").string(), "trackedEntity UID");
-    assertFalse(jsonTEI.has("trackedEntityType"));
-    assertFalse(jsonTEI.has("orgUnit"));
-    assertFalse(
-        jsonTEI.has("relationships"), "relationships is not returned within relationship items");
-    assertTrue(jsonTEI.getArray("attributes").isEmpty());
-  }
-
-  private void assertDefaultResponse(JsonObject json, ProgramStageInstance programStageInstance) {
-    // note that some fields are not included in the response because they
-    // are not part of the setup
-    // i.e attributeOptionCombo, ...
-    assertTrue(json.isObject());
-    assertFalse(json.isEmpty());
-    assertEquals(programStageInstance.getUid(), json.getString("event").string(), "event UID");
-    assertEquals("ACTIVE", json.getString("status").string());
-    assertEquals(program.getUid(), json.getString("program").string());
-    assertEquals(programStage.getUid(), json.getString("programStage").string());
-    assertEquals(
-        programStageInstance.getProgramInstance().getUid(), json.getString("enrollment").string());
-    assertEquals(orgUnit.getUid(), json.getString("orgUnit").string());
-    assertEquals(orgUnit.getName(), json.getString("orgUnitName").string());
-    assertFalse(json.getBoolean("followup").booleanValue());
-    assertFalse(json.getBoolean("deleted").booleanValue());
-    assertHasMember(json, "createdAt");
-    assertHasMember(json, "createdAtClient");
-    assertHasMember(json, "updatedAt");
-    assertHasMember(json, "updatedAtClient");
-    assertHasMember(json, "dataValues");
-    assertHasMember(json, "notes");
-    assertHasNoMember(json, "attributeOptionCombo");
-    assertHasNoMember(json, "attributeCategoryOptions");
-    assertHasNoMember(json, "relationships");
   }
 }
