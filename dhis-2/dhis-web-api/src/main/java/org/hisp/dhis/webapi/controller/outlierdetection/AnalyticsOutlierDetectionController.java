@@ -49,6 +49,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -67,6 +68,23 @@ public class AnalyticsOutlierDetectionController {
   private final ContextUtils contextUtils;
   private final OutlierQueryParser queryParser;
   private final OutlierRequestValidator validator;
+
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @GetMapping(
+          value = RESOURCE_PATH + "/explain",
+          produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getExplainOutliersJson(OutlierQuery query) {
+    OutlierRequest request = getFromQuery(query, true);
+
+    Grid grid = outlierService.getOutlierValues(request);
+
+    if (query.hasHeaders()) {
+      grid.retainColumns(query.getHeaders());
+    }
+
+    return grid;
+  }
 
   @GetMapping(value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE)
   public Grid getOutliersJson(OutlierQueryParams queryParams) {

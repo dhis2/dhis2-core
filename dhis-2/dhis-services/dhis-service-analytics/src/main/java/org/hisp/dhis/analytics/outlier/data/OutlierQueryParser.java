@@ -75,6 +75,7 @@ public class OutlierQueryParser {
             .startDate(queryParams.getStartDate())
             .endDate(queryParams.getEndDate())
             .orgUnits(orgUnits)
+            .analyzeOnly(analyzeOnly)
             .dataStartDate(queryParams.getDataStartDate())
             .dataEndDate(queryParams.getDataEndDate())
             .queryKey(queryParams.queryKey());
