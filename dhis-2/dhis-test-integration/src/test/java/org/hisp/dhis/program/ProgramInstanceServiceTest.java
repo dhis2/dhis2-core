@@ -50,7 +50,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
