@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -432,12 +433,15 @@ class EventRequestToSearchParamsMapperTest {
   @Test
   void shouldNotManipulateDates() {
     when(currentUserService.getCurrentUser()).thenReturn(userMap.get("admin"));
+    Date startDate = getDate(2019, 1, 1);
+    Date endDate = getDate(2019, 2, 1);
 
     EventCriteria eventSearchParams = new EventCriteria();
-    ;
+    eventSearchParams.setStartDate(startDate);
+    eventSearchParams.setEndDate(endDate);
 
-    assertEquals(getDate(2019, 1, 1), eventSearchParams.getStartDate());
-    assertEquals(getDate(2019, 2, 1), eventSearchParams.getEndDate());
+    assertEquals(startDate, eventSearchParams.getStartDate());
+    assertEquals(endDate, eventSearchParams.getEndDate());
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {
