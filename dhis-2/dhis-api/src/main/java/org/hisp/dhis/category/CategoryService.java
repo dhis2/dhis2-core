@@ -63,6 +63,8 @@ public interface CategoryService {
    */
   void updateCategory(Category category);
 
+  void updateCategory(Category category, UserDetails actingUser);
+
   /**
    * Deletes a Category. The Category is also removed from any CategoryCombos if it is a member of.
    * It is not possible to delete a Category with options.

@@ -116,6 +116,12 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
+  public void updateCategory(Category category, UserDetails actingUser) {
+    categoryStore.update(category, actingUser);
+  }
+
+  @Override
+  @Transactional
   public void deleteCategory(Category dataElementCategory) {
     categoryStore.delete(dataElementCategory);
   }
