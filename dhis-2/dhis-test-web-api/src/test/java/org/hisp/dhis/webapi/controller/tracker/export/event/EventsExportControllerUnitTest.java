@@ -61,6 +61,8 @@ class EventsExportControllerUnitTest {
 
   @Mock private EventFieldsParamMapper eventsMapper;
 
+  @Mock private CompressedEventService compressedEventService;
+
   @Test
   void shouldFailInstantiatingControllerIfAnyOrderableFieldIsUnsupported() {
     // pretend the service does not support 2 of the orderable fields the web advocates
@@ -84,7 +86,8 @@ class EventsExportControllerUnitTest {
                     eventParamsMapper,
                     csvEventService,
                     fieldFilterService,
-                    eventsMapper));
+                    eventsMapper,
+                    compressedEventService));
 
     assertAll(
         () -> assertStartsWith("event controller supports ordering by", exception.getMessage()),
