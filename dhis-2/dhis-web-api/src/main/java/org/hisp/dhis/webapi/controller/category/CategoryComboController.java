@@ -31,8 +31,11 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.Objects;
+import java.util.Set;
+
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -88,8 +91,11 @@ public class CategoryComboController extends AbstractCrudController<CategoryComb
 
   private void checkNoDataValueBecomesInaccessible(CategoryCombo entity, CategoryCombo newEntity)
       throws WebMessageException {
-    if (!Objects.equals(entity.getCategories(), newEntity.getCategories())
-        && dataValueService.dataValueExists(entity)) {
+
+    Set<String> oldCategories = IdentifiableObjectUtils.getUidsAsSet(entity.getCategories());
+    Set<String> newCategories = IdentifiableObjectUtils.getUidsAsSet(newEntity.getCategories());
+
+    if (!Objects.equals(oldCategories, newCategories) && dataValueService.dataValueExists(entity)) {
       throw new WebMessageException(conflict(ErrorCode.E1120));
     }
   }
