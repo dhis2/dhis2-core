@@ -112,16 +112,6 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     }
   }
 
-  protected static boolean await(Duration timeout, BooleanSupplier test)
-      throws InterruptedException {
-    while (!timeout.isNegative() && !test.getAsBoolean()) {
-      Thread.sleep(20);
-      timeout = timeout.minusMillis(20);
-    }
-    if (!timeout.isNegative()) return true;
-    return test.getAsBoolean();
-  }
-
   protected final void doInTransaction(Runnable operation) {
     final int defaultPropagationBehaviour = txTemplate.getPropagationBehavior();
     txTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
