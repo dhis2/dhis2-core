@@ -184,7 +184,8 @@ public class AnalyticsOutlierService {
     grid.addHeader(new GridHeader(ORG_UNIT.getItem(), ORG_UNIT.getName(), TEXT, false, false));
     grid.addHeader(
         new GridHeader(ORG_UNIT_NAME.getItem(), ORG_UNIT_NAME.getName(), TEXT, false, false));
-    grid.addHeader( new GridHeader(
+    grid.addHeader(
+        new GridHeader(
             ORG_UNIT_NAME_HIERARCHY.getItem(),
             ORG_UNIT_NAME_HIERARCHY.getName(),
             TEXT,

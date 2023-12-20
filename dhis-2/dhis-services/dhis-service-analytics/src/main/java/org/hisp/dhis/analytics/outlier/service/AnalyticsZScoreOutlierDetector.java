@@ -37,8 +37,8 @@ import java.sql.SQLException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
@@ -68,6 +68,7 @@ public class AnalyticsZScoreOutlierDetector {
 
   @Qualifier("analyticsZScoreSqlStatementProcessor")
   private final OutlierSqlStatementProcessor sqlStatementProcessor;
+
   private final ExecutionPlanStore executionPlanStore;
 
   /**
