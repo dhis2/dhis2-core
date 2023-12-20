@@ -177,14 +177,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         .toList();
   }
 
-  private static <T extends IdentifiableObject> List<DataIntegrityIssue> toIssueList(
-      Stream<T> items, Function<T, ? extends Collection<? extends IdentifiableObject>> toRefs) {
-    return items
-        .map(e -> DataIntegrityIssue.toIssue(e, toRefs.apply(e)))
-        .sorted(DefaultDataIntegrityService::alphabeticalOrder)
-        .toList();
-  }
-
   @Nonnull
   @Override
   public Set<String> getRunningSummaryChecks() {
