@@ -83,12 +83,12 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
 
   public String createSimpleIndicator(String name, String indicatorType) {
     String indicatorId =
-            assertStatus(
-                HttpStatus.CREATED,
-                POST(
-                    "/indicators",
-                    // language=JSON
-                    """
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
+                // language=JSON
+                """
                     {
                       "name": "%s",
                       "shortName": "%s",
@@ -101,13 +101,10 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
                       "denominatorDescription": "Zero"
                     }
                     """
-                        .formatted(name, name, indicatorType)));
+                    .formatted(name, name, indicatorType)));
     assertNamedMetadataObjectExists("indicators", name);
     return indicatorId;
-
   }
-
-
 
   void checkDataIntegritySummary(
       String check, Integer expectedCount, Integer expectedPercentage, Boolean hasPercentage) {

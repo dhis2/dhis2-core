@@ -439,10 +439,11 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
   }
 
   @Test
-  void testIndicatorsViolateExclusiveGroups()  {
+  void testIndicatorsViolateExclusiveGroups() {
     String indicatorTypeA =
         assertStatus(
-            HttpStatus.CREATED,POST(
+            HttpStatus.CREATED,
+            POST(
                 "/indicatorTypes",
                 """
                         {
@@ -453,12 +454,13 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
                         """
                     .formatted()));
 
-    String indicatorA = createSimpleIndicator( "Indicator A", indicatorTypeA);
-    String indicatorB = createSimpleIndicator( "Indicator B", indicatorTypeA);
+    String indicatorA = createSimpleIndicator("Indicator A", indicatorTypeA);
+    String indicatorB = createSimpleIndicator("Indicator B", indicatorTypeA);
     String indicatorGroupA =
         assertStatus(
             HttpStatus.CREATED,
-            POST("/indicatorGroups",
+            POST(
+                "/indicatorGroups",
                 // language=JSON
                 """
                             {
@@ -479,7 +481,8 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     String indicatorGroupB =
         assertStatus(
             HttpStatus.CREATED,
-            POST("/indicatorGroups",
+            POST(
+                "/indicatorGroups",
                 // language=JSON
                 """
                             {

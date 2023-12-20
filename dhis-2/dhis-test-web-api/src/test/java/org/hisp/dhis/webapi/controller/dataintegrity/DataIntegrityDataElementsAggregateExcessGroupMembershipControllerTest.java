@@ -88,8 +88,7 @@ class DataIntegrityDataElementsAggregateExcessGroupMembershipControllerTest
                 + dataElementGroupB
                 + "'}]}"));
 
-    assertHasDataIntegrityIssues(
-        "data_elements_aggregate", check, 50, dataElementB, "ANC2", null, true);
+    assertHasDataIntegrityIssues("dataElements", check, 50, dataElementB, "ANC2", null, true);
   }
 
   @Test

@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-
 /**
- * Test for metadata check which identifies indicators which are members of
- * multiple groups within a group set. {@see
+ * Test for metadata check which identifies indicators which are members of multiple groups within a
+ * group set. {@see
  * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicators_violating_exclusive_group_sets.yaml}
  *
  * @author Jason P. Pickering
@@ -59,7 +59,8 @@ class DataIntegrityIndicatorsViolatingExclusiveGroupSetsControllerTest
     indicatorGroupA =
         assertStatus(
             HttpStatus.CREATED,
-            POST("/indicatorGroups",
+            POST(
+                "/indicatorGroups",
                 // language=JSON
                 """
                             {
@@ -75,12 +76,13 @@ class DataIntegrityIndicatorsViolatingExclusiveGroupSetsControllerTest
                             ]
                             }
                             """
-                        .formatted(indicatorA, indicatorB)));
+                    .formatted(indicatorA, indicatorB)));
 
     indicatorGroupB =
         assertStatus(
             HttpStatus.CREATED,
-            POST("/indicatorGroups",
+            POST(
+                "/indicatorGroups",
                 // language=JSON
                 """
                             {
@@ -116,8 +118,7 @@ class DataIntegrityIndicatorsViolatingExclusiveGroupSetsControllerTest
                     """
                 .formatted(indicatorGroupA, indicatorGroupB)));
 
-    assertHasDataIntegrityIssues(
-        "indicators", check, 50, indicatorB, "Indicator B", null, true);
+    assertHasDataIntegrityIssues("indicators", check, 50, indicatorB, "Indicator B", null, true);
   }
 
   @Test
@@ -128,7 +129,8 @@ class DataIntegrityIndicatorsViolatingExclusiveGroupSetsControllerTest
     indicatorGroupA =
         assertStatus(
             HttpStatus.CREATED,
-            POST("/indicatorGroups",
+            POST(
+                "/indicatorGroups",
                 // language=JSON
                 """
                             {
@@ -146,7 +148,8 @@ class DataIntegrityIndicatorsViolatingExclusiveGroupSetsControllerTest
     indicatorGroupB =
         assertStatus(
             HttpStatus.CREATED,
-            POST("/indicatorGroups",
+            POST(
+                "/indicatorGroups",
                 // language=JSON
                 """
                             {
@@ -194,7 +197,8 @@ class DataIntegrityIndicatorsViolatingExclusiveGroupSetsControllerTest
   void setupIndicators() {
     String indicatorTypeA =
         assertStatus(
-            HttpStatus.CREATED,POST(
+            HttpStatus.CREATED,
+            POST(
                 "/indicatorTypes",
                 """
                         {
@@ -203,9 +207,9 @@ class DataIntegrityIndicatorsViolatingExclusiveGroupSetsControllerTest
                           "number": false
                         }
                         """
-                        .formatted()));
+                    .formatted()));
 
-    indicatorA = createSimpleIndicator( "Indicator A", indicatorTypeA);
-    indicatorB = createSimpleIndicator( "Indicator B", indicatorTypeA);
-    }
+    indicatorA = createSimpleIndicator("Indicator A", indicatorTypeA);
+    indicatorB = createSimpleIndicator("Indicator B", indicatorTypeA);
+  }
 }

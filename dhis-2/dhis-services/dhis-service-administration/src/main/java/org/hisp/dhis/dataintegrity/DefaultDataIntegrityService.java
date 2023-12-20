@@ -508,7 +508,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("program_indicators_without_expression");
     checks.add("organisation_units_violating_exclusive_group_sets");
     checks.add("orgunits_compulsory_group_count");
-    checks.add( "indicators_violating_exclusive_group_sets");
+    checks.add("indicators_violating_exclusive_group_sets");
     return checks;
   }
 
