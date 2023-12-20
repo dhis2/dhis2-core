@@ -42,6 +42,7 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.MEDIAN_ABS_DEVIATION;
 import static org.hisp.dhis.analytics.common.ColumnHeader.MODIFIED_ZSCORE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PERIOD;
 import static org.hisp.dhis.analytics.common.ColumnHeader.STANDARD_DEVIATION;
 import static org.hisp.dhis.analytics.common.ColumnHeader.UPPER_BOUNDARY;
@@ -53,6 +54,7 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,8 +65,12 @@ import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -174,6 +180,12 @@ public class AnalyticsOutlierService {
     grid.addHeader(new GridHeader(ORG_UNIT.getItem(), ORG_UNIT.getName(), TEXT, false, false));
     grid.addHeader(
         new GridHeader(ORG_UNIT_NAME.getItem(), ORG_UNIT_NAME.getName(), TEXT, false, false));
+    grid.addHeader( new GridHeader(
+            ORG_UNIT_NAME_HIERARCHY.getItem(),
+            ORG_UNIT_NAME_HIERARCHY.getName(),
+            TEXT,
+            false,
+            false));
     grid.addHeader(
         new GridHeader(
             CATEGORY_OPTION_COMBO.getItem(), CATEGORY_OPTION_COMBO.getName(), TEXT, false, false));
@@ -224,12 +236,17 @@ public class AnalyticsOutlierService {
     outliers.forEach(
         v -> {
           boolean isModifiedZScore = request.getAlgorithm() == MOD_Z_SCORE;
+          OrganisationUnit ou = organisationUnitService.getOrganisationUnit(v.getOu());
+          User user = currentUserService.getCurrentUser();
+          Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+
           grid.addRow();
           grid.addValue(v.getDx());
           grid.addValue(v.getDxName());
           grid.addValue(v.getPe());
           grid.addValue(v.getOu());
           grid.addValue(v.getOuName());
+          grid.addValue(ou.getParentNameGraph(roots, true));
           grid.addValue(v.getCoc());
           grid.addValue(v.getCocName());
           grid.addValue(v.getAoc());
