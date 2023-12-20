@@ -33,7 +33,6 @@ import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isO
 
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 import lombok.Getter;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -68,13 +67,12 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder {
   @Override
   public RenderableSqlQuery buildSqlQuery(
       QueryContext queryContext,
+      List<DimensionIdentifier<DimensionParam>> acceptedHeaders,
       List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
       List<AnalyticsSortingParams> acceptedSortingParams) {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-    Stream.concat(
-            acceptedDimensions.stream(),
-            acceptedSortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
+    streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
         .filter(
             dimensionIdentifier ->
                 dimensionIdentifier.isEventDimension()

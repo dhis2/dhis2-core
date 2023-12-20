@@ -35,6 +35,7 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -67,6 +68,7 @@ public class PeriodCondition extends BaseRenderable {
         dimensionIdentifier.getDimension().getDimensionalObject().getItems().stream()
             .map(Period.class::cast)
             .map(Period::getStartDate)
+            .filter(Objects::nonNull)
             .reduce(DateUtils::min)
             .orElse(null);
 
@@ -74,6 +76,7 @@ public class PeriodCondition extends BaseRenderable {
         dimensionIdentifier.getDimension().getDimensionalObject().getItems().stream()
             .map(Period.class::cast)
             .map(Period::getEndDate)
+            .filter(Objects::nonNull)
             .map(this::nextDay)
             .reduce(DateUtils::max)
             .orElse(null);
