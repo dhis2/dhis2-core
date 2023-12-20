@@ -124,7 +124,7 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
     String order =
         request.getOrderBy() == MEAN_ABS_DEV
             ? "middle_value_abs_dev"
-            : request.getOrderBy().getKey();
+            : request.getOrderBy().getColumnName();
 
     String thresholdParam =
         withParams ? ":" + THRESHOLD.getKey() : Double.toString(request.getThreshold());
