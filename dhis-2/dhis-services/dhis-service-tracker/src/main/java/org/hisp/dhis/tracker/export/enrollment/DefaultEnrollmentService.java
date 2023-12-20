@@ -98,7 +98,10 @@ class DefaultEnrollmentService
 
   @Override
   public Enrollment getEnrollment(
-      @Nonnull Enrollment enrollment, EnrollmentParams params, boolean includeDeleted, User currentUser)
+      @Nonnull Enrollment enrollment,
+      EnrollmentParams params,
+      boolean includeDeleted,
+      User currentUser)
       throws ForbiddenException {
 
     Enrollment result = new Enrollment();
