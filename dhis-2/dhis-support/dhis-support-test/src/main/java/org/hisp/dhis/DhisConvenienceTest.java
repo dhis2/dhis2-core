@@ -190,6 +190,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
+import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -2659,10 +2660,26 @@ public abstract class DhisConvenienceTest {
       clearSecurityContext();
       return;
     }
-    hibernateService.flushSession();
+
     user = userService.getUser(user.getUid());
-    // TODO: MAS: rewrite to use userService.createUserDetails(user) instead
-    injectSecurityContext(userService.createUserDetails(user));
+
+    CurrentUserGroupInfo currentUserGroupInfo = userService.getCurrentUserGroupInfo(user.getUid());
+    if (user.getGroups().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+      String msg =
+          String.format(
+              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
+              user.getUsername(),
+              user.getGroups().size(),
+              currentUserGroupInfo.getUserGroupUIDs().size());
+
+      log.error(msg);
+
+      throw new RuntimeException(msg);
+    }
+
+    UserDetails userDetails = userService.createUserDetails(user);
+
+    injectSecurityContext(userDetails);
   }
 
   public static void injectSecurityContext(UserDetails currentUserDetails) {

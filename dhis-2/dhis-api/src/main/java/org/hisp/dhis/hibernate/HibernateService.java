@@ -41,4 +41,8 @@ public class HibernateService {
   public void flushSession() {
     dbmsManager.flushSession();
   }
+
+  public void clearSession() {
+    dbmsManager.clearSession();
+  }
 }

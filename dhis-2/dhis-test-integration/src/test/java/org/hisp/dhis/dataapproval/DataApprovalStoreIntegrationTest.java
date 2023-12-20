@@ -273,9 +273,8 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
           dataApprovalLevelService.addDataApprovalLevel(level1);
 
+          hibernateService.flushSession();
           injectSecurityContextUser(userA);
-
-          //          Mockito.when(getCurrentUser()).thenReturn(userA);
 
           assertEquals(
               1,
@@ -341,6 +340,8 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
           categoryOptionB.setEndDate(new DateTime(2020, 6, 30, 0, 0).toDate());
 
           clearSecurityContext();
+
+          hibernateService.flushSession();
           injectSecurityContextUser(getAdminUser());
 
           categoryService.updateCategoryOption(categoryOptionA);
@@ -506,6 +507,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
     dataApprovalLevelService.addDataApprovalLevel(level1);
 
+    hibernateService.flushSession();
     injectSecurityContextUser(userA);
 
     assertEquals(

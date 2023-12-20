@@ -287,19 +287,18 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
   @Test
   void testGetNamespaceKeys_NoPublicAccess_NoUserGroupAccess()
       throws ConflictException, BadRequestException, JsonProcessingException {
-    UserDetails currentUserDetails1 = CurrentUserUtil.getCurrentUserDetails();
     // given
     // 2 existing namespace entries with sharing set to a specific user group only & no public
     // access
+    reLoginAdminUser();
     User basicUser = createAndAddUser(false, "basicUser", null);
     User userWithNoAccess = createAndAddUser(false, "userWithNoAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(basicUser));
-    //    injectAdminUser();
-    reLoginAdminUser();
     userGroupService.addUserGroup(userGroup);
 
-    User refetechedBasicUser = userService.getUserByUsername(basicUser.getUsername());
-    injectSecurityContextUser(refetechedBasicUser);
+    hibernateService.clearSession();
+
+    injectSecurityContextUser(basicUser);
 
     String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
     String spurs = jsonMapper.writeValueAsString(club("spurs"));

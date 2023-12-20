@@ -520,7 +520,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldOrderEntitiesByUpdatedAtInDescOrder() {
+  void shouldOrderEntitiesByUpdatedAtInDescOrder() throws InterruptedException {
     injectSecurityContextUser(superUser);
 
     addEntityInstances();

@@ -331,8 +331,8 @@ public class DefaultUserService implements UserService {
             || systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
     params.setDisjointRoles(!canSeeOwnRoles);
 
-    // TODO: MAS This breaks test: testGetManagedGroupsOrganisationUnit()
     if (!params.hasUser()) {
+      // TODO: MAS: Refactor to use userDetails instead of User in params
       String currentUsername = CurrentUserUtil.getCurrentUsername();
       User currentUser = getUserByUsername(currentUsername);
       params.setUser(currentUser);
@@ -900,6 +900,11 @@ public class DefaultUserService implements UserService {
 
     return UserDetails.createUserDetails(
         user, accountNonLocked, credentialsNonExpired, userSettings);
+  }
+
+  @Override
+  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
+    return userStore.getCurrentUserGroupInfo(userUID);
   }
 
   @Override
