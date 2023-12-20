@@ -125,13 +125,13 @@ class DataIntegrityDataElementsAggregateExcessGroupMembershipControllerTest
                 + dataElementGroupB
                 + "'}]}"));
 
-    assertHasNoDataIntegrityIssues("data_elements_aggregate", check, true);
+    assertHasNoDataIntegrityIssues("dataElements", check, true);
   }
 
   @Test
   void testDataElementsInGroupDivideByZero() {
 
-    assertHasNoDataIntegrityIssues("data_elements_aggregate", check, false);
+    assertHasNoDataIntegrityIssues("dataElements", check, false);
   }
 
   void setUpDataElements() {
