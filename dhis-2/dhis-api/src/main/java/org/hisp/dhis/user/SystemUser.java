@@ -90,7 +90,6 @@ public class SystemUser implements UserDetails {
 
   @Override
   public String getUid() {
-    //    throw new RuntimeException("System user does not have a uid!");
     return "system-process";
   }
 
@@ -101,7 +100,7 @@ public class SystemUser implements UserDetails {
 
   @Override
   public String getCode() {
-    throw new RuntimeException("System user does not have a code!");
+    return "code_" + CodeGenerator.generateUid();
   }
 
   @Override
@@ -165,5 +164,7 @@ public class SystemUser implements UserDetails {
   }
 
   @Override
-  public void setId(Long id) {}
+  public void setId(Long id) {
+    // do nothing
+  }
 }

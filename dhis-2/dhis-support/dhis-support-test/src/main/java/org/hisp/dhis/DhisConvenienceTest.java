@@ -2927,14 +2927,17 @@ public abstract class DhisConvenienceTest {
   }
 
   protected User preCreateInjectAdminUserWithoutPersistence() {
-    UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
-    role.setUid(CodeGenerator.generateUid());
+    String uid = CodeGenerator.generateUid();
+
+    UserRole role = createUserRole("Superuser_Test_" + uid, "ALL");
+    role.setUid(uid);
 
     User user = new User();
-    user.setUid(CodeGenerator.generateUid());
+    user.setUid(uid);
     user.setFirstName("Admin");
     user.setSurname("User");
     user.setUsername(DEFAULT_USERNAME + "_test");
+    //    user.setUsername(DEFAULT_USERNAME + "_test_" + uid);
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
     user.getUserRoles().add(role);
 

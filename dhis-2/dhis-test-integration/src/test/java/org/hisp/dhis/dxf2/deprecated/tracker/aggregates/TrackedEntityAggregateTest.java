@@ -99,7 +99,6 @@ class TrackedEntityAggregateTest extends DeprecatedTrackerTest {
   void setUp() {
     doInTransaction(
         () -> {
-          //          superUser = preCreateInjectAdminUser();
           superUser = userService.getUserByUsername("admin_test");
           injectSecurityContextUser(superUser);
 

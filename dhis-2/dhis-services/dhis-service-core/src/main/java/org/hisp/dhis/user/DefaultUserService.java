@@ -1040,7 +1040,7 @@ public class DefaultUserService implements UserService {
     }
 
     if (user.getUsername() != null && getUserByUsername(user.getUsername()) != null) {
-      log.warn("Could not send invite message as username is already taken: " + user);
+      log.warn("Could not send invite message as username is already taken.");
       return ErrorCode.E6204;
     }
 
