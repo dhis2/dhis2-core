@@ -39,6 +39,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 import net.minidev.json.JSONObject;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.analytics.AnalyticsTeiActions;
@@ -2778,5 +2779,114 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Male",
             "",
             "2994.5"));
+  }
+
+  @Test
+  public void headerParamProgramStatus() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("programStatus=IpHINAT79UW.ACTIVE")
+            .add("headers=IpHINAT79UW.programstatus")
+            .add("lastUpdated=LAST_YEAR")
+            .add("relativePeriodDate=2016-01-01");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("rows", hasSize(equalTo(50)))
+        .body("height", equalTo(50))
+        .body("width", equalTo(1))
+        .body("headerWidth", equalTo(1))
+        .body("headers", hasSize(equalTo(1)));
+
+    validateHeader(
+        response,
+        0,
+        "IpHINAT79UW.programstatus",
+        "Enrollment PROGRAM_STATUS",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    IntStream.range(0, 50).forEach(i -> validateRow(response, i, List.of("ACTIVE")));
+  }
+
+  @Test
+  public void headerParamEnrollmentStatus() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("enrollmentStatus=IpHINAT79UW.ACTIVE")
+            .add("headers=IpHINAT79UW.enrollmentstatus")
+            .add("lastUpdated=LAST_YEAR")
+            .add("relativePeriodDate=2016-01-01");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("rows", hasSize(equalTo(50)))
+        .body("height", equalTo(50))
+        .body("width", equalTo(1))
+        .body("headerWidth", equalTo(1))
+        .body("headers", hasSize(equalTo(1)));
+
+    validateHeader(
+        response,
+        0,
+        "IpHINAT79UW.enrollmentstatus",
+        "Enrollment ENROLLMENT_STATUS",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    IntStream.range(0, 50).forEach(i -> validateRow(response, i, List.of("ACTIVE")));
+  }
+
+  @Test
+  public void headerParamIncidentDate() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("incidentDate=IpHINAT79UW.2022-01-01")
+            .add("headers=IpHINAT79UW.incidentdate")
+            .add("asc=IpHINAT79UW.incidentdate")
+            .add("lastUpdated=LAST_YEAR")
+            .add("relativePeriodDate=2016-01-01");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("rows", hasSize(equalTo(50)))
+        .body("height", equalTo(50))
+        .body("width", equalTo(1))
+        .body("headerWidth", equalTo(1))
+        .body("headers", hasSize(equalTo(1)));
+
+    validateHeader(
+        response,
+        0,
+        "IpHINAT79UW.incidentdate",
+        "Enrollment INCIDENTDATE",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+
+    validateRow(response, 0, List.of("2022-01-01 12:05:00.0"));
   }
 }

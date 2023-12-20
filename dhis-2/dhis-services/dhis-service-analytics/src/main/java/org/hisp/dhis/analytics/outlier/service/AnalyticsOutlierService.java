@@ -56,6 +56,7 @@ import java.io.Writer;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.common.Grid;
@@ -70,7 +71,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class AnalyticsOutlierService {
 
-  private final AnalyticsZScoreOutlierManager zScoreOutlierDetection;
+  private final AnalyticsZScoreOutlierDetector zScoreOutlierDetector;
+
+  private final OutliersCache outliersCache;
 
   /**
    * Transform the incoming request into api response (json).
@@ -78,8 +81,9 @@ public class AnalyticsOutlierService {
    * @param request the {@link OutlierRequest}.
    * @return the {@link Grid}.
    */
-  public Grid getOutlierValues(OutlierRequest request) throws IllegalQueryException {
-    List<Outlier> outliers = zScoreOutlierDetection.getOutlierValues(request);
+  public Grid getOutliers(OutlierRequest request) throws IllegalQueryException {
+    List<Outlier> outliers =
+        outliersCache.getOrFetch(request, p -> zScoreOutlierDetector.getOutliers(request));
 
     Grid grid = new ListGrid();
     setHeaders(grid, request);
@@ -94,9 +98,9 @@ public class AnalyticsOutlierService {
    *
    * @param request the {@link OutlierRequest}.
    */
-  public void getOutlierValuesAsCsv(OutlierRequest request, Writer writer)
+  public void getOutlierAsCsv(OutlierRequest request, Writer writer)
       throws IllegalQueryException, IOException {
-    GridUtils.toCsv(getOutlierValues(request), writer);
+    GridUtils.toCsv(getOutliers(request), writer);
   }
 
   /**
@@ -104,9 +108,9 @@ public class AnalyticsOutlierService {
    *
    * @param request the {@link OutlierRequest}.
    */
-  public void getOutlierValuesAsXml(OutlierRequest request, OutputStream outputStream)
+  public void getOutliersAsXml(OutlierRequest request, OutputStream outputStream)
       throws IllegalQueryException {
-    GridUtils.toXml(getOutlierValues(request), outputStream);
+    GridUtils.toXml(getOutliers(request), outputStream);
   }
 
   /**
@@ -114,9 +118,9 @@ public class AnalyticsOutlierService {
    *
    * @param request the {@link OutlierRequest}.
    */
-  public void getOutlierValuesAsXls(OutlierRequest request, OutputStream outputStream)
+  public void getOutliersAsXls(OutlierRequest request, OutputStream outputStream)
       throws IllegalQueryException, IOException {
-    GridUtils.toXls(getOutlierValues(request), outputStream);
+    GridUtils.toXls(getOutliers(request), outputStream);
   }
 
   /**
@@ -124,9 +128,9 @@ public class AnalyticsOutlierService {
    *
    * @param request the {@link OutlierRequest}.
    */
-  public void getOutlierValuesAsHtml(OutlierRequest request, Writer writer)
+  public void getOutliersAsHtml(OutlierRequest request, Writer writer)
       throws IllegalQueryException {
-    GridUtils.toHtml(getOutlierValues(request), writer);
+    GridUtils.toHtml(getOutliers(request), writer);
   }
 
   /**
@@ -134,9 +138,9 @@ public class AnalyticsOutlierService {
    *
    * @param request the {@link OutlierRequest}.
    */
-  public void getOutlierValuesAsHtmlCss(OutlierRequest request, Writer writer)
+  public void getOutliersAsHtmlCss(OutlierRequest request, Writer writer)
       throws IllegalQueryException {
-    GridUtils.toHtmlCss(getOutlierValues(request), writer);
+    GridUtils.toHtmlCss(getOutliers(request), writer);
   }
 
   private void setHeaders(Grid grid, OutlierRequest request) {
