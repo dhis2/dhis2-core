@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cacheinvalidation.redis.PostCacheEventPublisher;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.CacheInvalidationIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +47,7 @@ import org.springframework.test.context.ActiveProfiles;
  */
 @Slf4j
 @ActiveProfiles({"test-postgres", "cache-invalidation-test"})
-class CacheInvalidationMessagePublisherTest extends IntegrationTestBase {
+class CacheInvalidationMessagePublisherTest extends CacheInvalidationIntegrationTestBase {
   @Autowired private PostCacheEventPublisher postCacheEventPublisher;
 
   @Autowired private IdentifiableObjectManager manager;
