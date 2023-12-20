@@ -63,6 +63,8 @@ public class OutlierRequest {
 
   private Date dataEndDate;
 
+  private String queryKey;
+
   @Default private List<DataElement> dataElements = new ArrayList<>();
 
   @Default private List<OrganisationUnit> orgUnits = new ArrayList<>();
