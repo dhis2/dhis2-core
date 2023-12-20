@@ -191,7 +191,8 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
             detailsByName.get(
                 DataIntegrityCheckType.INDICATORS_VIOLATING_EXCLUSIVE_GROUP_SETS.getName()));
     this.organisationUnitsViolatingExclusiveGroupSets =
-        mapOfRefsByDisplayNameOrUid(detailsByName.get("orgunit_group_sets_excess_groups"));
+        mapOfRefsByDisplayNameOrUid(
+            detailsByName.get("organisation_units_violating_exclusive_group_sets"));
     this.programRulesWithNoCondition =
         mapOfRefsByDisplayNameOrUid(detailsByName.get("program_rules_without_condition"));
     this.programRulesWithNoPriority =

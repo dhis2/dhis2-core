@@ -153,7 +153,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     addOrganisationUnitGroupSet("K", groupA0Id);
     addOrganisationUnitGroupSet("X", groupB1Id, groupB2Id);
     assertEquals(
-        Map.of("B:" + ouIdB, asList("B1:" + groupB1Id, "B2:" + groupB2Id)),
+        Map.of("B", asList("B1:" + groupB1Id, "B2:" + groupB2Id)),
         getDataIntegrityReport()
             .getOrganisationUnitsViolatingExclusiveGroupSets()
             .toMap(JsonString::string, String::compareTo));

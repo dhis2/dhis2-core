@@ -73,10 +73,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
@@ -93,9 +91,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -141,17 +137,11 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
 
   private final OrganisationUnitService organisationUnitService;
 
-  private final OrganisationUnitGroupService organisationUnitGroupService;
-
   private final ValidationRuleService validationRuleService;
 
   private final ExpressionService expressionService;
 
   private final DataEntryFormService dataEntryFormService;
-
-  private final CategoryService categoryService;
-
-  private final PeriodService periodService;
 
   private final ProgramIndicatorService programIndicatorService;
 
@@ -234,26 +224,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   }
 
   /**
-   * Gets all data elements units which are members of more than one group which enter into an
-   * exclusive group set.
-   */
-  List<DataIntegrityIssue> getDataElementsViolatingExclusiveGroupSets() {
-    Collection<DataElementGroupSet> groupSets = dataElementService.getAllDataElementGroupSets();
-
-    List<DataIntegrityIssue> issues = new ArrayList<>();
-
-    for (DataElementGroupSet groupSet : groupSets) {
-      Set<DataElement> duplicates = getDuplicates(groupSet.getDataElements());
-
-      for (DataElement duplicate : duplicates) {
-        issues.add(DataIntegrityIssue.toIssue(duplicate, duplicate.getGroups()));
-      }
-    }
-
-    return issues;
-  }
-
-  /**
    * Returns all data elements which are member of a data set but not part of either the custom form
    * or sections of the data set.
    */
@@ -283,12 +253,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     }
 
     return issues;
-  }
-
-  /** Returns all invalid category combinations. */
-  List<DataIntegrityIssue> getInvalidCategoryCombos() {
-    return toSimpleIssueList(
-        categoryService.getAllCategoryCombos().stream().filter(c -> !c.isValid()));
   }
 
   // -------------------------------------------------------------------------
@@ -381,17 +345,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   List<DataIntegrityIssue> getOrganisationUnitsWithCyclicReferences() {
     return toSimpleIssueList(
         organisationUnitService.getOrganisationUnitsWithCyclicReferences().stream());
-  }
-
-  List<DataIntegrityIssue> getOrganisationUnitsViolatingExclusiveGroupSets() {
-    return toIssueList(
-        organisationUnitService.getOrganisationUnitsViolatingExclusiveGroupSets().stream(),
-        OrganisationUnit::getGroups);
-  }
-
-  List<DataIntegrityIssue> getOrganisationUnitGroupsWithoutGroupSets() {
-    return toSimpleIssueList(
-        organisationUnitGroupService.getOrganisationUnitGroupsWithoutGroupSets().stream());
   }
 
   // -------------------------------------------------------------------------
@@ -502,7 +455,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataIntegrityCheckType.INDICATORS_VIOLATING_EXCLUSIVE_GROUP_SETS,
         Indicator.class,
         this::getIndicatorsViolatingExclusiveGroupSets);
-
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.ORG_UNITS_WITH_CYCLIC_REFERENCES,
         OrganisationUnit.class,
@@ -566,7 +518,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("program_rules_no_action");
     checks.add("program_rules_no_priority");
     checks.add("program_indicators_without_expression");
-    checks.add("orgunit_group_sets_excess_groups");
+    checks.add("organisation_units_violating_exclusive_group_sets");
     checks.add("orgunits_compulsory_group_count");
     return checks;
   }

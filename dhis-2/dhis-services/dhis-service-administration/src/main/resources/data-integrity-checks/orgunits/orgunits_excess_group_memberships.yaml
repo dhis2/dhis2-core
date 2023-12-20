@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: orgunit_group_sets_excess_groups
+name: organisation_units_violating_exclusive_group_sets
 description: Organisation units which belong to multiple groups in a group set.
 section: Organisation units
 section_order: 10
@@ -55,7 +55,8 @@ summary_sql: >-
 details_sql: >-
   WITH ougs_multiple_groups as (
   SELECT ou_uid,ou_name,ougs_name,
-  array_agg(oug_name) as ougs_groups
+  NULL As comment,
+  array_agg(oug_name || ':' || oug_uid) as ougs_groups
   FROM (
   SELECT  ougm.organisationunitid, 
   ougm.orgunitgroupid,
@@ -63,6 +64,7 @@ details_sql: >-
   ou.uid as ou_uid,
   ou.name as ou_name,
   oug.name as oug_name,
+  oug.uid as oug_uid,
   ougs.name as ougs_name
   FROM orgunitgroupmembers ougm
   INNER JOIN orgunitgroupsetmembers ougsm USING(orgunitgroupid)
@@ -71,7 +73,8 @@ details_sql: >-
   INNER JOIN organisationunit ou USING(organisationunitid) ) a
   GROUP BY ou_uid,ou_name, ougs_name )
   SELECT ou_uid as uid, ou_name as name,
-  ougs_name || ' :(' ||   array_to_string(ougs_groups, '; ') || ')' as comment
+  NULL as comment,
+  ougs_groups as refs
   from ougs_multiple_groups
   WHERE array_length(ougs_groups, 1) > 1;
 details_id_type: organisationUnits
