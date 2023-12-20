@@ -47,11 +47,11 @@ public class OutlierQueryParser {
   /**
    * Creates a {@link OutlierRequest} from the given query.
    *
-   * @param query the {@link OutlierQuery}.
+   * @param queryParams the {@link OutlierQueryParams}.
    * @return a {@link OutlierRequest}.
    */
-  public OutlierRequest getFromQuery(OutlierQuery query) {
-    List<DataSet> dataSets = idObjectManager.getByUid(DataSet.class, query.getDs());
+  public OutlierRequest getFromQuery(OutlierQueryParams queryParams) {
+    List<DataSet> dataSets = idObjectManager.getByUid(DataSet.class, queryParams.getDs());
 
     // Re-fetch data elements to maintain access control.
     // Only data elements are supported for now.
@@ -63,35 +63,36 @@ public class OutlierQueryParser {
             .map(DataElement::getUid)
             .collect(toList());
 
-    de.addAll(query.getDx());
+    de.addAll(queryParams.getDx());
 
     List<DataElement> dataElements = idObjectManager.getByUid(DataElement.class, de);
     List<OrganisationUnit> orgUnits =
-        idObjectManager.getByUid(OrganisationUnit.class, query.getOu());
+        idObjectManager.getByUid(OrganisationUnit.class, queryParams.getOu());
 
     OutlierRequest.OutlierRequestBuilder builder =
         OutlierRequest.builder()
             .dataElements(dataElements)
-            .startDate(query.getStartDate())
-            .endDate(query.getEndDate())
+            .startDate(queryParams.getStartDate())
+            .endDate(queryParams.getEndDate())
             .orgUnits(orgUnits)
-            .dataStartDate(query.getDataStartDate())
-            .dataEndDate(query.getDataEndDate());
+            .dataStartDate(queryParams.getDataStartDate())
+            .dataEndDate(queryParams.getDataEndDate())
+            .queryKey(queryParams.queryKey());
 
-    if (query.getAlgorithm() != null) {
-      builder.algorithm(query.getAlgorithm());
+    if (queryParams.getAlgorithm() != null) {
+      builder.algorithm(queryParams.getAlgorithm());
     }
 
-    if (query.getThreshold() != null) {
-      builder.threshold(query.getThreshold());
+    if (queryParams.getThreshold() != null) {
+      builder.threshold(queryParams.getThreshold());
     }
 
-    if (query.getOrderBy() != null) {
-      builder.orderBy(query.getOrderBy());
+    if (queryParams.getOrderBy() != null) {
+      builder.orderBy(queryParams.getOrderBy());
     }
 
-    if (query.getMaxResults() != null) {
-      builder.maxResults(query.getMaxResults());
+    if (queryParams.getMaxResults() != null) {
+      builder.maxResults(queryParams.getMaxResults());
     }
 
     return builder.build();
