@@ -163,15 +163,19 @@ public class IndicatorMergeService implements MergeService {
             .add(metadataIndicatorMergeHandler::mergeIndicatorGroups)
 
             // data dimensional item - set target as indicator
+            // TODO need to speak with analytics
 
             // section - remove source & add target
             .add(metadataIndicatorMergeHandler::mergeSections)
 
             // configuration - remove source & add target
+            // TODO may be already done in indicator group merge
 
             // handle indicator numerator / denominator
+            .add(metadataIndicatorMergeHandler::replaceIndicatorRefsInIndicator)
 
             // handle data entry forms (custom forms - html property (STRING))
+            // skip custom forms, not worth it & not used.
             .build();
   }
 }

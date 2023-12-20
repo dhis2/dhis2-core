@@ -32,11 +32,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
+import org.hisp.dhis.indicator.IndicatorService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -49,6 +51,8 @@ import org.springframework.stereotype.Service;
 public class MetadataIndicatorMergeHandler {
 
   private final SectionService sectionService;
+  private final IndicatorService indicatorService;
+//  private final AnalyticalObjectStore<DataDimensionItem> analyticalObjectStore;
 
   public void mergeDataSets(List<Indicator> sources, Indicator target) {
     Set<DataSet> dataSets =
@@ -96,5 +100,32 @@ public class MetadataIndicatorMergeHandler {
   public void mergeConfigurations(List<Indicator> sources, Indicator target) {
     // TODO
     // this might already be covered by the indicator group merge above
+  }
+
+  public void replaceIndicatorRefsInIndicator(List<Indicator> sources, Indicator target) {
+    // get all indicators that contain indicator refs in either numerator or denominator
+    // iterate over them replacing all source
+    for (Indicator source : sources) {
+      // numerators
+      List<Indicator> indicators =
+          indicatorService.getIndicatorsContainingOtherIndicatorRefInNumerator(source.getUid());
+      if (CollectionUtils.isNotEmpty(indicators)) {
+        for (Indicator foundIndicator : indicators) {
+          String existingNumerator = foundIndicator.getNumerator();
+          foundIndicator.setNumerator(existingNumerator.replace(source.getUid(), target.getUid()));
+        }
+      }
+
+      // denominators
+      List<Indicator> denominators =
+          indicatorService.getIndicatorsContainingOtherIndicatorRefInDenominator(source.getUid());
+      if (CollectionUtils.isNotEmpty(denominators)) {
+        for (Indicator foundIndicator : indicators) {
+          String existingDenominator = foundIndicator.getDenominator();
+          foundIndicator.setDenominator(
+              existingDenominator.replace(source.getUid(), target.getUid()));
+        }
+      }
+    }
   }
 }
