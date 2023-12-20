@@ -33,7 +33,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.Section;
+import org.hisp.dhis.dataset.SectionService;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorGroup;
 import org.springframework.stereotype.Service;
 
 /**
@@ -44,6 +47,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class MetadataIndicatorMergeHandler {
+
+  private final SectionService sectionService;
 
   public void mergeDataSets(List<Indicator> sources, Indicator target) {
     Set<DataSet> dataSets =
@@ -57,5 +62,39 @@ public class MetadataIndicatorMergeHandler {
           ds.addIndicator(target);
           ds.removeIndicators(sources);
         });
+  }
+
+  public void mergeIndicatorGroups(List<Indicator> sources, Indicator target) {
+    Set<IndicatorGroup> indicatorGroups =
+        sources.stream()
+            .map(Indicator::getGroups)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
+
+    indicatorGroups.forEach(
+        ig -> {
+          ig.addIndicator(target);
+          ig.removeIndicators(sources);
+        });
+  }
+
+  public void mergeDataDimensionalItems(List<Indicator> sources, Indicator target) {
+    // TODO
+  }
+
+  public void mergeSections(List<Indicator> sources, Indicator target) {
+    List<Section> sections = sectionService.getSectionsByIndicators(sources);
+    sources.forEach(
+        i ->
+            sections.forEach(
+                s -> {
+                  s.getIndicators().remove(i);
+                  s.getIndicators().add(target);
+                }));
+  }
+
+  public void mergeConfigurations(List<Indicator> sources, Indicator target) {
+    // TODO
+    // this might already be covered by the indicator group merge above
   }
 }

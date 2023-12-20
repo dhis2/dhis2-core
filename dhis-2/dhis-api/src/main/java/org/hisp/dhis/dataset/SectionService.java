@@ -28,6 +28,7 @@
 package org.hisp.dhis.dataset;
 
 import java.util.List;
+import org.hisp.dhis.indicator.Indicator;
 
 public interface SectionService {
   String ID = SectionService.class.getName();
@@ -84,4 +85,11 @@ public interface SectionService {
    * @return a Collection of Sections.
    */
   List<Section> getAllSections();
+
+  /**
+   * Retrieves all Sections referencing the provided Indicators.
+   *
+   * @return a Collection of Sections.
+   */
+  List<Section> getSectionsByIndicators(List<Indicator> indicatorUids);
 }

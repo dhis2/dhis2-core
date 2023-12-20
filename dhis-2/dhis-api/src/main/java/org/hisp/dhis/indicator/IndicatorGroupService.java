@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.indicator;
 
+
 /**
  * @author Stian Sandvold
  */

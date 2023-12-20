@@ -29,11 +29,13 @@ package org.hisp.dhis.dataset.hibernate;
 
 import java.util.List;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -86,5 +88,12 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
         .createNativeQuery(hql, Section.class)
         .setParameter("dataElementId", dataElementUid)
         .list();
+  }
+
+  @Override
+  public List<Section> getSectionsByIndicators(List<Indicator> indicators) {
+    TypedQuery<Section> query =
+        entityManager.createQuery("FROM Section s where s.indicator in :indicators", Section.class);
+    return query.setParameter("indicators", indicators).getResultList();
   }
 }

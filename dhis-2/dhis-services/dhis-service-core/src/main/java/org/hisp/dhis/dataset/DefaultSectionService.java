@@ -29,6 +29,7 @@ package org.hisp.dhis.dataset;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.indicator.Indicator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,6 +61,12 @@ public class DefaultSectionService implements SectionService {
   @Transactional(readOnly = true)
   public List<Section> getAllSections() {
     return sectionStore.getAll();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Section> getSectionsByIndicators(List<Indicator> indicators) {
+    return sectionStore.getSectionsByIndicators(indicators);
   }
 
   @Override

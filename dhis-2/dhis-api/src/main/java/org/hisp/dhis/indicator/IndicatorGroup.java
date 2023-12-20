@@ -33,6 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -74,6 +75,10 @@ public class IndicatorGroup extends BaseIdentifiableObject implements MetadataOb
   public void removeIndicator(Indicator indicator) {
     members.remove(indicator);
     indicator.getGroups().remove(this);
+  }
+
+  public void removeIndicators(List<Indicator> indicators) {
+    indicators.forEach(this::removeIndicator);
   }
 
   public void updateIndicators(Set<Indicator> updates) {

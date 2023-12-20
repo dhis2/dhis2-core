@@ -29,6 +29,7 @@ package org.hisp.dhis.dataset;
 
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.indicator.Indicator;
 
 public interface SectionStore extends IdentifiableObjectStore<Section> {
   String ID = SectionStore.class.getName();
@@ -42,4 +43,6 @@ public interface SectionStore extends IdentifiableObjectStore<Section> {
   Section getSectionByName(String name, DataSet dataSet);
 
   List<Section> getSectionsByDataElement(String dataElementUid);
+
+  List<Section> getSectionsByIndicators(List<Indicator> indicators);
 }

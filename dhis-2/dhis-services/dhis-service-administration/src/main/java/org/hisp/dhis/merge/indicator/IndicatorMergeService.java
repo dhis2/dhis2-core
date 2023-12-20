@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -61,7 +62,7 @@ public class IndicatorMergeService implements MergeService {
   private final IndicatorService indicatorService;
   private final IdentifiableObjectManager idObjectManager;
   private final MetadataIndicatorMergeHandler metadataIndicatorMergeHandler;
-  private final ImmutableList<IndicatorMergeHandler> handlers = getMergeHandlers();
+  private ImmutableList<IndicatorMergeHandler> handlers;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
@@ -151,23 +152,26 @@ public class IndicatorMergeService implements MergeService {
         .orElse(MergeRequest.empty());
   }
 
-  private ImmutableList<IndicatorMergeHandler> getMergeHandlers() {
-    return ImmutableList.<IndicatorMergeHandler>builder()
-        .add(metadataIndicatorMergeHandler::mergeDataSets)
-        .build();
+  @PostConstruct
+  private void initMergeHandlers() {
+    handlers =
+        ImmutableList.<IndicatorMergeHandler>builder()
+            // data set - remove source & add target
+            .add(metadataIndicatorMergeHandler::mergeDataSets)
 
-    // data set - remove source & add target
+            // indicator group - remove source & add target
+            .add(metadataIndicatorMergeHandler::mergeIndicatorGroups)
 
-    // indicator group - remove source & add target
+            // data dimensional item - set target as indicator
 
-    // data dimensional item - set target as indicator
+            // section - remove source & add target
+            .add(metadataIndicatorMergeHandler::mergeSections)
 
-    // section - remove source & add target
+            // configuration - remove source & add target
 
-    // configuration - remove source & add target
+            // handle indicator numerator / denominator
 
-    // handle indicator numerator / denominator
-
-    // handle data entry forms (custom forms - html property (STRING))
+            // handle data entry forms (custom forms - html property (STRING))
+            .build();
   }
 }
