@@ -55,6 +55,7 @@ checks:
   - indicators/indicator_noanalysis.yaml
   - indicators/indicator_duplicated_terms.yaml
   - indicators/indicator_exact_duplicates.yaml
+  - indicators/indicators_violating_exclusive_group_sets.yaml
   - periods/periods_same_start_date_period_type.yaml
   - periods/periods_3y_future.yaml
   - periods/periods_distant_past.yaml

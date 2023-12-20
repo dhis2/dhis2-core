@@ -439,6 +439,92 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
   }
 
   @Test
+  void testIndicatorsViolateExclusiveGroups()  {
+    String indicatorTypeA =
+        assertStatus(
+            HttpStatus.CREATED,POST(
+                "/indicatorTypes",
+                """
+                        {
+                          "name": "Per cent",
+                          "factor": 100,
+                          "number": false
+                        }
+                        """
+                    .formatted()));
+
+    String indicatorA = createSimpleIndicator( "Indicator A", indicatorTypeA);
+    String indicatorB = createSimpleIndicator( "Indicator B", indicatorTypeA);
+    String indicatorGroupA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/indicatorGroups",
+                // language=JSON
+                """
+                            {
+                            "name": "Group A",
+                             "shortName" : "Group A",
+                            "indicators": [
+                                {
+                                "id": "%s"
+                                },
+                                {
+                                "id": "%s"
+                                }
+                            ]
+                            }
+                            """
+                    .formatted(indicatorA, indicatorB)));
+
+    String indicatorGroupB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/indicatorGroups",
+                // language=JSON
+                """
+                            {
+                            "name": "Group B",
+                             "shortName" : "Group B",
+                            "indicators": [
+                                {
+                                "id": "%s"
+                                }
+                            ]
+                            }
+                            """
+                    .formatted(indicatorB)));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/indicatorGroupSets",
+            // language=JSON
+            """
+                    {
+                    "name": "Indicator Group Set",
+                    "shortName": "Indicator Group Set",
+                    "indicatorGroups": [
+                        {
+                        "id": "%s"
+                        },
+                        {
+                        "id": "%s"
+                        }
+                    ]
+                    }
+                    """
+                .formatted(indicatorGroupA, indicatorGroupB)));
+    final Map<String, List<String>> expectedResults =
+        Map.of("Indicator B", List.of("Group A:" + indicatorGroupA, "Group B:" + indicatorGroupB));
+    // Test for program rules with no condition
+    Map<String, List<String>> results =
+        getDataIntegrityReport()
+            .getIndicatorsViolatingExclusiveGroupSets()
+            .toMap(JsonString::string, String::compareTo);
+    assertEquals(expectedResults, results);
+  }
+
+  @Test
   void testValidationRulesWithoutGroups() {
     String validationRule1 =
         assertStatus(

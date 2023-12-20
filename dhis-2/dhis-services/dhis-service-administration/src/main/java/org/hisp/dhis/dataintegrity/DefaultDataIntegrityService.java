@@ -444,10 +444,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         Indicator.class,
         this::getInvalidIndicatorDenominators);
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.INDICATORS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-        Indicator.class,
-        this::getIndicatorsViolatingExclusiveGroupSets);
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.ORG_UNITS_WITH_CYCLIC_REFERENCES,
         OrganisationUnit.class,
         this::getOrganisationUnitsWithCyclicReferences);
@@ -512,6 +508,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("program_indicators_without_expression");
     checks.add("organisation_units_violating_exclusive_group_sets");
     checks.add("orgunits_compulsory_group_count");
+    checks.add( "indicators_violating_exclusive_group_sets");
     return checks;
   }
 
