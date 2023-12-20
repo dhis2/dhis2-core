@@ -185,7 +185,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenOrgUnitNotFound() {
+  void shouldThrowBadRequestExceptionWhenOrgUnitNotFound() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of("JW6BrFd0HLu"))
@@ -203,7 +203,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenOrgUnitNotInScope() {
+  void shouldThrowForbiddenExceptionWhenOrgUnitNotInScope() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitUids(Set.of(ORG_UNIT_1_UID)).build();
     when(organisationUnitService.isInUserHierarchy(
@@ -239,7 +239,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenOrgUnitNotInScopeAndUserHasSearchInAllAuthority() {
+  void shouldThrowForbiddenExceptionWhenOrgUnitNotInScopeAndUserHasSearchInAllAuthority() {
 
     User user = createUser(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit2));
@@ -283,7 +283,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenProgramNotFound() {
+  void shouldThrowBadRequestExceptionWhenProgramNotFound() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().programUid("JW6BrFd0HLu").build();
 
@@ -293,7 +293,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenUserCantReadProgramData() {
+  void shouldThrowForbiddenExceptionWhenUserCantReadProgramData() {
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(false);
 
@@ -308,7 +308,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenUserCantReadProgramTrackedEntityTypeData() {
+  void shouldThrowForbiddenExceptionWhenUserCantReadProgramTrackedEntityTypeData() {
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(false);
@@ -340,7 +340,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenTrackedEntityTypeNotFound() {
+  void shouldThrowBadRequestExceptionWhenTrackedEntityTypeNotFound() {
     EnrollmentOperationParams requestParams =
         EnrollmentOperationParams.builder().trackedEntityTypeUid("JW6BrFd0HLu").build();
 
@@ -350,7 +350,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenUserCantReadTrackedEntityTypeData() {
+  void shouldThrowBadRequestExceptionWhenUserCantReadTrackedEntityTypeData() {
     when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
         .thenReturn(trackedEntityType);
     when(aclService.canDataRead(user, trackedEntityType)).thenReturn(false);
@@ -382,7 +382,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenTrackedEntityNotFound() {
+  void shouldThrowBadRequestExceptionTrackedEntityNotFound() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().trackedEntityUid("JW6BrFd0HLu").build();
 
@@ -393,7 +393,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenTypeOfTrackedEntityNotAccessible() {
+  void shouldThrowForbiddenExceptionWhenTypeOfTrackedEntityNotAccessible() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().trackedEntityUid(TRACKED_ENTITY_UID).build();
 
