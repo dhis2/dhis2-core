@@ -44,7 +44,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -186,7 +185,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenOrgUnitNotFound() {
+  void shouldFailWhenOrgUnitNotFound() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of("JW6BrFd0HLu"))
@@ -204,7 +203,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenOrgUnitNotInScope() {
+  void shouldFailWhenOrgUnitNotInScope() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitUids(Set.of(ORG_UNIT_1_UID)).build();
     when(organisationUnitService.isInUserHierarchy(
@@ -284,7 +283,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenProgramNotFound() {
+  void shouldFailWhenProgramNotFound() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().programUid("JW6BrFd0HLu").build();
 
@@ -301,8 +300,7 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().programUid(PROGRAM_UID).build();
 
-    Exception exception =
-        assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
+    Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
     assertEquals(
         String.format(
             "Current user is not authorized to read data from selected program:  %s", PROGRAM_UID),
@@ -318,8 +316,7 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().programUid(PROGRAM_UID).build();
 
-    Exception exception =
-        assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
+    Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
     assertEquals(
         String.format(
             "Current user is not authorized to read data from selected program's tracked entity type:  %s",
@@ -343,7 +340,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenTrackedEntityTypeNotFound() {
+  void shouldFailWhenTrackedEntityTypeNotFound() {
     EnrollmentOperationParams requestParams =
         EnrollmentOperationParams.builder().trackedEntityTypeUid("JW6BrFd0HLu").build();
 
@@ -385,7 +382,7 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldThrowExceptionTrackedEntityNotFound() {
+  void shouldFailWhenTrackedEntityNotFound() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().trackedEntityUid("JW6BrFd0HLu").build();
 
@@ -396,14 +393,13 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenTypeOfTrackedEntityNotAccessible() {
+  void shouldFailWhenTypeOfTrackedEntityNotAccessible() {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().trackedEntityUid(TRACKED_ENTITY_UID).build();
 
     when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(false);
 
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
+    Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
     assertEquals(
         String.format(
             "Current user is not authorized to read data from type of selected tracked entity: %s",
