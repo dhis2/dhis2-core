@@ -41,6 +41,7 @@ import lombok.Getter;
 import lombok.With;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.outlier.Order;
+import org.hisp.dhis.analytics.outlier.OrderDirection;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -70,6 +71,8 @@ public class OutlierRequest {
   @Default private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
   @Default private Order orderBy = MEAN_ABS_DEV;
+
+  @Default private OrderDirection orderDirection = OrderDirection.DESC;
 
   @Default private int maxResults = DEFAULT_LIMIT;
 

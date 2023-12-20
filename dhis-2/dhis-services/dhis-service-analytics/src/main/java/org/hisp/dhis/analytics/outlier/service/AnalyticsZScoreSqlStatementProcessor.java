@@ -192,8 +192,9 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
             + thresholdParam
             + " order by "
             + order
-            + " desc "
-            + "limit "
+            + " "
+            + request.getOrderDirection().getKey()
+            + " limit "
             + (withParams ? ":" + MAX_RESULTS.getKey() : request.getMaxResults())
             + " ";
 

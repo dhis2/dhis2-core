@@ -37,6 +37,7 @@ import lombok.Data;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.outlier.Order;
+import org.hisp.dhis.analytics.outlier.OrderDirection;
 
 /** Encapsulation of a web API request for outlier value detection. */
 @Data
@@ -66,6 +67,8 @@ public class OutlierQueryParams {
   private Date dataEndDate;
 
   private Order orderBy;
+
+  private OrderDirection orderDirection;
 
   private Integer maxResults;
 
