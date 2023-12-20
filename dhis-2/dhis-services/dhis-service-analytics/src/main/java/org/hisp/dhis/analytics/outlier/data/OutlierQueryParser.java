@@ -51,7 +51,7 @@ public class OutlierQueryParser {
    * @param queryParams the {@link OutlierQueryParams}.
    * @return a {@link OutlierRequest}.
    */
-  public OutlierRequest getFromQuery(OutlierQueryParams queryParams) {
+  public OutlierRequest getFromQuery(OutlierQueryParams queryParams, boolean analyzeOnly) {
     List<DataSet> dataSets = idObjectManager.getByUid(DataSet.class, queryParams.getDs());
 
     // Re-fetch data elements to maintain access control.

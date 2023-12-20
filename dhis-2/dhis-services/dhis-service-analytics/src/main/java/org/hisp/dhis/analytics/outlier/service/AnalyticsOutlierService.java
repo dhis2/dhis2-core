@@ -82,6 +82,10 @@ public class AnalyticsOutlierService {
 
   private final OutliersCache outliersCache;
 
+  private final OrganisationUnitService organisationUnitService;
+
+  private final CurrentUserService currentUserService;
+
   /**
    * Transform the incoming request into api response (json).
    *
@@ -101,7 +105,7 @@ public class AnalyticsOutlierService {
   }
 
   public Grid getOutliersPerformanceMetrics(OutlierRequest request) {
-    List<ExecutionPlan> executionPlans = zScoreOutlierDetection.getExecutionPlans(request);
+    List<ExecutionPlan> executionPlans = zScoreOutlierDetector.getExecutionPlans(request);
 
     Grid grid = new ListGrid();
     grid.addPerformanceMetrics(executionPlans);
