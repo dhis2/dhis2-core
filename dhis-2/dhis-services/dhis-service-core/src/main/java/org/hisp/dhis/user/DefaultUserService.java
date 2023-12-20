@@ -191,6 +191,17 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional
+  public long addUser(User user, UserDetails actingUser) {
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    AuditLogUtil.infoWrapper(log, currentUsername, user, AuditLogUtil.ACTION_CREATE);
+
+    userStore.save(user, actingUser, false);
+
+    return user.getId();
+  }
+
+  @Override
+  @Transactional
   public void updateUser(User user) {
     userStore.update(user);
 
@@ -457,6 +468,13 @@ public class DefaultUserService implements UserService {
   @Transactional
   public long addUserRole(UserRole userRole) {
     userRoleStore.save(userRole);
+    return userRole.getId();
+  }
+
+  @Override
+  @Transactional
+  public long addUserRole(UserRole userRole, UserDetails actingUser) {
+    userRoleStore.save(userRole, actingUser, false);
     return userRole.getId();
   }
 

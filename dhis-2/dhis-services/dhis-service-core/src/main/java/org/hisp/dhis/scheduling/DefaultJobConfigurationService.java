@@ -77,6 +77,8 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
@@ -156,7 +158,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   @Override
   @Transactional
-  public void createDefaultJob(JobType type) {
+  public void createDefaultJob(JobType type, UserDetails actingUser) {
     Defaults job = type.getDefaults();
     if (job == null) return;
     JobConfiguration config = new JobConfiguration(job.name(), type);
@@ -165,7 +167,13 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     config.setUid(job.uid());
     config.setSchedulingType(
         job.delay() != null ? SchedulingType.FIXED_DELAY : SchedulingType.CRON);
-    jobConfigurationStore.save(config);
+    jobConfigurationStore.save(config, actingUser, false);
+  }
+
+  @Override
+  @Transactional
+  public void createDefaultJob(JobType type) {
+    createDefaultJob(type, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override

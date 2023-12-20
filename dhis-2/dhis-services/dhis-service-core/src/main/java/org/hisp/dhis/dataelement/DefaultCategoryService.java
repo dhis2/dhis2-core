@@ -110,6 +110,14 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
+  public long addCategory(Category dataElementCategory, UserDetails actingUser) {
+    categoryStore.save(dataElementCategory, actingUser, false);
+
+    return dataElementCategory.getId();
+  }
+
+  @Override
+  @Transactional
   public void updateCategory(Category dataElementCategory) {
     categoryStore.update(dataElementCategory);
   }
@@ -200,8 +208,23 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
+  public long addCategoryOption(CategoryOption dataElementCategoryOption, UserDetails actingUser) {
+    categoryOptionStore.save(dataElementCategoryOption, actingUser, false);
+
+    return dataElementCategoryOption.getId();
+  }
+
+  @Override
+  @Transactional
   public void updateCategoryOption(CategoryOption dataElementCategoryOption) {
     categoryOptionStore.update(dataElementCategoryOption);
+  }
+
+  @Override
+  @Transactional
+  public void updateCategoryOption(
+      CategoryOption dataElementCategoryOption, UserDetails actingUser) {
+    categoryOptionStore.update(dataElementCategoryOption, actingUser);
   }
 
   @Override
@@ -291,8 +314,22 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
+  public long addCategoryCombo(CategoryCombo dataElementCategoryCombo, UserDetails actingUser) {
+    categoryComboStore.save(dataElementCategoryCombo, actingUser, false);
+
+    return dataElementCategoryCombo.getId();
+  }
+
+  @Override
+  @Transactional
   public void updateCategoryCombo(CategoryCombo dataElementCategoryCombo) {
     categoryComboStore.update(dataElementCategoryCombo);
+  }
+
+  @Override
+  @Transactional
+  public void updateCategoryCombo(CategoryCombo dataElementCategoryCombo, UserDetails actingUser) {
+    categoryComboStore.update(dataElementCategoryCombo, actingUser);
   }
 
   @Override
@@ -389,8 +426,24 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
+  public long addCategoryOptionCombo(
+      CategoryOptionCombo dataElementCategoryOptionCombo, UserDetails actingUser) {
+    categoryOptionComboStore.save(dataElementCategoryOptionCombo, actingUser, false);
+
+    return dataElementCategoryOptionCombo.getId();
+  }
+
+  @Override
+  @Transactional
   public void updateCategoryOptionCombo(CategoryOptionCombo dataElementCategoryOptionCombo) {
     categoryOptionComboStore.update(dataElementCategoryOptionCombo);
+  }
+
+  @Override
+  @Transactional
+  public void updateCategoryOptionCombo(
+      CategoryOptionCombo dataElementCategoryOptionCombo, UserDetails actingUser) {
+    categoryOptionComboStore.update(dataElementCategoryOptionCombo, actingUser);
   }
 
   @Override
@@ -438,7 +491,7 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
-  public void generateDefaultDimension() {
+  public void generateDefaultDimension(UserDetails actingUser) {
     // ---------------------------------------------------------------------
     // CategoryOption
     // ---------------------------------------------------------------------
@@ -447,10 +500,10 @@ public class DefaultCategoryService implements CategoryService {
     categoryOption.setUid("xYerKDKCefk");
     categoryOption.setCode("default");
 
-    addCategoryOption(categoryOption);
+    addCategoryOption(categoryOption, actingUser);
 
     categoryOption.getSharing().setPublicAccess(AccessStringHelper.CATEGORY_OPTION_DEFAULT);
-    updateCategoryOption(categoryOption);
+    updateCategoryOption(categoryOption, actingUser);
 
     // ---------------------------------------------------------------------
     // Category
@@ -461,12 +514,12 @@ public class DefaultCategoryService implements CategoryService {
     category.setCode("default");
     category.setShortName("default");
     category.setDataDimension(false);
-
     category.addCategoryOption(categoryOption);
-    addCategory(category);
+
+    addCategory(category, actingUser);
 
     category.getSharing().setPublicAccess(AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT);
-    updateCategory(category);
+    updateCategory(category, actingUser);
 
     // ---------------------------------------------------------------------
     // CategoryCombo
@@ -478,12 +531,12 @@ public class DefaultCategoryService implements CategoryService {
     categoryCombo.setUid("bjDvmb4bfuf");
     categoryCombo.setCode("default");
     categoryCombo.setDataDimensionType(DataDimensionType.DISAGGREGATION);
-
     categoryCombo.addCategory(category);
-    addCategoryCombo(categoryCombo);
+
+    addCategoryCombo(categoryCombo, actingUser);
 
     categoryCombo.getSharing().setPublicAccess(AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT);
-    updateCategoryCombo(categoryCombo);
+    updateCategoryCombo(categoryCombo, actingUser);
 
     // ---------------------------------------------------------------------
     // CategoryOptionCombo
@@ -492,25 +545,26 @@ public class DefaultCategoryService implements CategoryService {
     CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
     categoryOptionCombo.setUid("HllvX50cXC0");
     categoryOptionCombo.setCode("default");
-
     categoryOptionCombo.setCategoryCombo(categoryCombo);
     categoryOptionCombo.addCategoryOption(categoryOption);
 
-    addCategoryOptionCombo(categoryOptionCombo);
+    addCategoryOptionCombo(categoryOptionCombo, actingUser);
 
     categoryOptionCombo
         .getSharing()
         .setPublicAccess(AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT);
-    updateCategoryOptionCombo(categoryOptionCombo);
+
+    updateCategoryOptionCombo(categoryOptionCombo, actingUser);
 
     Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
     categoryOptionCombos.add(categoryOptionCombo);
     categoryCombo.setOptionCombos(categoryOptionCombos);
 
-    updateCategoryCombo(categoryCombo);
+    updateCategoryCombo(categoryCombo, actingUser);
 
     categoryOption.setCategoryOptionCombos(categoryOptionCombos);
-    updateCategoryOption(categoryOption);
+
+    updateCategoryOption(categoryOption, actingUser);
   }
 
   @Override

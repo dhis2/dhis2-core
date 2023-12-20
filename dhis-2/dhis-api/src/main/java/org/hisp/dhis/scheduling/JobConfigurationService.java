@@ -34,6 +34,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.util.MimeType;
 
 /**
@@ -58,6 +59,8 @@ public interface JobConfigurationService {
   int createDefaultJobs();
 
   void createDefaultJob(JobType type);
+
+  void createDefaultJob(JobType type, UserDetails actingUser);
 
   /**
    * Updates all {@link JobConfiguration}s that are not {@link JobConfiguration#isEnabled()} to

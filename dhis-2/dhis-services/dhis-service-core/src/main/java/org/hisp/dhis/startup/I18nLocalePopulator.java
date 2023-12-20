@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import org.hisp.dhis.user.SystemUser;
 
 /**
  * Populates default I18nLocales if none exists.
@@ -65,7 +66,7 @@ public class I18nLocalePopulator extends TransactionContextStartupRoutine {
     }
 
     for (String locale : DEFAULT_LOCALES) {
-      localeService.saveI18nLocale(new I18nLocale(new Locale(locale)));
+      localeService.saveI18nLocale(new I18nLocale(new Locale(locale)), new SystemUser());
     }
 
     log.info("Populated default locales");

@@ -56,6 +56,8 @@ public interface CategoryService {
    */
   long addCategory(Category category);
 
+  long addCategory(Category category, UserDetails actingUser);
+
   /**
    * Updates a Category.
    *
@@ -146,12 +148,16 @@ public interface CategoryService {
    */
   long addCategoryOption(CategoryOption dataElementCategoryOption);
 
+  long addCategoryOption(CategoryOption dataElementCategoryOption, UserDetails actingUser);
+
   /**
    * Updates a CategoryOption.
    *
    * @param dataElementCategoryOption the CategoryOption to update.
    */
   void updateCategoryOption(CategoryOption dataElementCategoryOption);
+
+  void updateCategoryOption(CategoryOption dataElementCategoryOption, UserDetails actingUser);
 
   /**
    * Deletes a CategoryOption.
@@ -239,12 +245,16 @@ public interface CategoryService {
    */
   long addCategoryCombo(CategoryCombo dataElementCategoryCombo);
 
+  long addCategoryCombo(CategoryCombo dataElementCategoryCombo, UserDetails actingUser);
+
   /**
    * Updates a CategoryCombo.
    *
    * @param dataElementCategoryCombo the CategoryCombo to update.
    */
   void updateCategoryCombo(CategoryCombo dataElementCategoryCombo);
+
+  void updateCategoryCombo(CategoryCombo dataElementCategoryCombo, UserDetails actingUser);
 
   /**
    * Deletes a CategoryCombo.
@@ -331,12 +341,18 @@ public interface CategoryService {
    */
   long addCategoryOptionCombo(CategoryOptionCombo dataElementCategoryOptionCombo);
 
+  long addCategoryOptionCombo(
+      CategoryOptionCombo dataElementCategoryOptionCombo, UserDetails actingUser);
+
   /**
    * Updates a CategoryOptionCombo.
    *
    * @param dataElementCategoryOptionCombo the CategoryOptionCombo to update.
    */
   void updateCategoryOptionCombo(CategoryOptionCombo dataElementCategoryOptionCombo);
+
+  void updateCategoryOptionCombo(
+      CategoryOptionCombo dataElementCategoryOptionCombo, UserDetails actingUser);
 
   /**
    * Deletes a CategoryOptionCombo.
@@ -391,7 +407,7 @@ public interface CategoryService {
    * Generates and persists a default Category, CategoryOption, CategoryCombo and
    * CategoryOptionCombo.
    */
-  void generateDefaultDimension();
+  void generateDefaultDimension(UserDetails actingUser);
 
   /**
    * Retrieves the default CategoryOptionCombo.

@@ -54,6 +54,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.AuthenticationService;
+import org.hisp.dhis.user.UserDetails;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,12 +88,12 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
 
   @Override
   @Transactional
-  public void createHousekeepingJob() {
+  public void createHousekeepingJob(UserDetails actingUser) {
     JobType.Defaults defaults = JobType.HOUSEKEEPING.getDefaults();
     if (defaults == null) return;
     JobConfiguration config = jobConfigurationStore.getByUid(defaults.uid());
     if (config == null) {
-      jobConfigurationService.createDefaultJob(JobType.HOUSEKEEPING);
+      jobConfigurationService.createDefaultJob(JobType.HOUSEKEEPING, actingUser);
     } else if (config.getJobStatus() != JobStatus.SCHEDULED) {
       finishRunCancel(config.getUid());
     }

@@ -70,24 +70,26 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
 
   @Override
   public void executeInTransaction() {
+    SystemUser actingUser = new SystemUser();
+
     Category defaultCategory = categoryService.getCategoryByName(Category.DEFAULT_NAME);
 
     if (defaultCategory == null) {
-      categoryService.generateDefaultDimension();
+      categoryService.generateDefaultDimension(actingUser);
 
       defaultCategory = categoryService.getCategoryByName(Category.DEFAULT_NAME);
 
       log.info("Added default category");
     }
 
-    categoryService.updateCategory(defaultCategory, new SystemUser());
+    categoryService.updateCategory(defaultCategory, actingUser);
 
     String defaultName = CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
     CategoryCombo categoryCombo = categoryService.getCategoryComboByName(defaultName);
 
     if (categoryCombo == null) {
-      categoryService.generateDefaultDimension();
+      categoryService.generateDefaultDimension(actingUser);
 
       log.info("Added default dataelement dimension");
 

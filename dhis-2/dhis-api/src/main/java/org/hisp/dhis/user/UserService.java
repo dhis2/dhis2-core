@@ -90,6 +90,8 @@ public interface UserService {
    */
   long addUser(User user);
 
+  long addUser(User user, UserDetails actingUser);
+
   /**
    * Updates a User.
    *
@@ -313,6 +315,8 @@ public interface UserService {
    * @return the generated identifier.
    */
   long addUserRole(UserRole userRole);
+
+  long addUserRole(UserRole userRole, UserDetails actingUser);
 
   /**
    * Updates a UserRole.

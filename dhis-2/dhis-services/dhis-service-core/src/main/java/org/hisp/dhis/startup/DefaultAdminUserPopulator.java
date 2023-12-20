@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -76,7 +77,9 @@ public class DefaultAdminUserPopulator extends TransactionContextStartupRoutine 
     user.setFirstName(username);
     user.setSurname(username);
 
-    userService.addUser(user);
+    SystemUser actingUser = new SystemUser();
+
+    userService.addUser(user, actingUser);
 
     UserRole userRole = new UserRole();
     userRole.setUid("yrB6vc5Ip3r");
@@ -85,13 +88,13 @@ public class DefaultAdminUserPopulator extends TransactionContextStartupRoutine 
     userRole.setDescription("Superuser");
     userRole.setAuthorities(Authorities.getAllAuthorities());
 
-    userService.addUserRole(userRole);
+    userService.addUserRole(userRole, actingUser);
 
     user.getUserRoles().add(userRole);
 
     userService.encodeAndSetPassword(user, password);
 
-    userService.addUser(user);
+    userService.addUser(user, actingUser);
 
     UserRole twoFactorRole = new UserRole();
     twoFactorRole.setUid("jcK4oq1Ol8x");
