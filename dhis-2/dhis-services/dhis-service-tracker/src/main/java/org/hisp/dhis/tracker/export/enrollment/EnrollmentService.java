@@ -29,23 +29,20 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.user.User;
 
 public interface EnrollmentService {
   Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
   Enrollment getEnrollment(
-      Enrollment enrollment,
-      EnrollmentParams params,
-      boolean includeDeleted,
-      OrganisationUnitSelectionMode orgUnitMode)
+      Enrollment enrollment, EnrollmentParams params, boolean includeDeleted, User user)
       throws ForbiddenException;
 
   /** Get all enrollments matching given params. */
