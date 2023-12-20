@@ -86,21 +86,20 @@ class DefaultEnrollmentService
       throw new NotFoundException(Enrollment.class, uid);
     }
 
-    return getEnrollment(enrollment, params, includeDeleted, null);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    List<String> errors = trackerAccessManager.canRead(currentUser, enrollment, false);
+
+    if (!errors.isEmpty()) {
+      throw new ForbiddenException(errors.toString());
+    }
+
+    return getEnrollment(enrollment, params, includeDeleted, currentUser);
   }
 
   @Override
   public Enrollment getEnrollment(
-      @Nonnull Enrollment enrollment,
-      EnrollmentParams params,
-      boolean includeDeleted,
-      OrganisationUnitSelectionMode orgUnitMode)
+      @Nonnull Enrollment enrollment, EnrollmentParams params, boolean includeDeleted, User currentUser)
       throws ForbiddenException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    List<String> errors = trackerAccessManager.canRead(currentUser, enrollment, orgUnitMode == ALL);
-    if (!errors.isEmpty()) {
-      throw new ForbiddenException(errors.toString());
-    }
 
     Enrollment result = new Enrollment();
     result.setId(enrollment.getId());
@@ -224,15 +223,15 @@ class DefaultEnrollmentService
       OrganisationUnitSelectionMode orgUnitMode)
       throws ForbiddenException {
     List<Enrollment> enrollmentList = new ArrayList<>();
-
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     for (Enrollment enrollment : enrollments) {
       if (enrollment != null
           && (orgUnitMode == ALL
               || trackerOwnershipAccessManager.hasAccess(
-                  currentUser, enrollment.getTrackedEntity(), enrollment.getProgram()))) {
-        enrollmentList.add(getEnrollment(enrollment, params, includeDeleted, orgUnitMode));
+                  currentUser, enrollment.getTrackedEntity(), enrollment.getProgram()))
+          && trackerAccessManager.canRead(currentUser, enrollment, orgUnitMode == ALL).isEmpty()) {
+        enrollmentList.add(getEnrollment(enrollment, params, includeDeleted, currentUser));
       }
     }
 
