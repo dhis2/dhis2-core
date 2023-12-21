@@ -36,6 +36,7 @@ import java.util.Set;
 import lombok.Data;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.QueryKey;
+import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.outlier.Order;
 
 /** Encapsulation of a web API request for outlier value detection. */
@@ -67,6 +68,8 @@ public class OutlierQueryParams {
 
   private Order orderBy;
 
+  private SortOrder sortOrder;
+
   private Integer maxResults;
 
   public boolean hasHeaders() {
@@ -80,10 +83,11 @@ public class OutlierQueryParams {
     key.add(dataEndDate);
     key.add(startDate);
     key.add(endDate);
-    key.add(orderBy);
     key.add(maxResults);
     key.add(algorithm);
     key.add(threshold);
+    key.add(orderBy);
+    key.add(sortOrder);
 
     if (ds != null) {
       ds.forEach(e -> key.add("ds", "[" + e + "]"));
