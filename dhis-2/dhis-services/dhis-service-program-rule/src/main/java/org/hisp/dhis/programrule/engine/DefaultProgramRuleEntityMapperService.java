@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import kotlinx.datetime.Instant;
 import kotlinx.datetime.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -59,8 +60,8 @@ import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.DataItem;
 import org.hisp.dhis.rules.ItemValueType;
-import org.hisp.dhis.rules.Option;
 import org.hisp.dhis.rules.models.AttributeType;
+import org.hisp.dhis.rules.models.Option;
 import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAssign;
@@ -476,12 +477,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         eventToEvaluate.getProgramStage().getName(),
         RuleEvent.Status.valueOf(eventToEvaluate.getStatus().toString()),
         eventToEvaluate.getOccurredDate() != null
-            ? LocalDateTime.Companion.parse(
-                    DateUtils.getIso8601NoTz(eventToEvaluate.getOccurredDate()))
-                .getDate()
-            : LocalDateTime.Companion.parse(
-                    DateUtils.getIso8601NoTz(eventToEvaluate.getScheduledDate()))
-                .getDate(),
+            ? Instant.Companion.parse(eventToEvaluate.getOccurredDate().toString())
+            : Instant.Companion.parse(eventToEvaluate.getScheduledDate().toString()),
         eventToEvaluate.getScheduledDate() == null
             ? null
             : LocalDateTime.Companion.parse(
@@ -501,12 +498,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 dv ->
                     new RuleDataValue(
                         eventToEvaluate.getOccurredDate() != null
-                            ? LocalDateTime.Companion.parse(
-                                    DateUtils.getIso8601NoTz(eventToEvaluate.getOccurredDate()))
-                                .getDate()
-                            : LocalDateTime.Companion.parse(
-                                    DateUtils.getIso8601NoTz(eventToEvaluate.getScheduledDate()))
-                                .getDate(),
+                            ? Instant.Companion.parse(eventToEvaluate.getOccurredDate().toString())
+                            : Instant.Companion.parse(
+                                eventToEvaluate.getScheduledDate().toString()),
                         eventToEvaluate.getProgramStage().getUid(),
                         dv.getDataElement(),
                         dv.getValue()))
