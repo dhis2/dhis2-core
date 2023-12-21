@@ -163,10 +163,10 @@ public class IndicatorMergeService implements MergeService {
             .add(metadataIndicatorMergeHandler::mergeIndicatorGroups)
 
             // data dimensional item - set target as indicator
-            // TODO need to speak with analytics
+            // TODO need to implement
 
             // section - remove source & add target
-            .add(metadataIndicatorMergeHandler::mergeSections)
+            //            .add(metadataIndicatorMergeHandler::mergeSections)
 
             // configuration - remove source & add target
             // TODO may be already done in indicator group merge - test first

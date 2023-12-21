@@ -123,6 +123,16 @@ public class DefaultIndicatorService implements IndicatorService {
     return indicatorStore.getByUid(indicators);
   }
 
+  @Override
+  public List<Indicator> getIndicatorsContainingOtherIndicatorRefInNumerator(String uid) {
+    return indicatorStore.getIndicatorContainingSearchParamNum(uid);
+  }
+
+  @Override
+  public List<Indicator> getIndicatorsContainingOtherIndicatorRefInDenominator(String uid) {
+    return indicatorStore.getIndicatorContainingSearchParamDenom(uid);
+  }
+
   // -------------------------------------------------------------------------
   // IndicatorType
   // -------------------------------------------------------------------------

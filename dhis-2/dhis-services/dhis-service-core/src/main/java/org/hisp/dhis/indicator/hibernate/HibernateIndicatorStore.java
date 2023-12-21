@@ -89,9 +89,30 @@ public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<In
 
   @Override
   public List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes) {
+    // language=sql
     TypedQuery<Indicator> query =
         entityManager.createQuery(
             "FROM Indicator i where i.indicatorType in :indicatorTypes", Indicator.class);
     return query.setParameter("indicatorTypes", indicatorTypes).getResultList();
+  }
+
+  @Override
+  public List<Indicator> getIndicatorContainingSearchParamNum(String search) {
+    // language=sql
+    TypedQuery<Indicator> query =
+        entityManager.createQuery(
+            "FROM Indicator i where i.numerator like :search", Indicator.class);
+    query.setParameter("search", search);
+    return query.getResultList();
+  }
+
+  @Override
+  public List<Indicator> getIndicatorContainingSearchParamDenom(String search) {
+    // language=sql
+    TypedQuery<Indicator> query =
+        entityManager.createQuery(
+            "FROM Indicator i where i.denominator like :search", Indicator.class);
+    query.setParameter("search", search);
+    return query.getResultList();
   }
 }

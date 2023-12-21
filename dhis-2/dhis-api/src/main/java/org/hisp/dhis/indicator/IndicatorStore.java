@@ -43,4 +43,8 @@ public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
   List<Indicator> getIndicatorsWithDataSets();
 
   List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes);
+
+  List<Indicator> getIndicatorContainingSearchParamNum(String search);
+
+  List<Indicator> getIndicatorContainingSearchParamDenom(String search);
 }

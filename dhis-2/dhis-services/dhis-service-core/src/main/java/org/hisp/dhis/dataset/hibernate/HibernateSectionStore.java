@@ -93,7 +93,8 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
   @Override
   public List<Section> getSectionsByIndicators(List<Indicator> indicators) {
     TypedQuery<Section> query =
-        entityManager.createQuery("FROM Section s where s.indicator in :indicators", Section.class);
+        entityManager.createQuery(
+            "FROM Section s where s.indicators in :indicators", Section.class);
     return query.setParameter("indicators", indicators).getResultList();
   }
 }
