@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller.dataentry;
 import static org.hisp.dhis.webapi.utils.ContextUtils.getEtag;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.function.Supplier;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -60,6 +62,8 @@ public class DataSetMetadataController {
       @CurrentUser UserDetailsImpl currentUser, HttpServletRequest request) {
     String etag = getEtag(exportService.getDataSetMetadataLastModified(), currentUser);
 
-    return ResponseEntityUtils.withEtagCaching(etag, request, exportService::getDataSetMetadata);
+    ObjectNode dataSetMetadata = exportService.getDataSetMetadata();
+    Supplier<JsonNode> getDataSetMetadata = exportService::getDataSetMetadata;
+    return ResponseEntityUtils.withEtagCaching(etag, request, getDataSetMetadata);
   }
 }

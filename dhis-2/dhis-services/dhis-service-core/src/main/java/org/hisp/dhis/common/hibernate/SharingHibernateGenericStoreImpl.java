@@ -68,22 +68,28 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     return getSharingPredicatesXX(builder, access);
   }
 
-  @Override
-  public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, UserDetails userDetails, String access) {
-
-    Set<String> userGroupIds = userDetails.getUserGroupIds();
-    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
-
-    if (userGroupIds.size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
-      // TODO: MAS test with and without current user group info
-      log.error("userGroupIds.size()!=currentUserGroupInfo.getUserGroupUIDs().size()");
-      throw new RuntimeException(" NO MACH SIZE user group");
-    }
-
-    return getDataSharingPredicates(
-        builder, userDetails.getUid(), currentUserGroupInfo.getUserGroupUIDs(), access);
-  }
+  //  @Override
+  //  public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
+  //      CriteriaBuilder builder, UserDetails userDetails, String access) {
+  //
+  //    Set<String> userGroupIds = userDetails.getUserGroupIds();
+  //    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
+  //
+  //    if (userGroupIds.size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+  //      // TODO: MAS We need to invalidate user sessions when user group changes on that user
+  //      String msg =
+  //          String.format(
+  //              "UserDetails '%s' getUserGroupIds().size() has %d groups, but  getUserGroupUIDs()
+  // returns %d groups!",
+  //              userDetails.getUsername(), userDetails.getUserGroupIds().size(),
+  // currentUserGroupInfo.getUserGroupUIDs().size());
+  //
+  //      log.error(msg, new RuntimeException(msg));
+  //    }
+  //
+  //    return getDataSharingPredicates(
+  //        builder, userDetails.getUid(), currentUserGroupInfo.getUserGroupUIDs(), access);
+  //  }
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicatesXX(
@@ -139,18 +145,18 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
         AclService.LIKE_READ_METADATA);
   }
 
-  @Override
-  public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, UserDetails userDetails) {
-
-    if (!sharingEnabled(userDetails)) {
-      return List.of();
-    }
-
-    return getDataSharingPredicates(
-        builder,
-        userDetails.getUid(),
-        userDetails.getUserGroupIds(),
-        AclService.LIKE_READ_METADATA);
-  }
+  //  @Override
+  //  public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
+  //      CriteriaBuilder builder, UserDetails userDetails) {
+  //
+  //    if (!sharingEnabled(userDetails)) {
+  //      return List.of();
+  //    }
+  //
+  //    return getDataSharingPredicates(
+  //        builder,
+  //        userDetails.getUid(),
+  //        userDetails.getUserGroupIds(),
+  //        AclService.LIKE_READ_METADATA);
+  //  }
 }

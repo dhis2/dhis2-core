@@ -819,11 +819,13 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   public final List<T> getDataWriteAll(UserDetails user) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
+    List<Function<Root<T>, Predicate>> dataSharingPredicates =
+        getDataSharingPredicates(builder, user, AclService.LIKE_WRITE_DATA);
     JpaQueryParameters<T> parameters =
-        new JpaQueryParameters<T>()
-            .addPredicates(getDataSharingPredicates(builder, user, AclService.LIKE_WRITE_DATA));
+        new JpaQueryParameters<T>().addPredicates(dataSharingPredicates);
 
-    return getList(builder, parameters);
+    List<T> list = getList(builder, parameters);
+    return list;
   }
 
   /** Remove given UserGroup UID from all sharing records in given tableName */

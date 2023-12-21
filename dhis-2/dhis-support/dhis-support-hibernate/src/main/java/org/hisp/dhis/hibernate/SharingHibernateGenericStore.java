@@ -89,18 +89,18 @@ public interface SharingHibernateGenericStore<T> extends InternalHibernateGeneri
    * @param builder {@link CriteriaBuilder} used for generating {@link Predicate}
    * @return List of {@link Predicate}
    */
-  List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, UserDetails user);
-
-  /**
-   * Get List of JPA Query Predicates for checking data sharing access of current {@link
-   * UserDetails} based on given access String.
-   *
-   * @param builder {@link CriteriaBuilder} used for generating {@link Predicate}.
-   * @param user {@link User} for checking.
-   * @param access access string for checking.
-   * @return List of {@link Predicate}
-   */
-  List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, UserDetails user, String access);
+  //  List<Function<Root<T>, Predicate>> getDataSharingPredicates(
+  //      CriteriaBuilder builder, UserDetails user);
+  //
+  //  /**
+  //   * Get List of JPA Query Predicates for checking data sharing access of current {@link
+  //   * UserDetails} based on given access String.
+  //   *
+  //   * @param builder {@link CriteriaBuilder} used for generating {@link Predicate}.
+  //   * @param user {@link User} for checking.
+  //   * @param access access string for checking.
+  //   * @return List of {@link Predicate}
+  //   */
+  //  List<Function<Root<T>, Predicate>> getDataSharingPredicates(
+  //      CriteriaBuilder builder, UserDetails user, String access);
 }
