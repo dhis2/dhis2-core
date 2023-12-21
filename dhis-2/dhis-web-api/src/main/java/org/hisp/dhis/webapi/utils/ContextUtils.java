@@ -106,6 +106,8 @@ public class ContextUtils {
 
   public static final String HEADER_CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
 
+  public static final String BINARY_HEADER_CONTENT_TRANSFER_ENCODING = "binary";
+
   public static final String HEADER_VALUE_NO_STORE =
       "no-cache, no-store, max-age=0, must-revalidate";
 

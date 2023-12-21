@@ -25,8 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
+import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -49,27 +51,25 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class CompressedEventServiceTest {
+class CompressionUtilTest {
 
-  private CompressedEventService compressedEventService;
   private static final Event FIRST_EVENT = new Event();
   private static final Event SECOND_EVENT = new Event();
   @InjectMocks private ObjectMapper objectMapper;
 
   @BeforeEach
   void setUp() {
-    compressedEventService = new CompressedEventService(objectMapper);
     FIRST_EVENT.setEvent(CodeGenerator.generateUid());
     SECOND_EVENT.setEvent(CodeGenerator.generateUid());
   }
 
   @Test
-  void shouldUnzipFileAndMatchEvents_whenCreateZipFileFromEventList() throws IOException {
+  void shouldUnzipFileAndMatchEventsWhenCreateZipFileFromEventList() throws IOException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
     List<Event> eventToZip = getEvents();
 
-    compressedEventService.writeZip(outputStream, eventToZip, "file.json.zip");
+    writeZip(outputStream, eventToZip, objectMapper.writer(), "file.json.zip");
 
     ZipInputStream zipInputStream =
         new ZipInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
@@ -108,12 +108,12 @@ class CompressedEventServiceTest {
   }
 
   @Test
-  void shouldGUnzipFileAndMatchEvents_whenCreateGZipFileFromEventList() throws IOException {
+  void shouldGUnzipFileAndMatchEventsWhenCreateGZipFileFromEventList() throws IOException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
     List<Event> eventToGZip = getEvents();
 
-    compressedEventService.writeGzip(outputStream, eventToGZip);
+    writeGzip(outputStream, eventToGZip, objectMapper.writer());
 
     GZIPInputStream gzipInputStream =
         new GZIPInputStream(new ByteArrayInputStream(outputStream.toByteArray()));

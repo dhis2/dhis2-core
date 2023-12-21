@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -61,7 +62,7 @@ class EventsExportControllerUnitTest {
 
   @Mock private EventFieldsParamMapper eventsMapper;
 
-  @Mock private CompressedEventService compressedEventService;
+  @Mock private ObjectMapper objectMapper;
 
   @Test
   void shouldFailInstantiatingControllerIfAnyOrderableFieldIsUnsupported() {
@@ -87,7 +88,7 @@ class EventsExportControllerUnitTest {
                     csvEventService,
                     fieldFilterService,
                     eventsMapper,
-                    compressedEventService));
+                    objectMapper));
 
     assertAll(
         () -> assertStartsWith("event controller supports ordering by", exception.getMessage()),

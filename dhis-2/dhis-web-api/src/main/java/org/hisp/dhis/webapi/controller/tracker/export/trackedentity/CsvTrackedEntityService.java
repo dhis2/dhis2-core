@@ -38,6 +38,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
@@ -52,13 +53,7 @@ class CsvTrackedEntityService implements CsvService<TrackedEntity> {
   public void write(
       OutputStream outputStream, List<TrackedEntity> trackedEntities, boolean withHeader)
       throws IOException {
-    final CsvSchema csvSchema =
-        CSV_MAPPER
-            .schemaFor(CsvTrackedEntity.class)
-            .withLineSeparator("\n")
-            .withUseHeader(withHeader);
-
-    ObjectWriter writer = CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
+    ObjectWriter writer = getObjectWriter(withHeader);
 
     List<CsvTrackedEntity> attributes = new ArrayList<>();
 
@@ -97,6 +92,30 @@ class CsvTrackedEntityService implements CsvService<TrackedEntity> {
     }
 
     writer.writeValue(outputStream, attributes);
+  }
+
+  @Override
+  public void writeZip(
+      OutputStream outputStream, List<TrackedEntity> toCompress, boolean withHeader, String file)
+      throws IOException {
+    CompressionUtil.writeZip(outputStream, toCompress, getObjectWriter(withHeader), file);
+  }
+
+  @Override
+  public void writeGzip(
+      OutputStream outputStream, List<TrackedEntity> toCompress, boolean withHeader)
+      throws IOException {
+    CompressionUtil.writeGzip(outputStream, toCompress, getObjectWriter(withHeader));
+  }
+
+  private ObjectWriter getObjectWriter(boolean withHeader) {
+    final CsvSchema csvSchema =
+        CSV_MAPPER
+            .schemaFor(CsvTrackedEntity.class)
+            .withLineSeparator("\n")
+            .withUseHeader(withHeader);
+
+    return CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
   }
 
   private String checkForNull(Instant instant) {

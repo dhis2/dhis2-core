@@ -50,6 +50,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -124,25 +125,59 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
         arguments(
             "/tracker/events.json.zip?attachment=file.json.zip",
             "application/json+zip",
-            "attachment; filename=file.json.zip"),
+            "attachment; filename=file.json.zip",
+            "binary"),
         arguments(
             "/tracker/events.json.zip",
             "application/json+zip",
-            "attachment; filename=events.json.zip"),
+            "attachment; filename=events.json.zip",
+            "binary"),
         arguments(
-            "/tracker/events.json.gz?attachment=file.json.gzip",
+            "/tracker/events.json.gz?attachment=file.json.gz",
             "application/json+gzip",
-            "attachment; filename=file.json.gzip"),
+            "attachment; filename=file.json.gz",
+            "binary"),
         arguments(
             "/tracker/events.json.gz",
             "application/json+gzip",
-            "attachment; filename=events.json.gzip"));
+            "attachment; filename=events.json.gz",
+            "binary"),
+        arguments(
+            "/tracker/events.csv",
+            "application/csv; charset=UTF-8",
+            "attachment; filename=events.csv",
+            null),
+        arguments(
+            "/tracker/events.csv?attachment=file.csv",
+            "application/csv; charset=UTF-8",
+            "attachment; filename=file.csv",
+            null),
+        arguments(
+            "/tracker/events.csv.gz",
+            "application/csv+gzip",
+            "attachment; filename=events.csv.gz",
+            "binary"),
+        arguments(
+            "/tracker/events.csv.gz?attachment=file.csv.gz",
+            "application/csv+gzip",
+            "attachment; filename=file.csv.gz",
+            "binary"),
+        arguments(
+            "/tracker/events.csv.zip",
+            "application/csv+zip",
+            "attachment; filename=events.csv.zip",
+            "binary"),
+        arguments(
+            "/tracker/events.csv.zip?attachment=file.csv.zip",
+            "application/csv+zip",
+            "attachment; filename=file.csv.zip",
+            "binary"));
   }
 
   @ParameterizedTest
   @MethodSource
   void shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvoked(
-      String url, String expectedContentType, String expectedAttachment)
+      String url, String expectedContentType, String expectedAttachment, String encoding)
       throws ForbiddenException, BadRequestException {
 
     when(eventService.getEvents(any())).thenReturn(List.of());
@@ -151,7 +186,8 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     HttpResponse res = GET(url);
     assertEquals(HttpStatus.OK, res.status());
     assertEquals(expectedContentType, res.header("Content-Type"));
-    assertEquals(expectedAttachment, res.header("Content-Disposition"));
+    assertEquals(expectedAttachment, res.header(ContextUtils.HEADER_CONTENT_DISPOSITION));
+    assertEquals(encoding, res.header(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING));
   }
 
   private UserAccess userAccess() {

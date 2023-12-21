@@ -25,38 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.springframework.stereotype.Service;
 
-@Service("org.hisp.dhis.webapi.controller.tracker.export.event.CompressedEventService")
-@RequiredArgsConstructor
-public class CompressedEventService {
+public class CompressionUtil {
 
-  private final ObjectMapper objectMapper;
+  private CompressionUtil() {
+    throw new IllegalStateException(
+        "Utility class to compress exported objects in Zip o GZip format");
+  }
 
-  public void writeZip(OutputStream requestOutputStream, List<Event> events, String attachment)
+  /**
+   * @param requestOutputStream Output stream from request
+   * @param toCompress Objects to compress
+   * @param objectWriter Object writer from a mapper
+   * @param attachment Attachment file name
+   * @param <T>
+   * @throws IOException
+   */
+  public static <T> void writeZip(
+      OutputStream requestOutputStream, T toCompress, ObjectWriter objectWriter, String attachment)
       throws IOException {
     ZipOutputStream outputStream = new ZipOutputStream(requestOutputStream);
     outputStream.putNextEntry(new ZipEntry(attachment));
 
-    objectMapper.writer().writeValue(outputStream, events);
+    objectWriter.writeValue(outputStream, toCompress);
     outputStream.close();
   }
 
-  public void writeGzip(OutputStream requestOutputStream, List<Event> events) throws IOException {
+  /**
+   * @param requestOutputStream Output stream from request
+   * @param toCompress Objects to compress
+   * @param objectWriter Object writer from a mapper
+   * @param <T>
+   * @throws IOException
+   */
+  public static <T> void writeGzip(
+      OutputStream requestOutputStream, T toCompress, ObjectWriter objectWriter)
+      throws IOException {
     GZIPOutputStream outputStream = new GZIPOutputStream(requestOutputStream);
 
-    objectMapper.writer().writeValue(outputStream, events);
+    objectWriter.writeValue(outputStream, toCompress);
     outputStream.close();
   }
 }
