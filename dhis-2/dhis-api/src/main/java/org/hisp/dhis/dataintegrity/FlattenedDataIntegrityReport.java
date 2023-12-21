@@ -127,17 +127,14 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
     this.dataSetsNotAssignedToOrganisationUnits =
         listOfDisplayNameOrUid(detailsByName.get("datasets_not_assigned_to_org_units"));
     this.indicatorsWithoutGroups =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.INDICATORS_WITHOUT_GROUPS.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("indicators_not_grouped"));
     this.duplicatePeriods =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.PERIODS_DUPLICATES.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("periods_same_start_date_period_type"));
     this.organisationUnitsWithCyclicReferences =
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.ORG_UNITS_WITH_CYCLIC_REFERENCES.getName()));
     this.orphanedOrganisationUnits =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.ORG_UNITS_BEING_ORPHANED.getName()));
+        listOfDisplayNameWithUid(detailsByName.get("orgunits_orphaned"));
     // Replaced with SQL based equivalent
     this.organisationUnitsWithoutGroups =
         listOfDisplayNameWithUid(detailsByName.get("organisation_units_without_groups"));
@@ -145,8 +142,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS.getName()));
     this.validationRulesWithoutGroups =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.VALIDATION_RULES_WITHOUT_GROUPS.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("validation_rules_without_groups"));
     this.programIndicatorsWithNoExpression =
         listOfDisplayNameOrUid(
             detailsByName.get(
@@ -202,8 +198,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
             detailsByName.get(
                 DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS.getName()));
     this.programRulesWithNoCondition =
-        mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_CONDITION.getName()));
+        mapOfRefsByDisplayNameOrUid(detailsByName.get("program_rules_without_condition"));
     this.programRulesWithNoPriority =
         mapOfRefsByDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_PRIORITY.getName()));

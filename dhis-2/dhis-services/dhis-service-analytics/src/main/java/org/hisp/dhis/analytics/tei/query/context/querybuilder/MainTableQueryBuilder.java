@@ -45,6 +45,7 @@ public class MainTableQueryBuilder implements SqlQueryBuilder {
   @Override
   public RenderableSqlQuery buildSqlQuery(
       QueryContext queryContext,
+      List<DimensionIdentifier<DimensionParam>> unused,
       List<DimensionIdentifier<DimensionParam>> unusedOne,
       List<AnalyticsSortingParams> unusedTwo) {
     return RenderableSqlQuery.builder()

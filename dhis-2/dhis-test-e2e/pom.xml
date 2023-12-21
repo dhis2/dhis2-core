@@ -10,7 +10,7 @@
     <rootDir>..</rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spotless.version>2.41.1</spotless.version>
-    <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+    <maven-compiler-plugin.version>3.12.0</maven-compiler-plugin.version>
     <maven-surefire-plugin.version>3.2.3</maven-surefire-plugin.version>
     <maven-surefire-junit5-tree-reporter.version>1.2.1</maven-surefire-junit5-tree-reporter.version>
     <junit.version>5.10.1</junit.version>
@@ -18,7 +18,7 @@
     <log4j.version>2.22.0</log4j.version>
     <rest-assured.version>5.4.0</rest-assured.version>
     <jackson.version>2.16.0</jackson.version>
-    <guava.version>32.1.3-jre</guava.version>
+    <guava.version>33.0.0-jre</guava.version>
     <json-tree.version>0.10.3</json-tree.version>
     <epam-reportportal.version>5.1.8</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>

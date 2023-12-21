@@ -35,24 +35,27 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import lombok.Data;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
+import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.outlier.Order;
 
-/**
- * Encapsulation of a web API request for outlier value detection.
- *
- * @author Lars Helge Overland
- */
+/** Encapsulation of a web API request for outlier value detection. */
 @Data
-public class OutlierQuery {
+public class OutlierQueryParams {
   private Set<String> ds = new HashSet<>();
 
   private Set<String> dx = new HashSet<>();
 
+  private Set<String> ou = new HashSet<>();
+
+  /**
+   * This parameter selects the headers to be returned in the response. We use a LinkedHashSet
+   * because the order matters.
+   */
+  private Set<String> headers = new LinkedHashSet<>();
+
   private Date startDate;
 
   private Date endDate;
-
-  private Set<String> ou = new HashSet<>();
 
   private OutlierDetectionAlgorithm algorithm = Z_SCORE;
 
@@ -66,13 +69,38 @@ public class OutlierQuery {
 
   private Integer maxResults;
 
-  /**
-   * This parameter selects the headers to be returned in the response. We use a LinkedHashSet
-   * because the order matters.
-   */
-  private Set<String> headers = new LinkedHashSet<>();
-
   public boolean hasHeaders() {
     return headers != null && !headers.isEmpty();
+  }
+
+  public String queryKey() {
+    QueryKey key = new QueryKey();
+
+    key.add(dataStartDate);
+    key.add(dataEndDate);
+    key.add(startDate);
+    key.add(endDate);
+    key.add(orderBy);
+    key.add(maxResults);
+    key.add(algorithm);
+    key.add(threshold);
+
+    if (ds != null) {
+      ds.forEach(e -> key.add("ds", "[" + e + "]"));
+    }
+
+    if (dx != null) {
+      dx.forEach(e -> key.add("dx", "[" + e + "]"));
+    }
+
+    if (ou != null) {
+      ou.forEach(e -> key.add("ou", "[" + e + "]"));
+    }
+
+    if (headers != null) {
+      headers.forEach(e -> key.add("header", "[" + e + "]"));
+    }
+
+    return key.build();
   }
 }

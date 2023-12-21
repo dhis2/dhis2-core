@@ -35,38 +35,45 @@ import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.period.PeriodType;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.stereotype.Repository;
 
 /**
- * Manager for database queries related to outlier data detection (Z-Score, modified Z-Score,
- * Min-Max values).
+ * Manager for database queries related to outlier data detection based on z-score and modified
+ * z-score.
+ *
+ * <p>This both implements the {@link OutlierDetectionAlgorithm#Z_SCORE} and {@link
+ * OutlierDetectionAlgorithm#MOD_Z_SCORE}. Usual z-score uses the mean as middle value whereas the
+ * modified z-score uses the median as middle value or more mathematically correct as the
+ * <em>measure of central tendency</em>.
  */
 @Slf4j
-public abstract class AbstractOutlierManager {
+@Repository
+@RequiredArgsConstructor
+public class AnalyticsZScoreOutlierDetector {
   private final NamedParameterJdbcTemplate jdbcTemplate;
-  private final OutlierSqlStatementProcessor sqlStatementProcessor;
 
-  protected AbstractOutlierManager(
-      NamedParameterJdbcTemplate jdbcTemplate, OutlierSqlStatementProcessor sqlStatementProcessor) {
-    this.jdbcTemplate = jdbcTemplate;
-    this.sqlStatementProcessor = sqlStatementProcessor;
-  }
+  @Qualifier("analyticsZScoreSqlStatementProcessor")
+  private final OutlierSqlStatementProcessor sqlStatementProcessor;
 
   /**
    * Retrieves all outliers.
    *
    * @param request the {@link OutlierRequest}.
-   * @return list of the OutlierValue instances for api response
+   * @return list of the {@link Outlier} instances for api response.
    */
-  public List<Outlier> getOutlierValues(OutlierRequest request) {
+  public List<Outlier> getOutliers(OutlierRequest request) {
     String sql = sqlStatementProcessor.getSqlStatement(request);
     SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);
     Calendar calendar = PeriodType.getCalendar();
@@ -83,17 +90,24 @@ public abstract class AbstractOutlierManager {
    * @param calendar the {@link Calendar}.
    * @return a {@link RowMapper}.
    */
-  protected abstract RowMapper<Outlier> getRowMapper(final Calendar calendar, boolean modifiedZ);
+  private RowMapper<Outlier> getRowMapper(Calendar calendar, boolean modifiedZ) {
+    return (rs, rowNum) -> {
+      Outlier outlier = getOutlier(calendar, rs);
+      addZScoreBasedParamsToOutlier(outlier, rs, modifiedZ);
+
+      return outlier;
+    };
+  }
 
   /**
    * Maps incoming database set into the api response element.
    *
    * @param calendar the {@link Calendar}.
    * @param rs the {@link ResultSet}.
-   * @return single OutlierValue instance
+   * @return single {@link Outlier} instance.
    * @throws SQLException
    */
-  protected Outlier getOutlierValue(Calendar calendar, ResultSet rs) throws SQLException {
+  private Outlier getOutlier(Calendar calendar, ResultSet rs) throws SQLException {
     String isoPeriod = getIsoPeriod(calendar, rs.getString("pt_name"), rs.getDate("pe_start_date"));
 
     Outlier outlier = new Outlier();
@@ -114,17 +128,20 @@ public abstract class AbstractOutlierManager {
   /**
    * The values for outlier identification are added to OutlierValue instance.
    *
-   * @param outlier the {@link Outlier}
-   * @param rs the {@link ResultSet}
-   * @param modifiedZ boolean flag (false means z-score to be applied)
+   * @param outlier the {@link Outlier}.
+   * @param rs the {@link ResultSet}.
+   * @param modifiedZ boolean flag (false means z-score to be applied).
    * @throws SQLException
    */
-  protected void addZScoreBasedParamsToOutlierValue(
-      Outlier outlier, ResultSet rs, boolean modifiedZ) throws SQLException {
+  private void addZScoreBasedParamsToOutlier(Outlier outlier, ResultSet rs, boolean modifiedZ)
+      throws SQLException {
+
     if (modifiedZ) {
       outlier.setMedian(rs.getDouble("middle_value"));
+      outlier.setStdDev(rs.getDouble("mad"));
     } else {
       outlier.setMean(rs.getDouble("middle_value"));
+      outlier.setStdDev(rs.getDouble("std_dev"));
     }
 
     outlier.setAbsDev(rs.getDouble("middle_value_abs_dev"));

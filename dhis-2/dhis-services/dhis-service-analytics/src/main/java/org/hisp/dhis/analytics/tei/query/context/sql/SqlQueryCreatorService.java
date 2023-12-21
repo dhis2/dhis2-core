@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.sql;
 
-import static java.util.stream.Collectors.toList;
-
 import java.util.List;
 import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -61,24 +60,42 @@ public class SqlQueryCreatorService {
       List<DimensionIdentifier<DimensionParam>> acceptedDimensions =
           teiQueryParams.getCommonParams().getDimensionIdentifiers().stream()
               .filter(provider.getDimensionFilters().stream().reduce(x -> true, Predicate::and))
-              .collect(toList());
+              .toList();
 
       List<AnalyticsSortingParams> acceptedSortingParams =
           teiQueryParams.getCommonParams().getOrderParams().stream()
               .filter(provider.getSortingFilters().stream().reduce(x -> true, Predicate::and))
-              .collect(toList());
+              .toList();
+
+      List<DimensionIdentifier<DimensionParam>> acceptedHeaders =
+          teiQueryParams.getCommonParams().getParsedHeaders().stream()
+              .filter(provider.getHeaderFilters().stream().reduce(x -> true, Predicate::and))
+              .filter(parsedHeader -> notContains(acceptedDimensions, parsedHeader))
+              .toList();
 
       if (provider.alwaysRun()
+          || !CollectionUtils.isEmpty(acceptedHeaders)
           || !CollectionUtils.isEmpty(acceptedDimensions)
           || !CollectionUtils.isEmpty(acceptedSortingParams)) {
         renderableSqlQuery =
             mergeQueries(
                 renderableSqlQuery,
-                provider.buildSqlQuery(queryContext, acceptedDimensions, acceptedSortingParams));
+                provider.buildSqlQuery(
+                    queryContext, acceptedHeaders, acceptedDimensions, acceptedSortingParams));
       }
     }
 
     return SqlQueryCreator.of(queryContext, renderableSqlQuery);
+  }
+
+  private boolean notContains(
+      List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
+      DimensionIdentifier<DimensionParam> parsedHeader) {
+    return acceptedDimensions.stream()
+        .noneMatch(
+            dimensionIdentifier ->
+                StringUtils.equalsIgnoreCase(
+                    dimensionIdentifier.toString(), parsedHeader.toString()));
   }
 
   private RenderableSqlQuery mergeQueries(

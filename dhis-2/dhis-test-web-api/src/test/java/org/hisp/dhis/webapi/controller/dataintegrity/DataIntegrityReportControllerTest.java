@@ -96,7 +96,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
   @Test
   void testPeriodsDuplicatesOnly() {
     JsonDataIntegrityReport report =
-        getDataIntegrityReport("/dataIntegrity?checks=PERIODS_DUPLICATES");
+        getDataIntegrityReport("/dataIntegrity?checks=periods_same_start_date_period_type");
     assertEquals(1, report.size());
     assertTrue(report.getArray("duplicatePeriods").exists());
   }
@@ -398,6 +398,104 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     List<String> results =
         getDataIntegrityReport().getInvalidCategoryCombos().toList(JsonString::string);
     assertEquals(List.of("Tasteless" + ":" + testCatCombo), results);
+  }
+
+  @Test
+  void testIndicatorsNotInAnyGroups() {
+    String indicatorTypeA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/indicatorTypes", "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }"));
+
+    String indicatorA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
+                "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '"
+                    + indicatorTypeA
+                    + "'},"
+                    + " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', "
+                    + "'denominatorDescription' : 'Zero'} }"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/indicators",
+            "{ 'name': 'Indicator B', 'shortName': 'Indicator B', 'indicatorType' : {'id' : '"
+                + indicatorTypeA
+                + "'},"
+                + " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', "
+                + "'denominatorDescription' : 'Zero'}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/indicatorGroups",
+            "{ 'name' : 'An indicator group', 'indicators' : [{'id' : '" + indicatorA + "'}]}"));
+
+    List<String> results =
+        getDataIntegrityReport().getIndicatorsWithoutGroups().toList(JsonString::string);
+    assertEquals(List.of("Indicator B"), results);
+  }
+
+  @Test
+  void testValidationRulesWithoutGroups() {
+    String validationRule1 =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/validationRules",
+                "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', "
+                    + ""
+                    + "'description':'Test','expression':'#{FTRrcoaog83.qk6n4eMAdtK}'},"
+                    + "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test1',"
+                    + "'expression':'#{FTRrcoaog83.sqGRzCziswD}'},'periodType':'Monthly','name':'Test rule 1'}"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/validationRules",
+            "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', "
+                + ""
+                + "'description':'Test','expression':'#{FTRrcoaog83.qk6n4eMAdtK}'},"
+                + "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test2',"
+                + "'expression':'#{FTRrcoaog83.sqGRzCziswD}'},'periodType':'Monthly','name':'Test rule 2'}"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/validationRuleGroups",
+            "{'name':'Test group', 'description':'Test group', 'validationRules': [{'id': '"
+                + validationRule1
+                + "'}]}"));
+
+    List<String> results =
+        getDataIntegrityReport().getValidationRulesWithoutGroups().toList(JsonString::string);
+    assertEquals(List.of("Test rule 2"), results);
+  }
+
+  @Test
+  void testProgramRulesWithoutCondition() {
+    String program =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs",
+                "{'name':'Test program', 'shortName': 'Test program', 'programType': 'WITHOUT_REGISTRATION'}"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/programRules",
+            "{'name':'Test rule 1', 'description':'Test rule 1', 'program': {'id': '"
+                + program
+                + "'}}"));
+
+    Map<String, List<String>> results =
+        getDataIntegrityReport()
+            .getProgramRulesWithNoCondition()
+            .toMap(JsonString::string, String::compareTo);
+    assertEquals(Map.of("Test rule 1", List.of("Test program:" + program)), results);
   }
 
   private JsonDataIntegrityReport getDataIntegrityReport() {
