@@ -162,7 +162,10 @@ public class TeiFields {
         .map(
             field ->
                 findDimensionParamForField(
-                    field, teiQueryParams.getCommonParams().getDimensionIdentifiers()))
+                    field,
+                    Stream.concat(
+                        teiQueryParams.getCommonParams().getDimensionIdentifiers().stream(),
+                        getEligibleParsedHeaders(teiQueryParams))))
         .filter(Objects::nonNull)
         .map(
             dimIdentifier ->
@@ -171,6 +174,33 @@ public class TeiFields {
         .forEach(g -> headersMap.put(g.getName(), g));
 
     return reorder(headersMap, fields);
+  }
+
+  /**
+   * Since TeiStaticFields are already added to the grid headers, we need to filter them out from
+   * the list of parsed headers.
+   *
+   * @param teiQueryParams the {@link TeiQueryParams}.
+   * @return a {@link Stream} of {@link DimensionIdentifier}.
+   */
+  private static Stream<DimensionIdentifier<DimensionParam>> getEligibleParsedHeaders(
+      TeiQueryParams teiQueryParams) {
+    return teiQueryParams.getCommonParams().getParsedHeaders().stream()
+        .filter(TeiFields::isEligible);
+  }
+
+  /**
+   * Checks if the given {@link DimensionIdentifier} is eligible to be added as a header. It is
+   * eligible if it is a static dimension and it is either an event or enrollment dimension, and it
+   * is not a TEI static field (which is already added to the grid headers).
+   *
+   * @param parsedHeader the {@link DimensionIdentifier}.
+   * @return true if it is eligible, false otherwise.
+   */
+  private static boolean isEligible(DimensionIdentifier<DimensionParam> parsedHeader) {
+    return parsedHeader.getDimension().isStaticDimension()
+        && (parsedHeader.isEventDimension() || parsedHeader.isEnrollmentDimension())
+        && !parsedHeader.getDimension().getStaticDimension().isTeiStaticField();
   }
 
   /**
@@ -331,8 +361,8 @@ public class TeiFields {
    * @throws IllegalStateException if nothing is found.
    */
   private static DimensionIdentifier<DimensionParam> findDimensionParamForField(
-      Field field, List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers) {
-    return dimensionIdentifiers.stream()
+      Field field, Stream<DimensionIdentifier<DimensionParam>> dimensionIdentifiers) {
+    return dimensionIdentifiers
         .filter(di -> di.toString().equals(field.getDimensionIdentifier()))
         .findFirst()
         .orElse(null);

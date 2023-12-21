@@ -45,6 +45,7 @@ public abstract class SqlQueryBuilderAdaptor implements SqlQueryBuilder {
   @Override
   public RenderableSqlQuery buildSqlQuery(
       QueryContext queryContext,
+      List<DimensionIdentifier<DimensionParam>> acceptedHeaders,
       List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
       List<AnalyticsSortingParams> acceptedSortingParams) {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
