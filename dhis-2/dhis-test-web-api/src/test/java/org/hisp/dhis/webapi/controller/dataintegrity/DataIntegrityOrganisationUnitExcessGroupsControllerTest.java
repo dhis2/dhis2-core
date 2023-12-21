@@ -50,7 +50,7 @@ class DataIntegrityOrganisationUnitExcessGroupsControllerTest
 
   private String testOrgUnitGroupB;
 
-  private static final String check = "orgunit_group_sets_excess_groups";
+  private static final String check = "organisation_units_violating_exclusive_group_sets";
 
   private static final String detailsIdType = "organisationUnits";
 
@@ -104,8 +104,7 @@ class DataIntegrityOrganisationUnitExcessGroupsControllerTest
                 + testOrgUnitGroupB
                 + "'}]}"));
 
-    assertHasDataIntegrityIssues(
-        detailsIdType, check, 50, orgunitB, "Pizza District", "Type", true);
+    assertHasDataIntegrityIssues(detailsIdType, check, 50, orgunitB, "Pizza District", null, true);
   }
 
   @Test

@@ -25,30 +25,30 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: program_rules_no_action
-description: Program rules with no action.
-section: Program rules
-section_order: 2
+name: program_indicators_without_expression
+description: Program indicators without an expression.
+section: Program indicators
+section_order: 1
 summary_sql: >-
-    WITH program_rules_no_action as (
-    SELECT uid from programrule where programruleid
-    NOT IN (SELECT DISTINCT programruleid from programruleaction) )
-    SELECT COUNT(*) as value,
-    100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM programrule),0) as percent
-    FROM program_rules_no_action;
+  WITH program_indicators_no_expression as (
+  SELECT uid,name from programindicator where expression IS NULL)
+  SELECT COUNT(*) as value,
+  100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM programindicator),0) as percent
+  FROM program_indicators_no_expression;
 details_sql: >-
-     SELECT a.uid,a.name,NULL AS comment,
-     array_agg(COALESCE(b.name,'NULL') || ':' || COALESCE(b.uid,'NULL')) as refs  
-     from programrule a
-     LEFT OUTER JOIN program b on a.programid = b.programid
-     where programruleid
-     NOT IN (SELECT DISTINCT programruleid from programruleaction)
-     GROUP BY a.uid,a.name;
-details_id_type: programRules
+  SELECT a.uid,a.name,NULL AS comment,
+  array_agg(COALESCE(b.name,'NULL') || ':' || COALESCE(b.uid,'NULL')) as refs
+  from programindicator a
+  LEFT OUTER JOIN program b on a.programid = b.programid
+  where expression IS NULL
+  GROUP BY a.uid,a.name;
 severity: SEVERE
 introduction: >
-    All program rules should have an action.
+  Program indicators should always have a defined expression. If they do not have a defined
+  expression, no value will able to be calculated for them and they will always return 
+  an empty value.
+details_id_type: programIndicators
 recommendation: >
-    Using the DHIS2 user interface, assign an action to each of the program rules
-    which is missing one. Alternatively, if the program rule is not in use, then
-    consider removing it.
+  For each program indicator which does not have an expression, assign an expression
+  using the DHIS2 user interface. Alternatively, if the program indicator is not in use,
+  then consider to remove it.

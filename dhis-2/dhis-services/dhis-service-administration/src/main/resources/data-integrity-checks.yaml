@@ -33,9 +33,11 @@ checks:
   - option_sets/option_sets_empty.yaml
   - option_sets/unused_option_sets.yaml
   - option_sets/option_sets_wrong_sort_order.yaml
+  - program_indicators/program_indicators_without_expression.yaml
   - program_rules/program_rules_no_action.yaml
   - program_rules/program_rules_without_condition.yaml
   - program_rules/program_rules_message_no_template.yaml
+  - program_rules/program_rules_no_priority.yaml
   - analytical_objects/visualizations_not_used_1year.yaml
   - analytical_objects/maps_not_used_1year.yaml
   - analytical_objects/dashboards_not_used_1year.yaml
@@ -53,6 +55,7 @@ checks:
   - indicators/indicator_noanalysis.yaml
   - indicators/indicator_duplicated_terms.yaml
   - indicators/indicator_exact_duplicates.yaml
+  - indicators/indicators_violating_exclusive_group_sets.yaml
   - periods/periods_same_start_date_period_type.yaml
   - periods/periods_3y_future.yaml
   - periods/periods_distant_past.yaml
