@@ -193,7 +193,7 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
             + " order by "
             + order
             + " "
-            + request.getOrderDirection().getKey()
+            + request.getSortOrder().getValue()
             + " limit "
             + (withParams ? ":" + MAX_RESULTS.getKey() : request.getMaxResults())
             + " ";

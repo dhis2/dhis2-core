@@ -93,8 +93,8 @@ public class OutlierQueryParser {
       builder.orderBy(queryParams.getOrderBy());
     }
 
-    if (queryParams.getOrderDirection() != null) {
-      builder.orderDirection(queryParams.getOrderDirection());
+    if (queryParams.getSortOrder() != null) {
+      builder.sortOrder(queryParams.getSortOrder());
     }
 
     if (queryParams.getMaxResults() != null) {
