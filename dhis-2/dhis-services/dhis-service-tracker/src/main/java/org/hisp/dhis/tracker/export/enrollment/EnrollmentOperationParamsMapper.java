@@ -38,14 +38,10 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -60,28 +56,21 @@ import org.springframework.transaction.annotation.Transactional;
 class EnrollmentOperationParamsMapper {
   private final CurrentUserService currentUserService;
 
-  private final OrganisationUnitService organisationUnitService;
-
-  private final ProgramService programService;
-
-  private final TrackedEntityTypeService trackedEntityTypeService;
-
-  private final TrackedEntityService trackedEntityService;
-
-  private final AclService aclService;
+  private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
   public EnrollmentQueryParams map(EnrollmentOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
     User user = currentUserService.getCurrentUser();
 
-    Program program = validateProgram(operationParams.getProgramUid(), user);
+    Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), user);
     TrackedEntityType trackedEntityType =
-        validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
+        paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
     TrackedEntity trackedEntity =
-        validateTrackedEntity(operationParams.getTrackedEntityUid(), user);
+        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), user);
 
-    Set<OrganisationUnit> orgUnits = validateOrgUnits(operationParams.getOrgUnitUids(), user);
+    Set<OrganisationUnit> orgUnits =
+        paramsValidator.validateOrgUnits(operationParams.getOrgUnitUids(), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
@@ -120,99 +109,5 @@ class EnrollmentOperationParamsMapper {
       queryParams.addOrganisationUnits(new HashSet<>(user.getOrganisationUnits()));
       queryParams.setOrganisationUnitMode(DESCENDANTS);
     }
-  }
-
-  private Program validateProgram(String uid, User user)
-      throws BadRequestException, ForbiddenException {
-    if (uid == null) {
-      return null;
-    }
-
-    Program program = programService.getProgram(uid);
-    if (program == null) {
-      throw new BadRequestException("Program is specified but does not exist: " + uid);
-    }
-
-    if (!aclService.canDataRead(user, program)) {
-      throw new ForbiddenException(
-          "Current user is not authorized to read data from selected program:  "
-              + program.getUid());
-    }
-
-    if (program.getTrackedEntityType() != null
-        && !aclService.canDataRead(user, program.getTrackedEntityType())) {
-      throw new ForbiddenException(
-          "Current user is not authorized to read data from selected program's tracked entity type:  "
-              + program.getTrackedEntityType().getUid());
-    }
-
-    return program;
-  }
-
-  private TrackedEntityType validateTrackedEntityType(String uid, User user)
-      throws BadRequestException, ForbiddenException {
-    if (uid == null) {
-      return null;
-    }
-
-    TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType(uid);
-    if (trackedEntityType == null) {
-      throw new BadRequestException("Tracked entity type is specified but does not exist: " + uid);
-    }
-
-    if (!aclService.canDataRead(user, trackedEntityType)) {
-      throw new ForbiddenException(
-          "Current user is not authorized to read data from selected tracked entity type:  "
-              + trackedEntityType.getUid());
-    }
-
-    return trackedEntityType;
-  }
-
-  private TrackedEntity validateTrackedEntity(String uid, User user)
-      throws BadRequestException, ForbiddenException {
-    if (uid == null) {
-      return null;
-    }
-
-    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(uid);
-    if (trackedEntity == null) {
-      throw new BadRequestException("Tracked entity is specified but does not exist: " + uid);
-    }
-
-    if (trackedEntity.getTrackedEntityType() != null
-        && !aclService.canDataRead(user, trackedEntity.getTrackedEntityType())) {
-      throw new ForbiddenException(
-          "Current user is not authorized to read data from type of selected tracked entity: "
-              + trackedEntity.getTrackedEntityType().getUid());
-    }
-
-    return trackedEntity;
-  }
-
-  private Set<OrganisationUnit> validateOrgUnits(Set<String> orgUnitUids, User user)
-      throws BadRequestException, ForbiddenException {
-
-    Set<OrganisationUnit> orgUnits = new HashSet<>();
-    if (orgUnitUids != null) {
-      for (String orgUnitUid : orgUnitUids) {
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid);
-
-        if (orgUnit == null) {
-          throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
-        }
-
-        if (user != null
-            && !user.isSuper()
-            && !organisationUnitService.isInUserHierarchy(
-                orgUnitUid, user.getTeiSearchOrganisationUnitsWithFallback())) {
-          throw new ForbiddenException(
-              "Organisation unit is not part of the search scope: " + orgUnitUid);
-        }
-        orgUnits.add(orgUnit);
-      }
-    }
-
-    return orgUnits;
   }
 }
