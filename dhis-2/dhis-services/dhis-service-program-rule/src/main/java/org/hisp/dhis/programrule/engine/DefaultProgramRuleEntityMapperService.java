@@ -477,8 +477,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         eventToEvaluate.getProgramStage().getName(),
         RuleEvent.Status.valueOf(eventToEvaluate.getStatus().toString()),
         eventToEvaluate.getOccurredDate() != null
-            ? Instant.Companion.parse(eventToEvaluate.getOccurredDate().toString())
-            : Instant.Companion.parse(eventToEvaluate.getScheduledDate().toString()),
+            ? Instant.Companion.parse(DateUtils.getIso8601(eventToEvaluate.getOccurredDate()))
+            : Instant.Companion.parse(DateUtils.getIso8601(eventToEvaluate.getScheduledDate())),
         eventToEvaluate.getScheduledDate() == null
             ? null
             : LocalDateTime.Companion.parse(
@@ -498,9 +498,10 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 dv ->
                     new RuleDataValue(
                         eventToEvaluate.getOccurredDate() != null
-                            ? Instant.Companion.parse(eventToEvaluate.getOccurredDate().toString())
+                            ? Instant.Companion.parse(
+                                DateUtils.getIso8601(eventToEvaluate.getOccurredDate()))
                             : Instant.Companion.parse(
-                                eventToEvaluate.getScheduledDate().toString()),
+                                DateUtils.getIso8601(eventToEvaluate.getScheduledDate())),
                         eventToEvaluate.getProgramStage().getUid(),
                         dv.getDataElement(),
                         dv.getValue()))
