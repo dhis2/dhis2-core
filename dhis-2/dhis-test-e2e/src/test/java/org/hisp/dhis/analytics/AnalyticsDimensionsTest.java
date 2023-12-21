@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
@@ -40,6 +41,7 @@ import static org.hamcrest.Matchers.oneOf;
 import static org.hamcrest.Matchers.startsWith;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,8 +49,10 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
+import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
@@ -321,5 +325,35 @@ public class AnalyticsDimensionsTest extends ApiTest {
         .statusCode(200)
         .body("dimensions", hasSize(equalTo(dataElements.size())))
         .body("dimensions.uid", everyItem(in(distinctDataElements)));
+  }
+
+  @Test
+  void ProgramIndicatorsShouldHavePrefix() {
+    analyticsTeiActions
+            .query()
+            .getDimensions(
+                    Constants.TRACKED_ENTITY_TYPE,
+                    new QueryParamsBuilder().add("filter", "dimensionType:eq:PROGRAM_INDICATOR"))
+            .validate()
+            .statusCode(200)
+            .body("dimensions", hasSize(greaterThanOrEqualTo(1)))
+            .body("dimensions.id", everyItem(containsExactlyOne('.')));
+  }
+
+  public static TypeSafeDiagnosingMatcher<String> containsExactlyOne(Character character) {
+    return new TypeSafeDiagnosingMatcher<>() {
+      @Override
+      protected boolean matchesSafely(String item, Description mismatchDescription) {
+        if (item != null) {
+          return item.chars().filter(ch -> ch == character).count() == 1;
+        }
+        return false;
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("a string that contains exactly one " + character);
+      }
+    };
   }
 }
