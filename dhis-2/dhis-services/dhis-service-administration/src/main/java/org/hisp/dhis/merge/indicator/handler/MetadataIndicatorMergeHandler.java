@@ -33,6 +33,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionService;
@@ -52,7 +54,7 @@ public class MetadataIndicatorMergeHandler {
 
   private final SectionService sectionService;
   private final IndicatorService indicatorService;
-//  private final AnalyticalObjectStore<DataDimensionItem> analyticalObjectStore;
+  private final DataEntryFormService dataEntryFormService;
 
   public void mergeDataSets(List<Indicator> sources, Indicator target) {
     Set<DataSet> dataSets =
@@ -99,12 +101,10 @@ public class MetadataIndicatorMergeHandler {
 
   public void mergeConfigurations(List<Indicator> sources, Indicator target) {
     // TODO
-    // this might already be covered by the indicator group merge above
+    // this might already be covered by the indicator group merge above - test
   }
 
   public void replaceIndicatorRefsInIndicator(List<Indicator> sources, Indicator target) {
-    // get all indicators that contain indicator refs in either numerator or denominator
-    // iterate over them replacing all source
     for (Indicator source : sources) {
       // numerators
       List<Indicator> indicators =
@@ -124,6 +124,20 @@ public class MetadataIndicatorMergeHandler {
           String existingDenominator = foundIndicator.getDenominator();
           foundIndicator.setDenominator(
               existingDenominator.replace(source.getUid(), target.getUid()));
+        }
+      }
+    }
+  }
+
+  public void replaceIndicatorRefsInCustomForms(List<Indicator> sources, Indicator target) {
+    for (Indicator source : sources) {
+      List<DataEntryForm> forms =
+          dataEntryFormService.getDataEntryFormsWithHtmlContaining(source.getUid());
+
+      if (CollectionUtils.isNotEmpty(forms)) {
+        for (DataEntryForm dataEntryForm : forms) {
+          String existingHtml = dataEntryForm.getHtmlCode();
+          dataEntryForm.setHtmlCode(existingHtml.replace(source.getUid(), target.getUid()));
         }
       }
     }

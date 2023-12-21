@@ -440,7 +440,7 @@ class IndicatorTypeMergeTest extends ApiTest {
         .formatted(target, deleteSources);
   }
 
-  private String createIndicatorType(String name, int factor, boolean isNumber) {
+  static String createIndicatorType(String name, int factor, boolean isNumber) {
     return """
      {
         "name": "test indicator type %s",
@@ -451,7 +451,7 @@ class IndicatorTypeMergeTest extends ApiTest {
         .formatted(name, factor, isNumber);
   }
 
-  private String createIndicator(String name, String indicatorType) {
+  static String createIndicator(String name, String indicatorType) {
     return """
      {
         "name": "test indicator %s",

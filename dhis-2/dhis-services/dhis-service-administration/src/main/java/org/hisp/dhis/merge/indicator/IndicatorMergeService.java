@@ -169,13 +169,13 @@ public class IndicatorMergeService implements MergeService {
             .add(metadataIndicatorMergeHandler::mergeSections)
 
             // configuration - remove source & add target
-            // TODO may be already done in indicator group merge
+            // TODO may be already done in indicator group merge - test first
 
             // handle indicator numerator / denominator
             .add(metadataIndicatorMergeHandler::replaceIndicatorRefsInIndicator)
 
             // handle data entry forms (custom forms - html property (STRING))
-            // skip custom forms, not worth it & not used.
+            .add(metadataIndicatorMergeHandler::replaceIndicatorRefsInCustomForms)
             .build();
   }
 }

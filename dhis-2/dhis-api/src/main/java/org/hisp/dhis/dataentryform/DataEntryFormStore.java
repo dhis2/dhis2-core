@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataentryform;
 
+import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 public interface DataEntryFormStore extends IdentifiableObjectStore<DataEntryForm> {
@@ -39,4 +40,12 @@ public interface DataEntryFormStore extends IdentifiableObjectStore<DataEntryFor
    * @return A DataEntryForm with the given name.
    */
   DataEntryForm getDataEntryFormByName(String name);
+
+  /**
+   * Returns DataEntryForms that contain the search param passed in.
+   *
+   * @param searchParam The string to search for in the html column.
+   * @return Matching DataEntryForms.
+   */
+  List<DataEntryForm> getDataEntryFormsHtmlContaining(String searchParam);
 }

@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.dataentryform.hibernate;
 
+import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormStore;
@@ -74,5 +76,13 @@ public class HibernateDataEntryFormStore extends HibernateIdentifiableObjectStor
             .addPredicate(root -> builder.equal(root.get("name"), name));
 
     return getSingleResult(builder, parameters);
+  }
+
+  @Override
+  public List<DataEntryForm> getDataEntryFormsHtmlContaining(String uid) {
+    String hql = "select * from DataEntryForm d where d.htmlcode like %:uid%;";
+    Query<DataEntryForm> query = getTypedQuery(hql);
+    query.setParameter("uid", uid);
+    return query.list();
   }
 }
