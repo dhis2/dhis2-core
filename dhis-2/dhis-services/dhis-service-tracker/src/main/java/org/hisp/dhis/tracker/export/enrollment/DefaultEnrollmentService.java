@@ -216,8 +216,7 @@ class DefaultEnrollmentService
       Iterable<Enrollment> enrollments,
       EnrollmentParams params,
       boolean includeDeleted,
-      OrganisationUnitSelectionMode orgUnitMode)
-      throws ForbiddenException {
+      OrganisationUnitSelectionMode orgUnitMode) {
     List<Enrollment> enrollmentList = new ArrayList<>();
     User user = currentUserService.getCurrentUser();
 
