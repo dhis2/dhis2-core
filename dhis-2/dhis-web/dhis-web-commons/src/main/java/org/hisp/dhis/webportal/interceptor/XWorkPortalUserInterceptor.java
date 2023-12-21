@@ -58,10 +58,14 @@ public class XWorkPortalUserInterceptor implements Interceptor {
   public String intercept(ActionInvocation invocation) throws Exception {
     Map<String, Object> map = new HashMap<>(3);
 
-    map.put("currentUsername", CurrentUserUtil.getCurrentUsername());
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    map.put("currentUser", currentUser);
+    if (!CurrentUserUtil.hasCurrentUser()) {
+      map.put("currentUsername", "no user");
+      map.put("currentUser", null);
+    } else {
+      map.put("currentUsername", CurrentUserUtil.getCurrentUsername());
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+      map.put("currentUser", currentUser);
+    }
 
     invocation.getStack().push(map);
 

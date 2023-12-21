@@ -114,6 +114,11 @@ public class CurrentUserUtil {
    * @return list of authority names
    */
   public static List<String> getCurrentUserAuthorities() {
+
+    if (!CurrentUserUtil.hasCurrentUser()) {
+      return List.of();
+    }
+
     UserDetails currentUserDetails = getCurrentUserDetails();
 
     if (currentUserDetails == null) {
@@ -190,5 +195,13 @@ public class CurrentUserUtil {
         }
       }
     }
+  }
+
+  public static boolean hasCurrentUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    return authentication != null
+        && authentication.isAuthenticated()
+        && authentication.getPrincipal() != null
+        && !authentication.getPrincipal().equals("anonymousUser");
   }
 }

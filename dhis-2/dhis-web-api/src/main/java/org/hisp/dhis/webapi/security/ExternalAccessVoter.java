@@ -97,6 +97,8 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
       Authentication authentication,
       FilterInvocation filterInvocation,
       Collection<ConfigAttribute> attributes) {
+
+    // TODO: MAS: refactor this since we don't support usage of anonymousUser anymore
     if (authentication.getPrincipal().equals("anonymousUser")
         && authentication.isAuthenticated()
         && filterInvocation.getRequest().getMethod().equals(RequestMethod.GET.name())) {

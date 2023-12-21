@@ -51,6 +51,7 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.context.ApplicationEventPublisher;
@@ -75,6 +76,11 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
     checkNotNull(aclService);
     this.aclService = aclService;
+  }
+
+  @Override
+  public List<Function<Root<T>, Predicate>> getSharingPredicates(CriteriaBuilder builder) {
+    return getSharingPredicates(builder, CurrentUserUtil.getCurrentUserDetails());
   }
 
   /**

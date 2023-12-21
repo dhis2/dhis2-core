@@ -27,21 +27,11 @@
  */
 package org.hisp.dhis.common.hibernate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.hibernate.SharingHibernateGenericStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserGroupInfo;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -61,12 +51,12 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
       boolean cacheable) {
     super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
   }
-
-  @Override
-  public final List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, String access) {
-    return getSharingPredicatesXX(builder, access);
-  }
+  //
+  //  @Override
+  //  public final List<Function<Root<T>, Predicate>> getSharingPredicates(
+  //      CriteriaBuilder builder, String access) {
+  //    return getSharingPredicatesXX(builder, access);
+  //  }
 
   //  @Override
   //  public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
@@ -91,59 +81,59 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   //        builder, userDetails.getUid(), currentUserGroupInfo.getUserGroupUIDs(), access);
   //  }
 
-  @Override
-  public List<Function<Root<T>, Predicate>> getSharingPredicatesXX(
-      CriteriaBuilder builder, String access) {
-
-    UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
-    if (userDetails == null) {
-      throw new IllegalArgumentException("UserDetails is null");
-    }
-
-    if (!sharingEnabled(userDetails)) {
-      return new ArrayList<>();
-    }
-
-    Set<String> userGroupIds = userDetails.getUserGroupIds();
-
-    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
-    if (userGroupIds.size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
-      // TODO: MAS test with and without current user group info
-      log.error("userGroupIds.size()!=currentUserGroupInfo.getUserGroupUIDs().size()");
-      throw new RuntimeException(" MAS: NO MACH SIZE user group");
-    }
-
-    return getSharingPredicates(
-        builder, userDetails.getUid(), currentUserGroupInfo.getUserGroupUIDs(), access);
-  }
-
-  @Override
-  public List<Function<Root<T>, Predicate>> getSharingPredicates(CriteriaBuilder builder) {
-    // TODO: MAS: This should be the only method that accepts null UserDetails
-    // We should handle this as a special case for the system user only
-    if (CurrentUserUtil.getCurrentUsername() == null) {
-      return List.of();
-    }
-    return getSharingPredicatesXX(builder, AclService.LIKE_READ_METADATA);
-  }
-
-  @Override
-  public List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, UserDetails userDetails) {
-    if (userDetails == null) {
-      return List.of();
-    }
-
-    if (!sharingEnabled(userDetails)) {
-      return List.of();
-    }
-
-    return getSharingPredicates(
-        builder,
-        userDetails.getUid(),
-        userDetails.getUserGroupIds(),
-        AclService.LIKE_READ_METADATA);
-  }
+  //  @Override
+  //  public List<Function<Root<T>, Predicate>> getSharingPredicatesXX(
+  //      CriteriaBuilder builder, String access) {
+  //
+  //    UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
+  //    if (userDetails == null) {
+  //      throw new IllegalArgumentException("UserDetails is null");
+  //    }
+  //
+  //    if (!sharingEnabled(userDetails)) {
+  //      return new ArrayList<>();
+  //    }
+  //
+  //    Set<String> userGroupIds = userDetails.getUserGroupIds();
+  //
+  //    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
+  //    if (userGroupIds.size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+  //      // TODO: MAS test with and without current user group info
+  //      log.error("userGroupIds.size()!=currentUserGroupInfo.getUserGroupUIDs().size()");
+  //      throw new RuntimeException(" MAS: NO MACH SIZE user group");
+  //    }
+  //
+  //    return getSharingPredicates(
+  //        builder, userDetails.getUid(), currentUserGroupInfo.getUserGroupUIDs(), access);
+  //  }
+  //
+  //  @Override
+  //  public List<Function<Root<T>, Predicate>> getSharingPredicates(CriteriaBuilder builder) {
+  //    // TODO: MAS: This should be the only method that accepts null UserDetails
+  //    // We should handle this as a special case for the system user only
+  //    if (CurrentUserUtil.getCurrentUsername() == null) {
+  //      return List.of();
+  //    }
+  //    return getSharingPredicatesXX(builder, AclService.LIKE_READ_METADATA);
+  //  }
+  //
+  //  @Override
+  //  public List<Function<Root<T>, Predicate>> getSharingPredicates(
+  //      CriteriaBuilder builder, UserDetails userDetails) {
+  //    if (userDetails == null) {
+  //      return List.of();
+  //    }
+  //
+  //    if (!sharingEnabled(userDetails)) {
+  //      return List.of();
+  //    }
+  //
+  //    return getSharingPredicates(
+  //        builder,
+  //        userDetails.getUid(),
+  //        userDetails.getUserGroupIds(),
+  //        AclService.LIKE_READ_METADATA);
+  //  }
 
   //  @Override
   //  public List<Function<Root<T>, Predicate>> getDataSharingPredicates(

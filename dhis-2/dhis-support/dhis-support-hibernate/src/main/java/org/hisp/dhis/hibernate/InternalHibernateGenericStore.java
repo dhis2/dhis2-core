@@ -44,6 +44,9 @@ import org.hisp.dhis.user.UserDetails;
  * @author Lars Helge Overland
  */
 public interface InternalHibernateGenericStore<T> extends GenericStore<T> {
+
+  List<Function<Root<T>, Predicate>> getSharingPredicates(CriteriaBuilder builder);
+
   /**
    * Get List of JPA Query Predicates for checking AclService.LIKE_READ_METADATA sharing access of
    * current {@link User}.

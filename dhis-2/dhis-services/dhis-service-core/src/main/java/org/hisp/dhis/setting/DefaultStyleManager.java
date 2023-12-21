@@ -35,6 +35,7 @@ import java.util.SortedMap;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
@@ -80,9 +81,12 @@ public class DefaultStyleManager implements StyleManager {
 
   @Override
   public String getCurrentStyle() {
-    String style = (String) userSettingService.getUserSetting(UserSettingKey.STYLE);
-
-    return ObjectUtils.firstNonNull(style, getSystemStyle());
+    if (CurrentUserUtil.hasCurrentUser()) {
+      String style = (String) userSettingService.getUserSetting(UserSettingKey.STYLE);
+      return ObjectUtils.firstNonNull(style, getSystemStyle());
+    } else {
+      return getSystemStyle();
+    }
   }
 
   @Override
