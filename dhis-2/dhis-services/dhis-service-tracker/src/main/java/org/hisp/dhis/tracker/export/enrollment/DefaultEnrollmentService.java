@@ -96,8 +96,7 @@ class DefaultEnrollmentService
 
   @Override
   public Enrollment getEnrollment(
-      @Nonnull Enrollment enrollment, EnrollmentParams params, boolean includeDeleted, User user)
-      throws ForbiddenException {
+      @Nonnull Enrollment enrollment, EnrollmentParams params, boolean includeDeleted, User user) {
 
     Enrollment result = new Enrollment();
     result.setId(enrollment.getId());
