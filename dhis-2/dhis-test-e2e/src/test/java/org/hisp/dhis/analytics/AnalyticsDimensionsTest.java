@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics;
 
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
@@ -41,7 +40,6 @@ import static org.hamcrest.Matchers.oneOf;
 import static org.hamcrest.Matchers.startsWith;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -330,14 +328,14 @@ public class AnalyticsDimensionsTest extends ApiTest {
   @Test
   void ProgramIndicatorsShouldHavePrefix() {
     analyticsTeiActions
-            .query()
-            .getDimensions(
-                    Constants.TRACKED_ENTITY_TYPE,
-                    new QueryParamsBuilder().add("filter", "dimensionType:eq:PROGRAM_INDICATOR"))
-            .validate()
-            .statusCode(200)
-            .body("dimensions", hasSize(greaterThanOrEqualTo(1)))
-            .body("dimensions.id", everyItem(containsExactlyOne('.')));
+        .query()
+        .getDimensions(
+            Constants.TRACKED_ENTITY_TYPE,
+            new QueryParamsBuilder().add("filter", "dimensionType:eq:PROGRAM_INDICATOR"))
+        .validate()
+        .statusCode(200)
+        .body("dimensions", hasSize(greaterThanOrEqualTo(1)))
+        .body("dimensions.id", everyItem(containsExactlyOne('.')));
   }
 
   public static TypeSafeDiagnosingMatcher<String> containsExactlyOne(Character character) {
