@@ -43,7 +43,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Objects;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -232,7 +231,6 @@ class TrackedEntitiesExportController {
   void getTrackedEntitiesAsCsvGZip(
       TrackedEntityRequestParams trackedEntityRequestParams,
       HttpServletResponse response,
-      HttpServletRequest request,
       @CurrentUser User user,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
       throws IOException, BadRequestException, ForbiddenException, NotFoundException {
