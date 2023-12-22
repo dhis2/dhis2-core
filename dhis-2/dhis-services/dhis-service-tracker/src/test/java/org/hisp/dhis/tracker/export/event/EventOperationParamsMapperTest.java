@@ -71,14 +71,13 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -107,15 +106,9 @@ class EventOperationParamsMapperTest {
 
   private static final String TEA_2_UID = "cy2oRh2sNr6";
 
-  private static final String PROGRAM_UID = "PlZSBEN7iZd";
-
-  @Mock private ProgramService programService;
-
   @Mock private ProgramStageService programStageService;
 
   @Mock private OrganisationUnitService organisationUnitService;
-
-  @Mock private TrackedEntityService trackedEntityService;
 
   @Mock private AclService aclService;
 
@@ -127,24 +120,21 @@ class EventOperationParamsMapperTest {
 
   @Mock private DataElementService dataElementService;
 
-  @InjectMocks private EventOperationParamsMapper mapper;
+  @Mock private OperationsParamsValidator operationsParamsValidator;
 
-  private ProgramStage programStage;
+  @InjectMocks private EventOperationParamsMapper mapper;
 
   private User user;
 
   private final Map<String, User> userMap = new HashMap<>();
-
-  private OrganisationUnit orgUnit;
-
-  private final String orgUnitId = "orgUnitId";
 
   private EventOperationParams.EventOperationParamsBuilder eventBuilder =
       EventOperationParams.builder();
 
   @BeforeEach
   public void setUp() {
-    orgUnit = createOrgUnit("orgUnit", orgUnitId);
+    String orgUnitId = "orgUnitId";
+    OrganisationUnit orgUnit = createOrgUnit("orgUnit", orgUnitId);
     orgUnit.setChildren(
         Set.of(
             createOrgUnit("captureScopeChild", "captureScopeChildUid"),
@@ -168,7 +158,7 @@ class EventOperationParamsMapperTest {
 
   @Test
   void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgramStage() {
-    programStage = new ProgramStage();
+    ProgramStage programStage = new ProgramStage();
     programStage.setUid("PlZSBEN7iZd");
     EventOperationParams eventOperationParams =
         eventBuilder.programStageUid(programStage.getUid()).build();
@@ -183,39 +173,6 @@ class EventOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWithBadRequestExceptionWhenTrackedEntityDoesNotExist() {
-    programStage = new ProgramStage();
-    programStage.setUid("PlZSBEN7iZd");
-    EventOperationParams eventOperationParams =
-        eventBuilder.programStageUid(programStage.getUid()).trackedEntityUid("qnR1RK4cTIZ").build();
-
-    when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
-    when(aclService.canDataRead(user, programStage)).thenReturn(true);
-    when(trackedEntityService.getTrackedEntity("qnR1RK4cTIZ")).thenReturn(null);
-
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(eventOperationParams));
-    assertStartsWith(
-        "Tracked entity is specified but does not exist: "
-            + eventOperationParams.getTrackedEntityUid(),
-        exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgram() {
-    Program program = new Program();
-    program.setUid(PROGRAM_UID);
-    EventOperationParams eventOperationParams = eventBuilder.programUid(program.getUid()).build();
-
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user, program)).thenReturn(false);
-
-    Exception exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams));
-    assertEquals("User has no access to program: " + program.getUid(), exception.getMessage());
-  }
-
-  @Test
   void shouldFailWithBadRequestExceptionWhenMappingWithUnknownProgramStage() {
     EventOperationParams eventOperationParams =
         EventOperationParams.builder().programStageUid("NeU85luyD4w").build();
@@ -224,28 +181,6 @@ class EventOperationParamsMapperTest {
         assertThrows(BadRequestException.class, () -> mapper.map(eventOperationParams));
     assertEquals(
         "Program stage is specified but does not exist: NeU85luyD4w", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWithBadRequestExceptionWhenMappingWithUnknownProgram() {
-    EventOperationParams eventOperationParams =
-        EventOperationParams.builder().programUid("NeU85luyD4w").build();
-
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(eventOperationParams));
-    assertEquals("Program is specified but does not exist: NeU85luyD4w", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWithBadRequestExceptionWhenMappingCriteriaWithUnknownOrgUnit() {
-    EventOperationParams eventOperationParams =
-        EventOperationParams.builder().orgUnitUid("NeU85luyD4w").build();
-    when(organisationUnitService.getOrganisationUnit(any())).thenReturn(null);
-
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(eventOperationParams));
-
-    assertEquals("Org unit is specified but does not exist: NeU85luyD4w", exception.getMessage());
   }
 
   @Test
@@ -558,52 +493,12 @@ class EventOperationParamsMapperTest {
     assertEquals(searchScopeChildOrgUnit, queryParams.getOrgUnit());
   }
 
-  @Test
-  void shouldFailWhenModeAllRequestedOrgUnitInSearchScopeAndUserHasNoAccessToProgram()
-      throws ForbiddenException, BadRequestException {
-    Program program = new Program();
-    program.setAccessLevel(OPEN);
-    program.setUid("programUid");
-
-    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
-    OrganisationUnit searchScopeChildOrgUnit = createOrgUnit("searchScopeChildOrgUnit", "uid5");
-    searchScopeOrgUnit.setChildren(Set.of(searchScopeChildOrgUnit));
-    searchScopeChildOrgUnit.setParent(searchScopeOrgUnit);
-
-    User user = new User();
-    user.setUsername("testB");
-    user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit", "uid")));
-    user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
-    UserRole userRole = new UserRole();
-    userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
-    user.setUserRoles(Set.of(userRole));
-
-    injectSecurityContext(UserDetails.fromUser(user));
-    when(userService.getUserByUsername(anyString())).thenReturn(user);
-
-    when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
-        .thenReturn(searchScopeChildOrgUnit);
-    when(aclService.canDataRead(user, program)).thenReturn(false);
-    when(programService.getProgram(program.getUid())).thenReturn(program);
-
-    EventOperationParams operationParams =
-        eventBuilder
-            .programUid(program.getUid())
-            .orgUnitUid(searchScopeChildOrgUnit.getUid())
-            .orgUnitMode(ALL)
-            .build();
-
-    Exception forbiddenException =
-        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
-    assertEquals(
-        String.format("User has no access to program: %s", program.getUid()),
-        forbiddenException.getMessage());
-  }
-
   @ParameterizedTest
   @EnumSource(value = OrganisationUnitSelectionMode.class)
   void shouldFailWhenRequestedOrgUnitOutsideOfSearchScope(
       OrganisationUnitSelectionMode orgUnitMode) {
+    String orgUnitId = "orgUnitId";
+    OrganisationUnit orgUnit = createOrgUnit(orgUnitId, orgUnitId);
     when(organisationUnitService.getOrganisationUnit(orgUnitId)).thenReturn(orgUnit);
     EventOperationParams operationParams =
         EventOperationParams.builder()

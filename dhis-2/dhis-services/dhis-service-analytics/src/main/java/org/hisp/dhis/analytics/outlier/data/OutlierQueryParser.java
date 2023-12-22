@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -50,7 +51,7 @@ public class OutlierQueryParser {
    * @param queryParams the {@link OutlierQueryParams}.
    * @return a {@link OutlierRequest}.
    */
-  public OutlierRequest getFromQuery(OutlierQueryParams queryParams) {
+  public OutlierRequest getFromQuery(OutlierQueryParams queryParams, boolean analyzeOnly) {
     List<DataSet> dataSets = idObjectManager.getByUid(DataSet.class, queryParams.getDs());
 
     // Re-fetch data elements to maintain access control.
@@ -75,6 +76,7 @@ public class OutlierQueryParser {
             .startDate(queryParams.getStartDate())
             .endDate(queryParams.getEndDate())
             .orgUnits(orgUnits)
+            .analyzeOnly(analyzeOnly)
             .dataStartDate(queryParams.getDataStartDate())
             .dataEndDate(queryParams.getDataEndDate())
             .queryKey(queryParams.queryKey());
@@ -91,8 +93,16 @@ public class OutlierQueryParser {
       builder.orderBy(queryParams.getOrderBy());
     }
 
+    if (queryParams.getSortOrder() != null) {
+      builder.sortOrder(queryParams.getSortOrder());
+    }
+
     if (queryParams.getMaxResults() != null) {
       builder.maxResults(queryParams.getMaxResults());
+    }
+
+    if (analyzeOnly) {
+      builder.explainOrderId(UUID.randomUUID().toString());
     }
 
     return builder.build();

@@ -49,6 +49,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -68,9 +69,19 @@ public class AnalyticsOutlierDetectionController {
   private final OutlierQueryParser queryParser;
   private final OutlierRequestValidator validator;
 
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @GetMapping(
+      value = RESOURCE_PATH + "/explain",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getExplainOutliersJson(OutlierQueryParams query) {
+    OutlierRequest request = getFromQuery(query, true);
+
+    return outlierService.getOutliersPerformanceMetrics(request);
+  }
+
   @GetMapping(value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE)
   public Grid getOutliersJson(OutlierQueryParams queryParams) {
-    OutlierRequest request = getFromQuery(queryParams);
+    OutlierRequest request = getFromQuery(queryParams, false);
 
     Grid grid = outlierService.getOutliers(request);
 
@@ -84,7 +95,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".csv")
   public void getOutliersCsv(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    OutlierRequest request = getFromQuery(queryParams);
+    OutlierRequest request = getFromQuery(queryParams, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_CSV, NO_CACHE, "outlierdata.csv", true);
 
     outlierService.getOutlierAsCsv(request, response.getWriter());
@@ -93,7 +104,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".xml")
   public void getOutliersXml(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    OutlierRequest request = getFromQuery(queryParams);
+    OutlierRequest request = getFromQuery(queryParams, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_XML, NO_CACHE);
 
     outlierService.getOutliersAsXml(request, response.getOutputStream());
@@ -102,7 +113,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".xls")
   public void getOutliersXls(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    OutlierRequest request = getFromQuery(queryParams);
+    OutlierRequest request = getFromQuery(queryParams, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_EXCEL, NO_CACHE, "outlierdata.xls", true);
 
     outlierService.getOutliersAsXls(request, response.getOutputStream());
@@ -111,7 +122,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".html")
   public void getOutliersHtml(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    OutlierRequest request = getFromQuery(queryParams);
+    OutlierRequest request = getFromQuery(queryParams, false);
 
     contextUtils.configureResponse(response, CONTENT_TYPE_HTML, NO_CACHE);
 
@@ -121,14 +132,14 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".html+css")
   public void getOutliersHtmlCss(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    OutlierRequest request = getFromQuery(queryParams);
+    OutlierRequest request = getFromQuery(queryParams, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_HTML, NO_CACHE);
 
     outlierService.getOutliersAsHtmlCss(request, response.getWriter());
   }
 
-  private OutlierRequest getFromQuery(OutlierQueryParams queryParams) {
-    OutlierRequest request = queryParser.getFromQuery(queryParams);
+  private OutlierRequest getFromQuery(OutlierQueryParams queryParams, boolean analyzeOnly) {
+    OutlierRequest request = queryParser.getFromQuery(queryParams, analyzeOnly);
     validator.validate(request, true);
 
     return request;

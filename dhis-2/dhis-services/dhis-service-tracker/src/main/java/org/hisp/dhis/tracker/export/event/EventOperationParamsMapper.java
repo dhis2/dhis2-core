@@ -44,14 +44,13 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -67,13 +66,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class EventOperationParamsMapper {
 
-  private final ProgramService programService;
-
   private final ProgramStageService programStageService;
 
   private final OrganisationUnitService organisationUnitService;
-
-  private final TrackedEntityService trackedEntityService;
 
   private final AclService aclService;
 
@@ -85,21 +80,20 @@ class EventOperationParamsMapper {
 
   private final DataElementService dataElementService;
 
+  private final OperationsParamsValidator paramsValidator;
+
   @Transactional(readOnly = true)
   public EventQueryParams map(EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
-
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    Program program = validateProgram(operationParams.getProgramUid());
-    ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid());
+    Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), currentUser);
+    ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid(), currentUser);
+    TrackedEntity trackedEntity =
+        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), currentUser);
 
-    OrganisationUnit orgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
-    validateUser(currentUser, program, programStage, orgUnit);
-
+    OrganisationUnit orgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid(), currentUser);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), currentUser, program);
-
-    TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
 
     CategoryOptionCombo attributeOptionCombo =
         categoryOptionComboService.getAttributeOptionCombo(
@@ -152,20 +146,8 @@ class EventOperationParamsMapper {
         .setIncludeRelationships(operationParams.getEventParams().isIncludeRelationships());
   }
 
-  private Program validateProgram(String programUid) throws BadRequestException {
-    if (programUid == null) {
-      return null;
-    }
-
-    Program program = programService.getProgram(programUid);
-    if (program == null) {
-      throw new BadRequestException("Program is specified but does not exist: " + programUid);
-    }
-
-    return program;
-  }
-
-  private ProgramStage validateProgramStage(String programStageUid) throws BadRequestException {
+  private ProgramStage validateProgramStage(String programStageUid, User user)
+      throws BadRequestException, ForbiddenException {
     if (programStageUid == null) {
       return null;
     }
@@ -176,10 +158,15 @@ class EventOperationParamsMapper {
           "Program stage is specified but does not exist: " + programStageUid);
     }
 
+    if (!aclService.canDataRead(user, programStage)) {
+      throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
+    }
+
     return programStage;
   }
 
-  private OrganisationUnit validateRequestedOrgUnit(String orgUnitUid) throws BadRequestException {
+  private OrganisationUnit validateRequestedOrgUnit(String orgUnitUid, User user)
+      throws BadRequestException, ForbiddenException {
     if (orgUnitUid == null) {
       return null;
     }
@@ -187,44 +174,14 @@ class EventOperationParamsMapper {
     if (orgUnit == null) {
       throw new BadRequestException("Org unit is specified but does not exist: " + orgUnitUid);
     }
-    return orgUnit;
-  }
 
-  private void validateUser(
-      User user, Program program, ProgramStage programStage, OrganisationUnit requestedOrgUnit)
-      throws ForbiddenException {
-
-    if (user.isSuper()) {
-      return;
-    }
-    if (program != null && !aclService.canDataRead(user, program)) {
-      throw new ForbiddenException("User has no access to program: " + program.getUid());
-    }
-
-    if (programStage != null && !aclService.canDataRead(user, programStage)) {
-      throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
-    }
-
-    if (requestedOrgUnit != null
-        && !organisationUnitService.isInUserHierarchy(
-            requestedOrgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
+    if (!organisationUnitService.isInUserHierarchy(
+        orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
       throw new ForbiddenException(
-          "Organisation unit is not part of your search scope: " + requestedOrgUnit.getUid());
-    }
-  }
-
-  private TrackedEntity validateTrackedEntity(String trackedEntityUid) throws BadRequestException {
-    if (trackedEntityUid == null) {
-      return null;
+          "Organisation unit is not part of your search scope: " + orgUnit.getUid());
     }
 
-    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityUid);
-    if (trackedEntity == null) {
-      throw new BadRequestException(
-          "Tracked entity is specified but does not exist: " + trackedEntityUid);
-    }
-
-    return trackedEntity;
+    return orgUnit;
   }
 
   private void validateAttributeOptionCombo(CategoryOptionCombo attributeOptionCombo, User user)

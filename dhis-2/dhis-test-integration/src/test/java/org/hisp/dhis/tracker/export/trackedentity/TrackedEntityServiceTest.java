@@ -1506,10 +1506,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             () -> trackedEntityService.getTrackedEntities(operationParams));
 
     assertContains(
-        String.format(
-            "Current user is not authorized to read data from selected program:  %s",
-            programC.getUid()),
-        ex.getMessage());
+        String.format("User has no access to program: %s", programC.getUid()), ex.getMessage());
   }
 
   @Test

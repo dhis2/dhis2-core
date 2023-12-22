@@ -29,13 +29,9 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -45,7 +41,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -58,6 +53,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -102,6 +98,8 @@ class EnrollmentOperationParamsMapperTest {
 
   @Mock private AclService aclService;
 
+  @Mock private OperationsParamsValidator paramsValidator;
+
   @InjectMocks private EnrollmentOperationParamsMapper mapper;
 
   private OrganisationUnit orgUnit1;
@@ -109,12 +107,6 @@ class EnrollmentOperationParamsMapperTest {
   private OrganisationUnit orgUnit2;
 
   private User user;
-
-  private Program program;
-
-  private TrackedEntityType trackedEntityType;
-
-  private TrackedEntity trackedEntity;
 
   @BeforeEach
   void setUp() {
@@ -136,17 +128,17 @@ class EnrollmentOperationParamsMapperTest {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(Set.of(orgUnit2));
 
-    trackedEntityType = new TrackedEntityType();
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
     trackedEntityType.setUid(TRACKED_ENTITY_TYPE_UID);
     when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
         .thenReturn(trackedEntityType);
 
-    program = new Program();
+    Program program = new Program();
     program.setUid(PROGRAM_UID);
     program.setTrackedEntityType(trackedEntityType);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
 
-    trackedEntity = new TrackedEntity();
+    TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setUid(TRACKED_ENTITY_UID);
     trackedEntity.setTrackedEntityType(trackedEntityType);
     when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
@@ -164,257 +156,6 @@ class EnrollmentOperationParamsMapperTest {
     verifyNoInteractions(organisationUnitService);
     verifyNoInteractions(trackedEntityTypeService);
     verifyNoInteractions(trackedEntityService);
-  }
-
-  @Test
-  void shouldMapOrgUnitsWhenOrgUnitUidsAreSpecified()
-      throws BadRequestException, ForbiddenException {
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID))
-            .orgUnitMode(SELECTED)
-            .programUid(program.getUid())
-            .build();
-    when(trackerAccessManager.canAccess(user, program, orgUnit1)).thenReturn(true);
-    when(trackerAccessManager.canAccess(user, program, orgUnit2)).thenReturn(true);
-    when(organisationUnitService.isInUserHierarchy(
-            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
-        .thenReturn(true);
-    when(organisationUnitService.isInUserHierarchy(
-            orgUnit2.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
-        .thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-
-    EnrollmentQueryParams params = mapper.map(operationParams);
-
-    assertContainsOnly(Set.of(orgUnit1, orgUnit2), params.getOrganisationUnits());
-  }
-
-  @Test
-  void shouldThrowBadRequestExceptionWhenOrgUnitNotFound() {
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of("JW6BrFd0HLu"))
-            .orgUnitMode(SELECTED)
-            .programUid(PROGRAM_UID)
-            .build();
-
-    when(trackerAccessManager.canAccess(user, program, orgUnit2)).thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
-    assertEquals("Organisation unit does not exist: JW6BrFd0HLu", exception.getMessage());
-  }
-
-  @Test
-  void shouldThrowForbiddenExceptionWhenOrgUnitNotInScope() {
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().orgUnitUids(Set.of(ORG_UNIT_1_UID)).build();
-    when(organisationUnitService.isInUserHierarchy(
-            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
-        .thenReturn(false);
-
-    Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
-    assertEquals(
-        "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID,
-        exception.getMessage());
-  }
-
-  @Test
-  void shouldMapParamsWhenOrgUnitNotInScopeButUserIsSuperuser()
-      throws ForbiddenException, BadRequestException {
-    User superuser = createUser("ALL");
-
-    injectSecurityContext(UserDetails.fromUser(superuser));
-    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(superuser);
-
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(ORG_UNIT_1_UID))
-            .orgUnitMode(ALL)
-            .build();
-
-    when(organisationUnitService.isInUserHierarchy(
-            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
-        .thenReturn(false);
-
-    EnrollmentQueryParams queryParams = mapper.map(operationParams);
-    assertContainsOnly(
-        operationParams.getOrgUnitUids(),
-        queryParams.getOrganisationUnits().stream().map(BaseIdentifiableObject::getUid).toList());
-    assertEquals(operationParams.getOrgUnitMode(), queryParams.getOrganisationUnitMode());
-  }
-
-  @Test
-  void shouldThrowForbiddenExceptionWhenOrgUnitNotInScopeAndUserHasSearchInAllAuthority() {
-
-    User user = createUser(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
-    user.setTeiSearchOrganisationUnits(Set.of(orgUnit2));
-    //    when(getCurrentUser()).thenReturn(user);
-
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(ORG_UNIT_1_UID))
-            .orgUnitMode(SELECTED)
-            .build();
-    when(organisationUnitService.isInUserHierarchy(
-            orgUnit1.getUid(), this.user.getTeiSearchOrganisationUnitsWithFallback()))
-        .thenReturn(false);
-
-    Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
-    assertEquals(
-        "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID,
-        exception.getMessage());
-  }
-
-  private User createUser(String authority) {
-    User user = new User();
-    UserRole userRole = new UserRole();
-    userRole.setAuthorities(Set.of(authority));
-    user.setUserRoles(Set.of(userRole));
-
-    return user;
-  }
-
-  @Test
-  void shouldMapProgramWhenProgramUidIsSpecified() throws BadRequestException, ForbiddenException {
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-
-    EnrollmentOperationParams requestParams =
-        EnrollmentOperationParams.builder().programUid(PROGRAM_UID).orgUnitMode(ACCESSIBLE).build();
-
-    EnrollmentQueryParams params = mapper.map(requestParams);
-
-    assertEquals(program, params.getProgram());
-  }
-
-  @Test
-  void shouldThrowBadRequestExceptionWhenProgramNotFound() {
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().programUid("JW6BrFd0HLu").build();
-
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
-    assertEquals("Program is specified but does not exist: JW6BrFd0HLu", exception.getMessage());
-  }
-
-  @Test
-  void shouldThrowForbiddenExceptionWhenUserCantReadProgramData() {
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user, program)).thenReturn(false);
-
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().programUid(PROGRAM_UID).build();
-
-    Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
-    assertEquals(
-        String.format(
-            "Current user is not authorized to read data from selected program:  %s", PROGRAM_UID),
-        exception.getMessage());
-  }
-
-  @Test
-  void shouldThrowForbiddenExceptionWhenUserCantReadProgramTrackedEntityTypeData() {
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(false);
-
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().programUid(PROGRAM_UID).build();
-
-    Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
-    assertEquals(
-        String.format(
-            "Current user is not authorized to read data from selected program's tracked entity type:  %s",
-            TRACKED_ENTITY_TYPE_UID),
-        exception.getMessage());
-  }
-
-  @Test
-  void shouldMapTrackedEntityTypeWhenTrackedEntityTypeUidIsSpecified()
-      throws BadRequestException, ForbiddenException {
-    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .trackedEntityTypeUid(TRACKED_ENTITY_TYPE_UID)
-            .orgUnitMode(ACCESSIBLE)
-            .build();
-
-    EnrollmentQueryParams params = mapper.map(operationParams);
-
-    assertEquals(trackedEntityType, params.getTrackedEntityType());
-  }
-
-  @Test
-  void shouldThrowBadRequestExceptionWhenTrackedEntityTypeNotFound() {
-    EnrollmentOperationParams requestParams =
-        EnrollmentOperationParams.builder().trackedEntityTypeUid("JW6BrFd0HLu").build();
-
-    Exception exception = assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
-    assertEquals(
-        "Tracked entity type is specified but does not exist: JW6BrFd0HLu", exception.getMessage());
-  }
-
-  @Test
-  void shouldThrowBadRequestExceptionWhenUserCantReadTrackedEntityTypeData() {
-    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
-        .thenReturn(trackedEntityType);
-    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(false);
-
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().programUid(TRACKED_ENTITY_TYPE_UID).build();
-
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
-    assertEquals(
-        String.format("Program is specified but does not exist: %s", TRACKED_ENTITY_TYPE_UID),
-        exception.getMessage());
-  }
-
-  @Test
-  void shouldMapTrackedEntityWhenTrackedEntityUidIsSpecified()
-      throws BadRequestException, ForbiddenException {
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .trackedEntityUid(TRACKED_ENTITY_UID)
-            .orgUnitMode(ACCESSIBLE)
-            .build();
-
-    when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(true);
-
-    EnrollmentQueryParams params = mapper.map(operationParams);
-
-    assertEquals(trackedEntity, params.getTrackedEntity());
-  }
-
-  @Test
-  void shouldThrowBadRequestExceptionTrackedEntityNotFound() {
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().trackedEntityUid("JW6BrFd0HLu").build();
-
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
-    assertEquals(
-        "Tracked entity is specified but does not exist: JW6BrFd0HLu", exception.getMessage());
-  }
-
-  @Test
-  void shouldThrowForbiddenExceptionWhenTypeOfTrackedEntityNotAccessible() {
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().trackedEntityUid(TRACKED_ENTITY_UID).build();
-
-    when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(false);
-
-    Exception exception = assertThrows(ForbiddenException.class, () -> mapper.map(operationParams));
-    assertEquals(
-        String.format(
-            "Current user is not authorized to read data from type of selected tracked entity: %s",
-            trackedEntity.getTrackedEntityType().getUid()),
-        exception.getMessage());
   }
 
   @Test
@@ -489,6 +230,5 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentQueryParams params = mapper.map(operationParams);
 
     assertEquals(CHILDREN, params.getOrganisationUnitMode());
-    assertEquals(Set.of(orgUnit1), params.getOrganisationUnits());
   }
 }

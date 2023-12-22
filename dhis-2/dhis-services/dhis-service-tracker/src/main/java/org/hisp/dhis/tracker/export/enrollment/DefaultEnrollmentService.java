@@ -101,8 +101,7 @@ class DefaultEnrollmentService
       @Nonnull Enrollment enrollment,
       EnrollmentParams params,
       boolean includeDeleted,
-      User currentUser)
-      throws ForbiddenException {
+      User currentUser) {
 
     Enrollment result = new Enrollment();
     result.setId(enrollment.getId());
@@ -223,8 +222,7 @@ class DefaultEnrollmentService
       Iterable<Enrollment> enrollments,
       EnrollmentParams params,
       boolean includeDeleted,
-      OrganisationUnitSelectionMode orgUnitMode)
-      throws ForbiddenException {
+      OrganisationUnitSelectionMode orgUnitMode) {
     List<Enrollment> enrollmentList = new ArrayList<>();
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 

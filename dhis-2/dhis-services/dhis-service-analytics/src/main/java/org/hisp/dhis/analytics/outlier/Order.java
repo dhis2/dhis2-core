@@ -27,8 +27,20 @@
  */
 package org.hisp.dhis.analytics.outlier;
 
+import static org.hisp.dhis.analytics.common.ColumnHeader.ABSOLUTE_DEVIATION;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ATTRIBUTE_OPTION_COMBO_NAME;
+import static org.hisp.dhis.analytics.common.ColumnHeader.CATEGORY_OPTION_COMBO_NAME;
+import static org.hisp.dhis.analytics.common.ColumnHeader.DIMENSION_NAME;
+import static org.hisp.dhis.analytics.common.ColumnHeader.LOWER_BOUNDARY;
+import static org.hisp.dhis.analytics.common.ColumnHeader.MEDIAN_ABS_DEVIATION;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.common.ColumnHeader.STANDARD_DEVIATION;
+import static org.hisp.dhis.analytics.common.ColumnHeader.UPPER_BOUNDARY;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ZSCORE;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 
 /**
  * Candidate on which to order an outlier detection result set.
@@ -37,8 +49,21 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public enum Order {
-  MEAN_ABS_DEV("mean_abs_dev"),
-  Z_SCORE("z_score");
+  Z_SCORE(ZSCORE.getItem(), "z_score"),
+  MODIFIED_ZSCORE(ColumnHeader.MODIFIED_ZSCORE.getItem(), "z_score"),
+  DE_NAME(DIMENSION_NAME.getItem(), "de_name"),
+  OU_NAME(ORG_UNIT_NAME.getItem(), "ou_name"),
+  COC_NAME(CATEGORY_OPTION_COMBO_NAME.getItem(), "coc_name"),
+  AOC_NAME(ATTRIBUTE_OPTION_COMBO_NAME.getItem(), "aoc_name"),
+  VALUE("value", "value"),
+  MEDIAN(ColumnHeader.MEDIAN.getItem(), "middle_value"),
+  MEAN(ColumnHeader.MEAN.getItem(), "middle_value"),
+  STD_DEV(STANDARD_DEVIATION.getName(), "std_dev"),
+  MEDIAN_ABS_DEV(MEDIAN_ABS_DEVIATION.getItem(), "middle_value_abs_dev"),
+  MEAN_ABS_DEV(ABSOLUTE_DEVIATION.getItem(), "middle_value_abs_dev"),
+  LOWER_BOUND(LOWER_BOUNDARY.getItem(), "lower_bound"),
+  UPPER_BOUND(UPPER_BOUNDARY.getItem(), "upper_bound");
 
-  @Getter private final String key;
+  @Getter private final String headerName;
+  @Getter private final String columnName;
 }
