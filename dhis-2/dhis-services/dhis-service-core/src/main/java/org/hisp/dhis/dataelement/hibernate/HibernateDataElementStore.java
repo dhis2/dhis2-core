@@ -142,7 +142,7 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
   public DataElement getDataElement(String uid, User user) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
-    // Need to  refetch here since the user might have been updated, and tests transactional
+    // Need to refetch here since the user might have been updated, and tests transactional
     // semantics might not have committed yet.
     CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(user.getUid());
     if (user.getGroups().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {

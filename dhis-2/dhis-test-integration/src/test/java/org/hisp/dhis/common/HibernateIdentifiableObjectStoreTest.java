@@ -137,7 +137,10 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest 
     assertEquals(2, dataElement.getSharing().getUserGroups().size());
     assertEquals(4, dataElement.getSharing().getUsers().size());
 
+    // Needed to make the user groups available on the user object.
     manager.flush();
+    manager.clear();
+
     User reloadedUser1 = manager.get(User.class, user1.getId());
     DataElement dataElement1 = dataElementStore.getDataElement(dataElement.getUid(), reloadedUser1);
     assertNotNull(dataElement1);
@@ -149,7 +152,8 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest 
     assertNull(dataElement3);
     // User4 doesn't have access and it belong to UserGroup2 which also
     // doesn't have access
-    DataElement dataElement4 = dataElementStore.getDataElement(dataElement.getUid(), user4);
+    User reloadedUser4 = manager.get(User.class, user4.getId());
+    DataElement dataElement4 = dataElementStore.getDataElement(dataElement.getUid(), reloadedUser4);
     assertNull(dataElement4);
   }
 

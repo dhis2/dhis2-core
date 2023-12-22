@@ -260,6 +260,11 @@ class PatchServiceTest extends SingleSetupIntegrationTestBase {
     User adminUser = createAndInjectAdminUser();
     UserGroup userGroup = createUserGroup('A', Sets.newHashSet(adminUser));
     manager.save(userGroup);
+
+    manager.flush();
+    manager.clear();
+    injectSecurityContextUser(adminUser);
+
     DataElement deA = createDataElement('A');
     DataElement deB = createDataElement('B');
     deA.getSharing().addUserGroupAccess(new UserGroupAccess(userGroup, "rw------"));
@@ -290,6 +295,11 @@ class PatchServiceTest extends SingleSetupIntegrationTestBase {
     User adminUser = createAndInjectAdminUser();
     UserGroup userGroup = createUserGroup('A', Sets.newHashSet(adminUser));
     manager.save(userGroup);
+
+    manager.flush();
+    manager.clear();
+    injectSecurityContextUser(adminUser);
+
     DataElement deA = createDataElement('A');
     DataElement deB = createDataElement('B');
     deA.getAggregationLevels().add(1);

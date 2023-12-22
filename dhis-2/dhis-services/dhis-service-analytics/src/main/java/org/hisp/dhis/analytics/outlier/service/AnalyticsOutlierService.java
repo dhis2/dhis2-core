@@ -69,8 +69,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -84,7 +85,7 @@ public class AnalyticsOutlierService {
 
   private final OrganisationUnitService organisationUnitService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   /**
    * Transform the incoming request into api response (json).
@@ -238,12 +239,14 @@ public class AnalyticsOutlierService {
   }
 
   private void setRows(Grid grid, List<Outlier> outliers, OutlierRequest request) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     outliers.forEach(
         v -> {
           boolean isModifiedZScore = request.getAlgorithm() == MOD_Z_SCORE;
           OrganisationUnit ou = organisationUnitService.getOrganisationUnit(v.getOu());
-          User user = currentUserService.getCurrentUser();
-          Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+          Collection<OrganisationUnit> roots =
+              currentUser != null ? currentUser.getOrganisationUnits() : null;
 
           grid.addRow();
           grid.addValue(v.getDx());

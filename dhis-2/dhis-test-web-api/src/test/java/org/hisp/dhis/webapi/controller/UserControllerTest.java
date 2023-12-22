@@ -730,6 +730,10 @@ class UserControllerTest extends DhisControllerConvenienceTest {
                 + "}")
         .content(SUCCESSFUL);
 
+    manager.flush();
+    manager.clear();
+    injectSecurityContextUser(getAdminUser());
+
     // assert lastUpdated has been updated by new user & users not empty
     JsonUserGroup userGroupUserAdded =
         GET("/userGroups/" + newGroupUid).content(HttpStatus.OK).as(JsonUserGroup.class);
@@ -764,6 +768,9 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     assertEquals(ADMIN_USER_UID, lastUpdatedByAdmin.getId());
     assertEquals("admin", lastUpdatedByAdmin.getUsername());
 
+    manager.flush();
+    manager.clear();
+
     // switch to new user & assign usergroup to new user
     String role =
         newUser.getUserRoles().stream().map(BaseIdentifiableObject::getUid).findFirst().get();
@@ -789,9 +796,14 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         .content(SUCCESSFUL)
         .as(JsonWebMessage.class);
 
+    manager.flush();
+    manager.clear();
+    injectSecurityContextUser(newUser);
+
     // assert lastUpdated has been updated by new user
     JsonUserGroup userGroupUserAdded =
         GET("/userGroups/" + newGroupUid).content(HttpStatus.OK).as(JsonUserGroup.class);
+
     JsonUser lastUpdatedByNewUser = userGroupUserAdded.getLastUpdatedBy();
     assertFalse(userGroupUserAdded.getUsers().isEmpty());
     assertEquals(newUser.getUid(), lastUpdatedByNewUser.getId());

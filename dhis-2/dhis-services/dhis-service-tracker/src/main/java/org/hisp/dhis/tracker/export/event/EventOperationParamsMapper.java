@@ -88,11 +88,13 @@ class EventOperationParamsMapper {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), currentUser);
-    ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid(), currentUser);
+    ProgramStage programStage =
+        validateProgramStage(operationParams.getProgramStageUid(), currentUser);
     TrackedEntity trackedEntity =
         paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), currentUser);
 
-    OrganisationUnit orgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid(), currentUser);
+    OrganisationUnit orgUnit =
+        validateRequestedOrgUnit(operationParams.getOrgUnitUid(), currentUser);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), currentUser, program);
 
     CategoryOptionCombo attributeOptionCombo =
