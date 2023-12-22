@@ -911,6 +911,7 @@ public class DefaultUserService implements UserService {
 
       RuntimeException runtimeException = new RuntimeException(msg);
       log.error(msg, runtimeException);
+      // TODO: MAS: Remove this throw when we have found the root cause of this issue.
       throw runtimeException;
     }
 

@@ -76,82 +76,102 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
     return user;
   }
 
+  @Override
   public String getUsername() {
     return user.getUsername();
   }
 
+  @Override
   public String getPassword() {
     return user.getPassword();
   }
 
+  @Override
   public boolean isAccountNonExpired() {
     return user.isAccountNonExpired();
   }
 
+  @Override
   public boolean isAccountNonLocked() {
     return user.isAccountNonLocked();
   }
 
+  @Override
   public boolean isCredentialsNonExpired() {
     return user.isCredentialsNonExpired();
   }
 
+  @Override
   public boolean isEnabled() {
     return user.isEnabled();
   }
 
+  @Override
   public boolean isSuper() {
     return user.isSuper();
   }
 
+  @Override
   public String getUid() {
     return user.getUid();
   }
 
+  @Override
   public Long getId() {
     return user.getId();
   }
 
+  @Override
   public String getCode() {
     return user.getCode();
   }
 
+  @Override
   public String getFirstName() {
     return user.getFirstName();
   }
 
+  @Override
   public String getSurname() {
     return user.getSurname();
   }
 
+  @Override
   public Set<String> getUserGroupIds() {
     return user.getUserGroupIds();
   }
 
+  @Override
   public Set<String> getAllAuthorities() {
     return user.getAllAuthorities();
   }
 
+  @Override
   public Set<String> getUserOrgUnitIds() {
     return user.getUserOrgUnitIds();
   }
 
+  @Override
   public boolean hasAnyAuthority(Collection<String> auths) {
     return false;
   }
 
+  @Override
   public boolean isAuthorized(String auth) {
     return false;
   }
 
+  @Override
   public Map<String, Serializable> getUserSettings() {
     return user.getUserSettings();
   }
 
+  @Override
   public Set<String> getUserRoleIds() {
     return user.getUserRoleIds();
   }
 
+  @Override
   public boolean canModifyUser(User userToModify) {
     return user.canModifyUser(userToModify);
   }

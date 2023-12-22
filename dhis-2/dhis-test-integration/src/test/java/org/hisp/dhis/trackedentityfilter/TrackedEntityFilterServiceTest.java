@@ -74,7 +74,6 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase {
   void setup() {
     userService = _userService;
 
-    String currentUsername1 = CurrentUserUtil.getCurrentUsername();
     preCreateInjectAdminUser();
 
     String currentUsername = CurrentUserUtil.getCurrentUsername();

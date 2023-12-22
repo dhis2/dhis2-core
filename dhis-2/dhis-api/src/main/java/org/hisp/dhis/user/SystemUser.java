@@ -59,7 +59,6 @@ public class SystemUser implements UserDetails {
   @Override
   public String getUsername() {
     // Never rely on this method to get the username of the system user for identification.
-    //    throw new RuntimeException("System user does not have a username!");
     return "system-process_" + CodeGenerator.generateUid();
   }
 
