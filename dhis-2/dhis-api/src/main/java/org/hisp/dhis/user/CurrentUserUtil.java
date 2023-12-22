@@ -55,17 +55,6 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
 
-    // TODO: MAS: We should handle system user
-    //    // Principal being a string implies anonymous authentication
-    //    // This is the state before the user is authenticated.
-    //    if (principal instanceof String principalString) {
-    //      if (!"anonymousUser".equals(principalString)) {
-    //        return null;
-    //      }
-    //
-    //      return (String) principal;
-    //    }
-
     if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
       org.springframework.security.core.userdetails.UserDetails userDetails =
           (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
@@ -92,12 +81,6 @@ public class CurrentUserUtil {
     }
 
     Object principal = authentication.getPrincipal();
-
-    //    // Principal being a string implies anonymous authentication
-    //    // This is the state before the user is authenticated.
-    //    if (principal instanceof String) {
-    //      return null;
-    //    }
 
     if (principal instanceof UserDetails) {
       return (UserDetails) authentication.getPrincipal();
@@ -142,15 +125,15 @@ public class CurrentUserUtil {
     return candidateAuthorities.stream().anyMatch(currentUserAuthorities::contains);
   }
 
-  /**
-   * Check if the current user has the passed candidate authority
-   *
-   * @param candidateAuthority the authority to check for
-   * @return true if the user has the candidateAuthority
-   */
-  public static Boolean hasAuthority(String candidateAuthority) {
-    return hasAnyAuthority(List.of(candidateAuthority));
-  }
+  //  /**
+  //   * Check if the current user has the passed candidate authority
+  //   *
+  //   * @param candidateAuthority the authority to check for
+  //   * @return true if the user has the candidateAuthority
+  //   */
+  //  public static Boolean hasAuthority(String candidateAuthority) {
+  //    return hasAnyAuthority(List.of(candidateAuthority));
+  //  }
 
   /**
    * Return the value of the user setting referred to by 'key'

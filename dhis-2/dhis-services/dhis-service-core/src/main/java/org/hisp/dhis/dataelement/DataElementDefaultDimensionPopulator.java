@@ -111,43 +111,4 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
       }
     }
   }
-  //
-  //  @Override
-  //  public void executeInTransaction() {
-  //    Category defaultCategory = categoryService.getCategoryByName(Category.DEFAULT_NAME);
-  //    CategoryCombo defaultCategoryCombo =
-  //        categoryService.getCategoryComboByName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME);
-  //
-  //    if (defaultCategory != null && defaultCategoryCombo != null) {
-  //      return;
-  //    }
-  //
-  //    if (defaultCategory == null) {
-  //      categoryService.generateDefaultDimension();
-  //      log.info("Added default category");
-  //      defaultCategory = categoryService.getCategoryByName(Category.DEFAULT_NAME);
-  //    }
-  //
-  //    categoryService.updateCategory(defaultCategory);
-  //
-  //    if (defaultCategoryCombo == null) {
-  //      categoryService.generateDefaultDimension();
-  //      log.info("Added default dataelement dimension");
-  //      defaultCategoryCombo =
-  //          categoryService.getCategoryComboByName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME);
-  //    }
-  //
-  //    // ---------------------------------------------------------------------
-  //    // Any data elements without dimensions need to be associated at least
-  //    // with the default dimension
-  //    // ---------------------------------------------------------------------
-  //    // TODO: MAS: is there a better place to do this?
-  //    Collection<DataElement> dataElements = dataElementService.getAllDataElements();
-  //    for (DataElement dataElement : dataElements) {
-  //      if (dataElement.getCategoryCombo() == null) {
-  //        dataElement.setCategoryCombo(defaultCategoryCombo);
-  //        dataElementService.updateDataElement(dataElement);
-  //      }
-  //    }
-  //  }
 }

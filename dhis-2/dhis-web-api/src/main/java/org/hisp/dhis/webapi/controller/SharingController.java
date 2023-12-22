@@ -69,7 +69,6 @@ import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.hisp.dhis.util.SharingUtils;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.sharing.Sharing;
@@ -346,8 +345,6 @@ public class SharingController {
           sharing.getObject().getUserAccesses(),
           sharing.getObject().getUserGroupAccesses());
     }
-
-    log.error(SharingUtils.sharingToString(object, CurrentUserUtil.getCurrentUsername()));
 
     return ok("Access control set");
   }

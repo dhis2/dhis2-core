@@ -33,6 +33,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -50,6 +51,7 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Torgeir Lorange Ostby
  */
+@Slf4j
 @Repository("org.hisp.dhis.dataelement.DataElementStore")
 public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<DataElement>
     implements DataElementStore {
@@ -140,14 +142,21 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
   public DataElement getDataElement(String uid, User user) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
-    // Need to refetch here since the user might have been updated, and tests transactional
+    // Need to  refetch here since the user might have been updated, and tests transactional
     // semantics might not have committed yet.
     CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(user.getUid());
+    if (user.getGroups().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+      String msg =
+          String.format(
+              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
+              user.getUsername(),
+              user.getGroups().size(),
+              currentUserGroupInfo.getUserGroupUIDs().size());
 
-    //    if (user.getGroups().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
-    //      // TODO: MAS test with and without current user group info
-    //      throw new RuntimeException(" MAS: NO MACH SIZE user group");
-    //    }
+      RuntimeException runtimeException = new RuntimeException(msg);
+      log.error(msg, runtimeException);
+      throw runtimeException;
+    }
 
     List<Function<Root<DataElement>, Predicate>> sharingPredicates =
         getSharingPredicates(

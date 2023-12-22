@@ -39,6 +39,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
@@ -61,6 +62,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * This class contains methods for generating predicates which are used for validating sharing
  * access permission.
  */
+@Slf4j
 public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     extends HibernateGenericStore<T> implements InternalHibernateGenericStore<T> {
   protected AclService aclService;
@@ -226,11 +228,23 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     if (userDetails == null) {
       return List.of();
     }
+
+    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
+    if (userDetails.getUserGroupIds().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+      String msg =
+          String.format(
+              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
+              userDetails.getUsername(),
+              userDetails.getUserGroupIds().size(),
+              currentUserGroupInfo.getUserGroupUIDs().size());
+
+      RuntimeException runtimeException = new RuntimeException(msg);
+      log.error(msg, runtimeException);
+      throw runtimeException;
+    }
+
     return getDataSharingPredicates(
-        builder,
-        userDetails,
-        getCurrentUserGroupInfo(userDetails.getUid()),
-        AclService.LIKE_READ_DATA);
+        builder, userDetails, currentUserGroupInfo, AclService.LIKE_READ_DATA);
   }
 
   @Override
@@ -240,26 +254,23 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
       return List.of();
     }
 
-    return getSharingPredicates(
-        builder,
-        userDetails,
-        getCurrentUserGroupInfo(userDetails.getUid()),
-        AclService.LIKE_READ_METADATA);
-  }
+    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
+    if (userDetails.getUserGroupIds().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+      String msg =
+          String.format(
+              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
+              userDetails.getUsername(),
+              userDetails.getUserGroupIds().size(),
+              currentUserGroupInfo.getUserGroupUIDs().size());
 
-  //  @Override
-  //  public List<Function<Root<T>, Predicate>> getSharingPredicates( //TODO: MAS confusing
-  //      CriteriaBuilder builder, UserDetails userDetails, String access) {
-  //
-  //    if (userDetails == null || !sharingEnabled(userDetails)) {
-  //      return List.of();
-  //    }
-  //
-  //    // TODO: MAS refac this
-  //    Set<String> groupIds = getCurrentUserGroupInfo(userDetails.getUid()).getUserGroupUIDs();
-  //
-  //    return getSharingPredicates(builder, userDetails.getUid(), groupIds, access);
-  //  }
+      RuntimeException runtimeException = new RuntimeException(msg);
+      log.error(msg, runtimeException);
+      throw runtimeException;
+    }
+
+    return getSharingPredicates(
+        builder, userDetails, currentUserGroupInfo, AclService.LIKE_READ_METADATA);
+  }
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
@@ -325,7 +336,8 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   }
 
   @Override
-  // TODO: MAS can this be removed and we rely on first fetch on login?
+  // TODO: MAS can this be removed and we rely on first fetch on login? make sure current logged in
+  // users are get invalidated when group changes
   public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);

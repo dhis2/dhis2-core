@@ -909,9 +909,9 @@ public class DefaultUserService implements UserService {
               "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
               username, user.getGroups().size(), currentUserGroupInfo.getUserGroupUIDs().size());
 
-      log.error(msg);
-
-      throw new RuntimeException(msg);
+      RuntimeException runtimeException = new RuntimeException(msg);
+      log.error(msg, runtimeException);
+      throw runtimeException;
     }
 
     Map<String, Serializable> userSettings = userSettingService.getUserSettingsAsMap(user);
