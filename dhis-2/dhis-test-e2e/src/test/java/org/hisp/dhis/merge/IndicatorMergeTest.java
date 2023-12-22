@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.merge;
 
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.merge.IndicatorTypeMergeTest.createIndicator;
 import static org.hisp.dhis.merge.IndicatorTypeMergeTest.createIndicatorType;
 
@@ -86,7 +90,7 @@ class IndicatorMergeTest extends ApiTest {
             .validateStatus(201)
             .extractUid();
 
-    // config
+    // config todo
 
     // indicators (2 x source & 1 target)
     String sourceUid1 =
@@ -165,6 +169,8 @@ class IndicatorMergeTest extends ApiTest {
             .validateStatus(201)
             .extractUid();
 
+    // data dimension items
+
     //
     //
     //
@@ -189,30 +195,32 @@ class IndicatorMergeTest extends ApiTest {
     indicatorApiActions.get(sourceUid1).validateStatus(404);
     indicatorApiActions.get(targetUid).validateStatus(200);
 
-    // and all groups now reference target indicator type
     // and all datasets now reference target indicator type
     // and all sections now reference target indicator type
     // and all config now reference target indicator type
     // and all ddi now reference target indicator type
     // and all indicator numer/denom now reference target indicator type
     // and all forms now reference target indicator type
-    indicatorApiActions
-        .get(sourceUid1)
-        .validate()
-        .statusCode(200)
-        .body("indicatorType.id", equalTo(indTypeUid3));
 
-    indicatorApiActions
-        .get(sourceUid2)
+    // and all groups now reference target indicator type
+    // group 1 has had indicator replaced
+    indicatorGroupActions
+        .get(ig1Uid)
         .validate()
         .statusCode(200)
-        .body("indicatorType.id", equalTo(indTypeUid3));
+        .body("indicators", hasItem(allOf(hasEntry("id", targetUid))))
+        .body(
+            "indicators",
+            not(hasItem(allOf(hasEntry("id", sourceUid1), hasEntry("id", sourceUid2)))));
 
-    indicatorApiActions
-        .get(targetUid)
+    // group 2 has not had indicator replaced
+    indicatorGroupActions
+        .get(ig2Uid)
         .validate()
         .statusCode(200)
-        .body("indicatorType.id", equalTo(indTypeUid3));
+        .body("indicators", hasItem(hasEntry("id", i4)))
+        .body("indicators", hasItem(hasEntry("id", i5)))
+        .body("indicators", not(hasItem(hasEntry("id", targetUid))));
   }
 
   private String createDataEntryForm(String name, String indUid1, String indUid2) {
