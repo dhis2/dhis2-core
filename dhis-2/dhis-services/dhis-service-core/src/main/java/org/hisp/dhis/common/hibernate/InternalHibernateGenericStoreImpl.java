@@ -272,7 +272,6 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
       RuntimeException runtimeException = new RuntimeException(msg);
       log.error(msg, runtimeException);
-      //      throw runtimeException;
     }
 
     return getSharingPredicates(
