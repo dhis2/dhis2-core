@@ -84,7 +84,7 @@ public class HibernateDataEntryFormStore extends HibernateIdentifiableObjectStor
     TypedQuery<DataEntryForm> query =
         entityManager.createQuery(
             "FROM DataEntryForm d where d.htmlCode like :uid", DataEntryForm.class);
-    query.setParameter("uid", uid);
+    query.setParameter("uid", "%" + uid + "%");
     return query.getResultList();
   }
 }

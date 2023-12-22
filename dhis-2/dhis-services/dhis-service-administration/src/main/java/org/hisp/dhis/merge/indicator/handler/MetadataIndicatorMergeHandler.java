@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
@@ -55,6 +56,7 @@ public class MetadataIndicatorMergeHandler {
   private final SectionService sectionService;
   private final IndicatorService indicatorService;
   private final DataEntryFormService dataEntryFormService;
+  private final ConfigurationService configurationService;
 
   public void mergeDataSets(List<Indicator> sources, Indicator target) {
     Set<DataSet> dataSets =
@@ -90,18 +92,21 @@ public class MetadataIndicatorMergeHandler {
 
   public void mergeSections(List<Indicator> sources, Indicator target) {
     List<Section> sections = sectionService.getSectionsByIndicators(sources);
-    sources.forEach(
-        i ->
-            sections.forEach(
-                s -> {
-                  s.getIndicators().remove(i);
-                  s.getIndicators().add(target);
-                }));
+    sources.stream()
+        .distinct()
+        .forEach(
+            i ->
+                sections.forEach(
+                    s -> {
+                      s.getIndicators().remove(i);
+                      s.getIndicators().add(target);
+                    }));
   }
 
   public void mergeConfigurations(List<Indicator> sources, Indicator target) {
     // TODO
     // this might already be covered by the indicator group merge above - test
+
   }
 
   public void replaceIndicatorRefsInIndicator(List<Indicator> sources, Indicator target) {

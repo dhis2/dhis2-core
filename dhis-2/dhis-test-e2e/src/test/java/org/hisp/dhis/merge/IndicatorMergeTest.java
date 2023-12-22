@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.merge;
 
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hisp.dhis.merge.IndicatorTypeMergeTest.createIndicator;
 import static org.hisp.dhis.merge.IndicatorTypeMergeTest.createIndicatorType;
 
@@ -168,42 +171,48 @@ class IndicatorMergeTest extends ApiTest {
     // when an indicator type merge request is submitted, deleting sources
     ApiResponse response =
         indicatorApiActions
-            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, false))
+            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true))
             .validateStatus(200);
 
     // then a successful response is received and sources are deleted
-    //    response
-    //        .validate()
-    //        .statusCode(200)
-    //        .body("httpStatus", equalTo("OK"))
-    //        .body("response.mergeReport.message", equalTo("INDICATOR merge complete"))
-    //        .body("response.mergeReport.mergeErrors", empty())
-    //        .body("response.mergeReport.mergeType", equalTo("INDICATOR"))
-    //        .body("response.mergeReport.sourcesDeleted", hasItems(indTypeUid1, indTypeUid2));
+    response
+        .validate()
+        .statusCode(200)
+        .body("httpStatus", equalTo("OK"))
+        .body("response.mergeReport.message", equalTo("INDICATOR merge complete"))
+        .body("response.mergeReport.mergeErrors", empty())
+        .body("response.mergeReport.mergeType", equalTo("INDICATOR"))
+        .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
 
     // and sources are deleted & target exists
-    //    indicatorTypeApiActions.get(indTypeUid1).validateStatus(404);
-    //    indicatorTypeApiActions.get(indTypeUid2).validateStatus(404);
-    //    indicatorTypeApiActions.get(indTypeUid3).validateStatus(200);
-    //
-    //    // and all indicators now reference target indicator type
-    //    indicatorApiActions
-    //        .get(sourceUid1)
-    //        .validate()
-    //        .statusCode(200)
-    //        .body("indicatorType.id", equalTo(indTypeUid3));
-    //
-    //    indicatorApiActions
-    //        .get(sourceUid2)
-    //        .validate()
-    //        .statusCode(200)
-    //        .body("indicatorType.id", equalTo(indTypeUid3));
-    //
-    //    indicatorApiActions
-    //        .get(targetUid)
-    //        .validate()
-    //        .statusCode(200)
-    //        .body("indicatorType.id", equalTo(indTypeUid3));
+    indicatorApiActions.get(sourceUid1).validateStatus(404);
+    indicatorApiActions.get(sourceUid1).validateStatus(404);
+    indicatorApiActions.get(targetUid).validateStatus(200);
+
+    // and all groups now reference target indicator type
+    // and all datasets now reference target indicator type
+    // and all sections now reference target indicator type
+    // and all config now reference target indicator type
+    // and all ddi now reference target indicator type
+    // and all indicator numer/denom now reference target indicator type
+    // and all forms now reference target indicator type
+    indicatorApiActions
+        .get(sourceUid1)
+        .validate()
+        .statusCode(200)
+        .body("indicatorType.id", equalTo(indTypeUid3));
+
+    indicatorApiActions
+        .get(sourceUid2)
+        .validate()
+        .statusCode(200)
+        .body("indicatorType.id", equalTo(indTypeUid3));
+
+    indicatorApiActions
+        .get(targetUid)
+        .validate()
+        .statusCode(200)
+        .body("indicatorType.id", equalTo(indTypeUid3));
   }
 
   private String createDataEntryForm(String name, String indUid1, String indUid2) {

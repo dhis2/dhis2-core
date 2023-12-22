@@ -29,7 +29,6 @@ package org.hisp.dhis.dataset.hibernate;
 
 import java.util.List;
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
@@ -92,9 +91,15 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
 
   @Override
   public List<Section> getSectionsByIndicators(List<Indicator> indicators) {
-    TypedQuery<Section> query =
-        entityManager.createQuery(
-            "FROM Section s where s.indicators in :indicators", Section.class);
-    return query.setParameter("indicators", indicators).getResultList();
+    String hql =
+        """
+        select * from section s
+        join sectionindicators si on s.sectionid = si.sectionid
+        where si.indicatorid in :indicators
+      """;
+    return getSession()
+        .createNativeQuery(hql, Section.class)
+        .setParameter("indicators", indicators)
+        .list();
   }
 }

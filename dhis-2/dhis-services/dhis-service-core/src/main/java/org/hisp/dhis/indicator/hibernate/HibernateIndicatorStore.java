@@ -102,7 +102,7 @@ public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<In
     TypedQuery<Indicator> query =
         entityManager.createQuery(
             "FROM Indicator i where i.numerator like :search", Indicator.class);
-    query.setParameter("search", search);
+    query.setParameter("search", "%" + search + "%");
     return query.getResultList();
   }
 
@@ -112,7 +112,7 @@ public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<In
     TypedQuery<Indicator> query =
         entityManager.createQuery(
             "FROM Indicator i where i.denominator like :search", Indicator.class);
-    query.setParameter("search", search);
+    query.setParameter("search", "%" + search + "%");
     return query.getResultList();
   }
 }

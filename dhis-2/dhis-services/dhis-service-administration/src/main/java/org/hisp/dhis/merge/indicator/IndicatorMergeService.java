@@ -166,7 +166,7 @@ public class IndicatorMergeService implements MergeService {
             // TODO need to implement
 
             // section - remove source & add target
-            //            .add(metadataIndicatorMergeHandler::mergeSections)
+            .add(metadataIndicatorMergeHandler::mergeSections)
 
             // configuration - remove source & add target
             // TODO may be already done in indicator group merge - test first
