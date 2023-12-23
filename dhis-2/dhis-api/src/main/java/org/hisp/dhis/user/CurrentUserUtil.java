@@ -125,16 +125,6 @@ public class CurrentUserUtil {
     return candidateAuthorities.stream().anyMatch(currentUserAuthorities::contains);
   }
 
-  //  /**
-  //   * Check if the current user has the passed candidate authority
-  //   *
-  //   * @param candidateAuthority the authority to check for
-  //   * @return true if the user has the candidateAuthority
-  //   */
-  //  public static Boolean hasAuthority(String candidateAuthority) {
-  //    return hasAnyAuthority(List.of(candidateAuthority));
-  //  }
-
   /**
    * Return the value of the user setting referred to by 'key'
    *

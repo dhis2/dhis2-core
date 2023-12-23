@@ -78,11 +78,4 @@ public interface UserSettingStore {
    * @param userSetting the UserSetting to delete.
    */
   void deleteUserSetting(UserSetting userSetting);
-
-  //  /**
-  //   * Removes all user settings associated with the given user.
-  //   *
-  //   * @param username the user.
-  //   */
-  //  void removeUserSettings(String username);
 }

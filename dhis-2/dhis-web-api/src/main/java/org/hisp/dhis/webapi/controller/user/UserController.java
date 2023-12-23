@@ -718,7 +718,10 @@ public class UserController extends AbstractCrudController<User> {
    */
   private void validateCreateUser(User user, User currentUser)
       throws ForbiddenException, ConflictException {
-    if (!aclService.canCreate(currentUser, getEntityClass())) {
+
+    UserDetails userDetails = UserDetails.fromUser(currentUser);
+
+    if (!aclService.canCreate(userDetails, getEntityClass())) {
       throw new ForbiddenException("You don't have the proper permissions to create this object.");
     }
 
@@ -730,7 +733,7 @@ public class UserController extends AbstractCrudController<User> {
     List<String> uids = getUids(user.getGroups());
 
     for (String uid : uids) {
-      if (!userGroupService.canAddOrRemoveMember(uid, currentUser)) {
+      if (!userGroupService.canAddOrRemoveMember(uid, userDetails)) {
         throw new ConflictException("You don't have permissions to add user to user group: " + uid);
       }
     }

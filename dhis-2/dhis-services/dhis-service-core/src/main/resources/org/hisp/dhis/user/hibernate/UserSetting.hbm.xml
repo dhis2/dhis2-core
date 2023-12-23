@@ -14,6 +14,7 @@
     </composite-id>
 
 
+<!--    TODO: MAS is it really necessary to have this here?-->
     <property name="userId" column="userinfoid" insert="false" update="false"/>
 
     <property name="value" type="serializable" length="65535" />

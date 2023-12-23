@@ -427,6 +427,7 @@ public class DefaultUserService implements UserService {
     return canAddOrUpdateUser(userGroups, getUserByUsername(CurrentUserUtil.getCurrentUsername()));
   }
 
+  // TODO: MAS refactor to use user details instead of user
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrUpdateUser(Collection<String> userGroups, User currentUser) {

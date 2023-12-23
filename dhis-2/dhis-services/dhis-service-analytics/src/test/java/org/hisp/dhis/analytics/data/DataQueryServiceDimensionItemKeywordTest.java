@@ -123,8 +123,6 @@ class DataQueryServiceDimensionItemKeywordTest {
 
   @Mock private AclService aclService;
 
-  //  @Mock private UserService userService;
-
   @Mock private I18nManager i18nManager;
 
   @Mock private I18n i18n;

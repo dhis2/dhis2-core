@@ -65,6 +65,7 @@ public class UserDetailsImpl implements UserDetails {
   private boolean isSuper;
   private Set<String> userRoleIds;
 
+  @Override
   public boolean canModifyUser(User other) {
     if (other == null) {
       return false;
@@ -83,10 +84,12 @@ public class UserDetailsImpl implements UserDetails {
     return getAllRestrictions().stream().anyMatch(restrictions::contains);
   }
 
+  @Override
   public boolean hasAnyAuthority(Collection<String> auths) {
     return getAllAuthorities().stream().anyMatch(auths::contains);
   }
 
+  @Override
   public boolean isAuthorized(String auth) {
     if (auth == null) {
       return false;

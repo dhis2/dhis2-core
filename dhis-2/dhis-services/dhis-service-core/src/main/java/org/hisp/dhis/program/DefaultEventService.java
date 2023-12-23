@@ -105,13 +105,6 @@ public class DefaultEventService implements EventService {
     eventStore.update(event);
   }
 
-  //  @Override
-  //  @Transactional
-  //  public void updateEvent(Event event, User user) {
-  //    event.setAutoFields();
-  //    eventStore.update(event, user);
-  //  }
-
   @Override
   @Transactional
   public void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized) {

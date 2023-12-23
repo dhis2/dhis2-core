@@ -95,6 +95,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   private final FileResourceService fileResourceService;
   private final SystemSettingManager systemSettings;
 
+  // TODO: MAS: investigate use of propagation req. new and failing tests
   @Override
   //    @Transactional(propagation = Propagation.REQUIRES_NEW, noRollbackFor =
   //        Exception.class)
@@ -108,8 +109,6 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Override
   //  @Transactional(propagation = Propagation.REQUIRES_NEW)
   @Transactional
-  //  @Transactional(propagation = Propagation.REQUIRES_NEW, noRollbackFor =
-  //      Exception.class)
   public String create(JobConfiguration config, MimeType contentType, InputStream content)
       throws ConflictException {
     if (config.getSchedulingType() != SchedulingType.ONCE_ASAP)

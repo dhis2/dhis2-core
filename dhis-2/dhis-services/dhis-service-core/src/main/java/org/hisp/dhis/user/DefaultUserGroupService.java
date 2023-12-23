@@ -121,13 +121,13 @@ public class DefaultUserGroupService implements UserGroupService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrRemoveMember(String uid) {
-    //    return canAddOrRemoveMember(uid, getCurrentUser());
-    return false;
+    // TODO: MAS: check if this is correct
+    return canAddOrRemoveMember(uid, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
   @Transactional(readOnly = true)
-  public boolean canAddOrRemoveMember(String uid, User currentUser) {
+  public boolean canAddOrRemoveMember(String uid, UserDetails currentUser) {
     UserGroup userGroup = getUserGroup(uid);
 
     if (userGroup == null || currentUser == null) {
@@ -136,7 +136,7 @@ public class DefaultUserGroupService implements UserGroupService {
 
     boolean canUpdate = aclService.canUpdate(currentUser, userGroup);
     boolean canAddMember =
-        currentUser.isAuthorized(Authorities.F_USER_GROUPS_READ_ONLY_ADD_MEMBERS);
+        currentUser.isAuthorized(Authorities.F_USER_GROUPS_READ_ONLY_ADD_MEMBERS.name());
 
     return canUpdate || canAddMember;
   }
@@ -145,7 +145,7 @@ public class DefaultUserGroupService implements UserGroupService {
   @Transactional
   public void addUserToGroups(User user, Collection<String> uids, User currentUser) {
     for (String uid : uids) {
-      if (canAddOrRemoveMember(uid, currentUser)) {
+      if (canAddOrRemoveMember(uid, UserDetails.fromUser(currentUser))) {
         UserGroup userGroup = getUserGroup(uid);
         userGroup.addUser(user);
         userGroupStore.updateNoAcl(userGroup);
@@ -173,15 +173,17 @@ public class DefaultUserGroupService implements UserGroupService {
     Map<UserGroup, Integer> before = new HashMap<>();
     updates.forEach(userGroup -> before.put(userGroup, userGroup.getMembers().size()));
 
+    UserDetails userDetails = UserDetails.fromUser(currentUser);
+
     for (UserGroup userGroup : new HashSet<>(user.getGroups())) {
-      if (!updates.contains(userGroup) && canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
+      if (!updates.contains(userGroup) && canAddOrRemoveMember(userGroup.getUid(), userDetails)) {
         before.put(userGroup, userGroup.getMembers().size());
         userGroup.removeUser(user);
       }
     }
 
     for (UserGroup userGroup : updates) {
-      if (canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
+      if (canAddOrRemoveMember(userGroup.getUid(), userDetails)) {
         userGroup.addUser(user);
       }
     }

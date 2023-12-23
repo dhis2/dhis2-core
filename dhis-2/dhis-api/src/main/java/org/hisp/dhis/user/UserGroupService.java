@@ -54,7 +54,7 @@ public interface UserGroupService {
    */
   boolean canAddOrRemoveMember(String uid);
 
-  boolean canAddOrRemoveMember(String uid, User currentUser);
+  boolean canAddOrRemoveMember(String uid, UserDetails currentUser);
 
   void addUserToGroups(User user, @Nonnull Collection<String> uids, User currentUser);
 

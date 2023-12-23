@@ -421,7 +421,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     this.uuid = uuid;
   }
 
-  //  @Override
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(value = PropertyType.PASSWORD, access = Property.Access.WRITE_ONLY)
@@ -517,7 +516,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     this.previousPasswords = previousPasswords;
   }
 
-  //  @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(value = PropertyType.TEXT, required = Property.Value.FALSE)
@@ -634,7 +632,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     this.settings = settings;
   }
 
-  //  @Override
   public Collection<GrantedAuthority> getAuthorities() {
     Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
@@ -644,12 +641,10 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     return grantedAuthorities;
   }
 
-  //  @Override
   public boolean isAccountNonExpired() {
     return accountExpiry == null || accountExpiry.after(new Date());
   }
 
-  //  @Override
   public boolean isAccountNonLocked() {
     return isAccountNonLocked;
   }
@@ -658,7 +653,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     this.isAccountNonLocked = isAccountNonLocked;
   }
 
-  //  @Override
   public boolean isCredentialsNonExpired() {
     return isCredentialsNonExpired;
   }
@@ -667,7 +661,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     this.isCredentialsNonExpired = isCredentialsNonExpired;
   }
 
-  //  @Override
   public boolean isEnabled() {
     return !isDisabled();
   }
