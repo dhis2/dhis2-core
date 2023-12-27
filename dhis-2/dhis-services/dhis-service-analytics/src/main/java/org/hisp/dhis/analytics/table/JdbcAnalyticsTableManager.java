@@ -163,9 +163,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? getLatestAnalyticsTable(params, getDimensionColumns(), getValueColumns())
+            ? getLatestAnalyticsTable(params, getDimensionColumns(params), getValueColumns())
             : getRegularAnalyticsTable(
-                params, getDataYears(params), getDimensionColumns(), getValueColumns());
+                params, getDataYears(params), getDimensionColumns(params), getValueColumns());
 
     return table.hasPartitionTables() ? List.of(table) : List.of();
   }
@@ -432,8 +432,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     return StringUtils.EMPTY;
   }
 
-  private List<AnalyticsTableColumn> getDimensionColumns() {
-    return getDimensionColumns(null, null);
+  private List<AnalyticsTableColumn> getDimensionColumns(AnalyticsTableUpdateParams params) {
+    return getDimensionColumns(null, params);
   }
 
   private List<AnalyticsTableColumn> getDimensionColumns(
