@@ -191,16 +191,14 @@ public class TeiFields {
 
   /**
    * Checks if the given {@link DimensionIdentifier} is eligible to be added as a header. It is
-   * eligible if it is a static dimension and it is either an event or enrollment dimension, and it
-   * is not a TEI static field (which is already added to the grid headers).
+   * eligible if it is a static dimension and it is either an event or enrollment dimension.
    *
    * @param parsedHeader the {@link DimensionIdentifier}.
    * @return true if it is eligible, false otherwise.
    */
   private static boolean isEligible(DimensionIdentifier<DimensionParam> parsedHeader) {
     return parsedHeader.getDimension().isStaticDimension()
-        && (parsedHeader.isEventDimension() || parsedHeader.isEnrollmentDimension())
-        && !parsedHeader.getDimension().getStaticDimension().isTeiStaticField();
+        && (parsedHeader.isEventDimension() || parsedHeader.isEnrollmentDimension());
   }
 
   /**
