@@ -37,7 +37,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.analytics.common.TableInfoReader;
 import org.hisp.dhis.analytics.outlier.data.OutlierQueryParams;
 import org.hisp.dhis.analytics.outlier.data.OutlierQueryParser;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
@@ -45,10 +44,7 @@ import org.hisp.dhis.analytics.outlier.data.OutlierRequestValidator;
 import org.hisp.dhis.analytics.outlier.service.AnalyticsOutlierService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -72,14 +68,13 @@ public class AnalyticsOutlierDetectionController {
   private final ContextUtils contextUtils;
   private final OutlierQueryParser queryParser;
   private final OutlierRequestValidator validator;
-  private final TableInfoReader tableInfoReader;
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
   @GetMapping(
       value = RESOURCE_PATH + "/explain",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Grid getExplainOutliersJson(OutlierQueryParams query) {
-    checkAnalyticsTableForOutliers();
+    outlierService.checkAnalyticsTableForOutliers();
     OutlierRequest request = getFromQuery(query, true);
 
     return outlierService.getOutliersPerformanceMetrics(request);
@@ -87,7 +82,7 @@ public class AnalyticsOutlierDetectionController {
 
   @GetMapping(value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE)
   public Grid getOutliersJson(OutlierQueryParams queryParams) {
-    checkAnalyticsTableForOutliers();
+    outlierService.checkAnalyticsTableForOutliers();
     OutlierRequest request = getFromQuery(queryParams, false);
 
     Grid grid = outlierService.getOutliers(request);
@@ -102,7 +97,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".csv")
   public void getOutliersCsv(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    checkAnalyticsTableForOutliers();
+    outlierService.checkAnalyticsTableForOutliers();
     OutlierRequest request = getFromQuery(queryParams, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_CSV, NO_CACHE, "outlierdata.csv", true);
 
@@ -112,7 +107,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".xml")
   public void getOutliersXml(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    checkAnalyticsTableForOutliers();
+    outlierService.checkAnalyticsTableForOutliers();
     OutlierRequest request = getFromQuery(queryParams, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_XML, NO_CACHE);
 
@@ -122,7 +117,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".xls")
   public void getOutliersXls(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    checkAnalyticsTableForOutliers();
+    outlierService.checkAnalyticsTableForOutliers();
     OutlierRequest request = getFromQuery(queryParams, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_EXCEL, NO_CACHE, "outlierdata.xls", true);
 
@@ -132,7 +127,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".html")
   public void getOutliersHtml(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    checkAnalyticsTableForOutliers();
+    outlierService.checkAnalyticsTableForOutliers();
     OutlierRequest request = getFromQuery(queryParams, false);
 
     contextUtils.configureResponse(response, CONTENT_TYPE_HTML, NO_CACHE);
@@ -143,7 +138,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".html+css")
   public void getOutliersHtmlCss(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    checkAnalyticsTableForOutliers();
+    outlierService.checkAnalyticsTableForOutliers();
     OutlierRequest request = getFromQuery(queryParams, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_HTML, NO_CACHE);
 
@@ -155,12 +150,5 @@ public class AnalyticsOutlierDetectionController {
     validator.validate(request, true);
 
     return request;
-  }
-
-  private void checkAnalyticsTableForOutliers() {
-    if (tableInfoReader.getInfo("analytics").getColumns().stream()
-        .noneMatch("sourceid"::equalsIgnoreCase)) {
-      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7180));
-    }
   }
 }

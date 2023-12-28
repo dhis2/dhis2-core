@@ -59,12 +59,15 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.cache.OutliersCache;
+import org.hisp.dhis.analytics.common.TableInfoReader;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -85,6 +88,8 @@ public class AnalyticsOutlierService {
   private final OrganisationUnitService organisationUnitService;
 
   private final CurrentUserService currentUserService;
+
+  private final TableInfoReader tableInfoReader;
 
   /**
    * Transform the incoming request into api response (json).
@@ -161,6 +166,19 @@ public class AnalyticsOutlierService {
   public void getOutliersAsHtmlCss(OutlierRequest request, Writer writer)
       throws IllegalQueryException {
     GridUtils.toHtmlCss(getOutliers(request), writer);
+  }
+
+  /**
+   * The inclusion of outliers is an optional aspect of the analytics table. The outliers API entry
+   * point can generate a proper response only when outliers are exported along with the analytics
+   * table. The 'sourceid' column serves as a reliable indicator for successful outliers export. Its
+   * absence implies that the outliers were not exported.
+   */
+  public void checkAnalyticsTableForOutliers() {
+    if (tableInfoReader.getInfo("analytics").getColumns().stream()
+        .noneMatch("sourceid"::equalsIgnoreCase)) {
+      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7180));
+    }
   }
 
   private void setHeaders(Grid grid, OutlierRequest request) {
