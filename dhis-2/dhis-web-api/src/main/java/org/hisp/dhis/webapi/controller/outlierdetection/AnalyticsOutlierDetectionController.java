@@ -74,6 +74,7 @@ public class AnalyticsOutlierDetectionController {
       value = RESOURCE_PATH + "/explain",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Grid getExplainOutliersJson(OutlierQueryParams query) {
+    outlierService.checkAnalyticsTableForOutliers();
     OutlierRequest request = getFromQuery(query, true);
 
     return outlierService.getOutliersPerformanceMetrics(request);
@@ -81,6 +82,7 @@ public class AnalyticsOutlierDetectionController {
 
   @GetMapping(value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE)
   public Grid getOutliersJson(OutlierQueryParams queryParams) {
+    outlierService.checkAnalyticsTableForOutliers();
     OutlierRequest request = getFromQuery(queryParams, false);
 
     Grid grid = outlierService.getOutliers(request);
@@ -95,6 +97,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".csv")
   public void getOutliersCsv(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
+    outlierService.checkAnalyticsTableForOutliers();
     OutlierRequest request = getFromQuery(queryParams, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_CSV, NO_CACHE, "outlierdata.csv", true);
 
@@ -104,6 +107,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".xml")
   public void getOutliersXml(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
+    outlierService.checkAnalyticsTableForOutliers();
     OutlierRequest request = getFromQuery(queryParams, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_XML, NO_CACHE);
 
@@ -113,6 +117,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".xls")
   public void getOutliersXls(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
+    outlierService.checkAnalyticsTableForOutliers();
     OutlierRequest request = getFromQuery(queryParams, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_EXCEL, NO_CACHE, "outlierdata.xls", true);
 
@@ -122,6 +127,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".html")
   public void getOutliersHtml(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
+    outlierService.checkAnalyticsTableForOutliers();
     OutlierRequest request = getFromQuery(queryParams, false);
 
     contextUtils.configureResponse(response, CONTENT_TYPE_HTML, NO_CACHE);
@@ -132,6 +138,7 @@ public class AnalyticsOutlierDetectionController {
   @GetMapping(value = RESOURCE_PATH + ".html+css")
   public void getOutliersHtmlCss(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
+    outlierService.checkAnalyticsTableForOutliers();
     OutlierRequest request = getFromQuery(queryParams, false);
     contextUtils.configureResponse(response, CONTENT_TYPE_HTML, NO_CACHE);
 
