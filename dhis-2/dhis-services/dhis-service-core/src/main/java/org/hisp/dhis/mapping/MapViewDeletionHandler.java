@@ -34,6 +34,7 @@ import java.util.List;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -69,6 +70,7 @@ public class MapViewDeletionHandler
     // special
     whenDeleting(LegendSet.class, this::deleteLegendSet);
     whenDeleting(OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSetSpecial);
+    whenDeleting(ExpressionDimensionItem.class, this::deleteExpressionDimensionItem);
     whenVetoing(MapView.class, this::allowDeleteMapView);
   }
 
