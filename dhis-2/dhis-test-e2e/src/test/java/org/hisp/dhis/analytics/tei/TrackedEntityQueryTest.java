@@ -2889,4 +2889,33 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
 
     validateRow(response, 0, List.of("2022-01-01 12:05:00.0"));
   }
+
+  @Test
+  public void headerParamOunameIsPresent() {
+    // Given
+    QueryParamsBuilder params = new QueryParamsBuilder().add("headers=IpHINAT79UW.ouname");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("rows", hasSize(equalTo(50)))
+        .body("height", equalTo(50))
+        .body("width", equalTo(1))
+        .body("headerWidth", equalTo(1))
+        .body("headers", hasSize(equalTo(1)));
+
+    validateHeader(
+        response,
+        0,
+        "IpHINAT79UW.ouname",
+        "Enrollment Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+  }
 }
