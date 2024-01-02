@@ -50,7 +50,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * created), hence @Order(1).
  */
 
-//TODO do not forget add e2e for DHIS2-16375
+// TODO do not forget add e2e for DHIS2-16375
 @Order(1)
 @ExtendWith(ConfigurationExtension.class)
 @Tag("analytics")
