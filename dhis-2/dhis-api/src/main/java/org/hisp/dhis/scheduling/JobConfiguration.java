@@ -358,7 +358,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   public boolean isDueBetween(
       @Nonnull Instant now, @Nonnull Instant then, @Nonnull Duration maxCronDelay) {
     Instant dueTime = nextExecutionTime(now, maxCronDelay);
-    return dueTime != null && dueTime.isBefore(then);
+    return dueTime != null && !dueTime.isBefore(now) && dueTime.isBefore(then);
   }
 
   /**
@@ -387,11 +387,10 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   private Instant nextCronExecutionTime(
       @Nonnull ZoneId zone, @Nonnull Instant since, Instant now, @Nonnull Duration maxDelay) {
     if (isUndefinedCronExpression(cronExpression)) return null;
-    // TODO when cron ends with * (any day) then since time could be adjusted to today at same time
     SimpleTriggerContext context = new SimpleTriggerContext(Clock.fixed(since, zone));
     Date next = new CronTrigger(cronExpression, zone).nextExecutionTime(context);
     if (next == null) return null;
-    if (now.isAfter(next.toInstant().plus(maxDelay))) {
+    while (next != null && now.isAfter(next.toInstant().plus(maxDelay))) {
       context = new SimpleTriggerContext(Clock.fixed(next.toInstant().plusSeconds(1), zone));
       next = new CronTrigger(cronExpression, zone).nextExecutionTime(context);
     }

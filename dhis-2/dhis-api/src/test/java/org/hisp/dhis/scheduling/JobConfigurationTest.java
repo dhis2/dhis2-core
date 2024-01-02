@@ -33,9 +33,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.Date;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -124,7 +127,7 @@ class JobConfigurationTest {
   }
 
   @Test
-  void cronNextExecutionTimeWithDelay() {
+  void cronNextExecutionTime_MaxCronDelay() {
     JobConfiguration config = new JobConfiguration(JobType.DATA_INTEGRITY);
     config.setCronExpression("0 40 8 ? * *"); // daily 8:40am
 
@@ -159,6 +162,73 @@ class JobConfigurationTest {
     assertEquals(
         tomorrow8_40am.toInstant(),
         config.nextExecutionTime(zone, today10_41am.toInstant(), maxCronDelay));
+  }
+
+  @Test
+  void cronNextExecutionTime_LastExecutedDaysAgo() {
+    Instant now = Instant.now();
+    JobConfiguration config = new JobConfiguration(JobType.DATA_INTEGRITY);
+    config.setCronExpression("0 40 8 ? * *"); // daily 8:40am
+    config.setLastExecuted(Date.from(now.minus(Duration.ofDays(3))));
+
+    ZoneId zoneId = ZoneId.systemDefault();
+    ZonedDateTime todayMidnight = now.atZone(zoneId).truncatedTo(ChronoUnit.HOURS).withHour(0);
+    ZonedDateTime today8_00 = todayMidnight.withHour(8);
+    ZonedDateTime today8_40 = today8_00.withMinute(40);
+
+    // when now is before the execution time
+    assertEquals(
+        today8_40.toInstant(),
+        config.nextExecutionTime(today8_00.toInstant(), Duration.ofHours(2)));
+
+    // when now is after the execution time (but within the max delay time)
+    assertEquals(
+        today8_40.toInstant(),
+        config.nextExecutionTime(today8_00.plusHours(1).toInstant(), Duration.ofHours(2)));
+
+    // when now is after the execution time (and the max delay time window)
+    assertEquals(
+        today8_40.plusDays(1).toInstant(),
+        config.nextExecutionTime(today8_00.plusHours(3).toInstant(), Duration.ofHours(2)));
+  }
+
+  @Test
+  void cronNextExecutionTime_NeverExecutedDueEarlierToday() {
+    Instant now = Instant.now();
+    JobConfiguration config = new JobConfiguration(JobType.DATA_INTEGRITY);
+    config.setCronExpression("0 40 8 ? * *"); // daily 8:40am
+
+    ZoneId zoneId = ZoneId.systemDefault();
+    ZonedDateTime todayMidnight = now.atZone(zoneId).truncatedTo(ChronoUnit.HOURS).withHour(0);
+    ZonedDateTime today8_00 = todayMidnight.withHour(8);
+    ZonedDateTime tomorrow8_40 = today8_00.withMinute(40).plusDays(1);
+
+    Duration maxCronDelay = Duration.ofHours(2);
+    assertEquals(
+        tomorrow8_40.toInstant(),
+        config.nextExecutionTime(today8_00.plusHours(3).toInstant(), maxCronDelay));
+    assertEquals(
+        tomorrow8_40.toInstant(),
+        config.nextExecutionTime(today8_00.plusHours(5).toInstant(), maxCronDelay));
+  }
+
+  @Test
+  void cronNextExecutionTime_NeverExecutedDueLaterToday() {
+    Instant now = Instant.now();
+    JobConfiguration config = new JobConfiguration(JobType.DATA_INTEGRITY);
+    config.setCronExpression("0 40 8 ? * *"); // daily 8:40am
+
+    ZoneId zoneId = ZoneId.systemDefault();
+    ZonedDateTime todayMidnight = now.atZone(zoneId).truncatedTo(ChronoUnit.HOURS).withHour(0);
+    ZonedDateTime today8_00 = todayMidnight.withHour(8);
+    ZonedDateTime today8_40 = today8_00.withMinute(40);
+
+    Duration maxCronDelay = Duration.ofHours(2);
+    assertEquals(
+        today8_40.toInstant(), config.nextExecutionTime(today8_00.toInstant(), maxCronDelay));
+    assertEquals(
+        today8_40.toInstant(),
+        config.nextExecutionTime(today8_00.minusHours(4).toInstant(), maxCronDelay));
   }
 
   @Test
