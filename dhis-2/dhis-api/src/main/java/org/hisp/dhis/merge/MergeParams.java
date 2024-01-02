@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
+package org.hisp.dhis.merge;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Set;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Encapsulation of web API merge params. Contains source {@link UID}s to be merged and a target
+ * {@link UID} to be merged in to. Also indicates whether sources should be deleted or not. <br>
+ * All {@link UID}s should be verified.
+ *
+ * @author david mackessy
  */
-public interface MergeService {
-  /**
-   * Merges source object into target object, requires a "schema friendly" class.
-   *
-   * @param mergeParams MergeParams instance containing source and target object
-   */
-  <T> T merge(MergeParams<T> mergeParams);
+@Data
+@NoArgsConstructor
+public class MergeParams {
+  @JsonProperty private Set<UID> sources;
 
-  /**
-   * Creates a clone of given object and returns it.
-   *
-   * @param source Object to clone
-   */
-  <T> T clone(T source);
+  @JsonProperty private UID target;
+
+  @JsonProperty private boolean deleteSources;
 }

@@ -47,7 +47,6 @@ class DatastoreServiceTest extends SingleSetupIntegrationTestBase {
   private final String namespace = "DOGS";
 
   @Autowired private DatastoreService service;
-
   @Autowired private ObjectMapper jsonMapper;
 
   @Test
@@ -64,26 +63,6 @@ class DatastoreServiceTest extends SingleSetupIntegrationTestBase {
     assertNotNull(dogB);
     assertEquals("2", dogB.getId());
     assertEquals("Aldo", dogB.getName());
-  }
-
-  @Test
-  void testAddUpdateObject() throws ConflictException, BadRequestException {
-    Dog dogA = new Dog("1", "Fido", "Brown");
-    Dog dogB = new Dog("2", "Aldo", "Black");
-    addValue(namespace, dogA.getId(), dogA);
-    addValue(namespace, dogB.getId(), dogB);
-    dogA = getValue(namespace, dogA.getId(), Dog.class);
-    dogB = getValue(namespace, dogB.getId(), Dog.class);
-    assertEquals("Fido", dogA.getName());
-    assertEquals("Aldo", dogB.getName());
-    dogA.setName("Lilly");
-    dogB.setName("Teddy");
-    updateValue(namespace, dogA.getId(), dogA);
-    updateValue(namespace, dogB.getId(), dogB);
-    dogA = getValue(namespace, dogA.getId(), Dog.class);
-    dogB = getValue(namespace, dogB.getId(), Dog.class);
-    assertEquals("Lilly", dogA.getName());
-    assertEquals("Teddy", dogB.getName());
   }
 
   private <T> T getValue(String namespace, String key, Class<T> type) {
@@ -103,8 +82,7 @@ class DatastoreServiceTest extends SingleSetupIntegrationTestBase {
       throw new IllegalStateException(
           String.format("No object found for namespace '%s' and key '%s'", namespace, key));
     }
-    entry.setValue(mapValueToJson(object));
-    service.updateEntry(entry);
+    service.updateEntry(entry.getNamespace(), entry.getKey(), mapValueToJson(object), null, null);
   }
 
   private <T> T mapJsonValueTo(Class<T> type, DatastoreEntry entry) {

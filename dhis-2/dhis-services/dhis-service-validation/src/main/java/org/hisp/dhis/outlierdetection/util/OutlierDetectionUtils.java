@@ -29,6 +29,8 @@ package org.hisp.dhis.outlierdetection.util;
 
 import static org.hisp.dhis.feedback.ErrorCode.E2208;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
+import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
+import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_TABLE_NOT_EXISTING;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
 
 import java.util.List;
@@ -39,9 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.util.SqlExceptionUtils;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -80,21 +80,21 @@ public class OutlierDetectionUtils {
       return Optional.ofNullable(supplier.get());
     } catch (BadSqlGrammarException ex) {
       if (relationDoesNotExist(ex.getSQLException())) {
-        log.info(SqlExceptionUtils.ERR_MSG_TABLE_NOT_EXISTING, ex);
+        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+        throw ex;
+      } else {
+        log.info(ERR_MSG_SILENT_FALLBACK, ex);
         throw ex;
       }
-      log.info(SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK, ex);
     } catch (QueryRuntimeException ex) {
       log.error("Internal runtime exception", ex);
       throw ex;
     } catch (DataIntegrityViolationException ex) {
       log.error(E2208.getMessage(), ex);
-      throw new IllegalQueryException(ErrorCode.E2208);
+      throw new IllegalQueryException(E2208);
     } catch (DataAccessResourceFailureException ex) {
       log.error(E7131.getMessage(), ex);
       throw new QueryRuntimeException(E7131);
     }
-
-    return Optional.empty();
   }
 }

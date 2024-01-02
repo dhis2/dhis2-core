@@ -27,10 +27,16 @@
  */
 package org.hisp.dhis.icon;
 
+import java.util.Date;
+
 public interface Icon {
   String getKey();
 
   String getDescription();
 
   String[] getKeywords();
+
+  Date getCreated();
+
+  Date getLastUpdated();
 }

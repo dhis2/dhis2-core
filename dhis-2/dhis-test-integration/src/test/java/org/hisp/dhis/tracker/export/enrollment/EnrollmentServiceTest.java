@@ -88,7 +88,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  private User admin;
+  private User superuser;
 
   private User userWithoutOrgUnit;
 
@@ -125,7 +125,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
-    admin = preCreateInjectAdminUser();
+    superuser = preCreateInjectAdminUser();
 
     orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
@@ -146,7 +146,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
         createAndAddUser(
             false,
             "test user",
-            Set.of(orgUnitA, orgUnitB, orgUnitC),
+            emptySet(),
             emptySet(),
             "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
 
@@ -177,12 +177,18 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     programA = createProgram('A', new HashSet<>(), orgUnitA);
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
     programA.setTrackedEntityType(trackedEntityTypeA);
-    programA.getSharing().setOwner(admin);
+    programA.getSharing().setOwner(superuser);
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.save(programA, false);
 
+    Program programB = createProgram('B', new HashSet<>(), orgUnitB);
+    programB.setProgramType(ProgramType.WITH_REGISTRATION);
+    programB.setTrackedEntityType(trackedEntityTypeA);
+    programB.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.save(programB, false);
+
     trackedEntityAttributeA = createTrackedEntityAttribute('A');
-    trackedEntityAttributeA.getSharing().setOwner(admin);
+    trackedEntityAttributeA.getSharing().setOwner(superuser);
     manager.save(trackedEntityAttributeA, false);
     TrackedEntityAttributeValue trackedEntityAttributeValueA = new TrackedEntityAttributeValue();
     trackedEntityAttributeValueA.setAttribute(trackedEntityAttributeA);
@@ -190,18 +196,25 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     trackedEntityAttributeValueA.setValue("12");
     trackedEntityA.setTrackedEntityAttributeValues(Set.of(trackedEntityAttributeValueA));
     manager.update(trackedEntityA);
+
     programA.setProgramAttributes(
         List.of(createProgramTrackedEntityAttribute(programA, trackedEntityAttributeA)));
     manager.update(programA);
 
+    programB.setProgramAttributes(
+        List.of(createProgramTrackedEntityAttribute(programB, trackedEntityAttributeA)));
+    manager.update(programB);
+
     programStageA = createProgramStage('A', programA);
     manager.save(programStageA, false);
     ProgramStage inaccessibleProgramStage = createProgramStage('B', programA);
-    inaccessibleProgramStage.getSharing().setOwner(admin);
+    inaccessibleProgramStage.getSharing().setOwner(superuser);
     inaccessibleProgramStage.setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(inaccessibleProgramStage, false);
     programA.setProgramStages(Set.of(programStageA, inaccessibleProgramStage));
     manager.save(programA, false);
+    programB.setProgramStages(Set.of(programStageA, inaccessibleProgramStage));
+    manager.save(programB, false);
 
     relationshipTypeA = createRelationshipType('A');
     relationshipTypeA
@@ -242,7 +255,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     enrollmentB =
         programInstanceService.enrollTrackedEntity(
-            trackedEntityB, programA, new Date(), new Date(), orgUnitB);
+            trackedEntityB, programB, new Date(), new Date(), orgUnitB);
 
     enrollmentChildA =
         programInstanceService.enrollTrackedEntity(
@@ -298,7 +311,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Test
   void shouldGetEnrollmentWithoutEventsWhenUserHasNoAccessToProgramStage()
       throws ForbiddenException, NotFoundException {
-    programStageA.getSharing().setOwner(admin);
+    programStageA.getSharing().setOwner(superuser);
     programStageA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(programStageA);
 
@@ -326,7 +339,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Test
   void shouldGetEnrollmentWithoutRelationshipsWhenUserHasAccessToThem()
       throws ForbiddenException, NotFoundException {
-    relationshipTypeA.getSharing().setOwner(admin);
+    relationshipTypeA.getSharing().setOwner(superuser);
     relationshipTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
 
     EnrollmentParams params = EnrollmentParams.FALSE;
@@ -352,7 +365,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldFailGettingEnrollmentWhenUserHasNoAccessToProgramsTrackedEntityType() {
-    trackedEntityTypeA.getSharing().setOwner(admin);
+    trackedEntityTypeA.getSharing().setOwner(superuser);
     trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(trackedEntityTypeA);
 
@@ -413,7 +426,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldGetEnrollmentsWhenUserHasReadAccessToProgramAndSearchScopeAccessToOrgUnit()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
@@ -428,17 +441,13 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     assertNotNull(enrollments);
     assertContainsOnly(
-        List.of(
-            enrollmentA.getUid(),
-            enrollmentB.getUid(),
-            enrollmentChildA.getUid(),
-            enrollmentGrandchildA.getUid()),
+        List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
         uids(enrollments));
   }
 
   @Test
   void shouldGetEnrollmentsWhenUserHasReadAccessToProgramAndNoOrgUnitNorOrgUnitModeSpecified()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
@@ -453,17 +462,13 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     assertNotNull(enrollments);
     assertContainsOnly(
-        List.of(
-            enrollmentA.getUid(),
-            enrollmentB.getUid(),
-            enrollmentChildA.getUid(),
-            enrollmentGrandchildA.getUid()),
+        List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
         uids(enrollments));
   }
 
   @Test
   void shouldGetEnrollmentsInCaptureScopeIfOrgUnitModeCapture()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
@@ -481,7 +486,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldGetEnrollmentWhenEnrollmentsAndOtherParamsAreSpecified()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
@@ -501,7 +506,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldGetEnrollmentsByTrackedEntityWhenUserHasAccessToTrackedEntityType()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);
 
@@ -519,29 +524,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void shouldFailGettingEnrollmentsByTrackedEntityWhenUserHasNoAccessToTrackedEntityType() {
-    programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
-    manager.updateNoAcl(programA);
-
-    trackedEntityTypeA.getSharing().setOwner(admin);
-    trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    manager.updateNoAcl(trackedEntityTypeA);
-
-    EnrollmentOperationParams params =
-        EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(trackedEntityA.getOrganisationUnit().getUid()))
-            .orgUnitMode(SELECTED)
-            .trackedEntityUid(trackedEntityA.getUid())
-            .build();
-
-    ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> enrollmentService.getEnrollments(params));
-    assertContains("access to tracked entity type", exception.getMessage());
-  }
-
-  @Test
   void shouldReturnEnrollmentIfEnrollmentWasUpdatedBeforePassedDateAndTime()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, BadRequestException {
     Date oneHourBeforeLastUpdated = oneHourBefore(enrollmentA.getLastUpdated());
 
     EnrollmentOperationParams operationParams =
@@ -558,7 +542,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnEmptyIfEnrollmentWasUpdatedAfterPassedDateAndTime()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, BadRequestException {
     Date oneHourAfterLastUpdated = oneHourAfter(enrollmentA.getLastUpdated());
 
     EnrollmentOperationParams operationParams =
@@ -575,7 +559,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnEnrollmentIfEnrollmentStartedBeforePassedDateAndTime()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     Date oneHourBeforeEnrollmentDate = oneHourBefore(enrollmentA.getEnrollmentDate());
 
@@ -594,7 +578,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnEmptyIfEnrollmentStartedAfterPassedDateAndTime()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     Date oneHourAfterEnrollmentDate = oneHourAfter(enrollmentA.getEnrollmentDate());
 
@@ -613,7 +597,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnEnrollmentIfEnrollmentEndedAfterPassedDateAndTime()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     Date oneHourAfterEnrollmentDate = oneHourAfter(enrollmentA.getEnrollmentDate());
 
@@ -632,7 +616,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnEmptyIfEnrollmentEndedBeforePassedDateAndTime()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     Date oneHourBeforeEnrollmentDate = oneHourBefore(enrollmentA.getEnrollmentDate());
 
@@ -650,9 +634,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void shouldReturnAllEnrollmentsWhenModeAllAndUserAuthorizedAndInSearchScope()
-      throws ForbiddenException, BadRequestException, NotFoundException {
-
+  void shouldReturnAllAccessibleEnrollmentsInTheSystemWhenModeAllAndUserAuthorized()
+      throws ForbiddenException, BadRequestException {
     injectSecurityContext(authorizedUser);
 
     EnrollmentOperationParams operationParams =
@@ -660,11 +643,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
     assertContainsOnly(
-        List.of(
-            enrollmentA.getUid(),
-            enrollmentB.getUid(),
-            enrollmentChildA.getUid(),
-            enrollmentGrandchildA.getUid()),
+        List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
         uids(enrollments));
   }
 
@@ -682,9 +661,27 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
+  void shouldFailWhenUserCanSearchEverywhereModeDescendantsAndOrgUnitNotInSearchScope() {
+    injectSecurityContext(authorizedUser);
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitMode(DESCENDANTS)
+            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .build();
+
+    ForbiddenException exception =
+        Assertions.assertThrows(
+            ForbiddenException.class, () -> enrollmentService.getEnrollments(operationParams));
+    Assertions.assertEquals(
+        String.format("Organisation unit is not part of the search scope: %s", orgUnitA.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
   void shouldReturnAllEnrollmentsWhenOrgUnitModeAllAndUserAuthorized()
-      throws ForbiddenException, BadRequestException, NotFoundException {
-    injectSecurityContext(admin);
+      throws ForbiddenException, BadRequestException {
+    injectSecurityContext(superuser);
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
@@ -696,7 +693,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnAllDescendantsOfSelectedOrgUnitWhenOrgUnitModeDescendants()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
@@ -712,7 +709,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnChildrenOfRootOrgUnitWhenOrgUnitModeChildren()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
@@ -726,7 +723,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnChildrenOfRequestedOrgUnitWhenOrgUnitModeChildren()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
@@ -742,7 +739,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Test
   void
       shouldReturnAllChildrenOfRequestedOrgUnitsWhenOrgUnitModeChildrenAndMultipleOrgUnitsRequested()
-          throws ForbiddenException, BadRequestException, NotFoundException {
+          throws ForbiddenException, BadRequestException {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()

@@ -33,14 +33,15 @@ import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.common.query.IndexedOrder;
@@ -49,6 +50,7 @@ import org.hisp.dhis.analytics.tei.query.PeriodCondition;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilderAdaptor;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.period.Period;
 import org.springframework.stereotype.Service;
 
@@ -73,21 +75,21 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
   @Override
   public RenderableSqlQuery buildSqlQuery(
       QueryContext ctx,
+      List<DimensionIdentifier<DimensionParam>> acceptedHeaders,
       List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
       List<AnalyticsSortingParams> acceptedSortingParams) {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-    Stream.concat(
-            acceptedDimensions.stream(),
-            acceptedSortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
+    streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
         .map(
             dimensionIdentifier -> {
-              String field = getTimeField(dimensionIdentifier);
+              String field = getTimeField(dimensionIdentifier, StaticDimension::getColumnName);
+              String alias = getTimeField(dimensionIdentifier, StaticDimension::getHeaderName);
 
               String prefix = getPrefix(dimensionIdentifier, false);
 
               return Field.ofUnquoted(
-                  doubleQuote(prefix), () -> field, prefix + DIMENSION_SEPARATOR + field);
+                  doubleQuote(prefix), () -> field, prefix + DIMENSION_SEPARATOR + alias);
             })
         .forEach(builder::selectField);
 
@@ -99,7 +101,7 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
     acceptedSortingParams.forEach(
         sortingParam -> {
           DimensionIdentifier<DimensionParam> dimensionIdentifier = sortingParam.getOrderBy();
-          String fieldName = getTimeField(dimensionIdentifier);
+          String fieldName = getTimeField(dimensionIdentifier, StaticDimension::getColumnName);
 
           Field field =
               Field.ofUnquoted(
@@ -112,15 +114,21 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
     return builder.build();
   }
 
-  private static String getTimeField(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+  private static String getTimeField(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      Function<StaticDimension, String> staticDimensionNameExtractor) {
     return Optional.of(dimensionIdentifier)
         .map(DimensionIdentifier::getDimension)
         .map(DimensionParam::getDimensionalObject)
+        .filter(DimensionalObject::hasItems)
         .map(d -> d.getItems().get(0))
         .map(Period.class::cast)
         .map(Period::getDateField)
         .map(TimeField::valueOf)
         .map(TimeField::getField)
-        .orElseGet(() -> dimensionIdentifier.getDimension().getStaticDimension().getColumnName());
+        .orElseGet(
+            () ->
+                staticDimensionNameExtractor.apply(
+                    dimensionIdentifier.getDimension().getStaticDimension()));
   }
 }

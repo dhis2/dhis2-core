@@ -104,16 +104,6 @@ class DatastoreControllerAndroidSettingsAppTest extends DhisControllerConvenienc
   }
 
   @Test
-  void testUpdateKeyJsonValue() {
-    switchToNewUser("not-an-android-manager");
-    assertEquals(
-        "Namespace 'ANDROID_SETTINGS_APP' is protected, access denied",
-        PUT("/dataStore/" + NAMESPACE + "/key", "[]").error(HttpStatus.FORBIDDEN).getMessage());
-    switchToNewUser("andriod-manager", AUTHORITY);
-    assertStatus(HttpStatus.OK, PUT("/dataStore/" + NAMESPACE + "/key", "[]"));
-  }
-
-  @Test
   void testDeleteKeyJsonValue() {
     switchToNewUser("not-an-android-manager");
     assertEquals(

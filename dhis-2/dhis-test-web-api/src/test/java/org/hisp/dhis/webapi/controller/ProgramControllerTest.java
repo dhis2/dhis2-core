@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.feedback.ErrorCode.E1005;
+import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.webapi.utils.TestUtils.getMatchingGroupFromPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,12 +39,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.webapi.json.domain.JsonObjectReport;
 import org.hisp.dhis.webapi.json.domain.JsonProgram;
 import org.hisp.dhis.webapi.json.domain.JsonProgramIndicator;
 import org.hisp.dhis.webapi.json.domain.JsonProgramRuleVariable;
@@ -81,9 +84,28 @@ class ProgramControllerTest extends DhisControllerConvenienceTest {
     POST("/trackedEntityAttributes", jsonMapper.writeValueAsString(tea2))
         .content(HttpStatus.CREATED);
 
-    POST("/metadata", WebClient.Body("program/create_program.json"))
+    POST("/metadata", Body("program/create_program.json"))
         .content(HttpStatus.OK)
         .as(JsonWebMessage.class);
+  }
+
+  @Test
+  void testProgramValidation_RelatedProgram() {
+    // language=JSON
+    String json =
+        """
+    {
+      "name":"test program",
+      "shortName": "test program",
+      "programType": "WITH_REGISTRATION",
+      "relatedProgram": {"id": "PrZMWi7rBga" }
+    }""";
+    JsonWebMessage msg =
+        assertWebMessage(HttpStatus.CONFLICT, PUT("/programs/" + PROGRAM_UID, json));
+    JsonList<JsonErrorReport> errors =
+        msg.getResponse().as(JsonObjectReport.class).getErrorReports();
+    assertEquals(1, errors.size());
+    assertEquals(ErrorCode.E6022, errors.get(0).getErrorCode());
   }
 
   @Test

@@ -68,6 +68,11 @@ public class CategoryOptionGroupSet extends BaseDimensionalObject implements Met
     this.shortName = name;
   }
 
+  public CategoryOptionGroupSet(String name, DataDimensionType dataDimensionType) {
+    this(name);
+    this.dataDimensionType = dataDimensionType;
+  }
+
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
