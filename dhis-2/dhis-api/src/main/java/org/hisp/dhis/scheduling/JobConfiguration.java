@@ -309,7 +309,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   /** Kept for backwards compatibility of the REST API */
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public Date getNextExecutionTime() {
-    Instant next = nextExecutionTime(ZoneId.systemDefault(), Instant.now(), Duration.ofDays(1));
+    Instant next = nextExecutionTime(Instant.now(), Duration.ofDays(1));
     return next == null ? null : Date.from(next);
   }
 
@@ -356,11 +356,8 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   }
 
   public boolean isDueBetween(
-      @Nonnull ZoneId zone,
-      @Nonnull Instant now,
-      @Nonnull Instant then,
-      @Nonnull Duration maxCronDelay) {
-    Instant dueTime = nextExecutionTime(zone, now, maxCronDelay);
+      @Nonnull Instant now, @Nonnull Instant then, @Nonnull Duration maxCronDelay) {
+    Instant dueTime = nextExecutionTime(now, maxCronDelay);
     return dueTime != null && dueTime.isBefore(then);
   }
 
@@ -371,7 +368,11 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
    *     day is skipped and the next day will be the target
    * @return the next time this job should run based on the {@link #getLastExecuted()} time
    */
-  public Instant nextExecutionTime(
+  public Instant nextExecutionTime(@Nonnull Instant now, @Nonnull Duration maxCronDelay) {
+    return nextExecutionTime(ZoneId.systemDefault(), now, maxCronDelay);
+  }
+
+  Instant nextExecutionTime(
       @Nonnull ZoneId zone, @Nonnull Instant now, @Nonnull Duration maxCronDelay) {
     // for good measure we offset the last time by 1 second
     Instant since = lastExecuted == null ? now : lastExecuted.toInstant().plusSeconds(1);
