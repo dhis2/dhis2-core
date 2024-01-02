@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
+import static org.hisp.dhis.webapi.utils.ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_ZIP;
@@ -149,7 +150,7 @@ public class TrackerEventsExportController {
 
     response.addHeader(
         ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
-    response.addHeader(HEADER_CONTENT_TRANSFER_ENCODING, "binary");
+    response.addHeader(HEADER_CONTENT_TRANSFER_ENCODING, BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
     response.setContentType(CONTENT_TYPE_JSON_GZIP);
 
     writeGzip(
@@ -173,7 +174,7 @@ public class TrackerEventsExportController {
 
     response.addHeader(
         ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
-    response.addHeader(HEADER_CONTENT_TRANSFER_ENCODING, "binary");
+    response.addHeader(HEADER_CONTENT_TRANSFER_ENCODING, BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
     response.setContentType(CONTENT_TYPE_JSON_ZIP);
 
     writeZip(
@@ -224,7 +225,8 @@ public class TrackerEventsExportController {
 
     String attachment = getAttachmentOrDefault(eventCriteria.getAttachment(), "csv", "gz");
 
-    response.addHeader(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
     response.setContentType(CONTENT_TYPE_CSV_GZIP);
     response.addHeader(
         ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
@@ -249,7 +251,8 @@ public class TrackerEventsExportController {
 
     String attachment = getAttachmentOrDefault(eventCriteria.getAttachment(), "csv", "zip");
 
-    response.addHeader(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
     response.setContentType(CONTENT_TYPE_CSV_ZIP);
     response.addHeader(
         ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));

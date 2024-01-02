@@ -326,9 +326,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         () -> assertTrue(response.header("content-type").contains(ContextUtils.CONTENT_TYPE_CSV)),
         () ->
             assertTrue(
-                response
-                    .header("content-disposition")
-                    .contains("filename=\"trackedEntities.csv\"")),
+                response.header("content-disposition").contains("filename=trackedEntities.csv")),
         () ->
             assertTrue(response.content().toString().contains("trackedEntity,trackedEntityType")));
   }
@@ -350,7 +348,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
             assertTrue(
                 response
                     .header("content-disposition")
-                    .contains("filename=\"trackedEntities.csv.zip\"")));
+                    .contains("filename=trackedEntities.csv.zip")));
   }
 
   @Test
@@ -371,7 +369,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
             assertTrue(
                 response
                     .header("content-disposition")
-                    .contains("filename=\"trackedEntities.csv.gz\"")));
+                    .contains("filename=trackedEntities.csv.gz")));
   }
 
   @Test
