@@ -61,7 +61,7 @@ class DataIntegrityCategoryOptionGroupSetExcessGroupMembershipControllerTest
             HttpStatus.CREATED,
             POST(
                 "/categoryOptionGroups",
-                "{ 'name': 'Taste', 'shortName': 'Taste' , 'categoryOptions' : [{'id' : '"
+                "{ 'name': 'Taste', 'shortName': 'Taste' , 'dataDimensionType':'DISAGGREGATION', 'categoryOptions' : [{'id' : '"
                     + categoryOptionSweet
                     + "'}, {'id': '"
                     + categoryOptionSour
@@ -73,7 +73,7 @@ class DataIntegrityCategoryOptionGroupSetExcessGroupMembershipControllerTest
         HttpStatus.CREATED,
         POST(
             "/categoryOptionGroupSets",
-            "{ 'name': 'Taste and Color', 'shortName': 'Taste and Color', 'categoryOptionGroups' : [{'id': '"
+            "{ 'name': 'Taste and Color', 'shortName': 'Taste and Color', 'dataDimensionType':'DISAGGREGATION', 'categoryOptionGroups' : [{'id': '"
                 + categoryOptionGroupColor
                 + "'}, {'id' : '"
                 + categoryOptionGroupTaste
@@ -92,7 +92,7 @@ class DataIntegrityCategoryOptionGroupSetExcessGroupMembershipControllerTest
             HttpStatus.CREATED,
             POST(
                 "/categoryOptionGroups",
-                "{ 'name': 'Taste', 'shortName': 'Taste' , 'categoryOptions' : [{'id' : '"
+                "{ 'name': 'Taste', 'dataDimensionType':'DISAGGREGATION', 'shortName': 'Taste' , 'categoryOptions' : [{'id' : '"
                     + categoryOptionSweet
                     + "'}, {'id': '"
                     + categoryOptionSour
@@ -102,7 +102,7 @@ class DataIntegrityCategoryOptionGroupSetExcessGroupMembershipControllerTest
         HttpStatus.CREATED,
         POST(
             "/categoryOptionGroupSets",
-            "{ 'name': 'Taste and Color', 'shortName': 'Taste and Color', 'categoryOptionGroups' : [{'id': '"
+            "{ 'name': 'Taste and Color', 'shortName': 'Taste and Color', 'dataDimensionType':'DISAGGREGATION', 'categoryOptionGroups' : [{'id': '"
                 + categoryOptionGroupColor
                 + "'}, {'id' : '"
                 + categoryOptionGroupTaste
@@ -142,7 +142,7 @@ class DataIntegrityCategoryOptionGroupSetExcessGroupMembershipControllerTest
             HttpStatus.CREATED,
             POST(
                 "/categoryOptionGroups",
-                "{ 'name': 'Color', 'shortName': 'Color', 'categoryOptions' : [{'id' : '"
+                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType':'DISAGGREGATION', 'categoryOptions' : [{'id' : '"
                     + categoryOptionRed
                     + "'}, {'id': '"
                     + categoryOptionBlue

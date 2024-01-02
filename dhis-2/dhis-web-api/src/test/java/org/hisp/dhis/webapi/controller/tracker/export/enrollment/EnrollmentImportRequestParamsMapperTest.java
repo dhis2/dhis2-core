@@ -40,17 +40,20 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -211,5 +214,98 @@ class EnrollmentImportRequestParamsMapperTest {
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
     assertIsEmpty(params.getOrder());
+  }
+
+  @Test
+  void shouldFailWhenProgramAndTrackedEntityTypeProvided() {
+    EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
+    requestParams.setProgram(UID.of("madeUpUid01"));
+    requestParams.setTrackedEntityType(UID.of("madeUpUid02"));
+
+    Exception badRequestException =
+        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertEquals(
+        "Program and tracked entity cannot be specified simultaneously",
+        badRequestException.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenProgramStatusProvidedAndProgramNotPresent() {
+    EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
+    requestParams.setProgramStatus(ProgramStatus.ACTIVE);
+
+    Exception badRequestException =
+        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertEquals(
+        "Program must be defined when `programStatus` is defined",
+        badRequestException.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenFollowUpProvidedAndProgramNotPresent() {
+    EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
+    requestParams.setFollowUp(true);
+
+    Exception badRequestException =
+        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertEquals(
+        "Program must be defined when `followUp` status is defined",
+        badRequestException.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenEnrolledAfterProvidedAndProgramNotPresent() {
+    EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
+    requestParams.setEnrolledAfter(new Date());
+
+    Exception badRequestException =
+        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertEquals(
+        "Program must be defined when `enrolledAfter` is specified",
+        badRequestException.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenEnrolledBeforeProvidedAndProgramNotPresent() {
+    EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
+    requestParams.setEnrolledBefore(new Date());
+
+    Exception badRequestException =
+        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertEquals(
+        "Program must be defined when `enrolledBefore` is specified",
+        badRequestException.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenUpdatedWithinAndUpdatedAfterProvided() {
+    EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
+    requestParams.setUpdatedAfter(new Date());
+    requestParams.setUpdatedWithin("2h");
+
+    Exception badRequestException =
+        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertEquals(
+        "`updatedAfter` and `updatedWithin` cannot be specified simultaneously",
+        badRequestException.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenUpdatedWithinProvidedButNotValid() {
+    EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
+    requestParams.setUpdatedWithin("invalid value");
+
+    Exception badRequestException =
+        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertEquals(
+        String.format("`updatedWithin` is not valid: %s", requestParams.getUpdatedWithin()),
+        badRequestException.getMessage());
   }
 }

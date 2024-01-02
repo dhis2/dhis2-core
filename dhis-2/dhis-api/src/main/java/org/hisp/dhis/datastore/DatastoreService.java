@@ -31,6 +31,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -137,13 +139,28 @@ public interface DatastoreService {
   void addEntry(DatastoreEntry entry) throws ConflictException, BadRequestException;
 
   /**
-   * Updates an entry.
+   * Updates the entry value (path is undefined or empty) or updates the existing value the the
+   * provided path with the provided value.
    *
-   * @param entry the updated KeyJsonValue.
-   * @throws IllegalArgumentException when the entry value is not valid JSON
-   * @throws AccessDeniedException when user lacks authority for namespace or entry
+   * <p>If a roll size is provided and the exiting value (at path) is an array the array is not
+   * replaced with the value but the value is appended to the array. The head of the array is
+   * dropped if the size of the array is equal or larger than the roll size.
+   *
+   * @param ns namespace to update
+   * @param key key to update
+   * @param value the new JSON value, null to remove the entry or clear the property at the provided
+   *     path
+   * @param path to update, null or empty to update the root (the entire value)
+   * @param roll when set the value is appended to arrays instead of replacing them while also
+   *     rolling (dropping the array head element when its size exceeds the given roll size)
    */
-  void updateEntry(DatastoreEntry entry) throws BadRequestException;
+  void updateEntry(
+      @Nonnull String ns,
+      @Nonnull String key,
+      @CheckForNull String value,
+      @CheckForNull String path,
+      @CheckForNull Integer roll)
+      throws BadRequestException;
 
   /**
    * Deletes an entry.

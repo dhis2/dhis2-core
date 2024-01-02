@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit;
+package org.hisp.dhis.analytics.outlier.data;
 
-/**
- * Enum for merge strategies.
- *
- * @author Lars Helge Overland
- */
-public enum DataMergeStrategy {
-  /** Use last updated source data records. */
-  LAST_UPDATED,
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-  /** Discard source data records. */
-  DISCARD
+/** Enum for named params of parametrized sql query */
+@RequiredArgsConstructor
+public enum OutlierSqlParams {
+  // ZScore (modified ZScore) factor.
+  // For example the threshold=3 means all data lying outside 3 sigma (3 * standard deviation)
+  // are considered as the outliers
+  THRESHOLD("threshold"),
+  DATA_ELEMENT_IDS("data_element_ids"),
+  START_DATE("start_date"),
+  END_DATE("end_date"),
+  // start date criteria of statistic data collection (the stats will be based on data starting on
+  // this date)
+  DATA_START_DATE("data_start_date"),
+  // start date criteria of statistic data collection (the stats will be based on data ending on
+  // this date)
+  DATA_END_DATE("data_end_date"),
+  MAX_RESULTS("max_results");
+
+  @Getter private final String key;
 }

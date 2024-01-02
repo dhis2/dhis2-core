@@ -25,25 +25,28 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  name: program_rules_no_expression
-  description: Program rules with no expression.
-  section: Program rules
-  section_order: 2
-  summary_sql: >-
-    WITH program_rules_no_expression as (
-    SELECT uid,name from programrule where rulecondition IS NULL )
-    SELECT COUNT(*) as value,
-    100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM programrule), 0) as percent
-    FROM program_rules_no_expression;
-  details_sql: >-
-    SELECT uid,name from programrule where rulecondition IS NULL;
-  severity: WARNING
-  introduction: >
-    All program rules should have an expression. Expressions are used by program rules
-    to determine when they should be triggered. Program rules with no expression have 
-    no purpose.
-  details_id_type: programRules
-  recommendation: >
-    Using the DHIS2 user interface, assign an expression to each of the program rules
-    which is missing one. Otherwise, if it is safe to delete the program rule with 
-    no expression, it is recommended to remove it. 
+name: datasets_not_assigned_to_org_units
+description: Datasets which have not been assigned to any organisation units.
+section: Data sets
+section_order: 2
+summary_sql: >-
+  select count(*) as value,
+  100*count(*) / NULLIF( (select count(*) from dataset),0) as percent
+  from dataset where datasetid NOT IN (
+  SELECT DISTINCT datasetid from datasetsource);
+details_sql: >-
+  SELECT uid,name from dataset WHERE
+  datasetid NOT IN (SELECT DISTINCT datasetid from datasetsource);
+severity: WARNING
+introduction: >
+  Datasets should be assigned to organisation units. When data sets are not assigned to any organisation units,
+  they will not be available for data entry.
+  There may be legitimate reasons for not assigning a data set to any organisation units, such as when datasets
+  are no longer in use or which may be used on a seasonal basis. However, datasets which are not actively used
+  for any current data sets should be considered to be removed, as this may lead to decreased performance 
+  of the overall system.
+details_id_type: dataSets
+recommendation: >
+  Consider to remove any data sets which are not assigned to any organisation units if they are no longer needed.
+  Alternatively, assign the data sets to the correct organisation units if they should be made available to users
+  for the purpose of data entry.

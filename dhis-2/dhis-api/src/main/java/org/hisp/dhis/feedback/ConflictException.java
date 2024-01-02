@@ -60,6 +60,8 @@ public final class ConflictException extends Exception implements Error {
 
   @Setter private ObjectReport objectReport;
 
+  @Setter private MergeReport mergeReport;
+
   public ConflictException(String message) {
     super(message);
     this.code = ErrorCode.E1004;

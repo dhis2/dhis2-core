@@ -430,6 +430,9 @@ public class DefaultCsvImportService implements CsvImportService {
         CategoryOptionGroup object = new CategoryOptionGroup();
         setIdentifiableObject(object, values);
         object.setShortName(getSafe(values, 3, object.getName(), 50));
+        object.setDataDimensionType(
+            DataDimensionType.fromValue(
+                getSafe(values, 4, DataDimensionType.DISAGGREGATION.getValue(), 50)));
         list.add(object);
       }
     }

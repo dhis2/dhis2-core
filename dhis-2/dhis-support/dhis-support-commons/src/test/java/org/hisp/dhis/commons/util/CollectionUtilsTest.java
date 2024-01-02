@@ -32,6 +32,7 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.firstMatch;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
 import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -171,5 +172,12 @@ class CollectionUtilsTest {
     assertTrue(isEmpty(List.of()));
     assertTrue(isEmpty(null));
     assertFalse(isEmpty(List.of("One", "Two")));
+  }
+
+  @Test
+  void testIsNotEmpty() {
+    assertFalse(isNotEmpty(List.of()));
+    assertFalse(isNotEmpty(null));
+    assertTrue(isNotEmpty(List.of("One", "Two")));
   }
 }
