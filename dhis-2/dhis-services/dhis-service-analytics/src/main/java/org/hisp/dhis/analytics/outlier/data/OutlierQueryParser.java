@@ -79,6 +79,7 @@ public class OutlierQueryParser {
             .analyzeOnly(analyzeOnly)
             .dataStartDate(queryParams.getDataStartDate())
             .dataEndDate(queryParams.getDataEndDate())
+            .outputIdScheme(queryParams.getOutputIdScheme())
             .queryKey(queryParams.queryKey());
 
     if (queryParams.getAlgorithm() != null) {
