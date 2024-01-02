@@ -127,13 +127,13 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   ProgramRuleActionType.HIDEFIELD,
                   pra ->
                       new RuleActionHideField(
-                          getAssignedParameter(pra), pra.getContent(), getAttributeType(pra), ""))
+                          getAssignedParameter(pra), pra.getContent(), getAttributeType(pra)))
               .put(
                   ProgramRuleActionType.HIDEPROGRAMSTAGE,
-                  pra -> new RuleActionHideProgramStage(pra.getProgramStage().getUid(), ""))
+                  pra -> new RuleActionHideProgramStage(pra.getProgramStage().getUid()))
               .put(
                   ProgramRuleActionType.HIDESECTION,
-                  pra -> new RuleActionHideSection(pra.getProgramStageSection().getUid(), ""))
+                  pra -> new RuleActionHideSection(pra.getProgramStageSection().getUid()))
               .put(
                   SHOWERROR,
                   pra ->
@@ -156,7 +156,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   ProgramRuleActionType.SETMANDATORYFIELD,
                   pra ->
                       new RuleActionSetMandatoryField(
-                          getAssignedParameter(pra), getAttributeType(pra), ""))
+                          getAssignedParameter(pra), getAttributeType(pra)))
               .put(
                   ProgramRuleActionType.WARNINGONCOMPLETE,
                   pra ->

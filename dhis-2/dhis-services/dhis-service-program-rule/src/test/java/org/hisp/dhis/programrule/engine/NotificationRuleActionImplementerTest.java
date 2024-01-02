@@ -300,7 +300,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest {
     ruleEffectWithActionSendMessage = new RuleEffect("", ruleActionSendMessage, "");
 
     setMandatoryFieldFalse =
-        new RuleActionSetMandatoryField(MANDATORY_FIELD, AttributeType.UNKNOWN, "");
+        new RuleActionSetMandatoryField(MANDATORY_FIELD, AttributeType.UNKNOWN);
 
     OrganisationUnit organisationUnitA = createOrganisationUnit('A');
 
