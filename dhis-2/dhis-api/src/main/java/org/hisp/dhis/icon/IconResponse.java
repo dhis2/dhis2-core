@@ -28,6 +28,7 @@
 package org.hisp.dhis.icon;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -56,10 +57,22 @@ public class IconResponse {
   @JsonProperty("href")
   private String reference;
 
-  public IconResponse(String key, String description, String[] keywords, String reference) {
+  @JsonProperty private Date created;
+
+  @JsonProperty private Date lastUpdated;
+
+  public IconResponse(
+      String key,
+      String description,
+      String[] keywords,
+      String reference,
+      Date created,
+      Date lastUpdated) {
     this.key = key;
     this.description = description;
     this.keywords = keywords;
     this.reference = reference;
+    this.created = created;
+    this.lastUpdated = lastUpdated;
   }
 }

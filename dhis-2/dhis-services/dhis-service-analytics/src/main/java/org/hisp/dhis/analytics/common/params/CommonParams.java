@@ -79,6 +79,14 @@ public class CommonParams {
    */
   @Builder.Default private final Set<String> headers = new LinkedHashSet<>();
 
+  /**
+   * Data structure containing parsed versions of the headers. If present, they will represent the
+   * columns to be retrieved. Cannot be repeated and should keep ordering, hence a {@link
+   * LinkedHashSet}.
+   */
+  @Builder.Default
+  private final Set<DimensionIdentifier<DimensionParam>> parsedHeaders = new LinkedHashSet<>();
+
   /** The object that groups the paging and sorting parameters. */
   @Builder.Default
   private final AnalyticsPagingParams pagingParams = AnalyticsPagingParams.builder().build();

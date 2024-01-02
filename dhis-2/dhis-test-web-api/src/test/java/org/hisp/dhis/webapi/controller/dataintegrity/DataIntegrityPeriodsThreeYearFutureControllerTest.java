@@ -37,11 +37,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Test the metadata check for periods which have the same period type and which have the same start
- * and end date. The test scenario is not possible to recreate in current versions of DHIS2 because
- * of a unique constraint placed on the period type, start date and end date. Here, we will only
- * test that the check actually runs.* {@see
- * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/periods/periods_same_start_end_date.yaml}
+ * Test for periods which exist at least more than three years in the future. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/periods/periods_3y_future.yaml}
  *
  * @author Jason P. Pickering
  */

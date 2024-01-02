@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -93,12 +92,12 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
   @Override
   public RenderableSqlQuery buildSqlQuery(
       QueryContext queryContext,
+      List<DimensionIdentifier<DimensionParam>> acceptedHeaders,
       List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
       List<AnalyticsSortingParams> acceptedSortingParams) {
+
     List<ProgramIndicatorDimensionIdentifier> allDimensionIdentifiers =
-        Stream.concat(
-                acceptedDimensions.stream(),
-                acceptedSortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
+        streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
             .map(ProgramIndicatorDimensionIdentifier::of)
             .distinct()
             .collect(toList());

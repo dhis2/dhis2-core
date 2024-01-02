@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityDataElementsAggregateExcessGroupMembershipControllerTest
     extends AbstractDataIntegrityIntegrationTest {
-  private final String check = "data_elements_excess_groupset_membership";
+  private final String check = "data_elements_violating_exclusive_group_sets";
 
   private String dataElementA;
 
@@ -88,8 +88,7 @@ class DataIntegrityDataElementsAggregateExcessGroupMembershipControllerTest
                 + dataElementGroupB
                 + "'}]}"));
 
-    assertHasDataIntegrityIssues(
-        "data_elements_aggregate", check, 50, dataElementB, "ANC2", null, true);
+    assertHasDataIntegrityIssues("dataElements", check, 50, dataElementB, "ANC2", null, true);
   }
 
   @Test
@@ -126,13 +125,13 @@ class DataIntegrityDataElementsAggregateExcessGroupMembershipControllerTest
                 + dataElementGroupB
                 + "'}]}"));
 
-    assertHasNoDataIntegrityIssues("data_elements_aggregate", check, true);
+    assertHasNoDataIntegrityIssues("dataElements", check, true);
   }
 
   @Test
   void testDataElementsInGroupDivideByZero() {
 
-    assertHasNoDataIntegrityIssues("data_elements_aggregate", check, false);
+    assertHasNoDataIntegrityIssues("dataElements", check, false);
   }
 
   void setUpDataElements() {

@@ -35,12 +35,14 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.user.User;
 
 public interface EnrollmentService {
   Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
-  Enrollment getEnrollment(Enrollment enrollment, EnrollmentParams params, boolean includeDeleted)
+  Enrollment getEnrollment(
+      Enrollment enrollment, EnrollmentParams params, boolean includeDeleted, User user)
       throws ForbiddenException;
 
   /** Get all enrollments matching given params. */

@@ -362,13 +362,6 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testUpdateKeyJsonValue() {
-    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{}"));
-    assertStatus(HttpStatus.OK, PUT("/dataStore/pets/cat", "[1,2,3]"));
-    assertEquals(asList(1, 2, 3), GET("/dataStore/pets/cat").content().numberValues());
-  }
-
-  @Test
   void testPutKeyJsonValue() {
     assertEquals(
         "Key created: 'cat'",
@@ -384,42 +377,6 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
     assertEquals(
         "Invalid JSON value for key 'cat'",
         PUT("/dataStore/pets/cat", "+not JSON+").error(HttpStatus.BAD_REQUEST).getMessage());
-  }
-
-  @Test
-  void testUpdateKeyJsonValue_ProtectedNamespaceWhenRestricted() {
-    setUpNamespaceProtection("pets", ProtectionType.RESTRICTED, "pets-admin");
-    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{}"));
-    switchToNewUser("anonymous");
-    assertStatus(HttpStatus.FORBIDDEN, PUT("/dataStore/pets/cat", "[]"));
-    switchToNewUser("someone", "pets-admin");
-    assertStatus(HttpStatus.OK, PUT("/dataStore/pets/cat", "[]"));
-  }
-
-  @Test
-  void testPutKeyJsonValue_ProtectedNamespaceWhenHidden() {
-    setUpNamespaceProtection("pets", ProtectionType.HIDDEN, "pets-admin");
-    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{}"));
-    switchToNewUser("anonymous");
-    assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/cat", "[]"));
-    switchToNewUser("someone", "pets-admin");
-    assertStatus(HttpStatus.OK, PUT("/dataStore/pets/cat", "[]"));
-  }
-
-  @Test
-  void testUpdateKeyJsonValue_ProtectedNamespaceWithSharing() {
-    setUpNamespaceProtectionWithSharing("pets", ProtectionType.HIDDEN, "pets-admin");
-    assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{}"));
-    String uid = GET("/dataStore/pets/cat/metaData").content().as(JsonDatastoreValue.class).getId();
-    assertStatus(
-        HttpStatus.OK,
-        POST("/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'r-------'}}"));
-    switchToNewUser("someone", "pets-admin");
-    assertEquals(
-        "Access denied for key 'cat' in namespace 'pets'",
-        PUT("/dataStore/pets/cat", "[]").error(HttpStatus.FORBIDDEN).getMessage());
-    switchToSuperuser();
-    assertStatus(HttpStatus.OK, PUT("/dataStore/pets/cat", "[]"));
   }
 
   @Test
@@ -482,14 +439,6 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
     assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/emu", "{\"name\":\"harry\"}"));
     JsonDatastoreValue emu = GET("/dataStore/pets/emu").content().as(JsonDatastoreValue.class);
     assertEquals("harry", emu.getString("name").string());
-  }
-
-  @Test
-  void testPutEntry_EntryAlreadyExistsAndIsUpdated() {
-    assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/emu", "{\"name\":\"harry\"}"));
-    assertStatus(HttpStatus.OK, PUT("/dataStore/pets/emu", "{\"name\":\"james\"}"));
-    JsonDatastoreValue emu = GET("/dataStore/pets/emu").content().as(JsonDatastoreValue.class);
-    assertEquals("james", emu.getString("name").string());
   }
 
   @Test

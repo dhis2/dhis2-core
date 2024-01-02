@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.outlierdetection;
 
+import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
@@ -36,19 +37,19 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.analytics.outlier.data.OutlierQueryParams;
+import org.hisp.dhis.analytics.outlier.data.OutlierQueryParser;
+import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
+import org.hisp.dhis.analytics.outlier.data.OutlierRequestValidator;
+import org.hisp.dhis.analytics.outlier.service.AnalyticsOutlierService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
-import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
-import org.hisp.dhis.outlierdetection.service.AnalyticsOutlierDetectionService;
-import org.hisp.dhis.validation.outlierdetection.ValidationOutlierDetectionRequest;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -63,68 +64,89 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('ALL') or hasRole('F_RUN_VALIDATION')")
 public class AnalyticsOutlierDetectionController {
   private static final String RESOURCE_PATH = "/analytics/outlierDetection";
-  private final AnalyticsOutlierDetectionService outlierService;
+  private final AnalyticsOutlierService outlierService;
   private final ContextUtils contextUtils;
-  private final OutlierDetectionQueryParser queryParser;
-  private final ValidationOutlierDetectionRequest validator;
+  private final OutlierQueryParser queryParser;
+  private final OutlierRequestValidator validator;
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @GetMapping(
+      value = RESOURCE_PATH + "/explain",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getExplainOutliersJson(OutlierQueryParams query) {
+    outlierService.checkAnalyticsTableForOutliers();
+    OutlierRequest request = getFromQuery(query, true);
+
+    return outlierService.getOutliersPerformanceMetrics(request);
+  }
 
   @GetMapping(value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE)
-  public Grid getOutliersJson(OutlierDetectionQuery query) {
-    OutlierDetectionRequest request = getFromQuery(query);
+  public Grid getOutliersJson(OutlierQueryParams queryParams) {
+    outlierService.checkAnalyticsTableForOutliers();
+    OutlierRequest request = getFromQuery(queryParams, false);
 
-    return outlierService.getOutlierValues(request);
+    Grid grid = outlierService.getOutliers(request);
+
+    if (queryParams.hasHeaders()) {
+      grid.retainColumns(queryParams.getHeaders());
+    }
+
+    return grid;
   }
 
   @GetMapping(value = RESOURCE_PATH + ".csv")
-  public void getOutliersCsv(OutlierDetectionQuery query, HttpServletResponse response)
+  public void getOutliersCsv(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    OutlierDetectionRequest request = getFromQuery(query);
-    contextUtils.configureResponse(
-        response, CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE, "outlierdata.csv", true);
+    outlierService.checkAnalyticsTableForOutliers();
+    OutlierRequest request = getFromQuery(queryParams, false);
+    contextUtils.configureResponse(response, CONTENT_TYPE_CSV, NO_CACHE, "outlierdata.csv", true);
 
-    outlierService.getOutlierValuesAsCsv(request, response.getWriter());
+    outlierService.getOutlierAsCsv(request, response.getWriter());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".xml")
-  public void getOutliersXml(OutlierDetectionQuery query, HttpServletResponse response)
+  public void getOutliersXml(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    OutlierDetectionRequest request = getFromQuery(query);
-    contextUtils.configureResponse(response, CONTENT_TYPE_XML, CacheStrategy.NO_CACHE);
+    outlierService.checkAnalyticsTableForOutliers();
+    OutlierRequest request = getFromQuery(queryParams, false);
+    contextUtils.configureResponse(response, CONTENT_TYPE_XML, NO_CACHE);
 
-    outlierService.getOutlierValuesAsXml(request, response.getOutputStream());
+    outlierService.getOutliersAsXml(request, response.getOutputStream());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".xls")
-  public void getOutliersXls(OutlierDetectionQuery query, HttpServletResponse response)
+  public void getOutliersXls(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    OutlierDetectionRequest request = getFromQuery(query);
-    contextUtils.configureResponse(
-        response, CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE, "outlierdata.xls", true);
+    outlierService.checkAnalyticsTableForOutliers();
+    OutlierRequest request = getFromQuery(queryParams, false);
+    contextUtils.configureResponse(response, CONTENT_TYPE_EXCEL, NO_CACHE, "outlierdata.xls", true);
 
-    outlierService.getOutlierValuesAsXls(request, response.getOutputStream());
+    outlierService.getOutliersAsXls(request, response.getOutputStream());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".html")
-  public void getOutliersHtml(OutlierDetectionQuery query, HttpServletResponse response)
+  public void getOutliersHtml(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    OutlierDetectionRequest request = getFromQuery(query);
+    outlierService.checkAnalyticsTableForOutliers();
+    OutlierRequest request = getFromQuery(queryParams, false);
 
-    contextUtils.configureResponse(response, CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE);
+    contextUtils.configureResponse(response, CONTENT_TYPE_HTML, NO_CACHE);
 
-    outlierService.getOutlierValuesAsHtml(request, response.getWriter());
+    outlierService.getOutliersAsHtml(request, response.getWriter());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".html+css")
-  public void getOutliersHtmlCss(OutlierDetectionQuery query, HttpServletResponse response)
+  public void getOutliersHtmlCss(OutlierQueryParams queryParams, HttpServletResponse response)
       throws IOException {
-    OutlierDetectionRequest request = getFromQuery(query);
-    contextUtils.configureResponse(response, CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE);
+    outlierService.checkAnalyticsTableForOutliers();
+    OutlierRequest request = getFromQuery(queryParams, false);
+    contextUtils.configureResponse(response, CONTENT_TYPE_HTML, NO_CACHE);
 
-    outlierService.getOutlierValuesAsHtmlCss(request, response.getWriter());
+    outlierService.getOutliersAsHtmlCss(request, response.getWriter());
   }
 
-  private OutlierDetectionRequest getFromQuery(OutlierDetectionQuery query) {
-    OutlierDetectionRequest request = queryParser.getFromQuery(query);
+  private OutlierRequest getFromQuery(OutlierQueryParams queryParams, boolean analyzeOnly) {
+    OutlierRequest request = queryParser.getFromQuery(queryParams, analyzeOnly);
     validator.validate(request, true);
 
     return request;

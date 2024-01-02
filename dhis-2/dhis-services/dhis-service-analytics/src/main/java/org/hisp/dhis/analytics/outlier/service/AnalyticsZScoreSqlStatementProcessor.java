@@ -25,20 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.outlierdetection.processor;
+package org.hisp.dhis.analytics.outlier.service;
 
-import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.DATA_ELEMENT_IDS;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.END_DATE;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.MAX_RESULTS;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.START_DATE;
-import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.THRESHOLD;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MOD_Z_SCORE;
+import static org.hisp.dhis.analytics.outlier.Order.MEAN_ABS_DEV;
+import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.DATA_ELEMENT_IDS;
+import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.END_DATE;
+import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.MAX_RESULTS;
+import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.START_DATE;
+import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.THRESHOLD;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.outlierdetection.Order;
-import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
-import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.outlierdetection.OutliersSqlParamName;
-import org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils;
+import java.util.stream.Collectors;
+import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
+import org.hisp.dhis.analytics.outlier.OutlierHelper;
+import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
+import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
@@ -65,45 +67,85 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
    * of the dataset MAD: The median absolute deviation of the dataset 0.6745: conversion factor
    * (0.75 percentiles) *
    *
-   * @param request the instance of {@link OutlierDetectionRequest}.
+   * @param request the instance of {@link OutlierRequest}.
    * @return sql statement for the outlier detection and related data
    */
   @Override
-  public String getSqlStatement(OutlierDetectionRequest request) {
+  public String getSqlStatement(OutlierRequest request) {
+    return getSqlStatement(request, true);
+  }
+
+  /**
+   * The function retries the sql statement for inspection of outliers. Following scores are in use:
+   *
+   * <p>Z-Score abs(xi – μ) / σ where: xi: A single data value μ: The mean of the dataset σ: The
+   * standard deviation of the dataset
+   *
+   * <p>Modified z-score = 0.6745 * abs(xi – x̃) / MAD where: xi: A single data value x̃: The median
+   * of the dataset MAD: The median absolute deviation of the dataset 0.6745: conversion factor
+   * (0.75 percentiles) *
+   *
+   * @param request the instance of {@link OutlierRequest}.
+   * @return sql statement for the outlier detection and related data
+   */
+  @Override
+  public String getPlainSqlStatement(OutlierRequest request) {
+    return getSqlStatement(request, false);
+  }
+
+  /**
+   * To avoid the sql injection and decrease the load of the database engine (query plan caching)
+   * the named params are in use.
+   *
+   * @param request the instance of {@link OutlierRequest}.
+   * @return named params for parametrized sql query
+   */
+  @Override
+  public SqlParameterSource getSqlParameterSource(OutlierRequest request) {
+    return new MapSqlParameterSource()
+        .addValue(THRESHOLD.getKey(), request.getThreshold())
+        .addValue(DATA_ELEMENT_IDS.getKey(), request.getDataElementIds())
+        .addValue(START_DATE.getKey(), request.getStartDate())
+        .addValue(END_DATE.getKey(), request.getEndDate())
+        .addValue(MAX_RESULTS.getKey(), request.getMaxResults());
+  }
+
+  private String getSqlStatement(OutlierRequest request, boolean withParams) {
     if (request == null) {
-      return StringUtils.EMPTY;
+      return EMPTY;
     }
 
-    String ouPathClause = OutlierDetectionUtils.getOrgUnitPathClause(request.getOrgUnits(), "ax");
+    String ouPathClause = OutlierHelper.getOrgUnitPathClause(request.getOrgUnits(), "ax");
 
-    boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
+    boolean modifiedZ = request.getAlgorithm() == MOD_Z_SCORE;
 
     String middleValue = modifiedZ ? " ax.percentile_middle_value" : " ax.avg_middle_value";
 
     String order =
-        request.getOrderBy() == Order.MEAN_ABS_DEV
+        request.getOrderBy() == MEAN_ABS_DEV
             ? "middle_value_abs_dev"
-            : request.getOrderBy().getKey();
-    String thresholdParam = OutliersSqlParamName.THRESHOLD.getKey();
+            : request.getOrderBy().getColumnName();
+
+    String thresholdParam =
+        withParams ? ":" + THRESHOLD.getKey() : Double.toString(request.getThreshold());
 
     String sql =
         "select * from (select "
-            + "ax.dataelementid, "
-            + "ax.de_uid, "
-            + "ax.ou_uid, "
-            + "ax.coc_uid, "
-            + "ax.aoc_uid, "
+            + "ax.dx as de_uid, "
+            + "ax.ou as ou_uid, "
+            + "ax.co as coc_uid, "
+            + "ax.ao as aoc_uid, "
             + "ax.de_name, "
             + "ax.ou_name, "
             + "ax.coc_name, "
             + "ax.aoc_name, "
             + "ax.value, "
             + "ax.pestartdate as pe_start_date, "
-            + "ax.pt_name, "
+            + "ax.petype as pt_name, "
             + middleValue
             + " as middle_value, "
-            + "ax.std_dev as std_dev, "
-            + "ax.mad as mad, "
+            + "ax.std_dev, "
+            + "ax.mad, "
             + "abs(ax.value::double precision - "
             + middleValue
             + ") as middle_value_abs_dev, ";
@@ -124,53 +166,38 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
     }
     sql +=
         middleValue
-            + " - (ax.std_dev * :"
+            + " - (ax.std_dev * "
             + thresholdParam
             + ") as lower_bound, "
             + middleValue
-            + " + (ax.std_dev * :"
+            + " + (ax.std_dev * "
             + thresholdParam
             + ") as upper_bound "
             + "from analytics ax "
-            + "where dataelementid in  (:"
-            + DATA_ELEMENT_IDS.getKey()
+            + "where dataelementid in  ("
+            + (withParams
+                ? ":" + DATA_ELEMENT_IDS.getKey()
+                : request.getDataElementIds().stream()
+                    .map(Object::toString)
+                    .collect(Collectors.joining(",")))
             + ") "
             + "and "
             + ouPathClause
-            + " "
-            + "and ax.pestartdate >= :"
-            + START_DATE.getKey()
-            + " "
-            + "and ax.peenddate <= :"
-            + END_DATE.getKey()
+            + " and ax.pestartdate >= "
+            + (withParams ? ":" + START_DATE.getKey() : "'" + request.getStartDate() + "'")
+            + " and ax.peenddate <= "
+            + (withParams ? ":" + END_DATE.getKey() : "'" + request.getEndDate() + "'")
             + ") t1 "
-            + "where t1.z_score > :"
+            + "where t1.z_score > "
             + thresholdParam
-            + " "
-            + "order by "
+            + " order by "
             + order
-            + " desc "
-            + "limit :"
-            + MAX_RESULTS.getKey()
+            + " "
+            + request.getSortOrder().getValue()
+            + " limit "
+            + (withParams ? ":" + MAX_RESULTS.getKey() : request.getMaxResults())
             + " ";
 
     return sql;
-  }
-
-  /**
-   * To avoid the sql injection and decrease the load of the database engine (query plan caching)
-   * the named params are in use.
-   *
-   * @param request the instance of {@link OutlierDetectionRequest}.
-   * @return named params for parametrized sql query
-   */
-  @Override
-  public SqlParameterSource getSqlParameterSource(OutlierDetectionRequest request) {
-    return new MapSqlParameterSource()
-        .addValue(THRESHOLD.getKey(), request.getThreshold())
-        .addValue(DATA_ELEMENT_IDS.getKey(), request.getDataElementIds())
-        .addValue(START_DATE.getKey(), request.getStartDate())
-        .addValue(END_DATE.getKey(), request.getEndDate())
-        .addValue(MAX_RESULTS.getKey(), request.getMaxResults());
   }
 }

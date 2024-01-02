@@ -27,10 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.HashSet;
+import java.util.Set;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -48,6 +55,10 @@ class DataIntegrityDataElementsDifferentPeriodTypesControllerTest
   private String dataElementA;
 
   private String defaultCatCombo;
+
+  private final String dataSetA = "EuM5Uzee6R0";
+
+  private final String dataSetB = "ipZAXnZNjS3";
 
   @Test
   void testDataElementsHaveDifferentPeriodTypes() {
@@ -73,6 +84,23 @@ class DataIntegrityDataElementsDifferentPeriodTypesControllerTest
 
     assertHasDataIntegrityIssues(
         detailsIdType, check, 100, dataElementA, "ANC1", "Test Weekly", true);
+
+    JsonDataIntegrityDetails details = getDetails(check);
+    JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
+
+    Set<String> detailsRefs =
+        issues.stream()
+            .flatMap(issue -> issue.getRefs().stream())
+            .map(JsonString::string)
+            .collect(toUnmodifiableSet());
+
+    assertEquals(2, detailsRefs.size());
+
+    Set<String> datasets = new HashSet<String>();
+    datasets.add(dataSetA);
+    datasets.add(datasetUID);
+
+    assertEquals(datasets, detailsRefs);
   }
 
   @Test
@@ -97,6 +125,15 @@ class DataIntegrityDataElementsDifferentPeriodTypesControllerTest
     assertStatus(HttpStatus.CREATED, POST("/dataSets", datasetMetadata));
 
     assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+    JsonDataIntegrityDetails details = getDetails(check);
+    JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
+    Set<String> detailsRefs =
+        issues.stream()
+            .flatMap(issue -> issue.getRefs().stream())
+            .map(JsonString::string)
+            .collect(toUnmodifiableSet());
+
+    assertEquals(0, detailsRefs.size());
   }
 
   @Test
@@ -116,16 +153,15 @@ class DataIntegrityDataElementsDifferentPeriodTypesControllerTest
                 "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
                     + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-    String datasetUID = generateUid();
     String datasetMetadata =
         "{ 'id':'"
-            + datasetUID
+            + dataSetA
             + "', 'name': 'Test Monthly', 'shortName': 'Test Monthly', 'periodType' : 'Monthly',"
             + "'categoryCombo' : {'id': '"
             + defaultCatCombo
             + "'}, "
             + "'dataSetElements' : [{'dataSet' : {'id':'"
-            + datasetUID
+            + dataSetA
             + "'}, 'id':'"
             + generateUid()
             + "', 'dataElement': {'id' : '"

@@ -224,7 +224,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     if (params.hasProgram()) {
       if (!aclService.canDataRead(params.getUser(), params.getProgram())) {
         throw new IllegalQueryException(
-            "Current user is not authorized to read data from selected program:  "
+            "Current user is not authorized to read data from selected program: "
                 + params.getProgram().getUid());
       }
 
