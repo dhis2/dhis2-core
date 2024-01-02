@@ -28,11 +28,8 @@
 package org.hisp.dhis.analytics.outlier;
 
 import static org.hisp.dhis.analytics.common.ColumnHeader.ABSOLUTE_DEVIATION;
-import static org.hisp.dhis.analytics.common.ColumnHeader.ATTRIBUTE_OPTION_COMBO_NAME;
-import static org.hisp.dhis.analytics.common.ColumnHeader.CATEGORY_OPTION_COMBO_NAME;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LOWER_BOUNDARY;
 import static org.hisp.dhis.analytics.common.ColumnHeader.MEDIAN_ABS_DEVIATION;
-import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME;
 import static org.hisp.dhis.analytics.common.ColumnHeader.STANDARD_DEVIATION;
 import static org.hisp.dhis.analytics.common.ColumnHeader.UPPER_BOUNDARY;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ZSCORE;
@@ -50,9 +47,6 @@ import org.hisp.dhis.analytics.common.ColumnHeader;
 public enum Order {
   Z_SCORE(ZSCORE.getItem(), "z_score"),
   MODIFIED_ZSCORE(ColumnHeader.MODIFIED_ZSCORE.getItem(), "z_score"),
-  OU_NAME(ORG_UNIT_NAME.getItem(), "ou_name"),
-  COC_NAME(CATEGORY_OPTION_COMBO_NAME.getItem(), "coc_name"),
-  AOC_NAME(ATTRIBUTE_OPTION_COMBO_NAME.getItem(), "aoc_name"),
   VALUE("value", "value"),
   MEDIAN(ColumnHeader.MEDIAN.getItem(), "middle_value"),
   MEAN(ColumnHeader.MEAN.getItem(), "middle_value"),
