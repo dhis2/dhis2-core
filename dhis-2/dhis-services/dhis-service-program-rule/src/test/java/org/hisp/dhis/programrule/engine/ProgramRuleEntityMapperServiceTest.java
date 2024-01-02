@@ -66,7 +66,7 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
-import org.hisp.dhis.rules.DataItem;
+import org.hisp.dhis.rules.api.DataItem;
 import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleDataValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;

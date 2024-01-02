@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -44,8 +43,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.rules.RuleEngine;
-import org.hisp.dhis.rules.RuleEngineContext;
+import org.hisp.dhis.rules.api.RuleEngine;
+import org.hisp.dhis.rules.api.RuleEngineContext;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.rules.models.RuleEnrollment;
@@ -61,15 +60,17 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 public class ProgramRuleEngine {
   private static final String ERROR = "Program cannot be null";
 
-  @Nonnull private final ProgramRuleEntityMapperService programRuleEntityMapperService;
+  private final ProgramRuleEntityMapperService programRuleEntityMapperService;
 
-  @Nonnull private final ProgramRuleVariableService programRuleVariableService;
+  private final ProgramRuleVariableService programRuleVariableService;
 
-  @Nonnull private final ConstantService constantService;
+  private final ConstantService constantService;
 
-  @Nonnull private final ImplementableRuleService implementableRuleService;
+  private final ImplementableRuleService implementableRuleService;
 
-  @Nonnull private final SupplementaryDataProvider supplementaryDataProvider;
+  private final SupplementaryDataProvider supplementaryDataProvider;
+
+  private final RuleEngine ruleEngine;
 
   public List<RuleEffect> evaluate(
       Enrollment enrollment, Set<Event> events, List<ProgramRule> rules) {
@@ -152,7 +153,7 @@ public class ProgramRuleEngine {
       RuleEngineContext ruleEngineContext =
           getRuleEngineContext(
               program, enrollment, trackedEntityAttributeValues, ruleEvents, rules);
-      return new RuleEngine().evaluate(ruleEngineContext);
+      return ruleEngine.evaluate(ruleEngineContext);
     } catch (Exception e) {
       log.error(DebugUtils.getStackTrace(e));
       return Collections.emptyList();
@@ -200,11 +201,10 @@ public class ProgramRuleEngine {
       return new RuleValidationResult(false, ERROR, null, null);
     }
 
-    return new RuleEngine()
-        .validate(
-            condition,
-            programRuleEntityMapperService.getItemStore(
-                programRuleVariableService.getProgramRuleVariable(program)));
+    return ruleEngine.validate(
+        condition,
+        programRuleEntityMapperService.getItemStore(
+            programRuleVariableService.getProgramRuleVariable(program)));
   }
 
   /**
@@ -220,11 +220,10 @@ public class ProgramRuleEngine {
       return new RuleValidationResult(false, ERROR, null, null);
     }
 
-    return new RuleEngine()
-        .validateDataFieldExpression(
-            dataExpression,
-            programRuleEntityMapperService.getItemStore(
-                programRuleVariableService.getProgramRuleVariable(program)));
+    return ruleEngine.validateDataFieldExpression(
+        dataExpression,
+        programRuleEntityMapperService.getItemStore(
+            programRuleVariableService.getProgramRuleVariable(program)));
   }
 
   private RuleEngineContext getRuleEngineContext(
@@ -272,10 +271,10 @@ public class ProgramRuleEngine {
       Event event,
       List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
     if (event == null) {
-      return new RuleEngine()
-          .evaluate(getRuleEnrollment(enrollment, trackedEntityAttributeValues), ruleEngineContext);
+      return ruleEngine.evaluate(
+          getRuleEnrollment(enrollment, trackedEntityAttributeValues), ruleEngineContext);
     } else {
-      return new RuleEngine().evaluate(getRuleEvent(event), ruleEngineContext);
+      return ruleEngine.evaluate(getRuleEvent(event), ruleEngineContext);
     }
   }
 }

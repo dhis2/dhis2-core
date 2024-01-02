@@ -58,8 +58,9 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
-import org.hisp.dhis.rules.DataItem;
-import org.hisp.dhis.rules.ItemValueType;
+import org.hisp.dhis.rules.api.DataItem;
+import org.hisp.dhis.rules.api.EnvironmentVariables;
+import org.hisp.dhis.rules.api.ItemValueType;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.Option;
 import org.hisp.dhis.rules.models.Rule;
@@ -86,7 +87,6 @@ import org.hisp.dhis.rules.models.RuleVariableCurrentEvent;
 import org.hisp.dhis.rules.models.RuleVariableNewestEvent;
 import org.hisp.dhis.rules.models.RuleVariableNewestStageEvent;
 import org.hisp.dhis.rules.models.RuleVariablePreviousEvent;
-import org.hisp.dhis.rules.utils.RuleEngineUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.util.DateUtils;
@@ -388,7 +388,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                         ItemValueType.NUMBER)));
 
     // program variables
-    RuleEngineUtils.INSTANCE
+    EnvironmentVariables.INSTANCE
         .getENV_VARIABLES()
         .entrySet()
         .forEach(
