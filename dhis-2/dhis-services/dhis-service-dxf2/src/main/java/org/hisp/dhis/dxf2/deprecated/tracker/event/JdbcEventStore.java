@@ -56,18 +56,6 @@ import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventUtils.userInfoToJ
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.gson.Gson;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -86,8 +74,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdScheme;
@@ -139,6 +125,19 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -2222,8 +2221,8 @@ public class JdbcEventStore implements EventStore {
   private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
     return " (exists(select ss.organisationunitid "
         + " from userteisearchorgunits ss "
-        + " join userinfo u ON u.userinfoid = ss.userinfoid "
-        + " join organisationunit orgunit ON orgunit.organisationunitid = ss.organisationunitid "
+        + " join userinfo u on u.userinfoid = ss.userinfoid "
+        + " join organisationunit orgunit on orgunit.organisationunitid = ss.organisationunitid "
         + " where u.uid = :"
         + COLUMN_USER_UID
         + AND
@@ -2231,8 +2230,8 @@ public class JdbcEventStore implements EventStore {
         + " and p.accesslevel in ('OPEN', 'AUDITED')) "
         + " or exists(select cs.organisationunitid "
         + " from usermembership cs "
-        + " join userinfo u ON u.userinfoid = cs.userinfoid "
-        + " join organisationunit orgunit ON orgunit.organisationunitid = cs.organisationunitid "
+        + " join userinfo u on u.userinfoid = cs.userinfoid "
+        + " join organisationunit orgunit on orgunit.organisationunitid = cs.organisationunitid "
         + " where u.uid = :"
         + COLUMN_USER_UID
         + AND
