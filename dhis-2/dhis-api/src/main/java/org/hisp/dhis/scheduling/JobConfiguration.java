@@ -358,7 +358,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   public boolean isDueBetween(
       @Nonnull Instant now, @Nonnull Instant then, @Nonnull Duration maxCronDelay) {
     Instant dueTime = nextExecutionTime(now, maxCronDelay);
-    return dueTime != null && !dueTime.isBefore(now) && dueTime.isBefore(then);
+    return dueTime != null && dueTime.isBefore(then);
   }
 
   /**
