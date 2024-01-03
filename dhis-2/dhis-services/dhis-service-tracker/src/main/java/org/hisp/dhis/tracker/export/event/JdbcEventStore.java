@@ -32,15 +32,6 @@ import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.google.common.base.Strings;
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.gson.Gson;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -57,8 +48,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -108,6 +97,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.google.common.base.Strings;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -117,8 +116,8 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 class JdbcEventStore implements EventStore {
   private static final String RELATIONSHIP_IDS_QUERY =
-      " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl FROM relationshipitem ri"
-          + " GROUP by ri_ev_id)  as fgh on fgh.ri_ev_id=event.ev_id ";
+      " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl from relationshipitem ri"
+          + " group by ri_ev_id) as fgh on fgh.ri_ev_id=event.ev_id ";
 
   private static final String EVENT_NOTE_QUERY =
       "select evn.eventid as evn_id,"
@@ -352,7 +351,7 @@ class JdbcEventStore implements EventStore {
 
                   event.setGeometry(geom);
                 } catch (ParseException e) {
-                  log.error("Unable to read geometry for event '" + event.getUid() + "': ", e);
+                  log.error("Unable to read geometry for event: '{}'", event.getUid(), e);
                 }
               }
 
@@ -611,14 +610,14 @@ class JdbcEventStore implements EventStore {
       String teaValueCol = statementBuilder.columnQuote(teaUid);
       String teaCol = statementBuilder.columnQuote(teaUid + "ATT");
 
-      sql.append(" INNER JOIN trackedentityattributevalue ")
+      sql.append(" inner join trackedentityattributevalue ")
           .append(teaValueCol)
-          .append(" ON ")
+          .append(" on ")
           .append(teaValueCol + ".trackedentityid")
           .append(" = TE.trackedentityid ")
-          .append(" INNER JOIN trackedentityattribute ")
+          .append(" inner join trackedentityattribute ")
           .append(teaCol)
-          .append(" ON ")
+          .append(" on ")
           .append(teaValueCol + ".trackedentityattributeid")
           .append(EQUALS)
           .append(teaCol + ".trackedentityattributeid")
@@ -649,7 +648,7 @@ class JdbcEventStore implements EventStore {
     // to cast is really a number.
     if (isNumericTea) {
       query
-          .append(" CASE WHEN ")
+          .append(" case when ")
           .append(lower(teaCol + ".valueType"))
           .append(" in (")
           .append(
@@ -659,7 +658,7 @@ class JdbcEventStore implements EventStore {
                   .map(SqlUtils::singleQuote)
                   .collect(Collectors.joining(",")))
           .append(")")
-          .append(" THEN ");
+          .append(" then ");
     }
 
     List<String> filterStrings = new ArrayList<>();
@@ -702,12 +701,12 @@ class JdbcEventStore implements EventStore {
     for (TrackedEntityAttribute orderAttribute : params.leftJoinAttributes()) {
 
       joinOrderAttributes
-          .append(" LEFT JOIN trackedentityattributevalue AS ")
+          .append(" left join trackedentityattributevalue as ")
           .append(statementBuilder.columnQuote(orderAttribute.getUid()))
-          .append(" ON ")
+          .append(" on ")
           .append(statementBuilder.columnQuote(orderAttribute.getUid()))
           .append(".trackedentityid = TE.trackedentityid ")
-          .append("AND ")
+          .append("and ")
           .append(statementBuilder.columnQuote(orderAttribute.getUid()))
           .append(".trackedentityattributeid = ")
           .append(orderAttribute.getId())
@@ -1131,7 +1130,7 @@ class JdbcEventStore implements EventStore {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
     String customChildrenQuery =
-        " AND (ou.hierarchylevel = "
+        " and (ou.hierarchylevel = "
             + params.getOrgUnit().getHierarchyLevel()
             + " OR ou.hierarchylevel = "
             + (params.getOrgUnit().getHierarchyLevel() + 1)
@@ -1179,13 +1178,13 @@ class JdbcEventStore implements EventStore {
       User user, MapSqlParameterSource mapSqlParameterSource, String orgUnitMatcher) {
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
 
-    return " EXISTS(SELECT cs.organisationunitid "
-        + " FROM usermembership cs "
-        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = cs.organisationunitid "
-        + " JOIN userinfo u ON u.userinfoid = cs.userinfoid "
-        + " WHERE u.uid = :"
+    return " exists(select cs.organisationunitid "
+        + " from usermembership cs "
+        + " join organisationunit orgunit on orgunit.organisationunitid = cs.organisationunitid "
+        + " join userinfo u on u.userinfoid = cs.userinfoid "
+        + " where u.uid = :"
         + COLUMN_USER_UID
-        + " AND ou.path like CONCAT(orgunit.path, '%') "
+        + " and ou.path like concat(orgunit.path, '%') "
         + orgUnitMatcher
         + ") ";
   }
@@ -1198,20 +1197,20 @@ class JdbcEventStore implements EventStore {
    * @return a sql clause to add to the main query
    */
   private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
-    return " (EXISTS(SELECT ss.organisationunitid "
-        + " FROM userteisearchorgunits ss "
-        + " JOIN userinfo u ON u.userinfoid = ss.userinfoid "
-        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = ss.organisationunitid "
-        + " WHERE u.uid = :"
+    return " (exists(select ss.organisationunitid "
+        + " from userteisearchorgunits ss "
+        + " join userinfo u ON u.userinfoid = ss.userinfoid "
+        + " join organisationunit orgunit ON orgunit.organisationunitid = ss.organisationunitid "
+        + " where u.uid = :"
         + COLUMN_USER_UID
         + AND
         + orgUnitMatcher
-        + " AND p.accesslevel in ('OPEN', 'AUDITED')) "
-        + " OR EXISTS(SELECT cs.organisationunitid "
-        + " FROM usermembership cs "
-        + " JOIN userinfo u ON u.userinfoid = cs.userinfoid "
-        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = cs.organisationunitid "
-        + " WHERE u.uid = :"
+        + " and p.accesslevel in ('OPEN', 'AUDITED')) "
+        + " or exists(select cs.organisationunitid "
+        + " from usermembership cs "
+        + " join userinfo u on u.userinfoid = cs.userinfoid "
+        + " join organisationunit orgunit on orgunit.organisationunitid = cs.organisationunitid "
+        + " where u.uid = :"
         + COLUMN_USER_UID
         + AND
         + orgUnitMatcher
@@ -1543,7 +1542,7 @@ class JdbcEventStore implements EventStore {
       Map<String, EventDataValue> data = eventDataValueJsonReader.readValue(jsonString);
       return JsonEventDataValueSetBinaryType.convertEventDataValuesMapIntoSet(data);
     } catch (IOException e) {
-      log.error("Parsing EventDataValues json string failed. String value: " + jsonString);
+      log.error("Parsing EventDataValues json string failed, string value: '{}'", jsonString);
       throw new IllegalArgumentException(e);
     }
   }
