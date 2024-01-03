@@ -369,28 +369,30 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
    * @return the next time this job should run based on the {@link #getLastExecuted()} time
    */
   public Instant nextExecutionTime(@Nonnull Instant now, @Nonnull Duration maxCronDelay) {
+    return nextExecutionTime(ZoneId.systemDefault(), now, maxCronDelay);
+  }
+
+  Instant nextExecutionTime(
+      @Nonnull ZoneId zone, @Nonnull Instant now, @Nonnull Duration maxCronDelay) {
     // for good measure we offset the last time by 1 second
     Instant since = lastExecuted == null ? now : lastExecuted.toInstant().plusSeconds(1);
     if (isUsedInQueue() && getQueuePosition() > 0) return null;
     return switch (getSchedulingType()) {
       case ONCE_ASAP -> nextOnceExecutionTime(since);
       case FIXED_DELAY -> nextDelayExecutionTime(since);
-      case CRON -> nextCronExecutionTime(since, now, maxCronDelay);
+      case CRON -> nextCronExecutionTime(zone, since, now, maxCronDelay);
     };
   }
 
   private Instant nextCronExecutionTime(
-      @Nonnull Instant since, Instant now, @Nonnull Duration maxDelay) {
+      @Nonnull ZoneId zone, @Nonnull Instant since, Instant now, @Nonnull Duration maxDelay) {
     if (isUndefinedCronExpression(cronExpression)) return null;
-    SimpleTriggerContext context =
-        new SimpleTriggerContext(Clock.fixed(since, ZoneId.systemDefault()));
-    Date next = new CronTrigger(cronExpression).nextExecutionTime(context);
+    SimpleTriggerContext context = new SimpleTriggerContext(Clock.fixed(since, zone));
+    Date next = new CronTrigger(cronExpression, zone).nextExecutionTime(context);
     if (next == null) return null;
-    if (now.isAfter(next.toInstant().plus(maxDelay))) {
-      context =
-          new SimpleTriggerContext(
-              Clock.fixed(next.toInstant().plusSeconds(1), ZoneId.systemDefault()));
-      next = new CronTrigger(cronExpression).nextExecutionTime(context);
+    while (next != null && now.isAfter(next.toInstant().plus(maxDelay))) {
+      context = new SimpleTriggerContext(Clock.fixed(next.toInstant().plusSeconds(1), zone));
+      next = new CronTrigger(cronExpression, zone).nextExecutionTime(context);
     }
     return next == null ? null : next.toInstant();
   }

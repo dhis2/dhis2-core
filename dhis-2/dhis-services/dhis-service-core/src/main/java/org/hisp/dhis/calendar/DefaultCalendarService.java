@@ -41,7 +41,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,7 +52,7 @@ public class DefaultCalendarService implements CalendarService {
 
   private final Set<Calendar> calendars;
 
-  private Map<String, Calendar> calendarMap = Maps.newHashMap();
+  private final Map<String, Calendar> calendarMap = Maps.newHashMap();
 
   private static final List<DateFormat> DATE_FORMATS =
       Lists.newArrayList(
@@ -88,7 +87,6 @@ public class DefaultCalendarService implements CalendarService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public Calendar getSystemCalendar() {
     String calendarKey = settingManager.getStringSetting(SettingKey.CALENDAR);
     String dateFormat = settingManager.getStringSetting(SettingKey.DATE_FORMAT);
@@ -107,7 +105,6 @@ public class DefaultCalendarService implements CalendarService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public DateFormat getSystemDateFormat() {
     String dateFormatKey = settingManager.getStringSetting(SettingKey.DATE_FORMAT);
 

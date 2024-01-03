@@ -440,14 +440,18 @@ public class ConfigurationController {
     configurationService.setConfiguration(configuration);
   }
 
-  @GetMapping(value = "/corsWhitelist", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(
+      value = {"/corsWhitelist", "/corsAllowlist"},
+      produces = APPLICATION_JSON_VALUE)
   public @ResponseBody Set<String> getCorsWhitelist(Model model, HttpServletRequest request) {
     return configurationService.getConfiguration().getCorsWhitelist();
   }
 
   @SuppressWarnings("unchecked")
   @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
-  @PostMapping(value = "/corsWhitelist", consumes = APPLICATION_JSON_VALUE)
+  @PostMapping(
+      value = {"/corsWhitelist", "/corsAllowlist"},
+      consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setCorsWhitelist(@RequestBody String input) throws IOException {
     Set<String> corsWhitelist = renderService.fromJson(input, Set.class);
