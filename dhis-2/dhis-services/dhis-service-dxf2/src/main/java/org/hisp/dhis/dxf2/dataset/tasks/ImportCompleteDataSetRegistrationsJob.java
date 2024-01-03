@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.dataset.tasks;
 import java.io.IOException;
 import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -47,7 +46,6 @@ import org.springframework.stereotype.Component;
 /**
  * @author david mackessy
  */
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ImportCompleteDataSetRegistrationsJob implements Job {
