@@ -256,12 +256,13 @@ public class AnalyticsOutlierService {
         new GridHeader(UPPER_BOUNDARY.getItem(), UPPER_BOUNDARY.getName(), NUMBER, false, false));
   }
 
-    /**
-     * The method add the metadata into the response grid.
-     * @param grid the {@link Grid}
-     * @param outliers the list of {@link Outlier}
-     * @param request the {@link OutlierRequest}
-     */
+  /**
+   * The method add the metadata into the response grid.
+   *
+   * @param grid the {@link Grid}
+   * @param outliers the list of {@link Outlier}
+   * @param request the {@link OutlierRequest}
+   */
   private void setMetaData(Grid grid, List<Outlier> outliers, OutlierRequest request) {
     grid.addMetaData("algorithm", request.getAlgorithm());
     grid.addMetaData("threshold", request.getThreshold());
@@ -270,12 +271,13 @@ public class AnalyticsOutlierService {
     grid.addMetaData("count", outliers.size());
   }
 
-    /**
-     * The method add the rows into the response grid.
-     * @param grid the {@link Grid}
-     * @param outliers the list of {@link Outlier}
-     * @param request the {@link OutlierRequest}
-     */
+  /**
+   * The method add the rows into the response grid.
+   *
+   * @param grid the {@link Grid}
+   * @param outliers the list of {@link Outlier}
+   * @param request the {@link OutlierRequest}
+   */
   private void setRows(Grid grid, List<Outlier> outliers, OutlierRequest request) {
     outliers.forEach(
         v -> {
@@ -316,14 +318,16 @@ public class AnalyticsOutlierService {
         });
   }
 
-    /**
-     * The method retrieves ID Property. Depend on the IdScheme parameter it could be ID, UID, UUID, Code or Name.
-     * The default property is the UID.
-     * @param object the {@link IdentifiableObject}
-     * @param uid  the {@link String}, default UID of the identifiable object (data element, organisation unit, category option combo, etc...)
-     * @param idScheme the {@link IdScheme}
-     * @return ID Property of the identifiable object (ID, UID, UUID, Code or Name)
-     */
+  /**
+   * The method retrieves ID Property. Depend on the IdScheme parameter it could be ID, UID, UUID,
+   * Code or Name. The default property is the UID.
+   *
+   * @param object the {@link IdentifiableObject}
+   * @param uid the {@link String}, default UID of the identifiable object (data element,
+   *     organisation unit, category option combo, etc...)
+   * @param idScheme the {@link IdScheme}
+   * @return ID Property of the identifiable object (ID, UID, UUID, Code or Name)
+   */
   private String getIdProperty(IdentifiableObject object, String uid, IdScheme idScheme) {
     if (object == null || idScheme == IdScheme.UID || idScheme == IdScheme.UUID) {
       return uid;
