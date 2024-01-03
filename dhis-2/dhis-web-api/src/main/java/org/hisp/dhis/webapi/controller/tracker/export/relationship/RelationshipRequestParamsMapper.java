@@ -56,8 +56,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 class RelationshipRequestParamsMapper {
-  private static final int DEFAULT_PAGE = 1;
-  private static final int DEFAULT_PAGE_SIZE = 50;
 
   private static final Set<String> ORDERABLE_FIELD_NAMES =
       RelationshipMapper.ORDERABLE_FIELDS.keySet();
