@@ -1474,7 +1474,7 @@ class JdbcEventStore implements EventStore {
             + " from categoryoptioncombo coc "
             + " inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid"
             + " inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid"
-            + " where psi.attributeoptioncomboid = coc.categoryoptioncomboid"
+            + " where ev.attributeoptioncomboid = coc.categoryoptioncomboid"
             + " group by coc.categoryoptioncomboid ";
 
     if (!isSuper(user)) {
