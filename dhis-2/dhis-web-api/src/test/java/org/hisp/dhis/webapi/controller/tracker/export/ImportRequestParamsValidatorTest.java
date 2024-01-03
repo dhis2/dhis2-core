@@ -43,12 +43,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-import lombok.Data;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -56,13 +54,13 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import lombok.Data;
 
 /** Tests {@link RequestParamsValidator}. */
 class ImportRequestParamsValidatorTest {
@@ -288,12 +286,6 @@ class ImportRequestParamsValidatorTest {
                 new QueryFilter(QueryOperator.LIKE, "value1:"),
                 new QueryFilter(QueryOperator.LIKE, "value2"))),
         filters);
-  }
-
-  private TrackedEntityAttribute trackedEntityAttribute(String uid) {
-    TrackedEntityAttribute tea = new TrackedEntityAttribute();
-    tea.setUid(uid);
-    return tea;
   }
 
   @ParameterizedTest

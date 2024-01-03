@@ -34,8 +34,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -52,12 +50,12 @@ import org.hisp.dhis.tracker.imports.validation.ValidationResult;
 import org.hisp.dhis.tracker.imports.validation.ValidationService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class DefaultTrackerImportService implements TrackerImportService {
   @Nonnull private final TrackerBundleService trackerBundleService;

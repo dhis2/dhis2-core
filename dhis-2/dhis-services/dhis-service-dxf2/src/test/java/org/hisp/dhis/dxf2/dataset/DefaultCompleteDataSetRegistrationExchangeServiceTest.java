@@ -42,8 +42,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
-
-import com.google.common.collect.Sets;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.Collections;
@@ -96,6 +94,7 @@ import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
+import com.google.common.collect.Sets;
 
 /**
  * @author Luciano Fiandesio
@@ -192,8 +191,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
             aggregateAccessManager,
             notificationPublisher,
             messageService,
-            JacksonObjectMapperConfig.staticJsonMapper(),
-            orgUnitService);
+            JacksonObjectMapperConfig.staticJsonMapper());
 
     DEFAULT_COC = new CategoryOptionCombo();
   }

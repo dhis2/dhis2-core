@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
 
-import com.google.gson.Gson;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -39,6 +38,7 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.util.DateUtils;
 import org.postgresql.util.PGobject;
 import org.springframework.jdbc.core.RowCallbackHandler;
+import com.google.gson.Gson;
 
 /**
  * @author Luciano Fiandesio
@@ -58,6 +58,7 @@ public class EventDataValueRowCallbackHandler implements RowCallbackHandler {
     dataValues.put(rs.getString("key"), getDataValue(rs));
   }
 
+  @SuppressWarnings("unchecked")
   private List<EventDataValue> getDataValue(ResultSet rs) throws SQLException {
     // TODO not sure this is the most efficient way to handle JSONB -> java
     List<EventDataValue> result = new ArrayList<>();

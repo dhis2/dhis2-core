@@ -30,9 +30,6 @@ package org.hisp.dhis.webapi.openapi;
 import static java.lang.Character.isUpperCase;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.stream;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
@@ -51,10 +48,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.OpenApi;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
-import org.hisp.dhis.common.OpenApi;
 
 /**
  * Extracts the properties of "record" like objects.
@@ -66,8 +65,6 @@ import org.hisp.dhis.common.OpenApi;
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 class Property {
-
-  private static final Map<Class<?>, Object> INSTANCES_BY_TYPE = new ConcurrentHashMap<>();
   private static final Map<Class<?>, Collection<Property>> PROPERTIES = new ConcurrentHashMap<>();
 
   @Nonnull String name;

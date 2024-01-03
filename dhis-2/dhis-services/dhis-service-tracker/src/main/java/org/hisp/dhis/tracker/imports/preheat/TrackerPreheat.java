@@ -29,9 +29,6 @@ package org.hisp.dhis.tracker.imports.preheat;
 
 import static org.hisp.dhis.tracker.imports.util.RelationshipKeySupport.getRelationshipKey;
 import static org.hisp.dhis.tracker.imports.util.RelationshipKeySupport.hasRelationshipKey;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -45,8 +42,6 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryCombo;
@@ -77,6 +72,10 @@ import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.user.User;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -312,6 +311,7 @@ public class TrackerPreheat {
    * @param defaultClass The type of object to retrieve
    * @return The default object of the class provided
    */
+  @SuppressWarnings("unchecked")
   public <T extends IdentifiableObject> T getDefault(Class<T> defaultClass) {
     return (T) this.defaults.get(defaultClass);
   }

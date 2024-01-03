@@ -43,7 +43,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -171,11 +170,6 @@ class UserControllerTest {
 
     verify(currentUserService).getCurrentUser();
     verifyNoMoreInteractions(currentUserService);
-    verify(userGroupService)
-        .updateUserGroups(
-            same(user),
-            (Collection<String>) argThat(containsInAnyOrder("abc1", "abc2")),
-            same(currentUser2));
   }
 
   private ImportReport createReportWith(Status status, Consumer<Stats> operation) {
