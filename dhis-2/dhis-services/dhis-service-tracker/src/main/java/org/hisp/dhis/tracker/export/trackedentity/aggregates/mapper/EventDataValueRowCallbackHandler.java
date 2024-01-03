@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
 
+import com.google.gson.Gson;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -38,7 +39,6 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.util.DateUtils;
 import org.postgresql.util.PGobject;
 import org.springframework.jdbc.core.RowCallbackHandler;
-import com.google.gson.Gson;
 
 /**
  * @author Luciano Fiandesio

@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.dataset.tasks;
 
 import java.io.IOException;
 import java.io.InputStream;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -41,7 +42,6 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author david mackessy

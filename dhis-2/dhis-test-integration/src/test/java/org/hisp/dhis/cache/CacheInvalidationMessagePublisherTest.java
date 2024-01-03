@@ -28,6 +28,7 @@
 package org.hisp.dhis.cache;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.List;
 import org.hisp.dhis.cacheinvalidation.redis.PostCacheEventPublisher;
 import org.hisp.dhis.common.IdentifiableObjectManager;
