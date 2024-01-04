@@ -123,14 +123,10 @@ public class AnalyticsZScoreOutlierDetector {
 
     Outlier outlier = new Outlier();
     outlier.setDx(rs.getString("de_uid"));
-    outlier.setDxName(rs.getString("de_name"));
     outlier.setPe(isoPeriod);
     outlier.setOu(rs.getString("ou_uid"));
-    outlier.setOuName(rs.getString("ou_name"));
     outlier.setCoc(rs.getString("coc_uid"));
-    outlier.setCocName(rs.getString("coc_name"));
     outlier.setAoc(rs.getString("aoc_uid"));
-    outlier.setAocName(rs.getString("aoc_name"));
     outlier.setValue(rs.getDouble("value"));
 
     return outlier;

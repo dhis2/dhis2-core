@@ -42,6 +42,7 @@ import lombok.With;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.outlier.Order;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -81,6 +82,8 @@ public class OutlierRequest {
   @Default private OutlierDetectionAlgorithm algorithm = Z_SCORE;
 
   @Default private double threshold = 3.0d;
+
+  @Default private IdScheme outputIdScheme = IdScheme.UID;
 
   private boolean analyzeOnly;
 

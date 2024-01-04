@@ -571,12 +571,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             quote("attributeoptioncomboid"), INTEGER, NOT_NULL, "dv.attributeoptioncomboid"),
         new AnalyticsTableColumn(quote("dataelementid"), INTEGER, NOT_NULL, "dv.dataelementid")
             .withIndexColumns(List.of(quote("dataelementid"))),
-
-        // TODO: Remove all these name columns from here. Analytics tables should not have them.
-        new AnalyticsTableColumn(quote("de_name"), VARCHAR_255, "de.name"),
-        new AnalyticsTableColumn(quote("ou_name"), VARCHAR_255, "ou.name"),
-        new AnalyticsTableColumn(quote("coc_name"), VARCHAR_255, "co.name"),
-        new AnalyticsTableColumn(quote("aoc_name"), VARCHAR_255, "ao.name"),
         new AnalyticsTableColumn(quote("petype"), VARCHAR_255, "pt.name"),
         new AnalyticsTableColumn(quote("path"), VARCHAR_255, "ou.path"),
         // mean
