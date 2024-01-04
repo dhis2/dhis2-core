@@ -47,7 +47,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.ForbiddenException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -131,7 +130,7 @@ public class TrackerEventsExportController {
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)
   void getEventsAsGzip(TrackerEventCriteria eventCriteria, HttpServletResponse response)
-      throws IOException, ForbiddenException {
+      throws IOException {
     EventQueryParams eventQueryParams = requestToSearchParams.map(eventCriteria);
 
     if (areAllEnrollmentsInvalid(eventCriteria, eventQueryParams)) {
@@ -155,7 +154,7 @@ public class TrackerEventsExportController {
 
   @GetMapping(produces = CONTENT_TYPE_JSON_ZIP)
   void getEventsAsZip(TrackerEventCriteria eventCriteria, HttpServletResponse response)
-      throws ForbiddenException, IOException {
+      throws IOException {
     EventQueryParams eventQueryParams = requestToSearchParams.map(eventCriteria);
 
     if (areAllEnrollmentsInvalid(eventCriteria, eventQueryParams)) {
@@ -208,7 +207,7 @@ public class TrackerEventsExportController {
       TrackerEventCriteria eventCriteria,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
-      throws IOException, ForbiddenException {
+      throws IOException {
     EventQueryParams eventQueryParams = requestToSearchParams.map(eventCriteria);
 
     if (areAllEnrollmentsInvalid(eventCriteria, eventQueryParams)) {
@@ -233,7 +232,7 @@ public class TrackerEventsExportController {
       TrackerEventCriteria eventCriteria,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
-      throws IOException, ForbiddenException {
+      throws IOException {
     EventQueryParams eventQueryParams = requestToSearchParams.map(eventCriteria);
 
     if (areAllEnrollmentsInvalid(eventCriteria, eventQueryParams)) {
