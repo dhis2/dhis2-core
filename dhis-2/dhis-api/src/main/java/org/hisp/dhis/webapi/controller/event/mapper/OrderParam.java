@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.event.mapper;
 
 import lombok.Value;
+import org.hisp.dhis.common.SortDirection;
 
 /**
  * Order parameter container to use within services.
