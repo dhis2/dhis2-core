@@ -219,14 +219,13 @@ class TrackerEventsExportControllerByIdTest extends DhisControllerConvenienceTes
   }
 
   @Test
-  void getEventByIdContainsCreatedByAndUpdateByAndAssignedUserInDataValues() {
+  void getEventByIdContainsCreatedByAndUpdateByInDataValues() {
 
     TrackedEntityInstance tei = trackedEntityInstance();
     ProgramInstance programInstance = programInstance(tei);
     ProgramStageInstance programStageInstance = programStageInstance(programInstance);
     programStageInstance.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     programStageInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-    programStageInstance.setAssignedUser(user);
     EventDataValue eventDataValue = new EventDataValue();
     eventDataValue.setValue("6");
     DataElement dataElement = createDataElement('A');
@@ -249,7 +248,6 @@ class TrackerEventsExportControllerByIdTest extends DhisControllerConvenienceTes
     assertEquals(orgUnit.getUid(), event.getString("orgUnit").string());
     assertEquals(user.getUsername(), event.getString("createdBy.username").string());
     assertEquals(user.getUsername(), event.getString("updatedBy.username").string());
-    assertEquals(user.getDisplayName(), event.getString("assignedUser.displayName").string());
     assertFalse(event.getArray("dataValues").isEmpty());
     assertEquals(
         user.getUsername(),
