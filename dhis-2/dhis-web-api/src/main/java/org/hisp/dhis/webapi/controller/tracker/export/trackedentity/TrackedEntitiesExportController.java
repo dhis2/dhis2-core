@@ -288,7 +288,7 @@ class TrackedEntitiesExportController {
 
   @GetMapping(
       value = "/{uid}",
-      produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV})
+      produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
   void getTrackedEntityByUidAsCsv(
       @PathVariable String uid,
       HttpServletResponse response,
@@ -303,8 +303,7 @@ class TrackedEntitiesExportController {
 
     OutputStream outputStream = response.getOutputStream();
     response.setContentType(CONTENT_TYPE_CSV);
-    response.setHeader(
-        HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntity.csv\"");
+    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=trackedEntity.csv");
     csvEventService.write(outputStream, List.of(trackedEntity), !skipHeader);
   }
 }

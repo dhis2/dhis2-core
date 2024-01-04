@@ -68,6 +68,35 @@ class CsvEventService implements CsvService<Event> {
       throws IOException {
     ObjectWriter writer = getObjectWriter(withHeader);
 
+    writer.writeValue(outputStream, getCsvEventDataValues(events));
+  }
+
+  @Override
+  public void writeZip(
+      OutputStream outputStream, List<Event> toCompress, boolean withHeader, String file)
+      throws IOException {
+    CompressionUtil.writeZip(
+        outputStream, getCsvEventDataValues(toCompress), getObjectWriter(withHeader), file);
+  }
+
+  @Override
+  public void writeGzip(OutputStream outputStream, List<Event> toCompress, boolean withHeader)
+      throws IOException {
+    CompressionUtil.writeGzip(
+        outputStream, getCsvEventDataValues(toCompress), getObjectWriter(withHeader));
+  }
+
+  private ObjectWriter getObjectWriter(boolean withHeader) {
+    final CsvSchema csvSchema =
+        CSV_MAPPER
+            .schemaFor(CsvEventDataValue.class)
+            .withLineSeparator("\n")
+            .withUseHeader(withHeader);
+
+    return CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
+  }
+
+  private List<CsvEventDataValue> getCsvEventDataValues(List<Event> events) {
     List<CsvEventDataValue> dataValues = new ArrayList<>();
 
     for (Event event : events) {
@@ -82,31 +111,7 @@ class CsvEventService implements CsvService<Event> {
         dataValues.add(map(value, templateDataValue));
       }
     }
-
-    writer.writeValue(outputStream, dataValues);
-  }
-
-  @Override
-  public void writeZip(
-      OutputStream outputStream, List<Event> toCompress, boolean withHeader, String file)
-      throws IOException {
-    CompressionUtil.writeZip(outputStream, toCompress, getObjectWriter(withHeader), file);
-  }
-
-  @Override
-  public void writeGzip(OutputStream outputStream, List<Event> toCompress, boolean withHeader)
-      throws IOException {
-    CompressionUtil.writeGzip(outputStream, toCompress, getObjectWriter(withHeader));
-  }
-
-  private ObjectWriter getObjectWriter(boolean withHeader) {
-    final CsvSchema csvSchema =
-        CSV_MAPPER
-            .schemaFor(CsvEventDataValue.class)
-            .withLineSeparator("\n")
-            .withUseHeader(withHeader);
-
-    return CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
+    return dataValues;
   }
 
   private static CsvEventDataValue map(Event event) {

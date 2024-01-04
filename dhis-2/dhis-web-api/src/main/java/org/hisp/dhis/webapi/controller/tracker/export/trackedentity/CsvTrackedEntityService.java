@@ -55,6 +55,36 @@ class CsvTrackedEntityService implements CsvService<TrackedEntity> {
       throws IOException {
     ObjectWriter writer = getObjectWriter(withHeader);
 
+    writer.writeValue(outputStream, getCsvTrackedEntities(trackedEntities));
+  }
+
+  @Override
+  public void writeZip(
+      OutputStream outputStream, List<TrackedEntity> toCompress, boolean withHeader, String file)
+      throws IOException {
+    CompressionUtil.writeZip(
+        outputStream, getCsvTrackedEntities(toCompress), getObjectWriter(withHeader), file);
+  }
+
+  @Override
+  public void writeGzip(
+      OutputStream outputStream, List<TrackedEntity> toCompress, boolean withHeader)
+      throws IOException {
+    CompressionUtil.writeGzip(
+        outputStream, getCsvTrackedEntities(toCompress), getObjectWriter(withHeader));
+  }
+
+  private ObjectWriter getObjectWriter(boolean withHeader) {
+    final CsvSchema csvSchema =
+        CSV_MAPPER
+            .schemaFor(CsvTrackedEntity.class)
+            .withLineSeparator("\n")
+            .withUseHeader(withHeader);
+
+    return CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
+  }
+
+  private List<CsvTrackedEntity> getCsvTrackedEntities(List<TrackedEntity> trackedEntities) {
     List<CsvTrackedEntity> attributes = new ArrayList<>();
 
     for (TrackedEntity trackedEntity : trackedEntities) {
@@ -90,32 +120,7 @@ class CsvTrackedEntityService implements CsvService<TrackedEntity> {
         addAttributes(trackedEntity, trackedEntityValue, attributes);
       }
     }
-
-    writer.writeValue(outputStream, attributes);
-  }
-
-  @Override
-  public void writeZip(
-      OutputStream outputStream, List<TrackedEntity> toCompress, boolean withHeader, String file)
-      throws IOException {
-    CompressionUtil.writeZip(outputStream, toCompress, getObjectWriter(withHeader), file);
-  }
-
-  @Override
-  public void writeGzip(
-      OutputStream outputStream, List<TrackedEntity> toCompress, boolean withHeader)
-      throws IOException {
-    CompressionUtil.writeGzip(outputStream, toCompress, getObjectWriter(withHeader));
-  }
-
-  private ObjectWriter getObjectWriter(boolean withHeader) {
-    final CsvSchema csvSchema =
-        CSV_MAPPER
-            .schemaFor(CsvTrackedEntity.class)
-            .withLineSeparator("\n")
-            .withUseHeader(withHeader);
-
-    return CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
+    return attributes;
   }
 
   private String checkForNull(Instant instant) {
