@@ -60,12 +60,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 
 class TrackerEventsExportControllerByIdTest extends DhisControllerConvenienceTest {
 
@@ -87,7 +87,7 @@ class TrackerEventsExportControllerByIdTest extends DhisControllerConvenienceTes
 
   @BeforeEach
   void setUp() {
-    owner = makeUser("owner");
+    owner = createUser("owner");
 
     orgUnit = createOrganisationUnit('A');
     orgUnit.getSharing().setOwner(owner);

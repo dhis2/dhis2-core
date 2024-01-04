@@ -157,7 +157,7 @@ public class TrackerEventsExportController {
 
   @GetMapping(produces = CONTENT_TYPE_JSON_ZIP)
   void getEventsAsZip(TrackerEventCriteria eventCriteria, HttpServletResponse response)
-      throws  IOException {
+      throws IOException {
     EventQueryParams eventQueryParams = requestToSearchParamsMapper.map(eventCriteria);
 
     if (areAllEnrollmentsInvalid(eventCriteria, eventQueryParams)) {

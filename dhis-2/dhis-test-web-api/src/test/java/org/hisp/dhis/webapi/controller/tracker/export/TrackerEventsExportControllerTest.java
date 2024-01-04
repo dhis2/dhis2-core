@@ -67,14 +67,14 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest {
 
   @BeforeEach
   void setUp() {
-    owner = createUser("owner");
+    user = createUser("owner");
 
     OrganisationUnit orgUnit = createOrganisationUnit('A');
-    orgUnit.getSharing().setOwner(owner);
+    orgUnit.getSharing().setOwner(user);
     manager.save(orgUnit, false);
 
     OrganisationUnit anotherOrgUnit = createOrganisationUnit('B');
-    anotherOrgUnit.getSharing().setOwner(owner);
+    anotherOrgUnit.getSharing().setOwner(user);
     manager.save(anotherOrgUnit, false);
 
     user = createUserWithId("tester", CodeGenerator.generateUid());
@@ -84,17 +84,17 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest {
 
     Program program = createProgram('A');
     program.addOrganisationUnit(orgUnit);
-    program.getSharing().setOwner(owner);
+    program.getSharing().setOwner(user);
     program.getSharing().addUserAccess(userAccess());
     manager.save(program, false);
 
     ProgramStage programStage = createProgramStage('A', program);
-    programStage.getSharing().setOwner(owner);
+    programStage.getSharing().setOwner(user);
     programStage.getSharing().addUserAccess(userAccess());
     manager.save(programStage, false);
 
     DataElement de = createDataElement('A');
-    de.getSharing().setOwner(owner);
+    de.getSharing().setOwner(user);
     manager.save(de, false);
   }
 
