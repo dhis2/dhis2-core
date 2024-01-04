@@ -178,7 +178,7 @@ class TrackerCsvTrackedEntityServiceTest {
 
     assertEquals(
         "\"Test tracked entity\",,2022-09-29T15:15:30Z,,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,\"attribute 1\",,\"Age test\",AGE\n"
-            + "\"Test tracked entity\",,2022-09-29T15:15:30Z,,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,\"attribute 2\",,\"Text test\",TEXT",
+            + "\"Test tracked entity\",,2022-09-29T15:15:30Z,,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,\"attribute 2\",,\"Text test\",TEXT\n",
         csvStream.toString(),
         "The tracked entity does not match or not exists in the Zip File.");
   }
@@ -205,7 +205,7 @@ class TrackerCsvTrackedEntityServiceTest {
 
     assertEquals(
         "\"Test tracked entity\",,2022-09-29T15:15:30Z,,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,\"attribute 1\",,\"Age test\",AGE\n"
-            + "\"Test tracked entity\",,2022-09-29T15:15:30Z,,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,\"attribute 2\",,\"Text test\",TEXT",
+            + "\"Test tracked entity\",,2022-09-29T15:15:30Z,,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,\"attribute 2\",,\"Text test\",TEXT\n",
         csvStream.toString(),
         "The tracked entity does not match or not exists in the Zip File.");
   }
