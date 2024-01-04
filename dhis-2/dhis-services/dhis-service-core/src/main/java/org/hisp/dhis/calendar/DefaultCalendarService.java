@@ -36,6 +36,8 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
+import org.hisp.dhis.common.IndirectTransactional;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
@@ -75,6 +77,7 @@ public class DefaultCalendarService implements CalendarService {
   }
 
   @Override
+  @NonTransactional
   public List<Calendar> getAllCalendars() {
     List<Calendar> sortedCalendars = Lists.newArrayList(calendarMap.values());
     Collections.sort(sortedCalendars, CalendarComparator.INSTANCE);
@@ -87,6 +90,7 @@ public class DefaultCalendarService implements CalendarService {
   }
 
   @Override
+  @IndirectTransactional
   public Calendar getSystemCalendar() {
     String calendarKey = settingManager.getStringSetting(SettingKey.CALENDAR);
     String dateFormat = settingManager.getStringSetting(SettingKey.DATE_FORMAT);
@@ -105,6 +109,7 @@ public class DefaultCalendarService implements CalendarService {
   }
 
   @Override
+  @IndirectTransactional
   public DateFormat getSystemDateFormat() {
     String dateFormatKey = settingManager.getStringSetting(SettingKey.DATE_FORMAT);
 
