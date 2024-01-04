@@ -181,62 +181,6 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByCreatedAtClientInAscOrder()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .programStageUid(programStage.getUid())
-            .orderBy("createdAtClient", SortDirection.ASC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void shouldOrderEventsByCreatedAtClientInDescOrder()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .programStageUid(programStage.getUid())
-            .orderBy("createdAtClient", SortDirection.DESC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
-  }
-
-  @Test
-  void shouldOrderEventsByUpdatedAtClientInAscOrder()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .programStageUid(programStage.getUid())
-            .orderBy("lastUpdatedAtClient", SortDirection.ASC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
-  }
-
-  @Test
-  void shouldOrderEventsByUpdatedAtClientInDescOrder()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .programStageUid(programStage.getUid())
-            .orderBy("lastUpdatedAtClient", SortDirection.DESC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
-  }
-
-  @Test
   void testExportEvents() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         operationParamsBuilder.programStageUid(programStage.getUid()).build();
