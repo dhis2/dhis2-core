@@ -251,7 +251,7 @@ public class TrackerTrackedEntitiesExportController {
 
   @GetMapping(
       value = "{id}",
-      produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV})
+      produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
   public void getCsvTrackedEntityInstanceById(
       @PathVariable String id,
       HttpServletResponse response,

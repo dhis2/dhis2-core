@@ -70,90 +70,85 @@ public class TrackerCsvEventService implements CsvEventService<Event> {
 
     ObjectWriter writer = getObjectWriter(withHeader);
 
-    List<CsvEventDataValue> dataValues = new ArrayList<>();
+    writer.writeValue(outputStream, getCsvEventDataValues(events));
+  }
 
-    for (Event event : events) {
-      CsvEventDataValue templateDataValue = new CsvEventDataValue();
-      templateDataValue.setEvent(event.getEvent());
-      templateDataValue.setStatus(event.getStatus() != null ? event.getStatus().name() : null);
-      templateDataValue.setProgram(event.getProgram());
-      templateDataValue.setProgramStage(event.getProgramStage());
-      templateDataValue.setEnrollment(event.getEnrollment());
-      templateDataValue.setOrgUnit(event.getOrgUnit());
-      templateDataValue.setOrgUnitName(event.getOrgUnitName());
-      templateDataValue.setOccurredAt(
-          event.getOccurredAt() == null ? null : event.getOccurredAt().toString());
-      templateDataValue.setScheduledAt(
-          event.getScheduledAt() == null ? null : event.getScheduledAt().toString());
-      templateDataValue.setFollowup(event.isFollowup());
-      templateDataValue.setDeleted(event.isDeleted());
-      templateDataValue.setCreatedAt(
-          event.getCreatedAt() == null ? null : event.getCreatedAt().toString());
-      templateDataValue.setCreatedAtClient(
-          event.getCreatedAtClient() == null ? null : event.getCreatedAtClient().toString());
-      templateDataValue.setUpdatedAt(
-          event.getUpdatedAt() == null ? null : event.getUpdatedAt().toString());
-      templateDataValue.setUpdatedAtClient(
-          event.getUpdatedAtClient() == null ? null : event.getUpdatedAtClient().toString());
-      templateDataValue.setCompletedAt(
-          event.getCompletedAt() == null ? null : event.getCompletedAt().toString());
-      templateDataValue.setUpdatedBy(
-          event.getUpdatedBy() == null ? null : event.getUpdatedBy().getUsername());
-      templateDataValue.setStoredBy(event.getStoredBy());
-      templateDataValue.setCompletedAt(
-          event.getCompletedAt() == null ? null : event.getCompletedAt().toString());
-      templateDataValue.setCompletedBy(event.getCompletedBy());
-      templateDataValue.setAttributeOptionCombo(event.getAttributeOptionCombo());
-      templateDataValue.setAttributeCategoryOptions(event.getAttributeCategoryOptions());
-      templateDataValue.setAssignedUser(
-          event.getAssignedUser() == null ? null : event.getAssignedUser().getUsername());
+  private static CsvEventDataValue map(DataValue value, CsvEventDataValue templateDataValue) {
+    CsvEventDataValue dataValue = new CsvEventDataValue(templateDataValue);
+    dataValue.setDataElement(value.getDataElement());
+    dataValue.setValue(value.getValue());
+    dataValue.setProvidedElsewhere(value.isProvidedElsewhere());
+    dataValue.setCreatedAtDataValue(
+        value.getCreatedAt() == null ? null : value.getCreatedAt().toString());
+    dataValue.setUpdatedAtDataValue(
+        value.getUpdatedAt() == null ? null : value.getUpdatedAt().toString());
 
-      if (event.getGeometry() != null) {
-        templateDataValue.setGeometry(event.getGeometry().toText());
+    if (value.getStoredBy() != null) {
+      dataValue.setStoredBy(value.getStoredBy());
+    }
+    return dataValue;
+  }
 
-        if (event.getGeometry().getGeometryType().equals("Point")) {
-          templateDataValue.setLongitude(event.getGeometry().getCoordinate().x);
-          templateDataValue.setLatitude(event.getGeometry().getCoordinate().y);
-        }
-      }
+  private static CsvEventDataValue map(Event event) {
+    CsvEventDataValue templateDataValue = new CsvEventDataValue();
+    templateDataValue.setEvent(event.getEvent());
+    templateDataValue.setStatus(event.getStatus() != null ? event.getStatus().name() : null);
+    templateDataValue.setProgram(event.getProgram());
+    templateDataValue.setProgramStage(event.getProgramStage());
+    templateDataValue.setEnrollment(event.getEnrollment());
+    templateDataValue.setOrgUnit(event.getOrgUnit());
+    templateDataValue.setOrgUnitName(event.getOrgUnitName());
+    templateDataValue.setOccurredAt(
+        event.getOccurredAt() == null ? null : event.getOccurredAt().toString());
+    templateDataValue.setScheduledAt(
+        event.getScheduledAt() == null ? null : event.getScheduledAt().toString());
+    templateDataValue.setFollowup(event.isFollowup());
+    templateDataValue.setDeleted(event.isDeleted());
+    templateDataValue.setCreatedAt(
+        event.getCreatedAt() == null ? null : event.getCreatedAt().toString());
+    templateDataValue.setCreatedAtClient(
+        event.getCreatedAtClient() == null ? null : event.getCreatedAtClient().toString());
+    templateDataValue.setUpdatedAt(
+        event.getUpdatedAt() == null ? null : event.getUpdatedAt().toString());
+    templateDataValue.setUpdatedAtClient(
+        event.getUpdatedAtClient() == null ? null : event.getUpdatedAtClient().toString());
+    templateDataValue.setCompletedAt(
+        event.getCompletedAt() == null ? null : event.getCompletedAt().toString());
+    templateDataValue.setUpdatedBy(
+        event.getUpdatedBy() == null ? null : event.getUpdatedBy().getUsername());
+    templateDataValue.setStoredBy(event.getStoredBy());
+    templateDataValue.setCompletedAt(
+        event.getCompletedAt() == null ? null : event.getCompletedAt().toString());
+    templateDataValue.setCompletedBy(event.getCompletedBy());
+    templateDataValue.setAttributeOptionCombo(event.getAttributeOptionCombo());
+    templateDataValue.setAttributeCategoryOptions(event.getAttributeCategoryOptions());
+    templateDataValue.setAssignedUser(
+        event.getAssignedUser() == null ? null : event.getAssignedUser().getUsername());
 
-      if (event.getDataValues().isEmpty()) {
-        dataValues.add(templateDataValue);
-        continue;
-      }
+    if (event.getGeometry() != null) {
+      templateDataValue.setGeometry(event.getGeometry().toText());
 
-      for (DataValue value : event.getDataValues()) {
-        CsvEventDataValue dataValue = new CsvEventDataValue(templateDataValue);
-        dataValue.setDataElement(value.getDataElement());
-        dataValue.setValue(value.getValue());
-        dataValue.setProvidedElsewhere(value.isProvidedElsewhere());
-        dataValue.setCreatedAtDataValue(
-            value.getCreatedAt() == null ? null : value.getCreatedAt().toString());
-        dataValue.setUpdatedAtDataValue(
-            value.getUpdatedAt() == null ? null : value.getUpdatedAt().toString());
-
-        if (value.getStoredBy() != null) {
-          dataValue.setStoredBy(value.getStoredBy());
-        }
-
-        dataValues.add(dataValue);
+      if (event.getGeometry().getGeometryType().equals("Point")) {
+        templateDataValue.setLongitude(event.getGeometry().getCoordinate().x);
+        templateDataValue.setLatitude(event.getGeometry().getCoordinate().y);
       }
     }
-
-    writer.writeValue(outputStream, dataValues);
+    return templateDataValue;
   }
 
   @Override
   public void writeZip(
       OutputStream outputStream, List<Event> toCompress, boolean withHeader, String file)
       throws IOException {
-    CompressionUtil.writeZip(outputStream, toCompress, getObjectWriter(withHeader), file);
+    CompressionUtil.writeZip(
+        outputStream, getCsvEventDataValues(toCompress), getObjectWriter(withHeader), file);
   }
 
   @Override
   public void writeGzip(OutputStream outputStream, List<Event> toCompress, boolean withHeader)
       throws IOException {
-    CompressionUtil.writeGzip(outputStream, toCompress, getObjectWriter(withHeader));
+    CompressionUtil.writeGzip(
+        outputStream, getCsvEventDataValues(toCompress), getObjectWriter(withHeader));
   }
 
   private ObjectWriter getObjectWriter(boolean withHeader) {
@@ -164,6 +159,24 @@ public class TrackerCsvEventService implements CsvEventService<Event> {
             .withUseHeader(withHeader);
 
     return CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
+  }
+
+  private List<CsvEventDataValue> getCsvEventDataValues(List<Event> events) {
+    List<CsvEventDataValue> dataValues = new ArrayList<>();
+
+    for (Event event : events) {
+      CsvEventDataValue templateDataValue = map(event);
+
+      if (event.getDataValues().isEmpty()) {
+        dataValues.add(templateDataValue);
+        continue;
+      }
+
+      for (DataValue value : event.getDataValues()) {
+        dataValues.add(map(value, templateDataValue));
+      }
+    }
+    return dataValues;
   }
 
   @Override

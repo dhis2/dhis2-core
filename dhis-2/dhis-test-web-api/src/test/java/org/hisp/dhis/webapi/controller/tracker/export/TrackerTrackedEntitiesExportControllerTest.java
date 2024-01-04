@@ -313,6 +313,43 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
   }
 
   @Test
+  void getTrackedEntityCsvById() {
+    TrackedEntityInstance te = trackedEntityInstance();
+
+    this.switchContextToUser(user);
+
+    WebClient.HttpResponse response =
+        GET(
+            "/tracker/trackedEntities/{id}",
+            te.getUid(),
+            WebClient.Accept(ContextUtils.CONTENT_TYPE_CSV));
+
+    String csvResponse = response.content(ContextUtils.CONTENT_TYPE_CSV);
+
+    assertTrue(response.header("content-type").contains(ContextUtils.CONTENT_TYPE_CSV));
+    assertTrue(response.header("content-disposition").contains("filename=trackedEntity.csv"));
+    assertEquals(trackedEntityToCsv(te), csvResponse);
+  }
+
+  String trackedEntityToCsv(TrackedEntityInstance te) {
+    return "trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,storedBy,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType\n"
+        .concat(
+            String.join(
+                ",",
+                te.getUid(),
+                te.getTrackedEntityType().getUid(),
+                DateUtils.instantFromDate(te.getCreated()).toString(),
+                DateUtils.instantFromDate(te.getCreatedAtClient()).toString(),
+                DateUtils.instantFromDate(te.getLastUpdated()).toString(),
+                DateUtils.instantFromDate(te.getLastUpdatedAtClient()).toString(),
+                te.getOrganisationUnit().getUid(),
+                Boolean.toString(te.isInactive()),
+                Boolean.toString(te.isDeleted()),
+                Boolean.toString(te.isPotentialDuplicate()),
+                ",,,,,,,,,,," + "\n"));
+  }
+
+  @Test
   void getTrackedEntityReturnsCsvFormat() {
     WebClient.HttpResponse response =
         GET(

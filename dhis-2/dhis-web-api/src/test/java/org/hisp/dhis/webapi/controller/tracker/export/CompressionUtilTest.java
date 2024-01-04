@@ -97,14 +97,14 @@ class CompressionUtilTest {
             .filter(e -> e.getEvent().equals(FIRST_EVENT.getEvent()))
             .findAny()
             .orElse(null),
-        "The event does not match or does not exist in the Zip File.");
+        "The event does not match or not exists in the Zip File.");
     assertEquals(
         SECOND_EVENT,
         eventsFromZip.stream()
             .filter(e -> e.getEvent().equals(SECOND_EVENT.getEvent()))
             .findAny()
             .orElse(null),
-        "The event does not match or does not exist in the Zip File.");
+        "The event does not match or not exists in the Zip File.");
   }
 
   @Test
@@ -135,14 +135,14 @@ class CompressionUtilTest {
             .filter(e -> e.getEvent().equals(FIRST_EVENT.getEvent()))
             .findAny()
             .orElse(null),
-        "The event does not match or does not exist in the GZip File.");
+        "The event does not match or not exists in the GZip File.");
     assertEquals(
         SECOND_EVENT,
         eventToGZip.stream()
             .filter(e -> e.getEvent().equals(SECOND_EVENT.getEvent()))
             .findAny()
             .orElse(null),
-        "The event does not match or does not exist in the GZip File.");
+        "The event does not match or not exists in the GZip File.");
   }
 
   List<Event> getEvents() {
