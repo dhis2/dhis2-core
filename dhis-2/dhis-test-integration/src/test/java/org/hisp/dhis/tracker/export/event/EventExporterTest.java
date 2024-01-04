@@ -122,7 +122,6 @@ class EventExporterTest extends TrackerTest {
     CategoryOption categoryOption = get(CategoryOption.class, "yMj2MnmNI8L");
     categoryOption.getSharing().setOwner("o1HMTIzBGo7");
     manager.update(categoryOption);
-
     manager.flush();
   }
 
