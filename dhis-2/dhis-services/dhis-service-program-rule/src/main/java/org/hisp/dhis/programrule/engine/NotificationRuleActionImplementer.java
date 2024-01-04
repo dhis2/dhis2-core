@@ -81,12 +81,10 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
   public ProgramNotificationTemplate getNotificationTemplate(RuleAction action) {
     String uid = "";
 
-    if (action instanceof RuleActionSendMessage) {
-      RuleActionSendMessage sendMessage = (RuleActionSendMessage) action;
+    if (action instanceof RuleActionSendMessage sendMessage) {
       uid = sendMessage.getNotification();
-    } else if (action instanceof RuleActionScheduleMessage) {
-      RuleActionScheduleMessage scheduleMessage = (RuleActionScheduleMessage) action;
-      uid = scheduleMessage.getNotification();
+    } else if (action instanceof RuleActionScheduleMessage scheduledMessage) {
+      uid = scheduledMessage.getNotification();
     }
 
     return programNotificationTemplateService.getByUid(uid);
