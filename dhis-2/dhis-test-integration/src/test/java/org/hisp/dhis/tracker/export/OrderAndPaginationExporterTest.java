@@ -1172,6 +1172,36 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderRelationshipsByUpdatedAtClientInDescOrder()
+      throws ForbiddenException, NotFoundException {
+    RelationshipOperationParams params =
+        RelationshipOperationParams.builder()
+            .type(TrackerType.EVENT)
+            .identifier("pTzf9KYMk72")
+            .orderBy("createdAtClient", SortDirection.DESC)
+            .build();
+
+    List<String> relationships = getRelationships(params);
+
+    assertEquals(List.of("yZxjxJli9mO", "oLT07jKRu9e"), relationships);
+  }
+
+  @Test
+  void shouldOrderRelationshipsByUpdatedAtClientInAscOrder()
+      throws ForbiddenException, NotFoundException {
+    RelationshipOperationParams params =
+        RelationshipOperationParams.builder()
+            .type(TrackerType.EVENT)
+            .identifier("pTzf9KYMk72")
+            .orderBy("createdAtClient", SortDirection.ASC)
+            .build();
+
+    List<String> relationships = getRelationships(params);
+
+    assertEquals(List.of("oLT07jKRu9e", "yZxjxJli9mO"), relationships);
+  }
+
+  @Test
   void shouldReturnPaginatedRelationshipsGivenNonDefaultPageSize()
       throws ForbiddenException, NotFoundException {
     // relationships can only be ordered by created date which is not under our control during
