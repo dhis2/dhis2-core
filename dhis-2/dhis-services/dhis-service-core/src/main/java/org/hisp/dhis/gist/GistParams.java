@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.gist;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.query.Junction;
@@ -57,11 +58,16 @@ public final class GistParams {
 
   boolean inverse = false;
 
-  boolean total = false;
+  @Deprecated(since = "2.41", forRemoval = true)
+  Boolean total;
+
+  Boolean totalPages;
 
   boolean absoluteUrls = false;
 
-  boolean headless = false;
+  Boolean headless;
+
+  Boolean paging;
 
   boolean describe = false;
 
@@ -77,5 +83,19 @@ public final class GistParams {
 
   public GistAutoType getAuto(GistAutoType defaultValue) {
     return auto == null ? defaultValue : auto;
+  }
+
+  @JsonIgnore
+  public boolean isCountTotalPages() {
+    if (totalPages != null) return totalPages;
+    if (total != null) return total;
+    return false;
+  }
+
+  @JsonIgnore
+  public boolean isIncludePager() {
+    if (paging != null) return paging;
+    if (headless != null) return !headless;
+    return true;
   }
 }
