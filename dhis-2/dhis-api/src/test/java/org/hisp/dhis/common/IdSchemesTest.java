@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 class IdSchemesTest {
-
   @Test
   void testGetIdScheme() {
     IdSchemes schemes = new IdSchemes();
