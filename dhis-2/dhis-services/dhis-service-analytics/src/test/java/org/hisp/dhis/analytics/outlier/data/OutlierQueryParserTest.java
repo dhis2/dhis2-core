@@ -53,14 +53,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class OutlierQueryParserTest {
+class OutlierQueryParserTest {
   @Mock private IdentifiableObjectManager idObjectManager;
   @Mock private DimensionalObjectProducer dimensionalObjectProducer;
   @Mock private CurrentUserService currentUserService;
   private OutlierQueryParser subject;
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     DataSet dataSet = createDataSet('A');
     when(idObjectManager.getByUid(eq(DataSet.class), anyCollection())).thenReturn(List.of(dataSet));
 
