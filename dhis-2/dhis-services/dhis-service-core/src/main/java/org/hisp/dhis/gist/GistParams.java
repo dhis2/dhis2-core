@@ -30,6 +30,7 @@ package org.hisp.dhis.gist;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.query.Junction;
 
 /**
@@ -86,14 +87,20 @@ public final class GistParams {
   }
 
   @JsonIgnore
-  public boolean isCountTotalPages() {
+  public boolean isCountTotalPages() throws BadRequestException {
+    if (totalPages != null && total != null && totalPages != total)
+      throw new BadRequestException(
+          "totalPages and total request parameters are contradicting each other");
     if (totalPages != null) return totalPages;
     if (total != null) return total;
     return false;
   }
 
   @JsonIgnore
-  public boolean isIncludePager() {
+  public boolean isIncludePager() throws BadRequestException {
+    if (paging != null && headless != null && paging == headless)
+      throw new BadRequestException(
+          "paging and headless request parameters are contradicting each other");
     if (paging != null) return paging;
     if (headless != null) return !headless;
     return true;

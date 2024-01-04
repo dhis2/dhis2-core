@@ -47,6 +47,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
@@ -171,7 +172,7 @@ public final class GistQuery {
     return filters.size() > 1 && filters.stream().anyMatch(f -> f.getGroup() >= 0);
   }
 
-  public GistQuery with(GistParams params) {
+  public GistQuery with(GistParams params) throws BadRequestException {
     int page = abs(params.getPage());
     int size = Math.min(1000, abs(params.getPageSize()));
     return toBuilder()
