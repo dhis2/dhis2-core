@@ -304,8 +304,7 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
   Long getOrganisationUnitHierarchyMemberCount(
       OrganisationUnit parent, Object member, String collectionName);
 
-  OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet(
-      User user, Integer maxlevels);
+  OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet(User user);
 
   /**
    * Returns the level of the given org unit level. The level parameter string can either represent

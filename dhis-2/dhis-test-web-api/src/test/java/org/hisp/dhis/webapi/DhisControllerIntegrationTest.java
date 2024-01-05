@@ -87,6 +87,7 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
   @BeforeEach
   final void setup() throws Exception {
+    // TODO MAS: Cleanup
     userService = _userService;
     clearSecurityContext();
 
@@ -107,12 +108,7 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
     dbmsManager.flushSession();
     dbmsManager.clearSession();
-    //
-    //    this.currentUser = userService.getUserByUsername(this.currentUser.getUsername());
-    //    injectSecurityContextUser(this.currentUser);
-    //
-    //    dbmsManager.flushSession();
-    //    dbmsManager.clearSession();
+
     beforeEach();
   }
 
@@ -144,17 +140,6 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     user.getUserRoles().add(role);
     user.setLastUpdated(new Date());
     user.setCreated(new Date());
-
-    //    UserDetails currentUserDetails = UserDetails.fromUser(user);
-    //
-    //    Authentication authentication =
-    //        new UsernamePasswordAuthenticationToken(
-    //            currentUserDetails, DEFAULT_ADMIN_PASSWORD, List.of(new
-    // SimpleGrantedAuthority("ALL")));
-    //
-    //    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    //    context.setAuthentication(authentication);
-    //    SecurityContextHolder.setContext(context);
 
     return user;
   }

@@ -126,6 +126,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     save(object, currentUserDetails, clearSharing);
   }
 
+  @Override
   public void save(@Nonnull T object, @Nonnull UserDetails userDetails, boolean clearSharing) {
     checkNotNull(object);
     checkNotNull(userDetails);

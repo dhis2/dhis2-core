@@ -365,8 +365,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
 
   @Override
   @Transactional(readOnly = true)
-  public OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet(
-      User user, Integer maxLevels) {
+  public OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet(User user) {
 
     Set<OrganisationUnit> organisationUnits = user != null ? user.getOrganisationUnits() : null;
     List<DataSet> dataSets = idObjectManager.getDataWriteAll(DataSet.class);

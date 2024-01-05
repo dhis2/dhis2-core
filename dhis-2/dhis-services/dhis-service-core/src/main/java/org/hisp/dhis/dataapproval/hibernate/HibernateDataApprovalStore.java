@@ -337,7 +337,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     if (isDefaultCombo && !maySeeDefaultCategoryCombo) {
       log.warn(
           "DefaultCategoryCombo selected but user "
-              + currentUser.getUsername()
+              + currentUsername
               + " lacks permission to see it.");
 
       return new ArrayList<>(); // Unapprovable.
@@ -352,7 +352,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     if (CollectionUtils.isEmpty(userApprovalLevels)) {
       log.warn(
           "No user approval levels for user "
-              + currentUser.getUsername()
+              + currentUsername
               + ", workflow "
               + workflow.getName());
 
@@ -362,8 +362,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     if (orgUnits != null) {
       for (OrganisationUnit orgUnit : orgUnits) {
         if (!orgUnit.isDescendant(userOrgUnits)) {
-          log.debug(
-              "User " + currentUser.getUsername() + " can't see orgUnit " + orgUnit.getName());
+          log.debug("User " + currentUsername + " can't see orgUnit " + orgUnit.getName());
 
           return new ArrayList<>(); // Unapprovable.
         }

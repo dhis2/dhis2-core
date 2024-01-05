@@ -32,20 +32,27 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.Serializable;
 import java.util.Locale;
+import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettings;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Autowired private UserSettingService userSettingService;
@@ -98,8 +105,12 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
 
     injectSecurityContextUser(userService.getUserByUsername(userA.getUsername()));
 
-    assertTrue(
-        GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets").isEmpty());
+    JsonArray dataSets =
+        GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets");
+
+    log.error("dataSets: {}", dataSets);
+
+    assertTrue(dataSets.isEmpty());
     assertFalse(
         GET("/dataSets?filter=identifiable:token:fr").content().getArray("dataSets").isEmpty());
     assertFalse(
@@ -114,11 +125,24 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
   void testSearchTokenDefaultLocale() {
     setUpTranslation();
     User userA = createAndAddUser("userA", null, "ALL");
+
+    User user = userService.getUser(userA.getUid());
+    UserSettings settings = user.getSettings();
+
     userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.ENGLISH, userA);
     injectSecurityContextUser(userA);
+
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    Map<String, Serializable> userSettings = currentUserDetails.getUserSettings();
+
     systemSettingManager.saveSystemSetting(SettingKey.DB_LOCALE, Locale.ENGLISH);
-    assertTrue(
-        GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets").isEmpty());
+    Locale systemSetting =
+        systemSettingManager.getSystemSetting(SettingKey.DB_LOCALE, Locale.class);
+
+    JsonArray dataSets =
+        GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets");
+
+    assertTrue(dataSets.isEmpty());
     assertTrue(
         GET("/dataSets?filter=identifiable:token:fr").content().getArray("dataSets").isEmpty());
     assertTrue(
@@ -139,8 +163,12 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
     injectSecurityContextUser(userA);
 
     systemSettingManager.saveSystemSetting(SettingKey.DB_LOCALE, Locale.ENGLISH);
-    assertTrue(
-        GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets").isEmpty());
+    JsonArray dataSets =
+        GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets");
+
+    log.error("dataSets: {}", dataSets);
+
+    assertTrue(dataSets.isEmpty());
     assertTrue(
         GET("/dataSets?filter=identifiable:token:fr").content().getArray("dataSets").isEmpty());
     assertTrue(
@@ -154,6 +182,8 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
   }
 
   private void setUpTranslation() {
+    injectSecurityContextUser(getSuperUser());
+
     String id =
         assertStatus(
             HttpStatus.CREATED,

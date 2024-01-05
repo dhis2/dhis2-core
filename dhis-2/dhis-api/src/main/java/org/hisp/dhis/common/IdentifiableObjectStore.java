@@ -79,6 +79,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    *
    * @param object the object instance to delete.
    */
+  @Override
   void delete(@Nonnull T object);
 
   /**
