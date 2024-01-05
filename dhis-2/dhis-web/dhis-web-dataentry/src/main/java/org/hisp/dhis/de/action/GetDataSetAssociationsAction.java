@@ -81,6 +81,7 @@ public class GetDataSetAssociationsAction implements Action {
   public String execute() {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
+    // TODO MAS: not longer in use
     Integer level = organisationUnitService.getOfflineOrganisationUnitLevels(currentUser);
 
     Date lastUpdated =
@@ -96,7 +97,7 @@ public class GetDataSetAssociationsAction implements Action {
     }
 
     OrganisationUnitDataSetAssociationSet organisationUnitSet =
-        organisationUnitService.getOrganisationUnitDataSetAssociationSet(currentUser, level);
+        organisationUnitService.getOrganisationUnitDataSetAssociationSet(currentUser);
 
     dataSetAssociationSets = organisationUnitSet.getDataSetAssociationSets();
 
