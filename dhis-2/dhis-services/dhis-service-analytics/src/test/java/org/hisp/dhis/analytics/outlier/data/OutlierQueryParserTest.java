@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.outlier.data;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -45,6 +46,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +59,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class OutlierQueryParserTest {
   @Mock private IdentifiableObjectManager idObjectManager;
   @Mock private DimensionalObjectProducer dimensionalObjectProducer;
-  @Mock private UserService currentUserService;
+  @Mock private UserService userService;
   private OutlierQueryParser subject;
 
   @BeforeEach
@@ -75,8 +78,11 @@ class OutlierQueryParserTest {
             anyList(), eq(DisplayProperty.NAME), anyList(), eq(IdScheme.UID)))
         .thenReturn(baseDimensionalObject);
 
-    subject =
-        new OutlierQueryParser(idObjectManager, dimensionalObjectProducer, currentUserService);
+    subject = new OutlierQueryParser(idObjectManager, dimensionalObjectProducer, userService);
+
+    User user = new User();
+    user.setUsername("test");
+    injectSecurityContext(UserDetails.fromUser(user));
   }
 
   @Test
