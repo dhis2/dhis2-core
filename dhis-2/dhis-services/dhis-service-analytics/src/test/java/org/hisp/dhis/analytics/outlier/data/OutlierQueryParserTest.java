@@ -45,7 +45,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,7 +56,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class OutlierQueryParserTest {
   @Mock private IdentifiableObjectManager idObjectManager;
   @Mock private DimensionalObjectProducer dimensionalObjectProducer;
-  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService currentUserService;
   private OutlierQueryParser subject;
 
   @BeforeEach
