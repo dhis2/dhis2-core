@@ -29,9 +29,9 @@ package org.hisp.dhis.reservedvalue.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
@@ -71,7 +71,10 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   @Override
   public List<ReservedValue> getAvailableValues(
       ReservedValue reservedValue, List<String> values, String ownerObject) {
-    List<String> availableValues = getIfAvailable(reservedValue, values, ownerObject);
+    if (isEmpty(values) || !reservedValue.getOwnerObject().equals(ownerObject)) {
+      return List.of();
+    }
+    List<String> availableValues = getIfAvailable(reservedValue, values);
 
     return availableValues.stream()
         .map(value -> reservedValue.toBuilder().value(value).build())
@@ -87,28 +90,22 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
     batchHandler.flush();
   }
 
-  private List<String> getIfAvailable(
-      ReservedValue reservedValue, List<String> values, String ownerObject) {
-    // FIX manipulating a collection argument is not ideal, make copy
-    Optional.of(values)
-        .filter(v -> !v.isEmpty() && reservedValue.getOwnerObject().equals(ownerObject))
-        .ifPresent(
-            v ->
-                values.removeAll(
-                    getSession()
-                        .createNamedQuery("getRandomGeneratedAvailableValuesNamedQuery")
-                        .setParameter("teaId", reservedValue.getTrackedEntityAttributeId())
-                        .setParameter("ownerObject", reservedValue.getOwnerObject())
-                        .setParameter("ownerUid", reservedValue.getOwnerUid())
-                        .setParameter("key", reservedValue.getKey())
-                        .setParameter(
-                            "values",
-                            v.parallelStream()
-                                .map(String::toLowerCase)
-                                .collect(Collectors.toList()))
-                        .list()));
+  private List<String> getIfAvailable(ReservedValue reservedValue, List<String> values) {
 
-    return values;
+    List<?> teavOrReservedValues =
+        getSession()
+            .createNamedQuery("getRandomGeneratedValuesNotAvailableNamedQuery")
+            .setParameter("teaId", reservedValue.getTrackedEntityAttributeId())
+            .setParameter("ownerObject", reservedValue.getOwnerObject())
+            .setParameter("ownerUid", reservedValue.getOwnerUid())
+            .setParameter("key", reservedValue.getKey())
+            .setParameter(
+                "values", values.stream().map(String::toLowerCase).collect(Collectors.toList()))
+            .list();
+
+    return values.stream()
+        .filter(rv -> !teavOrReservedValues.contains(rv))
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -118,17 +115,6 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
 
     reservedValues.forEach(batchHandler::addObject);
     batchHandler.flush();
-  }
-
-  @Override
-  public List<ReservedValue> reserveValuesJpa(ReservedValue reservedValue, List<String> values) {
-    List<ReservedValue> toAdd =
-        values.stream()
-            .map(value -> reservedValue.toBuilder().value(value).build())
-            .collect(Collectors.toList());
-
-    toAdd.forEach(this::save);
-    return toAdd;
   }
 
   @Override
