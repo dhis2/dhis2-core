@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -188,6 +189,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
     assertEquals(expectedContentType, res.header("Content-Type"));
     assertEquals(expectedAttachment, res.header(ContextUtils.HEADER_CONTENT_DISPOSITION));
     assertEquals(encoding, res.header(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING));
+    assertNotNull(res.content(expectedContentType));
   }
 
   private UserAccess userAccess() {

@@ -37,6 +37,7 @@ import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOn
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
@@ -484,7 +485,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
             assertTrue(
                 response
                     .header("content-disposition")
-                    .contains("filename=trackedEntities.csv.zip")));
+                    .contains("filename=trackedEntities.csv.zip")),
+        () -> assertNotNull(response.content(ContextUtils.CONTENT_TYPE_CSV_ZIP)));
   }
 
   @Test
@@ -505,9 +507,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
                 response.header("content-type").contains(ContextUtils.CONTENT_TYPE_CSV_GZIP)),
         () ->
             assertTrue(
-                response
-                    .header("content-disposition")
-                    .contains("filename=trackedEntities.csv.gz")));
+                response.header("content-disposition").contains("filename=trackedEntities.csv.gz")),
+        () -> assertNotNull(response.content(ContextUtils.CONTENT_TYPE_CSV_GZIP)));
   }
 
   @Test
