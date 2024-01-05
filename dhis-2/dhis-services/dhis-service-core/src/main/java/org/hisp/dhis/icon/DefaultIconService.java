@@ -72,38 +72,24 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Icon> getIcons() {
-    return Stream.concat(defaultIcons.values().stream(), customIconStore.getAllIcons().stream())
-        .toList();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Icon> getIcons(String[] keywords) {
-    return Stream.concat(
-            defaultIcons.values().stream()
-                .filter(icon -> Set.of(icon.getKeywords()).containsAll(List.of(keywords)))
-                .toList()
-                .stream(),
-            customIconStore.getIconsByKeywords(keywords).stream())
-        .toList();
-  }
-
-  @Override
-  public List<? extends Icon> getIconsByType(IconCriteria iconCriteria) {
-
-    if (IconType.CUSTOM.equals(iconCriteria.getType())) {
-      return iconCriteria.getKeywords() == null
-          ? customIconStore.getAllIcons()
-          : customIconStore.getIconsByKeywords(iconCriteria.getKeywords());
+  public List<? extends Icon> getIcons(IconCriteria iconCriteria) {
+    if (IconType.DEFAULT.equals(iconCriteria.getType())) {
+      return defaultIcons.values().stream()
+          .filter(icon -> Set.of(icon.getKeywords()).containsAll(iconCriteria.getKeywords()))
+          .toList();
     }
 
-    return iconCriteria.getKeywords() == null
-        ? defaultIcons.values().stream().toList()
-        : defaultIcons.values().stream()
-            .filter(
-                icon -> Set.of(icon.getKeywords()).containsAll(List.of(iconCriteria.getKeywords())))
-            .toList();
+    if (IconType.CUSTOM.equals(iconCriteria.getType())) {
+      return customIconStore.getIconsByKeywords(iconCriteria.getKeywords());
+    }
+
+    return Stream.concat(
+            defaultIcons.values().stream()
+                .filter(icon -> Set.of(icon.getKeywords()).containsAll(iconCriteria.getKeywords()))
+                .toList()
+                .stream(),
+            customIconStore.getIconsByKeywords(iconCriteria.getKeywords()).stream())
+        .toList();
   }
 
   @Override

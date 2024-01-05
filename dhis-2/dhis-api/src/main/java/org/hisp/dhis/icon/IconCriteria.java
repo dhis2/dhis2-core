@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.icon;
 
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
+
+/** Represents query parameters sent to {@link IconController}. */
 
 /**
  * @author Zubair Asghar
@@ -36,6 +39,6 @@ import lombok.Data;
 @Data
 @Builder
 public class IconCriteria {
-  private String[] keywords;
-  private IconType type;
+  private List<String> keywords;
+  private IconType type = IconType.ALL;
 }

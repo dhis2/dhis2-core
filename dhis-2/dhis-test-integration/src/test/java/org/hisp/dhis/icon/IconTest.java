@@ -56,6 +56,7 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -89,10 +90,11 @@ class IconTest extends TrackerTest {
 
     assertEquals(
         defaultIconMap.size() + 1,
-        iconService.getIcons().size(),
+        iconService.getIcons(IconCriteria.builder().type(IconType.ALL).build()).size(),
         String.format(
             "Expected to find %d icons, but found %d instead",
-            defaultIconMap.size() + 1, iconService.getIcons().size()));
+            defaultIconMap.size() + 1,
+            iconService.getIcons(IconCriteria.builder().type(IconType.ALL).build()).size()));
   }
 
   @Test
@@ -117,7 +119,8 @@ class IconTest extends TrackerTest {
         iconService.getKeywords().size(),
         String.format(
             "Expected to find %d icons, but found %d instead",
-            keywordList.size() + keywords.length, iconService.getIcons().size()));
+            keywordList.size() + keywords.length,
+            iconService.getIcons(IconCriteria.builder().type(IconType.ALL).build()).size()));
   }
 
   @Test
@@ -140,7 +143,11 @@ class IconTest extends TrackerTest {
             fileResourceD.getUid(),
             currentUserService.getCurrentUser().getUid()));
 
-    assertGreaterOrEqual(2, iconService.getIcons(new String[] {keyword}).size());
+    assertGreaterOrEqual(
+        2,
+        iconService
+            .getIcons(IconCriteria.builder().type(IconType.ALL).keywords(List.of(keyword)).build())
+            .size());
   }
 
   @Test
@@ -166,9 +173,21 @@ class IconTest extends TrackerTest {
             currentUserService.getCurrentUser().getUid());
     iconService.addCustomIcon(iconC);
 
-    assertContainsOnly(List.of(iconB), iconService.getIcons(new String[] {"k4", "k5", "k6"}));
-    assertContainsOnly(List.of(iconC), iconService.getIcons(new String[] {"k6", "k7"}));
-    assertContainsOnly(List.of(iconB, iconC), iconService.getIcons(new String[] {"k6"}));
+    assertContainsOnly(
+        List.of(iconB),
+        iconService.getIcons(
+            IconCriteria.builder()
+                .type(IconType.CUSTOM)
+                .keywords(List.of("k4", "k5", "k6"))
+                .build()));
+    assertContainsOnly(
+        List.of(iconC),
+        iconService.getIcons(
+            IconCriteria.builder().type(IconType.CUSTOM).keywords(List.of("k6", "k7")).build()));
+    assertContainsOnly(
+        List.of(iconB, iconC),
+        iconService.getIcons(
+            IconCriteria.builder().type(IconType.CUSTOM).keywords(List.of("k6")).build()));
   }
 
   @Test
@@ -261,5 +280,10 @@ class IconTest extends TrackerTest {
         .map(DefaultIcon.Icons::getVariants)
         .flatMap(Collection::stream)
         .collect(Collectors.toMap(DefaultIcon::getKey, Function.identity()));
+  }
+
+  private void assertContainsOnly(List<CustomIcon> listA, List<? extends Icon> listB) {
+
+    Assertions.assertContainsOnly(listA, listB.stream().map(i -> (CustomIcon) i).toList());
   }
 }

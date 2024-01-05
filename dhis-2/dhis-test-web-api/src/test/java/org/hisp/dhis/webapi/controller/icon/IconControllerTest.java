@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
-import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.web.HttpStatus;
@@ -119,19 +118,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     JsonObject response = DELETE(String.format("/icons/%s", iconKey)).content();
 
     assertEquals(String.format("Icon %s deleted", iconKey), response.getString("message").string());
-  }
-
-  @Test
-  void shouldGetOnlyCustomIcons() throws IOException {
-    String fileResourceId = createFileResource();
-    createIcon(fileResourceId);
-
-    JsonArray iconArray = GET("/icons/type?type=custom").content(HttpStatus.OK);
-
-    assertEquals(iconKey, iconArray.getObject(0).getString("key").string());
-    assertEquals(description, iconArray.getObject(0).getString("description").string());
-    assertEquals(fileResourceId, iconArray.getObject(0).getString("fileResourceUid").string());
-    assertEquals(keywords, iconArray.getObject(0).getArray("keywords").toString());
   }
 
   private String createIcon(String fileResourceId) {

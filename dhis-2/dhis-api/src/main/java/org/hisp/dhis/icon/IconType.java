@@ -33,6 +33,7 @@ import java.util.Optional;
  * @author Zubair Asghar
  */
 public enum IconType {
+  ALL("all"),
   CUSTOM("custom"),
   DEFAULT("default");
 

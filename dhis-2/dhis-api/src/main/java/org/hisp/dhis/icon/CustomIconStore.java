@@ -47,7 +47,7 @@ public interface CustomIconStore {
    * @param keywords the icon needs to contain
    * @return the list of custom icons that contain all the keywords
    */
-  List<CustomIcon> getIconsByKeywords(String[] keywords);
+  List<CustomIcon> getIconsByKeywords(List<String> keywords);
 
   /**
    * Gets all custom icons present in the database

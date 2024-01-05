@@ -77,7 +77,12 @@ public class JdbcCustomIconStore implements CustomIconStore {
   }
 
   @Override
-  public List<CustomIcon> getIconsByKeywords(String[] keywords) {
+  public List<CustomIcon> getIconsByKeywords(List<String> keywords) {
+
+    if (keywords.isEmpty()) {
+      return getAllIcons();
+    }
+
     final String sql =
         """
             select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,

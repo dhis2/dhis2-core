@@ -56,7 +56,6 @@ import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconCriteria;
 import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.icon.IconService;
-import org.hisp.dhis.icon.IconType;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -73,7 +72,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -126,35 +124,9 @@ public class IconController {
   }
 
   @GetMapping
-  public @ResponseBody List<IconResponse> getAllIcons(
-      @RequestParam(required = false) String[] keywords) {
+  public @ResponseBody List<IconResponse> getAllIcons(IconCriteria iconCriteria) {
 
-    List<Icon> icons;
-
-    if (keywords == null) {
-      icons = iconService.getIcons();
-    } else {
-      icons = iconService.getIcons(keywords);
-    }
-
-    return icons.stream().map(iconMapper::from).toList();
-  }
-
-  @GetMapping(value = "/type")
-  public @ResponseBody List<IconResponse> getIconByType(
-      @RequestParam String type, @RequestParam(required = false) String[] keywords)
-      throws NotFoundException {
-
-    if (IconType.from(type).isEmpty()) {
-      throw new NotFoundException(String.format("Icon type:%s is not supported", type));
-    }
-
-    IconCriteria iconCriteria =
-        IconCriteria.builder().type(IconType.from(type).get()).keywords(keywords).build();
-
-    List<? extends Icon> icons;
-
-    icons = iconService.getIconsByType(iconCriteria);
+    List<? extends Icon> icons = iconService.getIcons(iconCriteria);
 
     return icons.stream().map(iconMapper::from).toList();
   }
